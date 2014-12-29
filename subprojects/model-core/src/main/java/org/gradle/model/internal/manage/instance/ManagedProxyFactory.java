@@ -35,7 +35,7 @@ public class ManagedProxyFactory {
         } catch (NoSuchMethodException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
         } catch (InstantiationException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (IllegalAccessException e) {

@@ -516,13 +516,13 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 #### Test Coverage
 
-- Class based managed type can be used everywhere interface based type can
-- Subclass impl is generated once for each type and reused
-- Subclass cache does not prevent class from being garbage collected
-- Class can implement interfaces (with methods conforming to managed type rules)
-- Class can extend other classes (all classes up to `Object` must conform to the same rules)
-- Constructor can not call any setter methods (at least a runtime error)
-- Class that cannot be instantiated (e.g. default constructor throws)
+- ~~Class based managed type can be used everywhere interface based type can~~
+- ~~Subclass impl is generated once for each type and reused~~
+- ~~Subclass cache does not prevent class from being garbage collected~~
+- ~~Class can implement interfaces (with methods conforming to managed type rules)~~
+- ~~Class can extend other classes (all classes up to `Object` must conform to the same rules)~~
+- ~~Constructor can not call any setter methods (at least a runtime error)~~
+- ~~Class that cannot be instantiated (e.g. default constructor throws)~~
 
 ### Managed type implemented as abstract class can have generative getters
 

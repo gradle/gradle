@@ -381,7 +381,7 @@ class ModelRuleInspectorTest extends Specification {
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $RuleSourceCreatingAClassAnnotatedWithManaged.name#bar($ManagedAnnotatedClass.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface."
+        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface or an abstract class."
     }
 
     static class RuleSourceWithAVoidReturningNoArgumentMethod {

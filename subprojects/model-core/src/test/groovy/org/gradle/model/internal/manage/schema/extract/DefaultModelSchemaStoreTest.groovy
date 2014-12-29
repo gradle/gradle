@@ -23,6 +23,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
 
+import java.lang.ref.WeakReference
+
 class DefaultModelSchemaStoreTest extends Specification {
 
     def store = new DefaultModelSchemaStore()
@@ -62,6 +64,32 @@ class DefaultModelSchemaStoreTest extends Specification {
                 "@${Managed.name} interface SomeThing { ${ManagedSet.name}<SomeThing> getThings() }",
                 "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ManagedSet.name}<Child> getThings() }",
         ]
+    }
+
+    @Unroll
+    def "does not hold strong reference to a managed #type type"() {
+        given:
+        def classLoader = new GroovyClassLoader(getClass().classLoader)
+        def classReference = new WeakReference<Class<?>>(classLoader.parseClass("@${Managed.name} $type ManagedType {}"))
+
+        when:
+        store.getSchema(ModelType.of(classReference.get()))
+
+        then:
+        store.cache.size() > 0
+
+        when:
+        classLoader = null
+
+        then:
+        new PollingConditions(timeout: 10).eventually {
+            System.gc()
+            store.cleanUp()
+            classReference.get() == null
+        }
+
+        where:
+        type << [/*"abstract class" <- this doesn't work because groovy stores soft references to classes via ClassInfo.globalClassSet as soon as an instance is created*/ "interface"]
     }
 
     def "canonicalizes introspection for different sites of generic type"() {

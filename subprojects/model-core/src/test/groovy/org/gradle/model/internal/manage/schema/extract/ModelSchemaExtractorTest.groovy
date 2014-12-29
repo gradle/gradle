@@ -46,7 +46,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "must be interface"() {
         expect:
-        fail EmptyStaticClass, "must be defined as an interface"
+        fail EmptyStaticClass, "must be defined as an interface or an abstract class"
     }
 
     @Managed
@@ -510,7 +510,7 @@ Supported types:
  - enum types
  - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
  - org.gradle.model.collection.ManagedSet<?> of a managed type
- - interfaces annotated with org.gradle.model.Managed""")
+ - interfaces and abstract classes annotated with org.gradle.model.Managed""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -636,6 +636,83 @@ $type
         extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
     }
 
+    def "non-abstract mutator methods are not allowed"() {
+        expect:
+        fail NonAbstractGetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("getName").owner(NonAbstractGetter).returns(String).build()})")
+        fail NonAbstractSetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).build()})")
+    }
+
+    @Managed
+    static abstract class ConstructorWithArguments {
+        ConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class AdditionalConstructorWithArguments {
+        AdditionalConstructorWithArguments() {}
+
+        AdditionalConstructorWithArguments(String arg) {}
+    }
+
+    static class SuperConstructorWithArguments {
+        SuperConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class ConstructorCallingSuperConstructorWithArgs extends SuperConstructorWithArguments {
+        ConstructorCallingSuperConstructorWithArgs() {
+            super("foo")
+        }
+    }
+
+    @Managed
+    static abstract class CustomConstructorInSuperClass extends ConstructorCallingSuperConstructorWithArgs {
+    }
+
+    def "custom constructors are not allowed"() {
+        expect:
+        fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
+        fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
+        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
+    }
+
+    @Managed
+    static abstract class WithInstanceScopedField {
+        private String name
+        private int age
+    }
+
+    @Managed
+    static abstract class WithInstanceScopedFieldInSuperclass extends WithInstanceScopedField {
+    }
+
+    def "instance scoped fields are not allowed"() {
+        expect:
+        fail WithInstanceScopedField, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
+        fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
+    }
+
+    def "classes that cannot be instantiated are detected as soon as they are extracted"() {
+        when:
+        extract(ThrowsInConstructor)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
+        e.cause.message == "from constructor"
+    }
+
+    def "calling setters from constructor is not allowed"() {
+        when:
+        extract(CallsSetterInConstructor)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
+        e.cause.class == UnsupportedOperationException
+        e.cause.message == "Calling setters of a managed type from its constructor is not allowed"
+    }
+
     private void fail(extractType, errorType, String msgPattern) {
         try {
             extract(extractType)
@@ -660,5 +737,35 @@ $type
 
     private String getName(Class<?> clazz) {
         clazz.name
+    }
+}
+
+@Managed
+abstract class NonAbstractGetter {
+    String getName() {}
+}
+
+@Managed
+abstract class NonAbstractSetter {
+    abstract String getName()
+
+    void setName(String name) {}
+}
+
+@Managed
+abstract class ThrowsInConstructor {
+    ThrowsInConstructor() {
+        throw new RuntimeException("from constructor")
+    }
+}
+
+@Managed
+abstract class CallsSetterInConstructor {
+    abstract String getName()
+
+    abstract void setName(String name)
+
+    CallsSetterInConstructor() {
+        name = "foo"
     }
 }

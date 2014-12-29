@@ -16,9 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelSchemaExtractionContext<T> {
@@ -26,7 +28,7 @@ public class ModelSchemaExtractionContext<T> {
     private final ModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private final Action<? super ModelSchemaExtractionContext<T>> validator;
+    private Action<? super ModelSchemaExtractionContext<T>> validator;
 
     private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
         this.parent = parent;
@@ -37,6 +39,10 @@ public class ModelSchemaExtractionContext<T> {
 
     public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
         return new ModelSchemaExtractionContext<T>(null, type, null, Actions.doNothing());
+    }
+
+    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type, Action<? super ModelSchemaExtractionContext<T>> validator) {
+        return new ModelSchemaExtractionContext<T>(null, type, null, validator);
     }
 
     /**
@@ -67,4 +73,8 @@ public class ModelSchemaExtractionContext<T> {
         validator.execute(this);
     }
 
+    public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
+        Iterable<Action<? super ModelSchemaExtractionContext<T>>> actions = Cast.uncheckedCast(ImmutableList.of(this.validator, validator));
+        this.validator = Actions.composite(actions);
+    }
 }

@@ -31,7 +31,6 @@ public class ModelSchema<T> {
         VALUE(false, true), // at the moment we are conflating this with unstructured primitives
         COLLECTION,
         STRUCT, // type is guaranteed to be an interface
-        UNMANAGED_STRUCT(false, false), // an interface that is not annotated with @Managed but would otherwise be a valid managed type
         UNMANAGED(false, false); // some type we know nothing about
 
         private final boolean isManaged;

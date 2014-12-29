@@ -148,4 +148,14 @@ class ManagedModelElementTest extends Specification {
 
         propertyName = "${Introspector.decapitalize(propertyClass.simpleName)}Property"
     }
+
+    def "managed type implementation class is generated once for each type and reused"() {
+        when:
+        def first = createInstance(MultipleProps)
+        def second = createInstance(MultipleProps)
+
+        then:
+        !first.is(second)
+        first.getClass().is(second.getClass())
+    }
 }

@@ -65,7 +65,7 @@ class ModelSchemaExtractor {
             extractionContext = unsatisfiedDependencies.poll();
         }
 
-        for (ModelSchemaExtractionContext<?> validationContext : validations) {
+        for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
             validationContext.validate();
         }
 

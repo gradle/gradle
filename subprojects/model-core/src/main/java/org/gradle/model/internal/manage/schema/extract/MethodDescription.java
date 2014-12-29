@@ -26,6 +26,9 @@ import java.util.Arrays;
 
 public class MethodDescription {
 
+    public final static Type NO_TYPE = new Type() {
+    };
+
     private final Class<?> owner;
     private final String name;
     private final Type returnType;
@@ -49,11 +52,20 @@ public class MethodDescription {
                 return typeName(type);
             }
         });
-        return String.format("%s %s.%s(%s)", typeName(returnType), owner.getName(), name, Joiner.on(", ").join(parameterTypeNames));
+        return String.format("%s%s.%s(%s)", returnTypeName(returnType), owner.getName(), name, Joiner.on(", ").join(parameterTypeNames));
     }
 
     private String typeName(Type type) {
-        return Class.class.isInstance(type) ? Cast.cast(Class.class, type).getName() : type.toString();
+        if (type == NO_TYPE) {
+            return "";
+        } else {
+            return Class.class.isInstance(type) ? Cast.cast(Class.class, type).getName() : type.toString();
+        }
+    }
+
+    private String returnTypeName(Type type) {
+        String typeName = typeName(type);
+        return typeName.length() > 0 ? typeName + " " : typeName;
     }
 
     public static class Builder {

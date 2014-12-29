@@ -26,7 +26,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
-    def "rule can provide a managed model element"() {
+    def "rule can provide a managed model element backed by an interface"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -48,6 +48,129 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
                 @Model
                 void createPerson(Person person, @Path("name") String name) {
                     person.name = name
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: foo")
+    }
+
+    def "rule can provide a managed model element backed by an abstract class"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+                abstract String getName()
+                abstract void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.name = "foo"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: foo")
+    }
+
+    def "rule can provide a managed model element backed by an abstract class that implements interfaces"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            interface Named {
+                String getName()
+            }
+
+            @Managed
+            abstract class Person implements Named {
+                abstract void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.name = "foo"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: foo")
+    }
+
+    def "rule can provide a managed model element backed by an abstract class that extends other classes"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            abstract class Named {
+                abstract String getName()
+            }
+
+            @Managed
+            abstract class Person extends Named {
+                abstract void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.name = "foo"
                 }
 
                 @Mutate
@@ -515,7 +638,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         output.contains "value: 123"
     }
 
-    def "rule can create a managed collection of managed model elements"() {
+    def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -561,6 +684,48 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains 'people: p1, p2, p3'
+    }
+
+    def "rule can create a managed collection of abstract class backed managed model elements"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+              abstract String getName()
+              abstract void setName(String string)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void people(ManagedSet<Person> people) {
+                people.create { it.name = "p1" }
+                people.create { it.name = "p2" }
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printPeople") {
+                  it.doLast {
+                    def names = $("people")*.name.sort().join(", ")
+                    println "people: $names"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains 'people: p1, p2'
     }
 
     def "managed model type has property of collection of managed types"() {
