@@ -44,19 +44,28 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":twirlCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist",
                 ":playBinary",
                 ":assemble")
 
         and:
         verifyJars()
-        verifyZips()
 
         when:
         succeeds("createPlayBinaryJar")
+
         then:
         skipped(":createPlayBinaryJar", ":twirlCompilePlayBinary")
+
+        when:
+        succeeds("dist")
+
+        then:
+        executed(
+                ":createPlayBinaryStartScripts",
+                ":createPlayBinaryDist")
+
+        and:
+        verifyZips()
     }
 
     def "can run play app tests"() {
@@ -79,8 +88,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist",
                 ":playBinary",
                 ":compilePlayBinaryTests",
                 ":testPlayBinary")
@@ -97,8 +104,6 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist",
                 ":playBinary",
                 ":compilePlayBinaryTests",
                 ":testPlayBinary")

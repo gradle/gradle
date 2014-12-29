@@ -371,17 +371,31 @@ Introduce some lifecycle tasks to allow the developer to package up the Play app
 developer may run `gradle stage` to stage the local application, or `gradle dist` to create a standalone distribution.
 
 - Build distribution image and zips, as per `play stage` and `play dist`
-- Integrate with the distribution plugin.
+- Developer can add additional content to the distribution:
+```
+model {
+    distributions {
+        playBinary {
+            contents {
+                from "docs"
+            }
+        }
+    }
+}
+```
+
 
 #### Test cases
 - Public assets are packaged in a separate jar with a classifier of "assets".
-- Distribution zip contains:
+- Default distribution zip contains:
     - all content under a directory named "<play-application-name>-<version>"
     - jar and assets jar in "lib".
     - all runtime libraries in "lib".
     - application script and batch file in "bin".
     - application.conf and secondary routes files in "conf".
     - any README file provided in conventional location "${projectDir}/README"
+- content added to the distribution is also included in the zip
+- additional arbitrary distributions can be created
 - application script and batch file will successfully run play:
     - can access a public asset
     - can access a custom route

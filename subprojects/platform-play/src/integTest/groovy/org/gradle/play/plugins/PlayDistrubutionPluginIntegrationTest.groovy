@@ -62,10 +62,10 @@ class PlayDistrubutionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "assemble"
+        succeeds "dist"
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":createPlayBinaryStartScripts", ":createPlayBinaryDist", ":playBinary", ":assemble")
+        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":createPlayBinaryStartScripts", ":createPlayBinaryDist")
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:

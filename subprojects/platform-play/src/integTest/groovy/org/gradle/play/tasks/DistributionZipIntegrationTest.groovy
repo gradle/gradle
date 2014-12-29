@@ -52,7 +52,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         file("additionalFile.txt").createFile()
 
         when:
-        succeeds "assemble"
+        succeeds "dist"
 
         then:
         zip("build/distributions/playBinary.zip").containsDescendants("playBinary/additionalFile.txt")
