@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.manage.instance;
 
-import org.gradle.model.internal.type.ModelType;
-
 public interface ModelElementState {
 
-    <T> T get(ModelType<T> modelType, String name);
+    Object get(String name);
 
-    <T> void set(ModelType<T> propertyType, String name, T value);
+    void set(String name, Object value);
 }

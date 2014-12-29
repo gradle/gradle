@@ -386,11 +386,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private static class NoOpModelElementState implements ModelElementState {
-        public <T> T get(ModelType<T> modelType, String name) {
+        public Object get(String name) {
             return null;
         }
 
-        public <T> void set(ModelType<T> propertyType, String name, T value) {
+        public void set(String name, Object value) {
         }
     }
 }

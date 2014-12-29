@@ -25,14 +25,11 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ParameterizedTypeImpl;
 import org.gradle.util.CollectionUtils;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 
@@ -176,7 +173,6 @@ public class ManagedProxyClassGenerator {
 
         writeLabel(methodVisitor, calledOutsideOfConstructor);
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        putModelTypeOnStack(methodVisitor, method.getGenericParameterTypes()[0]);
         putConstantOnStack(methodVisitor, propertyName);
         putFirstMethodArgumentOnStack(methodVisitor);
         invokeStateSetMethod(methodVisitor);
@@ -205,7 +201,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(ModelType.class), Type.getType(String.class), Type.getType(Object.class));
+        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(ModelElementState.class), "set", methodDescriptor, true);
     }
 
@@ -236,55 +232,12 @@ public class ManagedProxyClassGenerator {
         methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
-    private void putModelTypeOnStack(MethodVisitor methodVisitor, java.lang.reflect.Type type) {
-        putTypeReferenceOnStack(methodVisitor, type);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(ModelType.class), "of", Type.getMethodDescriptor(Type.getType(ModelType.class), Type.getType(java.lang.reflect.Type.class)), false);
-    }
-
-    private void putTypeReferenceOnStack(MethodVisitor visitor, java.lang.reflect.Type type) {
-        if (type == null) {
-            visitor.visitInsn(Opcodes.ACONST_NULL);
-        } else if (type instanceof Class) {
-            visitor.visitLdcInsn(Type.getType((Class) type));
-        } else if (type instanceof ParameterizedType) {
-            putParametrizedTypeReferenceOnStack(visitor, (ParameterizedType) type);
-        } else {
-            throw new IllegalArgumentException(String.format("Generating bytecode for reference to type class '%s' is not supported", type.getClass()));
-        }
-    }
-
-    private void putParametrizedTypeReferenceOnStack(MethodVisitor visitor, ParameterizedType type) {
-        visitor.visitTypeInsn(Opcodes.NEW, Type.getInternalName(ParameterizedTypeImpl.class));
-        visitor.visitInsn(Opcodes.DUP);
-        putTypeReferenceOnStack(visitor, type.getRawType());
-        putTypeReferenceOnStack(visitor, type.getOwnerType());
-        putTypeArrayOnStack(visitor, type.getActualTypeArguments());
-        invokeParametrizedTypeImplConstructor(visitor);
-    }
-
-    private void invokeParametrizedTypeImplConstructor(MethodVisitor visitor) {
-        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(java.lang.reflect.Type.class), Type.getType(java.lang.reflect.Type.class), Type.getType(java.lang.reflect.Type[].class));
-        visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(ParameterizedTypeImpl.class), "<init>", constructorDescriptor, false);
-    }
-
-    private void putTypeArrayOnStack(MethodVisitor visitor, java.lang.reflect.Type[] types) {
-        putConstantOnStack(visitor, types.length);
-        visitor.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(java.lang.reflect.Type.class));
-        for (int i = 0; i < types.length; i++) {
-            visitor.visitInsn(Opcodes.DUP);
-            putConstantOnStack(visitor, i);
-            putTypeReferenceOnStack(visitor, types[i]);
-            visitor.visitInsn(Opcodes.AASTORE);
-        }
-    }
-
     private void writeGetter(ClassVisitor visitor, Type generatedType, Method method) {
         String propertyName = getPropertyName(method);
 
         MethodVisitor methodVisitor = declareMethod(visitor, method);
 
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        putModelTypeOnStack(methodVisitor, method.getGenericReturnType());
         putConstantOnStack(methodVisitor, propertyName);
         invokeStateGetMethod(methodVisitor);
         castFirstStackElement(methodVisitor, method.getReturnType());
@@ -300,7 +253,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(ModelType.class), Type.getType(String.class));
+        String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(ModelElementState.class), "get", methodDescriptor, true);
     }
 }

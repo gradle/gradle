@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -58,14 +59,20 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
             // TODO we are relying on the creator having established these links, we should be checking
             class State implements ModelElementState {
-                public <T> T get(ModelType<T> modelType, String name) {
-                    MutableModelNode propertyNode = modelNode.getLink(name);
+                public Object get(String name) {
                     ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelType<?> propertyType = property.getType();
+
+                    return doGet(propertyType, name, property);
+                }
+
+                private <T> T doGet(ModelType<T> propertyType, String propertyName, ModelProperty<?> property) {
+                    MutableModelNode propertyNode = modelNode.getLink(propertyName);
 
                     if (!property.isWritable()) {
-                        // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the viewq
+                        // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the view
                         if (writable) {
-                            ModelView<? extends T> modelView = propertyNode.asWritable(modelType, ruleDescriptor, null);
+                            ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
                             if (closed) {
                                 //noinspection ConstantConditions
                                 modelView.close();
@@ -74,14 +81,14 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                             return modelView.getInstance();
                         } else {
                             //noinspection ConstantConditions
-                            return propertyNode.asReadOnly(modelType, ruleDescriptor).getInstance();
+                            return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                         }
                     } else {
-                        return propertyNode.getPrivateData(modelType);
+                        return propertyNode.getPrivateData(propertyType);
                     }
                 }
 
-                public <T> void set(ModelType<T> propertyType, String name, T value) {
+                public void set(String name, Object value) {
                     if (!writable) {
                         throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' as it is an input to rule '%s'", modelNode.getPath(), getType(), ruleDescriptor));
                     }
@@ -89,12 +96,20 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed", modelNode.getPath(), getType(), ruleDescriptor));
                     }
 
+                    ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelType<?> propertyType = property.getType();
+
+                    doSet(name, value, propertyType);
+                }
+
+                private <T> void doSet(String name, Object value, ModelType<T> propertyType) {
                     ModelSchema<T> schema = schemaStore.getSchema(propertyType);
 
                     if (schema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
                         throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                     }
-                    modelNode.getLink(name).setPrivateData(propertyType, value);
+                    T castValue = Cast.uncheckedCast(value);
+                    modelNode.getLink(name).setPrivateData(propertyType, castValue);
                 }
             }
         };

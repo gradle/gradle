@@ -61,20 +61,31 @@ public class ManagedModelElement<T> {
         return properties;
     }
 
+    public ModelType<?> getPropertyType(String name) {
+        return properties.get(name).getMeta().getType();
+    }
+
     public ModelElementState getState() {
         return new ModelElementState() {
-            public <P> P get(ModelType<P> type, String name) {
-                ModelPropertyInstance<P> propertyInstance = ManagedModelElement.this.get(type, name);
-                P value = propertyInstance.get();
+            public Object get(String name) {
+                return doGet(getPropertyType(name), name);
+            }
+
+            private <T> T doGet(ModelType<T> type, String name) {
+                ModelPropertyInstance<T> propertyInstance = ManagedModelElement.this.get(type, name);
+                T value = propertyInstance.get();
                 if (value == null && !propertyInstance.getMeta().isWritable()) {
                     value = instantiator.newInstance(schemaStore.getSchema(type));
                     propertyInstance.set(value);
                 }
-
                 return value;
             }
 
-            public <P> void set(ModelType<P> propertyType, String name, P value) {
+            public void set(String name, Object value) {
+                doSet(getPropertyType(name), name, value);
+            }
+
+            private <P> void doSet(ModelType<P> propertyType, String name, Object value) {
                 ModelPropertyInstance<P> modelPropertyInstance = ManagedModelElement.this.get(propertyType, name);
                 ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
                 if (propertySchema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {

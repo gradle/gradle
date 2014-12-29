@@ -32,7 +32,7 @@ class ManagedProxyTest extends Specification {
 
     def "a useful type name is used in stacktrace for a generated managed model type"() {
         given:
-        def proxy = factory.createProxy([get: { type, name -> throw new RuntimeException("from state") }] as ModelElementState, DefaultModelSchemaStore.instance.getSchema(ModelType.of(ManagedType)))
+        def proxy = factory.createProxy([get: { throw new RuntimeException("from state") }] as ModelElementState, DefaultModelSchemaStore.instance.getSchema(ModelType.of(ManagedType)))
 
         when:
         proxy.self
