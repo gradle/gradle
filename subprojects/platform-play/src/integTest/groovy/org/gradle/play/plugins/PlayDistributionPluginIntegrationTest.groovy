@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 
-class PlayDistrubutionPluginIntegrationTest extends AbstractIntegrationSpec {
+class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
