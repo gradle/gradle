@@ -23,6 +23,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,7 +31,8 @@ import java.util.regex.Pattern
 
 class ModelSchemaExtractorTest extends Specification {
 
-    def extractor = new ModelSchemaExtractor()
+    def store = new ModelSchemaExtractor()
+    @Shared def cache = new ModelSchemaCache()
 
     static interface NotAnnotatedInterface {}
 
@@ -645,7 +647,7 @@ $type
     }
 
     private ModelSchema<?> extract(ModelType<?> modelType) {
-        extractor.extract(modelType, new ModelSchemaCache())
+        store.extract(modelType, cache)
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {

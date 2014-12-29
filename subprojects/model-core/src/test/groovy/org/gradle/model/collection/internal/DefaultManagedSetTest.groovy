@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class DefaultManagedSetTest extends Specification {
 
-    def schemaStore = new DefaultModelSchemaStore()
+    def schemaStore = DefaultModelSchemaStore.instance
     def instantiator = new StrategyBackedModelInstantiator(schemaStore, new ManagedProxyFactory(), new DirectInstantiator())
 
     @Managed

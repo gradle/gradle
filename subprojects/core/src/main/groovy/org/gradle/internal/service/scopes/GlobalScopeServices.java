@@ -181,7 +181,7 @@ public class GlobalScopeServices {
     }
 
     protected ModelSchemaStore createModelSchemaStore() {
-        return new DefaultModelSchemaStore();
+        return DefaultModelSchemaStore.getInstance();
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

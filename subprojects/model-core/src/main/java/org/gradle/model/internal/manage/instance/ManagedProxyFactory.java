@@ -17,17 +17,19 @@
 package org.gradle.model.internal.manage.instance;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
-    private ManagedProxyClassGenerator proxyClassGenerator = new ManagedProxyClassGenerator();
-
-    public <T> T createProxy(ModelElementState state, Class<T> managedType) {
+    public <T> T createProxy(ModelElementState state, ModelSchema<T> schema) {
         try {
-            Class<? extends T> generatedClass = proxyClassGenerator.generate(managedType);
+            Class<? extends T> generatedClass = schema.getManagedImpl();
+            if (generatedClass == null) {
+                throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
+            }
             Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
             return constructor.newInstance(state);
         } catch (NoSuchMethodException e) {

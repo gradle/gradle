@@ -71,7 +71,7 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     def "can use property accessors in DSL to build model object path"() {
         given:
-        def schemaStore = new DefaultModelSchemaStore()
+        def schemaStore = DefaultModelSchemaStore.instance
         def factory = new ManagedProxyFactory()
         modelRegistry.create(ManagedModelInitializer.creator(
                 new SimpleModelRuleDescriptor("blah"),

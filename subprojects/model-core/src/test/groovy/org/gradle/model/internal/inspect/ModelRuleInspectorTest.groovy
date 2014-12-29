@@ -39,7 +39,7 @@ class ModelRuleInspectorTest extends Specification {
 
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
+    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, DefaultModelSchemaStore.instance))
     def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {

@@ -14,52 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.instance;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.apache.commons.collections.map.AbstractReferenceMap;
-import org.apache.commons.collections.map.ReferenceMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
+import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ParameterizedTypeImpl;
+import org.gradle.util.CollectionUtils;
 import org.objectweb.asm.*;
-import org.objectweb.asm.Type;
 
-import java.lang.reflect.*;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
+import java.util.List;
 
 public class ManagedProxyClassGenerator {
-    private static final Map<Class<?>, Class<?>> GENERATED_CLASSES = Cast.uncheckedCast(new ReferenceMap(AbstractReferenceMap.WEAK, AbstractReferenceMap.WEAK));
-    private static final Lock CACHE_LOCK = new ReentrantLock();
+
+    /*
+        Note: there is deliberately no internal synchronizing or caching at this level.
+
+        Class generation should always be performed behind a ModelSchemaCache, by way of DefaultModelSchemaStore.
+        The generated class is then attached to the schema object.
+        This allows us to avoid yet another weak class based cache, and importantly having to acquire a lock to instantiate an implementation.
+     */
+
     private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
 
     private static final String CONCRETE_SIGNATURE = null;
     private static final String STATE_FIELD_NAME = "state";
 
-    public <T> Class<? extends T> generate(Class<T> type) {
-        try {
-            CACHE_LOCK.lock();
-            return generateUnderLock(type);
-        } finally {
-            CACHE_LOCK.unlock();
-        }
-    }
-
-    private <T> Class<? extends T> generateUnderLock(Class<T> type) {
-        Class<?> cachedClass = GENERATED_CLASSES.get(type);
-        if (cachedClass != null) {
-            return cachedClass.asSubclass(type);
-        }
-        Class<? extends T> generatedClass = generateProxyClass(type);
-        GENERATED_CLASSES.put(type, generatedClass);
-        return generatedClass;
-    }
-
-    private <T> Class<? extends T> generateProxyClass(Class<T> managedTypeClass) {
+    public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
         String generatedTypeName = managedTypeClass.getName() + "_Impl";
@@ -131,7 +120,8 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
-        for (Method method : managedTypeClass.getMethods()) {
+        List<Method> methods = CollectionUtils.dedup(Arrays.asList(managedTypeClass.getMethods()), new MethodSignatureEquivalence());
+        for (Method method : methods) {
             if (method.getName().startsWith("get")) {
                 writeGetter(visitor, generatedType, method);
             } else if (method.getName().startsWith("set")) {
@@ -191,9 +181,9 @@ public class ManagedProxyClassGenerator {
             visitor.visitInsn(Opcodes.ACONST_NULL);
         } else if (type instanceof Class) {
             visitor.visitLdcInsn(Type.getType((Class) type));
-        } else if(type instanceof ParameterizedType) {
+        } else if (type instanceof ParameterizedType) {
             putParametrizedTypeReferenceOnStack(visitor, (ParameterizedType) type);
-        }else {
+        } else {
             throw new IllegalArgumentException(String.format("Generating bytecode for reference to type class '%s' is not supported", type.getClass()));
         }
     }

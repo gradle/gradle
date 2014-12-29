@@ -31,7 +31,7 @@ import java.beans.Introspector
 
 class ManagedModelElementTest extends Specification {
 
-    def schemas = new DefaultModelSchemaStore()
+    def schemas = DefaultModelSchemaStore.instance
     def instantiator = new StrategyBackedModelInstantiator(schemas, new ManagedProxyFactory(), new DirectInstantiator())
 
     def <T> ManagedModelElement<T> createElement(Class<T> elementClass) {

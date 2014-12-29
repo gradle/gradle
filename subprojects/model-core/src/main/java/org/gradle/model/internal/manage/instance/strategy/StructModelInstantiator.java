@@ -32,13 +32,11 @@ public class StructModelInstantiator implements ModelInstantiatorStrategy {
 
     public <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator instantiator) {
         if (schema.getKind().equals(ModelSchema.Kind.STRUCT)) {
-            Class<T> concreteType = schema.getType().getConcreteClass();
             ManagedModelElement<T> element = new ManagedModelElement<T>(schema, schemaStore, instantiator);
-            return proxyFactory.createProxy(element.getState(), concreteType);
+            return proxyFactory.createProxy(element.getState(), schema);
         } else {
             return null;
         }
-
     }
 
 }

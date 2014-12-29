@@ -19,10 +19,9 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -40,6 +39,8 @@ import java.util.List;
 public class StructStrategy implements ModelSchemaExtractionStrategy {
     protected final Factory<String> supportedTypeDescriptions;
     protected final ModelSchemaExtractor extractor;
+
+    private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
     public StructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
         this.supportedTypeDescriptions = supportedTypeDescriptions;
@@ -122,7 +123,9 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", notHandled);
             }
 
-            ModelSchema<R> schema = ModelSchema.struct(type, properties);
+            Class<R> concreteClass = type.getConcreteClass();
+            Class<? extends R> implClass = classGenerator.generate(concreteClass);
+            ModelSchema<R> schema = ModelSchema.struct(type, properties, implClass);
             Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
                 public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
                     return toPropertyExtractionContext(extractionContext, property, cache);
@@ -242,31 +245,6 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 .returns(method.getGenericReturnType())
                 .takes(method.getGenericParameterTypes())
                 .build();
-    }
-
-    static private class MethodSignatureEquivalence extends Equivalence<Method> {
-
-        @Override
-        protected boolean doEquivalent(Method a, Method b) {
-            boolean equals = new EqualsBuilder()
-                    .append(a.getName(), b.getName())
-                    .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                    .isEquals();
-            if (equals) {
-                equals = a.getReturnType().equals(b.getReturnType())
-                        || a.getReturnType().isAssignableFrom(b.getReturnType())
-                        || b.getReturnType().isAssignableFrom(a.getReturnType());
-            }
-            return equals;
-        }
-
-        @Override
-        protected int doHash(Method method) {
-            return new HashCodeBuilder()
-                    .append(method.getName())
-                    .append(method.getGenericParameterTypes())
-                    .toHashCode();
-        }
     }
 
     static private class ReturnTypeSpecializationOrdering extends Ordering<Method> {

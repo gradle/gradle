@@ -34,7 +34,7 @@ import java.util.Queue;
 import static org.gradle.internal.SystemProperties.getLineSeparator;
 
 @ThreadSafe
-public class ModelSchemaExtractor {
+class ModelSchemaExtractor {
 
     private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
         public String create() {
