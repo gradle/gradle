@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 import java.io.File;
+import java.util.List;
 
 public class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
@@ -34,11 +35,13 @@ public class CppCompiler extends NativeCompiler<CppCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsWriter optionsFileTransformer(CppCompileSpec spec) {
-        return new GccOptionsFileArgWriter(spec.getTempDir());
+    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
+        return new GccOptionsFileArgWriter(tempDir);
     }
 
-    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
-        return new GccOutputFileArgTransformer(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
+    @Override
+    protected void addOutputArgs(List<String> args, File outputFile) {
+        args.add("-o");
+        args.add(outputFile.getAbsolutePath());
     }
 }

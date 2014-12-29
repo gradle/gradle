@@ -23,7 +23,6 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.gcc.CCompiler
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccOptionsFileArgWriter
-import org.gradle.nativeplatform.toolchain.internal.gcc.GccOutputFileArgTransformer
 import org.gradle.platform.base.internal.toolchain.ArgWriter
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -59,10 +58,9 @@ class NativeCompilerTest extends Specification {
     CommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation()
     ArgsTransformer<CCompileSpec> argsTransformer = new CCompiler.CCompileArgsTransformer()
     Transformer<CCompileSpec, CCompileSpec> specTransformer = Transformers.noOpTransformer()
-    OutputFileArgTransformer outputFileArgTransformer = Mock(OutputFileArgTransformer)
     OptionsFileArgsWriter argsWriter = Spy(DummyOptionsFileArgsWriter)
 
-    DummyCompiler compiler = new DummyCompiler(commandLineTool, invocation, argsTransformer, specTransformer, outputFileArgTransformer, argsWriter)
+    DummyCompiler compiler = new DummyCompiler(commandLineTool, invocation, argsTransformer, specTransformer, argsWriter)
 
     @Ignore("Broken")
     def "capture current behavior of native compiler execute"() {

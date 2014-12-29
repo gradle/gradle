@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 import java.io.File;
+import java.util.List;
 
 class CppCompiler extends NativeCompiler<CppCompileSpec> {
 
@@ -28,8 +29,8 @@ class CppCompiler extends NativeCompiler<CppCompileSpec> {
         super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer, objectFileSuffix, true);
     }
 
-    protected OptionsFileArgsWriter optionsFileTransformer(CppCompileSpec spec) {
-        return new VisualCppOptionsFileArgWriter(spec.getTempDir());
+    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
+        return new VisualCppOptionsFileArgWriter(tempDir);
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
@@ -38,8 +39,9 @@ class CppCompiler extends NativeCompiler<CppCompileSpec> {
         }
     }
 
-    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
-        return new VisualCppOutputFileArgTransformer(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
+    @Override
+    protected void addOutputArgs(List<String> args, File outputFile) {
+        // MSVC doesn't allow a space between Fo and the file name
+        args.add("/Fo" + outputFile.getAbsolutePath());
     }
-
 }

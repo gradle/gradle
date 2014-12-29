@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 import java.io.File;
+import java.util.List;
 
 class CCompiler extends NativeCompiler<CCompileSpec> {
 
@@ -34,12 +35,14 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
         }
     }
 
-    protected OptionsFileArgsWriter optionsFileTransformer(CCompileSpec spec) {
-        return new GccOptionsFileArgWriter(spec.getTempDir());
+    @Override
+    protected void addOutputArgs(List<String> args, File outputFile) {
+        args.add("-o");
+        args.add(outputFile.getAbsolutePath());
     }
 
-
-    protected OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation) {
-        return new GccOutputFileArgTransformer(sourceFile, objectFileDir, objectFileNameSuffix, windowsPathLengthLimitation);
+    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
+        return new GccOptionsFileArgWriter(tempDir);
     }
+
 }

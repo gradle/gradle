@@ -16,15 +16,20 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -54,18 +59,28 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
-        CompileSpecToArgsTransformerChain<T> chain = new CompileSpecToArgsTransformerChain<T>(argsTransformer);
+        final List<String> genericArgs = getArguments(transformedSpec);
+        final StoppableExecutor executor = getExecutor();
 
-        if (useCommandFile) {
-            chain.withTransformation(optionsFileTransformer(transformedSpec));
+        for (File sourceFile : transformedSpec.getSourceFiles()) {
+            List<String> perFileArgs = Lists.newArrayList(genericArgs);
+            addSourceArgs(perFileArgs, sourceFile);
+            addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, transformedSpec.getObjectFileDir()));
+
+            MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
+            perFileInvocation.clearPostArgsActions();
+            perFileInvocation.setWorkDirectory(transformedSpec.getObjectFileDir());
+            perFileInvocation.setArgs(perFileArgs);
+            executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
         }
-        ArgsTransformer<T> genericArgTransformer = new ShortCircuitArgsTransformer<T>(chain);
 
-        // cache results of transforming into initial set of arguments
-        // NOTE: this triggers the "post args" actions that can modify the arguments
-        // and write out an options.txt file
-        genericArgTransformer.transform(transformedSpec);
+        // Wait on all executions to complete and clean-up executor
+        executor.stop();
 
+        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+    }
+
+    private StoppableExecutor getExecutor() {
         final StoppableExecutor executor;
         if (useParallelCompile()) {
             // TODO: This needs to limit # of threads
@@ -74,28 +89,45 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             // Single threaded build
             executor = new CallingThreadExecutor();
         }
-        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
-
-        for (File sourceFile : transformedSpec.getSourceFiles()) {
-            CompileSpecToArgsTransformerChain<T> perFileChain = new CompileSpecToArgsTransformerChain<T>(genericArgTransformer);
-            perFileChain.withTransformation(new SingleSourceCompileArgTransformer(sourceFile));
-            perFileChain.withTransformation(outputFileTransformer(sourceFile, spec.getObjectFileDir(), objectFileSuffix, windowsPathLimitation));
-
-            MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
-            perFileInvocation.clearPostArgsActions();
-            perFileInvocation.setWorkDirectory(transformedSpec.getObjectFileDir());
-            perFileInvocation.setArgs(perFileChain.transform(transformedSpec));
-            executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
-        }
-
-        executor.stop();
-
-        return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
+        return executor;
     }
 
-    protected abstract OutputFileArgTransformer outputFileTransformer(File sourceFile, File objectFileDir, String objectFileNameSuffix, boolean windowsPathLengthLimitation);
+    private List<String> getArguments(T spec) {
+        // TODO: Detangle post args actions from invocation?
+        MutableCommandLineToolInvocation postArgsInvocation = baseInvocation.copy();
+        postArgsInvocation.setArgs(argsTransformer.transform(spec));
+        // NOTE: this triggers the "post args" actions that can modify the arguments
+        List<String> genericArgs = postArgsInvocation.getArgs();
 
-    protected abstract OptionsFileArgsWriter optionsFileTransformer(T spec);
+        if (useCommandFile) {
+            OptionsFileArgsWriter writer = optionsFileTransformer(spec.getTempDir());
+            // Shorten args and write out an options.txt file
+            genericArgs = writer.transform(genericArgs);
+        }
+        return genericArgs;
+    }
+
+    protected void addSourceArgs(List<String> args, File sourceFile) {
+        args.add(sourceFile.getAbsolutePath());
+    }
+
+    protected abstract void addOutputArgs(List<String> args, File outputFile);
+
+    protected abstract OptionsFileArgsWriter optionsFileTransformer(File tempDir);
+
+    private File getOutputFileDir(File sourceFile, File objectFileDir) {
+        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+
+        File outputFile = new CompilerOutputFileNamingScheme()
+                .withObjectFileNameSuffix(objectFileSuffix)
+                .withOutputBaseFolder(objectFileDir)
+                .map(sourceFile);
+        File outputDirectory = outputFile.getParentFile();
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
+        }
+        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+    }
 
     /**
      * Re-uses calling thread for execute() call

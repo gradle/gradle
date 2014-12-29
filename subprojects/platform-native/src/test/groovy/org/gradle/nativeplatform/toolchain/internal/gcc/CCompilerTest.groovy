@@ -38,6 +38,11 @@ class CCompilerTest extends Specification {
         given:
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
+        def genericArgs = [ "-x", "c",
+                        "-Dfoo=bar", "-Dempty",
+                        "-firstArg", "-secondArg",
+                        "-c",
+                        "-I", testDir.file("include.h").absolutePath ]
 
         when:
         CCompileSpec compileSpec = Stub(CCompileSpec) {
@@ -52,9 +57,10 @@ class CCompilerTest extends Specification {
         compiler.execute(compileSpec)
 
         then:
-        // 1 per source file
-        2 * invocation.copy() >> invocation
-        2 * invocation.setWorkDirectory(objectFileDir)
+
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(genericArgs)
+        1 * invocation.getArgs() >> genericArgs
 
         ["one.c", "two.c"].each{ sourceFileName ->
 
@@ -62,14 +68,13 @@ class CCompilerTest extends Specification {
             File outputFile = outputFile(objectFileDir, sourceFile)
             Runnable run = Mock(Runnable)
 
-            1 * invocation.setArgs([
-                    "-x", "c",
-                    "-Dfoo=bar", "-Dempty",
-                    "-firstArg", "-secondArg",
-                    "-c",
-                    "-I", testDir.file("include.h").absolutePath,
+            1 * invocation.copy() >> invocation
+            1 * invocation.setWorkDirectory(objectFileDir)
+            1 * invocation.clearPostArgsActions()
+            1 * invocation.setArgs(genericArgs + [
                     testDir.file(sourceFileName).absolutePath,
                     "-o", outputFile.absolutePath])
+
             1 * commandLineTool.toRunnableExecution(invocation) >> run
             1 * run.run()
         }
