@@ -92,7 +92,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         BiAction<MutableModelNode, Inputs> initializer;
         ModelProjection projection;
 
-        if (managedType.getConcreteClass().equals(ManagedSet.class)) {
+        if (managedType.getRawClass().equals(ManagedSet.class)) {
             initializer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
             projection = new ManagedSetModelProjection<T>(managedType);
             return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
