@@ -72,6 +72,9 @@ public class PlayDistributionPlugin {
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(binary.getJarFile(), binary.getAssetsJarFile());
             libSpec.from(playDependencies);
+            CopySpec confSpec = distSpec.addChild().into("conf");
+            confSpec.from("conf").exclude("routes");
+            distSpec.from("README");
         }
     }
 
@@ -99,7 +102,7 @@ public class PlayDistributionPlugin {
         tasks.create(distTaskName, Zip.class, new Action<Zip>() {
             @Override
             public void execute(Zip zip) {
-                zip.setDescription("Bundles the project as a distribution.");
+                zip.setDescription("Bundles the play binary as a distribution.");
                 zip.setGroup("distribution");
                 zip.setBaseName(binary.getName());
                 zip.setDestinationDir(new File(buildDir, "distributions"));

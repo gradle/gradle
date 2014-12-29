@@ -35,4 +35,8 @@ abstract class AbstractPlayApp extends PlayApp {
     List<SourceFile> getTestSources() {
         return sourceFiles("test")
     }
+
+    List<SourceFile> getOtherSources() {
+        return [ sourceFile("", "README", "shared") ]
+    }
 }

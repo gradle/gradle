@@ -35,14 +35,23 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         playApp.writeSources(testDirectory.file("."))
     }
 
-    def "can build play app jars"() {
+    def "can build play app binary"() {
         when:
         succeeds("assemble")
         then:
-        executedAndNotSkipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":assemble")
+        executedAndNotSkipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts",
+                ":createPlayBinaryDist",
+                ":playBinary",
+                ":assemble")
 
         and:
         verifyJars()
+        verifyZips()
 
         when:
         succeeds("createPlayBinaryJar")
@@ -64,8 +73,17 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         when:
         succeeds("check")
         then:
-        executed(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
-                ":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
+        executed(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":scalaCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts",
+                ":createPlayBinaryDist",
+                ":playBinary",
+                ":compilePlayBinaryTests",
+                ":testPlayBinary")
 
         then:
         verifyTestOutput(new JUnitXmlTestExecutionResult(testDirectory, "build/playBinary/reports/test/xml"))
@@ -73,8 +91,17 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         when:
         succeeds("check")
         then:
-        skipped(":routesCompilePlayBinary", ":twirlCompilePlayBinary", ":scalaCompilePlayBinary",
-                ":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":compilePlayBinaryTests", ":testPlayBinary")
+        skipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":scalaCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts",
+                ":createPlayBinaryDist",
+                ":playBinary",
+                ":compilePlayBinaryTests",
+                ":testPlayBinary")
     }
 
     /**
@@ -128,6 +155,17 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
+    }
+
+    void verifyZips() {
+        zip("build/distributions/playBinary.zip").containsDescendants(
+                "playBinary/lib/play.jar",
+                "playBinary/lib/play-assets.jar",
+                "playBinary/bin/playBinary",
+                "playBinary/bin/playBinary.bat",
+                "playBinary/conf/application.conf",
+                "playBinary/README"
+        )
     }
 
     void verifyContent() {

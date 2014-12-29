@@ -24,7 +24,7 @@ abstract class PlayApp {
 
 
     List<SourceFile> getAllFiles() {
-        return appSources + testSources + viewSources + assetSources + confSources
+        return appSources + testSources + viewSources + assetSources + confSources + otherSources
     }
 
     List<SourceFile> getAppSources() {
@@ -36,6 +36,7 @@ abstract class PlayApp {
     abstract List<SourceFile> getViewSources();
     abstract List<SourceFile> getConfSources();
     abstract List<SourceFile> getAssetSources();
+    abstract List<SourceFile> getOtherSources();
 
 
     protected SourceFile sourceFile(String path, String name, String baseDir = getClass().getSimpleName().toLowerCase()) {

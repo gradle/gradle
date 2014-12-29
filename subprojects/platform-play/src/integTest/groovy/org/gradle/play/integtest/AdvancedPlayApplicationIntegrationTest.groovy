@@ -64,6 +64,16 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     }
 
     @Override
+    void verifyZips() {
+        super.verifyZips()
+
+        zip("build/distributions/playBinary.zip").containsDescendants(
+                "playBinary/conf/jva.routes",
+                "playBinary/conf/scala.routes"
+        )
+    }
+
+    @Override
     void verifyContent() {
         super.verifyContent()
 

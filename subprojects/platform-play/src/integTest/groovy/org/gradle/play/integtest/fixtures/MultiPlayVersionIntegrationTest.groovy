@@ -18,6 +18,7 @@ package org.gradle.play.integtest.fixtures
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.archive.ZipTestFixture
 
 @TargetCoverage({PlayCoverage.DEFAULT})
 abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec {
@@ -57,4 +58,7 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
         new JarTestFixture(file(fileName))
     }
 
+    ZipTestFixture zip(String fileName) {
+        new ZipTestFixture(file(fileName))
+    }
 }

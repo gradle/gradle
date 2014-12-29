@@ -34,7 +34,7 @@ import spock.lang.Specification
 class PlayDistributionPluginTest extends Specification {
     def plugin = new PlayDistributionPlugin()
 
-    def "adds distribution for each binary" () {
+    def "adds default distribution for each binary" () {
         PlayApplicationBinarySpec bin1 = binary("bin1")
         PlayApplicationBinarySpec bin2 = binary("bin2")
         BinaryContainer binaryContainer = Stub(BinaryContainer) {
@@ -75,7 +75,7 @@ class PlayDistributionPluginTest extends Specification {
         CollectionBuilder tasks = Mock(CollectionBuilder)
         CopySpec spec = Stub(CopySpec)
         DistributionContainer distributions = Mock(DistributionContainer) {
-            findByName(_) >> distribution(spec)
+            findByName(_) >> Mock(Distribution)
         }
         PlayToolChainInternal playToolChain = Stub(PlayToolChainInternal) {
             select(_) >> Stub(PlayToolProvider)
@@ -102,8 +102,23 @@ class PlayDistributionPluginTest extends Specification {
     def distribution(CopySpec spec) {
         return Mock(Distribution) {
             getContents() >> Mock(CopySpecInternal) {
-                addChild() >> Mock(CopySpecInternal) {
-                    into(_) >> spec
+                addChild() >>> [ libSpec(spec), confSpec() ]
+                1 * from("README")
+            }
+        }
+    }
+
+    def libSpec(CopySpec spec) {
+        return Mock(CopySpecInternal) {
+            1 * into("lib") >> spec
+        }
+    }
+
+    def confSpec() {
+        return Mock(CopySpecInternal) {
+            1 * into("conf") >> Mock(CopySpec) {
+                1 * from("conf") >> Mock(CopySpec) {
+                    1 * exclude("routes")
                 }
             }
         }
