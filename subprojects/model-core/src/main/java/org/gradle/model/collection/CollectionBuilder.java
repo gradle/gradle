@@ -28,7 +28,7 @@ import org.gradle.api.Nullable;
 @Incubating
 public interface CollectionBuilder<T> {
     /**
-     * Returns a collection containing the items from this collection of the specified type.
+     * Returns a collection containing the items from this collection which are of the specified type.
      *
      * @param type The type.
      * @param <S> The type.
@@ -38,6 +38,7 @@ public interface CollectionBuilder<T> {
 
     /**
      * Returns the number of items in this collection.
+     *
      * @return the size of this collection.
      */
     int size();
@@ -52,7 +53,7 @@ public interface CollectionBuilder<T> {
     T get(String name);
 
     /**
-     * Defines an item with the given name and type T
+     * Defines an item with the given name and type T. The item is not created immediately, but is instead created as it is required.
      *
      * @param name The name.
      */
@@ -60,7 +61,9 @@ public interface CollectionBuilder<T> {
     void create(String name);
 
     /**
-     * Defines an item with the given name and type T. The given action is invoked to configure the item when the item is required.
+     * Defines an item with the given name and type T. The item is not created immediately, but is instead created as it is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required.
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
@@ -69,7 +72,7 @@ public interface CollectionBuilder<T> {
     void create(String name, Action<? super T> configAction);
 
     /**
-     * Defines an item with the given name and type.
+     * Defines an item with the given name and type. The item is not created immediately, but is instead created as it is required.
      *
      * @param name The name.
      */
@@ -77,7 +80,9 @@ public interface CollectionBuilder<T> {
     <S extends T> void create(String name, Class<S> type);
 
     /**
-     * Defines an item with the given name and type. The given action is used to configure the item.
+     * Defines an item with the given name and type. The item is not created immediately, but is instead created as it is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required.
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
@@ -86,25 +91,74 @@ public interface CollectionBuilder<T> {
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
     /**
-     * Apply the given action to the given item. The given action is invoked to configure the item when the item is required.
+     * Applies the given action to the given item, when the item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
+     * org.gradle.api.Action)}.
+     *
+     * @param name The name.
+     * @param configAction An action that configures the item. The action is executed when the item is required.
      */
     void named(String name, Action<? super T> configAction);
 
+    /**
+     * Applies the given action to each item in this collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.
+     *
+     * @param configAction An action that configures the item. The action is executed when the item is required.
+     */
     void beforeEach(Action<? super T> configAction);
 
-    <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction);
+    /**
+     * Applies the given action to each item of the given type in this collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.
+     *
+     * @param type The type of elements to apply the action to.
+     * @param configAction An action that configures the item. The action is executed when the item is required.
+     */
+    <S> void beforeEach(Class<S> type, Action<? super S> configAction);
 
     /**
-     * Apply the given action to each item in the collection, as an item is required.
+     * Applies the given action to each item in the collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
+     * org.gradle.api.Action)}.
+     *
+     * @param configAction An action that configures the item. The action is executed when the item is required.
      */
     void all(Action<? super T> configAction);
 
-    <S extends T> void withType(Class<S> type, Action<? super S> configAction);
+    /**
+     * Applies the given action to each item of the given type in the collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
+     * org.gradle.api.Action)}.
+     *
+     * @param type The type of elements to apply the action to.
+     * @param configAction An action that configures the item. The action is executed when the item is required.
+     */
+    <S> void withType(Class<S> type, Action<? super S> configAction);
 
     /**
-     * Apply the given action to each item in the collection, after the item has been configured.
+     * Applies the given action to each item in the collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)}, {@link #create(String,
+     * org.gradle.api.Action)}, and other mutation methods.
+     *
+     * @param configAction An action that configures the item. The action is executed when the item is required.
      */
     void afterEach(Action<? super T> configAction);
 
-    <S extends T> void afterEach(Class<S> type, Action<? super S> configAction);
+    /**
+     * Applies the given action to each item of the given type in the collection, as each item is required.
+     *
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)}, {@link #create(String,
+     * org.gradle.api.Action)}, and other mutation methods.
+     *
+     * @param type The type of elements to apply the action to.
+     * @param configAction An action that configures the item. The action is executed when the item is required.
+     */
+    <S> void afterEach(Class<S> type, Action<? super S> configAction);
 }

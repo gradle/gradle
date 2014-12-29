@@ -122,7 +122,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction) {
+        public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.beforeEach(type, configAction);
         }
@@ -134,7 +134,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public <S extends T> void withType(Class<S> type, Action<? super S> configAction) {
+        public <S> void withType(Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.withType(type, configAction);
         }
@@ -146,7 +146,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public <S extends T> void afterEach(Class<S> type, Action<? super S> configAction) {
+        public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.afterEach(type, configAction);
         }
@@ -172,8 +172,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public <S extends T> void withType(Class<S> type, Closure<? super S> configAction) {
-            withType(type, new ClosureBackedAction<T>(configAction));
+        public <S> void withType(Class<S> type, Closure<? super S> configAction) {
+            withType(type, new ClosureBackedAction<S>(configAction));
         }
 
         // TODO - mix this in
@@ -182,8 +182,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public <S extends T> void beforeEach(Class<S> type, Closure<? super S> configAction) {
-            beforeEach(type, new ClosureBackedAction<T>(configAction));
+        public <S> void beforeEach(Class<S> type, Closure<? super S> configAction) {
+            beforeEach(type, new ClosureBackedAction<S>(configAction));
         }
 
         // TODO - mix this in
@@ -192,8 +192,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public <S extends T> void afterEach(Class<S> type, Closure<? super S> configAction) {
-            afterEach(type, new ClosureBackedAction<T>(configAction));
+        public <S> void afterEach(Class<S> type, Closure<? super S> configAction) {
+            afterEach(type, new ClosureBackedAction<S>(configAction));
         }
 
         // TODO - mix this in

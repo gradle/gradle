@@ -175,7 +175,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
-    public <S extends T> void withType(Class<S> type, Action<? super S> configAction) {
+    public <S> void withType(Class<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -192,11 +192,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
-    public <S extends T> void beforeEach(Class<S> type, Action<? super S> configAction) {
+    public <S> void beforeEach(Class<S> type, Action<? super S> configAction) {
         doBeforeEach(ModelType.of(type), configAction);
     }
 
-    private <S extends T> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
+    private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -213,11 +213,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
-    public <S extends T> void afterEach(Class<S> type, Action<? super S> configAction) {
+    public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
     }
 
-    private <S extends T> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
+    private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {

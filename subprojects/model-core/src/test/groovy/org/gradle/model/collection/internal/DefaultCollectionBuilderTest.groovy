@@ -300,43 +300,98 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register mutate rule for all items with specific type"() {
         when:
         mutate {
+            withType(Object) {
+                other += " Object"
+            }
+            withType(String) {
+                other += " String"
+            }
+            withType(Special) {
+                other += " Special"
+            }
             withType(SpecialNamedThing) {
-                assert other == "original"
-                other = "changed"
+                other += " SpecialNamedThing"
             }
             create("foo") {
-                other = "original"
+                other = "foo:"
             }
             create("bar", SpecialNamedThing) {
-                other = "original"
+                other = "bar:"
             }
         }
         registry.node(containerPath.child("foo"))
 
         then:
-        container.getByName("foo").other == "original"
-        container.getByName("bar").other == "changed"
+        container.getByName("foo").other == "foo: Object"
+        container.getByName("bar").other == "bar: Object Special SpecialNamedThing"
+    }
+
+    def "can register defaults rule for all items"() {
+        when:
+        mutate {
+            all {
+                other += " all{}"
+            }
+            create("foo") {
+                other += " create()"
+            }
+            beforeEach {
+                other = "beforeEach{}"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "beforeEach{} create() all{}"
+    }
+
+    def "can register defaults rule for all items with type"() {
+        when:
+        mutate {
+            beforeEach(Object) {
+                other = "Object"
+            }
+            beforeEach(String) {
+                other += " String"
+            }
+            beforeEach(Special) {
+                other += " Special"
+            }
+            beforeEach(SpecialNamedThing) {
+                other += " SpecialNamedThing"
+            }
+            create("foo") {
+                other += " create(foo)"
+            }
+            create("bar", SpecialNamedThing) {
+                other += " create(bar)"
+            }
+        }
+        registry.node(containerPath.child("foo"))
+        registry.node(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo").other == "Object create(foo)"
+        container.getByName("bar").other == "Object Special SpecialNamedThing create(bar)"
     }
 
     def "can register finalize rule for all items"() {
         when:
         mutate {
-            afterEach {
-                assert other == "changed"
-                other = "finalized"
-            }
             all {
-                assert other == "original"
-                other = "changed"
+                other += " all{}"
+            }
+            afterEach {
+                other += " afterEach{}"
             }
             create("foo") {
-                other = "original"
+                other = "create()"
             }
         }
         registry.node(containerPath.child("foo"))
 
         then:
-        container.getByName("foo").other == "finalized"
+        container.getByName("foo").other == "create() all{} afterEach{}"
     }
 
     def "provides groovy DSL"() {
