@@ -82,9 +82,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             perFileChain.withTransformation(outputFileTransformer(sourceFile, spec.getObjectFileDir(), objectFileSuffix, windowsPathLimitation));
 
             MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
+            perFileInvocation.clearPostArgsActions();
             perFileInvocation.setWorkDirectory(transformedSpec.getObjectFileDir());
             perFileInvocation.setArgs(perFileChain.transform(transformedSpec));
-            // triggers post args actions again
             executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
         }
 

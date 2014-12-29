@@ -23,6 +23,8 @@ import java.util.List;
 public interface MutableCommandLineToolInvocation extends CommandLineToolInvocation {
     void addPostArgsAction(Action<List<String>> postArgsAction);
 
+    void clearPostArgsActions();
+
     void setArgs(List<String> args);
 
     void setWorkDirectory(File workDirectory);

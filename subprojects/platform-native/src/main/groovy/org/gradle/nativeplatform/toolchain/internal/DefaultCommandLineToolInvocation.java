@@ -47,6 +47,8 @@ public class DefaultCommandLineToolInvocation implements MutableCommandLineToolI
         postArgsActions.add(postArgsAction);
     }
 
+    public void clearPostArgsActions() { postArgsActions.clear(); }
+
     public List<String> getArgs() {
         List<String> transformedArgs = Lists.newArrayList(args);
         for (Action<List<String>> postArgsAction : postArgsActions) {
