@@ -84,7 +84,7 @@ public class DefaultCommandLineTool implements CommandLineTool {
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new GradleException(String.format("%s failed; see the error output for details.", getDisplayName()), e);
+            throw new GradleException(String.format("%s failed; see the error output for details.", getName()), e);
         }
     }
 }

@@ -20,9 +20,6 @@ import org.gradle.internal.Transformers;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
 
     CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {

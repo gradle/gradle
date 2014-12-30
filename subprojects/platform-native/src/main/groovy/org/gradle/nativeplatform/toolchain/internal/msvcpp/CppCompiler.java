@@ -20,9 +20,6 @@ import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
 
     CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {

@@ -20,9 +20,6 @@ import org.gradle.internal.Transformers;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
     CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
         super(commandLineTool, baseInvocation, new CppCompileArgsTransformer(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);

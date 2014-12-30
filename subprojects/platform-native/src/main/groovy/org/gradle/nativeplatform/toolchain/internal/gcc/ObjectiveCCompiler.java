@@ -20,9 +20,6 @@ import org.gradle.internal.Transformers;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSpec> {
 
     ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
