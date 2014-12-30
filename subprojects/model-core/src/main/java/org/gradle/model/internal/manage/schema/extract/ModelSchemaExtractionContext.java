@@ -16,24 +16,30 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
+
+@NotThreadSafe
 public class ModelSchemaExtractionContext<T> {
 
     private final ModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private Action<? super ModelSchemaExtractionContext<T>> validator;
+    private final List<Action<? super ModelSchemaExtractionContext<T>>> validators;
 
     private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
-        this.validator = validator;
+        this.validators = Lists.newArrayListWithCapacity(2);
+
+        validators.add(validator);
     }
 
     public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
@@ -69,11 +75,12 @@ public class ModelSchemaExtractionContext<T> {
     }
 
     public void validate() {
-        validator.execute(this);
+        for (Action<? super ModelSchemaExtractionContext<T>> validator : validators) {
+            validator.execute(this);
+        }
     }
 
     public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
-        Iterable<Action<? super ModelSchemaExtractionContext<T>>> actions = ImmutableList.<Action<? super ModelSchemaExtractionContext<T>>>of(this.validator, validator);
-        this.validator = Actions.composite(actions);
+        validators.add(validator);
     }
 }
