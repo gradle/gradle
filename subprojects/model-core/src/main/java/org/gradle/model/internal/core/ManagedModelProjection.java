@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.internal.Cast;
+import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -89,11 +90,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 }
 
                 public void set(String name, Object value) {
-                    if (!writable) {
-                        throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' as it is an input to rule '%s'", modelNode.getPath(), getType(), ruleDescriptor));
-                    }
-                    if (closed) {
-                        throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed", modelNode.getPath(), getType(), ruleDescriptor));
+                    if (!writable || closed) {
+                        throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
                     ModelProperty<?> property = schema.getProperties().get(name);

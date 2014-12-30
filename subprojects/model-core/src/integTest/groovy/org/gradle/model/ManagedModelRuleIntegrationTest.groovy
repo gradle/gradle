@@ -1441,7 +1441,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name(Person)")
-        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' as it is an input to rule 'RulePlugin#name(Person)")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#name(Person)")
     }
 
     def "mutating composite managed inputs of a rule is not allowed"() {
@@ -1481,7 +1481,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyCompositeSubjectOfAnotherRule")
-        failure.assertHasCause("Cannot mutate model element 'person.pet' of type 'Pet' as it is an input to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, Person)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, Person)'")
     }
 
     def "mutating managed inputs of a dsl rule is not allowed"() {
@@ -1517,7 +1517,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' as it is an input to rule 'model.tasks @ build file")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ build file")
     }
 
     def "mutating managed objects outside of a creation rule is not allowed"() {
@@ -1557,7 +1557,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Cannot mutate model element 'person' of type 'Person' used as subject of rule 'RulePlugin#person(Person)' after the rule has completed")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#person(Person)'")
     }
 
     def "mutating composite managed objects outside of a creation rule is not allowed"() {
@@ -1602,7 +1602,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Cannot mutate model element 'person.pet' of type 'Pet' used as subject of rule 'RulePlugin#person(Person)' after the rule has completed")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person)'")
     }
 
     def "mutating managed objects referenced by another managed object outside of a creation rule is not allowed"() {
@@ -1648,7 +1648,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
-        failure.assertHasCause("Cannot mutate model element 'pet' of type 'Pet' as it is an input to rule 'RulePlugin#person(Person, Pet)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person, Pet)'")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
