@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelSchemaExtractionContext<T> {
@@ -74,7 +73,7 @@ public class ModelSchemaExtractionContext<T> {
     }
 
     public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
-        Iterable<Action<? super ModelSchemaExtractionContext<T>>> actions = Cast.uncheckedCast(ImmutableList.of(this.validator, validator));
+        Iterable<Action<? super ModelSchemaExtractionContext<T>>> actions = ImmutableList.<Action<? super ModelSchemaExtractionContext<T>>>of(this.validator, validator);
         this.validator = Actions.composite(actions);
     }
 }
