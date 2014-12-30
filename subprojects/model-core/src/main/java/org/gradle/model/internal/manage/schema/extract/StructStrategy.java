@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
@@ -330,40 +331,24 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
-        return invalidMethod(extractionContext, message, description(method));
+        return invalidMethod(extractionContext, message, MethodDescription.of(method));
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
-        return invalidMethod(extractionContext, message, description(constructor));
+        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription + ").");
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription.toString() + ").");
     }
 
     private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, final Iterable<Method> methods) {
         final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
             public String apply(Method method) {
-                return description(method).toString();
+                return MethodDescription.of(method).toString();
             }
         }));
         return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
-    }
-
-    private MethodDescription description(Method method) {
-        return MethodDescription.name(method.getName())
-                .owner(method.getDeclaringClass())
-                .returns(method.getGenericReturnType())
-                .takes(method.getGenericParameterTypes())
-                .build();
-    }
-
-    private MethodDescription description(Constructor<?> constructor) {
-        return MethodDescription.name("<init>")
-                .owner(constructor.getDeclaringClass())
-                .returns(MethodDescription.NO_TYPE)
-                .takes(constructor.getGenericParameterTypes())
-                .build();
     }
 
     static private class ReturnTypeSpecializationOrdering extends Ordering<Method> {

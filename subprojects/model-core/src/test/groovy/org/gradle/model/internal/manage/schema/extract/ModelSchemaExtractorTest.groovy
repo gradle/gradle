@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
@@ -73,8 +74,8 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can only have getters and setters"() {
         expect:
-        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
-        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(HasExtraNonPropertyMethods).takes(String)})")
+        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
+        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(HasExtraNonPropertyMethods).takes(String)})")
     }
 
     @Managed
@@ -392,9 +393,9 @@ class ModelSchemaExtractorTest extends Specification {
     def "conflicting properties of super types are detected"() {
         given:
         def invalidMethods = [
-                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float),
-                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer),
-                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String),
+                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float).takes(),
+                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
+                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
         ]
         def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
 
@@ -443,7 +444,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "invalid methods of super types are reported"() {
         expect:
-        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
+        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
     }
 
     def "type argument of a managed set has to be specified"() {
@@ -522,7 +523,7 @@ Supported types:
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        def invalidMethodDescription = MethodDescription.name("setName").owner(SetterOnly).takes(String)
+        def invalidMethodDescription = MethodDescription.name("setName").returns(void.class).owner(SetterOnly).takes(String)
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
 The type was analyzed due to the following dependencies:
 $type
@@ -638,8 +639,8 @@ $type
 
     def "non-abstract mutator methods are not allowed"() {
         expect:
-        fail NonAbstractGetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("getName").owner(NonAbstractGetter).returns(String).build()})")
-        fail NonAbstractSetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).build()})")
+        fail NonAbstractGetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("getName").owner(NonAbstractGetter).returns(String).takes()})")
+        fail NonAbstractSetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).returns(void.class)})")
     }
 
     @Managed
@@ -671,9 +672,9 @@ $type
 
     def "custom constructors are not allowed"() {
         expect:
-        fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
-        fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
-        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).returns(MethodDescription.NO_TYPE).takes(String).build()})")
+        fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).takes(String)})")
+        fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).takes(String)})")
+        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).takes(String)})")
     }
 
     @Managed

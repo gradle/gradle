@@ -29,6 +29,8 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 @NotThreadSafe
 public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilder<T>> {
 
@@ -57,10 +59,10 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
     }
 
     // TODO - mix in Groovy support and share with managed set
-    public class Decorator<T> extends GroovyObjectSupport implements CollectionBuilder<T> {
-        private final CollectionBuilder<T> rawInstance;
+    public class Decorator<I> extends GroovyObjectSupport implements CollectionBuilder<I> {
+        private final CollectionBuilder<I> rawInstance;
 
-        public Decorator(CollectionBuilder<T> rawInstance) {
+        public Decorator(CollectionBuilder<I> rawInstance) {
             this.rawInstance = rawInstance;
         }
 
@@ -81,7 +83,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
 
         @Nullable
         @Override
-        public T get(String name) {
+        public I get(String name) {
             return rawInstance.get(name);
         }
 
@@ -92,31 +94,31 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public void create(String name, Action<? super T> configAction) {
+        public void create(String name, Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.create(name, configAction);
         }
 
         @Override
-        public <S extends T> void create(String name, Class<S> type) {
+        public <S extends I> void create(String name, Class<S> type) {
             assertNotClosed();
             rawInstance.create(name, type);
         }
 
         @Override
-        public <S extends T> void create(String name, Class<S> type, Action<? super S> configAction) {
+        public <S extends I> void create(String name, Class<S> type, Action<? super S> configAction) {
             assertNotClosed();
             rawInstance.create(name, type, configAction);
         }
 
         @Override
-        public void named(String name, Action<? super T> configAction) {
+        public void named(String name, Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.named(name, configAction);
         }
 
         @Override
-        public void beforeEach(Action<? super T> configAction) {
+        public void beforeEach(Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.beforeEach(configAction);
         }
@@ -128,7 +130,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public void all(Action<? super T> configAction) {
+        public void all(Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.all(configAction);
         }
@@ -140,7 +142,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public void afterEach(Action<? super T> configAction) {
+        public void afterEach(Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.afterEach(configAction);
         }
@@ -152,23 +154,23 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public void create(String name, Closure<? super T> configAction) {
-            create(name, new ClosureBackedAction<T>(configAction));
+        public void create(String name, Closure<? super I> configAction) {
+            create(name, new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
-        public <S extends T> void create(String name, Class<S> type, Closure<? super S> configAction) {
-            create(name, type, new ClosureBackedAction<T>(configAction));
+        public <S extends I> void create(String name, Class<S> type, Closure<? super S> configAction) {
+            create(name, type, new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
-        public void named(String name, Closure<? super T> configAction) {
-            named(name, new ClosureBackedAction<T>(configAction));
+        public void named(String name, Closure<? super I> configAction) {
+            named(name, new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
-        public void all(Closure<? super T> configAction) {
-            all(new ClosureBackedAction<T>(configAction));
+        public void all(Closure<? super I> configAction) {
+            all(new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
@@ -177,8 +179,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public void beforeEach(Closure<? super T> configAction) {
-            beforeEach(new ClosureBackedAction<T>(configAction));
+        public void beforeEach(Closure<? super I> configAction) {
+            beforeEach(new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
@@ -187,8 +189,8 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         // TODO - mix this in
-        public void afterEach(Closure<? super T> configAction) {
-            afterEach(new ClosureBackedAction<T>(configAction));
+        public void afterEach(Closure<? super I> configAction) {
+            afterEach(new ClosureBackedAction<I>(configAction));
         }
 
         // TODO - mix this in
@@ -199,7 +201,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         // TODO - mix this in
         @Override
         public Object getProperty(String property) {
-            T element = rawInstance.get(property);
+            I element = rawInstance.get(property);
             if (element == null) {
                 throw new MissingPropertyException(property, CollectionBuilder.class);
             }
@@ -210,18 +212,14 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         public Void methodMissing(String name, Object argsObj) {
             Object[] args = (Object[]) argsObj;
             if (args.length == 1 && args[0] instanceof Class<?>) {
-                @SuppressWarnings("unchecked")
-                Class<? extends T> itemType = (Class<? extends T>) args[0];
+                Class<? extends I> itemType = uncheckedCast(args[0]);
                 create(name, itemType);
             } else if (args.length == 2 && args[0] instanceof Class<?> && args[1] instanceof Closure<?>) {
-                @SuppressWarnings("unchecked")
-                Class<? extends T> itemType = (Class<? extends T>) args[0];
-                @SuppressWarnings("unchecked")
-                Closure<? super T> closure = (Closure<T>) args[1];
+                Class<? extends I> itemType = uncheckedCast(args[0]);
+                Closure<? super I> closure = uncheckedCast(args[1]);
                 create(name, itemType, closure);
             } else if (args.length == 1 && args[0] instanceof Closure<?>) {
-                @SuppressWarnings("unchecked")
-                Closure<? super T> closure = (Closure<? super T>) args[0];
+                Closure<? super I> closure = uncheckedCast(args[0]);
                 named(name, closure);
             } else {
                 throw new MissingMethodException(name, CollectionBuilder.class, args);
