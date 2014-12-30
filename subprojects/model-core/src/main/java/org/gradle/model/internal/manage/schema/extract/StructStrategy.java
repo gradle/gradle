@@ -207,7 +207,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
                 if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remote the @Managed annotation.%n%s",
+                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",
                             property.getName(), property.getType(), supportedTypeDescriptions.create()
                     ));
                 }
