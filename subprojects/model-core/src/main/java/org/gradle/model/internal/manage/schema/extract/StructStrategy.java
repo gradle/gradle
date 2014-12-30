@@ -182,7 +182,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         return Iterables.filter(methods, new Predicate<Method>() {
             @Override
             public boolean apply(Method method) {
-                return !method.getName().contains("$") && !ignoredMethods.contains(equivalence.wrap(method));
+                return !method.isSynthetic() && !ignoredMethods.contains(equivalence.wrap(method));
             }
         });
     }
