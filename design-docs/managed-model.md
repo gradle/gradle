@@ -736,3 +736,4 @@ As above, for `ManagedSet`.
 - User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
     - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
 - Support getting "address" (creation/canonical path) of a managed object
+- Support Java 8 interface default methods (likely same semantics as non abstract methods on class based types)
