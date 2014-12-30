@@ -74,7 +74,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        return new Assembler(commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), outputFileSuffix);
+        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), commandLineToolInvocation(assemblerTool), outputFileSuffix, useCommandFile);
     }
 
     @Override

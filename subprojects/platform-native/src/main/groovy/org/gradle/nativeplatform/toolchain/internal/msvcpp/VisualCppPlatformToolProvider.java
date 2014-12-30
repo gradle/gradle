@@ -74,8 +74,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-        return new Assembler(commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.ASSEMBLER)));
+        CommandLineToolInvocationWorker commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
+        return new Assembler(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), outputFileSuffix, false);
     }
 
     @Override

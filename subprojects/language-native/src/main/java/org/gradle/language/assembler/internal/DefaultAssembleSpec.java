@@ -16,33 +16,9 @@
 
 package org.gradle.language.assembler.internal;
 
-import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
+import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+public class DefaultAssembleSpec extends AbstractNativeCompileSpec implements AssembleSpec {
 
-public class DefaultAssembleSpec extends AbstractBinaryToolSpec implements AssembleSpec {
-
-    private List<File> source = new ArrayList<File>();
-    private File objectFileDir;
-
-    public List<File> getSourceFiles() {
-        return source;
-    }
-
-    public void source(Iterable<File> sources) {
-        for (File file : sources) {
-            this.source.add(file);
-        }
-    }
-
-    public File getObjectFileDir() {
-        return objectFileDir;
-    }
-
-    public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
-    }
 }

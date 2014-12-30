@@ -16,65 +16,21 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
 
-class Assembler implements Compiler<AssembleSpec> {
-
-    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final CommandLineToolInvocation baseInvocation;
-    private String outputFileSuffix;
-
-    public Assembler(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
-        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.baseInvocation = baseInvocation;
-        this.outputFileSuffix = outputFileSuffix;
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, baseInvocation, new AssemblerArgsTransformer(), Transformers.<AssembleSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
-    public WorkResult execute(AssembleSpec spec) {
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.setWorkDirectory(spec.getObjectFileDir());
-        for (File sourceFile : spec.getSourceFiles()) {
-            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
-            invocation.setArgs(arguments.transform(spec));
-            commandLineToolInvocationWorker.execute(invocation);
-        }
-        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
-    }
-
-    private static class AssembleSpecToArgsList implements ArgsTransformer<AssembleSpec> {
-        private final File inputFile;
-        private final File outputFile;
-
-        public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
-            this.inputFile = inputFile;
-            this.outputFile = new CompilerOutputFileNamingScheme()
-                                    .withOutputBaseFolder(objectFileRootDir)
-                                    .withObjectFileNameSuffix(outputFileSuffix)
-                                    .map(inputFile);
-        }
-
-        public List<String> transform(AssembleSpec spec) {
-            List<String> args = new ArrayList<String>();
-            args.addAll(spec.getAllArgs());
-            if (!outputFile.getParentFile().exists()) {
-                outputFile.getParentFile().mkdirs();
-            }
-            Collections.addAll(args, "-o", outputFile.getAbsolutePath());
-            args.add(inputFile.getAbsolutePath());
-            return args;
+    private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {
+        protected String getLanguage() {
+            return "assembler";
         }
     }
 }
