@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
+import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 import java.io.File;
 import java.util.List;
 
-public class DummyCompiler extends NativeCompiler<CCompileSpec> {
-    private final OptionsFileArgsWriter argsWriter;
-
-    DummyCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<CCompileSpec> argsTransformer, Transformer<CCompileSpec, CCompileSpec> specTransformer, OptionsFileArgsWriter argsWriter) {
-        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, ".o", true);
-        this.argsWriter = argsWriter;
+/**
+ *
+ */
+class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
+    public GccCompatibleNativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
     }
 
     @Override
     protected void addOutputArgs(List<String> args, File outputFile) {
-        // do nothing
+        args.add("-o");
+        args.add(outputFile.getAbsolutePath());
     }
 
-    @Override
     protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
-        return argsWriter;
+        return new GccOptionsFileArgWriter(tempDir);
     }
-
 }

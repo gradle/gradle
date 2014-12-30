@@ -268,13 +268,13 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
         public Compiler<CppCompileSpec> createCppCompiler() {
             CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix);
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
             return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
         }
 
         public Compiler<CCompileSpec> createCCompiler() {
             CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix);
+            CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix, true);
             return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
         }
 

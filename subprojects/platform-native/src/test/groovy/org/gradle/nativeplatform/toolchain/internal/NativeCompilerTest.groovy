@@ -16,65 +16,102 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import com.beust.jcommander.internal.Lists
-import org.gradle.api.Transformer
-import org.gradle.internal.Transformers
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
-import org.gradle.nativeplatform.toolchain.internal.gcc.CCompiler
-import org.gradle.nativeplatform.toolchain.internal.gcc.GccOptionsFileArgWriter
-import org.gradle.platform.base.internal.toolchain.ArgWriter
-import org.gradle.process.internal.ExecActionFactory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 
-class NativeCompilerTest extends Specification {
+public abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
-    static class DummyTool extends DefaultCommandLineTool {
-        DummyTool() {
-            super("dummy", null, null)
-        }
-        protected void internalExecute(CommandLineToolInvocation invocation) {
-            invocation.getArgs()
-        }
+    private static final String O_EXT = ".o"
+
+    protected abstract NativeCompiler getCompiler(CommandLineToolInvocation invocation, String objectFileExtension, boolean useCommandFile)
+    protected NativeCompiler getCompiler(CommandLineToolInvocation invocation) {
+        getCompiler(invocation, O_EXT, false)
     }
 
-    static class DummyOptionsFileArgsWriter extends OptionsFileArgsWriter {
+    protected abstract Class<? extends NativeCompileSpec> getCompileSpecType()
+    protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
-        DummyOptionsFileArgsWriter() {
-            super(null, null)
-        }
+    CommandLineTool commandLineTool = Mock(CommandLineTool)
 
-        protected List<String> transformArgs(List<String> args, File file) {
-            return args;
-        }
-    }
-
-    CommandLineTool commandLineTool = Spy(DummyTool)
-    CommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation()
-    ArgsTransformer<CCompileSpec> argsTransformer = new CCompiler.CCompileArgsTransformer()
-    Transformer<CCompileSpec, CCompileSpec> specTransformer = Transformers.noOpTransformer()
-    OptionsFileArgsWriter argsWriter = Spy(DummyOptionsFileArgsWriter)
-
-    DummyCompiler compiler = new DummyCompiler(commandLineTool, invocation, argsTransformer, specTransformer, argsWriter)
-
-    @Ignore("Broken")
-    def "capture current behavior of native compiler execute"() {
+    def "arguments include source file"() {
         given:
+        def invocation = Mock(MutableCommandLineToolInvocation)
+        def compiler = getCompiler(invocation)
         def testDir = tmpDirProvider.testDirectory
-        def objectFileDir = testDir.file("output/objects")
+        def args = []
+        def sourceFile = testDir.file("source.ext")
 
         when:
-        CCompileSpec compileSpec = Stub(CCompileSpec) {
+        compiler.addSourceArgs(args, sourceFile)
+
+        then:
+        args == [ sourceFile.absoluteFile.toString() ]
+    }
+
+    @Unroll
+    def "output file directory honors output extension '#extension' and directory"() {
+        given:
+        def invocation = Mock(MutableCommandLineToolInvocation)
+        def compiler = getCompiler(invocation)
+        def testDir = tmpDirProvider.testDirectory
+        def sourceFile = testDir.file("source.ext")
+
+        when:
+        def outputFile = compiler.getOutputFileDir(sourceFile, testDir, extension)
+
+        then:
+        // Creates directory
+        outputFile.parentFile.exists()
+        // Rooted under test directory
+        outputFile.parentFile.parentFile == testDir
+        // TODO: Test for MD5 directory name?
+        outputFile.name == "source$extension"
+
+        where:
+        extension | _
+        ".o"      | _
+        ".obj"    | _
+    }
+
+    def "arguments contains parameters from spec"() {
+        given:
+        def invocation = new DefaultCommandLineToolInvocation()
+        def compiler = getCompiler(invocation)
+        def testDir = tmpDirProvider.testDirectory
+        def includeDir = testDir.file("includes")
+        def expectedArgs = getCompilerSpecificArguments(includeDir)
+
+        when:
+        NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getMacros() >> [foo: "bar", empty: null]
-            getObjectFileDir() >> objectFileDir
             getAllArgs() >> ["-firstArg", "-secondArg"]
-            getIncludeRoots() >> [testDir.file("include.h")]
-            getSourceFiles() >> [testDir.file("one.c"), testDir.file("two.c")]
+            getIncludeRoots() >> [ includeDir ]
+        }
+
+        and:
+        def actualArgs = compiler.getArguments(compileSpec)
+
+        then:
+        actualArgs == expectedArgs
+    }
+
+    @Unroll("Compiles source files (options.txt=#withOptionsFile) with #description")
+    def "compiles all source files in separate executions"() {
+        given:
+        def invocation = new DefaultCommandLineToolInvocation()
+        def compiler = getCompiler(invocation, O_EXT, withOptionsFile)
+        def testDir = tmpDirProvider.testDirectory
+        def objectFileDir = testDir.file("output/objects")
+        def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
+
+        when:
+        def compileSpec = Stub(getCompileSpecType()) {
+            getTempDir() >> testDir
+            getObjectFileDir() >> objectFileDir
+            getSourceFiles() >> sourceFiles
         }
 
         and:
@@ -82,7 +119,91 @@ class NativeCompilerTest extends Specification {
 
         then:
 
-        2 * commandLineTool.toRunnableExecution(_)
-        1 * argsWriter.transform(_)
+        sourceFiles.each{ sourceFile ->
+            Runnable run = Mock(Runnable)
+            1 * commandLineTool.toRunnableExecution(_) >> run
+            1 * run.run()
+        }
+        0 * _
+
+        where:
+        withOptionsFile | description
+        true            | "options written to options.txt"
+        false           | "options passed on the command line only"
+    }
+
+    def "base invocation post arg actions run once per execute"() {
+        given:
+        def invocation = Mock(MutableCommandLineToolInvocation)
+        def compiler = getCompiler(invocation)
+        def testDir = tmpDirProvider.testDirectory
+        def objectFileDir = testDir.file("output/objects")
+        def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
+
+        when:
+        NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
+            getObjectFileDir() >> objectFileDir
+            getSourceFiles() >> sourceFiles
+        }
+
+        invocation.copy() >> invocation >> Mock(MutableCommandLineToolInvocation)
+        commandLineTool.toRunnableExecution(_) >> { args ->
+            def perFileInvocation = args[0]
+            return new Runnable() {
+                public void run() {
+                    perFileInvocation.getArgs()
+                }
+            }
+        }
+
+        and:
+        compiler.execute(compileSpec)
+
+        then:
+        1 * invocation.getArgs() >> []
+    }
+
+    def "invocation for each source file removes post-args actions"() {
+        given:
+        def invocation = Mock(MutableCommandLineToolInvocation)
+        def compiler = getCompiler(invocation)
+        def testDir = tmpDirProvider.testDirectory
+        def objectFileDir = testDir.file("output/objects")
+        def sourceFile = testDir.file("source.ext")
+
+        when:
+        compiler.createPerFileInvocation([], sourceFile, objectFileDir)
+
+        then:
+        1 * invocation.copy() >> invocation
+        1 * invocation.setArgs(_)
+        1 * invocation.setWorkDirectory(objectFileDir)
+        1 * invocation.clearPostArgsActions()
+    }
+
+    def "options file is written"() {
+        given:
+        def invocation = new DefaultCommandLineToolInvocation()
+        def compiler = getCompiler(invocation, O_EXT, true)
+        def testDir = tmpDirProvider.testDirectory
+        def includeDir = testDir.file("includes")
+        def commandLineArgs = getCompilerSpecificArguments(includeDir)
+
+        when:
+        NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
+            getMacros() >> [foo: "bar", empty: null]
+            getAllArgs() >> ["-firstArg", "-secondArg"]
+            getIncludeRoots() >> [ includeDir ]
+            getTempDir() >> testDir
+        }
+
+        and:
+        def actualArgs = compiler.getArguments(compileSpec)
+
+        then:
+        // Almost all options are stripped when using the options file
+        actualArgs != commandLineArgs
+        // options file should exist
+        testDir.file("options.txt").exists()
     }
 }

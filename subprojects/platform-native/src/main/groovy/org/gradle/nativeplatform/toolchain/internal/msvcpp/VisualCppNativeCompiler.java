@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,20 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import java.io.File;
 import java.util.List;
 
-class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
-
-    CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+/**
+ */
+public class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
+    public VisualCppNativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
     }
 
-    private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
-        protected String getLanguageOption() {
-            return "/TP";
-        }
+    @Override
+    protected void addOutputArgs(List<String> args, File outputFile) {
+        // MSVC doesn't allow a space between Fo and the file name
+        args.add("/Fo" + outputFile.getAbsolutePath());
     }
 
+    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
+        return new VisualCppOptionsFileArgWriter(tempDir);
+    }
 }

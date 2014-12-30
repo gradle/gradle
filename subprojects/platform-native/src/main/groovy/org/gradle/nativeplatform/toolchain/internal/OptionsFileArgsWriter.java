@@ -45,7 +45,6 @@ public class OptionsFileArgsWriter implements Transformer<List<String>, List<Str
     }
 
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
-        System.out.println("Writing arguments");
         GFileUtils.mkdirs(tempDir);
         File optionsFile = new File(tempDir, "options.txt");
         try {

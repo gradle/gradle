@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc
+package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
+import org.gradle.internal.Transformers
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 
-class CCompilerTest extends GccCompatibleNativeCompilerTest {
+class CCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolInvocation invocation, String objectFileExtension, boolean useCommandFile) {
-        new CCompiler(commandLineTool, invocation, objectFileExtension, useCommandFile)
+        new CCompiler(commandLineTool, invocation, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
     }
 
     @Override
@@ -34,6 +35,6 @@ class CCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '-x', 'c' ] + super.getCompilerSpecificArguments(includeDir)
+        [ '/TC' ] + super.getCompilerSpecificArguments(includeDir)
     }
 }

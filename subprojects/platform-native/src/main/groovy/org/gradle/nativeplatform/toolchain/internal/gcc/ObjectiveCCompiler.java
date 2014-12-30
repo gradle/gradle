@@ -23,9 +23,9 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompil
 import java.io.File;
 import java.util.List;
 
-public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
+class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSpec> {
 
-    public ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+    ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
         super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), Transformers.<ObjectiveCCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
@@ -33,16 +33,6 @@ public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
         protected String getLanguage() {
             return "objective-c";
         }
-    }
-
-    @Override
-    protected void addOutputArgs(List<String> args, File outputFile) {
-        args.add("-o");
-        args.add(outputFile.getAbsolutePath());
-    }
-
-    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
-        return new GccOptionsFileArgWriter(tempDir);
     }
 
 }

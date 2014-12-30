@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -62,15 +61,10 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         final List<String> genericArgs = getArguments(transformedSpec);
         final StoppableExecutor executor = getExecutor();
 
+        File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {
-            List<String> perFileArgs = Lists.newArrayList(genericArgs);
-            addSourceArgs(perFileArgs, sourceFile);
-            addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, transformedSpec.getObjectFileDir()));
-
-            MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
-            perFileInvocation.clearPostArgsActions();
-            perFileInvocation.setWorkDirectory(transformedSpec.getObjectFileDir());
-            perFileInvocation.setArgs(perFileArgs);
+            CommandLineToolInvocation perFileInvocation =
+                    createPerFileInvocation(genericArgs, sourceFile, objectDir);
             executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
         }
 
@@ -80,19 +74,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
     }
 
-    private StoppableExecutor getExecutor() {
-        final StoppableExecutor executor;
-        if (useParallelCompile()) {
-            // TODO: This needs to limit # of threads
-            executor = new DefaultExecutorFactory().create(commandLineTool.getDisplayName());
-        } else {
-            // Single threaded build
-            executor = new CallingThreadExecutor();
-        }
-        return executor;
-    }
-
-    private List<String> getArguments(T spec) {
+    protected List<String> getArguments(T spec) {
         // TODO: Detangle post args actions from invocation?
         MutableCommandLineToolInvocation postArgsInvocation = baseInvocation.copy();
         postArgsInvocation.setArgs(argsTransformer.transform(spec));
@@ -102,6 +84,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         if (useCommandFile) {
             OptionsFileArgsWriter writer = optionsFileTransformer(spec.getTempDir());
             // Shorten args and write out an options.txt file
+            // This must be called only once per execute()
             genericArgs = writer.transform(genericArgs);
         }
         return genericArgs;
@@ -115,11 +98,11 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     protected abstract OptionsFileArgsWriter optionsFileTransformer(File tempDir);
 
-    private File getOutputFileDir(File sourceFile, File objectFileDir) {
+    protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
         File outputFile = new CompilerOutputFileNamingScheme()
-                .withObjectFileNameSuffix(objectFileSuffix)
+                .withObjectFileNameSuffix(fileSuffix)
                 .withOutputBaseFolder(objectFileDir)
                 .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
@@ -127,6 +110,30 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
             outputDirectory.mkdirs();
         }
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+    }
+
+    protected MutableCommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir) {
+        List<String> perFileArgs = Lists.newArrayList(genericArgs);
+        addSourceArgs(perFileArgs, sourceFile);
+        addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+
+        MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
+        perFileInvocation.clearPostArgsActions();
+        perFileInvocation.setWorkDirectory(objectDir);
+        perFileInvocation.setArgs(perFileArgs);
+        return perFileInvocation;
+    }
+
+    private StoppableExecutor getExecutor() {
+        final StoppableExecutor executor;
+        if (useParallelCompile()) {
+            // TODO: This needs to limit # of threads
+            executor = new DefaultExecutorFactory().create(commandLineTool.getDisplayName());
+        } else {
+            // Single threaded build
+            executor = new CallingThreadExecutor();
+        }
+        return executor;
     }
 
     /**

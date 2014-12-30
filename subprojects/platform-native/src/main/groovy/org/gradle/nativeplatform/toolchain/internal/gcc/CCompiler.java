@@ -23,9 +23,9 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 import java.io.File;
 import java.util.List;
 
-class CCompiler extends NativeCompiler<CCompileSpec> {
+class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
 
-    public CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+    CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
         super(commandLineTool, baseInvocation, new CCompileArgsTransformer(), Transformers.<CCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
@@ -34,15 +34,4 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
             return "c";
         }
     }
-
-    @Override
-    protected void addOutputArgs(List<String> args, File outputFile) {
-        args.add("-o");
-        args.add(outputFile.getAbsolutePath());
-    }
-
-    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
-        return new GccOptionsFileArgWriter(tempDir);
-    }
-
 }
