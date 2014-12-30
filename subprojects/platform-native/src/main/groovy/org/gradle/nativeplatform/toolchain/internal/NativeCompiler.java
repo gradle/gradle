@@ -19,16 +19,19 @@ package org.gradle.nativeplatform.toolchain.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -125,9 +128,16 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     private StoppableExecutor getExecutor() {
         final StoppableExecutor executor;
+        // TODO: This needs to tie into a build level executor service
         if (useParallelCompile()) {
-            // TODO: This needs to limit # of threads
-            executor = new DefaultExecutorFactory().create(commandLineTool.getDisplayName());
+            ExecutorFactory executorFactory = new DefaultExecutorFactory() {
+                @Override
+                protected ExecutorService createExecutor(String displayName) {
+                    // TODO: Hardcoded to a max of 4 threads for now
+                    return Executors.newFixedThreadPool(4, new ThreadFactoryImpl(displayName));
+                }
+            };
+            executor = executorFactory.create(commandLineTool.getDisplayName());
         } else {
             // Single threaded build
             executor = new CallingThreadExecutor();

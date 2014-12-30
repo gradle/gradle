@@ -104,7 +104,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         }
     }
 
-    private static class ThreadFactoryImpl implements ThreadFactory {
+    protected static class ThreadFactoryImpl implements ThreadFactory {
         private final AtomicLong counter = new AtomicLong();
         private final String displayName;
 
