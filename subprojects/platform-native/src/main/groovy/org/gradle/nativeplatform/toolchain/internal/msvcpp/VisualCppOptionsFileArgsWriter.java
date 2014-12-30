@@ -24,8 +24,8 @@ import java.io.File;
 /**
  * Uses an option file for arguments passed to Visual C++.
  */
-class VisualCppOptionsFileArgWriter extends OptionsFileArgsWriter {
-    public VisualCppOptionsFileArgWriter(File tempDir) {
+class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
+    public VisualCppOptionsFileArgsWriter(File tempDir) {
         super(ArgWriter.windowsStyleFactory(), tempDir);
     }
 }

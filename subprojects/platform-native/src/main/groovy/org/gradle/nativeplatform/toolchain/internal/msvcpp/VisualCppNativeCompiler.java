@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.toolchain.internal.*;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 import java.io.File;
 import java.util.List;
@@ -36,7 +35,9 @@ public class VisualCppNativeCompiler<T extends NativeCompileSpec> extends Native
         args.add("/Fo" + outputFile.getAbsolutePath());
     }
 
-    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
-        return new VisualCppOptionsFileArgWriter(tempDir);
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        OptionsFileArgsWriter writer = new VisualCppOptionsFileArgsWriter(tempDir);
+        // modifies args in place
+        writer.execute(args);
     }
 }

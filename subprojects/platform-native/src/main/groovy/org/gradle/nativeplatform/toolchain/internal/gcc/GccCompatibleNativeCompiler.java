@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.toolchain.internal.*;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 import java.io.File;
 import java.util.List;
@@ -37,7 +36,9 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
         args.add(outputFile.getAbsolutePath());
     }
 
-    protected OptionsFileArgsWriter optionsFileTransformer(File tempDir) {
-        return new GccOptionsFileArgWriter(tempDir);
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {
+        OptionsFileArgsWriter writer = new GccOptionsFileArgsWriter(tempDir);
+        // modifies args in place
+        writer.execute(args);
     }
 }

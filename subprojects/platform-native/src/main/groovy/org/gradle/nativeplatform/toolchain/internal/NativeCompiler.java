@@ -82,10 +82,9 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> genericArgs = postArgsInvocation.getArgs();
 
         if (useCommandFile) {
-            OptionsFileArgsWriter writer = optionsFileTransformer(spec.getTempDir());
             // Shorten args and write out an options.txt file
             // This must be called only once per execute()
-            genericArgs = writer.transform(genericArgs);
+            addOptionsFileArgs(genericArgs, spec.getTempDir());
         }
         return genericArgs;
     }
@@ -96,7 +95,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     protected abstract void addOutputArgs(List<String> args, File outputFile);
 
-    protected abstract OptionsFileArgsWriter optionsFileTransformer(File tempDir);
+    protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();

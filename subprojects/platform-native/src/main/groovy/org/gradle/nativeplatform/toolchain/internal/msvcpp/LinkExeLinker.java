@@ -46,7 +46,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
 
     public WorkResult execute(LinkerSpec spec) {
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.addPostArgsAction(new VisualCppOptionsFileArgWriter(spec.getTempDir()));
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
         invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
         commandLineTool.execute(invocation);
         return new SimpleWorkResult(true);

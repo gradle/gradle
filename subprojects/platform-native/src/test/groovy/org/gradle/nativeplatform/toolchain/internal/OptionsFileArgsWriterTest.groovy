@@ -16,10 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import org.gradle.nativeplatform.toolchain.internal.gcc.GccOptionsFileArgWriter
-import org.gradle.platform.base.internal.toolchain.ArgWriter
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 import spock.lang.Specification
 
 /**

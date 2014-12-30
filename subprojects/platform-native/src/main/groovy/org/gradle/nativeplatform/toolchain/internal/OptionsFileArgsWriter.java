@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class OptionsFileArgsWriter implements Transformer<List<String>, List<String>>, Action<List<String>> {
+public class OptionsFileArgsWriter implements Action<List<String>> {
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
     private final File tempDir;
 
@@ -40,8 +40,11 @@ public class OptionsFileArgsWriter implements Transformer<List<String>, List<Str
         this.tempDir = tempDir;
     }
 
-    public List<String> transform(List<String> args) {
-        return transformArgs(args, tempDir);
+    @Override
+    public void execute(List<String> args) {
+        List<String> originalArgs = Lists.newArrayList(args);
+        args.clear();
+        args.addAll(transformArgs(originalArgs, tempDir));
     }
 
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
@@ -60,12 +63,5 @@ public class OptionsFileArgsWriter implements Transformer<List<String>, List<Str
         }
 
         return Arrays.asList(String.format("@%s", optionsFile.getAbsolutePath()));
-    }
-
-    @Override
-    public void execute(List<String> args) {
-        List<String> originalArgs = Lists.newArrayList(args);
-        args.clear();
-        args.addAll(transform(originalArgs));
     }
 }

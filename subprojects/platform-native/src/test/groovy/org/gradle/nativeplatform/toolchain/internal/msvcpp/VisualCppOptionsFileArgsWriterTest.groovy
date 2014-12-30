@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriterTest
-import org.gradle.platform.base.internal.toolchain.ArgWriter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -29,6 +28,6 @@ class VisualCppOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     OptionsFileArgsWriter getArgsWriter() {
-        new VisualCppOptionsFileArgWriter(tmpDirProvider.getTestDirectory())
+        new VisualCppOptionsFileArgsWriter(tmpDirProvider.getTestDirectory())
     }
 }
