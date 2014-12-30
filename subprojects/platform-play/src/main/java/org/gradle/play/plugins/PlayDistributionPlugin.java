@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Zip;
@@ -66,7 +67,7 @@ public class PlayDistributionPlugin {
     }
 
     @Mutate
-    void createLifecycleTask(CollectionBuilder<Task> tasks) {
+    void createLifecycleTasks(CollectionBuilder<Task> tasks) {
         tasks.create("dist", new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -74,10 +75,18 @@ public class PlayDistributionPlugin {
                 task.setGroup(DISTRIBUTION_GROUP);
             }
         });
+
+        tasks.create("stage", new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setDescription("Stages all play distributions.");
+                task.setGroup(DISTRIBUTION_GROUP);
+            }
+        });
     }
 
     @Mutate
-    void configureDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayToolChainInternal playToolChain) {
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayToolChainInternal playToolChain) {
         for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
             PlayDistribution distribution = distributions.create(binary.getName());
 
@@ -91,6 +100,7 @@ public class PlayDistributionPlugin {
             distSpec.from("README");
 
             distribution.setBinary(binary);
+            distribution.setBaseName(binary.getName());
         }
     }
 
@@ -127,13 +137,28 @@ public class PlayDistributionPlugin {
         }
 
         for (final PlayDistribution distribution : distributions) {
+            String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
+            tasks.create(stageTaskName, Copy.class, new Action<Copy>() {
+                @Override
+                public void execute(Copy copy) {
+                    copy.setDescription("Copies the binary distribution to a staging directory.");
+                    copy.setGroup(DISTRIBUTION_GROUP);
+                    copy.setDestinationDir(new File(buildDir, "stage"));
+
+                    String baseDirName = distribution.getName();
+                    CopySpecInternal baseSpec = copy.getRootSpec().addChild();
+                    baseSpec.into(baseDirName);
+                    baseSpec.with(distribution.getContents());
+                }
+            });
+
             String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(Zip zip) {
                     zip.setDescription("Bundles the play binary as a distribution.");
                     zip.setGroup(DISTRIBUTION_GROUP);
-                    zip.setBaseName(distribution.getName());
+                    zip.setBaseName(StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName());
                     zip.setDestinationDir(new File(buildDir, "distributions"));
 
                     String baseDirName = zip.getArchiveName().substring(0, zip.getArchiveName().length() - zip.getExtension().length() - 1);
@@ -146,12 +171,23 @@ public class PlayDistributionPlugin {
     }
 
     @Finalize
-    void wireLifecycleDependencies(@Path("tasks.dist") Task distTask, TaskContainer tasks) {
+    void wireDistLifecycleDependencies(@Path("tasks.dist") Task distTask, TaskContainer tasks) {
         // TODO: Not sure this is the best way to do this, but it works for now
         distTask.dependsOn(tasks.withType(Zip.class).matching(new Spec<Zip>() {
             @Override
             public boolean isSatisfiedBy(Zip zipTask) {
                 return DISTRIBUTION_GROUP.equals(zipTask.getGroup());
+            }
+        }));
+    }
+
+    @Finalize
+    void wireStageLifecycleDependencies(@Path("tasks.stage") Task stageTask, TaskContainer tasks) {
+        // TODO: Not sure this is the best way to do this, but it works for now
+        stageTask.dependsOn(tasks.withType(Copy.class).matching(new Spec<Copy>() {
+            @Override
+            public boolean isSatisfiedBy(Copy copyTask) {
+                return DISTRIBUTION_GROUP.equals(copyTask.getGroup());
             }
         }));
     }

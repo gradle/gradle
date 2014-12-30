@@ -65,8 +65,15 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":createPlayBinaryStartScripts", ":createPlayBinaryDist")
-        skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts",
+                ":createPlayBinaryDist")
+        skipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":scalaCompilePlayBinary")
 
         and:
         zip("build/distributions/playBinary.zip").containsDescendants(
@@ -75,6 +82,28 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat"
         )
+
+        when:
+        succeeds "stage"
+
+        then:
+        executedAndNotSkipped(":stagePlayBinaryDist")
+        skipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts",
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":scalaCompilePlayBinary")
+
+        and:
+        [ "playBinary/lib/play.jar",
+          "playBinary/lib/play-assets.jar",
+          "playBinary/bin/playBinary",
+          "playBinary/bin/playBinary.bat"
+        ].each { fileName ->
+            assert file("build/stage/${fileName}").exists()
+        }
     }
 
     ZipTestFixture zip(String path) {

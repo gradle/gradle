@@ -16,10 +16,13 @@
 
 package org.gradle.play.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.file.copy.CopySpecInternal
+import org.gradle.api.internal.file.copy.DestinationRootCopySpec
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
@@ -42,11 +45,7 @@ class PlayDistributionPluginTest extends Specification {
         DomainObjectSet jarTasks2 = Stub(DomainObjectSet)
         PlayApplicationBinarySpec bin1 = binary("bin1", jarTasks1)
         PlayApplicationBinarySpec bin2 = binary("bin2", jarTasks2)
-        BinaryContainer binaryContainer = Stub(BinaryContainer) {
-            withType(PlayApplicationBinarySpec.class) >> Stub(NamedDomainObjectSet) {
-                iterator() >> [ bin1, bin2 ].iterator()
-            }
-        }
+        BinaryContainer binaryContainer = binaryContainer([ bin1, bin2 ])
 
         CopySpec spec1 = Mock(CopySpec)
         CopySpec spec2 = Mock(CopySpec)
@@ -61,7 +60,7 @@ class PlayDistributionPluginTest extends Specification {
         }
 
         when:
-        plugin.configureDistributions(distributionContainer, binaryContainer, playToolChain)
+        plugin.createDistributions(distributionContainer, binaryContainer, playToolChain)
 
         then:
         1 * distributionContainer.create("bin1") >> distributions["bin1"]
@@ -77,16 +76,20 @@ class PlayDistributionPluginTest extends Specification {
         PlayApplicationBinarySpecInternal binary = Stub(PlayApplicationBinarySpecInternal) {
             getName() >> "playBinary"
         }
-        BinaryContainer binaryContainer = Stub(BinaryContainer) {
-            withType(PlayApplicationBinarySpec.class) >> Stub(NamedDomainObjectSet) {
-                iterator() >> [ binary ].iterator()
-            }
-        }
+        BinaryContainer binaryContainer = binaryContainer([ binary ])
         CollectionBuilder tasks = Mock(CollectionBuilder)
         CopySpec spec = Stub(CopySpec)
-        PlayDistributionContainer distributions = Mock(PlayDistributionContainer) {
-            iterator() >> [ Mock(PlayDistribution) { getName() >> "playBinary"  } ].iterator()
+        PlayDistribution distribution = Mock(PlayDistribution) {
+            getName() >> "playBinary"
+            getContents() >> Mock(CopySpecInternal) {
+                addChild() >> Mock(CopySpecInternal) {
+                    into("bin") >> Mock(CopySpec) {
+                        1 * from(_ as CreateStartScripts)
+                    }
+                }
+            }
         }
+        PlayDistributionContainer distributions = distributions([ distribution ])
         PlayToolChainInternal playToolChain = Stub(PlayToolChainInternal) {
             select(_) >> Stub(PlayToolProvider)
         }
@@ -95,8 +98,61 @@ class PlayDistributionPluginTest extends Specification {
         plugin.createDistributionTasks(tasks, binaryContainer, buildDir, distributions, playToolChain)
 
         then:
-        1 * tasks.create("createPlayBinaryStartScripts", CreateStartScripts, _)
-        1 * tasks.create("createPlayBinaryDist", Zip, _)
+        1 * tasks.create("createPlayBinaryStartScripts", CreateStartScripts, _) >> { String name, Class type, Action action ->
+            action.execute(Mock(CreateStartScripts) {
+                1 * setDescription(_)
+                1 * setClasspath(_)
+                1 * setMainClassName("play.core.server.NettyServer")
+                1 * setApplicationName("playBinary")
+                1 * setOutputDir(_)
+            })
+        }
+        1 * tasks.create("createPlayBinaryDist", Zip, _) >> { String name, Class type, Action action ->
+            action.execute(Mock(Zip) {
+                1 * setDescription(_)
+                1 * setGroup(_)
+                1 * setDestinationDir(_)
+                1 * setBaseName("playBinary")
+                2 * getArchiveName() >> "playBinary.zip"
+                1 * getExtension() >> "zip"
+                1 * getRootSpec() >> Mock(CopySpecInternal) {
+                    1 * addChild() >> Mock(CopySpecInternal) {
+                        1 * into("playBinary")
+                        1 * with(_ as CopySpecInternal)
+                    }
+                }
+            })
+        }
+        1 * tasks.create("stagePlayBinaryDist", Copy, _) >> { String name, Class type, Action action ->
+            action.execute(Mock(Copy) {
+                1 * setDescription(_)
+                1 * setGroup(_)
+                1 * setDestinationDir(_)
+                1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
+                    1 * addChild() >> Mock(CopySpecInternal) {
+                        1 * into("playBinary")
+                        1 * with(_ as CopySpecInternal)
+                    }
+                }
+            })
+        }
+    }
+
+    def binaryContainer(List binaries) {
+        return Stub(BinaryContainer) {
+            withType(PlayApplicationBinarySpec.class) >> Stub(NamedDomainObjectSet) {
+                iterator() >> binaries.iterator()
+            }
+        }
+    }
+
+    def distributions(List distributions) {
+        return Stub(PlayDistributionContainer) {
+            iterator() >> distributions.iterator()
+            matching(_) >> Stub(NamedDomainObjectSet) {
+                iterator() >> distributions.iterator()
+            }
+        }
     }
 
     def binary(String name, DomainObjectSet jarTasks) {

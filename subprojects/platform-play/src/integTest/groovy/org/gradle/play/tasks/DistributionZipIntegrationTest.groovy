@@ -58,6 +58,51 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         zip("build/distributions/playBinary.zip").containsDescendants("playBinary/additionalFile.txt")
     }
 
+    def "can add an additional arbitrary distribution" () {
+        buildFile << """
+            model {
+                distributions {
+                    myDist {
+                        baseName = "mySpecialDist"
+                        contents {
+                            from binaries.playBinary.tasks.withType(org.gradle.jvm.tasks.Jar)
+                            into("txt") {
+                                from "additionalFile.txt"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("additionalFile.txt").createFile()
+
+        when:
+        succeeds "dist"
+
+        then:
+        executedAndNotSkipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createMyDistDist")
+
+        and:
+        zip("build/distributions/mySpecialDist.zip").containsDescendants(
+                "mySpecialDist/play.jar",
+                "mySpecialDist/play-assets.jar",
+                "mySpecialDist/txt/additionalFile.txt")
+
+        when:
+        succeeds "stage"
+
+        then:
+        [ "play.jar",
+          "play-assets.jar",
+          "txt/additionalFile.txt"
+        ].each { fileName ->
+            file("build/stage/myDist/${fileName}").exists()
+        }
+    }
+
     ZipTestFixture zip(String path) {
         return new ZipTestFixture(file(path))
     }
