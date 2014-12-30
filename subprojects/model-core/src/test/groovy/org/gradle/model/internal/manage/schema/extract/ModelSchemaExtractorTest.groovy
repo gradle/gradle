@@ -639,8 +639,8 @@ $type
 
     def "non-abstract mutator methods are not allowed"() {
         expect:
-        fail NonAbstractGetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("getName").owner(NonAbstractGetter).returns(String).takes()})")
-        fail NonAbstractSetter, Pattern.quote("non-abstract methods are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).returns(void.class)})")
+        fail NonAbstractGetterWithSetter, Pattern.quote("setters are not allowed for non-abstract getters (invalid method: ${MethodDescription.name("setName").owner(NonAbstractGetterWithSetter).returns(void.class).takes(String)})")
+        fail NonAbstractSetter, Pattern.quote("non-abstract setters are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).returns(void.class)})")
     }
 
     @Managed
@@ -711,7 +711,7 @@ $type
         InvalidManagedModelElementTypeException e = thrown()
         e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
         e.cause.class == UnsupportedOperationException
-        e.cause.message == "Calling setters of a managed type from its constructor is not allowed"
+        e.cause.message == "Calling setters of a managed type on itself is not allowed"
     }
 
     private void fail(extractType, errorType, String msgPattern) {
@@ -742,8 +742,9 @@ $type
 }
 
 @Managed
-abstract class NonAbstractGetter {
+abstract class NonAbstractGetterWithSetter {
     String getName() {}
+    abstract void setName(String name)
 }
 
 @Managed

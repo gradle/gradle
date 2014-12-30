@@ -542,7 +542,7 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 #### Test Coverage
 
-- Runtime error if provided getter (i.e. non abstract one) calls a setter method
+- ~~Runtime error if provided getter (i.e. non abstract one) calls a setter method~~
 
 ### Support for polymorphic managed sets
 

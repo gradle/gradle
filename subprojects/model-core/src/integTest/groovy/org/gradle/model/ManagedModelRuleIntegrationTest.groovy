@@ -1824,4 +1824,50 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
         failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.collection.ManagedSet<Person>)'")
     }
+
+    def "managed type implemented as abstract class can have generative getters"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+                abstract String getFirstName()
+                abstract void setFirstName(String firstName)
+                abstract String getLastName()
+                abstract void setLastName(String lastName)
+
+                String getName() {
+                    "$firstName $lastName"
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.firstName = "Alan"
+                    person.lastName = "Turing"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: Alan Turing")
+    }
 }

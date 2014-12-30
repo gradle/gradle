@@ -100,9 +100,8 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                     // So, taking the first one with the most specialized return type is fine.
                     Method sampleMethod = returnTypeSpecializationOrdering.max(getterMethods);
 
-                    if (!Modifier.isAbstract(sampleMethod.getModifiers())) {
-                        throw invalidMethod(extractionContext, "non-abstract methods are not allowed", sampleMethod);
-                    }
+                    boolean abstractGetter = Modifier.isAbstract(sampleMethod.getModifiers());
+
                     if (sampleMethod.getParameterTypes().length != 0) {
                         throw invalidMethod(extractionContext, "getter methods cannot take parameters", sampleMethod);
                     }
@@ -121,23 +120,30 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
                     boolean isWritable = !setterMethods.isEmpty();
                     if (isWritable) {
-                        validateSetter(extractionContext, returnType, setterMethods.get(0));
+                        Method setter = setterMethods.get(0);
+
+                        if (!abstractGetter) {
+                            throw invalidMethod(extractionContext, "setters are not allowed for non-abstract getters", setter);
+                        }
+                        validateSetter(extractionContext, returnType, setter);
                         handled.addAll(setterMethods);
                     }
 
-                    ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterMethods, new Function<Method, ModelType<?>>() {
-                        public ModelType<?> apply(Method input) {
-                            return ModelType.of(input.getDeclaringClass());
-                        }
-                    }));
+                    if (abstractGetter) {
+                        ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterMethods, new Function<Method, ModelType<?>>() {
+                            public ModelType<?> apply(Method input) {
+                                return ModelType.of(input.getDeclaringClass());
+                            }
+                        }));
 
-                    boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
-                        public boolean apply(Method input) {
-                            return input.getAnnotation(Unmanaged.class) != null;
-                        }
-                    });
+                        boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
+                            public boolean apply(Method input) {
+                                return input.getAnnotation(Unmanaged.class) != null;
+                            }
+                        });
 
-                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
+                        properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
+                    }
                     handled.addAll(getterMethods);
                 }
             }
@@ -248,7 +254,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
     private void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, Method setter) {
         if (!Modifier.isAbstract(setter.getModifiers())) {
-            throw invalidMethod(extractionContext, "non-abstract methods are not allowed", setter);
+            throw invalidMethod(extractionContext, "non-abstract setters are not allowed", setter);
         }
 
         if (!setter.getReturnType().equals(void.class)) {
