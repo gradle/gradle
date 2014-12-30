@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -77,7 +78,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
 
                 private void ensureReadable() {
                     if (writable && !closed) {
-                        throw new IllegalStateException(String.format("Cannot read contents of element '%s' of type '%s' while it's mutable", modelNode.getPath(), getType(), ruleDescriptor));
+                        throw new WriteOnlyModelViewException(getType(), ruleDescriptor);
                     }
                 }
 

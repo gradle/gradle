@@ -1785,7 +1785,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Cannot read contents of element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' while it's mutable")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
     def "read methods of ManagedSet throw exceptions when used in a mutation rule"() {
@@ -1822,6 +1822,6 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
-        failure.assertHasCause("Cannot read contents of element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' while it's mutable")
+        failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 }
