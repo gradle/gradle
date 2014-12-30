@@ -1680,7 +1680,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
-        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' as it is an input to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
@@ -1718,7 +1718,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateManagedSetOutsideOfCreationRule")
-        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' used as subject of rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)' after the rule has completed")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
     def "mutating managed set which is an input of a dsl rule is not allowed"() {
@@ -1752,7 +1752,7 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Cannot mutate model element 'people' of type 'org.gradle.model.collection.ManagedSet<Person>' as it is an input to rule 'model.tasks @ build file")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'model.tasks @ build file")
     }
 
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {

@@ -16,14 +16,16 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Action;
 import org.gradle.internal.Cast;
+import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
@@ -34,7 +36,8 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
     @Override
     protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
         return new ModelView<M>() {
-            public boolean closed;
+
+            private boolean closed;
 
             @Override
             public ModelType<M> getType() {
@@ -43,9 +46,12 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
 
             @Override
             public M getInstance() {
-                Class<M> clazz = getType().getConcreteClass(); // safe because we know schema must be of a concrete type
-                Object view = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz, ManagedInstance.class}, new ManagedSetViewInvocationHandler());
-                return Cast.uncheckedCast(view);
+                ModelType<?> elementType = getType().getTypeVariables().get(0);
+                return Cast.uncheckedCast(getManagedSetInstance(elementType));
+            }
+
+            private <E> ManagedSet<E> getManagedSetInstance(ModelType<E> elementType) {
+                return new DelegatingManagedSet<E>(elementType);
             }
 
             @Override
@@ -53,20 +59,98 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                 closed = true;
             }
 
-            class ManagedSetViewInvocationHandler implements InvocationHandler {
+            class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
+
+                private final ManagedSet<E> delegate;
+
+                public DelegatingManagedSet(ModelType<E> elementType) {
+                    delegate = Cast.uncheckedCast(modelNode.getPrivateData(getType()));
+                }
+
                 @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    if (method.getName().equals("create")) {
-                        if (!writable) {
-                            throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' as it is an input to rule '%s'", modelNode.getPath(), getType(), ruleDescriptor));
-                        }
-                        if (closed) {
-                            throw new IllegalStateException(String.format("Cannot mutate model element '%s' of type '%s' used as subject of rule '%s' after the rule has completed", modelNode.getPath(), getType(), ruleDescriptor));
-                        }
-                    } else if (writable && !closed && DefaultManagedSet.READ_METHOD_NAMES.contains(method.getName())) {
+                public void create(Action<? super E> action) {
+                    if (!writable || closed) {
+                        throw new ModelViewClosedException(getType(), ruleDescriptor);
+                    }
+                    delegate.create(action);
+                }
+
+                private void ensureReadable() {
+                    if (writable && !closed) {
                         throw new IllegalStateException(String.format("Cannot read contents of element '%s' of type '%s' while it's mutable", modelNode.getPath(), getType(), ruleDescriptor));
                     }
-                    return method.invoke(modelNode.getPrivateData(getType()), args);
+                }
+
+                @Override
+                public int size() {
+                    ensureReadable();
+                    return delegate.size();
+                }
+
+                @Override
+                public boolean isEmpty() {
+                    ensureReadable();
+                    return delegate.isEmpty();
+                }
+
+                @Override
+                public boolean contains(Object o) {
+                    ensureReadable();
+                    return delegate.contains(o);
+                }
+
+                @Override
+                public Iterator<E> iterator() {
+                    ensureReadable();
+                    return delegate.iterator();
+                }
+
+                @Override
+                public Object[] toArray() {
+                    ensureReadable();
+                    return delegate.toArray();
+                }
+
+                @Override
+                public <T> T[] toArray(T[] a) {
+                    ensureReadable();
+                    return delegate.toArray(a);
+                }
+
+                @Override
+                public boolean add(E e) {
+                    return delegate.add(e);
+                }
+
+                @Override
+                public boolean remove(Object o) {
+                    return delegate.remove(o);
+                }
+
+                @Override
+                public boolean containsAll(Collection<?> c) {
+                    ensureReadable();
+                    return delegate.containsAll(c);
+                }
+
+                @Override
+                public boolean addAll(Collection<? extends E> c) {
+                    return delegate.addAll(c);
+                }
+
+                @Override
+                public boolean retainAll(Collection<?> c) {
+                    return delegate.retainAll(c);
+                }
+
+                @Override
+                public boolean removeAll(Collection<?> c) {
+                    return delegate.removeAll(c);
+                }
+
+                @Override
+                public void clear() {
+                    delegate.clear();
                 }
             }
         };

@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -30,8 +29,6 @@ import java.util.Set;
 
 @NotThreadSafe
 public class DefaultManagedSet<T> implements ManagedSet<T>, ManagedInstance {
-
-    public final static Set<String> READ_METHOD_NAMES = ImmutableSet.of("size", "isEmpty", "contains", "iterator", "toArray", "containsAll");
 
     private final Set<T> elements = Sets.newHashSet();
     private final Factory<T> elementFactory;
