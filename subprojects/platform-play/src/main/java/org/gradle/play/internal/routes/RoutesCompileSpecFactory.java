@@ -16,19 +16,20 @@
 
 package org.gradle.play.internal.routes;
 
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 
 public class RoutesCompileSpecFactory {
 
     public static VersionedRoutesCompileSpec create(RoutesCompileSpec spec, PlayPlatform playPlatform) {
-        RoutesCompilerVersion version = RoutesCompilerVersion.parse(playPlatform.getPlayVersion());
-        switch (version) {
-            case V_22X:
-                return new RoutesCompileSpecV22X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.getForkOptions(), spec.isJavaProject(), playPlatform);
-            case V_23X:
-                return new RoutesCompileSpecV23X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.isNamespaceReverseRouter(), spec.getForkOptions(), spec.isJavaProject(), playPlatform);
+        String playVersion = playPlatform.getPlayVersion();
+        switch (PlayMajorVersion.forPlatform(playPlatform)) {
+            case PLAY_2_2_X:
+                return new RoutesCompileSpecV22X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.getForkOptions(), spec.isJavaProject(), playVersion);
+            case PLAY_2_3_X:
+                return new RoutesCompileSpecV23X(spec.getSources(), spec.getDestinationDir(), spec.getAdditionalImports(), spec.isNamespaceReverseRouter(), spec.getForkOptions(), spec.isJavaProject(), playVersion);
             default:
-                throw new RuntimeException("Could not create routes compile spec for version: " + version);
+                throw new RuntimeException("Could not create routes compile spec for Play version: " + playVersion);
         }
     }
 }

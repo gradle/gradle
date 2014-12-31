@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal.toolchain;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -29,6 +28,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
@@ -42,7 +42,6 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
-import org.gradle.util.VersionNumber;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -58,7 +57,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
     private final PlayPlatform targetPlatform;
-    private final PlayVersion playVersion;
+    private final PlayMajorVersion playMajorVersion;
 
     public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, PlayPlatform targetPlatform) {
         this.fileResolver = fileResolver;
@@ -66,18 +65,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
         this.targetPlatform = targetPlatform;
-        this.playVersion = parsePlayVersion(targetPlatform);
-    }
-
-    private PlayVersion parsePlayVersion(PlayPlatform targetPlatform) {
-        VersionNumber versionNumber = VersionNumber.parse(targetPlatform.getPlayVersion());
-        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 2) {
-            return PlayVersion.PLAY_2_2_X;
-        }
-        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 3) {
-            return PlayVersion.PLAY_2_3_X;
-        }
-        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: 2.3.x, 2.2.x", targetPlatform.getPlayVersion()));
+        this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
     }
 
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
@@ -133,7 +121,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public VersionedPlayRunSpec createPlayRunner(PlayRunSpec spec, Iterable<File> classpath) {
-        switch (playVersion) {
+        switch (playMajorVersion) {
             case PLAY_2_2_X:
                 return new PlayRunSpecV22X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
             case PLAY_2_3_X:
@@ -173,8 +161,4 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         }
     }
 
-    private enum PlayVersion {
-        PLAY_2_2_X,
-        PLAY_2_3_X
-    }
 }

@@ -18,7 +18,6 @@ package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.scala.internal.reflect.ScalaListBuffer;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -39,8 +38,8 @@ public class RoutesCompileSpecV22X extends DefaultVersionedRoutesCompileSpec {
         return javaImports;
     }
 
-    public RoutesCompileSpecV22X(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, PlayPlatform playPlatform) {
-        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playPlatform);
+    public RoutesCompileSpecV22X(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, String playVersion) {
+        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playVersion, "2.10");
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {

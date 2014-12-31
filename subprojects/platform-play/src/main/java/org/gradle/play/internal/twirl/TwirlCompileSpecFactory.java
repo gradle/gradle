@@ -16,18 +16,20 @@
 
 package org.gradle.play.internal.twirl;
 
+import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 
 public class TwirlCompileSpecFactory {
     public static VersionedTwirlCompileSpec create(TwirlCompileSpec spec, PlayPlatform playPlatform) {
-        TwirlCompilerVersion version = TwirlCompilerVersion.parse(playPlatform.getTwirlVersion());
-        switch (version) {
-            case V_22X:
-                return new TwirlCompileSpecV22X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
-            case V_10X:
-                return new TwirlCompileSpecV10X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), playPlatform.getTwirlVersion(), playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
+        String playVersion = playPlatform.getPlayVersion();
+        String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
+        switch (PlayMajorVersion.forPlatform(playPlatform)) {
+            case PLAY_2_2_X:
+                return new TwirlCompileSpecV22X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), "2.2.3", scalaCompatibilityVersion);
+            case PLAY_2_3_X:
+                return new TwirlCompileSpecV10X(spec.getSourceDirectory(), spec.getSources(), spec.getDestinationDir(), spec.getForkOptions(), spec.isJavaProject(), "1.0.2", scalaCompatibilityVersion);
             default:
-                throw new RuntimeException("Could not create Play Twirl compile spec for version: " + version);
+                throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);
         }
     }
 }

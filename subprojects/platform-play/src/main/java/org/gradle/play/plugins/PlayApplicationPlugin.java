@@ -74,22 +74,21 @@ public class PlayApplicationPlugin {
     void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {
         playPlatforms.create(new Action<PlayPlatformInternal>() {
             public void execute(PlayPlatformInternal platform) {
-                initializePlatform(platform, "2.2.3", "2.10.3", "2.2.3");
+                initializePlatform(platform, "2.2.3", "2.10.3");
             }
         });
         playPlatforms.create(new Action<PlayPlatformInternal>() {
             public void execute(PlayPlatformInternal platform) {
-                initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1", "1.0.2");
+                initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1");
             }
         });
     }
 
-    private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
+    private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion) {
         platform.setName("play-" + playVersion);
         platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
         platform.setPlayVersion(playVersion);
         platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
-        platform.setTwirlVersion(twirlVersion);
         platform.setJavaPlatform(new DefaultJavaPlatform(JavaVersion.current()));
     }
 

@@ -18,7 +18,6 @@ package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.scala.internal.reflect.ScalaListBuffer;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -30,8 +29,8 @@ import java.util.List;
 public class RoutesCompileSpecV23X extends DefaultVersionedRoutesCompileSpec {
     private final boolean generateRefReverseRouter;
 
-    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, BaseForkOptions forkOptions, boolean javaProject, PlayPlatform playPlatform) {
-        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playPlatform);
+    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, BaseForkOptions forkOptions, boolean javaProject, String playVersion) {
+        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playVersion, "2.10");
         this.generateRefReverseRouter = generateRefReverseRouter;
     }
 

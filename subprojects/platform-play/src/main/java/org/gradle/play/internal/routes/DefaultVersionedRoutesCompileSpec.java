@@ -17,7 +17,6 @@
 package org.gradle.play.internal.routes;
 
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,19 +29,18 @@ public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCom
     private final List<String> additionalImports = new ArrayList<String>();
     private final boolean generateReverseRoute;
     private final boolean namespaceReverseRouter;
-    private final String scalaVersion;
 
     private final String playVersion;
-
+    private final String scalaVersion;
 
     protected abstract List<String> defaultScalaImports();
 
     protected abstract List<String> defaultJavaImports();
 
-    public DefaultVersionedRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, PlayPlatform playPlatform) {
+    public DefaultVersionedRoutesCompileSpec(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, String playVersion, String scalaVersion) {
         super(sources, destinationDir, additionalImports, false, forkOptions, javaProject);
-        this.scalaVersion = "2.10";
-        this.playVersion = playPlatform.getPlayVersion();
+        this.playVersion = playVersion;
+        this.scalaVersion = scalaVersion;
         this.sources = sources;
         this.destinationDir = destinationDir;
         if (additionalImports == null) {
@@ -78,16 +76,8 @@ public abstract class DefaultVersionedRoutesCompileSpec extends DefaultRoutesCom
         return namespaceReverseRouter;
     }
 
-    public String getPlayVersion() {
-        return playVersion;
-    }
-
-    public String getScalaVersion() {
-        return scalaVersion;
-    }
-
     public Object getDependencyNotation() {
-        return String.format("com.typesafe.play:routes-compiler_%s:%s", getScalaVersion(), getPlayVersion());
+        return String.format("com.typesafe.play:routes-compiler_%s:%s", scalaVersion, playVersion);
     }
 
     public List<String> getClassLoaderPackages() {

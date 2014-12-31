@@ -36,8 +36,6 @@ public interface PlayPlatform extends Platform {
     @Unmanaged
     public ScalaPlatform getScalaPlatform();
 
-    public String getTwirlVersion();
-
     @Unmanaged
     public JavaPlatform getJavaPlatform();
 }

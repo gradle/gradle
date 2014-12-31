@@ -1,0 +1,38 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.play.internal.platform;
+
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.util.VersionNumber;
+
+public enum PlayMajorVersion {
+    PLAY_2_2_X,
+    PLAY_2_3_X;
+
+    public static PlayMajorVersion forPlatform(PlayPlatform targetPlatform) {
+        VersionNumber versionNumber = VersionNumber.parse(targetPlatform.getPlayVersion());
+        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 2) {
+            return PlayMajorVersion.PLAY_2_2_X;
+        }
+        if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 3) {
+            return PlayMajorVersion.PLAY_2_3_X;
+        }
+        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: 2.3.x, 2.2.x", targetPlatform.getPlayVersion()));
+    }
+
+}

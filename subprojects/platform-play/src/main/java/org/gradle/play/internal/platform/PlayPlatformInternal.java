@@ -32,7 +32,5 @@ public interface PlayPlatformInternal extends PlayPlatform {
 
     void setScalaPlatform(ScalaPlatform scalaPlatform);
 
-    void setTwirlVersion(String twirlVersion);
-
     void setJavaPlatform(JavaPlatform javaPlatform);
 }

@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.scala.internal.reflect.ScalaMethod;
@@ -49,6 +50,6 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
             throw new RuntimeException("Error invoking Play Twirl template compiler.", e);
         }
 
-        return new TwirlCompilerWorkResult(outputFiles);
+        return new SimpleWorkResult(!outputFiles.isEmpty());
     }
 }
