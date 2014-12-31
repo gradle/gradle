@@ -94,7 +94,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
 
         if (managedType.getRawClass().equals(ManagedSet.class)) {
             initializer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
-            projection = new ManagedSetModelProjection<T>(managedType);
+            projection = ManagedSetModelProjection.of(managedType.getTypeVariables().get(0));
             return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
                     .withProjection(projection)
                     .descriptor(descriptor)

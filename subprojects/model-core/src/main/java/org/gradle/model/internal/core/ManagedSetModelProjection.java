@@ -28,31 +28,32 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
+public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ManagedSet<I>> {
 
-    public ManagedSetModelProjection(ModelType<M> type) {
+    private ManagedSetModelProjection(ModelType<ManagedSet<I>> type) {
         super(type, true, true);
     }
 
+    public static <I> ManagedSetModelProjection<I> of(ModelType<I> elementType) {
+        return new ManagedSetModelProjection<I>(new ModelType.Builder<ManagedSet<I>>() {
+        }.where(new ModelType.Parameter<I>() {
+        }, elementType).build());
+    }
+
     @Override
-    protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
-        return new ModelView<M>() {
+    protected ModelView<ManagedSet<I>> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
+        return new ModelView<ManagedSet<I>>() {
 
             private boolean closed;
 
             @Override
-            public ModelType<M> getType() {
+            public ModelType<ManagedSet<I>> getType() {
                 return ManagedSetModelProjection.this.getType();
             }
 
             @Override
-            public M getInstance() {
-                ModelType<?> elementType = getType().getTypeVariables().get(0);
-                return Cast.uncheckedCast(getManagedSetInstance(elementType));
-            }
-
-            private <E> ManagedSet<E> getManagedSetInstance(ModelType<E> elementType) {
-                return new DelegatingManagedSet<E>(elementType);
+            public ManagedSet<I> getInstance() {
+                return new DelegatingManagedSet();
             }
 
             @Override
@@ -60,16 +61,16 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                 closed = true;
             }
 
-            class DelegatingManagedSet<E> implements ManagedSet<E>, ManagedInstance {
+            class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
 
-                private final ManagedSet<E> delegate;
+                private final ManagedSet<I> delegate;
 
-                public DelegatingManagedSet(ModelType<E> elementType) {
+                public DelegatingManagedSet() {
                     delegate = Cast.uncheckedCast(modelNode.getPrivateData(getType()));
                 }
 
                 @Override
-                public void create(Action<? super E> action) {
+                public void create(Action<? super I> action) {
                     if (!writable || closed) {
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
@@ -101,7 +102,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                 }
 
                 @Override
-                public Iterator<E> iterator() {
+                public Iterator<I> iterator() {
                     ensureReadable();
                     return delegate.iterator();
                 }
@@ -119,7 +120,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                 }
 
                 @Override
-                public boolean add(E e) {
+                public boolean add(I e) {
                     return delegate.add(e);
                 }
 
@@ -135,7 +136,7 @@ public class ManagedSetModelProjection<M> extends TypeCompatibilityModelProjecti
                 }
 
                 @Override
-                public boolean addAll(Collection<? extends E> c) {
+                public boolean addAll(Collection<? extends I> c) {
                     return delegate.addAll(c);
                 }
 
