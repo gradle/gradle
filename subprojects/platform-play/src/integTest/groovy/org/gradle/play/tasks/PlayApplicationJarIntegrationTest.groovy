@@ -37,70 +37,50 @@ class PlayApplicationJarIntegrationTest extends AbstractIntegrationSpec {
         """
 
         new BasicPlayApp().writeSources(testDirectory.file("."))
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped ":createPlayBinaryJar", ":createPlayBinaryAssetsJar"
+        jar("build/playBinary/lib/play-assets.jar").containsDescendants(
+                "public/images/favicon.svg",
+                "public/stylesheets/main.css",
+                "public/javascripts/hello.js")
     }
 
     def "does not rebuild when public assets remain unchanged" () {
         when:
-        succeeds "createPlayBinaryJar"
+        succeeds "assemble"
 
         then:
-        executed(":createPlayBinaryJar")
-        jar("build/playBinary/lib/play.jar").containsDescendants(
-                "public/images/favicon.svg",
-                "public/stylesheets/main.css",
-                "public/javascripts/hello.js")
-
-
-        when:
-        succeeds "createPlayBinaryJar"
-
-        then:
-        skipped(":createPlayBinaryJar")
+        skipped ":createPlayBinaryJar", ":createPlayBinaryAssetsJar"
     }
 
     def "rebuilds when public assets change" () {
         when:
-        succeeds "createPlayBinaryJar"
-
-        then:
-        executed(":createPlayBinaryJar")
-        jar("build/playBinary/lib/play.jar").containsDescendants(
-                "public/images/favicon.svg",
-                "public/stylesheets/main.css",
-                "public/javascripts/hello.js")
-
-
-        when:
         file("public/stylesheets/main.css") << "\n"
-        succeeds "createPlayBinaryJar"
+        succeeds "assemble"
 
         then:
-        executed(":createPlayBinaryJar")
+        executedAndNotSkipped ":createPlayBinaryAssetsJar"
+        skipped ":createPlayBinaryJar"
 
         and:
-        jar("build/playBinary/lib/play.jar").assertFileContent("public/stylesheets/main.css", file("public/stylesheets/main.css").text)
+        jar("build/playBinary/lib/play-assets.jar").assertFileContent("public/stylesheets/main.css", file("public/stylesheets/main.css").text)
     }
 
     def "rebuilds when public assets are removed" () {
         when:
-        succeeds "createPlayBinaryJar"
-
-        then:
-        executed(":createPlayBinaryJar")
-        jar("build/playBinary/lib/play.jar").containsDescendants(
-                "public/images/favicon.svg",
-                "public/stylesheets/main.css",
-                "public/javascripts/hello.js")
-
-        when:
         file("public/stylesheets/main.css").delete()
-        succeeds "createPlayBinaryJar"
+        succeeds "assemble"
 
         then:
-        executed(":createPlayBinaryJar")
+        executedAndNotSkipped ":createPlayBinaryAssetsJar"
+        skipped ":createPlayBinaryJar"
 
         and:
-        jar("build/playBinary/lib/play.jar").countFiles("public/stylesheets/main.css") == 0
+        jar("build/playBinary/lib/play-assets.jar").countFiles("public/stylesheets/main.css") == 0
     }
 
     JarTestFixture jar(String fileName) {
