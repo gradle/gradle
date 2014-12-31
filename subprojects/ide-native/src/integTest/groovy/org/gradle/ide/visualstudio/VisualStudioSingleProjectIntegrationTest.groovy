@@ -49,6 +49,12 @@ model {
         debug
         release
     }
+    components {
+        all {
+            targetPlatform "win32"
+            targetPlatform "x64"
+        }
+    }
 }
 """
     }
@@ -60,7 +66,6 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             binaries.all {
                 cppCompiler.define "TEST"
                 cppCompiler.define "foo", "bar"
@@ -98,9 +103,7 @@ model {
         buildFile << """
 model {
     components {
-        main(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        main(NativeLibrarySpec)
     }
 }
 """
@@ -132,9 +135,7 @@ model {
         buildFile << """
 model {
     components {
-        main(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        main(NativeLibrarySpec)
     }
 }
 """
@@ -162,9 +163,7 @@ model {
         buildFile << """
 model {
     components {
-        both(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        both(NativeLibrarySpec)
         staticOnly(NativeLibrarySpec) {
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable false
@@ -191,7 +190,6 @@ model {
 model {
     components {
         main(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             binaries.withType(SharedLibraryBinarySpec) {
                 buildable = false
             }
@@ -224,11 +222,8 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello', linkage: 'static'
             }
@@ -265,11 +260,8 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello'
             }
@@ -308,17 +300,13 @@ model {
 apply plugin: "cpp"
 model {
     components {
-        greetings(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        greetings(NativeLibrarySpec)
         hello(NativeLibrarySpec) {
-           targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'greetings', linkage: 'static'
             }
         }
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello'
             }
@@ -362,17 +350,13 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello'
             }
         }
         mainStatic(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.source.srcDirs "src/main/cpp"
                 cpp.lib library: 'hello', linkage: 'static'
@@ -409,17 +393,13 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello'
             }
         }
         mainRelease(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             targetBuildTypes "release"
             sources {
                 cpp.source.srcDirs "src/main/cpp"
@@ -463,7 +443,7 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "otherWin32"
+            targetPlatform "otherWin32"
         }
     }
 }
@@ -473,7 +453,7 @@ model {
 
         then:
         final mainProjectFile = projectFile("mainExe.vcxproj")
-        mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug', 'win32Release', 'otherWin32Release'] as Set
+        mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug', 'win32Release', 'otherWin32Release', 'x64Debug', 'x64Release'] as Set
     }
 
     def "create visual studio solution for executable that has diamond dependency"() {
@@ -484,21 +464,17 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: "hello"
                 cpp.lib library: "greetings", linkage: "static"
             }
         }
         hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: "greetings", linkage: "static"
             }
         }
-        greetings(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        greetings(NativeLibrarySpec)
     }
 }
 """
@@ -534,21 +510,17 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: "hello", linkage: "shared"
                 cpp.lib library: "greetings", linkage: "shared"
             }
         }
         hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: "greetings", linkage: "static"
             }
         }
-        greetings(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        greetings(NativeLibrarySpec)
     }
 }
 """
@@ -592,9 +564,7 @@ apply plugin: 'c'
 apply plugin: 'assembler'
 model {
     components {
-        main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
-        }
+        main(NativeExecutableSpec)
     }
 }
 """
@@ -625,9 +595,7 @@ model {
 apply plugin: 'windows-resources'
 model {
     components {
-        main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
-        }
+        main(NativeExecutableSpec)
     }
 }
 binaries.all {
@@ -662,9 +630,7 @@ binaries.all {
         buildFile << """
 model {
     components {
-        main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
-        }
+        main(NativeExecutableSpec)
     }
 }
 """
@@ -695,7 +661,6 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.source.include "**/*.cpp"
             }
@@ -728,17 +693,13 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
                 cpp.lib library: 'hello'
             }
         }
-        helloApi(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        helloApi(NativeLibrarySpec)
         hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'helloApi', linkage: 'api'
             }
@@ -781,7 +742,6 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             binaries.all { binary ->
                 def platformName = binary.targetPlatform.name
                 sources {
@@ -824,7 +784,6 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'test', linkage: 'api'
             }
@@ -864,19 +823,16 @@ model {
 model {
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello'
             }
         }
         hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'greetings', linkage: 'static'
             }
         }
         greetings(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
             sources {
                 cpp.lib library: 'hello', linkage: 'api'
             }
@@ -918,11 +874,8 @@ model {
         buildFile << """
 model {
     components {
-        hello(NativeLibrarySpec) {
-            targetPlatform "win32", "x64"
-        }
+        hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
-            targetPlatform "win32"
             targetBuildTypes "release"
             sources {
                 cpp.lib library: 'hello'
@@ -937,8 +890,8 @@ model {
         then:
         final exeProject = projectFile("mainExe.vcxproj")
         exeProject.assertHasComponentSources(app.executable, "src/main")
-        exeProject.projectConfigurations.keySet() == ['release'] as Set
-        exeProject.projectConfigurations['release'].includePath == filePath("src/main/headers", "src/hello/headers")
+        exeProject.projectConfigurations.keySet() == ['win32', 'x64'] as Set
+        exeProject.projectConfigurations['win32'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final dllProject = projectFile("helloDll.vcxproj")
@@ -949,8 +902,8 @@ model {
         and:
         final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
-        mainSolution.assertReferencesProject(exeProject, ['release'])
-        mainSolution.assertReferencesProject(dllProject, [release: 'win32Release'])
+        mainSolution.assertReferencesProject(exeProject, ['win32', 'x64'])
+        mainSolution.assertReferencesProject(dllProject, [win32: 'win32Release', x64: 'x64Release'])
     }
 
     private SolutionFile solutionFile(String path) {

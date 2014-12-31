@@ -30,7 +30,7 @@ abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSp
         model {
             components {
                 play {
-                    playVersion "${version}"
+                    targetPlatform "play-${version}"
                 }
             }
         }

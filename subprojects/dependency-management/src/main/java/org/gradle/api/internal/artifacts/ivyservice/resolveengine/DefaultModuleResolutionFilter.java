@@ -40,6 +40,7 @@ import java.util.*;
  */
 public abstract class DefaultModuleResolutionFilter implements ModuleResolutionFilter {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
+    private static final String WILDCARD = "*";
 
     public static ModuleResolutionFilter forExcludes(ExcludeRule... excludeRules) {
         return forExcludes(Arrays.asList(excludeRules));
@@ -53,6 +54,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return ALL_SPEC;
         }
         return new ExcludeRuleBackedSpec(excludeRules);
+    }
+
+    private static boolean isWildcard(String attribute) {
+        return WILDCARD.equals(attribute);
     }
 
     public ModuleResolutionFilter union(ModuleResolutionFilter other) {
@@ -203,8 +208,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 }
                 ArtifactId artifactId = rule.getId();
                 ModuleId moduleId = artifactId.getModuleId();
-                boolean wildcardOrganisation = MatcherHelper.matchesAnyExpression(moduleId.getOrganisation());
-                boolean wildcardModule = MatcherHelper.matchesAnyExpression(moduleId.getName());
+                boolean wildcardOrganisation = isWildcard(moduleId.getOrganisation());
+                boolean wildcardModule = isWildcard(moduleId.getName());
+                boolean wildcardArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
 
                 if (wildcardOrganisation && wildcardModule) {
                     excludeSpecs.add(new ExcludeRuleSpec(rule));
@@ -212,16 +218,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
                 } else if (wildcardModule) {
                     excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
+                } else if (wildcardArtifact) {
+                    excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
                 } else {
-                    boolean wildcardName = MatcherHelper.matchesAnyExpression(artifactId.getName());
-                    boolean wildcardType = MatcherHelper.matchesAnyExpression(artifactId.getType());
-                    boolean wildcardExt = MatcherHelper.matchesAnyExpression(artifactId.getExt());
-
-                    if(wildcardName && wildcardType && wildcardExt) {
-                        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
-                    } else {
-                        excludeSpecs.add(new ExcludeRuleSpec(rule));
-                    }
+                    excludeSpecs.add(new ExcludeRuleSpec(rule));
                 }
             }
         }
@@ -560,15 +560,19 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     }
 
     private static class ExcludeRuleSpec extends DefaultModuleResolutionFilter {
-        private final ExcludeRule rule;
+        private final ModuleIdentifier moduleId;
+        private final IvyArtifactName ivyArtifactName;
+        private final PatternMatcher matcher;
 
         private ExcludeRuleSpec(ExcludeRule rule) {
-            this.rule = rule;
+            this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
+            this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
+            this.matcher = rule.getMatcher();
         }
 
         @Override
         public String toString() {
-            return String.format("{exclude-rule %s}", rule);
+            return String.format("{exclude-rule %s:%s with matcher %s}", moduleId, ivyArtifactName, matcher.getName());
         }
 
         @Override
@@ -580,59 +584,40 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 return false;
             }
             ExcludeRuleSpec other = (ExcludeRuleSpec) o;
-            // Can't use equals(), as DefaultExcludeRule.equals() does not consider the pattern matcher
-            return rule == other.rule;
+            return doAcceptsSameModulesAs(other);
         }
 
         @Override
         public int hashCode() {
-            return rule.hashCode();
+            return moduleId.hashCode() ^ ivyArtifactName.hashCode();
         }
 
         @Override
         protected boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            ExcludeRuleSpec excludeRuleSpec = (ExcludeRuleSpec) other;
-            // Can't use equals(), as DefaultExcludeRule.equals() does not consider the pattern matcher
-            return rule == excludeRuleSpec.rule;
+            ExcludeRuleSpec otherSpec = (ExcludeRuleSpec) other;
+            return moduleId.equals(otherSpec.moduleId)
+                    && ivyArtifactName.equals(otherSpec.ivyArtifactName)
+                    && matcher.getName().equals(otherSpec.matcher.getName());
         }
 
         public boolean acceptModule(ModuleIdentifier module) {
-            ArtifactId ruleArtifactId = rule.getId();
-            ModuleIdentifier ruleModuleId = new DefaultModuleIdentifier(ruleArtifactId.getModuleId().getOrganisation(), ruleArtifactId.getModuleId().getName());
-            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), ruleModuleId, module);
-            return !(matchesRule
-                    && MatcherHelper.matchesAnyExpression(ruleArtifactId.getName())
-                    && MatcherHelper.matchesAnyExpression(ruleArtifactId.getType())
-                    && MatcherHelper.matchesAnyExpression(ruleArtifactId.getExt()));
+            return !(matches(moduleId.getGroup(), module.getGroup())
+                    && matches(moduleId.getName(), module.getName())
+                    && isWildcard(ivyArtifactName.getName())
+                    && isWildcard(ivyArtifactName.getType())
+                    && isWildcard(ivyArtifactName.getExtension()));
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-            ArtifactId ruleArtifactId = rule.getId();
-            ModuleIdentifier ruleModuleId = new DefaultModuleIdentifier(ruleArtifactId.getModuleId().getOrganisation(), ruleArtifactId.getModuleId().getName());
-            IvyArtifactName ruleIvyArtifactName = new DefaultIvyArtifactName(ruleArtifactId.getName(), ruleArtifactId.getType(), ruleArtifactId.getExt());
-            return !(MatcherHelper.matches(rule.getMatcher(), ruleModuleId, module)
-                    && MatcherHelper.matches(rule.getMatcher(), ruleIvyArtifactName, artifact));
-        }
-    }
-
-    private static class MatcherHelper {
-        public static boolean matches(PatternMatcher m, String expression, String input) {
-            return m.getMatcher(expression).matches(input);
+            return !(matches(moduleId.getGroup(), module.getGroup())
+                    && matches(moduleId.getName(), module.getName())
+                    && matches(ivyArtifactName.getName(), artifact.getName())
+                    && matches(ivyArtifactName.getExtension(), artifact.getExtension())
+                    && matches(ivyArtifactName.getType(), artifact.getType()));
         }
 
-        public static boolean matches(PatternMatcher m, ModuleIdentifier exp, ModuleIdentifier mid) {
-            return matches(m, exp.getGroup(), mid.getGroup())
-                    && matches(m, exp.getName(), mid.getName());
-        }
-
-        public static boolean matches(PatternMatcher m, IvyArtifactName exp, IvyArtifactName aid) {
-            return matches(m, exp.getName(), aid.getName())
-                    && matches(m, exp.getExtension(), aid.getExtension())
-                    && matches(m, exp.getType(), aid.getType());
-        }
-
-        public static boolean matchesAnyExpression(String attribute) {
-            return PatternMatcher.ANY_EXPRESSION.equals(attribute);
+        private boolean matches(String expression, String input) {
+            return matcher.getMatcher(expression).matches(input);
         }
     }
 }

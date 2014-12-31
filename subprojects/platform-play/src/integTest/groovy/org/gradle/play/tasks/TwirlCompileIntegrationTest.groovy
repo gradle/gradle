@@ -27,7 +27,7 @@ class TwirlCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
                 create("twirlCompile", TwirlCompile){ task ->
                     task.outputDirectory = file('build/twirl')
                     task.sourceDirectory = file('./app')
-                    task.platform = platforms["PlayPlatform${version}"]
+                    task.platform = platforms["play-${version}"]
                 }
             }
         }

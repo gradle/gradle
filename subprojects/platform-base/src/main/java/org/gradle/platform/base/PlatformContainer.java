@@ -19,12 +19,9 @@ package org.gradle.platform.base;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 
-import java.util.List;
-
 /**
  * A container of {@link Platform}s.
  */
 @Incubating
 public interface PlatformContainer extends ExtensiblePolymorphicDomainObjectContainer<Platform> {
-    <T extends Platform> List<T> chooseFromTargets(Class<T> type, List<String> targets);
 }

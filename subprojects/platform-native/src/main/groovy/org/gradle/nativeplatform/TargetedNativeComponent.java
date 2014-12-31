@@ -36,9 +36,4 @@ public interface TargetedNativeComponent extends PlatformAwareComponentSpec {
      */
     void targetBuildTypes(String... platformSelectors);
 
-    /**
-     * Specifies the names of one or more {@link org.gradle.platform.base.Platform}s that this component should be built for.
-     */
-    // TODO:DAZ This is an alias for targetPlatform() retained for compatibility.  Deprecate or remove in Gradle 2.3
-    void targetPlatforms(String... platformSelectors);
 }

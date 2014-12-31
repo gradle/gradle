@@ -83,7 +83,10 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     model {
         components {
             myLib(JvmLibrarySpec) {
-                targetPlatform "java5", "java6", "java7", "java8"
+                targetPlatform "java5"
+                targetPlatform "java6"
+                targetPlatform "java7"
+                targetPlatform "java8"
             }
         }
     }
@@ -135,7 +138,8 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     model {
         components {
             myLib(JvmLibrarySpec) {
-                targetPlatform "${current.name}", "java9"
+                targetPlatform "${current.name}"
+                targetPlatform "java9"
             }
         }
     }

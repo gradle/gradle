@@ -41,7 +41,8 @@ model {
     }
     components {
         main(NativeExecutableSpec) {
-            targetPlatform "arm", "sparc"
+            targetPlatform "arm"
+            targetPlatform "sparc"
         }
     }
 }

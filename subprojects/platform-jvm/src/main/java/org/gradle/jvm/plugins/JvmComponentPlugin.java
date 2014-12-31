@@ -26,6 +26,7 @@ import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JvmLibrarySpecInternal;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -39,8 +40,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -102,18 +102,13 @@ public class JvmComponentPlugin {
 
     @ComponentBinaries
     public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
-                               PlatformContainer platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
+                               PlatformResolver platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
         final File binariesDir = new File(buildDir, "jars");
         final File classesDir = new File(buildDir, "classes");
 
-        List<String> targetPlatforms = jvmLibrary.getTargetPlatforms();
-        if (targetPlatforms.isEmpty()) {
-            // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
-            targetPlatforms = Collections.singletonList(new DefaultJavaPlatform(JavaVersion.current()).getName());
-        }
-        List<JavaPlatform> selectedPlatforms = platforms.chooseFromTargets(JavaPlatform.class, targetPlatforms);
+        List<JavaPlatform> selectedPlatforms = resolvePlatforms(jvmLibrary, platforms);
         for (final JavaPlatform platform : selectedPlatforms) {
             final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
             final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
@@ -137,6 +132,16 @@ public class JvmComponentPlugin {
                 }
             });
         }
+    }
+
+    private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, PlatformResolver platforms) {
+        List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
+            String defaultJavaPlatformName = new DefaultJavaPlatform(JavaVersion.current()).getName();
+            targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultJavaPlatformName));
+        }
+        return platforms.resolve(JavaPlatform.class, targetPlatforms);
     }
 
     @Mutate

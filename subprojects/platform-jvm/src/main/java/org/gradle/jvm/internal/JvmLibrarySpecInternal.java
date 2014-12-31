@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.play;
+package org.gradle.jvm.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-import org.gradle.platform.base.PlatformAwareComponentSpec;
+import org.gradle.jvm.JvmLibrarySpec;
+import org.gradle.platform.base.internal.PlatformAwareComponentSpecInternal;
 
 /**
- * Definition of a play framework software component that is built by Gradle.
+ * Definition of a JVM library component that is to be built by Gradle.
  */
-@Incubating @HasInternalProtocol
-public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
+public interface JvmLibrarySpecInternal extends JvmLibrarySpec, PlatformAwareComponentSpecInternal {
 }

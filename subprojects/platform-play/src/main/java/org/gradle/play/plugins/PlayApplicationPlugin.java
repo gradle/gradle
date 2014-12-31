@@ -37,6 +37,9 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.internal.PlatformResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
@@ -44,16 +47,17 @@ import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
 import org.gradle.play.internal.DefaultPlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.PlayApplicationSpecInternal;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -81,7 +85,7 @@ public class PlayApplicationPlugin {
     }
 
     private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion, String twirlVersion) {
-        platform.setName("PlayPlatform" + playVersion);
+        platform.setName("play-" + playVersion);
         platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
         platform.setPlayVersion(playVersion);
         platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
@@ -145,14 +149,23 @@ public class PlayApplicationPlugin {
         }
     }
 
+    @Finalize
+    void failOnMultipleTargetPlatforms(ComponentSpecContainer container) {
+        for (PlayApplicationSpecInternal playApplicationSpec : container.withType(PlayApplicationSpecInternal.class)) {
+            if (playApplicationSpec.getTargetPlatforms().size() > 1) {
+                throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+            }
+        }
+    }
+
     @ComponentBinaries
     void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                        PlatformContainer platforms, final PlayToolChainInternal playToolChainInternal,
+                        PlatformResolver platforms, final PlayToolChainInternal playToolChainInternal,
                         final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
         final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
         final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        for (final PlayPlatform chosenPlatform : getChosenPlatforms(componentSpec, platforms)) {
+        for (final PlayPlatform chosenPlatform : resolveTargetPlatforms(componentSpec, platforms)) {
             final String binaryName = String.format("%sBinary", componentSpec.getName());
             final File binaryBuildDir = new File(buildDir, binaryName);
             binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
@@ -181,12 +194,13 @@ public class PlayApplicationPlugin {
         }
     }
 
-    private List<PlayPlatform> getChosenPlatforms(PlayApplicationSpec componentSpec, PlatformContainer platforms) {
-        String targetPlayVersion = componentSpec.getPlayVersion();
-        if (targetPlayVersion == null) {
-            targetPlayVersion = DEFAULT_PLAY_VERSION;
+    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
+        List<PlatformRequirement> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
+            targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultPlayPlatform));
         }
-        return platforms.chooseFromTargets(PlayPlatform.class, WrapUtil.toList(String.format("PlayPlatform%s", targetPlayVersion)));
+        return platforms.resolve(PlayPlatform.class, targetPlatforms);
     }
 
     @BinaryTasks

@@ -567,8 +567,8 @@
                 <sourcefile file="build.gradle" snippet="target-platforms"/>
             </sample>
             <para>
-                Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatforms"/> method is used to
-                select the set of platforms to target for the <literal>NativeExecutableSpec</literal> named <literal>main</literal>.
+                Here you can see that the <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetPlatform"/> method is used to
+                specify a platform that the <literal>NativeExecutableSpec</literal> named <literal>main</literal> should be built for.
             </para>
             <para>
                 A similar mechanism exists for selecting <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetBuildTypes"/>
