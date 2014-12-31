@@ -17,7 +17,6 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
@@ -66,7 +65,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 private final ManagedSet<I> delegate;
 
                 public DelegatingManagedSet() {
-                    delegate = Cast.uncheckedCast(modelNode.getPrivateData(getType()));
+                    delegate = modelNode.getPrivateData(getType());
                 }
 
                 @Override
