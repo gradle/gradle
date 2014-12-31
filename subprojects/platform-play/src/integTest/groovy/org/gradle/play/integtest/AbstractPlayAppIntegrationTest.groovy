@@ -60,12 +60,32 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         succeeds("dist")
 
         then:
-        executed(
+        executedAndNotSkipped(
                 ":createPlayBinaryStartScripts",
                 ":createPlayBinaryDist")
+        skipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar")
 
         and:
         verifyZips()
+
+        when:
+        succeeds("stage")
+
+        then:
+        executedAndNotSkipped(":stagePlayBinaryDist")
+        skipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts")
+
+        and:
+        verifyStaged()
     }
 
     def "can run play app tests"() {
@@ -171,6 +191,22 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
                 "playBinary/conf/application.conf",
                 "playBinary/README"
         )
+    }
+
+    void verifyStaged() {
+        stagedFilesExist(
+                "lib/play.jar",
+                "lib/play-assets.jar",
+                "bin/playBinary",
+                "bin/playBinary.bat",
+                "conf/application.conf",
+                "README")
+    }
+
+    void stagedFilesExist(String... files) {
+        files.each { fileName ->
+            assert file("build/stage/playBinary/${fileName}").exists()
+        }
     }
 
     void verifyContent() {

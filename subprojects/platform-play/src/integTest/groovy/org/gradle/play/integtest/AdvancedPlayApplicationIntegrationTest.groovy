@@ -74,6 +74,15 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     }
 
     @Override
+    void verifyStaged() {
+        super.verifyStaged()
+
+        stagedFilesExist(
+                "conf/jva.routes",
+                "conf/scala.routes")
+    }
+
+    @Override
     void verifyContent() {
         super.verifyContent()
 
