@@ -37,15 +37,17 @@ class BuildInvocationsBuilderTest extends Specification {
         def child1aT1 = child1a.tasks.create('t1', DefaultTask)
         child1aT1.group = 'build'
         child1aT1.description = 't1 in subproject 1a'
+
         def child1bT1 = child1b.tasks.create('t1', DefaultTask)
         child1bT1.description = 't1 in subproject 1b'
 
         // t2 tasks
         def child1bT2 = child1b.tasks.create('t2', DefaultTask)
         child1bT2.group = 'build'
-        child1bT2.description = 't2 description'
-        def child1T1 = child1.tasks.create('t2', DefaultTask)
-        child1T1.description = 't2 description'
+        child1bT2.description = 't2 in subproject 1b'
+
+        def child1T2 = child1.tasks.create('t2', DefaultTask)
+        child1T2.description = 't2 in subproject 1'
 
         project.tasks.create('t3', DefaultTask)
     }
@@ -99,7 +101,7 @@ class BuildInvocationsBuilderTest extends Specification {
         model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't2'
         }.every { LaunchableGradleTaskSelector it ->
-            it.description == 't2 description'
+            it.description == 't2 in subproject 1'
         }
         model.taskSelectors.find { LaunchableGradleTaskSelector it ->
             it.name == 't1'
@@ -107,4 +109,5 @@ class BuildInvocationsBuilderTest extends Specification {
             it.description in ['t1 in subproject 1a', 't1 in subproject 1b']
         }
     }
+
 }
