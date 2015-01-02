@@ -28,18 +28,18 @@ class BuildInvocationsBuilderTest extends Specification {
     @Shared
     def project = TestUtil.builder().withName("root").build()
     @Shared
-    def child1 = TestUtil.builder().withName("child1").withParent(project).build()
+    def child = TestUtil.builder().withName("child").withParent(project).build()
     @Shared
-    def child2 = TestUtil.builder().withName("child2").withParent(project).build()
+    def grandChild1OfChild = TestUtil.builder().withName("grandChild1").withParent(child).build()
     @Shared
-    def grandChildOfChild1 = TestUtil.builder().withName("grandChild").withParent(child1).build()
+    def grandChild2OfChild = TestUtil.builder().withName("grandChild2").withParent(child).build()
 
     def setupSpec() {
         // create a project/task tree:
         //   root (t1, t2)
         //   +--- child 1 (t2, t3)
         //        +-- grand child (t3, t4)
-        //   +-- child 2 (t2)
+        //        +-- grand child (t4)
 
         // root tasks (one public, one private)
         def task1OfRoot = project.tasks.create('t1', DefaultTask)
@@ -51,26 +51,26 @@ class BuildInvocationsBuilderTest extends Specification {
         task2OfRoot.description = null
 
         // child tasks (one public, one private)
-        def task1OfChild1 = child1.tasks.create('t2', DefaultTask)
+        def task1OfChild1 = child.tasks.create('t2', DefaultTask)
         task1OfChild1.group = 'build'
-        task1OfChild1.description = 'T2 from child 1'
+        task1OfChild1.description = 'T2 from child'
 
-        def task2OfChild1 = child1.tasks.create('t3', DefaultTask)
+        def task2OfChild1 = child.tasks.create('t3', DefaultTask)
         task2OfChild1.group = null
         task2OfChild1.description = 'T3 from child'
 
-        def task1OfChild2 = child2.tasks.create('t2', DefaultTask)
-        task1OfChild2.group = 'build'
-        task1OfChild2.description = 'T2 from child 2'
-
         // grand child tasks (one public, one private)
-        def task1OfGrandChild = grandChildOfChild1.tasks.create('t3', DefaultTask)
+        def task1OfGrandChild = grandChild1OfChild.tasks.create('t3', DefaultTask)
         task1OfGrandChild.group = 'build'
         task1OfGrandChild.description = null
 
-        def task2OfGrandChild = grandChildOfChild1.tasks.create('t4', DefaultTask)
+        def task2OfGrandChild = grandChild1OfChild.tasks.create('t4', DefaultTask)
         task2OfGrandChild.group = ''
-        task2OfGrandChild.description = 'T4 from grand child'
+        task2OfGrandChild.description = 'T4 from grand child 1'
+
+        def taskOfGrandChild2 = grandChild2OfChild.tasks.create('t4', DefaultTask)
+        taskOfGrandChild2.group = ''
+        taskOfGrandChild2.description = 'T4 from grand child 2'
     }
 
     def "canBuild"() {
@@ -103,9 +103,9 @@ class BuildInvocationsBuilderTest extends Specification {
         where:
         startProject       | selectorNames            | taskNames     | visibleSelectors   | visibleTasks
         project            | ['t1', 't2', 't3', 't4'] | ['t1', 't2']  | ['t1', 't2', 't3'] | ['t1']
-        child1             | ['t2', 't3', 't4']       | ['t2', 't3',] | ['t2', 't3']       | ['t2']
-        child2             | ['t2']                   | ['t2']        | ['t2']             | ['t2']
-        grandChildOfChild1 | ['t3', 't4']             | ['t3', 't4',] | ['t3']             | ['t3']
+        child              | ['t2', 't3', 't4']       | ['t2', 't3',] | ['t2', 't3']       | ['t2']
+        grandChild1OfChild | ['t3', 't4']             | ['t3', 't4',] | ['t3']             | ['t3']
+        grandChild2OfChild | ['t4']                   | ['t4',]       | []                 | []
     }
 
     def "implicitProjectFlagWins"() {
@@ -113,7 +113,7 @@ class BuildInvocationsBuilderTest extends Specification {
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
         when:
-        def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", child1, true)
+        def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", child, true)
 
         then:
         model.taskSelectors*.name as Set == ['t1', 't2', 't3', 't4'] as Set
@@ -133,7 +133,7 @@ class BuildInvocationsBuilderTest extends Specification {
         assert model.taskSelectors.find { it.name == 't1' }.description == 'T1 from root'
         assert model.taskSelectors.find { it.name == 't2' }.description == ''
         assert model.taskSelectors.find { it.name == 't3' }.description == 'T3 from child'
-        assert model.taskSelectors.find { it.name == 't4' }.description == 'T4 from grand child'
+        assert model.taskSelectors.find { it.name == 't4' }.description == 'T4 from grand child 1'
     }
 
 }
