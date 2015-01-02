@@ -18,6 +18,8 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -348,6 +350,56 @@ class ManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains 'gender: MALE'
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "managed type implemented as interface can have generative getter default methods"() {
+        when:
+        file('buildSrc/src/main/java/RuleSource.java') << '''
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+            import org.gradle.model.collection.*;
+
+            @Managed
+            interface Person {
+                String getFirstName();
+                void setFirstName(String firstName);
+                String getLastName();
+                void setLastName(String lastName);
+
+                default String getName() {
+                    return getFirstName() + " " + getLastName();
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.setFirstName("Alan");
+                    person.setLastName("Turing");
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo", task -> {
+                        task.doLast(unused -> {
+                            System.out.println(String.format("name: %s", person.getName()));
+                        });
+                    });
+                }
+            }
+        '''
+
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: Alan Turing")
     }
 
     def "managed type implemented as abstract class can have generative getters"() {

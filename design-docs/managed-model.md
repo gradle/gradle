@@ -544,6 +544,45 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 - ~~Runtime error if provided getter (i.e. non abstract one) calls a setter method~~
 
+### Java 8 interface default methods can be used to implement generative getters
+
+    @Managed
+    interface Person {
+        String getFirstName();
+        void setFirstName(String firstName);
+        String getLastName();
+        void setLastName(String lastName);
+    
+        default String getName() {
+            return getFirstName() + " " + getLastName();
+        }
+    }
+    
+    @RuleSource
+    class RulePlugin {
+        @Model
+        void createPerson(Person person) {
+            person.setFirstName("Alan");
+            person.setLastName("Turing");
+        }
+    
+        @Mutate
+        void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+            tasks.create("echo", task -> {
+                task.doLast(unused -> {
+                    System.out.println(String.format("name: %s", person.getName()));
+                });
+            });
+        }
+    }
+
+- Same semantics as non abstract methods on class based types
+
+#### Test Coverage
+
+- ~~like snippet above~~
+
+
 ### Support for polymorphic managed sets
 
 ```
@@ -736,5 +775,4 @@ As above, for `ManagedSet`.
 - User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
     - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
 - Support getting "address" (creation/canonical path) of a managed object
-- Support Java 8 interface default methods (likely same semantics as non abstract methods on class based types)
 - Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely) 
