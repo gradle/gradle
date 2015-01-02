@@ -16,12 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.base.Strings;
+import com.google.common.collect.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
@@ -30,6 +31,7 @@ import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
     private final ProjectTaskLister taskLister;
@@ -49,15 +51,15 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Set<String> aggregatedTasks = Sets.newLinkedHashSet();
         Set<String> visibleTasks = Sets.newLinkedHashSet();
-        findTasks(project, aggregatedTasks, visibleTasks);
+        TreeBasedTable<String, String, String> taskDescriptions = TreeBasedTable.create(Ordering.usingToString(), new TaskNameComparator());
+        findTasks(project, aggregatedTasks, visibleTasks, taskDescriptions);
         for (String selectorName : aggregatedTasks) {
+            SortedMap<String, String> descriptionsFromAllPaths = taskDescriptions.row(selectorName);
             selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectPath(project.getPath()).
-                    setDescription(project.getParent() != null
-                            ? String.format("%s:%s task selector", project.getPath(), selectorName)
-                            : String.format("%s task selector", selectorName)).
+                    setDescription(descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey())).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
                     setPublic(visibleTasks.contains(selectorName)));
         }
@@ -84,15 +86,23 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return tasks;
     }
 
-    private void findTasks(Project project, Collection<String> tasks, Collection<String> visibleTasks) {
+    private void findTasks(Project project, Collection<String> aggregatedTasks, Collection<String> visibleTasks, Table<String, String, String> taskDescriptions) {
         for (Project child : project.getChildProjects().values()) {
-            findTasks(child, tasks, visibleTasks);
+            findTasks(child, aggregatedTasks, visibleTasks, taskDescriptions);
         }
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(task.getName());
+            aggregatedTasks.add(task.getName());
+
+            // visible tasks are specified as those that have a non-empty group
             if (task.getGroup() != null) {
                 visibleTasks.add(task.getName());
             }
+
+            // store the description first by task name and then by path
+            // this allows to later fish out the description of the task whose name matches the selector name and
+            // whose path is the smallest for the given task name (the first entry of the table column)
+            // store null description as empty string to avoid that Guava chokes
+            taskDescriptions.put(task.getName(), task.getPath(), Strings.nullToEmpty(task.getDescription()));
         }
     }
 
