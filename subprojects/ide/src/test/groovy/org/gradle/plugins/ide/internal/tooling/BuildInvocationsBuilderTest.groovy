@@ -124,21 +124,3 @@ class BuildInvocationsBuilderTest extends Specification {
     }
 
 }
-//
-//    def "selector description inferred in model"() {
-//        when:
-//        def model = builder.buildAll("org.gradle.tooling.model.gradle.BuildInvocations", project, true)
-//
-//        then:
-//        model.taskSelectors.find { LaunchableGradleTaskSelector it ->
-//            it.name == 't2'
-//        }.every { LaunchableGradleTaskSelector it ->
-//            it.description == 't2 in subproject 1'
-//        }
-//        model.taskSelectors.find { LaunchableGradleTaskSelector it ->
-//            it.name == 't1'
-//        }.every { LaunchableGradleTaskSelector it ->
-//            it.description in ['t1 in subproject 1a', 't1 in subproject 1b']
-//        }
-//    }
-
