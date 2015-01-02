@@ -73,7 +73,7 @@ class BuildInvocationsBuilderTest extends Specification {
         taskOfGrandChild2.description = 'T4 from grand child 2'
     }
 
-    def "canBuild"() {
+    def "BuildInvocations model is accepted"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
@@ -85,7 +85,7 @@ class BuildInvocationsBuilderTest extends Specification {
     }
 
     @Unroll("tasks and selectors for #startProject")
-    def "tasksAndSelectorsAndTheirVisibility"() {
+    def "BuildInvocations model is created from tasks and task selectors for given project and its subprojects"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
@@ -108,7 +108,7 @@ class BuildInvocationsBuilderTest extends Specification {
         grandChild2OfChild | ['t4']                   | ['t4',]       | []                 | []
     }
 
-    def "implicitProjectFlagWins"() {
+    def "BuildInvocations model is created for root project if implicitProject flag is set"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
@@ -122,7 +122,7 @@ class BuildInvocationsBuilderTest extends Specification {
         }
     }
 
-    def "nonNullDescriptionFromSmallestProjectPathAlwaysWins"() {
+    def "TaskSelector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
 
