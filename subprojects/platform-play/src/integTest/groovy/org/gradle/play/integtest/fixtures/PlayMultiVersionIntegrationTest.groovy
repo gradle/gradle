@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 @TargetCoverage({PlayCoverage.DEFAULT})
-abstract class MultiPlayVersionIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         buildFile <<"""

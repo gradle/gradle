@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
+import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegrationTest {
+abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegrationTest {
     int httpPort
 
     abstract PlayApp getPlayApp()

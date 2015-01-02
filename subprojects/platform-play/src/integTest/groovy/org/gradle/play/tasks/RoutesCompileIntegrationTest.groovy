@@ -18,10 +18,10 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
+import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class RoutesCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
+class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/routes/"
     def destinationDir = file(destinationDirPath)
 

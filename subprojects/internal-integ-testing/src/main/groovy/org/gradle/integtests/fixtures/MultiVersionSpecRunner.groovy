@@ -29,7 +29,7 @@ class MultiVersionSpecRunner extends AbstractMultiTestRunner {
 
     @Override
     protected void createExecutions() {
-        boolean enableAllVersions = "all".equals(System.getProperty(MULTI_VERSION_SYS_PROP, "all"))
+        boolean enableAllVersions = "all".equals(System.getProperty(MULTI_VERSION_SYS_PROP, "default"))
         def versions = target.getAnnotation(TargetVersions)
         def coverage = target.getAnnotation(TargetCoverage)
         def versionUnderTest
