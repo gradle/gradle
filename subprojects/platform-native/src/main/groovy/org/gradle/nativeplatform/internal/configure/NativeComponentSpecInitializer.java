@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Named;
+import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
@@ -32,6 +33,7 @@ import org.gradle.platform.base.internal.PlatformResolver;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
@@ -56,12 +58,7 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        List<PlatformRequirement> targetPlatforms = targetedComponent.getTargetPlatforms();
-        if (targetPlatforms.isEmpty()) {
-            PlatformRequirement requirement = DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
-            targetPlatforms = Collections.singletonList(requirement);
-        }
-        List<NativePlatform> resolvedPlatforms = platforms.resolve(NativePlatform.class, targetPlatforms);
+        List<NativePlatform> resolvedPlatforms = resolvePlatforms(targetedComponent);
 
         for (NativePlatform platform: resolvedPlatforms) {
             NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platform);
@@ -71,6 +68,20 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
             builder = maybeAddDimension(builder, platform, resolvedPlatforms);
             executeForEachBuildType(projectNativeComponent, (NativePlatformInternal) platform, builder, toolChain, toolProvider);
         }
+    }
+
+    private List<NativePlatform> resolvePlatforms(TargetedNativeComponentInternal targetedComponent) {
+        List<PlatformRequirement> targetPlatforms = targetedComponent.getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            PlatformRequirement requirement = DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
+            targetPlatforms = Collections.singletonList(requirement);
+        }
+        return CollectionUtils.collect(targetPlatforms, new Transformer<NativePlatform, PlatformRequirement>() {
+            @Override
+            public NativePlatform transform(PlatformRequirement platformRequirement) {
+                return platforms.resolve(NativePlatform.class, platformRequirement);
+            }
+        });
     }
 
     private void executeForEachBuildType(NativeComponentSpec projectNativeComponent, NativePlatformInternal platform, BinaryNamingSchemeBuilder builder, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider) {

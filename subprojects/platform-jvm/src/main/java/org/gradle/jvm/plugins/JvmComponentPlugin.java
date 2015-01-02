@@ -41,6 +41,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -134,14 +135,19 @@ public class JvmComponentPlugin {
         }
     }
 
-    private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, PlatformResolver platforms) {
+    private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, final PlatformResolver platforms) {
         List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
             // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
             String defaultJavaPlatformName = new DefaultJavaPlatform(JavaVersion.current()).getName();
             targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultJavaPlatformName));
         }
-        return platforms.resolve(JavaPlatform.class, targetPlatforms);
+        return CollectionUtils.collect(targetPlatforms, new Transformer<JavaPlatform, PlatformRequirement>() {
+            @Override
+            public JavaPlatform transform(PlatformRequirement platformRequirement) {
+                return platforms.resolve(JavaPlatform.class, platformRequirement);
+            }
+        });
     }
 
     @Mutate

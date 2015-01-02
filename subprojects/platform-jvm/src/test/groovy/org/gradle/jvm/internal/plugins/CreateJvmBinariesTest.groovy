@@ -69,7 +69,7 @@ class CreateJvmBinariesTest extends Specification {
         rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
-        1 * platforms.resolve(JavaPlatform, _) >> [platform]
+        1 * platforms.resolve(JavaPlatform, _) >> platform
         1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder

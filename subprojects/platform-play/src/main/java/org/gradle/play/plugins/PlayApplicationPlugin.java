@@ -54,6 +54,7 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -193,13 +194,18 @@ public class PlayApplicationPlugin {
         }
     }
 
-    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, PlatformResolver platforms) {
+    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, final PlatformResolver platforms) {
         List<PlatformRequirement> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
             String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
             targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultPlayPlatform));
         }
-        return platforms.resolve(PlayPlatform.class, targetPlatforms);
+        return CollectionUtils.collect(targetPlatforms, new Transformer<PlayPlatform, PlatformRequirement>() {
+            @Override
+            public PlayPlatform transform(PlatformRequirement platformRequirement) {
+                return platforms.resolve(PlayPlatform.class, platformRequirement);
+            }
+        });
     }
 
     @BinaryTasks

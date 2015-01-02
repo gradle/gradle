@@ -18,8 +18,6 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.platform.base.Platform;
 
-import java.util.List;
-
 public interface PlatformResolver {
-    <T extends Platform> List<T> resolve(Class<T> type, List<PlatformRequirement> targets);
+    <T extends Platform> T resolve(Class<T> type, PlatformRequirement targets);
 }

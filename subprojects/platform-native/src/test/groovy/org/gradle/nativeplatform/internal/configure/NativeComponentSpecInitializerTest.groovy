@@ -59,7 +59,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [ platform ]
+        1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -77,7 +77,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [ platform ]
+        1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -97,8 +97,9 @@ class NativeComponentSpecInitializerTest extends Specification {
 
 
         then:
-        1 * platforms.resolve(NativePlatform, [requirement("platform1"), requirement("platform2")]) >> [ platform, platform2 ]
-        then:
+        1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
+        1 * platforms.resolve(NativePlatform, requirement("platform2")) >> platform2
+
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -125,7 +126,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [platform]
+        1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
@@ -150,7 +151,7 @@ class NativeComponentSpecInitializerTest extends Specification {
         factory.execute(component)
 
         then:
-        1 * platforms.resolve(NativePlatform, [requirement("platform1")]) >> [platform]
+        1 * platforms.resolve(NativePlatform, requirement("platform1")) >> platform
         1 * toolChains.getForPlatform(platform) >> toolChain
         1 * toolChain.select(platform) >> toolProvider
         1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
