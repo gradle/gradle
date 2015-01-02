@@ -47,7 +47,7 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.registration(ruleMethod, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -65,19 +65,15 @@ class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinit
     }
 
     @Unroll
-    def "applies ComponentModelBasePlugin and adds binary task creation rule #descr"() {
+    def "applies ComponentModelBasePlugin and adds binary task creation rule for plain sample binary"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod(ruleName), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.apply(_, _)
-
-        where:
-        ruleName        | descr
-        "validTypeRule" | "for plain sample binary"
+        registration != null
     }
 
     interface SomeBinary extends BinarySpec {}

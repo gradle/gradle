@@ -31,11 +31,12 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<ComponentBinaries> {
 
-    public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        doRegister(ruleDefinition, modelRegistry, dependencies);
+    @Override
+    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+        return createRegistration(ruleDefinition, dependencies);
     }
 
-    private <R, S extends BinarySpec> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
@@ -44,10 +45,11 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
             Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
             dependencies.add(ComponentModelBasePlugin.class);
             ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
+            ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
 
-            configureMutationRule(modelRegistry, subject, componentType, binaryType, ruleDefinition);
+            return new ModelMutatorRegistration(ModelActionRole.Mutate, componentBinariesRule);
         } catch (InvalidModelException e) {
-            invalidModelRule(ruleDefinition, e);
+            throw invalidModelRule(ruleDefinition, e);
         }
     }
 
@@ -88,11 +90,12 @@ public class ComponentBinariesRuleDefinitionHandler extends AbstractAnnotationDr
         }
     }
 
-    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
+
+    protected <R> InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid ComponentBinaries model rule method.");
-        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
+        return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
     private class Instantiator<S extends BinarySpec> implements NamedEntityInstantiator<S> {

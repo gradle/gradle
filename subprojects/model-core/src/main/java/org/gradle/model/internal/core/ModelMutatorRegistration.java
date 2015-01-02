@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+public class ModelMutatorRegistration implements ModelRuleRegistration {
 
-public interface MethodRuleDefinitionHandler {
-    Spec<MethodRuleDefinition<?>> getSpec();
+    private final ModelActionRole role;
+    private final ModelAction<?> action;
 
-    String getDescription();
+    public ModelMutatorRegistration(ModelActionRole role, ModelAction<?> action) {
+        this.role = role;
+        this.action = action;
+    }
 
-    @Nullable
-    <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies);
+    @Override
+    public void applyTo(ModelRegistrar registrar) {
+        registrar.apply(role, action);
+    }
 }

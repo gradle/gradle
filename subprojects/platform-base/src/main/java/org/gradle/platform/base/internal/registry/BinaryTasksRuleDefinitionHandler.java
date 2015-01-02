@@ -23,7 +23,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -32,11 +31,11 @@ import org.gradle.platform.base.InvalidModelException;
 
 public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<BinaryTasks> {
 
-    public <R> void register(final MethodRuleDefinition<R> ruleDefinition, final ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        doRegister(ruleDefinition, modelRegistry, dependencies);
+    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+        return createRegistration(ruleDefinition, dependencies);
     }
 
-    private <R, S extends BinarySpec> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
@@ -46,10 +45,10 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
 
             ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), ModelType.of(TaskContainer.class));
 
-            modelRegistry.apply(ModelActionRole.Mutate, new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition));
-
+            BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition);
+            return new ModelMutatorRegistration(ModelActionRole.Mutate, binaryTaskRule);
         } catch (InvalidModelException e) {
-            invalidModelRule(ruleDefinition, e);
+            throw invalidModelRule(ruleDefinition, e);
         }
     }
 
@@ -60,11 +59,11 @@ public class BinaryTasksRuleDefinitionHandler extends AbstractAnnotationDrivenMe
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler
-    protected <R> void invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
+    protected <R> InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid BinaryTask model rule method.");
-        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
+        return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
     private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, TaskContainer> {

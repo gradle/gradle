@@ -20,7 +20,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.List;
 @ThreadSafe
 public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
 
-    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <R> ModelRuleRegistration registration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
         validate(ruleDefinition);
 
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
@@ -37,7 +36,7 @@ public abstract class AbstractMutationRuleDefinitionHandler<T extends Annotation
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         MethodModelAction<?> mutator = toMutator(ruleDefinition, subject, inputs);
 
-        modelRegistry.apply(getMutationType(), mutator);
+        return new ModelMutatorRegistration(getMutationType(), mutator);
     }
 
     protected abstract ModelActionRole getMutationType();

@@ -55,9 +55,13 @@ class ModelRuleBindingTest extends Specification {
         }
     }
 
+    void registerRules(Class<?> source) {
+        inspector.inspect(source, {})*.applyTo(modelRegistry)
+    }
+
     def "error message produced when unpathed reference matches more than one item"() {
         when:
-        inspector.inspect(AmbiguousBindingsInOneSource, modelRegistry, {})
+        registerRules(AmbiguousBindingsInOneSource)
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -96,7 +100,7 @@ class ModelRuleBindingTest extends Specification {
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:
@@ -126,7 +130,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:
@@ -160,7 +164,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:

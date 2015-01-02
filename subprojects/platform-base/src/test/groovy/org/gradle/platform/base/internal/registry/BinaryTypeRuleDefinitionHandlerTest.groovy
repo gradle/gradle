@@ -46,24 +46,24 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.apply(_, _)
+        registration != null
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        0 * modelRegistry._
+        registration == null
     }
 
     @Unroll
@@ -72,7 +72,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.registration(ruleMethod, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

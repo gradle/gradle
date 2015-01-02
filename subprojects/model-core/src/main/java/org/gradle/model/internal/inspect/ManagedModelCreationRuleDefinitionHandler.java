@@ -30,7 +30,6 @@ import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelIns
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -61,7 +60,8 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         };
     }
 
-    public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    @Override
+    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
         List<ModelReference<?>> references = ruleDefinition.getReferences();
@@ -70,7 +70,7 @@ public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCrea
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        modelRegistry.create(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
+        return new ModelCreatorRegistration(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
     private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?> ruleDefinition, ModelPath modelPath) {

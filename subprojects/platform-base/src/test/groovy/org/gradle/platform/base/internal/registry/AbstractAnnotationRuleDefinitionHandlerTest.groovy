@@ -18,7 +18,6 @@ package org.gradle.platform.base.internal.registry
 
 import org.gradle.model.internal.inspect.DefaultMethodRuleDefinition
 import org.gradle.model.internal.inspect.MethodRuleDefinition
-import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,7 +26,6 @@ import java.lang.reflect.Method
 
 public abstract class AbstractAnnotationRuleDefinitionHandlerTest extends Specification{
     def ruleDefinition = Mock(MethodRuleDefinition)
-    def modelRegistry = Mock(ModelRegistry)
 
     protected abstract AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler getRuleHandler();
 

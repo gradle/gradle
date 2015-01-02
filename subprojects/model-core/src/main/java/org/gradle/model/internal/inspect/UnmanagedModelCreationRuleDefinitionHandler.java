@@ -21,7 +21,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -39,7 +38,7 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         };
     }
 
-    public <T> void register(MethodRuleDefinition<T> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
         ModelType<T> returnType = ruleDefinition.getReturnType();
@@ -47,11 +46,13 @@ public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCr
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
-        modelRegistry.create(ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
+        ModelCreator modelCreator = ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
                 .withProjection(new UnmanagedModelProjection<T>(returnType, true, true))
                 .descriptor(descriptor)
                 .inputs(references)
-                .build());
+                .build();
+
+        return new ModelCreatorRegistration(modelCreator);
     }
 
     public String getDescription() {

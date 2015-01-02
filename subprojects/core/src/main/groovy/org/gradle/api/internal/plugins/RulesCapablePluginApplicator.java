@@ -19,10 +19,13 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+
+import java.util.List;
 
 public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginAware> implements PluginApplicator {
 
@@ -44,11 +47,19 @@ public class RulesCapablePluginApplicator<T extends ModelRegistryScope & PluginA
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
         for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
-            inspector.inspect(source, target.getModelRegistry(), new RuleSourceDependencies() {
+            List<ModelRuleRegistration> registrations = inspector.inspect(source, new RuleSourceDependencies() {
                 public void add(Class<?> source) {
                     target.getPluginManager().apply(source);
                 }
             });
+            for (ModelRuleRegistration registration : registrations) {
+                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
+                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
+                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
+                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
+                // and do a better job of explaining what went wrong than what we can do at this level.
+                registration.applyTo(target.getModelRegistry());
+            }
         }
     }
 

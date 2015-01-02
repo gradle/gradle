@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+public class ModelCreatorRegistration implements ModelRuleRegistration {
 
-public interface MethodRuleDefinitionHandler {
-    Spec<MethodRuleDefinition<?>> getSpec();
+    private final ModelCreator creator;
 
-    String getDescription();
+    public ModelCreatorRegistration(ModelCreator creator) {
+        this.creator = creator;
+    }
 
-    @Nullable
-    <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies);
+    @Override
+    public void applyTo(ModelRegistrar registrar) {
+        registrar.create(creator);
+    }
 }

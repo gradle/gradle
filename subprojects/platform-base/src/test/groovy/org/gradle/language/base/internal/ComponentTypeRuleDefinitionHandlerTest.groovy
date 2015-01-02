@@ -20,20 +20,17 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
 import org.gradle.platform.base.internal.registry.ComponentTypeRuleDefinitionHandler
-import java.lang.annotation.Annotation
 import spock.lang.Unroll
+
+import java.lang.annotation.Annotation
 
 class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
     Instantiator instantiator = new DirectInstantiator()
-    def ruleDefinition = Mock(MethodRuleDefinition)
-    def modelRegistry = Mock(ModelRegistry)
     def ruleDependencies = Mock(RuleSourceDependencies)
 
     ComponentTypeRuleDefinitionHandler ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
@@ -45,24 +42,24 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.apply(_, _)
+        registration != null
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("noImplementationSet"), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        0 * modelRegistry._
+        registration == null
     }
 
     @Unroll
@@ -71,7 +68,7 @@ class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefin
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.registration(ruleMethod, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

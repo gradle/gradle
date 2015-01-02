@@ -17,11 +17,12 @@
 package org.gradle.platform.base.internal.registry;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
@@ -44,18 +45,19 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <R> ModelRuleRegistration registration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
             TypeBuilderInternal<T> builder = typeBuilderFactory.create();
             ruleDefinition.getRuleInvoker().invoke(builder);
-            doRegister(ruleDefinition, modelRegistry, dependencies, type, builder);
+            return createRegistration(ruleDefinition, dependencies, type, builder);
         } catch (InvalidModelException e) {
-            invalidModelRule(ruleDefinition, e);
+            throw invalidModelRule(ruleDefinition, e);
         }
     }
 
-    abstract <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+    @Nullable
+    protected abstract <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
 
     protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
@@ -83,11 +85,11 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
         return asSubclass;
     }
 
-    protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
+    protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(String.format(" is not a valid %s model rule method.", modelName));
-        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
+        return new InvalidModelRuleDeclarationException(sb.toString(), e);
     }
 
     protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {

@@ -19,9 +19,7 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.RuleSourceDependencies
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
@@ -29,8 +27,6 @@ import java.lang.annotation.Annotation
 
 class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
 
-    def ruleDefinition = Mock(MethodRuleDefinition)
-    def modelRegistry = Mock(ModelRegistry)
     def ruleDependencies = Mock(RuleSourceDependencies)
 
     ComponentBinariesRuleDefinitionHandler ruleHandler = new ComponentBinariesRuleDefinitionHandler()
@@ -45,13 +41,13 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod(ruleName), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.apply(_, _)
+        registration != null
 
         where:
         ruleName         | descr
@@ -60,24 +56,13 @@ class ComponentBinariesRuleDefinitionHandlerTest extends AbstractAnnotationRuleD
         "librarySubType" | "for library sub types"
     }
 
-    def "can use plain BinarySpec"() {
-        when:
-        ruleHandler.register(ruleDefinitionForMethod("rawBinarySpec"), modelRegistry, ruleDependencies)
-
-        then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
-
-        and:
-        1 * modelRegistry.apply(_, _)
-    }
-
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.registration(ruleMethod, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

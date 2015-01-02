@@ -53,7 +53,7 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.register(ruleMethod, modelRegistry, ruleDependencies)
+        ruleHandler.registration(ruleMethod, ruleDependencies)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -76,22 +76,19 @@ class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefini
 
 
     def "does not create language type rule when implementation not set"() {
-        when:
-        ruleHandler.register(ruleDefinitionForMethod("noImplementationTypeRule"), modelRegistry, ruleDependencies)
-
-        then:
-        0 * modelRegistry._
+        expect:
+        ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"), ruleDependencies) == null
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
         when:
-        ruleHandler.register(ruleDefinitionForMethod("validTypeRule"), modelRegistry, ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
 
         then:
         1 * ruleDependencies.add(ComponentModelBasePlugin)
 
         and:
-        1 * modelRegistry.apply(_, _)
+        registration != null
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

@@ -31,7 +31,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
@@ -49,13 +48,14 @@ public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler
     }
 
     @Override
-    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
+    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal)builder).getLanguageName(), ruleDefinition.getDescriptor());
-            modelRegistry.apply(ModelActionRole.Defaults, mutator);
+            new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
         }
+        return null;
     }
 
     public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {

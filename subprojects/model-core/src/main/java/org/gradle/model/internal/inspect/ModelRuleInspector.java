@@ -17,18 +17,20 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 @ThreadSafe
 public class ModelRuleInspector {
@@ -64,8 +66,7 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
-    public <T> void inspect(Class<T> source, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public <T> List<ModelRuleRegistration> inspect(Class<T> source, RuleSourceDependencies dependencies) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
@@ -76,6 +77,8 @@ public class ModelRuleInspector {
             }
         });
 
+        ImmutableList.Builder<ModelRuleRegistration> registrations = ImmutableList.builder();
+
         for (Method method : methods) {
             if (method.getTypeParameters().length > 0) {
                 throw invalid(method, "cannot have type variables (i.e. cannot be a generic method)");
@@ -85,14 +88,13 @@ public class ModelRuleInspector {
             MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 validate(method);
-                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
-                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
-                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
-                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
-                // and do a better job of explaining what went wrong than what we can do at this level.
-                handler.register(ruleDefinition, modelRegistry, dependencies);
+                ModelRuleRegistration registration = handler.registration(ruleDefinition, dependencies);
+                if (registration != null) {
+                    registrations.add(registration);
+                }
             }
         }
+        return registrations.build();
     }
 
     private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {

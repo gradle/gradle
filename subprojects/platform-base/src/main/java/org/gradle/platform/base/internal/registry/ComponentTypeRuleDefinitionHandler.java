@@ -29,9 +29,11 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecIdentifier;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
@@ -50,13 +52,14 @@ public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandle
     }
 
     @Override
-    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            modelRegistry.apply(ModelActionRole.Defaults, mutator);
+            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
         }
+        return null;
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
