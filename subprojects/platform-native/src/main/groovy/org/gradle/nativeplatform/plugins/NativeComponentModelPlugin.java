@@ -41,7 +41,6 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -119,7 +118,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+        public void registerNativePlatformResolver(PlatformResolvers resolvers) {
+            resolvers.register(new NativePlatformResolver());
+        }
+
+        @Mutate
+        public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
                 public NativePlatform create(String name) {
@@ -153,12 +157,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
             }
-        }
-
-        @Mutate
-        public void createDefaultPlatforms(PlatformContainer platforms) {
-            // TODO:DAZ Should be creating, not adding
-            platforms.addAll(NativePlatforms.defaultPlatformDefinitions());
         }
 
         @Finalize

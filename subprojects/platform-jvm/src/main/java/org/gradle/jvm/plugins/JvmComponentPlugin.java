@@ -80,16 +80,6 @@ public class JvmComponentPlugin {
     }
 
     @Mutate
-    public void registerJavaPlatformType(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-        final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        platforms.registerFactory(JavaPlatform.class, new NamedDomainObjectFactory<JavaPlatform>() {
-            public JavaPlatform create(String name) {
-                return instantiator.newInstance(DefaultJavaPlatform.class, name);
-            }
-        });
-    }
-
-    @Mutate
     public void registerPlatformResolver(PlatformResolvers platformResolvers) {
         platformResolvers.register(new JavaPlatformResolver());
     }
