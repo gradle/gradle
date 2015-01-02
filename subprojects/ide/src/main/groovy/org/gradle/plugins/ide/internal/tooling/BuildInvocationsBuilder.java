@@ -54,12 +54,11 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
 
         // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        Set<String> aggregatedTasks = Sets.newLinkedHashSet();
+        TreeBasedTable<String, String, String> aggregatedTasksWithDescription = TreeBasedTable.create(Ordering.usingToString(), new TaskNameComparator());
         Set<String> visibleTasks = Sets.newLinkedHashSet();
-        TreeBasedTable<String, String, String> taskDescriptions = TreeBasedTable.create(Ordering.usingToString(), new TaskNameComparator());
-        findTasks(project, aggregatedTasks, visibleTasks, taskDescriptions);
-        for (String selectorName : aggregatedTasks) {
-            SortedMap<String, String> descriptionsFromAllPaths = taskDescriptions.row(selectorName);
+        findTasks(project, aggregatedTasksWithDescription, visibleTasks);
+        for (String selectorName : aggregatedTasksWithDescription.rowKeySet()) {
+            SortedMap<String, String> descriptionsFromAllPaths = aggregatedTasksWithDescription.row(selectorName);
             String description = descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey());
             selectors.add(new LaunchableGradleTaskSelector().
                     setName(selectorName).
@@ -95,23 +94,22 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return tasks;
     }
 
-    private void findTasks(Project project, Collection<String> aggregatedTasks, Collection<String> visibleTasks, Table<String, String, String> taskDescriptions) {
+    private void findTasks(Project project, Table<String, String, String> tasksWithDescription, Collection<String> visibleTasks) {
         for (Project child : project.getChildProjects().values()) {
-            findTasks(child, aggregatedTasks, visibleTasks, taskDescriptions);
+            findTasks(child, tasksWithDescription, visibleTasks);
         }
+
         for (Task task : taskLister.listProjectTasks(project)) {
-            aggregatedTasks.add(task.getName());
+            // store the description first by task name and then by path
+            // this allows to later fish out the description of the task whose name matches the selector name and
+            // whose path is the smallest for the given task name (the first entry of the table column)
+            // store null description as empty string to avoid that Guava chokes
+            tasksWithDescription.put(task.getName(), task.getPath(), task.getDescription() != null ? task.getDescription() : NULL_STRING);
 
             // visible tasks are specified as those that have a non-empty group
             if (task.getGroup() != null) {
                 visibleTasks.add(task.getName());
             }
-
-            // store the description first by task name and then by path
-            // this allows to later fish out the description of the task whose name matches the selector name and
-            // whose path is the smallest for the given task name (the first entry of the table column)
-            // store null description as empty string to avoid that Guava chokes
-            taskDescriptions.put(task.getName(), task.getPath(), task.getDescription() != null ? task.getDescription() : NULL_STRING);
         }
     }
 
