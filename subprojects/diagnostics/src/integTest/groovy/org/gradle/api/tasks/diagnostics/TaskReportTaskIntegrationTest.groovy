@@ -23,7 +23,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    def "task description is taken from task with smallest path"() {
+    def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
         settingsFile << """
 include 'sub1'
