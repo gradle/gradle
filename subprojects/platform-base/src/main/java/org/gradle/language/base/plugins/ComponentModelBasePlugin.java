@@ -170,9 +170,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        PlatformResolver platformResolver(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+        PlatformResolvers platformResolver(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultPlatformResolver.class, platforms);
+            return instantiator.newInstance(DefaultPlatformResolvers.class, platforms);
         }
 
         @Mutate

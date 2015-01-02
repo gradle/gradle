@@ -48,7 +48,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.PlatformResolver;
+import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -137,7 +137,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
-                                         PlatformResolver platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
+                                         PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);

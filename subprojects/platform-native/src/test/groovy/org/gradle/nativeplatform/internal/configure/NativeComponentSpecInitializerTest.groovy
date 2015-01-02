@@ -27,11 +27,11 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.internal.PlatformResolver
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
+import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
@@ -41,7 +41,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def toolProvider = Mock(PlatformToolProvider)
     def nativeBinariesFactory = Mock(NativeBinariesFactory)
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
-    def platforms = Mock(PlatformResolver)
+    def platforms = Mock(PlatformResolvers)
     def platform = createStub(NativePlatformInternal, "platform1")
 
     def buildType = createStub(BuildType, "buildType1")

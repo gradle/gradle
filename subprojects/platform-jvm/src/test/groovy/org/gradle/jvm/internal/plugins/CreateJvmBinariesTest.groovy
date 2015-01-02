@@ -32,10 +32,10 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.internal.PlatformResolver
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
@@ -43,7 +43,7 @@ class CreateJvmBinariesTest extends Specification {
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin()
-    def platforms = Mock(PlatformResolver)
+    def platforms = Mock(PlatformResolvers)
     CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
     def instantiator = Mock(Instantiator)
     def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator(), Stub(ProjectSourceSet))

@@ -39,7 +39,7 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
-import org.gradle.platform.base.internal.PlatformResolver;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
@@ -160,7 +160,7 @@ public class PlayApplicationPlugin {
 
     @ComponentBinaries
     void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                        PlatformResolver platforms, final PlayToolChainInternal playToolChainInternal,
+                        PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal,
                         final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
         final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
@@ -194,7 +194,7 @@ public class PlayApplicationPlugin {
         }
     }
 
-    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, final PlatformResolver platforms) {
+    private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, final PlatformResolvers platforms) {
         List<PlatformRequirement> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
             String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);

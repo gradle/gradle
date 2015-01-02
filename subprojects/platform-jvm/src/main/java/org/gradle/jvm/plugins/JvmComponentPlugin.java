@@ -23,10 +23,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmComponentExtension;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.internal.DefaultJarBinarySpec;
-import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
-import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.jvm.internal.JvmLibrarySpecInternal;
+import org.gradle.jvm.internal.*;
 import org.gradle.jvm.internal.plugins.DefaultJvmComponentExtension;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -93,17 +90,13 @@ public class JvmComponentPlugin {
     }
 
     @Mutate
-    public void createJavaPlatforms(PlatformContainer platforms) {
-        // TODO:DAZ Should be creating, not adding
-        for (JavaVersion javaVersion : JavaVersion.values()) {
-            DefaultJavaPlatform javaPlatform = new DefaultJavaPlatform(javaVersion);
-            platforms.add(javaPlatform);
-        }
+    public void registerPlatformResolver(PlatformResolvers platformResolvers) {
+        platformResolvers.register(new JavaPlatformResolver());
     }
 
     @ComponentBinaries
     public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
-                               PlatformResolver platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
+                               PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
                                @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
         final File binariesDir = new File(buildDir, "jars");
@@ -135,7 +128,7 @@ public class JvmComponentPlugin {
         }
     }
 
-    private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, final PlatformResolver platforms) {
+    private List<JavaPlatform> resolvePlatforms(JvmLibrarySpec jvmLibrary, final PlatformResolvers platforms) {
         List<PlatformRequirement> targetPlatforms = ((JvmLibrarySpecInternal) jvmLibrary).getTargetPlatforms();
         if (targetPlatforms.isEmpty()) {
             // TODO:DAZ Make it simpler to get the default java platform name, or use a spec here
