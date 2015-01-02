@@ -19,9 +19,11 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -48,6 +50,7 @@ import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -155,11 +158,19 @@ public class PlayDistributionPlugin {
             String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
-                public void execute(Zip zip) {
+                public void execute(final Zip zip) {
                     zip.setDescription("Bundles the play binary as a distribution.");
                     zip.setGroup(DISTRIBUTION_GROUP);
                     zip.setBaseName(StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName());
                     zip.setDestinationDir(new File(buildDir, "distributions"));
+
+                    ConventionMapping mapping = zip.getConventionMapping();
+                    mapping.map("version", new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return zip.getProject().getVersion() == Project.DEFAULT_VERSION ? null : zip.getProject().getVersion().toString();
+                        }
+                    });
 
                     String baseDirName = zip.getArchiveName().substring(0, zip.getArchiveName().length() - zip.getExtension().length() - 1);
                     CopySpecInternal baseSpec = zip.getRootSpec().addChild();

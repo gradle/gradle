@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.tasks.Copy
@@ -115,6 +116,9 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setBaseName("playBinary")
                 2 * getArchiveName() >> "playBinary.zip"
                 1 * getExtension() >> "zip"
+                1 * getConventionMapping() >> Mock(ConventionMapping) {
+                    1 * map(_, _)
+                }
                 1 * getRootSpec() >> Mock(CopySpecInternal) {
                     1 * addChild() >> Mock(CopySpecInternal) {
                         1 * into("playBinary")
