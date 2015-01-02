@@ -81,7 +81,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
-                    .setPublic(task.getGroup() != null));
+                    .setPublic(!Strings.isNullOrEmpty(task.getGroup())));
         }
         return tasks;
     }
@@ -94,7 +94,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             aggregatedTasks.add(task.getName());
 
             // visible tasks are specified as those that have a non-empty group
-            if (task.getGroup() != null) {
+            if (!Strings.isNullOrEmpty(task.getGroup())) {
                 visibleTasks.add(task.getName());
             }
 

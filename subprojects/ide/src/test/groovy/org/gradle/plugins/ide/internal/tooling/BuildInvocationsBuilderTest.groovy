@@ -69,7 +69,7 @@ class BuildInvocationsBuilderTest extends Specification {
         task1OfGrandChild.description = null
 
         def task2OfGrandChild = grandChildOfChild1.tasks.create('t4', DefaultTask)
-        task2OfGrandChild.group = null
+        task2OfGrandChild.group = ''
         task2OfGrandChild.description = 'T4 from grand child'
     }
 
