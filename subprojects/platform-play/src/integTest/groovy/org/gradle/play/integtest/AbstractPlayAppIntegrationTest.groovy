@@ -15,13 +15,19 @@
  */
 
 package org.gradle.play.integtest
+
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.process.internal.ExecHandle
+import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.util.AvailablePortFinder
 import org.gradle.util.TextUtil
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
@@ -169,6 +175,48 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
         notAvailable(url)
     }
 
+    @Unroll
+    def "can run #type play distribution" () {
+        ExecHandleBuilder builder
+        ExecHandle handle
+        String distDirPath = new File(testDirectory, distDirName).path
+        buildFile << """
+            model {
+                tasks {
+                    create("unzipDist", Copy) {
+                        from (zipTree(tasks.createPlayBinaryDist.archivePath))
+                        into "${distDirName}"
+                        dependsOn tasks.createPlayBinaryDist
+                    }
+                }
+            }
+        """
+
+        setup:
+        httpPort = portFinder.nextAvailable
+        run "${task}"
+
+        when:
+        builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
+        handle = builder.build()
+        handle.start()
+
+        then:
+        available(playUrl().toString(), "Play app", 60000)
+        assert playUrl().text.contains("Your new application is ready.")
+
+        and:
+        verifyContent()
+
+        cleanup:
+        handle.abort()
+
+        where:
+        type     | task        | distDirName
+        "staged" | "stage"     | "build/stage"
+        "zipped" | "unzipDist" | "build/dist"
+    }
+
     void verifyJars() {
         jar("build/playBinary/lib/play.jar").containsDescendants(
                 "Routes.class",
@@ -221,5 +269,27 @@ abstract class AbstractPlayAppIntegrationTest extends MultiPlayVersionIntegratio
     }
 
     void verifyTestOutput(TestExecutionResult result) {
+    }
+
+    class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
+        final String port
+
+        DistributionTestExecHandleBuilder(String port, String baseDirName) {
+            super()
+            this.port = port
+
+            def extension = ""
+            if (OperatingSystem.current().windows) {
+                extension = ".bat"
+            }
+            this.setExecutable("${baseDirName}/playBinary/bin/playBinary${extension}")
+            this.environment("PLAY_BINARY_OPTS": "-Dhttp.port=${port}")
+            this.setWorkingDir(baseDirName)
+        }
+
+        @Override
+        List<String> getAllArguments() {
+            return Lists.newArrayList()
+        }
     }
 }
