@@ -35,7 +35,7 @@ public interface HttpProxySettings {
             if (username == null || username.length() == 0) {
                 credentials = null;
             } else {
-                credentials = new PasswordCredentials(username, password);
+                credentials = new PasswordCredentials(username, password, false);
             }
         }
     }

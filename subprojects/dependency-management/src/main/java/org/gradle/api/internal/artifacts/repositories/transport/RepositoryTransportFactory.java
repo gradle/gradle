@@ -72,7 +72,7 @@ public class RepositoryTransportFactory {
     }
 
     private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(PasswordCredentials credentials) {
-        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword());
+        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword(), credentials.isPreemptive());
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {

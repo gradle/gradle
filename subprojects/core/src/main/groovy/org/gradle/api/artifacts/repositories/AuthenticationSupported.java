@@ -38,6 +38,7 @@ public interface AuthenticationSupported {
      *         credentials {
      *             username = 'joe'
      *             password = 'secret'
+     *             preemptive = false             
      *         }
      *     }
      * }
@@ -54,6 +55,7 @@ public interface AuthenticationSupported {
      *         credentials {
      *             username = 'joe'
      *             password = 'secret'
+     *             preemptive = false
      *         }
      *     }
      * }
