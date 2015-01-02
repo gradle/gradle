@@ -17,9 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -29,94 +27,35 @@ import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.RuleBasedLanguageRegistration;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.builder.LanguageTypeBuilderInternal;
+import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import org.gradle.platform.base.internal.util.ImplementationTypeDetermer;
 
 import java.util.List;
 
-public class LanguageTypeRuleDefinitionHandler extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<LanguageType> {
-
-    private final String modelName;
-    private final ModelType<LanguageSourceSet> baseInterface;
-    private final Factory<? extends LanguageTypeBuilderInternal<LanguageSourceSet>> typeBuilderFactory;
-
+public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
     public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
 
     public LanguageTypeRuleDefinitionHandler() {
-        this.modelName = "language";
-        this.typeBuilderFactory = JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class);
-        this.baseInterface = ModelType.of(LanguageSourceSet.class);
-
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, LanguageTypeBuilderInternal<? extends LanguageSourceSet> builder) {
-        ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
-        dependencies.add(ComponentModelBasePlugin.class);
-        if (implementation != null) {
-            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, builder.getLanguageName(), ruleDefinition.getDescriptor());
-            modelRegistry.apply(ModelActionRole.Defaults, mutator);
-        }
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class));
     }
 
     @Override
-    public <R> void register(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
-        try {
-            ModelType<? extends LanguageSourceSet> type = readType(ruleDefinition);
-            LanguageTypeBuilderInternal<? extends LanguageSourceSet> builder = typeBuilderFactory.create();
-
-            ruleDefinition.getRuleInvoker().invoke(builder);
-
-            doRegister(ruleDefinition, modelRegistry, dependencies, type, builder);
-        } catch (InvalidModelException e) {
-            invalidModelRule(ruleDefinition, e);
+    <R> void doRegister(MethodRuleDefinition<R> ruleDefinition, ModelRegistry modelRegistry, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
+        ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
+        dependencies.add(ComponentModelBasePlugin.class);
+        if (implementation != null) {
+            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal)builder).getLanguageName(), ruleDefinition.getDescriptor());
+            modelRegistry.apply(ModelActionRole.Defaults, mutator);
         }
-    }
-
-    protected void invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
-        StringBuilder sb = new StringBuilder();
-        ruleDefinition.getDescriptor().describeTo(sb);
-        sb.append(String.format(" is not a valid %s model rule method.", modelName));
-        throw new InvalidModelRuleDeclarationException(sb.toString(), e);
-    }
-
-
-    @SuppressWarnings("rawtypes")
-    protected ModelType<? extends LanguageSourceSet> readType(MethodRuleDefinition<?> ruleDefinition) {
-        assertIsVoidMethod(ruleDefinition);
-        ModelType<LanguageTypeBuilder> buildInterfaceModelType = ModelType.of(LanguageTypeBuilder.class);
-        if (ruleDefinition.getReferences().size() != 1) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), buildInterfaceModelType.toString()));
-        }
-        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
-        if (!buildInterfaceModelType.isAssignableFrom(builder)) {
-            throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), buildInterfaceModelType.toString()));
-        }
-        if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter.", buildInterfaceModelType.toString()));
-        }
-        ModelType<?> subType = builder.getTypeVariables().get(0);
-
-        if (subType.isWildcard()) {
-            throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
-        }
-
-        ModelType<? extends LanguageSourceSet> asSubclass = baseInterface.asSubclass(subType);
-        if (asSubclass == null) {
-            throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
-        }
-
-        return asSubclass;
     }
 
     public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {
