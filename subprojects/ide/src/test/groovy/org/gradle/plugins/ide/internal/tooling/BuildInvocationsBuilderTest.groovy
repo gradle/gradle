@@ -27,10 +27,14 @@ import spock.lang.Unroll
 
 class BuildInvocationsBuilderTest extends Specification {
     def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())
-    @Shared def project = TestUtil.builder().withName("root").build()
-    @Shared def child1 = TestUtil.builder().withName("child1").withParent(project).build()
-    @Shared def child1a = TestUtil.builder().withName("child1a").withParent(child1).build()
-    @Shared def child1b = TestUtil.builder().withName("child1b").withParent(child1).build()
+    @Shared
+    def project = TestUtil.builder().withName("root").build()
+    @Shared
+    def child1 = TestUtil.builder().withName("child1").withParent(project).build()
+    @Shared
+    def child1a = TestUtil.builder().withName("child1a").withParent(child1).build()
+    @Shared
+    def child1b = TestUtil.builder().withName("child1b").withParent(child1).build()
 
     def setupSpec() {
         // t1 tasks
@@ -69,10 +73,10 @@ class BuildInvocationsBuilderTest extends Specification {
         // model.taskSelectors.find { it.name == 't1' }?.tasks == t1Tasks as Set
 
         where:
-        startProject | selectorNames      | visibleSelectors | visibleTasks
+        startProject | selectorNames            | visibleSelectors   | visibleTasks
         project      | ['t1', 't2', 't3'] | ['t1', 't2']     | []
         child1       | ['t1', 't2']       | ['t1', 't2']     | []
-        child1a      | ['t1']             | ['t1']           | ['t1']
+        child1a      | ['t1']                   | ['t1']             | ['t1']
     }
 
     def "builds recursive model"() {
@@ -86,9 +90,6 @@ class BuildInvocationsBuilderTest extends Specification {
             assert it.name != null
             assert it.displayName != null
             assert it.description != null
-        }
-        def t1Selector = model.taskSelectors.find { LaunchableGradleTaskSelector it ->
-            it.name == 't1' && it.description.startsWith("t1")
         }
         model.taskSelectors*.name as Set == ['t1', 't2', 't3'] as Set
     }
