@@ -131,7 +131,7 @@ class BuildInvocationsBuilderTest extends Specification {
 
         then:
         assert model.taskSelectors.find { it.name == 't1' }.description == 'T1 from root'
-        assert model.taskSelectors.find { it.name == 't2' }.description == ''
+        assert model.taskSelectors.find { it.name == 't2' }.description == null
         assert model.taskSelectors.find { it.name == 't3' }.description == 'T3 from child'
         assert model.taskSelectors.find { it.name == 't4' }.description == 'T4 from grand child 1'
     }
