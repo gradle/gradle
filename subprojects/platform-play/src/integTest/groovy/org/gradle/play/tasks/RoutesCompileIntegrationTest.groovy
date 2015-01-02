@@ -32,7 +32,7 @@ class RoutesCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
             tasks {
                 create("routesCompile", RoutesCompile){ task ->
                     task.outputDirectory = file('$destinationDirPath')
-                    task.platform = platforms["play-${version}"]
+                    task.platform = binaries.playBinary.targetPlatform
                 }
             }
         }

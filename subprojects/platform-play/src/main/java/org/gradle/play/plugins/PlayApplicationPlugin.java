@@ -24,17 +24,14 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
-import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.ManagedSet;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
@@ -44,11 +41,7 @@ import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
-import org.gradle.play.internal.DefaultPlayApplicationBinarySpec;
-import org.gradle.play.internal.DefaultPlayApplicationSpec;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.internal.PlayApplicationSpecInternal;
-import org.gradle.play.internal.platform.PlayPlatformInternal;
+import org.gradle.play.internal.*;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
@@ -71,27 +64,6 @@ public class PlayApplicationPlugin {
     private final static String DEFAULT_PLAY_VERSION = "2.3.7";
     public static final int DEFAULT_HTTP_PORT = 9000;
 
-    @Model
-    void playPlatforms(ManagedSet<PlayPlatformInternal> playPlatforms) {
-        playPlatforms.create(new Action<PlayPlatformInternal>() {
-            public void execute(PlayPlatformInternal platform) {
-                initializePlatform(platform, "2.2.3", "2.10.3");
-            }
-        });
-        playPlatforms.create(new Action<PlayPlatformInternal>() {
-            public void execute(PlayPlatformInternal platform) {
-                initializePlatform(platform, DEFAULT_PLAY_VERSION, "2.11.1");
-            }
-        });
-    }
-
-    private void initializePlatform(PlayPlatformInternal platform, String playVersion, String scalaVersion) {
-        platform.setName("play-" + playVersion);
-        platform.setDisplayName(String.format("Play Platform (Play %s, Scala: %s, JDK %s (%s))", playVersion, scalaVersion, JavaVersion.current().getMajorVersion(), JavaVersion.current()));
-        platform.setPlayVersion(playVersion);
-        platform.setScalaPlatform(new DefaultScalaPlatform(scalaVersion));
-        platform.setJavaPlatform(new DefaultJavaPlatform(JavaVersion.current()));
-    }
 
     @Model
     PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
@@ -103,14 +75,14 @@ public class PlayApplicationPlugin {
         return serviceRegistry.get(FileResolver.class);
     }
 
-    @Mutate
-    public void addPlayPlatformsToPlatformContainer(PlatformContainer platforms, ManagedSet<PlayPlatformInternal> playPlatformInternals) {
-        platforms.addAll(playPlatformInternals);
-    }
-
     @ComponentType
     void register(ComponentTypeBuilder<PlayApplicationSpec> builder) {
         builder.defaultImplementation(DefaultPlayApplicationSpec.class);
+    }
+
+    @Mutate
+    public void registerPlatformResolver(PlatformResolvers platformResolvers) {
+        platformResolvers.register(new PlayPlatformResolver());
     }
 
     @Mutate

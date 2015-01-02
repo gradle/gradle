@@ -25,14 +25,19 @@ public enum PlayMajorVersion {
     PLAY_2_3_X;
 
     public static PlayMajorVersion forPlatform(PlayPlatform targetPlatform) {
-        VersionNumber versionNumber = VersionNumber.parse(targetPlatform.getPlayVersion());
+        String playVersion = targetPlatform.getPlayVersion();
+        return forPlayVersion(playVersion);
+    }
+
+    public static PlayMajorVersion forPlayVersion(String playVersion) {
+        VersionNumber versionNumber = VersionNumber.parse(playVersion);
         if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 2) {
             return PlayMajorVersion.PLAY_2_2_X;
         }
         if (versionNumber.getMajor() == 2 && versionNumber.getMinor() == 3) {
             return PlayMajorVersion.PLAY_2_3_X;
         }
-        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: 2.3.x, 2.2.x", targetPlatform.getPlayVersion()));
+        throw new InvalidUserDataException(String.format("Not a supported Play version: %s. This plugin is compatible with: 2.3.x, 2.2.x", playVersion));
     }
 
 }
