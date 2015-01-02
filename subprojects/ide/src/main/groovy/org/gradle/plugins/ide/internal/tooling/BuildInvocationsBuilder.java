@@ -48,6 +48,8 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
+
+        // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
         Set<String> aggregatedTasks = Sets.newLinkedHashSet();
         Set<String> visibleTasks = Sets.newLinkedHashSet();
@@ -63,9 +65,12 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
                     setPublic(visibleTasks.contains(selectorName)));
         }
-        return new DefaultBuildInvocations()
-                .setSelectors(selectors)
-                .setTasks(tasks(project));
+
+        // construct project tasks
+        List<LaunchableGradleTask> projectTasks = tasks(project);
+
+        // construct build invocations from task selectors and project tasks
+        return new DefaultBuildInvocations().setSelectors(selectors).setTasks(projectTasks);
     }
 
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
