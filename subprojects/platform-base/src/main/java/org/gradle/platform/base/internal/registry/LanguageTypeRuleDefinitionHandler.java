@@ -53,7 +53,7 @@ public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal)builder).getLanguageName(), ruleDefinition.getDescriptor());
-            new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
+            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
         }
         return null;
     }
