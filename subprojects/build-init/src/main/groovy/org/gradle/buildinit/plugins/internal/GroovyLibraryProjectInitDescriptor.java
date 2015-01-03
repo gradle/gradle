@@ -36,7 +36,7 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
         );
 
         TemplateOperation groovyLibTemplateOperation = fromClazzTemplate("groovylibrary/Library.groovy.template", "main");
-        TemplateOperation groovyTestTemplateOperation = fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", "test");
+        TemplateOperation groovyTestTemplateOperation = fromClazzTemplate("groovylibrary/LibrarySpec.groovy.template", "test");
 
         register(whenNoSourcesAvailable(groovyLibTemplateOperation, groovyTestTemplateOperation));
     }
