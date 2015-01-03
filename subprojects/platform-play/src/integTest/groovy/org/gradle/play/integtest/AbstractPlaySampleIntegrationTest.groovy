@@ -17,10 +17,9 @@
 package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.AvailablePortFinder
-import spock.lang.IgnoreIf
+import org.gradle.util.TextUtil
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
@@ -50,11 +49,6 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    /**
-     * Don't currently run with DaemonExecuter, because
-     * InputForwarder is consuming stdin eagerly.
-     * */
-    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
     def "produces usable application" () {
         when:
         executer.usingInitScript(initScript)
@@ -65,9 +59,8 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         succeeds "assemble"
 
         when:
-        PipedInputStream inputStream = new PipedInputStream();
-        PipedOutputStream stdinWriter = new PipedOutputStream(inputStream);
-        executer.withStdIn(inputStream)
+        def userInput = new PipedOutputStream();
+        executer.withStdIn(new PipedInputStream(userInput))
         executer.usingInitScript(initScript)
         sample playSample
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
@@ -80,8 +73,9 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         checkContent()
 
         when: "stopping gradle"
-        stdinWriter.write(4) // ctrl+d
-        stdinWriter.flush()
+        userInput.write(4) // ctrl+d
+        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
+
         gradleHandle.waitForFinish()
 
         then: "play server is stopped too"

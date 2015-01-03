@@ -135,10 +135,6 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
                 ":testPlayBinary")
     }
 
-    /**
-     * Don't currently run with DaemonExecuter, because
-     * InputForwarder is consuming stdin eagerly.
-     * */
     def "can run play app"(){
         setup:
         httpPort = portFinder.nextAvailable
