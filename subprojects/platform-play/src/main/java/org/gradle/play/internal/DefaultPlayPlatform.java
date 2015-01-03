@@ -25,10 +25,12 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
     private final JavaPlatform javaPlatform;
     private final String name;
 
+    // TODO:DAZ Equals/HashCode
     public DefaultPlayPlatform(String playVersion, ScalaPlatform scalaPlatform, JavaPlatform javaPlatform) {
         this.playVersion = playVersion;
         this.scalaPlatform = scalaPlatform;
         this.javaPlatform = javaPlatform;
+        // TODO:DAZ Include the scala compatibility version in the generated name
         this.name = "play-" + playVersion;
     }
 
@@ -39,7 +41,7 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
 
     @Override
     public String getDisplayName() {
-        return String.format("Play Platform (Play %s, Scala: %s, Java: %s)", playVersion, scalaPlatform.getScalaVersion(), javaPlatform.getDisplayName());
+        return String.format("Play Platform (Play %s, Scala: %s, Java: %s)", playVersion, scalaPlatform.getScalaCompatibilityVersion(), javaPlatform.getDisplayName());
     }
 
     @Override

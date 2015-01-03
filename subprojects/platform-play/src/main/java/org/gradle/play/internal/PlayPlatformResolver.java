@@ -25,6 +25,7 @@ import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolver;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.util.GUtil;
 
 // TODO:DAZ Resolve the JavaPlatform and ScalaPlatform, rather than instantiating directly
 public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
@@ -35,33 +36,52 @@ public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
 
     @Override
     public PlayPlatform resolve(PlatformRequirement platformRequirement) {
-        String playPlatformName = platformRequirement.getPlatformName();
-        String playVersion = parsePlayVersion(playPlatformName);
+        if (platformRequirement instanceof PlayPlatformRequirement) {
+            PlayPlatformRequirement requirement = (PlayPlatformRequirement) platformRequirement;
+            return resolve(requirement.getPlayVersion(), requirement.getScalaVersion(), requirement.getJavaVersion());
+        }
+        String playVersion = parsePlayVersionFromPlatformName(platformRequirement.getPlatformName());
+        return resolve(playVersion, null, null);
+    }
+
+    private PlayPlatform resolve(String playVersion, String scalaVersion, String javaVersion) {
         PlayMajorVersion playMajorVersion = PlayMajorVersion.forPlayVersion(playVersion);
 
-        JavaPlatform javaPlatform = getJavaPlatform();
-        ScalaPlatform scalaPlatform = getScalaPlatform(playMajorVersion);
+        JavaPlatform javaPlatform = getJavaPlatform(javaVersion);
+        ScalaPlatform scalaPlatform = getScalaPlatform(playMajorVersion, scalaVersion);
         return new DefaultPlayPlatform(playVersion, scalaPlatform, javaPlatform);
     }
 
-    private String parsePlayVersion(String playPlatformName) {
+    private String parsePlayVersionFromPlatformName(String playPlatformName) {
         if (playPlatformName.startsWith("play-")) {
             return playPlatformName.substring(5);
         }
         throw new InvalidUserDataException(String.format("Not a valid Play platform: %s.", playPlatformName));
     }
 
-    private JavaPlatform getJavaPlatform() {
+    private JavaPlatform getJavaPlatform(String preferredJavaVersion) {
+        if (preferredJavaVersion != null) {
+            return new DefaultJavaPlatform(JavaVersion.toVersion(preferredJavaVersion));
+        }
         return new DefaultJavaPlatform(JavaVersion.current());
     }
 
-    private ScalaPlatform getScalaPlatform(PlayMajorVersion playMajorVersion) {
-        switch (playMajorVersion) {
-            case PLAY_2_2_X:
-                return new DefaultScalaPlatform("2.10.4");
-            case PLAY_2_3_X:
-            default:
-                return new DefaultScalaPlatform("2.11.4");
-        }
+    private ScalaPlatform getScalaPlatform(PlayMajorVersion playMajorVersion, String preferredScalaVersion) {
+        String scalaVersion = GUtil.elvis(preferredScalaVersion, playMajorVersion.getDefaultScalaPlatform());
+        ScalaPlatform scalaPlatform = createScalaPlatform(scalaVersion);
+
+        playMajorVersion.validateCompatible(scalaPlatform);
+        return scalaPlatform;
     }
+
+    private ScalaPlatform createScalaPlatform(String compatibilityVersion) {
+        if ("2.10".equals(compatibilityVersion)) {
+            return new DefaultScalaPlatform("2.10.4");
+        }
+        if ("2.11".equals(compatibilityVersion)) {
+            return new DefaultScalaPlatform("2.11.4");
+        }
+        throw new InvalidUserDataException(String.format("Not a supported Scala platform identifier %s. Supported values are: ['2.10', '2.11'].", compatibilityVersion));
+    }
+
 }

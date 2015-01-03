@@ -72,7 +72,7 @@ class DefaultPlayToolProviderTest extends Specification {
 
         then: "fails with meaningful error message"
         def exception = thrown(InvalidUserDataException)
-        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: 2.3.x, 2.2.x"
+        exception.message == "Not a supported Play version: ${playVersion}. This plugin is compatible with: [2.3.x, 2.2.x]."
 
         and: "no dependencies resolved"
         0 * dependencyHandler.create(_)

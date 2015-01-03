@@ -38,4 +38,10 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
+
+    @Override
+    public void platform(Object platformRequirements) {
+        PlatformRequirement requirement = PlayPlatformNotationParser.parser().parseNotation(platformRequirements);
+        this.targetPlatforms.add(requirement);
+    }
 }

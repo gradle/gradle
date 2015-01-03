@@ -25,4 +25,6 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  */
 @Incubating @HasInternalProtocol
 public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
+
+    void platform(Object platformRequirements);
 }
