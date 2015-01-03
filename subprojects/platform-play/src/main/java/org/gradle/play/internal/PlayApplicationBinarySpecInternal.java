@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal;
 
+import org.gradle.jvm.Classpath;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
@@ -36,4 +37,7 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     void setAssetsJarFile(File file);
 
     void setGeneratedScala(ScalaLanguageSourceSet scalaSources);
+
+    // TODO:DAZ Should be using the LanguageSourceSet classpath?
+    Classpath getCompileClasspath();
 }

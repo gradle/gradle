@@ -20,6 +20,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.jvm.Classpath;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
@@ -89,6 +91,21 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public void setGeneratedScala(ScalaLanguageSourceSet scalaSources) {
         this.generatedScala = scalaSources;
+    }
+
+    @Override
+    public Classpath getCompileClasspath() {
+        return new Classpath() {
+            @Override
+            public FileCollection getFiles() {
+                return getToolChain().select(getTargetPlatform()).getPlayDependencies();
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return DefaultPlayApplicationBinarySpec.this.getBuildDependencies();
+            }
+        };
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

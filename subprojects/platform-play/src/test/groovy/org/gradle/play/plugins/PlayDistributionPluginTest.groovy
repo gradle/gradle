@@ -44,8 +44,8 @@ class PlayDistributionPluginTest extends Specification {
     def "adds default distribution for each binary" () {
         DomainObjectSet jarTasks1 = Stub(DomainObjectSet)
         DomainObjectSet jarTasks2 = Stub(DomainObjectSet)
-        PlayApplicationBinarySpec bin1 = binary("bin1", jarTasks1)
-        PlayApplicationBinarySpec bin2 = binary("bin2", jarTasks2)
+        PlayApplicationBinarySpecInternal bin1 = binary("bin1", jarTasks1)
+        PlayApplicationBinarySpecInternal bin2 = binary("bin2", jarTasks2)
         BinaryContainer binaryContainer = binaryContainer([ bin1, bin2 ])
 
         CopySpec spec1 = Mock(CopySpec)
@@ -145,7 +145,7 @@ class PlayDistributionPluginTest extends Specification {
 
     def binaryContainer(List binaries) {
         return Stub(BinaryContainer) {
-            withType(PlayApplicationBinarySpec.class) >> Stub(NamedDomainObjectSet) {
+            withType(PlayApplicationBinarySpecInternal.class) >> Stub(NamedDomainObjectSet) {
                 iterator() >> binaries.iterator()
             }
         }
@@ -161,7 +161,7 @@ class PlayDistributionPluginTest extends Specification {
     }
 
     def binary(String name, DomainObjectSet jarTasks) {
-        return Stub(PlayApplicationBinarySpec) {
+        return Stub(PlayApplicationBinarySpecInternal) {
             getTasks() >> Stub(BinaryTasksCollection) {
                 withType(Jar.class) >> jarTasks
             }

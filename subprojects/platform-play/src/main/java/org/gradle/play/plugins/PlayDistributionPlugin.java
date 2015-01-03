@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -36,16 +35,12 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.model.Finalize;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
-import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
@@ -90,14 +85,13 @@ public class PlayDistributionPlugin {
 
     @Mutate
     void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayToolChainInternal playToolChain) {
-        for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+        for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             PlayDistribution distribution = distributions.create(binary.getName());
 
-            FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
             CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(binary.getTasks().withType(Jar.class));
-            libSpec.from(playDependencies);
+            libSpec.from(binary.getCompileClasspath().getFiles());
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");
@@ -110,16 +104,15 @@ public class PlayDistributionPlugin {
     @Mutate
     void createDistributionTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final @Path("buildDir") File buildDir,
                                  final @Path("distributions") PlayDistributionContainer distributions, final PlayToolChainInternal playToolChain) {
-        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+        for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
-            final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
 
             String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
             tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
                     createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                    createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), playDependencies));
+                    createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), binary.getCompileClasspath().getFiles()));
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(binary.getName());
                     createStartScripts.setOutputDir(scriptsDir);

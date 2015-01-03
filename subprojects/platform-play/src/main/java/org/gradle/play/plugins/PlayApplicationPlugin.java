@@ -17,7 +17,6 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -221,12 +220,11 @@ public class PlayApplicationPlugin {
     @BinaryTasks
     void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
                             PlayToolChainInternal playToolChain, FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        final FileCollection playDependencies = playToolChain.select(binary.getTargetPlatform()).getPlayDependencies();
         final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
         tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
             public void execute(PlatformScalaCompile scalaCompile) {
                 scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
-                scalaCompile.setClasspath(playDependencies);
+                scalaCompile.setClasspath(binary.getCompileClasspath().getFiles());
                 scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                 //infer scala classpath
                 String targetCompatibility = binary.getTargetPlatform().getJavaPlatform().getTargetCompatibility().getMajorVersion();
