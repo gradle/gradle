@@ -26,7 +26,8 @@ class PlayApplicationDependenciesIntegrationTest extends AbstractPlayAppIntegrat
     def setup() {
         buildFile << """
             dependencies {
-                playCompile "com.google.guava:guava:17.0"
+                play "com.google.guava:guava:17.0"
+                playTest "commons-lang:commons-lang:2.6"
             }
         """
     }
