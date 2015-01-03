@@ -86,6 +86,7 @@ class PlayDistributionPluginTest extends Specification {
                 addChild() >> Mock(CopySpecInternal) {
                     into("bin") >> Mock(CopySpec) {
                         1 * from(_ as CreateStartScripts)
+                        1 * setFileMode(0755)
                     }
                 }
             }

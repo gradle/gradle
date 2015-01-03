@@ -133,7 +133,9 @@ public class PlayDistributionPlugin {
 
                     for (PlayDistribution distribution : distributions.matching(matchingBinary)) {
                         CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
-                        distSpec.addChild().into("bin").from(createStartScripts);
+                        CopySpec binSpec = distSpec.addChild().into("bin");
+                        binSpec.from(createStartScripts);
+                        binSpec.setFileMode(0755);
                     }
                 }
             });

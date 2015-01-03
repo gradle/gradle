@@ -18,6 +18,7 @@ package org.gradle.play.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 
@@ -103,6 +104,9 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
           "playBinary/bin/playBinary.bat"
         ].each { fileName ->
             assert file("build/stage/${fileName}").exists()
+        }
+        if (OperatingSystem.current().unix) {
+            assert file("build/stage/playBinary/bin/playBinary").mode == 0755
         }
     }
 

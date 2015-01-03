@@ -195,6 +195,9 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
         setup:
         httpPort = portFinder.nextAvailable
         run "${task}"
+        if (OperatingSystem.current().unix) {
+            assert file("${distDirName}/playBinary/bin/playBinary").mode == 0755
+        }
 
         when:
         builder = new DistributionTestExecHandleBuilder(httpPort.toString(), distDirPath)
@@ -209,11 +212,13 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
         verifyContent()
 
         cleanup:
-        try {
-            handle.abort()
-        } catch (IllegalStateException e) {
-            // Ignore if process is already not running
-            println "Did not abort play process since current state is: ${handle.state.toString()}"
+        if (handle != null) {
+            try {
+                handle.abort()
+            } catch (IllegalStateException e) {
+                // Ignore if process is already not running
+                println "Did not abort play process since current state is: ${handle.state.toString()}"
+            }
         }
 
         where:
@@ -287,6 +292,7 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
             if (OperatingSystem.current().windows) {
                 extension = ".bat"
             }
+
             this.setExecutable("${baseDirName}/playBinary/bin/playBinary${extension}")
             this.environment("PLAY_BINARY_OPTS": "-Dhttp.port=${port}")
             this.setWorkingDir(baseDirName)
