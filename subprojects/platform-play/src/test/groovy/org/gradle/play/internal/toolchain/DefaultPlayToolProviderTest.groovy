@@ -16,16 +16,15 @@
 
 package org.gradle.play.internal.toolchain
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.internal.Factory
 import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.play.internal.run.PlayRunAdapterV22X
+import org.gradle.play.internal.run.PlayRunAdapterV23X
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -47,27 +46,23 @@ class DefaultPlayToolProviderTest extends Specification {
     @Unroll
     def "provides playRunner for play #playVersion"(){
         setup:
-        def applicationFiles = Mock(FileCollection)
-        1 * applicationFiles.getFiles() >> []
-        1 * fileResolver.resolveFiles(_) >> applicationFiles
-        _ * dependencyHandler.create(_)  >> Mock(Dependency);
-
-        def runConfiguration = Mock(Configuration)
-
-        _ * playPlatform.scalaPlatform >> scalaPlatform
+        _ * playPlatform.getPlayVersion() >> playVersion
 
         when:
-        _ * playPlatform.getPlayVersion() >> playVersion
         playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, playPlatform)
         def runner = playToolProvider.newApplicationRunner(workerProcessBuilderFactory, playRunSpec)
 
         then:
         runner != null
-        1 * configurationContainer.detachedConfiguration(_) >> runConfiguration
-        1 * runConfiguration.getFiles() >> []
+        runner.adapter.class == adapter
+
+        and:
+        1 * fileResolver.resolve('.') >> new File(".")
 
         where:
-        playVersion << ["2.2.x", "2.3.x"]
+        playVersion | adapter
+        "2.2.x" | PlayRunAdapterV22X
+        "2.3.x" | PlayRunAdapterV23X
     }
 
     def "cannot create tool provider for unsupported play versions"() {

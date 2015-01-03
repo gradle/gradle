@@ -44,11 +44,8 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.WrapUtil;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
 
@@ -86,19 +83,27 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec) {
-        List<File> playRunClasspath = new ArrayList<File>();
+        VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
+        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, spec, playRunAdapter);
+    }
 
-        Set<File> applicationFiles = fileResolver.resolveFiles(spec.getClasspath()).getFiles();
-        FileCollection playDependencyFiles = getPlatformDependencies("play", "play-docs");
-        playRunClasspath.addAll(applicationFiles);
-        playRunClasspath.addAll(playDependencyFiles.getFiles());
-
-        VersionedPlayRunSpec versionedSpec = createPlayRunner(spec, playRunClasspath);
-        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, versionedSpec);
+    private VersionedPlayRunAdapter createPlayRunAdapter() {
+        switch (playMajorVersion) {
+            case PLAY_2_2_X:
+                return new PlayRunAdapterV22X();
+            case PLAY_2_3_X:
+            default:
+                return new PlayRunAdapterV23X();
+        }
     }
 
     public FileCollection getPlayDependencies() {
         return getPlatformDependencies("play");
+    }
+
+    @Override
+    public FileCollection getPlayRuntimeDependencies() {
+        return getPlatformDependencies("play", "play-docs");
     }
 
     public FileCollection getPlayTestDependencies() {
@@ -118,16 +123,6 @@ class DefaultPlayToolProvider implements PlayToolProvider {
 
     private String getDependencyNotation(String module) {
         return String.format("com.typesafe.play:%s_%s:%s", module, targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
-    }
-
-    public VersionedPlayRunSpec createPlayRunner(PlayRunSpec spec, Iterable<File> classpath) {
-        switch (playMajorVersion) {
-            case PLAY_2_2_X:
-                return new PlayRunSpecV22X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
-            case PLAY_2_3_X:
-            default:
-                return new PlayRunSpecV23X(classpath, spec.getProjectPath(), spec.getForkOptions(), spec.getHttpPort());
-        }
     }
 
     private Configuration resolveClasspath(Object... dependencyNotations) {

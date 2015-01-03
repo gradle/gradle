@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
@@ -47,6 +48,7 @@ class PlayRunTest extends Specification {
         _ * playPlatform.playVersion >> "2.2.3"
         _ * playPlatform.scalaMainVersion >> "2.10"
         1 * toolChain.select(playPlatform) >> toolProvider
+        1 * toolProvider.playRuntimeDependencies >> new SimpleFileCollection()
         playRun.targetPlatform = playPlatform
         _ * playApplicationRunner.start() >> runnerToken
 

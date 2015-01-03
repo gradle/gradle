@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.scala.internal.reflect.ScalaMethod;
@@ -24,20 +23,17 @@ import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.jar.JarFile;
 
-public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec implements VersionedPlayRunSpec {
-    public DefaultVersionedPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
-        super(classpath, projectPath, forkOptions, httpPort);
-    }
+public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -45,19 +41,18 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
-    public Object getBuildLink(ClassLoader classLoader) throws ClassNotFoundException {
+    public Object getBuildLink(ClassLoader classLoader, final File projectPath, final Iterable<File> classpath) throws ClassNotFoundException {
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             private volatile boolean shouldReloadNextTime = true;
 
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.getName().equals("projectPath")) {
-                    return getProjectPath();
+                    return projectPath;
                 } else if (method.getName().equals("reload")) {
                     if (shouldReloadNextTime) {
                         shouldReloadNextTime = false; //reload only once for now
-                        DefaultClassPath projectClasspath = new DefaultClassPath(getClasspath());
-                        URLClassLoader classLoader = new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}), Thread.currentThread().getContextClassLoader()); //we have to use this classloader because plugins assumes that the classes are in this thread. Still a bit uncertain whether it is a 100%
-                        return classLoader;
+                        DefaultClassPath projectClasspath = new DefaultClassPath(classpath);
+                        return new URLClassLoader(projectClasspath.getAsURLs().toArray(new URL[]{}), Thread.currentThread().getContextClassLoader());
                     } else {
                         return null;
                     }
@@ -70,21 +65,21 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
         });
     }
 
-    protected Method getDocHandlerFactoryMethod(ClassLoader classLoader) throws ClassNotFoundException, NoSuchMethodException {
-        return getDocHandlerFactoryClass(classLoader).getMethod("fromJar", JarFile.class, String.class);
-    }
-
-    public Object getBuildDocHandler(ClassLoader docsClassLoader) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
+    public Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
+        Class<?> docHandlerFactoryClass = getDocHandlerFactoryClass(docsClassLoader);
+        Method docHandlerFactoryMethod = docHandlerFactoryClass.getMethod("fromJar", JarFile.class, String.class);
+        JarFile documentationJar = findDocumentationJar(classpath);
         try {
-            return getDocHandlerFactoryMethod(docsClassLoader).invoke(null, getDocJar(), "play/docs/content");
+            return docHandlerFactoryMethod.invoke(null, documentationJar, "play/docs/content");
         } catch (InvocationTargetException e) {
             throw UncheckedException.unwrapAndRethrow(e);
         }
     }
 
-    private JarFile getDocJar() throws IOException {
+    private JarFile findDocumentationJar(Iterable<File> classpath) throws IOException {
+        // TODO:DAZ Use the location of the DocHandlerFactoryClass instead.
         File docJarFile = null;
-        for (File file : getClasspath()) {
+        for (File file : classpath) {
             if (file.getName().startsWith("play-docs")) {
                 docJarFile = file;
                 break;
@@ -98,7 +93,4 @@ public abstract class DefaultVersionedPlayRunSpec extends DefaultPlayRunSpec imp
         return ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
     }
 
-    public Iterable<String> getSharedPackages() {
-        return Arrays.asList("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
-    }
 }

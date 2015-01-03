@@ -16,6 +16,8 @@
 
 package org.gradle.play.internal.run;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
@@ -27,8 +29,8 @@ public class DefaultPlayRunSpec implements PlayRunSpec, Serializable {
     private BaseForkOptions forkOptions;
     private int httpPort;
 
-    public DefaultPlayRunSpec(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
-        this.classpath = classpath;
+    public DefaultPlayRunSpec(FileCollection classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
+        this.classpath = Sets.newHashSet(classpath);
         this.projectPath = projectPath;
         this.forkOptions = forkOptions;
         this.httpPort = httpPort;

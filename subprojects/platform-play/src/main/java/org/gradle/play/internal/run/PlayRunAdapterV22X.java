@@ -16,16 +16,19 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.scala.internal.reflect.ScalaMethod;
+public class PlayRunAdapterV22X extends DefaultVersionedPlayRunAdapter {
+    @Override
+    protected Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException {
+        return classLoader.loadClass("play.core.SBTLink");
+    }
 
-import java.io.IOException;
+    @Override
+    protected Class<?> getBuildDocHandlerClass(ClassLoader classLoader) throws ClassNotFoundException {
+        return classLoader.loadClass("play.core.SBTDocHandler");
+    }
 
-public interface VersionedPlayRunSpec extends PlayRunSpec {
-    Object getBuildLink(ClassLoader classLoader) throws ClassNotFoundException;
-
-    Object getBuildDocHandler(ClassLoader docsClassLoader) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException;
-
-    ScalaMethod getNettyServerDevHttpMethod(ClassLoader classLoader, ClassLoader docsClassLoader) throws ClassNotFoundException;
-
-    Iterable<String> getSharedPackages();
+    @Override
+    protected Class<?> getDocHandlerFactoryClass(ClassLoader docsClassLoader) throws ClassNotFoundException {
+        return docsClassLoader.loadClass("play.docs.SBTDocHandlerFactory");
+    }
 }

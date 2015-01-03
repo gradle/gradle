@@ -27,16 +27,18 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
-    private final VersionedPlayRunSpec spec;
+    private final PlayRunSpec spec;
+    private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec) {
+    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
         this.workingDir = workingDir;
         this.workerFactory = workerFactory;
         this.spec = spec;
+        this.adapter = adapter;
     }
 
     public PlayApplicationRunnerToken start() {
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec);
+        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec, adapter);
         process.start();
 
         PlayWorkerClient clientCallBack = new PlayWorkerClient();
@@ -51,15 +53,15 @@ public class PlayApplicationRunner {
         }
     }
 
-    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunSpec spec) {
+    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Play Worker");
         builder.applicationClasspath(spec.getClasspath());
-        builder.sharedPackages(spec.getSharedPackages());
+        builder.sharedPackages("org.gradle.play.internal.run", "play.core", "play.core.server", "play.docs", "scala");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
-        return builder.worker(new PlayWorkerServer(spec)).build();
+        return builder.worker(new PlayWorkerServer(spec, adapter)).build();
     }
 }

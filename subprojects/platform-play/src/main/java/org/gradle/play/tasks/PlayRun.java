@@ -18,7 +18,9 @@ package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
@@ -80,8 +82,11 @@ public class PlayRun extends ConventionTask {
 
         int httpPort = getHttpPort();
 
-        PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar, assetsJar), getProject().getProjectDir(), getForkOptions(), httpPort);
         PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
+        FileCollection applicationJars = new SimpleFileCollection(applicationJar, assetsJar);
+        applicationJars = applicationJars.plus(toolProvider.getPlayRuntimeDependencies());
+
+        PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
         PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
         try {
             runnerToken = manager.start();

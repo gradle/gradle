@@ -35,4 +35,9 @@ public interface PlayToolProvider extends ToolProvider {
      * FileCollection containing play dependencies
      */
     FileCollection getPlayDependencies();
+
+    /**
+     * FileCollection containing play dependencies
+     */
+    FileCollection getPlayRuntimeDependencies();
 }

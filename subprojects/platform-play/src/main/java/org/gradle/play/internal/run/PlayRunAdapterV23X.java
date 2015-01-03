@@ -16,15 +16,7 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
-
-import java.io.File;
-
-public class PlayRunSpecV23X extends DefaultVersionedPlayRunSpec {
-    public PlayRunSpecV23X(Iterable<File> classpath, File projectPath, BaseForkOptions forkOptions, int httpPort) {
-        super(classpath, projectPath, forkOptions, httpPort);
-    }
-
+public class PlayRunAdapterV23X extends DefaultVersionedPlayRunAdapter {
     @Override
     protected Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException {
         return classLoader.loadClass("play.core.BuildLink");
