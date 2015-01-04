@@ -164,4 +164,33 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         and:
         failure.assertHasCause("Rules#s(java.lang.String) is not a valid model rule method: a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.")
     }
+
+    def "provides a useful error message when an invalid managed type is used in a rule"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Declaration of model rule RulePlugin#createPerson(Person) is invalid")
+        failure.assertHasCause("Invalid managed model type Person: read only property 'name' has non managed type java.lang.String, only managed types can be used")
+    }
 }

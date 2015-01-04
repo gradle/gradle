@@ -1,0 +1,107 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.model.managed
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
+
+    def "rule can provide a managed model element backed by an abstract class"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+                abstract String getName()
+                abstract void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.name = "foo"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: foo")
+    }
+
+    def "managed type implemented as abstract class can have generative getters"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+                abstract String getFirstName()
+                abstract void setFirstName(String firstName)
+                abstract String getLastName()
+                abstract void setLastName(String lastName)
+
+                String getName() {
+                    "$firstName $lastName"
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                    person.firstName = "Alan"
+                    person.lastName = "Turing"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: Alan Turing")
+    }
+}
