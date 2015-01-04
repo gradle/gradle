@@ -51,7 +51,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> type) {
-        return false;
+        return canBeViewedAsWritable(type);
     }
 
     public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
@@ -92,7 +92,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        return null;
+        return asWritable(type, modelNode, ruleDescriptor, null);
     }
 
     public Iterable<String> getWritableTypeDescriptions() {
@@ -100,7 +100,7 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
     }
 
     public Iterable<String> getReadableTypeDescriptions() {
-        return Collections.emptySet();
+        return getWritableTypeDescriptions();
     }
 
     public static String getBuilderTypeDescriptionForCreatableTypes(Collection<? extends Class<?>> createableTypes) {

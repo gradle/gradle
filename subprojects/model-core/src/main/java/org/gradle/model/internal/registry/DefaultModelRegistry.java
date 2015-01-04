@@ -36,9 +36,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.gradle.model.internal.core.ModelActionRole.*;
 import static org.gradle.model.internal.core.ModelNode.State.*;
@@ -527,8 +525,25 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public Set<String> getLinkNames(ModelType<?> type) {
+            Set<String> names = new TreeSet<String>();
+            for (Map.Entry<String, ModelNode> entry : node.getLinks().entrySet()) {
+                if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
+                    names.add(entry.getKey());
+                }
+            }
+            return names;
+        }
+
+        @Override
         public boolean hasLink(String name) {
             return node.hasLink(name);
+        }
+
+        @Override
+        public boolean hasLink(String name, ModelType<?> type) {
+            ModelNode linked = node.getLink(name);
+            return linked != null && linked.getPromise().canBeViewedAsWritable(type);
         }
 
         @Override

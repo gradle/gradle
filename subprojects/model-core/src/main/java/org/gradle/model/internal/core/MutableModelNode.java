@@ -20,6 +20,8 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Set;
+
 public interface MutableModelNode {
     ModelPath getPath();
 
@@ -54,7 +56,11 @@ public interface MutableModelNode {
 
     int getLinkCount(ModelType<?> type);
 
+    Set<String> getLinkNames(ModelType<?> type);
+
     boolean hasLink(String name);
+
+    boolean hasLink(String name, ModelType<?> type);
 
     <T> void setPrivateData(ModelType<T> type, T object);
 

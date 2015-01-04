@@ -29,6 +29,8 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Set;
+
 import static org.gradle.internal.Cast.uncheckedCast;
 
 @NotThreadSafe
@@ -81,10 +83,36 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
             return rawInstance.size();
         }
 
+        @Override
+        public boolean isEmpty() {
+            return rawInstance.isEmpty();
+        }
+
         @Nullable
         @Override
         public I get(String name) {
             return rawInstance.get(name);
+        }
+
+        @Nullable
+        @Override
+        public I get(Object name) {
+            return rawInstance.get(name);
+        }
+
+        @Override
+        public boolean containsKey(Object name) {
+            return rawInstance.containsKey(name);
+        }
+
+        @Override
+        public boolean containsValue(Object item) {
+            return rawInstance.containsValue(item);
+        }
+
+        @Override
+        public Set<String> keySet() {
+            return rawInstance.keySet();
         }
 
         @Override

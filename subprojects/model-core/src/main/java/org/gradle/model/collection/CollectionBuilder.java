@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
+import java.util.Set;
+
 /**
  * Allows the adding of items to a named collection where instantiation is managed.
  *
@@ -44,6 +46,22 @@ public interface CollectionBuilder<T> {
     int size();
 
     /**
+     * Returns true if this collection contains no items.
+     *
+     * @return true if this collection is empty.
+     */
+    boolean isEmpty();
+
+    /**
+     * Returns the item with the given name, if any.
+     *
+     * @param name The name of the item.
+     * @return The item, or null if no such item.
+     */
+    @Nullable
+    T get(Object name);
+
+    /**
      * Returns the item with the given name, if any.
      *
      * @param name The name of the item.
@@ -51,6 +69,29 @@ public interface CollectionBuilder<T> {
      */
     @Nullable
     T get(String name);
+
+    /**
+     * Returns true if this collection contains an item with the given name.
+     *
+     * @param name The name of the item.
+     * @return true if this collection contains an item with the given name.
+     */
+    boolean containsKey(Object name);
+
+    /**
+     * Returns true if this collection contains the given item.
+     *
+     * @param item The item.
+     * @return true if this collection contains the given item.
+     */
+    boolean containsValue(Object item);
+
+    /**
+     * Returns the names of the items in this collection.
+     *
+     * @return The names
+     */
+    Set<String> keySet();
 
     /**
      * Defines an item with the given name and type T. The item is not created immediately, but is instead created as it is required.

@@ -46,6 +46,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
+    def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
     def registry = new DefaultModelRegistry()
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
@@ -167,13 +168,18 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can query collection size"() {
         when:
         mutate {
+            assert size() == 0
+            assert it.isEmpty()
+
             create("a")
             create("b")
+
             assert size() == 2
+            assert !isEmpty()
         }
 
         then:
-        container.size() == 2
+        registry.get(containerPath, collectionBuilderType).size() == 2
     }
 
     def "can query filtered collection size"() {
@@ -181,15 +187,97 @@ class DefaultCollectionBuilderTest extends Specification {
         mutate {
             create("a")
             create("b", SpecialNamedThing)
+
             assert withType(SpecialNamedThing).size() == 1
             assert withType(Special).size() == 1
             assert withType(NamedThing).size() == 2
             assert withType(Object).size() == 2
             assert withType(String).size() == 0
+
+            assert !withType(SpecialNamedThing).isEmpty()
+            assert withType(String).isEmpty()
         }
 
         then:
-        container.size() == 2
+        registry.get(containerPath, collectionBuilderType).withType(SpecialNamedThing).size() == 1
+    }
+
+    def "can query collection membership"() {
+        when:
+        mutate {
+            assert !containsKey("a")
+            assert !containsKey(12)
+
+            create("a")
+            create("b")
+
+            assert it.containsKey("a")
+        }
+
+        then:
+        registry.get(containerPath, collectionBuilderType).containsKey("a")
+    }
+
+    def "can query filtered collection membership"() {
+        when:
+        mutate {
+            assert !withType(NamedThing).containsKey("a")
+            assert !withType(Integer).containsKey(12)
+
+            create("a")
+            create("b", SpecialNamedThing)
+
+            assert withType(Object).containsKey("a")
+            assert withType(NamedThing).containsKey("a")
+            assert !withType(SpecialNamedThing).containsKey("a")
+            assert !withType(Special).containsKey("a")
+            assert !withType(String).containsKey("a")
+
+            assert withType(Object).containsKey("b")
+            assert withType(NamedThing).containsKey("b")
+            assert withType(SpecialNamedThing).containsKey("b")
+            assert withType(Special).containsKey("b")
+            assert !withType(String).containsKey("b")
+        }
+
+        then:
+        registry.get(containerPath, collectionBuilderType).withType(SpecialNamedThing).containsKey("b")
+    }
+
+    def "can query collection keys"() {
+        when:
+        mutate {
+            assert keySet().isEmpty()
+
+            create("a")
+            create("b")
+
+            assert keySet() as List == ["a", "b"]
+        }
+
+        then:
+        registry.get(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
+    }
+
+    def "can query filtered collection keys"() {
+        when:
+        mutate {
+            assert withType(Object).keySet().isEmpty()
+            assert withType(NamedThing).keySet().isEmpty()
+            assert withType(String).keySet().isEmpty()
+
+            create("b", SpecialNamedThing)
+            create("a")
+
+            assert withType(Object).keySet() as List == ["a", "b"]
+            assert withType(NamedThing).keySet() as List == ["a", "b"]
+            assert withType(SpecialNamedThing).keySet() as List == ["b"]
+            assert withType(Special).keySet() as List == ["b"]
+            assert withType(String).keySet().isEmpty()
+        }
+
+        then:
+        registry.get(containerPath, collectionBuilderType).withType(Special).keySet() as List == ["b"]
     }
 
     def "can register mutate rule for item with name"() {

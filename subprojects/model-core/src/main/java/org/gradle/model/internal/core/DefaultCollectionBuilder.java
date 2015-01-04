@@ -29,6 +29,7 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.Set;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
@@ -57,6 +58,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
     public <S> CollectionBuilder<S> withType(Class<S> type) {
         if (type.equals(elementType.getConcreteClass())) {
             @SuppressWarnings("unchecked")
@@ -78,6 +84,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Nullable
     @Override
+    public T get(Object name) {
+        return get((String) name);
+    }
+
+    @Nullable
+    @Override
     public T get(String name) {
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);
@@ -86,6 +98,24 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }
         link.ensureCreated();
         return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+    }
+
+    @Override
+    public boolean containsKey(Object name) {
+        if (!(name instanceof String)) {
+            return false;
+        }
+        return modelNode.hasLink((String) name, elementType);
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return modelNode.getLinkNames(elementType);
+    }
+
+    @Override
+    public boolean containsValue(Object item) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     @Override
