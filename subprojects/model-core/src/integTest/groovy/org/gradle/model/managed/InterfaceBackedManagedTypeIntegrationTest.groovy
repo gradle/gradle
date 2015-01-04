@@ -115,4 +115,51 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         and:
         output.contains("name: Alan Turing")
     }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "generative getters implemented as default methods cannot call setters"() {
+        when:
+        file('buildSrc/src/main/java/RuleSource.java') << '''
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+            import org.gradle.model.collection.*;
+
+            @Managed
+            interface Person {
+                String getFirstName();
+                void setFirstName(String firstName);
+
+                default String getName() {
+                    setFirstName("foo");
+                    return getFirstName();
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createPerson(Person person) {
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("accessGenerativeName", task -> {
+                        task.doLast(unused -> {
+                            person.getName();
+                        });
+                    });
+                }
+            }
+        '''
+
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "accessGenerativeName"
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
 }
