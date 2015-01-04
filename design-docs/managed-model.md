@@ -621,10 +621,11 @@ The initial target for this functionality will be to replace the `PlatformContai
 
 Add methods to `CollectionBuilder` to allow mutation rules to be defined for all elements or a particular container element.
 
-- Add `beforeEach(Action)` and `afterEach(action)` to `CollectionBuilder`
-- Add `named(String, Action)` to `CollectionBuilder`
-- Add `withType(Class, Action)` to `CollectionBuilder`
-- Add `withType(Class)` to `CollectionBuilder` to filter.
+- ~~Add `all(Action)` to `CollectionBuilder`~~
+- ~~Add `afterEach(Action)` to `CollectionBuilder`~~
+- ~~Add `named(String, Action)` to `CollectionBuilder`~~
+- ~~Add `withType(Class, Action)` to `CollectionBuilder`~~
+- ~~Add `withType(Class)` to `CollectionBuilder` to filter.~~
 - Verify usable from Groovy using closures.
 - Verify usable from Java 8 using lambdas.
 
@@ -642,8 +643,8 @@ Add methods to `CollectionBuilder` to allow mutation rules to be defined for all
 
 Add a way to mutate a model element prior to it being exposed to 'user' code.
 
-- Add `@Defaults` annotation. Apply these before `@Mutate` rules.
-- Add `CollectionBuilder.beforeEach(Action)`.
+- ~~Add `@Defaults` annotation. Apply these before `@Mutate` rules.~~
+- ~~Add `CollectionBuilder.beforeEach(Action)`.~~
 - Apply defaults to managed object before initializer method is invoked.
 
 #### Issues
@@ -655,10 +656,9 @@ Add a way to mutate a model element prior to it being exposed to 'user' code.
 
 Add a way to validate a model element prior to it being used as an input by 'user' code.
 
-- Add `@Validate` annotation. Apply these after `@Finalize` rules.
+- ~Add `@Validate` annotation. Apply these after `@Finalize` rules.~
+- ~Rename 'mutate' methods and types.~
 - Add `CollectionBuilder.validateEach(Action)`
-- Rename 'mutate' methods and types.
-- Add a read-only view of `CollectionBuilder`.
 - Don't include wrapper exception when rule fails, or add some validation failure collector.
 
 #### Issues
@@ -684,7 +684,6 @@ Add a way to validate a model element prior to it being used as an input by 'use
         }
     }
 
-- Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
 - Add factory to mix in Groovy DSL and state checking, share with managed types and managed set.
 - Verify:
     - Can apply rule to all elements in container using DSL
@@ -705,6 +704,7 @@ Add a way to validate a model element prior to it being used as an input by 'use
     - Reasonable error message is received when element type cannot be created.
 - Attempt to discover an unknown node by closing its parent.
 - Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
+- Apply DSL consistently to all model elements of type `PolymorphicDomainObjectContainer`.
 
 ### Implicit tasks are visible to model rules
 
@@ -730,13 +730,20 @@ Other issues:
 - Rename `CollectionBuilder` to `ManagedMap`.
 - Currently it is possible to get an element via `CollectionBuilder`, to help with migration. Lock down access to `get()` and other query methods.
     - Same for `size()`.
+- Add a read-only view of `ManagedMap`.
 - Change `ManagedMap` to extend `Map`.
 - Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
 - Allow a `ManagedMap` to be added to model space by a `@Model` rule.
 - Synchronisation back to `TaskContainer`, so that `project.tasks.all { }` and `project.tasks { $name { } }` works.
+- Need efficient implementation that does not scan all linked elements to check type.
+- Lock down read-only view of `ManagedMap`, provide `Map` as view.
+- Implement `containsValue()`.
 
 ### Expose a `ManagedMap` view for all model elements of type `PolymorphicDomainObjectContainer`.
 
+- Currently blocked on `NativeToolChainRegistryInternal.addDefaultToolChains()`
+- `TestSuiteContainer` should extend `PolymorphicDomainObjectContainer`.
+- `ProjectSourceSet` should extend `PolymorphicDomainObjectContainer`.
 
 ### Support for managed container of source sets
 
