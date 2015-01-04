@@ -239,8 +239,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public <S extends Task> S create(String name, Class<S> type) {
-            if (type.isAssignableFrom(DefaultTask.class)) {
-                return type.cast(taskFactory.create(name, DefaultTask.class));
+            if (type.isAssignableFrom(TaskInternal.class)) {
+                return type.cast(taskFactory.create(name, TaskInternal.class));
             }
             return type.cast(taskFactory.create(name, type.asSubclass(TaskInternal.class)));
         }

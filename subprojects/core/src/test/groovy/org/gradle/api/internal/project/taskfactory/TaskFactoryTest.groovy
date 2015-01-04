@@ -20,7 +20,9 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
@@ -71,6 +73,17 @@ class TaskFactoryTest extends Specification {
 
         then:
         task instanceof TestDefaultTask
+    }
+
+    public void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
+        when:
+        Task task = taskFactory.createTask([name: 'task', type: type])
+
+        then:
+        task instanceof DefaultTask
+
+        where:
+        type << [Task, TaskInternal, AbstractTask, DefaultTask]
     }
 
     public void instantiatesAnInstanceOfTheDecoratedTaskType() {

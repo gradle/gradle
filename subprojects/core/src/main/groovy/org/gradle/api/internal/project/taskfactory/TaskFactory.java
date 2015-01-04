@@ -108,7 +108,12 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        final Class<? extends Task> generatedType = generator.generate(type);
+        final Class<? extends Task> generatedType;
+        if (type.isAssignableFrom(DefaultTask.class)) {
+            generatedType = generator.generate(DefaultTask.class);
+        } else {
+            generatedType = generator.generate(type);
+        }
 
         return type.cast(AbstractTask.injectIntoNewInstance(project, name, new Callable<Task>() {
             public Task call() throws Exception {
@@ -126,9 +131,6 @@ public class TaskFactory implements ITaskFactory {
         validateArgs(args);
         setIfNull(args, Task.TASK_NAME, "");
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
-        if (((Class) args.get(Task.TASK_TYPE)).isAssignableFrom(DefaultTask.class)) {
-            args.put(Task.TASK_TYPE, DefaultTask.class);
-        }
     }
 
     private void validateArgs(Map<String, Object> args) {
