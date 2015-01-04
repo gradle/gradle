@@ -173,6 +173,21 @@ class ManagedModelElementTest extends Specification {
         and:
         instance.generativeProperty == "foo"
     }
+
+    def "calling setters of super class from non-abstract getters is not allowed"() {
+        given:
+        def instance = createInstance(CallsSuperGetterInNonAbstractGetter)
+
+        when:
+        instance.invalidGenerativeProperty
+
+        then:
+        UnsupportedOperationException e = thrown()
+        e.message == "Calling setters of a managed type on itself is not allowed"
+
+        and:
+        instance.generativeProperty == "foo"
+    }
 }
 
 @Managed
@@ -187,5 +202,17 @@ abstract class CallsSetterInNonAbstractGetter {
 
     String getGenerativeProperty() {
         "foo"
+    }
+}
+
+@Managed
+abstract class CallsSuperGetterInNonAbstractGetter extends CallsSetterInNonAbstractGetter {
+
+    String getInvalidGenerativeProperty() {
+        super.getInvalidGenerativeProperty()
+    }
+
+    String getGenerativeProperty() {
+        super.getGenerativeProperty()
     }
 }
