@@ -654,7 +654,7 @@ foo configured
         output.contains "value: from after evaluate and from container rule and from rule"
     }
 
-    def "registering a creation rule for a task that already exists"() {
+    def "registering a creation rule for a task that is already defined using legacy DSL"() {
         when:
         buildFile << """
             @RuleSource
