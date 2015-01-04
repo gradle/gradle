@@ -18,14 +18,14 @@ package org.gradle.integtests.resolve.aws.s3
 
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.S3Object
+import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
-import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.server.s3.S3StubServer
-import org.gradle.test.fixtures.server.s3.S3StubSupport
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.server.s3.S3StubServer
+import org.gradle.test.fixtures.server.s3.S3StubSupport
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -62,8 +62,8 @@ class S3ClientIntegrationTest extends Specification {
         }
 
         S3ConnectionProperties s3SystemProperties = Mock {
-            getEndpoint() >> s3StubSupport.endpoint.toString()
-            getProxySettings() >> Mock(JavaSystemPropertiesSecureHttpProxySettings)
+            getEndpoint() >> Optional.of(s3StubSupport.endpoint)
+            getProxy() >> Optional.fromNullable(null)
         }
 
         S3Client s3Client = new S3Client(awsCredentials, s3SystemProperties)
