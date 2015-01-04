@@ -108,7 +108,6 @@ class TaskFactoryTest extends Specification {
         then:
         exception = thrown()
         exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
-
     }
 
     public void testCreateTaskWithAction() {

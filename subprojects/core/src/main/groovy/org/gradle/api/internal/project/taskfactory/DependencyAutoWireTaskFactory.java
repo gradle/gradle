@@ -36,7 +36,15 @@ public class DependencyAutoWireTaskFactory implements ITaskFactory {
     }
 
     public TaskInternal createTask(Map<String, ?> args) {
-        TaskInternal task = taskFactory.createTask(args);
+        return autoWire(taskFactory.createTask(args));
+    }
+
+    @Override
+    public <S extends TaskInternal> S create(String name, Class<S> type) {
+        return autoWire(taskFactory.create(name, type));
+    }
+
+    private <S extends TaskInternal> S autoWire(S task) {
         task.dependsOn(task.getInputs().getFiles());
         return task;
     }

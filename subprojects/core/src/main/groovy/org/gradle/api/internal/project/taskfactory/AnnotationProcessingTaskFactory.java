@@ -96,11 +96,19 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     }
 
     public TaskInternal createTask(Map<String, ?> args) {
-        TaskInternal task = taskFactory.createTask(args);
+        return process(taskFactory.createTask(args));
+    }
+
+    @Override
+    public <S extends TaskInternal> S create(String name, Class<S> type) {
+        return process(taskFactory.create(name, type));
+    }
+
+    private <S extends TaskInternal> S process(S task) {
         TaskClassInfo taskClassInfo = getTaskClassInfo(task.getClass());
 
         if (taskClassInfo.incremental) {
-            // Add a dummy upToDateWhen spec: this will for TaskOutputs.hasOutputs() to be true.
+            // Add a dummy upToDateWhen spec: this will force TaskOutputs.hasOutputs() to be true.
             task.getOutputs().upToDateWhen(new Spec<Task>() {
                 public boolean isSatisfiedBy(Task element) {
                     return true;

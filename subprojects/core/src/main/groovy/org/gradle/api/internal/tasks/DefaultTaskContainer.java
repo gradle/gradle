@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
@@ -37,12 +38,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
-    private final NamedEntityInstantiator<Task> instantiator = new TaskInstantiator();
+    private final NamedEntityInstantiator<Task> instantiator;
 
     public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
+        this.instantiator = new TaskInstantiator(taskFactory);
     }
 
     public Task create(Map<String, ?> options) {
@@ -228,13 +230,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Collections.singleton(getType());
     }
 
-    private class TaskInstantiator implements NamedEntityInstantiator<Task> {
+    private static class TaskInstantiator implements NamedEntityInstantiator<Task> {
+        private final ITaskFactory taskFactory;
+
+        public TaskInstantiator(ITaskFactory taskFactory) {
+            this.taskFactory = taskFactory;
+        }
+
         @Override
         public <S extends Task> S create(String name, Class<S> type) {
-            Map<String, Object> options = new HashMap<String, Object>();
-            options.put(Task.TASK_NAME, name);
-            options.put(Task.TASK_TYPE, type);
-            return type.cast(taskFactory.createTask(options));
+            if (type.isAssignableFrom(DefaultTask.class)) {
+                return type.cast(taskFactory.create(name, DefaultTask.class));
+            }
+            return type.cast(taskFactory.create(name, type.asSubclass(TaskInternal.class)));
         }
     }
 }
