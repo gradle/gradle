@@ -105,7 +105,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         ].each { fileName ->
             assert file("build/stage/${fileName}").exists()
         }
-        if (OperatingSystem.current().unix) {
+        if (OperatingSystem.current().linux || OperatingSystem.current().macOsX) {
             assert file("build/stage/playBinary/bin/playBinary").mode == 0755
         }
     }
