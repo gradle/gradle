@@ -24,8 +24,13 @@ class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
 import org.gradle.model.*
 import org.gradle.model.collection.*
 
-interface SampleBinary extends BinarySpec {}
-class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
+interface SampleBinary extends BinarySpec {
+    String getVersion()
+    void setVersion(String version)
+}
+class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
+    String version
+}
 """
     }
 
@@ -45,13 +50,38 @@ task checkModel << {
         succeeds "checkModel"
     }
 
+    def "can configure binary defined by rule method using rule DSL"() {
+        when:
+        buildWithCustomBinaryPlugin()
+
+        and:
+        buildFile << """
+task checkModel << {
+    assert project.binaries.size() == 1
+    def sampleBinary = project.binaries.sampleBinary
+    assert sampleBinary instanceof SampleBinary
+    assert sampleBinary.version == '1.2'
+    assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+}
+
+model {
+    binaries {
+        sampleBinary {
+            version = '1.2'
+        }
+    }
+}
+"""
+        then:
+        succeeds "checkModel"
+    }
+
     def "creates lifecycle task per binary"() {
         when:
         buildWithCustomBinaryPlugin()
         then:
         succeeds "sampleBinary"
     }
-
 
     def "can register custom binary model without creating"() {
         when:
@@ -78,7 +108,6 @@ task checkModel << {
         then:
         succeeds "checkModel"
     }
-
 
     def "can have binary declaration and creation in separate plugins"() {
         when:
@@ -123,7 +152,7 @@ task checkModel << {
         succeeds "checkModel"
     }
 
-    def "can define and create multiple binary types in the same plugin"(){
+    def "can define and create multiple binary types in the same plugin"() {
         when:
         buildFile << """
         interface AnotherSampleBinary extends BinarySpec {}
@@ -173,8 +202,6 @@ task checkModel << {
         succeeds "checkModel"
     }
 
-
-
     def "reports failure for invalid binary type method"() {
         given:
         settingsFile << """rootProject.name = 'custom-binary'"""
@@ -203,7 +230,7 @@ task checkModel << {
         failure.assertHasCause "Method annotated with @BinaryType must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
-    def "cannot register same binary type multiple times"(){
+    def "cannot register same binary type multiple times"() {
         given:
         buildWithCustomBinaryPlugin()
         and:
@@ -230,8 +257,6 @@ task checkModel << {
         failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)."
     }
 
-
-
     def "additional binaries listed in components report"() {
         given:
         buildWithCustomBinaryPlugin()
@@ -255,7 +280,6 @@ Note: currently not all plugins register their components, so some components ma
 
 BUILD SUCCESSFUL"""))
     }
-
 
     def buildWithCustomBinaryPlugin() {
         settingsFile << """rootProject.name = 'custom-binary'"""

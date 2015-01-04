@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec{
+class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
