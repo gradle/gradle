@@ -25,12 +25,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
-import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -42,7 +40,6 @@ import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Set;
 
 /**
  * Plugin for executing tests from a Play Framework application.
@@ -112,12 +109,17 @@ public class PlayTestPlugin {
         return new SimpleFileCollection(testClassesDir).plus(testCompileClasspath);
     }
 
-    // TODO Need a better mechanism to wire tasks into lifecycle
-    @Finalize
-    public void wireTestTasksIntoCheckLifecycle(final TaskContainer tasks, BinaryContainer binaryContainer) {
-        Set<PlayApplicationBinarySpecInternal> playBinaries = binaryContainer.withType(PlayApplicationBinarySpecInternal.class);
-        for (final PlayApplicationBinarySpec binary : playBinaries) {
-            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(binary.getTasks().withType(Test.class));
-        }
+    @Mutate
+    void attachTestSuitesToCheckTask(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+        // TODO - binaries aren't an input to this rule, they're an input to the action
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task checkTask) {
+                // TODO Need a better mechanism to wire tasks into lifecycle
+                for (PlayApplicationBinarySpec binary : binaries.withType(PlayApplicationBinarySpec.class)) {
+                    checkTask.dependsOn(binary.getTasks().withType(Test.class));
+                }
+            }
+        });
     }
 }
