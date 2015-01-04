@@ -625,12 +625,12 @@ Add methods to `CollectionBuilder` to allow mutation rules to be defined for all
 - Add `named(String, Action)` to `CollectionBuilder`
 - Add `withType(Class, Action)` to `CollectionBuilder`
 - Add `withType(Class)` to `CollectionBuilder` to filter.
-- Expose a `CollectionBuilder` view for all model elements of type `PolymorphicDomainObjectContainer`.
 - Verify usable from Groovy using closures.
 - Verify usable from Java 8 using lambdas.
 
 #### Issues
 
+- Sync up on `withType()` or `ofType()`.
 - Error message when a rule and legacy DSL both declare a task with given name is unclear as to the cause.
 - Fix methods that select by type using internal interfaces, as only the public contract type is visible.
 - Type registration:
@@ -649,7 +649,7 @@ Add a way to mutate a model element prior to it being exposed to 'user' code.
 #### Issues
 
 - Fail when target cannot accept defaults, eg is created using unmanaged object `@Model` method.
-- Handle case defaults are applied to tasks defined using legacy DSL, e.g. fail or perhaps define rules for items in task container early.
+- Handle case where defaults are applied to tasks defined using legacy DSL, e.g. fail or perhaps define rules for items in task container early.
 
 ### Plugin uses method rule to validate model element
 
@@ -702,6 +702,7 @@ Add a way to validate a model element prior to it being used as an input by 'use
 - Change `DefaultCollectionBuilder` implementation to register a creation rule rather than eagerly instantiating and configuring.
     - Verify construction and initialisation action is deferred, but happens before mutate rules when target is used as input.
     - Verify initialisation action happens before `project.tasks.all { }` and `project.tasks.$name { }` actions.
+    - Reasonable error message is received when element type cannot be created.
 - Attempt to discover an unknown node by closing its parent.
 - Apply consistently to all model elements of type `PolymorphicDomainObjectContainer`.
 
@@ -733,6 +734,9 @@ Other issues:
 - Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
 - Allow a `ManagedMap` to be added to model space by a `@Model` rule.
 - Synchronisation back to `TaskContainer`, so that `project.tasks.all { }` and `project.tasks { $name { } }` works.
+
+### Expose a `ManagedMap` view for all model elements of type `PolymorphicDomainObjectContainer`.
+
 
 ### Support for managed container of source sets
 
@@ -775,4 +779,4 @@ As above, for `ManagedSet`.
 - User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
     - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
 - Support getting "address" (creation/canonical path) of a managed object
-- Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely) 
+- Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely)
