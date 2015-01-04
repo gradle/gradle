@@ -26,6 +26,8 @@ import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.util.AvailablePortFinder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
@@ -171,6 +173,7 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
         notAvailable(url)
     }
 
+    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
     @Unroll
     def "can run #type play distribution" () {
         ExecHandleBuilder builder
