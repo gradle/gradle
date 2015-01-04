@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
+
 package org.gradle.integtests.resolve.aws.s3
 
+import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.fixtures.server.s3.MavenS3Module
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
-class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTest {
+import static org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_ENDPOINT_PROPERTY
+
+class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
+
+    @Rule
+    TestProxyServer proxyServer = new TestProxyServer(server)
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
+
+    final String artifactVersion = "1.85"
 
     @Override
     String getBucket() {
@@ -30,58 +43,15 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
         return '/maven/release/'
     }
 
-    def "should not download artifacts when already present in maven home"() {
-        setup:
-        String artifactVersion = "1.85"
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publish()
-
-        m2Installation.generateGlobalSettingsFile()
-        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
-
-        buildFile << mavenAwsRepoDsl()
-        buildFile << """
-configurations { compile }
-
-dependencies{
-    compile 'org.gradle:test:$artifactVersion'
-}
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
-        and:
-        remoteModule.pom.expectMetadataRetrieve()
-        remoteModule.pomSha1.expectDownload()
-        remoteModule.artifact.expectMetadataRetrieve()
-        remoteModule.artifactSha1.expectDownload()
-
-        when:
-        using m2Installation
-
-        then:
-        succeeds 'retrieve'
-
-        and:
-        localModule.artifactFile.assertIsCopyOf(remoteModule.artifactFile)
-        localModule.pomFile.assertIsCopyOf(remoteModule.pomFile)
-        file('libs/test-1.85.jar').assertIsCopyOf(remoteModule.artifactFile)
-
-        and:
-        assertLocallyAvailableLogged(remoteModule.pom, remoteModule.artifact)
+    @Override
+    def setup() {
+        proxyServer.start()
     }
 
-
-    def "should download artifacts when maven local artifacts are different to remote "() {
+    def "should proxy requests using HTTP system proxy settings"() {
         setup:
-        String artifactVersion = "1.85"
         MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
         remoteModule.publish()
-
-        m2Installation.generateGlobalSettingsFile()
-        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -97,22 +67,64 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.pom.expectMetadataRetrieve()
-        remoteModule.pomSha1.expectDownload()
         remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectMetadataRetrieve()
-        remoteModule.artifactSha1.expectDownload()
         remoteModule.artifact.expectDownload()
 
         when:
-        using m2Installation
+        executer.withArguments(
+                "-D${S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}",
+                "-Dhttp.proxyHost=localhost",
+                "-Dhttp.proxyPort=${proxyServer.port}",
+                "-Dhttp.nonProxyHosts=foo",
+                "-Dhttp.proxyUser=proxyUser",
+                "-Dhttp.proxyPassword=proxyPassword"
+        )
 
         then:
         succeeds 'retrieve'
 
         and:
-        localModule.artifactFile.assertIsDifferentFrom(remoteModule.artifactFile)
-        localModule.pomFile.assertIsDifferentFrom(remoteModule.pomFile)
-        file('libs/test-1.85.jar').assertIsCopyOf(remoteModule.artifactFile)
+        proxyServer.port != server.port
+        proxyServer.requestCount == 2
+    }
+
+    def "should not proxy requests when HTTP system proxy settings has a nonProxyHost rule"() {
+        setup:
+        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
+        remoteModule.publish()
+
+        buildFile << mavenAwsRepoDsl()
+        buildFile << """
+configurations { compile }
+
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        and:
+        remoteModule.pom.expectDownload()
+        remoteModule.artifact.expectDownload()
+
+        when:
+        executer.withArguments(
+                "-D${S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}",
+                "-Dhttp.proxyHost=localhost",
+                "-Dhttp.proxyPort=${proxyServer.port}",
+                "-Dhttp.nonProxyHosts=localhost",
+                "-Dhttp.proxyUser=proxyUser",
+                "-Dhttp.proxyPassword=proxyPassword"
+        )
+
+        then:
+        succeeds 'retrieve'
+
+        and:
+        proxyServer.port != server.port
+        proxyServer.requestCount == 0
     }
 }

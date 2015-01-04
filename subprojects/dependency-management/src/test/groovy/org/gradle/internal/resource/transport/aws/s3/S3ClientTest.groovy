@@ -19,9 +19,9 @@ package org.gradle.internal.resource.transport.aws.s3
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.S3ObjectSummary
+import com.google.common.base.Optional
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.http.HttpProxySettings
-import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings
 import spock.lang.Specification
 
 class S3ClientTest extends Specification {
@@ -129,41 +129,60 @@ class S3ClientTest extends Specification {
 
     def "should apply endpoint override with path style access"() {
         setup:
-        String someEndpoint = "someEndpoint"
+        Optional<URI> someEndpoint = Optional.of(new URI("http://someEndpoint"))
         S3ConnectionProperties s3Properties = Stub()
         s3Properties.getEndpoint() >> someEndpoint
 
-        def credentials = new DefaultAwsCredentials()
-        credentials.setAccessKey("AKey")
-        credentials.setSecretKey("ASecret")
-
         when:
-        S3Client s3Client = new S3Client(credentials, s3Properties)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
         s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
-        s3Client.amazonS3Client.endpoint == new URI("https://${someEndpoint}")
+        s3Client.amazonS3Client.endpoint == someEndpoint.get()
     }
 
-    def "should configure https proxy"() {
+    def "should configure HTTPS proxy"() {
         setup:
-        JavaSystemPropertiesSecureHttpProxySettings proxySettings = Mock(JavaSystemPropertiesSecureHttpProxySettings)
-        proxySettings.getProxy() >> new HttpProxySettings.HttpProxy("localhost", 443, 'username', 'password')
-
         S3ConnectionProperties s3Properties = Mock()
-        s3Properties.getProxySettings() >> proxySettings
-
-        def credentials = new DefaultAwsCredentials()
-        credentials.setAccessKey("AKey")
-        credentials.setSecretKey("ASecret")
-
+        s3Properties.getProxy() >> Optional.of(new HttpProxySettings.HttpProxy("localhost", 8080, 'username', 'password'))
+        s3Properties.getEndpoint() >> Optional.absent()
         when:
-        S3Client s3Client = new S3Client(credentials, s3Properties)
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
         s3Client.amazonS3Client.clientConfiguration.proxyHost == 'localhost'
-        s3Client.amazonS3Client.clientConfiguration.proxyPort == 443
+        s3Client.amazonS3Client.clientConfiguration.proxyPort == 8080
         s3Client.amazonS3Client.clientConfiguration.proxyPassword == 'password'
         s3Client.amazonS3Client.clientConfiguration.proxyUsername == 'username'
+    }
+
+    def "should not configure HTTPS proxy when non-proxied host"() {
+        setup:
+        HttpProxySettings proxySettings = Mock()
+        proxySettings.getProxy(nonProxied) >> null
+
+        S3ConnectionProperties s3Properties = Mock()
+        s3Properties.getProxy() >> Optional.absent()
+        s3Properties.getEndpoint() >> endpointOverride
+        when:
+
+        S3Client s3Client = new S3Client(credentials(), s3Properties)
+        then:
+        s3Client.amazonS3Client.clientConfiguration.proxyHost == null
+        s3Client.amazonS3Client.clientConfiguration.proxyPort == -1
+        s3Client.amazonS3Client.clientConfiguration.proxyPassword == null
+        s3Client.amazonS3Client.clientConfiguration.proxyUsername == null
+
+        where:
+        nonProxied                                               | endpointOverride
+        com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
+        "mydomain.com"                                           | Optional.absent()
+    }
+
+    def credentials() {
+        def credentials = new DefaultAwsCredentials()
+        credentials.setAccessKey("AKey")
+        credentials.setSecretKey("ASecret")
+        credentials
     }
 }

@@ -20,7 +20,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.*;
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Optional;
 import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
@@ -52,19 +52,19 @@ public class S3Client {
     }
 
     private AmazonS3Client createClient(S3CredentialsProvider s3CredentialsProvider) {
-        AmazonS3Client client = new AmazonS3Client(s3CredentialsProvider.getChain(), getClientConfiguration());
-        String endPoint = s3ConnectionProperties.getEndpoint();
-        if (StringUtils.isNotBlank(endPoint)) {
-            client.setEndpoint(endPoint);
+        AmazonS3Client client = new AmazonS3Client(s3CredentialsProvider.getChain(), getClientConfiguration(s3ConnectionProperties));
+        Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
+        if (endpoint.isPresent()) {
+            client.setEndpoint(endpoint.get().toString());
             client.setS3ClientOptions(new S3ClientOptions().withPathStyleAccess(true));
         }
         return client;
     }
 
-    private ClientConfiguration getClientConfiguration() {
+    private ClientConfiguration getClientConfiguration(S3ConnectionProperties s3ConnectionProperties) {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxySettings().getProxy();
-        if (proxy != null) {
+        if (s3ConnectionProperties.getProxy().isPresent()) {
+            HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxy().get();
             clientConfiguration.setProxyHost(proxy.host);
             clientConfiguration.setProxyPort(proxy.port);
             PasswordCredentials credentials = proxy.credentials;
