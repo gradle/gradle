@@ -17,7 +17,6 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.MethodDescription
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
