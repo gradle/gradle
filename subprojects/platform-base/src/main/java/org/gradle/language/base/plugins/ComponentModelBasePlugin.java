@@ -16,7 +16,6 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -79,7 +78,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         ModelPath.path("components"),
                         components,
                         ComponentModelBasePlugin.class.getSimpleName() + ".apply()"
-                        ));
+                ));
     }
 
     /**
@@ -99,10 +98,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, final LanguageRegistry languageRegistry, final LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-
+        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 // TODO - allow beforeEach() to be applied to internal types
                 components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
