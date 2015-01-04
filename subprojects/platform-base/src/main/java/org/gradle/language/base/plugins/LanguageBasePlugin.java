@@ -15,10 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
@@ -27,6 +24,7 @@ import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -42,8 +40,7 @@ import java.util.Collections;
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.platform.base.BinaryContainer} named {@code binaries} to the project.
- * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ * Adds a {@link org.gradle.platform.base.BinaryContainer} named {@code binaries} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
@@ -88,19 +85,28 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Mutate
         void createLifecycleTaskForBinary(TaskContainer tasks, BinaryContainer binaries) {
-            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
                     Task binaryLifecycleTask = tasks.create(binary.getName());
                     binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                     binary.setBuildTask(binaryLifecycleTask);
-
-                    if (binary.isBuildable()) {
-                        assembleTask.dependsOn(binary);
-                    }
                 }
             }
+        }
+
+        @Mutate
+        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+            tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, new Action<Task>() {
+                @Override
+                public void execute(Task assembleTask) {
+                    for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                        if (!binary.isLegacyBinary() && binary.isBuildable()) {
+                            assembleTask.dependsOn(binary);
+                        }
+                    }
+                }
+            });
         }
     }
 }
