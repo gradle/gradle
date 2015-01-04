@@ -637,6 +637,19 @@ $type
         extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
     }
 
+    @Managed
+    static abstract class NonAbstractGetterWithSetter {
+        String getName() {}
+        abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class NonAbstractSetter {
+        abstract String getName()
+
+        void setName(String name) {}
+    }
+
     def "non-abstract mutator methods are not allowed"() {
         expect:
         fail NonAbstractGetterWithSetter, Pattern.quote("setters are not allowed for non-abstract getters (invalid method: ${MethodDescription.name("setName").owner(NonAbstractGetterWithSetter).returns(void.class).takes(String)})")
@@ -693,6 +706,13 @@ $type
         fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
     }
 
+    @Managed
+    static abstract class ThrowsInConstructor {
+        ThrowsInConstructor() {
+            throw new RuntimeException("from constructor")
+        }
+    }
+
     def "classes that cannot be instantiated are detected as soon as they are extracted"() {
         when:
         extract(ThrowsInConstructor)
@@ -701,6 +721,17 @@ $type
         InvalidManagedModelElementTypeException e = thrown()
         e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
         e.cause.message == "from constructor"
+    }
+
+    @Managed
+    static abstract class CallsSetterInConstructor {
+        abstract String getName()
+
+        abstract void setName(String name)
+
+        CallsSetterInConstructor() {
+            name = "foo"
+        }
     }
 
     def "calling setters from constructor is not allowed"() {
@@ -738,36 +769,5 @@ $type
 
     private String getName(Class<?> clazz) {
         clazz.name
-    }
-}
-
-@Managed
-abstract class NonAbstractGetterWithSetter {
-    String getName() {}
-    abstract void setName(String name)
-}
-
-@Managed
-abstract class NonAbstractSetter {
-    abstract String getName()
-
-    void setName(String name) {}
-}
-
-@Managed
-abstract class ThrowsInConstructor {
-    ThrowsInConstructor() {
-        throw new RuntimeException("from constructor")
-    }
-}
-
-@Managed
-abstract class CallsSetterInConstructor {
-    abstract String getName()
-
-    abstract void setName(String name)
-
-    CallsSetterInConstructor() {
-        name = "foo"
     }
 }
