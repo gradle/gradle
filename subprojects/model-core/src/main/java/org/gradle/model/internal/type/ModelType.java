@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
@@ -94,7 +95,6 @@ public abstract class ModelType<T> {
         return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
 
-
     public Type getType() {
         return wrapper.unwrap();
     }
@@ -120,6 +120,7 @@ public abstract class ModelType<T> {
         }
     }
 
+    @Nullable
     public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
         if (isWildcard() || modelType.isWildcard()) {
             return null;
