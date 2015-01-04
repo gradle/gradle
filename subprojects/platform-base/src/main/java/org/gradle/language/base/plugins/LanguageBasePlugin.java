@@ -97,6 +97,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Mutate
         void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+            // TODO - binaries aren't an input to this rule, they're an input to the action
             tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, new Action<Task>() {
                 @Override
                 public void execute(Task assembleTask) {
