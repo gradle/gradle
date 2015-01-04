@@ -77,7 +77,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         ModelType.of(ComponentSpec.class),
                         ModelPath.path("components"),
                         components,
-                        ComponentModelBasePlugin.class.getSimpleName() + ".apply()"
+                        ComponentModelBasePlugin.class.getName() + ".apply()"
                 ));
     }
 
