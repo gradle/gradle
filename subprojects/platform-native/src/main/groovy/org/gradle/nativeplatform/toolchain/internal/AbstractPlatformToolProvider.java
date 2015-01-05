@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -24,13 +26,26 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.util.TreeVisitor;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  */
 public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
 
+    // TODO: Hardcoded to a max of 4 threads for now
+    private final int numberOfThreads = 4;
+    protected final ExecutorFactory executorFactory;
+
     public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
+        this.executorFactory = new DefaultExecutorFactory() {
+            @Override
+            protected ExecutorService createExecutor(String displayName) {
+                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
+            }
+        };
     }
 
     public boolean isAvailable() {

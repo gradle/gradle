@@ -21,7 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -30,8 +29,6 @@ import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
@@ -41,23 +38,17 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineToolInvocation baseInvocation;
     private final String objectFileSuffix;
     private final boolean useCommandFile;
-    // TODO: Hardcoded to a max of 4 threads for now
-    private final int numberOfThreads = 4;
+
     private final ExecutorFactory executorFactory;
 
-    public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(ExecutorFactory executorFactory, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
-        this.executorFactory = new DefaultExecutorFactory() {
-            @Override
-            protected ExecutorService createExecutor(String displayName) {
-                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
-            }
-        };
+        this.executorFactory = executorFactory;
     }
 
     public WorkResult execute(T spec) {

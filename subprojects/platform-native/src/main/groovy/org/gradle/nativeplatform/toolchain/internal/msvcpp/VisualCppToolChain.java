@@ -40,7 +40,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     public static final String DEFAULT_NAME = "visualCpp";
 
-        private final ExecActionFactory execActionFactory;
+    private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
     private final Instantiator instantiator;

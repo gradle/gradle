@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
@@ -26,8 +27,9 @@ import java.util.List;
  *
  */
 class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
-    public GccCompatibleNativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
+
+    GccCompatibleNativeCompiler(ExecutorFactory executorFactory, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(executorFactory, commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
     }
 
     @Override
@@ -36,6 +38,7 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
         args.add(outputFile.getAbsolutePath());
     }
 
+    @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
         OptionsFileArgsWriter writer = new GccOptionsFileArgsWriter(tempDir);
         // modifies args in place

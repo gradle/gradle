@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
@@ -24,9 +25,10 @@ import java.util.List;
 
 /**
  */
-public class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
-    public VisualCppNativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
+class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
+
+    VisualCppNativeCompiler(ExecutorFactory executorFactory, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(executorFactory, commandLineTool, baseInvocation, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
     }
 
     @Override
@@ -35,6 +37,7 @@ public class VisualCppNativeCompiler<T extends NativeCompileSpec> extends Native
         args.add("/Fo" + outputFile.getAbsolutePath());
     }
 
+    @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
         OptionsFileArgsWriter writer = new VisualCppOptionsFileArgsWriter(tempDir);
         // modifies args in place

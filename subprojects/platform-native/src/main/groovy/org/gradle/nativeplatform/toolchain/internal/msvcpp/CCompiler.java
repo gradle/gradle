@@ -17,12 +17,14 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
-    CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+
+    CCompiler(ExecutorFactory executorFactory, CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(executorFactory, commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
