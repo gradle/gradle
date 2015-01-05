@@ -18,12 +18,16 @@ package org.gradle.play.tasks;
 
 import com.beust.jcommander.internal.Lists;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -55,6 +59,7 @@ public class JavaScriptMinify extends SourceTask {
 
     public JavaScriptMinify() {
         setClosureCompilerNotation(getDefaultGoogleClosureNotation());
+        this.include("**/*.js");
     }
 
     @Inject
@@ -119,9 +124,20 @@ public class JavaScriptMinify extends SourceTask {
         }
 
         @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
+        public void visitFile(final FileVisitDetails fileDetails) {
+            final File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
             File outputFile = new File(outputFileDir, getMinifiedFileName(fileDetails.getName()));
+
+            // Copy the raw form
+            FileOperations fileOperations = (ProjectInternal) getProject();
+            fileOperations.copy(new Action<CopySpec>() {
+                @Override
+                public void execute(CopySpec copySpec) {
+                    copySpec.from(fileDetails.getFile()).into(outputFileDir);
+                }
+            });
+
+            // Compile the minified form
             JavaExecAction action = new DefaultJavaExecAction(getFileResolver());
             action.setMain("com.google.javascript.jscomp.CommandLineRunner");
             action.args("--js", fileDetails.getFile().getPath(), "--js_output_file", outputFile.getPath());

@@ -35,7 +35,6 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
-import org.gradle.play.tasks.JavaScriptProcessResources;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
@@ -86,7 +85,6 @@ public class PlayCoffeeScriptPlugin {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
                 String compileTaskName = createCoffeeScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet);
                 createJavaScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet, compileTaskName);
-                createJavaScriptMinify(tasks, binary, buildDir, coffeeScriptSourceSet, compileTaskName);
             }
         }
     }
@@ -110,23 +108,6 @@ public class PlayCoffeeScriptPlugin {
     }
 
     private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
-                                         final String compileTaskName) {
-        final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
-        tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
-            @Override
-            public void execute(JavaScriptProcessResources processGeneratedJavascript) {
-                processGeneratedJavascript.dependsOn(compileTaskName);
-                processGeneratedJavascript.from(outputDirectory(buildDir, binary, compileTaskName));
-
-                File coffeeScriptProcessOutputDirectory = outputDirectory(buildDir, binary, processTaskName);
-                processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
-                binary.getAssets().builtBy(processGeneratedJavascript);
-                binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
-            }
-        });
-    }
-
-    private void createJavaScriptMinify(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
                                          final String compileTaskName) {
         final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

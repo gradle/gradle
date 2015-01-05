@@ -16,17 +16,20 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegrationSpec {
+class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     def customCoffeeScriptImplFileName
+
+    @Override
+    String getDefaultSourceSet() {
+        return "CoffeeScriptAssets"
+    }
 
     def setup() {
         customCoffeeScriptImplFileName = 'coffeescript/coffee-script.min.js'
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
 
-        file('app/assets/test.coffee') << testCoffeeScript()
-        file('src/play/extra/test2.coffee') << testCoffeeScript()
+        withCoffeeScriptSource('app/assets/test.coffee')
+        withCoffeeScriptSource('src/play/extra/test2.coffee')
         buildFile << """
             plugins {
                 id 'play'
@@ -61,10 +64,12 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         succeeds "createPlayBinaryAssetsJar"
 
         then:
-        file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()
-        file('build/playBinary/src/compilePlayBinaryExtra/test2.js').exists()
-        file('build/playBinary/src/processPlayBinaryCoffeeScriptAssets/test.js').text == expectedJavaScript()
-        file('build/playBinary/src/processPlayBinaryExtra/test2.js').text == expectedJavaScript()
+        matchesExpectedRaw('test.js')
+        matchesExpectedRaw('Extra', 'test2.js')
+        matchesExpectedRaw(minified('test.js'))
+        matchesExpectedRaw(minified('Extra', 'test2.js'))
+        matchesExpected('test.min.js')
+        matchesExpected('Extra', 'test2.min.js')
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -97,21 +102,11 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractIntegratio
         succeeds "createPlayBinaryAssetsJar"
 
         then:
-        file('build/playBinary/src/compilePlayBinaryCoffeeScriptAssets/test.js').exists()
-        file('build/playBinary/src/compilePlayBinaryExtra/test2.js').exists()
-        file('build/playBinary/src/processPlayBinaryCoffeeScriptAssets/test.js').text == expectedJavaScript()
-        file('build/playBinary/src/processPlayBinaryExtra/test2.js').text == expectedJavaScript()
-    }
-
-    String testCoffeeScript() {
-        return 'alert "this is some coffeescript!"'
-    }
-
-    String expectedJavaScript() {
-        return """(function() {
-  alert("this is some coffeescript!");
-
-}).call(this);
-"""
+        matchesExpectedRaw('test.js')
+        matchesExpectedRaw('Extra', 'test2.js')
+        matchesExpectedRaw(minified('test.js'))
+        matchesExpectedRaw(minified('Extra', 'test2.js'))
+        matchesExpected('test.min.js')
+        matchesExpected('Extra', 'test2.min.js')
     }
 }

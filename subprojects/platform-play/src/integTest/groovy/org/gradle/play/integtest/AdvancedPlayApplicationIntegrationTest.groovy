@@ -97,7 +97,11 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
         // Custom Assets
         assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js")
         assertUrlContent playUrl("assets/javascripts/sample.js"), file("app/assets/javascripts/sample.js")
-        assertUrlContent playUrl("assets/javascripts/test.min.js"), file("app/assets/javascripts/sample.js.minified")
-        assertUrlContent playUrl("assets/javascripts/sample.min.js"), file("app/assets/javascripts/sample.js.minified")
+        assertUrlContent playUrl("assets/javascripts/test.min.js"), minifiedSample
+        assertUrlContent playUrl("assets/javascripts/sample.min.js"), minifiedSample
+    }
+
+    String getMinifiedSample() {
+        return "(function(){var c,e,f,b;b=function(a){return a*a};c=[1,2,3,4,5];e={root:Math.sqrt,square:b,cube:function(a){return a*b(a)}};\"undefined\"!==typeof elvis&&null!==elvis&&alert(\"I knew it!\");(function(){var a,b,d;d=[];a=0;for(b=c.length;a<b;a++)f=c[a],d.push(e.cube(f));return d})()}).call(this);\n"
     }
 }

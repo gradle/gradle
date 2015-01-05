@@ -34,7 +34,6 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
-import org.gradle.play.tasks.JavaScriptProcessResources;
 
 import java.io.File;
 
@@ -70,18 +69,6 @@ public class PlayJavaScriptPlugin {
     void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
-                final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
-                final File javascriptOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), processTaskName));
-                tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
-                    @Override
-                    public void execute(JavaScriptProcessResources javaScriptProcessResources) {
-                        javaScriptProcessResources.from(javaScriptSourceSet.getSource());
-                        javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
-
-                        binary.getAssets().builtBy(javaScriptProcessResources);
-                        binary.getAssets().addAssetDir(javascriptOutputDirectory);
-                    }
-                });
                 final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
                 final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
                 tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

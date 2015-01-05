@@ -16,17 +16,11 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
-
-class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
-    def testJavaScript = """
-            square = function(x) {
-              return x * x;
-            };
-        """
-    def expectedResult = "square=function(a){return a*a};\n"
+class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
+    @Override
+    String getDefaultSourceSet() {
+        return "JavaScriptAssets"
+    }
 
     def setup() {
         buildFile << """
@@ -57,24 +51,22 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("js/test.js") << testJavaScript
-        file("js/x/y/z.js") << testJavaScript
+        withJavaScriptSource("js/test.js")
+        withJavaScriptSource("js/x/y/z.js")
 
         when:
         succeeds "minifyJavaScript"
 
         then:
-        file("build/min/test.min.js").exists()
-        file("build/min/x/y/z.min.js").exists()
-
-        and:
-        matchesExpected("build/min/test.min.js")
-        matchesExpected("build/min/x/y/z.min.js")
+        matchesExpected file("build/min/test.min.js")
+        matchesExpected file("build/min/x/y/z.min.js")
+        matchesExpectedRaw file("build/min/test.js")
+        matchesExpectedRaw file("build/min/x/y/z.js")
     }
 
     def "minifies default javascript source set as part of play application build"() {
         given:
-        file("app/assets/test.js") << testJavaScript
+        withJavaScriptSource("app/assets/test.js")
 
         when:
         succeeds "assemble"
@@ -85,18 +77,20 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        processed("test.min.js").exists()
+        minified("test.min.js").exists()
+        minified("test.js").exists()
         assetsJar.containsDescendants(
-                "public/test.min.js"
+                "public/test.min.js",
+                "public/test.js"
         )
 
         and:
-        matchesExpected(processed("test.min.js"))
+        matchesExpected("test.min.js")
     }
 
     def "does not re-minify when inputs and outputs are unchanged"() {
         given:
-        file("app/assets/test.js") << testJavaScript
+        withJavaScriptSource("app/assets/test.js")
         succeeds "assemble"
 
         when:
@@ -111,12 +105,12 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
     def "re-minifies when an output is removed" () {
         given:
-        file("app/assets/test.js") << testJavaScript
+        withJavaScriptSource("app/assets/test.js")
         succeeds "assemble"
 
         // Detects missing output
         when:
-        processed("test.min.js").delete()
+        minified("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
 
@@ -125,12 +119,12 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
                 ":minifyPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        processed("test.min.js").exists()
+        minified("test.min.js").exists()
     }
 
     def "re-minifies when an input is changed" () {
         given:
-        file("app/assets/test.js") << testJavaScript
+        withJavaScriptSource("app/assets/test.js")
         succeeds "assemble"
 
         // Detects changed input
@@ -140,25 +134,29 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(
-                ":processPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScriptAssets",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
 
     def "cleans removed source file on minify" () {
         given:
-        file("app/assets/test1.js") << testJavaScript
-        def source2 = file("app/assets/test2.js") << testJavaScript
+        withJavaScriptSource("app/assets/test1.js")
+        def source2 = withJavaScriptSource("app/assets/test2.js")
 
         when:
         succeeds "assemble"
 
         then:
-        processed("test1.min.js").exists()
-        processed("test2.min.js").exists()
+        minified("test1.min.js").exists()
+        minified("test2.min.js").exists()
+        minified("test1.js").exists()
+        minified("test2.js").exists()
         assetsJar.containsDescendants(
                 "public/test1.min.js",
-                "public/test2.min.js"
+                "public/test2.min.js",
+                "public/test1.js",
+                "public/test2.js"
         )
 
         when:
@@ -166,15 +164,17 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
-        ! processed("test2.min.js").exists()
+        ! minified("test2.min.js").exists()
+        ! minified("test2.js").exists()
         assetsJar.countFiles("public/test2.min.js") == 0
+        assetsJar.countFiles("public/test2.js") == 0
     }
 
     def "minifies multiple javascript source sets as part of play application build" () {
         given:
-        file("app/assets/test1.js") << testJavaScript
-        file("extra/javascripts/test2.js") << testJavaScript
-        file("src/play/anotherJavaScript/a/b/c/test3.js") << testJavaScript
+        withJavaScriptSource("app/assets/test1.js")
+        withJavaScriptSource("extra/javascripts/test2.js")
+        withJavaScriptSource("src/play/anotherJavaScript/a/b/c/test3.js")
 
         buildFile << """
             model {
@@ -202,19 +202,20 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        processed("test1.min.js").exists()
-        processed("ExtraJavaScript", "javascripts/test2.min.js").exists()
-        processed("AnotherJavaScript", "a/b/c/test3.min.js").exists()
+        matchesExpected("test1.min.js")
+        matchesExpected("ExtraJavaScript", "javascripts/test2.min.js")
+        matchesExpected("AnotherJavaScript", "a/b/c/test3.min.js")
+        matchesExpectedRaw(minified("test1.js"))
+        matchesExpectedRaw(minified("ExtraJavaScript", "javascripts/test2.js"))
+        matchesExpectedRaw(minified("AnotherJavaScript", "a/b/c/test3.js"))
         assetsJar.containsDescendants(
                 "public/test1.min.js",
                 "public/javascripts/test2.min.js",
-                "public/a/b/c/test3.min.js"
+                "public/a/b/c/test3.min.js",
+                "public/test1.js",
+                "public/javascripts/test2.js",
+                "public/a/b/c/test3.js"
         )
-
-        and:
-        matchesExpected(processed("test1.min.js"))
-        matchesExpected(processed("ExtraJavaScript", "javascripts/test2.min.js"))
-        matchesExpected(processed("AnotherJavaScript", "a/b/c/test3.min.js"))
 
         when:
         succeeds "assemble"
@@ -232,30 +233,15 @@ class JavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("app/assets/javascripts/test1.js") << "BAD SOURCE"
         file("app/assets/javascripts/test2.js") << "BAD SOURCE"
-        file("app/assets/javascripts/hello.js") << testJavaScript
+        withJavaScriptSource("app/assets/javascripts/hello.js")
 
         when:
         fails "assemble"
 
         then:
-        processed("javascripts/hello.min.js").exists()
+        minified("javascripts/hello.min.js").exists()
+        minified("javascripts/hello.js").exists()
         failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScriptAssets'.")
         failure.assertHasCause("Minification failed for the following files:\n\tjavascripts/test1.js\n\tjavascripts/test2.js")
-    }
-
-    boolean matchesExpected(fileName) {
-        return TextUtil.normaliseLineSeparators(file(fileName).text) == TextUtil.normaliseLineSeparators(expectedResult)
-    }
-
-    JarTestFixture getAssetsJar() {
-        jar("build/playBinary/lib/play-assets.jar")
-    }
-
-    JarTestFixture jar(String fileName) {
-        new JarTestFixture(file(fileName))
-    }
-
-    File processed(String sourceSet = "JavaScriptAssets", String fileName) {
-        file("build/playBinary/src/minifyPlayBinary${sourceSet}/${fileName}")
     }
 }
