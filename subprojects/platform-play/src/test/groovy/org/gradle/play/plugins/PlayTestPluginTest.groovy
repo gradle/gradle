@@ -54,6 +54,7 @@ class PlayTestPluginTest extends Specification {
         _ * binary.name >> "someBinary"
 
         _ * configurations.create(_) >> configuration
+        _ * configurations.maybeCreate(_) >> configuration
     }
 
     def "adds test related tasks per binary"() {

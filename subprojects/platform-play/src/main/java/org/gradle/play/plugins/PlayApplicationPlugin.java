@@ -17,6 +17,7 @@ package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -52,6 +53,7 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -161,8 +163,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
 
-                        playBinaryInternal.setJarFile(new File(binaryBuildDir, String.format("lib/%s.jar", componentSpec.getName())));
-                        playBinaryInternal.setAssetsJarFile(new File(binaryBuildDir, String.format("lib/%s-assets.jar", componentSpec.getName())));
+                        // TODO:DAZ Artifact names need to be project-specific
+                        File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", componentSpec.getName()));
+                        File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", componentSpec.getName()));
+                        playBinaryInternal.setJarFile(mainJar);
+                        playBinaryInternal.setAssetsJarFile(assetsJar);
+
+                        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", null, new Date(), mainJar, playBinaryInternal));
+                        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", "assets", new Date(), assetsJar, playBinaryInternal));
 
                         JvmClasses classes = playBinary.getClasses();
                         classes.setClassesDir(new File(binaryBuildDir, "classes"));

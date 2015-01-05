@@ -18,6 +18,7 @@ package org.gradle.play.plugins;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 
 /**
  * Conventional locations and names for play plugins.
@@ -39,6 +40,8 @@ public class PlayPluginConfigurations {
 
         playTestCompile = configurations.create(TEST_COMPILE_CONFIGURATION);
         playTestCompile.extendsFrom(playCompile);
+
+        configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).extendsFrom(playCompile);
     }
 
     public Configuration getPlayPlatform() {
