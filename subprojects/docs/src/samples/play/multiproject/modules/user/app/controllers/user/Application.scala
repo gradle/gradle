@@ -7,6 +7,6 @@ import org.sample.util.BuiltBy
 
 object Application extends Controller {
   def index = Action {
-    Ok(BuiltBy.watermark("Here is the USER module."))
+    Ok(views.html.user.index(BuiltBy.watermark("Here is the USER module.")))
   }
 }
