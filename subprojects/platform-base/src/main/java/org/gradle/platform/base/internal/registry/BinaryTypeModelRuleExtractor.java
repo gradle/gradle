@@ -36,10 +36,10 @@ import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import java.util.Collections;
 import java.util.List;
 
-public class BinaryTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<BinaryType, BinarySpec, BaseBinarySpec> {
+public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
     private final Instantiator instantiator;
 
-    public BinaryTypeRuleDefinitionHandler(final Instantiator instantiator) {
+    public BinaryTypeModelRuleExtractor(final Instantiator instantiator) {
         super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class));
         this.instantiator = instantiator;
     }

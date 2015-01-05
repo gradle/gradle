@@ -24,10 +24,10 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-public abstract class AbstractAnnotationRuleDefinitionHandlerTest extends Specification{
+public abstract class AbstractAnnotationModelRuleExtractorTest extends Specification{
     def ruleDefinition = Mock(MethodRuleDefinition)
 
-    protected abstract AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler getRuleHandler();
+    protected abstract AbstractAnnotationDrivenComponentModelRuleExtractor getRuleHandler();
 
     abstract Class<? extends Annotation> getAnnotation();
     abstract Class<?> getRuleClass();

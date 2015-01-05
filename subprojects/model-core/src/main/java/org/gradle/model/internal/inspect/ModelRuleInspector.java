@@ -35,15 +35,15 @@ import java.util.List;
 @ThreadSafe
 public class ModelRuleInspector {
 
-    private final Iterable<MethodRuleDefinitionHandler> handlers;
+    private final Iterable<MethodModelRuleExtractor> handlers;
 
-    public ModelRuleInspector(Iterable<MethodRuleDefinitionHandler> handlers) {
+    public ModelRuleInspector(Iterable<MethodModelRuleExtractor> handlers) {
         this.handlers = handlers;
     }
 
     private String describeHandlers() {
-        String desc = Joiner.on(", ").join(CollectionUtils.collect(handlers, new Transformer<String, MethodRuleDefinitionHandler>() {
-            public String transform(MethodRuleDefinitionHandler original) {
+        String desc = Joiner.on(", ").join(CollectionUtils.collect(handlers, new Transformer<String, MethodModelRuleExtractor>() {
+            public String transform(MethodModelRuleExtractor original) {
                 return original.getDescription();
             }
         }));
@@ -85,7 +85,7 @@ public class ModelRuleInspector {
             }
 
             MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
-            MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
+            MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 validate(method);
                 ModelRuleRegistration registration = handler.registration(ruleDefinition, dependencies);
@@ -97,9 +97,9 @@ public class ModelRuleInspector {
         return registrations.build();
     }
 
-    private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
-        MethodRuleDefinitionHandler handler = null;
-        for (MethodRuleDefinitionHandler candidateHandler : handlers) {
+    private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
+        MethodModelRuleExtractor handler = null;
+        for (MethodModelRuleExtractor candidateHandler : handlers) {
             if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;

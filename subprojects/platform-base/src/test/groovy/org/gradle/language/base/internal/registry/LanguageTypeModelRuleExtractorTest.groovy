@@ -28,18 +28,18 @@ import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
-import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
-import org.gradle.platform.base.internal.registry.LanguageTypeRuleDefinitionHandler
+import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
+import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
-class LanguageTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
+class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     def ruleDependencies = Mock(RuleSourceDependencies)
     Class<?> ruleClass = Rules
 
-    LanguageTypeRuleDefinitionHandler ruleHandler = new LanguageTypeRuleDefinitionHandler()
+    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor()
 
     @Override
     Class<? extends Annotation> getAnnotation() {

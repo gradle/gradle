@@ -35,13 +35,13 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 
 @NotThreadSafe
-public class ManagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
+public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
 
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
     private final ModelInstantiator modelInstantiator;
 
-    public ManagedModelCreationRuleDefinitionHandler(ModelSchemaStore schemaStore, Instantiator instantiator) {
+    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore, Instantiator instantiator) {
         this.schemaStore = schemaStore;
         this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory, instantiator);
     }

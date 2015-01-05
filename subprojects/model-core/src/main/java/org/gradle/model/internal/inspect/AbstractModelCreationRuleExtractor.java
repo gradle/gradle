@@ -22,7 +22,7 @@ import org.gradle.model.Model;
 import org.gradle.model.internal.core.ModelPath;
 
 @ThreadSafe
-public abstract class AbstractModelCreationRuleDefinitionHandler extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<Model> {
+public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
     protected String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();

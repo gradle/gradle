@@ -26,7 +26,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 
 @ThreadSafe
-public class UnmanagedModelCreationRuleDefinitionHandler extends AbstractModelCreationRuleDefinitionHandler {
+public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
 
     @Override
     public Spec<MethodRuleDefinition<?>> getSpec() {

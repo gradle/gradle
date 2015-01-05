@@ -29,7 +29,7 @@ import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.lang.annotation.Annotation;
 
-public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<A> {
+public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends T> extends AbstractAnnotationDrivenComponentModelRuleExtractor<A> {
 
     private final String modelName;
     private final ModelType<T> baseInterface;
@@ -37,7 +37,7 @@ public abstract class TypeRuleDefinitionHandler<A extends Annotation, T, U exten
     private final ModelType<?> builderInterface;
     private final Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory;
 
-    public TypeRuleDefinitionHandler(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory) {
+    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, Factory<? extends TypeBuilderInternal<T>> typeBuilderFactory) {
         this.modelName = modelName;
         this.typeBuilderFactory = typeBuilderFactory;
         this.baseInterface = ModelType.of(baseInterface);

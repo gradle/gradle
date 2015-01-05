@@ -30,12 +30,12 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
-class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
+class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     Instantiator instantiator = new DirectInstantiator()
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    BinaryTypeRuleDefinitionHandler ruleHandler = new BinaryTypeRuleDefinitionHandler(instantiator)
+    BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(instantiator)
 
     @Override
     Class<? extends Annotation> getAnnotation() {
@@ -106,7 +106,7 @@ class BinaryTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefiniti
 
     static class NotImplementingCustomBinary extends BaseBinarySpec implements BinarySpec {}
 
-    abstract static class NotExtendingBaseBinarySpec implements BinaryTypeRuleDefinitionHandlerTest.SomeBinarySpec {}
+    abstract static class NotExtendingBaseBinarySpec implements BinaryTypeModelRuleExtractorTest.SomeBinarySpec {}
 
     static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
         NoDefaultConstructor(String arg) {

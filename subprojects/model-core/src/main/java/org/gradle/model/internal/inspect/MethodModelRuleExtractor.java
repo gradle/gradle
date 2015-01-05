@@ -16,14 +16,15 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.Validate;
-import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.api.Nullable;
+import org.gradle.api.specs.Spec;
+import org.gradle.model.internal.core.ModelRuleRegistration;
 
-@ThreadSafe
-public class ValidateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Validate> {
-    @Override
-    protected ModelActionRole getMutationType() {
-        return ModelActionRole.Validate;
-    }
+public interface MethodModelRuleExtractor {
+    Spec<MethodRuleDefinition<?>> getSpec();
+
+    String getDescription();
+
+    @Nullable
+    <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies);
 }

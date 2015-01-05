@@ -42,11 +42,11 @@ import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import java.util.Arrays;
 import java.util.List;
 
-public class ComponentTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<ComponentType, ComponentSpec, BaseComponentSpec> {
+public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
 
     private Instantiator instantiator;
 
-    public ComponentTypeRuleDefinitionHandler(final Instantiator instantiator) {
+    public ComponentTypeModelRuleExtractor(final Instantiator instantiator) {
         super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class));
         this.instantiator = instantiator;
     }

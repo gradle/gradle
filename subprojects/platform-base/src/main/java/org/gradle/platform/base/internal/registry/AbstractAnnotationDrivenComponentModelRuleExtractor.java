@@ -18,8 +18,8 @@ package org.gradle.platform.base.internal.registry;
 
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.inspect.AbstractAnnotationDrivenMethodRuleDefinitionHandler;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.platform.base.InvalidModelException;
 
@@ -28,7 +28,7 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class AbstractAnnotationDrivenMethodComponentRuleDefinitionHandler<T extends Annotation> extends AbstractAnnotationDrivenMethodRuleDefinitionHandler<T> {
+public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
             throw new InvalidModelException(String.format("Method %s must not have a return value.", getDescription()));

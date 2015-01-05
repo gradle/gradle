@@ -21,7 +21,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
-public class MutateRuleDefinitionHandler extends AbstractMutationRuleDefinitionHandler<Mutate> {
+public class MutateModelRuleExtractor extends AbstractMutationModelRuleExtractor<Mutate> {
     @Override
     protected ModelActionRole getMutationType() {
         return ModelActionRole.Mutate;

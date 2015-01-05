@@ -40,10 +40,10 @@ import org.gradle.platform.base.internal.util.ImplementationTypeDetermer;
 
 import java.util.List;
 
-public class LanguageTypeRuleDefinitionHandler extends TypeRuleDefinitionHandler<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
+public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<LanguageType, LanguageSourceSet, BaseLanguageSourceSet> {
     public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
 
-    public LanguageTypeRuleDefinitionHandler() {
+    public LanguageTypeModelRuleExtractor() {
         super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class));
     }
 

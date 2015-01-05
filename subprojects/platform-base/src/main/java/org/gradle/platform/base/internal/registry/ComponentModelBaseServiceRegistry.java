@@ -19,7 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
@@ -34,23 +34,23 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class ProjectScopeServices {
-        MethodRuleDefinitionHandler createLanguageTypePluginInspector() {
-            return new LanguageTypeRuleDefinitionHandler();
+        MethodModelRuleExtractor createLanguageTypePluginInspector() {
+            return new LanguageTypeModelRuleExtractor();
         }
 
-        MethodRuleDefinitionHandler createComponentModelPluginInspector(Instantiator instantiator) {
-            return new ComponentTypeRuleDefinitionHandler(instantiator);
+        MethodModelRuleExtractor createComponentModelPluginInspector(Instantiator instantiator) {
+            return new ComponentTypeModelRuleExtractor(instantiator);
         }
 
-        MethodRuleDefinitionHandler createBinaryTypeModelPluginInspector(Instantiator instantiator) {
-            return new BinaryTypeRuleDefinitionHandler(instantiator);
+        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(Instantiator instantiator) {
+            return new BinaryTypeModelRuleExtractor(instantiator);
         }
 
-        MethodRuleDefinitionHandler createComponentBinariesPluginInspector() {
-            return new ComponentBinariesRuleDefinitionHandler();
+        MethodModelRuleExtractor createComponentBinariesPluginInspector() {
+            return new ComponentBinariesModelRuleExtractor();
         }
-        MethodRuleDefinitionHandler createBinaryTaskPluginInspector() {
-            return new BinaryTasksRuleDefinitionHandler();
+        MethodModelRuleExtractor createBinaryTaskPluginInspector() {
+            return new BinaryTasksModelRuleExtractor();
         }
 
     }

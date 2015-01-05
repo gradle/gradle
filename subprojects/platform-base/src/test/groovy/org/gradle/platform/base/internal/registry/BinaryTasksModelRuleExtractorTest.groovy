@@ -28,11 +28,11 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
-class BinaryTasksRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
+class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    BinaryTasksRuleDefinitionHandler ruleHandler = new BinaryTasksRuleDefinitionHandler()
+    BinaryTasksModelRuleExtractor ruleHandler = new BinaryTasksModelRuleExtractor()
 
     @Override
     Class<? extends Annotation> getAnnotation() {

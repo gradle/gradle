@@ -24,16 +24,16 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import java.util.List;
 
 @ThreadSafe
-abstract public class MethodRuleDefinitionHandlers {
+abstract public class MethodModelRuleExtractors {
 
-    public static List<MethodRuleDefinitionHandler> coreHandlers(Instantiator instantiator, ModelSchemaStore modelSchemaStore) {
-        return ImmutableList.<MethodRuleDefinitionHandler>of(
-                new UnmanagedModelCreationRuleDefinitionHandler(),
-                new ManagedModelCreationRuleDefinitionHandler(modelSchemaStore, instantiator),
-                new DefaultsRuleDefinitionHandler(),
-                new MutateRuleDefinitionHandler(),
-                new FinalizeRuleDefinitionHandler(),
-                new ValidateRuleDefinitionHandler()
+    public static List<MethodModelRuleExtractor> coreExtractors(Instantiator instantiator, ModelSchemaStore modelSchemaStore) {
+        return ImmutableList.<MethodModelRuleExtractor>of(
+                new UnmanagedModelCreationRuleExtractor(),
+                new ManagedModelCreationRuleExtractor(modelSchemaStore, instantiator),
+                new DefaultsModelRuleExtractor(),
+                new MutateModelRuleExtractor(),
+                new FinalizeModelRuleExtractor(),
+                new ValidateModelRuleExtractor()
         );
     }
 }

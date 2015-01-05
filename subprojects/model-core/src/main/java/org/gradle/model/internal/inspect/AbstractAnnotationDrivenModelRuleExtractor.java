@@ -23,10 +23,10 @@ import org.gradle.api.specs.Spec;
 import java.lang.annotation.Annotation;
 
 @ThreadSafe
-public abstract class AbstractAnnotationDrivenMethodRuleDefinitionHandler<T extends Annotation> implements MethodRuleDefinitionHandler {
+public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annotation> implements MethodModelRuleExtractor {
     private final Class<T> annotationType;
 
-    protected AbstractAnnotationDrivenMethodRuleDefinitionHandler() {
+    protected AbstractAnnotationDrivenModelRuleExtractor() {
         @SuppressWarnings("unchecked") Class<T> annotationType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
         this.annotationType = annotationType;
     }

@@ -36,7 +36,7 @@ class ModelRuleBindingTest extends Specification {
     final static Instantiator UNUSED_INSTANTIATOR = null
 
     def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, DefaultModelSchemaStore.instance))
+    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(UNUSED_INSTANTIATOR, DefaultModelSchemaStore.instance))
 
     static class AmbiguousBindingsInOneSource {
         @Mutate

@@ -23,17 +23,17 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.inspect.RuleSourceDependencies
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.registry.AbstractAnnotationRuleDefinitionHandlerTest
-import org.gradle.platform.base.internal.registry.ComponentTypeRuleDefinitionHandler
+import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
+import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
-class ComponentTypeRuleDefinitionHandlerTest extends AbstractAnnotationRuleDefinitionHandlerTest {
+class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
     Instantiator instantiator = new DirectInstantiator()
     def ruleDependencies = Mock(RuleSourceDependencies)
 
-    ComponentTypeRuleDefinitionHandler ruleHandler = new ComponentTypeRuleDefinitionHandler(instantiator)
+    ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(instantiator)
 
     @Override
     Class<? extends Annotation> getAnnotation() { return ComponentType }
