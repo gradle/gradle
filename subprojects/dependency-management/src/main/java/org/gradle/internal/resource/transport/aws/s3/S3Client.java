@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
@@ -82,20 +83,31 @@ public class S3Client {
         String bucketName = getBucketName(destination);
         String s3Key = getS3BucketKey(destination);
         LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3Key, bucketName);
-        amazonS3Client.putObject(bucketName, s3Key, inputStream, objectMetadata);
+        try {
+            amazonS3Client.putObject(bucketName, s3Key, inputStream, objectMetadata);
+        } catch (AmazonClientException e) {
+            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
+        }
     }
 
     public ObjectMetadata getMetaData(URI uri) {
+        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
         String bucketName = getBucketName(uri);
         String s3Key = getS3BucketKey(uri);
-        ObjectMetadata objectMetadata = amazonS3Client.getObjectMetadata(bucketName, s3Key);
-        return objectMetadata;
+        try {
+            return amazonS3Client.getObjectMetadata(bucketName, s3Key);
+        } catch (AmazonClientException e) {
+            throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s", uri.toString(), e.getMessage()), e);
+        }
     }
 
     public S3Object getResource(URI uri) {
         LOGGER.debug("Attempting to get s3 resource: [{}]", uri.toString());
-        S3Object object = amazonS3Client.getObject(getBucketName(uri), getS3BucketKey(uri));
-        return object;
+        try {
+            return amazonS3Client.getObject(getBucketName(uri), getS3BucketKey(uri));
+        } catch (AmazonClientException e) {
+            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getMessage()), e);
+        }
     }
 
     private String getS3BucketKey(URI destination) {

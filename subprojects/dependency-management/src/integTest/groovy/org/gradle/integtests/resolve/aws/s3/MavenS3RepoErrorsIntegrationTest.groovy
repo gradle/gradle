@@ -46,7 +46,7 @@ task retrieve(type: Sync) {
 }
 """
         when:
-        s3StubSupport.stubGetFileAuthFailure('/tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom')
+        s3StubSupport.stubGetFileAuthFailure("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
 
         then:
         fails 'retrieve'
@@ -55,8 +55,38 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("The AWS Access Key Id you provided does not exist in our records. " +
-                "(Service: Amazon S3; Status Code: 403; Error Code: InvalidAccessKeyId; Request ID: stubbedAuthFailureRequestId")
+                .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
+                "The AWS Access Key Id you provided does not exist in our records. " +
+                "(Service: Amazon S3; Status Code: 403; Error Code: InvalidAccessKeyId; Request ID: stubbedAuthFailureRequestId)")
+
+    }
+
+    def "should include resource uri when file not found"() {
+        setup:
+        buildFile << mavenAwsRepoDsl()
+        buildFile << """
+configurations { compile }
+
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        when:
+        s3StubSupport.stubFileNotFound("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause('Could not resolve org.gradle:test:1.85')
+                .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
+                "The specified key does not exist. (Service: Amazon S3; Status Code: 404; Error Code: NoSuchKey; Request ID: stubbedRequestId)")
 
     }
 }

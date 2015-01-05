@@ -26,8 +26,8 @@ import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
-import org.junit.Ignore
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class S3ClientIntegrationTest extends Specification {
@@ -94,10 +94,10 @@ class S3ClientIntegrationTest extends Specification {
         }
     }
 
-    @Ignore
     /**
      * Allows for quickly making real aws requests during development
      */
+    @Ignore
     def "should interact with real S3"() {
         DefaultAwsCredentials credentials = new DefaultAwsCredentials()
         String bucketName = System.getenv('G_S3_BUCKET')
