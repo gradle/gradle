@@ -26,6 +26,7 @@ import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
+import org.junit.Ignore
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -35,7 +36,8 @@ class S3ClientIntegrationTest extends Specification {
     final String accessKey = 'gradle-access-key'
     final String secret = 'gradle-secret-key'
     final String bucketName = 'org.gradle.artifacts'
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     final DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
 
@@ -90,5 +92,28 @@ class S3ClientIntegrationTest extends Specification {
         files.each {
             assert it.contains(".")
         }
+    }
+
+    @Ignore
+    /**
+     * Allows for quickly making real aws requests during development
+     */
+    def "should interact with real S3"() {
+        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        String bucketName = System.getenv('G_S3_BUCKET')
+        credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
+        credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
+        S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
+
+        def fileContents = 'This is only a test'
+        File file = temporaryFolder.createFile(FILE_NAME)
+        file << fileContents
+
+        expect:
+        def stream = new FileInputStream(file)
+        def uri = new URI("s3://${bucketName}/maven/release/mavenTest.txt")
+        s3Client.put(stream, file.length(), uri)
+
+        s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
     }
 }
