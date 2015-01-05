@@ -1,6 +1,8 @@
-allprojects {
-    apply plugin: 'play'
+plugins {
+    id 'play'
+}
 
+allprojects {
     repositories{
         jcenter()
         maven{
@@ -13,4 +15,5 @@ allprojects {
 dependencies {
     play project(":admin")
     play project(":user")
+    play project(":util")
 }

@@ -31,7 +31,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
 
     @Override
     void checkContent() {
-        assertUrlContentContains playUrl(), "Here is a multiproject app, built by Gradle!"
+        assertUrlContentContains playUrl(), "Here is a multiproject app! (built by Gradle)"
     }
 
     def "can run module subproject independently" () {
@@ -54,7 +54,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         available("http://localhost:$httpPort/admin", "Play app", 60000)
 
         and:
-        assertUrlContentContains playUrl("admin"), "Here is the ADMIN module"
+        assertUrlContent playUrl("admin"), "Here is the ADMIN module. (built by Gradle)"
 
         when:
         stopWithCtrlD(userInput, gradleHandle)

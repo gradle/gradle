@@ -41,10 +41,8 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         httpPort = portFinder.nextAvailable
         initScript = file("initFile") << """
             gradle.allprojects {
-                model {
-                    tasks.runPlayBinary {
-                        httpPort = $httpPort
-                    }
+                tasks.withType(PlayRun) {
+                    httpPort = $httpPort
                 }
             }
         """
