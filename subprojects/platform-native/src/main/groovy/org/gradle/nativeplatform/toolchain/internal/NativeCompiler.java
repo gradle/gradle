@@ -43,6 +43,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final boolean useCommandFile;
     // TODO: Hardcoded to a max of 4 threads for now
     private final int numberOfThreads = 4;
+    private final ExecutorFactory executorFactory;
 
     public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
@@ -51,6 +52,12 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
+        this.executorFactory = new DefaultExecutorFactory() {
+            @Override
+            protected ExecutorService createExecutor(String displayName) {
+                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
+            }
+        };
     }
 
     public WorkResult execute(T spec) {
@@ -108,7 +115,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
-    protected MutableCommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir) {
+    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir) {
         List<String> perFileArgs = Lists.newArrayList(genericArgs);
         addSourceArgs(perFileArgs, sourceFile);
         addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
@@ -121,15 +128,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     private StoppableExecutor getExecutor() {
-        final StoppableExecutor executor;
-        // TODO: This needs to tie into a build level executor service
-        ExecutorFactory executorFactory = new DefaultExecutorFactory() {
-            @Override
-            protected ExecutorService createExecutor(String displayName) {
-                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
-            }
-        };
-        executor = executorFactory.create(commandLineTool.getDisplayName());
-        return executor;
+        return executorFactory.create(commandLineTool.getDisplayName());
     }
 }
