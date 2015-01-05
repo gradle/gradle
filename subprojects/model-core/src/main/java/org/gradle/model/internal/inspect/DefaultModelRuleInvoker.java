@@ -18,8 +18,6 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Constructor;
@@ -29,17 +27,17 @@ import java.lang.reflect.Modifier;
 
 @ThreadSafe
 class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
-    private final JavaMethod<I, R> javaMethod;
+    private final WeaklyReferencedMethod<I, R> method;
     private final ModelType<I> source;
 
     DefaultModelRuleInvoker(Method method, ModelType<I> source, ModelType<R> returnType) {
-        javaMethod = JavaReflectionUtil.method(source.getConcreteClass(), returnType.getConcreteClass(), method);
+        this.method = new WeaklyReferencedMethod<I, R>(source, returnType, method);
         this.source = source;
     }
 
     public R invoke(Object... args) {
-        I instance = Modifier.isStatic(javaMethod.getMethod().getModifiers()) ? null : toInstance();
-        return javaMethod.invoke(instance, args);
+        I instance = Modifier.isStatic(method.getModifiers()) ? null : toInstance();
+        return method.invoke(instance, args);
     }
 
     private I toInstance() {
