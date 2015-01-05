@@ -125,7 +125,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
                 get(ModelSchemaStore.class)
         );
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
-        PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
+        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
