@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.aws.s3
 
 import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
@@ -177,6 +178,48 @@ class S3ClientTest extends Specification {
         nonProxied                                               | endpointOverride
         com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
         "mydomain.com"                                           | Optional.absent()
+    }
+
+    def "should include uri when meta-data not found"() {
+        AmazonS3Client amazonS3Client = Mock()
+        URI uri = new URI("https://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, Mock(S3ConnectionProperties))
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
+        amazonS3Client.getObjectMetadata(_, _) >> { throw amazonS3Exception }
+
+        when:
+        s3Client.getMetaData(uri)
+        then:
+        def ex = thrown(S3Exception)
+        ex.message.startsWith('Could not get s3 meta-data: [https://somehost/file.txt]')
+    }
+
+    def "should include uri when file not found"() {
+        AmazonS3Client amazonS3Client = Mock()
+        URI uri = new URI("https://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, Mock(S3ConnectionProperties))
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
+        amazonS3Client.getObject(_, _) >> { throw amazonS3Exception }
+
+        when:
+        s3Client.getResource(uri)
+        then:
+        def ex = thrown(S3Exception)
+        ex.message.startsWith('Could not get s3 resource: [https://somehost/file.txt]')
+    }
+
+    def "should include uri when upload fails"() {
+        AmazonS3Client amazonS3Client = Mock()
+        URI uri = new URI("https://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, Mock(S3ConnectionProperties))
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
+        amazonS3Client.putObject(*_) >> { throw amazonS3Exception }
+
+        when:
+        s3Client.put(Mock(InputStream), 0, uri)
+        then:
+        def ex = thrown(S3Exception)
+        ex.message.startsWith('Could not put s3 resource: [https://somehost/file.txt]')
     }
 
     def credentials() {
