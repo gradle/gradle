@@ -15,7 +15,6 @@
  */
 
 package org.gradle.play.integtest.fixtures.app
-
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
@@ -24,6 +23,14 @@ abstract class PlayApp {
 
     List<SourceFile> getAllFiles() {
         return appSources + testSources + viewSources + assetSources + confSources + otherSources
+    }
+
+    SourceFile getGradleBuild() {
+        sourceFile("", "build.gradle")
+    }
+
+    List<SourceFile> getAssetSources() {
+        sourceFiles("public", "shared")
     }
 
     List<SourceFile> getAppSources() {
@@ -38,10 +45,6 @@ abstract class PlayApp {
 
     List<SourceFile> getConfSources() {
         return sourceFiles("conf", "shared") + sourceFiles("conf")
-    }
-
-    List<SourceFile> getAssetSources() {
-        sourceFiles("public", "shared")
     }
 
     List<SourceFile> getTestSources() {
@@ -59,7 +62,11 @@ abstract class PlayApp {
         return new SourceFile(path, name, file.text);
     }
 
-    void writeSources(TestFile sourceDir) {
+    void writeSources(TestFile sourceDir, String playVersion) {
+        def buildFile = gradleBuild.writeToDir(sourceDir)
+        if (playVersion != null) {
+            buildFile.text = buildFile.text.replace("2.3.7", playVersion)
+        }
         for (SourceFile srcFile : allFiles) {
             srcFile.writeToDir(sourceDir)
         }

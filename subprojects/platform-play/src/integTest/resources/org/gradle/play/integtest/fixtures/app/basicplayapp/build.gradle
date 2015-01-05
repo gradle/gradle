@@ -1,0 +1,19 @@
+plugins {
+    id 'play'
+}
+
+model {
+    components {
+        play {
+            targetPlatform "play-2.3.7"
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    maven{
+        name = "typesafe-maven-release"
+        url = "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+}

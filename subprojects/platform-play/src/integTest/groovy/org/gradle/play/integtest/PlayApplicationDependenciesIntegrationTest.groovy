@@ -23,15 +23,6 @@ import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
 class PlayApplicationDependenciesIntegrationTest extends AbstractPlayAppIntegrationTest {
     PlayApp playApp = new PlayAppWithDependencies()
 
-    def setup() {
-        buildFile << """
-            dependencies {
-                play "com.google.guava:guava:17.0"
-                playTest "commons-lang:commons-lang:2.6"
-            }
-        """
-    }
-
     @Override
     void verifyTestOutput(TestExecutionResult result) {
         result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec")

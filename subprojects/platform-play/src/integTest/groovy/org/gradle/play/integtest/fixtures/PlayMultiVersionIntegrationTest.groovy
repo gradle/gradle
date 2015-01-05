@@ -26,37 +26,6 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    def setup() {
-        buildFile <<"""
-        ${pluginsBlock}
-
-        model {
-            components {
-                play {
-                    targetPlatform "play-${version}"
-                }
-            }
-        }
-
-        repositories{
-            jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-        }
-"""
-    }
-
-    def getPluginsBlock() {
-        return """
-            plugins {
-                id 'play'
-            }
-        """
-    }
-
-
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
     }

@@ -39,8 +39,8 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
     abstract PlayApp getPlayApp()
     def portFinder = AvailablePortFinder.createPrivate()
 
-    def setup(){
-        playApp.writeSources(testDirectory.file("."))
+    def setup() {
+        playApp.writeSources(testDirectory.file("."), version.toString())
     }
 
     def "can build play app binary"() {
@@ -101,7 +101,7 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
         int testPort = portFinder.nextAvailable
         buildFile << """
         model {
-            tasks.testPlayBinary{
+            tasks.testPlayBinary {
                 systemProperty 'testserver.port', $testPort
             }
         }

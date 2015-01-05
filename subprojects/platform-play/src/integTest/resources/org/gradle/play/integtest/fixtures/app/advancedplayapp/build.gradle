@@ -1,0 +1,24 @@
+plugins {
+    id 'play'
+    id 'play-coffeescript'
+}
+
+model {
+    components {
+        play {
+            targetPlatform "play-2.3.7"
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    maven{
+        name = "typesafe-maven-release"
+        url = "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+    maven {
+        name = "gradle-js"
+        url = "https://repo.gradle.org/gradle/javascript-public"
+    }
+}

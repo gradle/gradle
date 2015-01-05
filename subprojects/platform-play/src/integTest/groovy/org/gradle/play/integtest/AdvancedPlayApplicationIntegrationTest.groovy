@@ -25,26 +25,6 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     PlayApp playApp = new AdvancedPlayApp()
 
     @Override
-    def getPluginsBlock() {
-        return super.getPluginsBlock() + """
-            plugins {
-                id 'play-coffeescript'
-            }
-        """
-    }
-
-    def setup() {
-        buildFile << """
-            repositories {
-                maven {
-                    name = "gradle-js"
-                    url = "https://repo.gradle.org/gradle/javascript-public"
-                }
-            }
-        """
-    }
-
-    @Override
     void verifyJars() {
         super.verifyJars()
 

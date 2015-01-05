@@ -24,6 +24,11 @@ class WithFailingTestsApp extends PlayApp {
     List<SourceFile> confSources
     List<SourceFile> testSources
 
+    @Override
+    SourceFile getGradleBuild() {
+        return sourceFile("", "build.gradle", "basicplayapp")
+    }
+
     public WithFailingTestsApp(){
         appSources = sourceFiles("app", "basicplayapp");
         viewSources = sourceFiles("app/views", "basicplayapp");

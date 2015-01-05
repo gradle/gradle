@@ -18,4 +18,5 @@ package org.gradle.play.integtest.fixtures
 
 class PlayCoverage {
     static final String[] DEFAULT = ["2.2.1", "2.2.6", "2.3.1", "2.3.7"]
+    static final String LATEST = "2.3.7"
 }

@@ -15,8 +15,8 @@
  */
 
 package org.gradle.play.tasks
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
@@ -39,7 +39,7 @@ class PlayApplicationJarIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        new BasicPlayApp().writeSources(testDirectory.file("."))
+        new BasicPlayApp().writeSources(testDirectory.file("."), PlayCoverage.LATEST)
 
         when:
         succeeds "assemble"
