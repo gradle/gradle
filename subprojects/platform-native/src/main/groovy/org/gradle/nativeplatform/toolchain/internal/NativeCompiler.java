@@ -32,11 +32,8 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
-
-    private static final String NATIVE_PARALLEL_TOGGLE = "org.gradle.parallel.native";
 
     private final CommandLineTool commandLineTool;
     private final ArgsTransformer<T> argsTransformer;
@@ -44,6 +41,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineToolInvocation baseInvocation;
     private final String objectFileSuffix;
     private final boolean useCommandFile;
+    // TODO: Hardcoded to a max of 4 threads for now
+    private final int numberOfThreads = 4;
 
     public NativeCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
@@ -52,11 +51,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
-    }
-
-    private boolean useParallelCompile() {
-        // TODO: This needs to be fed from command line settings
-        return Boolean.getBoolean(NATIVE_PARALLEL_TOGGLE);
     }
 
     public WorkResult execute(T spec) {
@@ -129,38 +123,13 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private StoppableExecutor getExecutor() {
         final StoppableExecutor executor;
         // TODO: This needs to tie into a build level executor service
-        if (useParallelCompile()) {
-            ExecutorFactory executorFactory = new DefaultExecutorFactory() {
-                @Override
-                protected ExecutorService createExecutor(String displayName) {
-                    // TODO: Hardcoded to a max of 4 threads for now
-                    return Executors.newFixedThreadPool(4, new ThreadFactoryImpl(displayName));
-                }
-            };
-            executor = executorFactory.create(commandLineTool.getDisplayName());
-        } else {
-            // Single threaded build
-            executor = new CallingThreadExecutor();
-        }
+        ExecutorFactory executorFactory = new DefaultExecutorFactory() {
+            @Override
+            protected ExecutorService createExecutor(String displayName) {
+                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
+            }
+        };
+        executor = executorFactory.create(commandLineTool.getDisplayName());
         return executor;
-    }
-
-    /**
-     * Re-uses calling thread for execute() call
-     */
-    private static class CallingThreadExecutor implements StoppableExecutor {
-        @Override
-        public void stop() { }
-
-        @Override
-        public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException { }
-
-        @Override
-        public void requestStop() { }
-
-        @Override
-        public void execute(Runnable command) {
-            command.run();
-        }
     }
 }
