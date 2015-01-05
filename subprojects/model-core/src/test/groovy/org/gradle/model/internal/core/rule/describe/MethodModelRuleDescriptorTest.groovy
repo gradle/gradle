@@ -23,7 +23,7 @@ class MethodModelRuleDescriptorTest extends Specification {
     def "check description"() {
         when:
         def sb = new StringBuilder()
-        new MethodModelRuleDescriptor(getClass().getDeclaredMethods().find { it.name == method }).describeTo(sb)
+        MethodModelRuleDescriptor.of(getClass(), method).describeTo(sb)
 
         then:
         sb.toString() == getClass().name + "#" + method + description
