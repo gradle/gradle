@@ -40,6 +40,14 @@ abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrati
         file("app/assets/${fileName}")
     }
 
+    TestFile copied(String fileName) {
+        return minified(fileName)
+    }
+
+    TestFile copied(String sourceSet, String fileName) {
+        return minified(sourceSet, fileName)
+    }
+
     TestFile minified(String fileName) {
         return minified(getDefaultSourceSet(), fileName)
     }

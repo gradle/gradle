@@ -66,8 +66,8 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         then:
         matchesExpectedRaw('test.js')
         matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(minified('test.js'))
-        matchesExpectedRaw(minified('Extra', 'test2.js'))
+        matchesExpectedRaw(copied('test.js'))
+        matchesExpectedRaw(copied('Extra', 'test2.js'))
         matchesExpected('test.min.js')
         matchesExpected('Extra', 'test2.min.js')
     }
@@ -104,8 +104,8 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         then:
         matchesExpectedRaw('test.js')
         matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(minified('test.js'))
-        matchesExpectedRaw(minified('Extra', 'test2.js'))
+        matchesExpectedRaw(copied('test.js'))
+        matchesExpectedRaw(copied('Extra', 'test2.js'))
         matchesExpected('test.min.js')
         matchesExpected('Extra', 'test2.min.js')
     }

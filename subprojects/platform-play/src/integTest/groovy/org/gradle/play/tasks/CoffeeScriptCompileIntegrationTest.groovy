@@ -56,6 +56,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         matchesExpectedRaw("test.js")
+        matchesExpectedRaw(copied("test.js"))
         matchesExpected("test.min.js")
         assetsJar.containsDescendants(
                 "public/test.js",
@@ -105,6 +106,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         matchesExpectedRaw("test1.js")
         matchesExpectedRaw("ExtraCoffeeScript", "xxx/test2.js")
         matchesExpectedRaw("AnotherCoffeeScript", "a/b/c/test3.js")
+        matchesExpectedRaw(copied("test1.js"))
+        matchesExpectedRaw(copied("ExtraCoffeeScript", "xxx/test2.js"))
+        matchesExpectedRaw(copied("AnotherCoffeeScript", "a/b/c/test3.js"))
         matchesExpected("test1.min.js")
         matchesExpected("ExtraCoffeeScript", "xxx/test2.min.js")
         matchesExpected("AnotherCoffeeScript", "a/b/c/test3.min.js")
@@ -162,7 +166,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         when:
         compiled("test.js").delete()
-        minified("test.js").delete()
+        copied("test.js").delete()
         minified("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
@@ -174,6 +178,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         compiled("test.js").exists()
+        copied("test.js").exists()
+        minified("test.min.js").exists()
     }
 
     def "cleans removed source file on compile" () {
@@ -198,8 +204,8 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         ! compiled("test2.js").exists()
-        ! minified("test2.js").exists()
-        ! minified("test2.js").exists()
+        ! copied("test2.js").exists()
+        ! minified("test2.min.js").exists()
         assetsJar.countFiles("public/test2.js") == 0
         assetsJar.countFiles("public/test2.min.js") == 0
     }
