@@ -18,18 +18,21 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 @ThreadSafe
 class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
-    private final WeaklyTypeReferencingMethod<I, R> method;
+    private final WeaklyReferencedMethod<I, R> method;
+    private final ModelType<I> source;
 
-    DefaultModelRuleInvoker(WeaklyTypeReferencingMethod<I, R> method) {
-        this.method = method;
+    DefaultModelRuleInvoker(Method method, ModelType<I> source, ModelType<R> returnType) {
+        this.method = new WeaklyReferencedMethod<I, R>(source, returnType, method);
+        this.source = source;
     }
 
     public R invoke(Object... args) {
@@ -39,7 +42,7 @@ class DefaultModelRuleInvoker<I, R> implements ModelRuleInvoker<R> {
 
     private I toInstance() {
         try {
-            Class<I> concreteClass = method.getTarget().getConcreteClass();
+            Class<I> concreteClass = source.getConcreteClass();
             Constructor<I> declaredConstructor = concreteClass.getDeclaredConstructor();
             declaredConstructor.setAccessible(true);
             return declaredConstructor.newInstance();

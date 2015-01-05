@@ -19,14 +19,12 @@ package org.gradle.model.internal.inspect;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
@@ -37,11 +35,14 @@ import static org.gradle.util.CollectionUtils.findFirst;
 
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R> {
-
-    private final WeaklyTypeReferencingMethod<T, R> method;
+    private final Method method;
+    private final ModelType<T> instanceType;
+    private final ModelType<R> returnType;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
-        this.method = new WeaklyTypeReferencingMethod<T, R>(instanceType, returnType, method);
+        this.method = method;
+        this.instanceType = instanceType;
+        this.returnType = returnType;
     }
 
     public static <T, R> MethodRuleDefinition<R> create(Class<T> source, Method method) {
@@ -54,24 +55,19 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
     }
 
     public ModelType<R> getReturnType() {
-        return method.getReturnType();
+        return returnType;
     }
 
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        for (Annotation annotation : method.getAnnotations()) {
-            if (annotationType.isAssignableFrom(annotation.getClass())) {
-                return Cast.uncheckedCast(annotation);
-            }
-        }
-        return null;
+        return method.getAnnotation(annotationType);
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return new MethodModelRuleDescriptor<T, R>(method);
+        return new MethodModelRuleDescriptor(method);
     }
 
     public ModelRuleInvoker<R> getRuleInvoker() {
-        return new DefaultModelRuleInvoker<T, R>(method);
+        return new DefaultModelRuleInvoker<T, R>(method, instanceType, returnType);
     }
 
     public List<ModelReference<?>> getReferences() {
@@ -90,7 +86,7 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        ModelType<?> cast = ModelType.of(method.getGenericParameterTypes()[i]);
+        ModelType<?> cast = ModelType.paramType(method, i);
         return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
     }
 

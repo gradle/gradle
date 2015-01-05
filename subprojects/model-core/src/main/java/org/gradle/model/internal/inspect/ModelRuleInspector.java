@@ -55,8 +55,8 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
     }
 
-    private static RuntimeException invalidMethod(Class<?> target, Method method, String reason) {
-        return invalid("model rule method", MethodModelRuleDescriptor.of(target, method), reason);
+    private static RuntimeException invalid(Method method, String reason) {
+        return invalid("model rule method", new MethodModelRuleDescriptor(method), reason);
     }
 
     private static RuntimeException invalid(String description, ModelRuleDescriptor rule, String reason) {
@@ -81,13 +81,13 @@ public class ModelRuleInspector {
 
         for (Method method : methods) {
             if (method.getTypeParameters().length > 0) {
-                throw invalidMethod(source, method, "cannot have type variables (i.e. cannot be a generic method)");
+                throw invalid(method, "cannot have type variables (i.e. cannot be a generic method)");
             }
 
             MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
-                validateMethod(source, method);
+                validate(method);
                 ModelRuleRegistration registration = handler.registration(ruleDefinition, dependencies);
                 if (registration != null) {
                     registrations.add(registration);
@@ -160,11 +160,11 @@ public class ModelRuleInspector {
         }
     }
 
-    private void validateMethod(Class<?> target, Method ruleMethod) {
+    private void validate(Method ruleMethod) {
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
-            throw invalidMethod(target, ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
+            throw invalid(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
         int i = 0;
@@ -172,7 +172,7 @@ public class ModelRuleInspector {
             ++i;
             ModelType<?> modelType = ModelType.of(type);
             if (modelType.isRawClassOfParameterizedType()) {
-                throw invalidMethod(target, ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+                throw invalid(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
     }
