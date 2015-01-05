@@ -18,7 +18,7 @@ package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class WithFailingTestsApp extends AbstractPlayApp {
+class WithFailingTestsApp extends PlayApp {
     List<SourceFile> appSources
     List<SourceFile> viewSources
     List<SourceFile> confSources

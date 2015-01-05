@@ -22,7 +22,6 @@ import org.gradle.util.GFileUtils
 
 abstract class PlayApp {
 
-
     List<SourceFile> getAllFiles() {
         return appSources + testSources + viewSources + assetSources + confSources + otherSources
     }
@@ -33,10 +32,25 @@ abstract class PlayApp {
         }
     }
 
-    abstract List<SourceFile> getViewSources();
-    abstract List<SourceFile> getConfSources();
-    abstract List<SourceFile> getAssetSources();
-    abstract List<SourceFile> getOtherSources();
+    List<SourceFile> getViewSources() {
+        return sourceFiles("app/views");
+    }
+
+    List<SourceFile> getConfSources() {
+        return sourceFiles("conf", "shared") + sourceFiles("conf")
+    }
+
+    List<SourceFile> getAssetSources() {
+        sourceFiles("public", "shared")
+    }
+
+    List<SourceFile> getTestSources() {
+        return sourceFiles("test")
+    }
+
+    List<SourceFile> getOtherSources() {
+        return [ sourceFile("", "README", "shared") ]
+    }
 
 
     protected SourceFile sourceFile(String path, String name, String baseDir = getClass().getSimpleName().toLowerCase()) {
