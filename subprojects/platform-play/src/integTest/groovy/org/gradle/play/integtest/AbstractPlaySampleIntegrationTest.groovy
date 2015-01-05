@@ -19,10 +19,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.AvailablePortFinder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
+@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
     def portFinder = AvailablePortFinder.createPrivate()
     def initScript

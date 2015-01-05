@@ -19,8 +19,11 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @TargetCoverage({PlayCoverage.DEFAULT})
+@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
