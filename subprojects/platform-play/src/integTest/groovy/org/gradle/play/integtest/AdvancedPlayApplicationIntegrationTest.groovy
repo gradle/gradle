@@ -59,7 +59,9 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
 
         jar("build/playBinary/lib/play-assets.jar").containsDescendants(
                 "public/javascripts/sample.js",
-                "public/javascripts/test.js"
+                "public/javascripts/sample.min.js",
+                "public/javascripts/test.js",
+                "public/javascripts/test.min.js"
         )
     }
 
@@ -95,5 +97,7 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
         // Custom Assets
         assertUrlContent playUrl("assets/javascripts/test.js"), file("app/assets/javascripts/sample.js")
         assertUrlContent playUrl("assets/javascripts/sample.js"), file("app/assets/javascripts/sample.js")
+        assertUrlContent playUrl("assets/javascripts/test.min.js"), file("app/assets/javascripts/sample.js.minified")
+        assertUrlContent playUrl("assets/javascripts/sample.min.js"), file("app/assets/javascripts/sample.js.minified")
     }
 }

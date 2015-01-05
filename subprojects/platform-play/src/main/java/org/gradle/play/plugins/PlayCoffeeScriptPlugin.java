@@ -34,6 +34,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.tasks.JavaScriptMinify;
 import org.gradle.play.tasks.JavaScriptProcessResources;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
@@ -85,6 +86,7 @@ public class PlayCoffeeScriptPlugin {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
                 String compileTaskName = createCoffeeScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet);
                 createJavaScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet, compileTaskName);
+                createJavaScriptMinify(tasks, binary, buildDir, coffeeScriptSourceSet, compileTaskName);
             }
         }
     }
@@ -120,6 +122,23 @@ public class PlayCoffeeScriptPlugin {
                 processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
                 binary.getAssets().builtBy(processGeneratedJavascript);
                 binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+            }
+        });
+    }
+
+    private void createJavaScriptMinify(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
+                                         final String compileTaskName) {
+        final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+        tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
+            @Override
+            public void execute(JavaScriptMinify javaScriptMinify) {
+                javaScriptMinify.dependsOn(compileTaskName);
+                javaScriptMinify.setSource(outputDirectory(buildDir, binary, compileTaskName));
+
+                File minifyOutputDirectory = outputDirectory(buildDir, binary, minifyTaskName);
+                javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+                binary.getAssets().builtBy(javaScriptMinify);
+                binary.getAssets().addAssetDir(minifyOutputDirectory);
             }
         });
     }

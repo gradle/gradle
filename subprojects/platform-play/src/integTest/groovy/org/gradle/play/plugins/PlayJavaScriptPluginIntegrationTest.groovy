@@ -58,6 +58,7 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert tasks.withType(JavaScriptProcessResources).size() == 2
                     tasks.withType(JavaScriptProcessResources)*.name as Set == ["processPlayBinaryJavaScriptAssets", "processPlayBinaryOtherJavaScript"] as Set
+                    tasks.withType(JavaScriptMinify)*.name as Set == ["minifyPlayBinaryJavaScriptAssets", "minifyPlayBinaryOtherJavaScript"] as Set
                 }
             }
         """
@@ -75,6 +76,7 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
             task checkTasks {
                 doLast {
                     assert tasks.withType(JavaScriptProcessResources).size() == 0
+                    assert tasks.withType(JavaScriptMinify).size() == 0
                 }
             }
         """

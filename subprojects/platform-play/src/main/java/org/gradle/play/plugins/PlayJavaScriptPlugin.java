@@ -33,6 +33,7 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.tasks.JavaScriptMinify;
 import org.gradle.play.tasks.JavaScriptProcessResources;
 
 import java.io.File;
@@ -46,7 +47,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @RuleSource
 @Incubating
 public class PlayJavaScriptPlugin {
-
     @LanguageType
     void registerCoffeeScript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
         builder.setLanguageName("javaScript");
@@ -71,15 +71,27 @@ public class PlayJavaScriptPlugin {
         for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
                 final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
+                final File javascriptOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), processTaskName));
                 tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
                     @Override
                     public void execute(JavaScriptProcessResources javaScriptProcessResources) {
-                        File javascriptOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), processTaskName));
                         javaScriptProcessResources.from(javaScriptSourceSet.getSource());
                         javaScriptProcessResources.setDestinationDir(javascriptOutputDirectory);
 
                         binary.getAssets().builtBy(javaScriptProcessResources);
                         binary.getAssets().addAssetDir(javascriptOutputDirectory);
+                    }
+                });
+                final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
+                final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
+                tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
+                    @Override
+                    public void execute(JavaScriptMinify javaScriptMinify) {
+                        javaScriptMinify.setSource(javaScriptSourceSet.getSource());
+                        javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+
+                        binary.getAssets().builtBy(javaScriptMinify);
+                        binary.getAssets().addAssetDir(minifyOutputDirectory);
                     }
                 });
             }

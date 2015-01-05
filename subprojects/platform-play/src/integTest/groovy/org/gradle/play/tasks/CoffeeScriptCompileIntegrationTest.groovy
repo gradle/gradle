@@ -19,6 +19,7 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -51,14 +52,15 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        processed("test.js").exists()
-        compareWithoutWhiteSpace processed("test.js").text, expectedJavaScript()
-
+        matchesExpected("test.js")
+        matchesExpectedMinified("test.min.js")
         assetsJar.containsDescendants(
-                "public/test.js"
+                "public/test.js",
+                "public/test.min.js"
         )
     }
 
@@ -92,27 +94,37 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssets",
                 ":compilePlayBinaryExtraCoffeeScript",
                 ":processPlayBinaryExtraCoffeeScript",
+                ":minifyPlayBinaryExtraCoffeeScript",
                 ":compilePlayBinaryAnotherCoffeeScript",
                 ":processPlayBinaryAnotherCoffeeScript",
+                ":minifyPlayBinaryAnotherCoffeeScript",
                 ":processPlayBinaryJavaScriptAssets",
+                ":minifyPlayBinaryJavaScriptAssets",
                 ":processPlayBinaryExtraJavaScript",
+                ":minifyPlayBinaryExtraJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
-        processed("test1.js").exists()
-        processed("ExtraCoffeeScript", "xxx/test2.js").exists()
-        processed("AnotherCoffeeScript", "a/b/c/test3.js").exists()
-        compareWithoutWhiteSpace processed("test1.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace processed("ExtraCoffeeScript", "xxx/test2.js").text, expectedJavaScript()
-        compareWithoutWhiteSpace processed("AnotherCoffeeScript", "a/b/c/test3.js").text, expectedJavaScript()
+        matchesExpected("test1.js")
+        matchesExpected("ExtraCoffeeScript", "xxx/test2.js")
+        matchesExpected("AnotherCoffeeScript", "a/b/c/test3.js")
+        matchesExpectedMinified("test1.min.js")
+        matchesExpectedMinified("ExtraCoffeeScript", "xxx/test2.min.js")
+        matchesExpectedMinified("AnotherCoffeeScript", "a/b/c/test3.min.js")
         assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
                 "public/a/b/c/test3.js",
                 "public/test/test4.js",
-                "public/test5.js"
+                "public/test5.js",
+                "public/test1.min.js",
+                "public/xxx/test2.min.js",
+                "public/a/b/c/test3.min.js",
+                "public/test/test4.min.js",
+                "public/test5.min.js"
         )
     }
 
@@ -127,6 +139,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped(":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -145,6 +158,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -157,6 +171,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         when:
         processed("test.js").delete()
         processedJS("test.js").delete()
+        processedMin("test.min.js").delete()
         assetsJar.file.delete()
         succeeds "assemble"
 
@@ -164,6 +179,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
                 ":processPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssets",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         processed("test.js").exists()
@@ -180,7 +196,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         assetsJar.containsDescendants(
                 "public/test1.js",
-                "public/test2.js"
+                "public/test2.js",
+                "public/test1.min.js",
+                "public/test2.min.js"
         )
 
         when:
@@ -190,7 +208,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         ! processed("test2.js").exists()
         ! processedJS("test2.js").exists()
+        ! processedMin("test2.js").exists()
         assetsJar.countFiles("public/test2.js") == 0
+        assetsJar.countFiles("public/test2.min.js") == 0
     }
 
     def "produces sensible error on compile failure" () {
@@ -218,12 +238,24 @@ class CoffeeScriptCompileIntegrationTest extends AbstractIntegrationSpec {
         file("build/playBinary/src/compilePlayBinary${sourceSet}/${fileName}")
     }
 
-    TestFile processedJS(String fileName) {
-        file("build/playBinary/src/processPlayBinaryCoffeeScriptAssets/${fileName}")
+    TestFile processedJS(String sourceSet = "CoffeeScriptAssets", String fileName) {
+        file("build/playBinary/src/processPlayBinary${sourceSet}/${fileName}")
+    }
+
+    TestFile processedMin(String sourceSet = "CoffeeScriptAssets", String fileName) {
+        file("build/playBinary/src/minifyPlayBinary${sourceSet}/${fileName}")
     }
 
     TestFile assets(String fileName) {
         file("app/assets/${fileName}")
+    }
+
+    boolean matchesExpected(String sourceSet = "CoffeeScriptAssets", String fileName) {
+        return processed(sourceSet, fileName).exists() && compareWithoutWhiteSpace(processed(sourceSet, fileName).text, expectedJavaScript())
+    }
+
+    boolean matchesExpectedMinified(String sourceSet = "CoffeeScriptAssets", String fileName) {
+        return processedMin(sourceSet, fileName).exists() && TextUtil.normaliseLineSeparators(processedMin(sourceSet, fileName).text) == TextUtil.normaliseLineSeparators(expectedMinifiedJavaScript())
     }
 
     boolean compareWithoutWhiteSpace(String string1, String string2) {
@@ -330,5 +362,9 @@ cubes = (function() {
 })();
 }).call(this);
 """
+    }
+
+    def expectedMinifiedJavaScript() {
+        return "(function(){var c,e,f,b;b=function(a){return a*a};c=[1,2,3,4,5];e={root:Math.sqrt,square:b,cube:function(a){return a*b(a)}};\"undefined\"!==typeof elvis&&null!==elvis&&alert(\"I knew it!\");(function(){var a,b,d;d=[];a=0;for(b=c.length;a<b;a++)f=c[a],d.push(e.cube(f));return d})()}).call(this);\n"
     }
 }
