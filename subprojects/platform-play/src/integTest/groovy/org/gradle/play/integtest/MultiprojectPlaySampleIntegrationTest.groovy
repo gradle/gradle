@@ -32,6 +32,19 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
     @Override
     void checkContent() {
         assertUrlContentContains playUrl(), "Here is a multiproject app! (built by Gradle)"
+        assertUrlContent playUrl("assets/javascript/timestamp.js"), publicAsset("javascript/timestamp.js")
+        assertBinaryUrlContent playUrl("assets/images/gradle.ico"), publicAsset("images/gradle.ico")
+
+        checkAdminModuleContent()
+   }
+
+    private void checkAdminModuleContent() {
+        assertUrlContentContains playUrl("admin"), "Here is the ADMIN module. (built by Gradle)"
+        assertUrlContent playUrl("admin/assets/javascript/admin.js"), moduleAsset("admin", "javascript/admin.js")
+    }
+
+    File moduleAsset(String module, String asset) {
+        return new File(playSample.dir, "modules/${module}/public/${asset}")
     }
 
     def "can run module subproject independently" () {
@@ -54,7 +67,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         available("http://localhost:$httpPort/admin", "Play app", 60000)
 
         and:
-        assertUrlContent playUrl("admin"), "Here is the ADMIN module. (built by Gradle)"
+        checkAdminModuleContent()
 
         when:
         stopWithCtrlD(userInput, gradleHandle)
