@@ -28,8 +28,8 @@ import java.security.MessageDigest
 class S3StubSupport {
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
     protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
-                    .withLocale(Locale.US)
-                    .withZone(GMT);
+            .withLocale(Locale.US)
+            .withZone(GMT);
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -191,6 +191,43 @@ class S3StubSupport {
         }
         server.expect(httpStub)
     }
+
+    def stubGetFileAuthFailure(String url) {
+        def xml = new StreamingMarkupBuilder().bind {
+            Error() {
+                Code("InvalidAccessKeyId")
+                Message("The AWS Access Key Id you provided does not exist in our records.")
+                AWSAccessKeyId("notRelevant")
+                RequestId("stubbedAuthFailureRequestId")
+                HostId("stubbedAuthFailureHostId")
+            }
+
+        }
+
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'GET'
+                path = url
+                headers = [
+                        'Content-Type': 'application/octet-stream',
+                        'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = 403
+                headers = [
+                        'x-amz-id-2'      : X_AMZ_ID_2,
+                        'x-amz-request-id': X_AMZ_REQUEST_ID,
+                        'Date'            : DATE_HEADER,
+                        'Server'          : SERVER_AMAZON_S3,
+                        'Content-Type'    : 'application/xml',
+                ]
+                body = xml.toString()
+            }
+        }
+        server.expect(httpStub)
+    }
+
 
     def calculateEtag(File file) {
         MessageDigest digest = MessageDigest.getInstance("MD5")
