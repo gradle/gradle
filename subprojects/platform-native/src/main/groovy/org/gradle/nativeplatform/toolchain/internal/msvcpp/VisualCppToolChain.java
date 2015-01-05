@@ -19,22 +19,16 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.toolchain.CommandLineToolConfiguration;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.*;
-import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
-import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineToolConfiguration;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements VisualCpp, NativeToolChainInternal {
 
@@ -46,7 +40,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     public static final String DEFAULT_NAME = "visualCpp";
 
-    private final ExecActionFactory execActionFactory;
+        private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
     private final Instantiator instantiator;
@@ -136,50 +130,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     public String getDisplayName() {
         return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
-    }
-
-    public static class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
-        private final NativePlatform platform;
-        private final Map<ToolType, CommandLineToolConfigurationInternal> tools;
-
-        public DefaultVisualCppPlatformToolChain(NativePlatform platform, Instantiator instantiator) {
-            this.platform = platform;
-            tools = new HashMap<ToolType, CommandLineToolConfigurationInternal>();
-            tools.put(ToolType.C_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.C_COMPILER));
-            tools.put(ToolType.CPP_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.CPP_COMPILER));
-            tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
-            tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
-            tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.ASSEMBLER));
-            tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
-        }
-
-        public CommandLineToolConfiguration getcCompiler() {
-            return tools.get(ToolType.C_COMPILER);
-        }
-
-        public CommandLineToolConfiguration getCppCompiler() {
-            return tools.get(ToolType.CPP_COMPILER);
-        }
-
-        public CommandLineToolConfiguration getRcCompiler() {
-            return tools.get(ToolType.WINDOW_RESOURCES_COMPILER);
-        }
-
-        public CommandLineToolConfiguration getAssembler() {
-            return tools.get(ToolType.ASSEMBLER);
-        }
-
-        public CommandLineToolConfiguration getLinker() {
-            return tools.get(ToolType.LINKER);
-        }
-
-        public CommandLineToolConfiguration getStaticLibArchiver() {
-            return tools.get(ToolType.STATIC_LIB_ARCHIVER);
-        }
-
-        public NativePlatform getPlatform() {
-            return platform;
-        }
     }
 
 }
