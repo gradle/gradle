@@ -1,0 +1,4 @@
+include 'admin', 'user'
+
+project(':admin').projectDir = new File(settingsDir, 'modules/admin')
+project(':user').projectDir = new File(settingsDir, 'modules/user')

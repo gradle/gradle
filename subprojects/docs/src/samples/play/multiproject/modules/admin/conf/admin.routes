@@ -1,0 +1,1 @@
+GET     /admin                          controllers.admin.Application.index
