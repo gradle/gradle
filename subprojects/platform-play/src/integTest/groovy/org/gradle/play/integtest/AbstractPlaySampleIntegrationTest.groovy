@@ -31,6 +31,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     abstract Sample getPlaySample();
 
     void checkContent() {
+        assertUrlContentContains playUrl(), "Your new application is ready."
         assertUrlContent playUrl("assets/stylesheets/main.css"), publicAsset("stylesheets/main.css")
         assertUrlContent playUrl("assets/javascripts/hello.js"), publicAsset("javascripts/hello.js")
         assertBinaryUrlContent playUrl("assets/images/favicon.png"), publicAsset("images/favicon.png")
@@ -59,27 +60,29 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         succeeds "assemble"
 
         when:
+        sample playSample
         def userInput = new PipedOutputStream();
         executer.withStdIn(new PipedInputStream(userInput))
         executer.usingInitScript(initScript)
-        sample playSample
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
         available("http://localhost:$httpPort", "Play app", 60000)
-        assert playUrl().text.contains("Your new application is ready.")
 
         and:
         checkContent()
 
-        when: "stopping gradle"
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-
-        gradleHandle.waitForFinish()
+        when:
+        stopWithCtrlD(userInput, gradleHandle)
 
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
+    }
+
+    static stopWithCtrlD(PipedOutputStream userInput, GradleHandle gradleHandle) {
+        userInput.write(4) // ctrl+d
+        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
+        gradleHandle.waitForFinish()
     }
 
     URL playUrl(String path='') {
