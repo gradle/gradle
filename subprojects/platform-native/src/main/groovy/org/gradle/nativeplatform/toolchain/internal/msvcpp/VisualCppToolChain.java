@@ -102,7 +102,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(operatingSystem, configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
+        return new VisualCppPlatformToolProvider(targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
     }
 
     private ToolChainAvailability getAvailability() {

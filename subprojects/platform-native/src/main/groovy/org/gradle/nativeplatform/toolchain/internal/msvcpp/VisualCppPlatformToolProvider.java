@@ -18,23 +18,23 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.*;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 import java.util.Map;
 
-class VisualCppPlatformToolProvider implements PlatformToolProvider {
-    private final OperatingSystem operatingSystem;
+class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations;
     private final VisualCppInstall visualCpp;
     private final WindowsSdk sdk;
@@ -42,8 +42,8 @@ class VisualCppPlatformToolProvider implements PlatformToolProvider {
     private final ExecActionFactory execActionFactory;
     private final String outputFileSuffix;
 
-    VisualCppPlatformToolProvider(OperatingSystem operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
-        this.operatingSystem = operatingSystem;
+    VisualCppPlatformToolProvider(OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
+        super(operatingSystem);
         this.commandLineToolConfigurations = commandLineToolConfigurations;
         this.visualCpp = visualCpp;
         this.sdk = sdk;
@@ -52,95 +52,41 @@ class VisualCppPlatformToolProvider implements PlatformToolProvider {
         this.execActionFactory = execActionFactory;
     }
 
-    public boolean isAvailable() {
-        return true;
-    }
-
-    public void explain(TreeVisitor<? super String> visitor) {
-    }
-
-    public String getObjectFileExtension() {
-        return "obj";
-    }
-
-    public String getExecutableName(String executablePath) {
-        return operatingSystem.getExecutableName(executablePath);
-    }
-
-    public String getSharedLibraryName(String libraryName) {
-        return operatingSystem.getSharedLibraryName(libraryName);
-    }
-
-    public String getStaticLibraryName(String libraryName) {
-        return operatingSystem.getStaticLibraryName(libraryName);
-    }
-
-    public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
-    }
-
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
-        if (spec instanceof CppCompileSpec) {
-            return castCompiler(createCppCompiler());
-        }
-        if (spec instanceof CCompileSpec) {
-            return castCompiler(createCCompiler());
-        }
-        if (spec instanceof ObjectiveCppCompileSpec) {
-            throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
-        }
-        if (spec instanceof ObjectiveCCompileSpec) {
-            throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
-        }
-        if (spec instanceof WindowsResourceCompileSpec) {
-            return castCompiler(createWindowsResourceCompiler());
-        }
-        if (spec instanceof AssembleSpec) {
-            return castCompiler(createAssembler());
-        }
-        if (spec instanceof LinkerSpec) {
-            return castCompiler(createLinker());
-        }
-        if (spec instanceof StaticLibraryArchiverSpec) {
-            return castCompiler(createStaticLibraryArchiver());
-        }
-        throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends CompileSpec> Compiler<T> castCompiler(Compiler<?> compiler) {
-        return (Compiler<T>) compiler;
-    }
-
-    public Compiler<CppCompileSpec> createCppCompiler() {
+    @Override
+    protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
         CppCompiler cppCompiler = new CppCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
         return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
     }
 
-    public Compiler<CCompileSpec> createCCompiler() {
+    @Override
+    protected Compiler<CCompileSpec> createCCompiler() {
         CommandLineTool commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
         CCompiler cCompiler = new CCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix, true);
         return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
     }
 
-    public Compiler<AssembleSpec> createAssembler() {
+    @Override
+    protected Compiler<AssembleSpec> createAssembler() {
         CommandLineTool commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
         return new Assembler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.ASSEMBLER)));
     }
 
-    public Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
+    @Override
+    protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
         WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
         return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
     }
 
-    public Compiler<LinkerSpec> createLinker() {
+    @Override
+    protected Compiler<LinkerSpec> createLinker() {
         CommandLineTool commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
         return new LinkExeLinker(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
     }
 
-    public Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
+    @Override
+    protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
         CommandLineTool commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
         return new LibExeStaticLibraryArchiver(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.STATIC_LIB_ARCHIVER)));
     }

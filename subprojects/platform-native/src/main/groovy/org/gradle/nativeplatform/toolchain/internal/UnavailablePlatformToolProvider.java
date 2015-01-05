@@ -24,12 +24,11 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
-public class UnavailablePlatformToolProvider implements PlatformToolProvider {
-    private final OperatingSystemInternal operatingSystem;
+public class UnavailablePlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchResult failure;
 
     public UnavailablePlatformToolProvider(OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
-        this.operatingSystem = operatingSystem;
+        super(operatingSystem);
         this.failure = failure;
     }
 
@@ -50,23 +49,6 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     public String getObjectFileExtension() {
         throw failure();
     }
-
-    public String getExecutableName(String executablePath) {
-        return operatingSystem.getInternalOs().getExecutableName(executablePath);
-    }
-
-    public String getSharedLibraryName(String libraryPath) {
-        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
-    }
-
-    public String getSharedLibraryLinkFileName(String libraryPath) {
-        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
-    }
-
-    public String getStaticLibraryName(String libraryPath) {
-        return operatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
-    }
-
     public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
         throw failure();
     }

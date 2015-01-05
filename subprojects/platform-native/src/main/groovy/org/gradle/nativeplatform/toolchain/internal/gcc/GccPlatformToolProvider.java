@@ -29,11 +29,17 @@ import org.gradle.process.internal.ExecActionFactory;
 class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
     private final ToolRegistry toolRegistry;
+    private final ExecActionFactory execActionFactory;
+    private final boolean useCommandFile;
+    private final String outputFileSuffix;
 
     GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, boolean useCommandFile) {
-        super(targetOperatingSystem, useCommandFile, execActionFactory);
+        super(targetOperatingSystem);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
+        this.useCommandFile = useCommandFile;
+        this.execActionFactory = execActionFactory;
+        this.outputFileSuffix = "." + getObjectFileExtension();
     }
 
     @Override

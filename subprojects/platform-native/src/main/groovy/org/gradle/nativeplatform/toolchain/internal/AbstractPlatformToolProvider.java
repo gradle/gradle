@@ -16,28 +16,21 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.language.base.internal.compile.*;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 
 /**
  */
 public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
-    protected final ExecActionFactory execActionFactory;
-    protected final boolean useCommandFile;
-    protected final String outputFileSuffix;
 
-    public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, boolean useCommandFile, ExecActionFactory execActionFactory) {
+    public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
-        this.useCommandFile = useCommandFile;
-        this.execActionFactory = execActionFactory;
-        this.outputFileSuffix = "." + getObjectFileExtension();
     }
 
     public boolean isAvailable() {
