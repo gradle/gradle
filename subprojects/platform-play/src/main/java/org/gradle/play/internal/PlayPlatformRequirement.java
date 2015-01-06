@@ -18,6 +18,7 @@ package org.gradle.play.internal;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
 public class PlayPlatformRequirement implements PlatformRequirement {
+    private final String platformName;
     private final String playVersion;
     private final String scalaVersion;
     private final String javaVersion;
@@ -26,12 +27,12 @@ public class PlayPlatformRequirement implements PlatformRequirement {
         this.playVersion = playVersion;
         this.scalaVersion = scalaVersion;
         this.javaVersion = javaVersion;
+        platformName = createName(playVersion, scalaVersion, javaVersion);
     }
 
-    // TODO:DAZ Better name
     @Override
     public String getPlatformName() {
-        return "play-" + getPlayVersion();
+        return platformName;
     }
 
     String getPlayVersion() {
@@ -44,5 +45,19 @@ public class PlayPlatformRequirement implements PlatformRequirement {
 
     String getJavaVersion() {
         return javaVersion;
+    }
+
+    private String createName(String playVersion, String scalaVersion, String javaVersion) {
+        StringBuilder builder = new StringBuilder("play-");
+        builder.append(playVersion);
+        if (scalaVersion != null) {
+            builder.append("-");
+            builder.append(scalaVersion);
+        }
+        if (javaVersion != null) {
+            builder.append("_");
+            builder.append(javaVersion);
+        }
+        return builder.toString();
     }
 }

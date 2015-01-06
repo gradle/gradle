@@ -38,18 +38,17 @@ public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
     public PlayPlatform resolve(PlatformRequirement platformRequirement) {
         if (platformRequirement instanceof PlayPlatformRequirement) {
             PlayPlatformRequirement requirement = (PlayPlatformRequirement) platformRequirement;
-            return resolve(requirement.getPlayVersion(), requirement.getScalaVersion(), requirement.getJavaVersion());
+            return resolve(requirement.getPlatformName(), requirement.getPlayVersion(), requirement.getScalaVersion(), requirement.getJavaVersion());
         }
         String playVersion = parsePlayVersionFromPlatformName(platformRequirement.getPlatformName());
-        return resolve(playVersion, null, null);
+        return resolve(platformRequirement.getPlatformName(), playVersion, null, null);
     }
 
-    private PlayPlatform resolve(String playVersion, String scalaVersion, String javaVersion) {
+    private PlayPlatform resolve(String name, String playVersion, String scalaVersion, String javaVersion) {
         PlayMajorVersion playMajorVersion = PlayMajorVersion.forPlayVersion(playVersion);
-
         JavaPlatform javaPlatform = getJavaPlatform(javaVersion);
         ScalaPlatform scalaPlatform = getScalaPlatform(playMajorVersion, scalaVersion);
-        return new DefaultPlayPlatform(playVersion, scalaPlatform, javaPlatform);
+        return new DefaultPlayPlatform(name, playVersion, scalaPlatform, javaPlatform);
     }
 
     private String parsePlayVersionFromPlatformName(String playPlatformName) {

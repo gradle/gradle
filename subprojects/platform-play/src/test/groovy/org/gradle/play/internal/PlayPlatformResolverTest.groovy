@@ -83,7 +83,7 @@ class PlayPlatformResolverTest extends Specification {
         def playPlatform = resolve play: "2.3.1", scala: "2.10"
 
         then:
-        playPlatform.name == "play-2.3.1"
+        playPlatform.name == "play-2.3.1-2.10"
         playPlatform.playVersion == "2.3.1"
         playPlatform.javaPlatform.targetCompatibility == JavaVersion.current()
         playPlatform.scalaPlatform.scalaVersion == "2.10.4"
@@ -121,7 +121,7 @@ class PlayPlatformResolverTest extends Specification {
         def playPlatform = resolve play: "2.3.1", java: "1.6"
 
         then:
-        playPlatform.name == "play-2.3.1"
+        playPlatform.name == "play-2.3.1_1.6"
         playPlatform.playVersion == "2.3.1"
         playPlatform.javaPlatform.targetCompatibility == JavaVersion.toVersion("1.6")
         playPlatform.scalaPlatform.scalaVersion == "2.11.4"
