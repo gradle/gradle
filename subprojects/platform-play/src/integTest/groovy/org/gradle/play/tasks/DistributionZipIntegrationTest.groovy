@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
                 id 'play'
@@ -67,7 +68,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dist"
 
         then:
-        zip("build/distributions/playBinary-1.0.zip").containsDescendants("playBinary-1.0/lib/play.jar")
+        zip("build/distributions/playBinary-1.0.zip").containsDescendants("playBinary-1.0/lib/dist-play-app.jar")
     }
 
     def "can add an additional arbitrary distribution" () {
@@ -99,16 +100,16 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         zip("build/distributions/mySpecialDist.zip").containsDescendants(
-                "mySpecialDist/play.jar",
-                "mySpecialDist/play-assets.jar",
+                "mySpecialDist/dist-play-app.jar",
+                "mySpecialDist/dist-play-app-assets.jar",
                 "mySpecialDist/txt/additionalFile.txt")
 
         when:
         succeeds "stage"
 
         then:
-        [ "play.jar",
-          "play-assets.jar",
+        [ "dist-play-app.jar",
+          "dist-play-app-assets.jar",
           "txt/additionalFile.txt"
         ].each { fileName ->
             file("build/stage/myDist/${fileName}").exists()

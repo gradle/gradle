@@ -27,6 +27,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
+        settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
                 id 'play-application'
@@ -78,8 +79,8 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         zip("build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/play.jar",
-                "playBinary/lib/play-assets.jar",
+                "playBinary/lib/dist-play-app.jar",
+                "playBinary/lib/dist-play-app-assets.jar",
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat"
         )
@@ -98,8 +99,8 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 ":scalaCompilePlayBinary")
 
         and:
-        [ "playBinary/lib/play.jar",
-          "playBinary/lib/play-assets.jar",
+        [ "playBinary/lib/dist-play-app.jar",
+          "playBinary/lib/dist-play-app-assets.jar",
           "playBinary/bin/playBinary",
           "playBinary/bin/playBinary.bat"
         ].each { fileName ->

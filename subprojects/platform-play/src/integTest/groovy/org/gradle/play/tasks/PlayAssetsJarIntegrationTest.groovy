@@ -23,30 +23,17 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
-class PlayApplicationJarIntegrationTest extends AbstractIntegrationSpec {
+class PlayAssetsJarIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        buildFile << """
-            plugins {
-                id 'play'
-            }
-
-            repositories{
-                jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-            }
-        """
-
         new BasicPlayApp().writeSources(testDirectory.file("."), PlayCoverage.LATEST)
+        settingsFile << """ rootProject.name = 'play-app' """
 
         when:
         succeeds "assemble"
 
         then:
         executedAndNotSkipped ":createPlayBinaryJar", ":createPlayBinaryAssetsJar"
-        jar("build/playBinary/lib/play-assets.jar").containsDescendants(
+        jar("build/playBinary/lib/play-app-assets.jar").containsDescendants(
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
@@ -70,7 +57,7 @@ class PlayApplicationJarIntegrationTest extends AbstractIntegrationSpec {
         skipped ":createPlayBinaryJar"
 
         and:
-        jar("build/playBinary/lib/play-assets.jar").assertFileContent("public/stylesheets/main.css", file("public/stylesheets/main.css").text)
+        jar("build/playBinary/lib/play-app-assets.jar").assertFileContent("public/stylesheets/main.css", file("public/stylesheets/main.css").text)
     }
 
     def "rebuilds when public assets are removed" () {
@@ -83,7 +70,7 @@ class PlayApplicationJarIntegrationTest extends AbstractIntegrationSpec {
         skipped ":createPlayBinaryJar"
 
         and:
-        jar("build/playBinary/lib/play-assets.jar").countFiles("public/stylesheets/main.css") == 0
+        jar("build/playBinary/lib/play-app-assets.jar").countFiles("public/stylesheets/main.css") == 0
     }
 
     JarTestFixture jar(String fileName) {

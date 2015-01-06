@@ -163,9 +163,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playBinaryInternal.setTargetPlatform(chosenPlatform);
                         playBinaryInternal.setToolChain(playToolChainInternal);
 
-                        // TODO:DAZ Artifact names need to be project-specific
-                        File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", componentSpec.getName()));
-                        File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", componentSpec.getName()));
+                        File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", projectIdentifier.getName()));
+                        File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", projectIdentifier.getName()));
                         playBinaryInternal.setJarFile(mainJar);
                         playBinaryInternal.setAssetsJarFile(assetsJar);
 

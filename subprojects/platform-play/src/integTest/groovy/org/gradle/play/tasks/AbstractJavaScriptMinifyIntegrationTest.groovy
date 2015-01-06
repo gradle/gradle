@@ -26,10 +26,14 @@ import org.gradle.util.TextUtil
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        settingsFile << """ rootProject.name = 'js-play-app' """
+    }
+
     abstract String getDefaultSourceSet();
 
     JarTestFixture getAssetsJar() {
-        jar("build/playBinary/lib/play-assets.jar")
+        jar("build/playBinary/lib/js-play-app-assets.jar")
     }
 
     JarTestFixture jar(String fileName) {

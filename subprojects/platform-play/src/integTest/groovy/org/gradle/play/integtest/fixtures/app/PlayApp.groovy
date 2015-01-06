@@ -21,6 +21,10 @@ import org.gradle.util.GFileUtils
 
 abstract class PlayApp {
 
+    String getName() {
+        getClass().getSimpleName().toLowerCase()
+    }
+
     List<SourceFile> getAllFiles() {
         return appSources + testSources + viewSources + assetSources + confSources + otherSources
     }
@@ -56,7 +60,7 @@ abstract class PlayApp {
     }
 
 
-    protected SourceFile sourceFile(String path, String name, String baseDir = getClass().getSimpleName().toLowerCase()) {
+    protected SourceFile sourceFile(String path, String name, String baseDir = getName()) {
         URL resource = getClass().getResource("$baseDir/$path/$name");
         File file = new File(resource.toURI())
         return new SourceFile(path, name, file.text);
@@ -72,7 +76,7 @@ abstract class PlayApp {
         }
     }
 
-    List<SourceFile> sourceFiles(String baseDir, String rootDir = getClass().getSimpleName().toLowerCase()) {
+    List<SourceFile> sourceFiles(String baseDir, String rootDir = getName()) {
         List sourceFiles = new ArrayList()
 
         URL resource = getClass().getResource("$rootDir/$baseDir")

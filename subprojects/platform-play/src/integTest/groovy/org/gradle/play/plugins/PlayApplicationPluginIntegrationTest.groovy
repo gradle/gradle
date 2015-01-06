@@ -27,9 +27,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
-        settingsFile << """
-        rootProject.name = 'play-app'
-"""
+        settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
         plugins {
             id 'play-application'
@@ -91,11 +89,11 @@ Binaries
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        jar("build/playBinary/lib/play.jar").hasDescendants()
-        jar("build/playBinary/lib/play-assets.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {
-        new JarTestFixture(file(fileName))
+           new JarTestFixture(file(fileName))
     }
 }

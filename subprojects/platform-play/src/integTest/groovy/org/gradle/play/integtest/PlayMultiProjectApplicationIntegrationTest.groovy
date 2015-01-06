@@ -56,14 +56,14 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
                 ":primary:assemble")
 
         and:
-        jar("primary/build/playBinary/lib/play.jar").containsDescendants(
+        jar("primary/build/playBinary/lib/primary.jar").containsDescendants(
                 "Routes.class",
                 "controllers/Application.class")
-        jar("primary/build/playBinary/lib/play-assets.jar").hasDescendants(
+        jar("primary/build/playBinary/lib/primary-assets.jar").hasDescendants(
                 "public/primary.txt")
-        jar("submodule/build/playBinary/lib/play.jar").containsDescendants(
+        jar("submodule/build/playBinary/lib/submodule.jar").containsDescendants(
                 "controllers/submodule/Application.class")
-        jar("submodule/build/playBinary/lib/play-assets.jar").hasDescendants(
+        jar("submodule/build/playBinary/lib/submodule-assets.jar").hasDescendants(
                 "public/submodule.txt")
 
         when:
@@ -71,8 +71,11 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         zip("primary/build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/play.jar",
-                "playBinary/lib/play-assets.jar",
+                "playBinary/lib/primary.jar",
+                "playBinary/lib/primary-assets.jar",
+                "playBinary/lib/submodule.jar",
+                "playBinary/lib/submodule-assets.jar",
+                "playBinary/lib/javalibrary.jar",
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat",
                 "playBinary/conf/application.conf"
@@ -83,8 +86,10 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         file("primary/build/stage/playBinary").assertIsDir().assertContainsDescendants(
-                "lib/play.jar",
-                "lib/play-assets.jar",
+                "lib/primary.jar",
+                "lib/primary-assets.jar",
+                "lib/submodule.jar",
+                "lib/submodule-assets.jar",
                 "bin/playBinary",
                 "bin/playBinary.bat",
                 "conf/application.conf"

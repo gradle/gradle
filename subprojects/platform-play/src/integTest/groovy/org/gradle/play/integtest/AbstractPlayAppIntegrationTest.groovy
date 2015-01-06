@@ -41,6 +41,7 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
 
     def setup() {
         playApp.writeSources(testDirectory.file("."), version.toString())
+        settingsFile << """ rootProject.name = '${playApp.name}' """
     }
 
     def "can build play app binary"() {
@@ -227,13 +228,13 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
     }
 
     void verifyJars() {
-        jar("build/playBinary/lib/play.jar").containsDescendants(
+        jar("build/playBinary/lib/${playApp.name}.jar").containsDescendants(
                 "Routes.class",
                 "views/html/index.class",
                 "views/html/main.class",
                 "controllers/Application.class",
                 "application.conf")
-        jar("build/playBinary/lib/play-assets.jar").containsDescendants(
+        jar("build/playBinary/lib/${playApp.name}-assets.jar").containsDescendants(
                 "public/images/favicon.svg",
                 "public/stylesheets/main.css",
                 "public/javascripts/hello.js")
@@ -241,8 +242,8 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
 
     void verifyZips() {
         zip("build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/play.jar",
-                "playBinary/lib/play-assets.jar",
+                "playBinary/lib/${playApp.name}.jar",
+                "playBinary/lib/${playApp.name}-assets.jar",
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat",
                 "playBinary/conf/application.conf",
@@ -252,14 +253,15 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
 
     void verifyStaged() {
         stagedFilesExist(
-                "lib/play.jar",
-                "lib/play-assets.jar",
+                "lib/${playApp.name}.jar",
+                "lib/${playApp.name}-assets.jar",
                 "bin/playBinary",
                 "bin/playBinary.bat",
                 "conf/application.conf",
                 "README")
     }
 
+    // TODO:DAZ Use TestFile.assertContainsDescendants()
     void stagedFilesExist(String... files) {
         files.each { fileName ->
             assert file("build/stage/playBinary/${fileName}").exists()
