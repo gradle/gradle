@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.util.concurrent.MoreExecutors;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.FixedExecutorFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -26,9 +25,6 @@ import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.util.TreeVisitor;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  */
@@ -38,22 +34,7 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
 
     public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, final int numberOfThreads) {
         this.targetOperatingSystem = targetOperatingSystem;
-        this.executorFactory = createExecutorFactory(numberOfThreads);
-    }
-
-    protected static ExecutorFactory createExecutorFactory(final int numberOfThreads) {
-        return new DefaultExecutorFactory() {
-            @Override
-            protected ExecutorService createExecutor(String displayName) {
-                if (numberOfThreads < 0) {
-                    return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl(displayName));
-                } else if (numberOfThreads == 0) {
-                    return MoreExecutors.sameThreadExecutor();
-                } else {
-                    return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
-                }
-            }
-        };
+        this.executorFactory = new FixedExecutorFactory(numberOfThreads);
     }
 
     public boolean isAvailable() {
