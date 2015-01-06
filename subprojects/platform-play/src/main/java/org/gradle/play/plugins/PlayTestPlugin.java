@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -99,10 +98,7 @@ public class PlayTestPlugin {
     }
 
     private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
-        FileCollection testClasses = new SimpleFileCollection(binary.getJarFile());
-        Configuration testCompileDependencies = configurations.getPlayTest();
-        FileCollection platformTestDependencies = playToolProvider.getPlayTestDependencies();
-        return testClasses.plus(testCompileDependencies).plus(platformTestDependencies);
+        return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getFileCollection());
     }
 
     private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {

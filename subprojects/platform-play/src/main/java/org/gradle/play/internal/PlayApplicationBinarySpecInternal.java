@@ -42,5 +42,5 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     // TODO:DAZ Should be a Classpath instance
     FileCollection getClasspath();
 
-    void addClasspath(FileCollection applicationClasspath);
+    void setClasspath(FileCollection applicationClasspath);
 }

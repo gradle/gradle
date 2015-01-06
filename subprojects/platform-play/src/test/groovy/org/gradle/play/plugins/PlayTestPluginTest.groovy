@@ -19,6 +19,7 @@ package org.gradle.play.plugins
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.tasks.testing.Test
@@ -43,6 +44,7 @@ class PlayTestPluginTest extends Specification {
 
     def configuration = Stub(Configuration)
     def configurations = Mock(ConfigurationContainer)
+    def dependencyHandler = Mock(DependencyHandler)
 
     File buildDir = new File("tmp")
 
@@ -67,7 +69,7 @@ class PlayTestPluginTest extends Specification {
         1 * playToolChain.select(playPlatform) >> playToolProvider
 
         when:
-        plugin.createTestTasks(taskCollectionBuilder, binaryContainer, new PlayPluginConfigurations(configurations), fileResolver, projectIdentifier, buildDir)
+        plugin.createTestTasks(taskCollectionBuilder, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
 
         then:
         1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)

@@ -44,12 +44,11 @@ class PlayRunTest extends Specification {
     def setup(){
         playRun = TestUtil.createTask(PlayRun, [__toolChain__: toolChain])
         playRun.applicationJar = new File("application.jar")
-        playRun.applicationClasspath = new SimpleFileCollection()
+        playRun.runtimeClasspath = new SimpleFileCollection()
 
         _ * playPlatform.playVersion >> "2.2.3"
         _ * playPlatform.scalaMainVersion >> "2.10"
         1 * toolChain.select(playPlatform) >> toolProvider
-        1 * toolProvider.playRuntimeDependencies >> new SimpleFileCollection()
         playRun.targetPlatform = playPlatform
         _ * playApplicationRunner.start() >> runnerToken
 

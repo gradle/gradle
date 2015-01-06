@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal;
 
-import com.beust.jcommander.internal.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -29,7 +28,6 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
-import java.util.List;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
@@ -39,7 +37,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
-    private List<FileCollection> classpath = Lists.newArrayList();
+    private FileCollection classpath;
 
     @Override
     protected String getTypeName() {
@@ -96,19 +94,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public FileCollection getClasspath() {
-        return join(getToolChain().select(getTargetPlatform()).getPlayDependencies(), classpath);
+        return classpath;
     }
 
     @Override
-    public void addClasspath(FileCollection classpath) {
-        this.classpath.add(classpath);
-    }
-
-    private FileCollection join(FileCollection platformClasses, List<FileCollection> applicationClasses) {
-        List<FileCollection> all = Lists.newArrayList();
-        all.add(platformClasses);
-        all.addAll(applicationClasses);
-        return new UnionFileCollection(all);
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

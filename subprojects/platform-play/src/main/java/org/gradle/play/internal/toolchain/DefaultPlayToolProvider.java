@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.WorkResult;
@@ -44,8 +43,10 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.WrapUtil;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class DefaultPlayToolProvider implements PlayToolProvider {
 
@@ -65,17 +66,20 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
     }
 
+    // TODO:DAZ Detangle Twirl/Routes adapter from compile specs
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
         if (spec instanceof TwirlCompileSpec) {
             TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec) spec;
             VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
-            DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
+            Set<File> twirlClasspath = resolveToolClasspath(versionedSpec.getDependencyNotation()).getFiles();
+            DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, twirlClasspath);
             @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
             return twirlCompileSpecCompiler;
         } else if (spec instanceof RoutesCompileSpec) {
             RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec) spec;
             VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
-            DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, resolveClasspath(versionedSpec.getDependencyNotation()).getFiles());
+            Set<File> routesClasspath = resolveToolClasspath(versionedSpec.getDependencyNotation()).getFiles();
+            DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, routesClasspath);
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
             return routesSpecCompiler;
         }
@@ -97,35 +101,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         }
     }
 
-    public FileCollection getPlayDependencies() {
-        return getPlatformDependencies("play");
-    }
-
-    @Override
-    public FileCollection getPlayRuntimeDependencies() {
-        return getPlatformDependencies("play", "play-docs");
-    }
-
-    public FileCollection getPlayTestDependencies() {
-        return getPlatformDependencies("play-test");
-    }
-
-    private FileCollection getPlatformDependencies(String... modules) {
-        List<Dependency> dependencies = CollectionUtils.collect(modules, new Transformer<Dependency, String>() {
-            public Dependency transform(String module) {
-                String dependencyNotation = getDependencyNotation(module);
-                return dependencyHandler.create(dependencyNotation);
-            }
-        });
-        Dependency[] dependenciesArray = dependencies.toArray(new Dependency[dependencies.size()]);
-        return configurationContainer.detachedConfiguration(dependenciesArray);
-    }
-
-    private String getDependencyNotation(String module) {
-        return String.format("com.typesafe.play:%s_%s:%s", module, targetPlatform.getScalaPlatform().getScalaCompatibilityVersion(), targetPlatform.getPlayVersion());
-    }
-
-    private Configuration resolveClasspath(Object... dependencyNotations) {
+    private Configuration resolveToolClasspath(Object... dependencyNotations) {
         List<Dependency> dependencies = CollectionUtils.collect(dependencyNotations, new Transformer<Dependency, Object>() {
             public Dependency transform(Object dependencyNotation) {
                 return dependencyHandler.create(dependencyNotation);

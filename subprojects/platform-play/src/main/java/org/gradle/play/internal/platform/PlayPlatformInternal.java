@@ -16,21 +16,8 @@
 
 package org.gradle.play.internal.platform;
 
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.scala.ScalaPlatform;
-import org.gradle.model.Managed;
 import org.gradle.play.platform.PlayPlatform;
 
-@Managed
 public interface PlayPlatformInternal extends PlayPlatform {
-
-    void setName(String name);
-
-    void setDisplayName(String displayName);
-
-    void setPlayVersion(String playVersion);
-
-    void setScalaPlatform(ScalaPlatform scalaPlatform);
-
-    void setJavaPlatform(JavaPlatform javaPlatform);
+    String getDependencyNotation(String playModule);
 }

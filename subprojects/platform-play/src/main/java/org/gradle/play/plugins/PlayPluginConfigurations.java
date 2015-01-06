@@ -19,6 +19,9 @@ package org.gradle.play.plugins;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.FileCollection;
 
 /**
  * Conventional locations and names for play plugins.
@@ -26,33 +29,65 @@ import org.gradle.api.artifacts.Dependency;
 public class PlayPluginConfigurations {
     public static final String PLATFORM_CONFIGURATION = "playPlatform";
     public static final String COMPILE_CONFIGURATION = "play";
+    public static final String RUN_CONFIGURATION = "playRun";
     public static final String TEST_COMPILE_CONFIGURATION = "playTest";
 
-    private final Configuration playPlatform;
-    private final Configuration playCompile;
-    private final Configuration playTestCompile;
+    private final ConfigurationContainer configurations;
+    private final DependencyHandler dependencyHandler;
 
-    public PlayPluginConfigurations(ConfigurationContainer configurations) {
-        playPlatform = configurations.create(PLATFORM_CONFIGURATION);
+    public PlayPluginConfigurations(ConfigurationContainer configurations, DependencyHandler dependencyHandler) {
+        this.configurations = configurations;
+        this.dependencyHandler = dependencyHandler;
+        Configuration playPlatform = configurations.create(PLATFORM_CONFIGURATION);
 
-        playCompile = configurations.create(COMPILE_CONFIGURATION);
+        Configuration playCompile = configurations.create(COMPILE_CONFIGURATION);
         playCompile.extendsFrom(playPlatform);
 
-        playTestCompile = configurations.create(TEST_COMPILE_CONFIGURATION);
+        Configuration playRun = configurations.create(RUN_CONFIGURATION);
+        playRun.extendsFrom(playCompile);
+
+        Configuration playTestCompile = configurations.create(TEST_COMPILE_CONFIGURATION);
         playTestCompile.extendsFrom(playCompile);
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).extendsFrom(playCompile);
     }
 
-    public Configuration getPlayPlatform() {
-        return playPlatform;
+    public PlayConfiguration getPlayPlatform() {
+        return new PlayConfiguration(PLATFORM_CONFIGURATION);
     }
 
-    public Configuration getPlay() {
-        return playCompile;
+    public PlayConfiguration getPlay() {
+        return new PlayConfiguration(COMPILE_CONFIGURATION);
     }
 
-    public Configuration getPlayTest() {
-        return playTestCompile;
+    public PlayConfiguration getPlayRun() {
+        return new PlayConfiguration(RUN_CONFIGURATION);
+    }
+
+    public PlayConfiguration getPlayTest() {
+        return new PlayConfiguration(TEST_COMPILE_CONFIGURATION);
+    }
+
+    /**
+     * Wrapper around a Configuration instance used by the PlayApplicationPlugin.
+     */
+    class PlayConfiguration {
+        private final String name;
+
+        PlayConfiguration(String name) {
+            this.name = name;
+        }
+
+        FileCollection getFileCollection() {
+            return configurations.getByName(name);
+        }
+        
+        void addDependency(String notation) {
+            dependencyHandler.add(name, notation);
+        }
+
+        void addArtifact(PublishArtifact artifact) {
+            configurations.getByName(name).getArtifacts().add(artifact);
+        }
     }
 }

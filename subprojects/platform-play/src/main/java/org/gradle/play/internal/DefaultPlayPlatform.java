@@ -17,9 +17,9 @@ package org.gradle.play.internal;
 
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.scala.ScalaPlatform;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.platform.PlayPlatformInternal;
 
-public class DefaultPlayPlatform implements PlayPlatform {
+public class DefaultPlayPlatform implements PlayPlatformInternal {
     private final String playVersion;
     private final ScalaPlatform scalaPlatform;
     private final JavaPlatform javaPlatform;
@@ -55,5 +55,10 @@ public class DefaultPlayPlatform implements PlayPlatform {
     @Override
     public JavaPlatform getJavaPlatform() {
         return javaPlatform;
+    }
+
+    @Override
+    public String getDependencyNotation(String playModule) {
+        return String.format("com.typesafe.play:%s_%s:%s", playModule, scalaPlatform.getScalaCompatibilityVersion(), playVersion);
     }
 }

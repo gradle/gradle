@@ -43,18 +43,16 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
+import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
@@ -67,7 +65,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations());
+        project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
     }
 
     /**
@@ -148,59 +146,69 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
-                            PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations,
+                            final PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations,
                             final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            for (final PlayPlatform chosenPlatform : resolveTargetPlatforms(componentSpec, platforms)) {
-                final String binaryName = String.format("%sBinary", componentSpec.getName());
-                final File binaryBuildDir = new File(buildDir, binaryName);
-                binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
-                    public void execute(PlayApplicationBinarySpec playBinary) {
-                        PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+            final String binaryName = String.format("%sBinary", componentSpec.getName());
 
-                        playBinaryInternal.setTargetPlatform(chosenPlatform);
-                        playBinaryInternal.setToolChain(playToolChainInternal);
+            binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
+                public void execute(PlayApplicationBinarySpec playBinary) {
+                    PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+                    final File binaryBuildDir = new File(buildDir, binaryName);
 
-                        File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", projectIdentifier.getName()));
-                        File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", projectIdentifier.getName()));
-                        playBinaryInternal.setJarFile(mainJar);
-                        playBinaryInternal.setAssetsJarFile(assetsJar);
+                    final PlayPlatform chosenPlatform = resolveTargetPlatform(componentSpec, platforms, configurations);
+                    initialiseConfigurations(configurations, chosenPlatform);
 
-                        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", null, new Date(), mainJar, playBinaryInternal));
-                        configurations.getPlay().getArtifacts().add(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", "assets", new Date(), assetsJar, playBinaryInternal));
+                    playBinaryInternal.setTargetPlatform(chosenPlatform);
+                    playBinaryInternal.setToolChain(playToolChainInternal);
 
-                        JvmClasses classes = playBinary.getClasses();
-                        classes.setClassesDir(new File(binaryBuildDir, "classes"));
+                    File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", projectIdentifier.getName()));
+                    File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", projectIdentifier.getName()));
+                    playBinaryInternal.setJarFile(mainJar);
+                    playBinaryInternal.setAssetsJarFile(assetsJar);
 
-                        // TODO:DAZ These should be configured on the component
-                        classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
+                    configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", null, new Date(), mainJar, playBinaryInternal));
+                    configurations.getPlay().addArtifact(new DefaultPublishArtifact(projectIdentifier.getName(), "jar", "jar", "assets", new Date(), assetsJar, playBinaryInternal));
 
-                        PublicAssets assets = playBinary.getAssets();
-                        assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
+                    JvmClasses classes = playBinary.getClasses();
+                    classes.setClassesDir(new File(binaryBuildDir, "classes"));
 
-                        ScalaLanguageSourceSet genSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "genSources", binaryName, fileResolver, instantiator);
-                        playBinaryInternal.setGeneratedScala(genSources);
+                    // TODO:DAZ These should be configured on the component
+                    classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
 
-                        playBinaryInternal.addClasspath(configurations.getPlay());
-                    }
-                });
-            }
-        }
+                    PublicAssets assets = playBinary.getAssets();
+                    assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-        private List<PlayPlatform> resolveTargetPlatforms(PlayApplicationSpec componentSpec, final PlatformResolvers platforms) {
-            List<PlatformRequirement> targetPlatforms = ((PlayApplicationSpecInternal) componentSpec).getTargetPlatforms();
-            if (targetPlatforms.isEmpty()) {
-                String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
-                targetPlatforms = Collections.singletonList(DefaultPlatformRequirement.create(defaultPlayPlatform));
-            }
-            return CollectionUtils.collect(targetPlatforms, new Transformer<PlayPlatform, PlatformRequirement>() {
-                @Override
-                public PlayPlatform transform(PlatformRequirement platformRequirement) {
-                    return platforms.resolve(PlayPlatform.class, platformRequirement);
+                    ScalaLanguageSourceSet genSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "genSources", binaryName, fileResolver, instantiator);
+                    playBinaryInternal.setGeneratedScala(genSources);
+
+                    playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
                 }
             });
+        }
+
+        private PlayPlatform resolveTargetPlatform(PlayApplicationSpec componentSpec, final PlatformResolvers platforms, PlayPluginConfigurations configurations) {
+            PlatformRequirement targetPlatform = getTargetPlatform((PlayApplicationSpecInternal) componentSpec);
+            return platforms.resolve(PlayPlatform.class, targetPlatform);
+        }
+
+        private PlatformRequirement getTargetPlatform(PlayApplicationSpecInternal playApplicationSpec) {
+            if (playApplicationSpec.getTargetPlatforms().isEmpty()) {
+                String defaultPlayPlatform = String.format("play-%s", DEFAULT_PLAY_VERSION);
+                return DefaultPlatformRequirement.create(defaultPlayPlatform);
+            }
+            if (playApplicationSpec.getTargetPlatforms().size() == 1) {
+                return playApplicationSpec.getTargetPlatforms().get(0);
+            }
+            throw new InvalidUserDataException("Play application can only target a single platform");
+        }
+
+        private void initialiseConfigurations(PlayPluginConfigurations configurations, PlayPlatform playPlatform) {
+            configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play"));
+            configurations.getPlayTest().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-test"));
+            configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
         }
 
         @BinaryTasks
@@ -300,7 +308,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer) {
+        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations) {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
@@ -309,7 +317,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setTargetPlatform(binary.getTargetPlatform());
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
-                        playRun.setApplicationClasspath(binary.getClasspath());
+                        playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });
