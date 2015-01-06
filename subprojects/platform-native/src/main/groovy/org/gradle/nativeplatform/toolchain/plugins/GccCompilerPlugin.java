@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
@@ -49,15 +50,18 @@ public class GccCompilerPlugin implements Plugin<Project> {
     @RuleSource
     public static class Rules {
         @Mutate
-        public static void addGccToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
+        public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+
+            final StartParameter startParameter = serviceRegistry.get(StartParameter.class);
+
             final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
 
             toolChainRegistry.registerFactory(Gcc.class, new NamedDomainObjectFactory<Gcc>() {
                 public Gcc create(String name) {
-                    return instantiator.newInstance(GccToolChain.class, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory, metaDataProviderFactory);
+                    return instantiator.newInstance(GccToolChain.class, instantiator, name, OperatingSystem.current(), fileResolver, execActionFactory, startParameter, metaDataProviderFactory);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc.class);

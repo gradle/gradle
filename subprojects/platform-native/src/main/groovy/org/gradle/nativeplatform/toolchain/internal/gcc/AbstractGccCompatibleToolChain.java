@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
@@ -52,18 +53,20 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final ToolSearchPath toolSearchPath;
     private final List<TargetPlatformConfiguration> platformConfigs = new ArrayList<TargetPlatformConfiguration>();
     private final CompilerMetaDataProvider metaDataProvider;
+    private final StartParameter startParameter;
     private final Instantiator instantiator;
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
-        this(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), metaDataProvider, instantiator);
+    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+        this(name, operatingSystem, fileResolver, execActionFactory, startParameter, new ToolSearchPath(operatingSystem), metaDataProvider, instantiator);
     }
 
-    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = tools;
         this.metaDataProvider = metaDataProvider;
+        this.startParameter = startParameter;
         this.instantiator = instantiator;
 
         target(new Intel32Architecture());
@@ -125,7 +128,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, configurableToolChain.isCanUseCommandFile());
+        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, startParameter.getParallelThreadCount(), configurableToolChain.isCanUseCommandFile());
     }
 
     protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {

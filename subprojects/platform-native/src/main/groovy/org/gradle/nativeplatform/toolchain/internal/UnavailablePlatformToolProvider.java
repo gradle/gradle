@@ -28,7 +28,7 @@ public class UnavailablePlatformToolProvider extends AbstractPlatformToolProvide
     private final ToolSearchResult failure;
 
     public UnavailablePlatformToolProvider(OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
-        super(operatingSystem);
+        super(operatingSystem, 0);
         this.failure = failure;
     }
 

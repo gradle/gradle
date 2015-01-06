@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -43,6 +44,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
+    private final StartParameter startParameter;
     private final Instantiator instantiator;
     private File installDir;
     private File windowsSdkDir;
@@ -50,7 +52,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private WindowsSdk windowsSdk;
     private ToolChainAvailability availability;
 
-    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
+    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
         super(name, operatingSystem, fileResolver);
 
@@ -60,6 +62,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
+        this.startParameter = startParameter;
         this.instantiator = instantiator;
     }
 
@@ -96,7 +99,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
+        return new VisualCppPlatformToolProvider(targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory, startParameter.getParallelThreadCount());
     }
 
     private ToolChainAvailability getAvailability() {

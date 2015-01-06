@@ -42,8 +42,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ExecActionFactory execActionFactory;
     private final String outputFileSuffix;
 
-    VisualCppPlatformToolProvider(OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
-        super(operatingSystem);
+    VisualCppPlatformToolProvider(OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory, int numberOfThreads) {
+        super(operatingSystem, numberOfThreads);
         this.commandLineToolConfigurations = commandLineToolConfigurations;
         this.visualCpp = visualCpp;
         this.sdk = sdk;

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
@@ -50,17 +51,18 @@ public class MicrosoftVisualCppPlugin implements Plugin<Project> {
     @RuleSource
     public static class Rules {
         @Mutate
-        public static void addGccToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
+        public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final OperatingSystem operatingSystem = serviceRegistry.get(OperatingSystem.class);
+            final StartParameter startParameter = serviceRegistry.get(StartParameter.class);
             final VisualStudioLocator visualStudioLocator = serviceRegistry.get(VisualStudioLocator.class);
             final WindowsSdkLocator windowsSdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
 
             toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {
                 public VisualCpp create(String name) {
-                    return instantiator.newInstance(VisualCppToolChain.class, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator);
+                    return instantiator.newInstance(VisualCppToolChain.class, name, operatingSystem, fileResolver, execActionFactory, startParameter, visualStudioLocator, windowsSdkLocator, instantiator);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp.class);

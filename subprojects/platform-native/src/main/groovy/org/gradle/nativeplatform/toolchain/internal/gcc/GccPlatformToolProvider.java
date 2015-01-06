@@ -33,8 +33,8 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private final boolean useCommandFile;
     private final String outputFileSuffix;
 
-    GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, boolean useCommandFile) {
-        super(targetOperatingSystem);
+    GccPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, int numberOfThreads, boolean useCommandFile) {
+        super(targetOperatingSystem, numberOfThreads);
         this.toolRegistry = toolRegistry;
         this.toolSearchPath = toolSearchPath;
         this.useCommandFile = useCommandFile;

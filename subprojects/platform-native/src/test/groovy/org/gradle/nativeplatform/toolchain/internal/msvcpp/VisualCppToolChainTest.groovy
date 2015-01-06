@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
@@ -36,6 +37,7 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
+    final StartParameter startParameter = Stub(StartParameter)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
     final Instantiator instantiator = new DirectInstantiator()
@@ -52,14 +54,14 @@ class VisualCppToolChainTest extends Specification {
     }
 
     def setup() {
-        toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, startParameter, visualStudioLocator, windowsSdkLocator, instantiator)
     }
 
     def "installs an unavailable tool chain when not windows"() {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, startParameter, visualStudioLocator, windowsSdkLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()

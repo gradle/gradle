@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -33,17 +34,24 @@ import java.util.concurrent.Executors;
  */
 public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
-
-    // TODO: Hardcoded to a max of 4 threads for now
-    private final int numberOfThreads = 4;
     protected final ExecutorFactory executorFactory;
 
-    public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem) {
+    public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, final int numberOfThreads) {
         this.targetOperatingSystem = targetOperatingSystem;
-        this.executorFactory = new DefaultExecutorFactory() {
+        this.executorFactory = createExecutorFactory(numberOfThreads);
+    }
+
+    protected static ExecutorFactory createExecutorFactory(final int numberOfThreads) {
+        return new DefaultExecutorFactory() {
             @Override
             protected ExecutorService createExecutor(String displayName) {
-                return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
+                if (numberOfThreads < 0) {
+                    return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl(displayName));
+                } else if (numberOfThreads == 0) {
+                    return MoreExecutors.sameThreadExecutor();
+                } else {
+                    return Executors.newFixedThreadPool(numberOfThreads, new ThreadFactoryImpl(displayName));
+                }
             }
         };
     }
