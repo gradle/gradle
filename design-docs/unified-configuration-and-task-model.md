@@ -186,6 +186,69 @@ Rules are discovered through the application of plugins, and execution of build 
 We can use the order of plugin application, and rules in build scripts.
 Within a plugin, rules can be ordered in some deterministic way (e.g. sort rules by signature).
 
+## Mutation rule creates/configures collection element via rule with inputs (a.k.a. inner rules)
+
+This story makes it possible for collection elements to be declared (i.e. created on demand) and use “local” inputs in their initial configuration.
+
+    @Mutate
+    void configureAssembleTask(ManagedMap<Task> tasks) {
+      tasks.named("assemble", new Rule() {
+        void rule(Task assemble, BinaryContainer binaries) {
+          assemble.dependsOn(binaries*.tasks)
+        }    
+      })
+    }
+
+The key difference is that use of `Rule` instead of `Action` allows inputs to be targeted to this rule.
+In the above example, the binary container is only required to be realised when realising the assemble task, opposed to realising the task container (as use of an action rule would require).
+
+All “rule taking” methods of `ManagedMap` will be overloaded to accept the following types for rule implementation:
+
+1. Action - does not support targeted inputs
+2. ModelRule (new type) - supports AIC usage
+3. Class<? extends ModelRule> - supports declaring rules as a nested class (semantically equivalent to Rule usage)
+4. (implicit Closure → Action coercion added by decoration)
+
+All `org.gradle.model.Rule` implementations have the following requirements:
+
+1. Must declare exactly one, public, method
+1. Method must take at least one parameter
+1. Must not declare constructor
+1. Class must be public scoped
+1. Rule method cannot declare target phase (e.g. @Model/@Mutate)
+1. Type cannot declare fields
+1. Must extend directly from `Rule` (i.e. rules extending rules is not supported)
+
+The method consuming the rule can define context and constraints on the implementation (that must be validated at runtime).
+Used in the context of this story, the subject of the rule is imposed as is the lifecycle phase of the rule.
+For example, the `beforeEach` and `afterEach` methods impose the lifecycle phase.
+The scope of input/subject bindings are also imposed by the rule taking method.
+
+> The use of `Rule` is different to the use of “rule sources”. 
+> A rule source is applied to a scope (e.g. Project) and can provide different kinds of rules targeting any child objects and of different lifecycle phases.
+> `Rule` can be thought of as both sugar for a rule source and for use when only a constrained rule makes sense (e.g. imposed lifecycle phase/subject), in other words as an input taking action.
+> Rule source equivalents could be added to the collection types later with methods that don't impose a lifecycle, leaving the defined rules to use `@Model`/`@Mutate` lifecycle annotations to indicate the phase.
+> e.g. `ManagedMap.apply(Class<?> rules)`
+
+### Implementation plan
+
+1. Add `org.gradle.model.Rule` (abstract, no methods)
+1. Add overloads to `ManagedMap`
+1. Add service for extracting targeted wrapper over `MethodRuleDefinition` for extracting rule from `Rule`
+1. Add methods to `MethodRuleDefinition` wrapper for creating `ModelActionRole`/`ModelAction` pair with specified lifecycle etc.
+1. Apply action to underlying node
+1. Synchronize `RuleSourceBackedRuleAction` used in dependency management to match this usage pattern
+
+### Test coverage
+
+1. `Rule` impl given as both object and class conforms to general constraints (e.g. no fields)
+1. Rule can successfully bind to inputs, which are only realised if rule is required
+1. Rule input binding failure yields useful error message
+1. Rule execution failure yields useful error message, allowing user to identify failed rule
+1. Rule context specific constraint violations yield useful error message (e.g. rules to `ManagedMap<Task>` methods requiring first rule param to be a `Task`)
+1. Extraction of rule from `Rule` impl is performed once and cached 
+1. For `ManagedMap` rules, first rule param must be assignment compatible type of value type, or of relevant type if rule method changes types
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
