@@ -59,6 +59,11 @@ public class DefaultCommandLineTool implements CommandLineTool {
             public void run() {
                 DefaultCommandLineTool.this.internalExecute(invocation);
             }
+
+            @Override
+            public String toString() {
+                return DefaultCommandLineTool.this.toString();
+            }
         };
     }
 
