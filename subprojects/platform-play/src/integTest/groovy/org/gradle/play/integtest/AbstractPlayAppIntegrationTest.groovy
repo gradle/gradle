@@ -40,8 +40,17 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
     def portFinder = AvailablePortFinder.createPrivate()
 
     def setup() {
-        playApp.writeSources(testDirectory.file("."), version.toString())
+        playApp.writeSources(file("."))
         settingsFile << """ rootProject.name = '${playApp.name}' """
+        buildFile << """
+model {
+    components {
+        play {
+            targetPlatform "play-${version}"
+        }
+    }
+}
+"""
     }
 
     def "can build play app binary"() {

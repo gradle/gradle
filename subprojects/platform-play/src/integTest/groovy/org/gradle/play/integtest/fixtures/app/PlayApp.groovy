@@ -66,11 +66,8 @@ abstract class PlayApp {
         return new SourceFile(path, name, file.text);
     }
 
-    void writeSources(TestFile sourceDir, String playVersion) {
-        def buildFile = gradleBuild.writeToDir(sourceDir)
-        if (playVersion != null) {
-            buildFile.text = buildFile.text.replace("2.3.7", playVersion)
-        }
+    void writeSources(TestFile sourceDir) {
+        gradleBuild.writeToDir(sourceDir)
         for (SourceFile srcFile : allFiles) {
             srcFile.writeToDir(sourceDir)
         }

@@ -3,14 +3,6 @@ plugins {
     id 'play-coffeescript'
 }
 
-model {
-    components {
-        play {
-            targetPlatform "play-2.3.7"
-        }
-    }
-}
-
 repositories {
     jcenter()
     maven{

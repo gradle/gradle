@@ -19,7 +19,6 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
-import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.process.internal.ExecHandle
@@ -41,7 +40,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     def portFinder = AvailablePortFinder.createPrivate()
 
     def setup() {
-        playApp.writeSources(file("."), PlayCoverage.LATEST)
+        playApp.writeSources(file("."))
     }
 
     def "can build play app binary"() {

@@ -2,14 +2,6 @@ plugins {
     id 'play'
 }
 
-model {
-    components {
-        play {
-            targetPlatform "play-2.3.7"
-        }
-    }
-}
-
 repositories {
     jcenter()
     maven{

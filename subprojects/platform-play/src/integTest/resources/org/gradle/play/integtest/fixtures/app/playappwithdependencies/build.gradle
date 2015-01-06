@@ -2,14 +2,6 @@ plugins {
     id 'play'
 }
 
-model {
-    components {
-        play {
-            targetPlatform "play-2.3.7"
-        }
-    }
-}
-
 dependencies {
     play "com.google.guava:guava:17.0"
     playTest "commons-lang:commons-lang:2.6"
