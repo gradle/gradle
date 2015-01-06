@@ -59,9 +59,10 @@ class AdvancedPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationT
     void verifyStaged() {
         super.verifyStaged()
 
-        stagedFilesExist(
+        file("build/stage/playBinary").assertContainsDescendants(
                 "conf/jva.routes",
-                "conf/scala.routes")
+                "conf/scala.routes"
+        )
     }
 
     @Override

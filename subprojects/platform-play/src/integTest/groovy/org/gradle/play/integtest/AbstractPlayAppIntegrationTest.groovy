@@ -261,20 +261,14 @@ model {
     }
 
     void verifyStaged() {
-        stagedFilesExist(
+        file("build/stage/playBinary").assertContainsDescendants(
                 "lib/${playApp.name}.jar",
                 "lib/${playApp.name}-assets.jar",
                 "bin/playBinary",
                 "bin/playBinary.bat",
                 "conf/application.conf",
-                "README")
-    }
-
-    // TODO:DAZ Use TestFile.assertContainsDescendants()
-    void stagedFilesExist(String... files) {
-        files.each { fileName ->
-            assert file("build/stage/playBinary/${fileName}").exists()
-        }
+                "README"
+        )
     }
 
     void verifyContent() {
