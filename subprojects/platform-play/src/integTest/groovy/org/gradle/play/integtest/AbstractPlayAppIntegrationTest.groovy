@@ -16,11 +16,11 @@
 
 package org.gradle.play.integtest
 
-import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.process.internal.ExecHandle
@@ -278,28 +278,5 @@ abstract class AbstractPlayAppIntegrationTest extends PlayMultiVersionIntegratio
     }
 
     void verifyTestOutput(TestExecutionResult result) {
-    }
-
-    class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
-        final String port
-
-        DistributionTestExecHandleBuilder(String port, String baseDirName) {
-            super()
-            this.port = port
-
-            def extension = ""
-            if (OperatingSystem.current().windows) {
-                extension = ".bat"
-            }
-
-            this.setExecutable("${baseDirName}/playBinary/bin/playBinary${extension}")
-            this.environment("PLAY_BINARY_OPTS": "-Dhttp.port=${port}")
-            this.setWorkingDir(baseDirName)
-        }
-
-        @Override
-        List<String> getAllArguments() {
-            return Lists.newArrayList()
-        }
     }
 }

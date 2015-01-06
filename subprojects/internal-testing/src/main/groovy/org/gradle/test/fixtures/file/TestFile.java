@@ -413,6 +413,24 @@ public class TestFile extends File {
         return this;
     }
 
+    /**
+     * Asserts that this file contains the given set of descendants (and possibly other files).
+     */
+    public TestFile assertContainsDescendants(String... descendants) {
+        assertIsDir();
+        Set<String> actual = new TreeSet<String>();
+        visit(actual, "", this);
+
+        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
+
+        Set<String> missing = new TreeSet<String>(expected);
+        missing.removeAll(actual);
+
+        assertTrue(String.format("For dir: %s, missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
+
+        return this;
+    }
+
     public TestFile assertIsEmptyDir() {
         if (exists()) {
             assertIsDir();
