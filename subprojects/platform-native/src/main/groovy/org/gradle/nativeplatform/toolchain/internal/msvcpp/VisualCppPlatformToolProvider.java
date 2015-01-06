@@ -53,6 +53,11 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
+    public String getSharedLibraryLinkFileName(String libraryName) {
+        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
+    }
+
+    @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineTool commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
         CppCompiler cppCompiler = new CppCompiler(executorFactory, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
