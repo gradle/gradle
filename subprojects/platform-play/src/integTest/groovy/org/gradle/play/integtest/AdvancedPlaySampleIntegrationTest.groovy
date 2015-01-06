@@ -35,17 +35,13 @@ class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTes
         assertUrlContent playUrl("assets/javascripts/sample.js"), appAsset("javascripts/sample.js")
         assertUrlContent playUrl("assets/coffeescript/console.js"), coffeeScriptGeneratedJavaScript
         assertUrlContent playUrl("hello/Gradle"), "Hello Gradle!"
+        assert playUrl("square").text.contains("Square it!")
+        assert playUrl("questions").text.contains("What is your quest?")
     }
 
     String getCoffeeScriptGeneratedJavaScript() {
         return """(function() {
-  var square;
-
   console.log("This is coffeescript!");
-
-  square = function(x) {
-    return x * x;
-  };
 
 }).call(this);
 """

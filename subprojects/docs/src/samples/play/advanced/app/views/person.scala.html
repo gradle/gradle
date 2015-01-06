@@ -1,0 +1,29 @@
+@(personForm: Form[Person])
+
+@implicitField = @{ helper.FieldConstructor(fields.f) }
+
+<html>
+<head>
+    <title>Questions Three</title>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+</head>
+<body>
+<div class="text-center">
+    <h1>Answer me these questions three:</h1>
+    @if(personForm.hasGlobalErrors) {
+        @for(error <- personForm.globalErrors) {
+            <p class="text-error">@error.message</p>
+        }
+    }
+    @helper.form(action = routes.QuestionsThreeController.submit()) {
+        @helper.inputText(personForm("name"), '_label -> "What is your name?", '_showConstraints -> false)
+        @helper.inputText(personForm("quest"), '_label -> "What is your quest?", '_showConstraints -> false)
+        @helper.inputText(personForm("favoriteColor"), '_label -> "What is your favorite color?")
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Validate Form</button>
+        </div>
+    }
+</div>
+</body>
+</html>
