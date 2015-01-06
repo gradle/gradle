@@ -59,7 +59,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: play-2.3.7
+        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE 7)
         tool chain: Default Play Toolchain"""))
     }
 

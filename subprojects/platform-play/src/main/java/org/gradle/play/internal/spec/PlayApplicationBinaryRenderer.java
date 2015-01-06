@@ -28,8 +28,7 @@ public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayAp
 
     @Override
     protected void renderDetails(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
-        // TODO:DAZ Use the display name
-        builder.item("platform", binary.getTargetPlatform().getName());
+        builder.item("platform", binary.getTargetPlatform().getDisplayName());
         builder.item("tool chain", binary.getToolChain().getDisplayName());
     }
 }
