@@ -51,17 +51,17 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    public Spec<MethodRuleDefinition<?>> getSpec() {
-        final Spec<MethodRuleDefinition<?>> superSpec = super.getSpec();
-        return new Spec<MethodRuleDefinition<?>>() {
-            public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
+    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
+        final Spec<MethodRuleDefinition<?, ?>> superSpec = super.getSpec();
+        return new Spec<MethodRuleDefinition<?, ?>>() {
+            public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
                 return superSpec.isSatisfiedBy(element) && element.getReturnType().equals(ModelType.of(Void.TYPE));
             }
         };
     }
 
     @Override
-    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
         List<ModelReference<?>> references = ruleDefinition.getReferences();
@@ -73,7 +73,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return new ModelCreatorRegistration(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
-    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?> ruleDefinition, ModelPath modelPath) {
+    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, ModelPath modelPath) {
         ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
         if (modelSchema.getKind().equals(ModelSchema.Kind.VALUE)) {
@@ -105,7 +105,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
     }
 
-    private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?> ruleDefinition) {
+    private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {
         try {
             return schemaStore.getSchema(managedType);
         } catch (InvalidManagedModelElementTypeException e) {

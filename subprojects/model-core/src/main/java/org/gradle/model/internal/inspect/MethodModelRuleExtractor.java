@@ -21,10 +21,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.core.ModelRuleRegistration;
 
 public interface MethodModelRuleExtractor {
-    Spec<MethodRuleDefinition<?>> getSpec();
+    Spec<MethodRuleDefinition<?, ?>> getSpec();
 
     String getDescription();
 
     @Nullable
-    <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies);
+    <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies);
 }

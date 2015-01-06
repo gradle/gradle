@@ -45,7 +45,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     @Override
-    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {

@@ -48,11 +48,11 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     }
 
     @Override
-    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
+    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal)builder).getLanguageName(), ruleDefinition.getDescriptor());
+            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
             return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
         }
         return null;

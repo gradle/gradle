@@ -29,25 +29,25 @@ import java.util.List;
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
 
     @Override
-    public Spec<MethodRuleDefinition<?>> getSpec() {
-        final Spec<MethodRuleDefinition<?>> superSpec = super.getSpec();
-        return new Spec<MethodRuleDefinition<?>>() {
-            public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
+    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
+        final Spec<MethodRuleDefinition<?, ?>> superSpec = super.getSpec();
+        return new Spec<MethodRuleDefinition<?, ?>>() {
+            public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
                 return superSpec.isSatisfiedBy(element) && !element.getReturnType().equals(ModelType.of(Void.TYPE));
             }
         };
     }
 
-    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
         String modelName = determineModelName(ruleDefinition);
 
-        ModelType<T> returnType = ruleDefinition.getReturnType();
+        ModelType<R> returnType = ruleDefinition.getReturnType();
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
+        BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
         ModelCreator modelCreator = ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
-                .withProjection(new UnmanagedModelProjection<T>(returnType, true, true))
+                .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
                 .descriptor(descriptor)
                 .inputs(references)
                 .build();

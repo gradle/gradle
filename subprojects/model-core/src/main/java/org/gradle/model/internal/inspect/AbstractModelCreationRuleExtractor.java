@@ -24,7 +24,7 @@ import org.gradle.model.internal.core.ModelPath;
 @ThreadSafe
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    protected String determineModelName(MethodRuleDefinition<?> ruleDefinition) {
+    protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 

@@ -68,8 +68,14 @@ public abstract class ModelType<T> {
         return new Simple<T>(method.getGenericReturnType());
     }
 
+    @Nullable
     public static <T> ModelType<T> paramType(Method method, int i) {
-        return new Simple<T>(method.getGenericParameterTypes()[i]);
+        Type[] parameterTypes = method.getGenericParameterTypes();
+        if (i < parameterTypes.length) {
+            return new Simple<T>(parameterTypes[i]);
+        } else {
+            return null;
+        }
     }
 
     public static <T> ModelType<T> typeOf(T instance) {

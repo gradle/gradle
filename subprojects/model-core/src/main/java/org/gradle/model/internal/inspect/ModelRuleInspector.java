@@ -84,7 +84,7 @@ public class ModelRuleInspector {
                 throw invalid(method, "cannot have type variables (i.e. cannot be a generic method)");
             }
 
-            MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
+            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 validate(method);
@@ -97,7 +97,7 @@ public class ModelRuleInspector {
         return registrations.build();
     }
 
-    private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
+    private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition) {
         MethodModelRuleExtractor handler = null;
         for (MethodModelRuleExtractor candidateHandler : handlers) {
             if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {

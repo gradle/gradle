@@ -31,11 +31,11 @@ import org.gradle.platform.base.InvalidModelException;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
-    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
         return createRegistration(ruleDefinition, dependencies);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
@@ -52,14 +52,14 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private <R> void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<R> ruleDefinition) {
+    private void verifyMethodSignature(RuleMethodDataCollector taskDataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         visitCollectionBuilderSubject(taskDataCollector, ruleDefinition, Task.class);
         visitDependency(taskDataCollector, ruleDefinition, ModelType.of(BinarySpec.class));
     }
 
     //TODO extract common general method reusable by all AnnotationRuleDefinitionHandler
-    protected <R> InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
+    protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid BinaryTask model rule method.");
@@ -70,7 +70,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
         private final Class<T> binaryType;
 
-        public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R> ruleDefinition) {
+        public BinaryTaskRule(ModelReference<TaskContainer> subject, final Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(subject, binaryType, ruleDefinition, ModelReference.of("binaries", BinaryContainer.class));
             this.binaryType = binaryType;
         }

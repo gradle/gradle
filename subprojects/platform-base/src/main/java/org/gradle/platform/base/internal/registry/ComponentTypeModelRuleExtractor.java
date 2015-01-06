@@ -52,7 +52,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     @Override
-    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {

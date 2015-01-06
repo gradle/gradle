@@ -32,11 +32,11 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
     @Override
-    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
         return createRegistration(ruleDefinition, dependencies);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
@@ -53,11 +53,11 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         }
     }
 
-    private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
+    private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
         modelRegistry.apply(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
     }
 
-    private <R> void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition) {
+    private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         visitCollectionBuilderSubject(dataCollector, ruleDefinition, BinarySpec.class);
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
@@ -68,7 +68,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         private final Class<? extends ComponentSpec> componentType;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<BinaryContainer> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R> ruleDefinition) {
+        public ComponentBinariesRule(ModelReference<BinaryContainer> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
             super(subject, componentType, ruleDefinition, ModelReference.of(ComponentSpecContainer.class));
             this.componentType = componentType;
             this.binaryType = binaryType;
@@ -91,7 +91,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
     }
 
 
-    protected <R> InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<R> ruleDefinition, InvalidModelException e) {
+    protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(" is not a valid ComponentBinaries model rule method.");

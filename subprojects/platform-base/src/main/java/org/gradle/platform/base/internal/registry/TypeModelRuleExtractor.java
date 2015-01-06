@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.RuleSourceDependencies;
@@ -45,7 +46,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public <R> ModelRuleRegistration registration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
             TypeBuilderInternal<T> builder = typeBuilderFactory.create();
@@ -57,14 +58,15 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     }
 
     @Nullable
-    protected abstract <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+    protected abstract <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
 
-    protected ModelType<? extends T> readType(MethodRuleDefinition<?> ruleDefinition) {
+    protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);
         if (ruleDefinition.getReferences().size() != 1) {
             throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
-        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
+        ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
+        @SuppressWarnings("ConstantConditions") ModelType<?> builder = subjectReference.getType();
         if (!builderInterface.isAssignableFrom(builder)) {
             throw new InvalidModelException(String.format("Method %s must have a single parameter of type '%s'.", getDescription(), builderInterface.toString()));
         }
@@ -85,7 +87,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         return asSubclass;
     }
 
-    protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?> ruleDefinition, InvalidModelException e) {
+    protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
         StringBuilder sb = new StringBuilder();
         ruleDefinition.getDescriptor().describeTo(sb);
         sb.append(String.format(" is not a valid %s model rule method.", modelName));
