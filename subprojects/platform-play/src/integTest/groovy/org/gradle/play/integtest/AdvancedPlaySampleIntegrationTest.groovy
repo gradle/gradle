@@ -34,7 +34,7 @@ class AdvancedPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTes
         super.checkContent()
         assertUrlContent playUrl("assets/javascripts/sample.js"), appAsset("javascripts/sample.js")
         assertUrlContent playUrl("assets/coffeescript/console.js"), coffeeScriptGeneratedJavaScript
-        assertUrlContent playUrl("hello/Gradle"), "Hello Gradle!"
+        assertUrlContent playUrl("hello/gradle"), "Hello Gradle!"
         assert playUrl("square").text.contains("Square it!")
         assert playUrl("questions").text.contains("What is your quest?")
     }
