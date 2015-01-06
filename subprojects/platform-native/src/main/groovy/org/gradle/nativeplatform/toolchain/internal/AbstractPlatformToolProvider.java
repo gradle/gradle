@@ -111,48 +111,40 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
         throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
     }
 
-    protected final void unavailableTool(String message) {
-        throw new RuntimeException(message);
+    protected final RuntimeException unavailableTool(String message) {
+        return new RuntimeException(message);
     }
 
     protected Compiler<?> createCppCompiler() {
-        unavailableTool("C++ compiler is not available");
-        return null;
+        throw unavailableTool("C++ compiler is not available");
     }
 
     protected Compiler<?> createCCompiler() {
-        unavailableTool("C compiler is not available");
-        return null;
+        throw unavailableTool("C compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCppCompiler() {
-        unavailableTool("Obj-C++ compiler is not available");
-        return null;
+        throw unavailableTool("Obj-C++ compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCCompiler() {
-        unavailableTool("Obj-C compiler is not available");
-        return null;
+        throw unavailableTool("Obj-C compiler is not available");
     }
 
     protected Compiler<?> createWindowsResourceCompiler() {
-        unavailableTool("Windows resource compiler is not available");
-        return null;
+        throw unavailableTool("Windows resource compiler is not available");
     }
 
     protected Compiler<?> createAssembler() {
-        unavailableTool("Assembler is not available");
-        return null;
+        throw unavailableTool("Assembler is not available");
     }
 
     protected Compiler<?> createLinker() {
-        unavailableTool("Linker is not available");
-        return null;
+        throw unavailableTool("Linker is not available");
     }
 
     protected Compiler<?> createStaticLibraryArchiver() {
-        unavailableTool("Static library archiver is not available");
-        return null;
+        throw unavailableTool("Static library archiver is not available");
     }
 
     @SuppressWarnings("unchecked")

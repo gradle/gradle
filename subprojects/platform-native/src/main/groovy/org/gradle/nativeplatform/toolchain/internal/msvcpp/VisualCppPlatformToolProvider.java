@@ -73,6 +73,16 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
+    protected Compiler<?> createObjectiveCppCompiler() {
+        throw unavailableTool("Objective-C++ is not available on the Visual C++ toolchain");
+    }
+
+    @Override
+    protected Compiler<?> createObjectiveCCompiler() {
+        throw unavailableTool("Objective-C is not available on the Visual C++ toolchain");
+    }
+
+    @Override
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineTool commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
         WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
