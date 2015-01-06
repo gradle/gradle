@@ -29,7 +29,6 @@ import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
@@ -131,7 +130,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    @Ignore("Currently broken")
     def "can run staged play distribution" () {
         println file(".")
 
