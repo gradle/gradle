@@ -66,7 +66,7 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    public <T> List<ModelRuleRegistration> inspect(Class<T> source, RuleSourceDependencies dependencies) {
+    public List<ModelRuleRegistration> inspect(Class<?> source, RuleSourceDependencies dependencies) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
