@@ -15,14 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r14
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.internal.consumer.ConnectorServices
 import spock.lang.Issue
-
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
@@ -77,6 +76,8 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
         distro2Output.contains "runtime gradle home: ${distro1.absolutePath}"
     }
 
-
+    def cleanup() {
+        ConnectorServices.reset();
+    }
 }
 
