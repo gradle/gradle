@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.inspect.RuleSourceDependencies
+import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
@@ -29,8 +29,6 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
-
-    def ruleDependencies = Mock(RuleSourceDependencies)
 
     BinaryTasksModelRuleExtractor ruleHandler = new BinaryTasksModelRuleExtractor()
 
@@ -47,7 +45,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod, ruleDependencies)
+        ruleHandler.registration(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -66,14 +64,20 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
     @Unroll
     def "applies ComponentModelBasePlugin and adds binary task creation rule for plain sample binary"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
+        registration.ruleDependencies == [ComponentModelBasePlugin]
 
-        and:
-        registration != null
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        1 * modelRegistrar.apply(_, _)
     }
 
     interface SomeBinary extends BinarySpec {}

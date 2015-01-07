@@ -26,5 +26,5 @@ public interface MethodModelRuleExtractor {
     String getDescription();
 
     @Nullable
-    <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies);
+    <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition);
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -32,22 +32,22 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
     @Override
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
-        return createRegistration(ruleDefinition, dependencies);
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+        return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
             Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
-            dependencies.add(ComponentModelBasePlugin.class);
             ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
             ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
 
-            return new ModelMutatorRegistration(ModelActionRole.Mutate, componentBinariesRule);
+            ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
+            return new ModelMutatorRegistration(ModelActionRole.Mutate, componentBinariesRule, dependencies);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }

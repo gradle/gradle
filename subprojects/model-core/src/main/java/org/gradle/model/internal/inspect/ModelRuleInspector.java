@@ -17,9 +17,14 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ModelRuleRegistration;
@@ -31,9 +36,18 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleInspector {
+
+    final LoadingCache<Class<?>, List<ModelRuleRegistration>> cache = CacheBuilder.newBuilder()
+            .weakKeys()
+            .build(new CacheLoader<Class<?>, List<ModelRuleRegistration>>() {
+                public List<ModelRuleRegistration> load(Class<?> source) throws Exception {
+                    return doInspect(source);
+                }
+            });
 
     private final Iterable<MethodModelRuleExtractor> handlers;
 
@@ -75,7 +89,17 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    public List<ModelRuleRegistration> inspect(Class<?> source, RuleSourceDependencies dependencies) {
+    public List<ModelRuleRegistration> inspect(Class<?> source) {
+        try {
+            return cache.get(source);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
+    private List<ModelRuleRegistration> doInspect(Class<?> source) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
@@ -97,7 +121,7 @@ public class ModelRuleInspector {
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 validateMethod(method);
-                ModelRuleRegistration registration = handler.registration(ruleDefinition, dependencies);
+                ModelRuleRegistration registration = handler.registration(ruleDefinition);
                 if (registration != null) {
                     registrations.add(registration);
                 }

@@ -32,6 +32,7 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 
 class ModelRuleInspectorTest extends Specification {
 
@@ -40,7 +41,6 @@ class ModelRuleInspectorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
     def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(UNUSED_INSTANTIATOR, DefaultModelSchemaStore.instance))
-    def dependencies = Mock(RuleSourceDependencies)
 
     static class ModelThing {
         final String name
@@ -54,7 +54,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with no rules"() {
         expect:
-        inspector.inspect(EmptyClass, dependencies).empty
+        inspector.inspect(EmptyClass).empty
     }
 
     static class SimpleModelCreationRuleInferredName {
@@ -65,7 +65,7 @@ class ModelRuleInspectorTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source, dependencies)*.applyTo(registry)
+        inspector.inspect(source)*.applyTo(registry)
     }
 
     def "can inspect class with simple model creation rule"() {
@@ -325,7 +325,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
 
         when:
-        inspector.inspect(MutationAndFinalizeRules, dependencies)*.applyTo(registryMock)
+        inspector.inspect(MutationAndFinalizeRules)*.applyTo(registryMock)
 
         then:
         1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") })
@@ -472,5 +472,48 @@ ${ManagedWithNonManageableParents.name}
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$HasRuleWithUncheckedCollectionBuilder.name#modelPath(org.gradle.model.collection.CollectionBuilder) is not a valid model rule method: raw type org.gradle.model.collection.CollectionBuilder used for parameter 1 (all type parameters must be specified of parameterized type)"
+    }
+
+    def "extracted rules are cached"() {
+        when:
+        def fromFirstExtraction = inspector.inspect(MutationRules)
+        def fromSecondExtraction = inspector.inspect(MutationRules)
+
+        then:
+        fromFirstExtraction.is(fromSecondExtraction)
+    }
+
+    @Unroll
+    def "cache does not hold strong references"() {
+        given:
+        def cl = new GroovyClassLoader(getClass().classLoader)
+        addClass(cl, '''
+            import org.gradle.model.*
+
+            class RuleSource {
+                @Mutate
+                void mutate(String value) {
+                }
+            }
+        ''')
+
+        expect:
+        inspector.cache.size() == 1
+
+        when:
+        cl.clearCache()
+
+        then:
+        new PollingConditions(timeout: 10).eventually {
+            System.gc()
+            inspector.cache.cleanUp()
+            inspector.cache.size() == 0
+        }
+    }
+
+    private void addClass(GroovyClassLoader cl, String impl) {
+        def type = cl.parseClass(impl)
+        inspector.inspect(type)
+        type = null
     }
 }

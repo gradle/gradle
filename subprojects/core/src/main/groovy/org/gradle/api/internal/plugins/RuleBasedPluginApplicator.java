@@ -22,7 +22,6 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
 import java.util.List;
@@ -47,12 +46,11 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
         for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
-            List<ModelRuleRegistration> registrations = inspector.inspect(source, new RuleSourceDependencies() {
-                public void add(Class<?> source) {
-                    target.getPluginManager().apply(source);
-                }
-            });
+            List<ModelRuleRegistration> registrations = inspector.inspect(source);
             for (ModelRuleRegistration registration : registrations) {
+                for (Class<?> dependency : registration.getRuleDependencies()) {
+                    target.getPluginManager().apply(dependency);
+                }
                 // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
                 // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
                 // to work out what happened because the stack trace won't reveal any info about which rule was being registered.

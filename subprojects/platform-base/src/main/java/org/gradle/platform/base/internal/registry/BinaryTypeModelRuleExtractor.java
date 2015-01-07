@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -24,7 +25,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
@@ -45,14 +45,14 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+        ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
-        dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
+            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return null;
+        return new DependencyOnlyRuleRegistration(dependencies);
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {

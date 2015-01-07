@@ -20,7 +20,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.RuleSourceDependencies
+import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
@@ -33,7 +33,6 @@ import java.lang.annotation.Annotation
 class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
     Instantiator instantiator = new DirectInstantiator()
-    def ruleDependencies = Mock(RuleSourceDependencies)
 
     BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(instantiator)
 
@@ -45,25 +44,37 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
+        registration.ruleDependencies == [ComponentModelBasePlugin]
 
-        and:
-        registration != null
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        1 * modelRegistrar.apply(_, _)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
+        registration.ruleDependencies == [ComponentModelBasePlugin]
 
-        and:
-        registration == null
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        0 * modelRegistrar._
     }
 
     @Unroll
@@ -72,7 +83,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod, ruleDependencies)
+        ruleHandler.registration(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

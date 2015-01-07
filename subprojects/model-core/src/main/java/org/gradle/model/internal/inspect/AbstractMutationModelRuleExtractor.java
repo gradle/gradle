@@ -27,7 +27,7 @@ import java.lang.annotation.Annotation;
 @ThreadSafe
 public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
         validate(ruleDefinition);
         return new ModelMutatorRegistration(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));
     }

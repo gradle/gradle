@@ -24,16 +24,16 @@ import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration){
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
-            registration.addProvider(new ProjectScopeServices());
     }
 
-    private static class ProjectScopeServices {
+    private static class GlobalScopeServices {
         MethodModelRuleExtractor createLanguageTypePluginInspector() {
             return new LanguageTypeModelRuleExtractor();
         }

@@ -24,7 +24,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.RuleSourceDependencies
+import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -36,7 +36,6 @@ import java.lang.annotation.Annotation
 
 class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
-    def ruleDependencies = Mock(RuleSourceDependencies)
     Class<?> ruleClass = Rules
 
     LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor()
@@ -53,7 +52,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod, ruleDependencies)
+        ruleHandler.registration(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -75,20 +74,38 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
     }
 
 
-    def "does not create language type rule when implementation not set"() {
-        expect:
-        ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"), ruleDependencies) == null
-    }
-
     def "applies ComponentModelBasePlugin and creates language type rule"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
+        registration.ruleDependencies == [ComponentModelBasePlugin]
 
-        and:
-        registration != null
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        1 * modelRegistrar.apply(_, _)
+    }
+
+    def "only applies ComponentModelBasePlugin when implementation not set"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
+        when:
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
+
+        then:
+        registration.ruleDependencies == [ComponentModelBasePlugin]
+
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        0 * modelRegistrar._
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

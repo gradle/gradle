@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,23 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ModelMutatorRegistration implements ModelRuleRegistration {
+public class DependencyOnlyRuleRegistration implements ModelRuleRegistration {
 
-    private final ModelActionRole role;
-    private final ModelAction<?> action;
     private final List<ModelType<?>> dependencies;
 
-    public ModelMutatorRegistration(ModelActionRole role, ModelAction<?> action) {
-        this(role, action, ImmutableList.<ModelType<?>>of());
-    }
-
-    public ModelMutatorRegistration(ModelActionRole role, ModelAction<?> action, List<ModelType<?>> dependencies) {
-        this.role = role;
-        this.action = action;
-        this.dependencies = dependencies;
+    public DependencyOnlyRuleRegistration(List<ModelType<?>> dependencyList) {
+        this.dependencies = dependencyList;
     }
 
     @Override
     public void applyTo(ModelRegistrar registrar) {
-        registrar.apply(role, action);
     }
 
-    @Override
     public List<Class<?>> getRuleDependencies() {
         return Lists.transform(dependencies, new Function<ModelType<?>, Class<?>>() {
             @Override

@@ -19,15 +19,13 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.inspect.RuleSourceDependencies
+import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
 class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
-
-    def ruleDependencies = Mock(RuleSourceDependencies)
 
     ComponentBinariesModelRuleExtractor ruleHandler = new ComponentBinariesModelRuleExtractor()
 
@@ -40,14 +38,20 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
+        given:
+        def modelRegistrar = Mock(ModelRegistrar)
+
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
+        registration.ruleDependencies == [ComponentModelBasePlugin]
 
-        and:
-        registration != null
+        when:
+        registration.applyTo(modelRegistrar)
+
+        then:
+        1 * modelRegistrar.apply(_, _)
 
         where:
         ruleName         | descr
@@ -62,7 +66,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod, ruleDependencies)
+        ruleHandler.registration(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)

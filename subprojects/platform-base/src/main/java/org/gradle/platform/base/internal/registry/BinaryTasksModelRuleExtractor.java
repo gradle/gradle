@@ -16,13 +16,13 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -31,22 +31,21 @@ import org.gradle.platform.base.InvalidModelException;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies) {
-        return createRegistration(ruleDefinition, dependencies);
+    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+        return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceDependencies dependencies) {
+    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
-            dependencies.add(ComponentModelBasePlugin.class);
-
             ModelReference<TaskContainer> tasks = ModelReference.of(ModelPath.path("tasks"), ModelType.of(TaskContainer.class));
 
             BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition);
-            return new ModelMutatorRegistration(ModelActionRole.Mutate, binaryTaskRule);
+            ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
+            return new ModelMutatorRegistration(ModelActionRole.Mutate, binaryTaskRule, dependencies);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }

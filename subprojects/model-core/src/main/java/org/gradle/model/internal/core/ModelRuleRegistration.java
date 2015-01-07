@@ -16,7 +16,11 @@
 
 package org.gradle.model.internal.core;
 
+import java.util.List;
+
 public interface ModelRuleRegistration {
 
     void applyTo(ModelRegistrar registrar);
+
+    List<Class<?>> getRuleDependencies();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -28,7 +29,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
@@ -52,14 +52,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+        ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
-        dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
+            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return null;
+        return new DependencyOnlyRuleRegistration(dependencies);
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {

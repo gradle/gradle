@@ -56,7 +56,7 @@ class ModelRuleBindingTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source, {})*.applyTo(modelRegistry)
+        inspector.inspect(source)*.applyTo(modelRegistry)
     }
 
     def "error message produced when unpathed reference matches more than one item"() {

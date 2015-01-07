@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -49,18 +48,14 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -118,13 +113,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManagerInternal createPluginManager() {
-        List<MethodModelRuleExtractor> handlers = getAll(MethodModelRuleExtractor.class);
-        List<MethodModelRuleExtractor> coreHandlers = MethodModelRuleExtractors.coreExtractors(
-                get(Instantiator.class),
-                get(ModelSchemaStore.class)
-        );
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
+    protected PluginManagerInternal createPluginManager(ModelRuleInspector inspector) {
         PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }

@@ -16,6 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ImmutableList;
+
+import java.util.List;
+
 public class ModelCreatorRegistration implements ModelRuleRegistration {
 
     private final ModelCreator creator;
@@ -27,5 +31,10 @@ public class ModelCreatorRegistration implements ModelRuleRegistration {
     @Override
     public void applyTo(ModelRegistrar registrar) {
         registrar.create(creator);
+    }
+
+    @Override
+    public List<Class<?>> getRuleDependencies() {
+        return ImmutableList.of();
     }
 }
