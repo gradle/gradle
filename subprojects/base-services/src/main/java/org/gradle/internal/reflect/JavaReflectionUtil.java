@@ -118,7 +118,9 @@ public class JavaReflectionUtil {
     }
 
     public static Class<?> getWrapperTypeForPrimitiveType(Class<?> type) {
-        if (type == Boolean.TYPE) {
+        if (type == Character.TYPE) {
+            return Character.class;
+        } else if (type == Boolean.TYPE) {
             return Boolean.class;
         } else if (type == Long.TYPE) {
             return Long.class;
@@ -133,7 +135,7 @@ public class JavaReflectionUtil {
         } else if (type == Double.TYPE) {
             return Double.class;
         }
-        throw new IllegalArgumentException(String.format("Don't know how wrapper type for primitive type %s.", type));
+        throw new IllegalArgumentException(String.format("Don't know the wrapper type for primitive type %s.", type));
     }
 
     /**
