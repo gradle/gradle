@@ -244,10 +244,12 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         minified("javascripts/hello.min.js").exists()
         copied("javascripts/hello.js").exists()
         failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScriptAssets'.")
+
+        String slash = File.separator
         failure.assertThatCause(Matchers.allOf([
                 Matchers.startsWith("Minification failed with the following errors:"),
-                Matchers.containsString("javascripts/test1.js line 1 : 4"),
-                Matchers.containsString("javascripts/test2.js line 1 : 4")
+                Matchers.containsString("app${slash}assets${slash}javascripts${slash}test1.js line 1 : 4"),
+                Matchers.containsString("app${slash}assets${slash}javascripts${slash}test2.js line 1 : 4")
         ]))
     }
 }
