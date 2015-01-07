@@ -115,6 +115,7 @@ public class PlayCoffeeScriptPlugin {
             public void execute(JavaScriptMinify javaScriptMinify) {
                 javaScriptMinify.dependsOn(compileTaskName);
                 javaScriptMinify.setSource(outputDirectory(buildDir, binary, compileTaskName));
+                javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
 
                 File minifyOutputDirectory = outputDirectory(buildDir, binary, minifyTaskName);
                 javaScriptMinify.setDestinationDir(minifyOutputDirectory);

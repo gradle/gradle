@@ -76,6 +76,7 @@ public class PlayJavaScriptPlugin {
                     public void execute(JavaScriptMinify javaScriptMinify) {
                         javaScriptMinify.setSource(javaScriptSourceSet.getSource());
                         javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+                        javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
 
                         binary.getAssets().builtBy(javaScriptMinify);
                         binary.getAssets().addAssetDir(minifyOutputDirectory);

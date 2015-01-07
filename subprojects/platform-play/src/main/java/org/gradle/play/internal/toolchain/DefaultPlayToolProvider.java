@@ -27,6 +27,9 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.play.internal.javascript.DaemonJavaScriptCompiler;
+import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
+import org.gradle.play.internal.javascript.JavaScriptCompiler;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
@@ -82,6 +85,12 @@ class DefaultPlayToolProvider implements PlayToolProvider {
             DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, routesClasspath);
             @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
             return routesSpecCompiler;
+        } else if (spec instanceof JavaScriptCompileSpec) {
+            JavaScriptCompileSpec javaScriptCompileSpec = (JavaScriptCompileSpec) spec;
+            Set<File> javaScriptCompilerClasspath = resolveToolClasspath(javaScriptCompileSpec.getDependencyNotation()).getFiles();
+            @SuppressWarnings("unchecked")
+            Compiler<T> compiler = (Compiler<T>) new DaemonJavaScriptCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."), new JavaScriptCompiler(), compilerDaemonManager, javaScriptCompilerClasspath);
+            return compiler;
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
     }

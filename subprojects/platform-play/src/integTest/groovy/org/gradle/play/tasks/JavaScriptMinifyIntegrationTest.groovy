@@ -16,6 +16,8 @@
 
 package org.gradle.play.tasks
 
+import org.hamcrest.Matchers
+
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
     @Override
     String getDefaultSourceSet() {
@@ -46,7 +48,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                     create('minifyJavaScript', JavaScriptMinify) {
                         source = fileTree("js")
                         destinationDir = new File(buildDir, "min")
-                        closureCompilerNotation = "com.google.javascript:closure-compiler:v20141215"
+                        playPlatform = binaries.playBinary.targetPlatform
                     }
                 }
             }
@@ -242,7 +244,10 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         minified("javascripts/hello.min.js").exists()
         copied("javascripts/hello.js").exists()
         failure.assertHasDescription("Execution failed for task ':minifyPlayBinaryJavaScriptAssets'.")
-        // TODO this needs to verify filenames, too, but ordering is an issue
-        failure.assertHasCause("Minification failed for the following files:")
+        failure.assertThatCause(Matchers.allOf([
+                Matchers.startsWith("Minification failed with the following errors:"),
+                Matchers.containsString("javascripts/test1.js line 1 : 4"),
+                Matchers.containsString("javascripts/test2.js line 1 : 4")
+        ]))
     }
 }
