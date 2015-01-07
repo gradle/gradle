@@ -34,6 +34,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
     private final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
             ModelType.of(String.class),
             ModelType.of(Boolean.class),
+            ModelType.of(Character.class),
             ModelType.of(Integer.class),
             ModelType.of(Long.class),
             ModelType.of(Double.class),
