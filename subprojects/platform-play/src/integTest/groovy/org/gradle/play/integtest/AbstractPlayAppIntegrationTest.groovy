@@ -183,7 +183,7 @@ model {
         notAvailable(url)
     }
 
-    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
+    @Requires([ TestPrecondition.NOT_UNKNOWN_OS, TestPrecondition.NOT_WINDOWS ])
     @Unroll
     def "can run #type play distribution" () {
         ExecHandleBuilder builder
