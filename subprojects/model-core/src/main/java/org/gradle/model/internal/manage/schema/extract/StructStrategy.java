@@ -47,16 +47,14 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
     private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    protected final Factory<String> supportedTypeDescriptions;
-    protected final ModelSchemaExtractor extractor;
+    private final Factory<String> supportedTypeDescriptions;
     private final MethodSignatureEquivalence equivalence = new MethodSignatureEquivalence();
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
 
-    public StructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
+    public StructStrategy(Factory<String> supportedTypeDescriptions) {
         this.supportedTypeDescriptions = supportedTypeDescriptions;
-        this.extractor = extractor;
 
         Iterable<Method> ignoredMethods = Iterables.concat(Arrays.asList(Object.class.getMethods()), Arrays.asList(GroovyObject.class.getMethods()));
         this.ignoredMethods = ImmutableSet.copyOf(Iterables.transform(ignoredMethods, new Function<Method, Equivalence.Wrapper<Method>>() {

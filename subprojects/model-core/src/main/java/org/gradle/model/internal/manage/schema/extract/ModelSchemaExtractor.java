@@ -46,7 +46,7 @@ class ModelSchemaExtractor {
             new EnumStrategy(),
             new JdkValueTypeStrategy(),
             new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(this, supportedTypeDescriptions),
+            new StructStrategy(supportedTypeDescriptions),
             new UnmanagedStrategy()
     );
 

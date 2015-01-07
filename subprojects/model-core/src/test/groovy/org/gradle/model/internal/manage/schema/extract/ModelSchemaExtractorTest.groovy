@@ -207,7 +207,7 @@ class ModelSchemaExtractorTest extends Specification {
         where:
         primitiveType | boxedType
         boolean.class | Boolean
-        char.class    | Integer
+        char.class    | Character
         float.class   | Double
         long.class    | Long
         short.class   | Integer
@@ -509,7 +509,7 @@ class ModelSchemaExtractorTest extends Specification {
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ManagedSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
 Supported types:
  - enum types
- - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
+ - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal
  - org.gradle.model.collection.ManagedSet<?> of a managed type
  - interfaces and abstract classes annotated with org.gradle.model.Managed""")
     }
