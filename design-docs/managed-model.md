@@ -278,7 +278,7 @@ Notes:
     
 #### Notes
 
-- Super types do not need to be annotated with `@Managed` - but are subject to the same constraints as @Managed types
+- Super types do not need to be annotated with `@Managed` - but are subject to the same constraints as `@Managed` types
 - Specialisation of a generic parent is not supported through this story (i.e. can't do `interface BookList extends List<Book>`)
 
 #### Test Coverage
@@ -738,6 +738,7 @@ Other issues:
 - Need efficient implementation that does not scan all linked elements to check type.
 - Lock down read-only view of `ManagedMap`, provide `Map` as view.
 - Implement `containsValue()`.
+- Separate out type registry.
 
 ### Expose a `ManagedMap` view for all model elements of type `PolymorphicDomainObjectContainer`.
 
@@ -761,6 +762,9 @@ As above, for `ManagedSet`.
 - Should we allow setters being called more than once?
 
 ## Backlog
+
+- Mix DSL and Groovy methods into managed type implementations.
+- Support parameterized non-collection types as managed types:
 
 ### Collections
 
