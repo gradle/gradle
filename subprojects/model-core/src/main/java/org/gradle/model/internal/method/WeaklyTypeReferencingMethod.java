@@ -14,44 +14,88 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.model.internal.method;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.GradleException;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 
-public class WeaklyReferencedMethod<T, R> {
+public class WeaklyTypeReferencingMethod<T, R> {
 
     private final ModelType<T> target;
     private final ModelType<R> returnType;
+    private final ModelType<?> declaringType;
     private final String name;
-    private final int modifiers;
     private final ImmutableList<ModelType<?>> paramTypes;
+    private final int modifiers;
+    private final Annotation[] annotations;
+    private final Annotation[][] parameterAnnotations;
 
-    public WeaklyReferencedMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
+
+    public WeaklyTypeReferencingMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
         this.target = target;
         this.returnType = returnType;
+        this.declaringType = ModelType.of(method.getDeclaringClass());
         this.name = method.getName();
-        paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getParameterTypes()), new Function<Class<?>, ModelType<?>>() {
-            public ModelType<?> apply(Class<?> clazz) {
-                return ModelType.of(clazz);
+        paramTypes = ImmutableList.copyOf(Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), new Function<Type, ModelType<?>>() {
+            public ModelType<?> apply(Type type) {
+                return ModelType.of(type);
             }
         }));
         modifiers = method.getModifiers();
+        annotations = method.getAnnotations();
+        parameterAnnotations = method.getParameterAnnotations();
+    }
 
+    public ModelType<T> getTarget() {
+        return target;
+    }
+
+    public ModelType<R> getReturnType() {
+        return returnType;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getModifiers() {
         return modifiers;
     }
+
+    public Class<?> getDeclaringClass() {
+        return declaringType.getRawClass();
+    }
+
+    public Annotation[] getAnnotations() {
+        return annotations;
+    }
+
+    public Annotation[][] getParameterAnnotations() {
+        return parameterAnnotations;
+    }
+
+    public Type[] getGenericParameterTypes() {
+        return Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Type>() {
+            public Type apply(ModelType<?> modelType) {
+                return modelType.getType();
+            }
+        }), Type.class);
+    }
+
     public R invoke(T target, Object... args) {
         Method method = findMethod();
         method.setAccessible(true);
@@ -90,5 +134,34 @@ public class WeaklyReferencedMethod<T, R> {
         } else {
             return findMethod(parent, paramTypes);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(target)
+                .append(returnType)
+                .append(name)
+                .append(paramTypes)
+                .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof WeaklyTypeReferencingMethod)) {
+            return false;
+        }
+
+        WeaklyTypeReferencingMethod<?, ?> other = Cast.uncheckedCast(obj);
+
+        return new EqualsBuilder()
+                .append(target, other.target)
+                .append(returnType, other.returnType)
+                .append(name, other.name)
+                .append(paramTypes, other.paramTypes)
+                .isEquals();
     }
 }

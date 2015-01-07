@@ -337,7 +337,19 @@ public abstract class ModelType<T> {
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()
             );
-        } else {
+        } else if (type instanceof TypeVariable<?>) {
+            TypeVariable<?> typeVariable = Cast.uncheckedCast(type);
+            TypeVariableWrapper typeWrapper = null;
+            GenericDeclarationImpl genericDeclaration = new GenericDeclarationImpl();
+            for (TypeVariable<?> typeParameter : typeVariable.getGenericDeclaration().getTypeParameters()) {
+                TypeVariableWrapper wrapper = new TypeVariableWrapper(typeParameter.getName(), toWrappers(typeParameter.getBounds()), genericDeclaration);
+                genericDeclaration.add(wrapper);
+                if (typeParameter.equals(typeVariable)) {
+                    typeWrapper = wrapper;
+                }
+            }
+            return typeWrapper;
+        }else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
         }
     }
