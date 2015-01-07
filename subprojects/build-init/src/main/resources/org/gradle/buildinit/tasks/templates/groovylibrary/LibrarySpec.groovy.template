@@ -7,13 +7,14 @@
 
 import spock.lang.Specification
 
-class LibraryTest extends Specification{
+class LibrarySpec extends Specification {
     def "someLibraryMethod returns true"() {
         setup:
-        Library lib = new Library()
+            Library lib = new Library()
         when:
-        def result = lib.someLibraryMethod()
+            def result = lib.someLibraryMethod()
         then:
-        result == true
+            //implicit Spock assertion/condition
+            result
     }
 }

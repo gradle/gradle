@@ -4,6 +4,7 @@
  *
  * @author ${genUser.groovyComment}, @date ${genDate.groovyComment}
  */
+
 public class Library {
     public boolean someLibraryMethod() {
         return true;

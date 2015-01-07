@@ -38,14 +38,11 @@ class ProjectLayoutSetupRegistryFactory {
         registry.add(BuildInitTypeIds.JAVA_LIBRARY,
                 new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor))
 
-
         registry.add(BuildInitTypeIds.SCALA_LIBRARY,
                 new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
 
         registry.add(BuildInitTypeIds.GROOVY_LIBRARY,
                         new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, simpleGlobalFilesBuildSettingsDescriptor));
-
-        TemplateOperation basicBuildFile  =
 
         registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, simpleGlobalFilesBuildSettingsDescriptor));
         registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
