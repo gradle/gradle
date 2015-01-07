@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.plugins
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -59,7 +60,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE 7)
+        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})
         tool chain: Default Play Toolchain"""))
     }
 
