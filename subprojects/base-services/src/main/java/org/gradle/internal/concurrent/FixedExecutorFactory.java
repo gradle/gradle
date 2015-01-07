@@ -98,7 +98,8 @@ public class FixedExecutorFactory implements ExecutorFactory {
             }
             if (!failures.isEmpty()) {
                 // TODO: Grab all of the exceptions, not just the first one.
-                throw new GradleException(String.format("Failed to execute %s", displayName), failures.iterator().next());
+                Throwable firstException = failures.iterator().next();
+                throw new GradleException(firstException.getMessage());
             }
         }
     }
