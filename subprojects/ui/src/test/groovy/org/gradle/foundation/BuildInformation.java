@@ -16,6 +16,8 @@
 package org.gradle.foundation;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectTaskLister;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -28,7 +30,8 @@ public class BuildInformation {
     private List<ProjectView> projects;
 
     public BuildInformation(Project rootProject) {
-        ProjectConverter buildExecuter = new ProjectConverter();
+        ProjectTaskLister taskLister = ((ProjectInternal) rootProject).getServices().get(ProjectTaskLister.class);
+        ProjectConverter buildExecuter = new ProjectConverter(taskLister);
         projects = buildExecuter.convertProjects(rootProject);
     }
 

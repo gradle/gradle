@@ -17,6 +17,7 @@ package org.gradle.foundation;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectTaskLister;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +28,11 @@ import java.util.List;
  */
 public class ProjectConverter {
     private List<ProjectView> rootLevelResultingProjects = new ArrayList<ProjectView>();
+    private final ProjectTaskLister taskLister;
+
+    public ProjectConverter(ProjectTaskLister taskLister) {
+        this.taskLister = taskLister;
+    }
 
     /**
      * Call this to convert the projects.
@@ -85,7 +91,7 @@ public class ProjectConverter {
      */
     private void addTasks(Project project, ProjectView projectView) {
         List<String> defaultTasks = project.getDefaultTasks();
-        for (Task task : project.getTasks()) {
+        for (Task task : taskLister.listProjectTasks(project)) {
             String taskName = task.getName();
 
             boolean isDefault = defaultTasks.contains(taskName);

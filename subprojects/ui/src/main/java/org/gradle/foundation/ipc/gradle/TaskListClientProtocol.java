@@ -17,6 +17,8 @@ package org.gradle.foundation.ipc.gradle;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -91,7 +93,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
 
                 client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE, output, wasSuccessful);
             } else {
-                ProjectConverter buildExecuter = new ProjectConverter();
+                ProjectConverter buildExecuter = new ProjectConverter(((GradleInternal) buildResult.getGradle()).getServices().get(ProjectTaskLister.class));
                 List<ProjectView> projects = new ArrayList<ProjectView>();
                 projects.addAll(buildExecuter.convertProjects(buildResult.getGradle().getRootProject()));
 
