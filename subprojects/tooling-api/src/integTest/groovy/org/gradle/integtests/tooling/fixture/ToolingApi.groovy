@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -26,12 +25,15 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeUnit
 
-class ToolingApi {
+class ToolingApi implements TestRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
     private GradleDistribution dist
@@ -44,6 +46,7 @@ class ToolingApi {
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
+    List<DefaultGradleConnector> connectors = new ArrayList<DefaultGradleConnector>();
 
     ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
         this.dist = dist
@@ -160,5 +163,19 @@ class ToolingApi {
             it.call(connector)
         }
         return connector
+    }
+
+    @Override
+    Statement apply(Statement base, Description description) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                try {
+                    base.evaluate();
+                } finally {
+                    new DaemonLogsAnalyzer(getDaemonBaseDir()).killAll()
+                }
+            }
+        };
     }
 }

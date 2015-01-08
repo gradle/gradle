@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
@@ -46,12 +47,15 @@ import spock.lang.Specification
 abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
+
+    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
+
+    @Rule
+    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(toolingApi);
 
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
