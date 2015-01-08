@@ -547,6 +547,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> void mutateSelf(ModelActionRole type, ModelAction<T> mutator) {
+            if (!getPath().equals(mutator.getSubject().getPath())) {
+                throw new IllegalArgumentException(String.format("Element mutator reference has path (%s) which does not reference this node (%s).", mutator.getSubject().getPath(), getPath()));
+            }
+            bind(mutator.getSubject(), type, mutator);
+        }
+
+        @Override
         public <T> void mutateLink(ModelActionRole type, ModelAction<T> mutator) {
             if (!getPath().isDirectChild(mutator.getSubject().getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));

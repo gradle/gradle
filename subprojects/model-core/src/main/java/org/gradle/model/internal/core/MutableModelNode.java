@@ -42,6 +42,11 @@ public interface MutableModelNode {
     void removeLink(String name);
 
     /**
+     * Adds a mutation to this element.
+     */
+    <T> void mutateSelf(ModelActionRole type, ModelAction<T> mutator);
+
+    /**
      * Adds a mutation to all elements linked from this element.
      */
     <T> void mutateAllLinks(ModelActionRole type, ModelAction<T> mutator);

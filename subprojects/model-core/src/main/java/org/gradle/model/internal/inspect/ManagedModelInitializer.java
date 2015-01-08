@@ -30,51 +30,45 @@ import java.util.Collections;
 import java.util.List;
 
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
-    private static final BiAction<MutableModelNode, Inputs> NO_OP = new BiAction<MutableModelNode, Inputs>() {
+    private static final BiAction<Object, Inputs> NO_OP = new BiAction<Object, Inputs>() {
         @Override
-        public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+        public void execute(Object subject, Inputs inputs) {
         }
     };
 
     private final ModelSchema<T> modelSchema;
-    private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
+    private final ModelAction<T> initializer;
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
     private final ModelInstantiator modelInstantiator;
     private final ModelRuleDescriptor descriptor;
 
-    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor,
+    public static <T> ModelCreator creator(final ModelRuleDescriptor descriptor,
                                            ModelPath path,
                                            final ModelSchema<T> schema,
                                            ModelSchemaStore schemaStore,
                                            final ModelInstantiator modelInstantiator,
                                            ManagedProxyFactory proxyFactory,
-                                           List<? extends ModelReference<?>> inputs,
-                                           final BiAction<? super MutableModelNode, ? super Inputs> initializer) {
+                                           final List<ModelReference<?>> inputs,
+                                           final BiAction<? super T, ? super Inputs> initializer) {
+        final ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
+        final ModelAction<T> modelAction = new InitializeAction<T>(modelReference, descriptor, inputs, initializer);
         if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
             ModelProjection projection = ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0));
-            return ModelCreators.of(ModelReference.of(path, schema.getType()), new BiAction<MutableModelNode, Inputs>() {
-                @Override
-                public void execute(MutableModelNode modelNode, Inputs inputs) {
-                    T instance = modelInstantiator.newInstance(schema);
-                    modelNode.setPrivateData(schema.getType(), instance);
-                    initializer.execute(modelNode, inputs);
-                }
-            })
+            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelInstantiator, schema, modelAction))
                     .withProjection(projection)
                     .descriptor(descriptor)
                     .inputs(inputs)
                     .build();
 
         }
-        return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, initializer))
+        return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, modelAction))
                 .descriptor(descriptor)
                 .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
-                .inputs(inputs)
                 .build();
     }
 
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
+    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, ModelAction<T> initializer) {
         this.descriptor = descriptor;
         this.modelInstantiator = modelInstantiator;
         this.schemaStore = schemaStore;
@@ -87,8 +81,7 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
         }
-
-        initializer.execute(modelNode, inputs);
+        modelNode.mutateSelf(ModelActionRole.Initialize, initializer);
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
@@ -116,6 +109,59 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
             childNode = modelNode.addLink(creator);
             // TODO - defer creation
             childNode.ensureCreated();
+        }
+    }
+
+    private static class InitializeAction<T> implements ModelAction<T> {
+        private final ModelReference<T> modelReference;
+        private final ModelRuleDescriptor descriptor;
+        private final List<ModelReference<?>> inputs;
+        private final BiAction<? super T, ? super Inputs> initializer;
+
+        public InitializeAction(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super Inputs> initializer) {
+            this.modelReference = modelReference;
+            this.descriptor = descriptor;
+            this.inputs = inputs;
+            this.initializer = initializer;
+        }
+
+        @Override
+        public ModelReference<T> getSubject() {
+            return modelReference;
+        }
+
+        @Override
+        public ModelRuleDescriptor getDescriptor() {
+            return descriptor;
+        }
+
+        @Override
+        public List<ModelReference<?>> getInputs() {
+            return inputs;
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
+            initializer.execute(object, inputs);
+        }
+    }
+
+    private static class ManagedSetInitializer<T> implements BiAction<MutableModelNode, Inputs> {
+        private final ModelInstantiator modelInstantiator;
+        private final ModelSchema<T> schema;
+        private final ModelAction<T> modelAction;
+
+        public ManagedSetInitializer(ModelInstantiator modelInstantiator, ModelSchema<T> schema, ModelAction<T> modelAction) {
+            this.modelInstantiator = modelInstantiator;
+            this.schema = schema;
+            this.modelAction = modelAction;
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, Inputs inputs) {
+            T instance = modelInstantiator.newInstance(schema);
+            modelNode.setPrivateData(schema.getType(), instance);
+            modelNode.mutateSelf(ModelActionRole.Initialize, modelAction);
         }
     }
 }

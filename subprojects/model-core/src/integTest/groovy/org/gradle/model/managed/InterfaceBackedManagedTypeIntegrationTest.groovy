@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 
 class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    def "rule can provide a managed model element backed by an interface"() {
+    def "rule method can define a managed model element backed by an interface"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -34,20 +34,24 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 void setName(String name)
             }
 
+            class Names {
+                String name
+            }
+
             @RuleSource
             class RulePlugin {
                 @Model
-                String name() {
-                    "foo"
+                Names name() {
+                    return new Names(name: "foo")
                 }
 
                 @Model
-                void createPerson(Person person, @Path("name") String name) {
-                    person.name = name
+                void person(Person person, Names names) {
+                    person.name = names.name
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addEchoTask(CollectionBuilder<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -64,6 +68,69 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         output.contains("name: foo")
+    }
+
+    def "rule method can apply defaults to a managed model element"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            class Names {
+                String name
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                Names name() {
+                    return new Names(name: "before")
+                }
+
+                @Model
+                void person(Person person) {
+                    person.name += " init"
+                }
+
+                @Defaults
+                void beforePerson(Person person, Names names) {
+                    person.name = names.name
+                }
+
+                @Finalize
+                void afterPerson(Person person) {
+                    person.name += " after"
+                }
+
+                @Mutate
+                void configurePerson(Person person) {
+                    person.name += " configure"
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, Person person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "name: $person.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("name: before init configure after")
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)

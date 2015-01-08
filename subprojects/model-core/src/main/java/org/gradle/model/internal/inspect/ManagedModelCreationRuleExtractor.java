@@ -86,7 +86,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(modelSchema, ruleDefinition.getRuleInvoker(), descriptor, inputs));
+        return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker(), inputs));
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {
