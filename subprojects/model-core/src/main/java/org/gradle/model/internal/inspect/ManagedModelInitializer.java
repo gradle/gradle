@@ -86,6 +86,17 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
             for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
                 addPropertyLink(childNode, modelProperty);
             }
+        } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+            ModelProjection projection = ManagedSetModelProjection.of(propertyType.getTypeVariables().get(0));
+            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
+                    .withProjection(projection)
+                    .descriptor(descriptor).build();
+            childNode = modelNode.addLink(creator);
+            // TODO - defer creation
+            childNode.ensureCreated();
+
+            P instance = modelInstantiator.newInstance(propertySchema);
+            childNode.setPrivateData(propertyType, instance);
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
@@ -94,11 +105,6 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
             childNode = modelNode.addLink(creator);
             // TODO - defer creation
             childNode.ensureCreated();
-
-            if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-                P instance = modelInstantiator.newInstance(propertySchema);
-                childNode.setPrivateData(propertyType, instance);
-            }
         }
     }
 }
