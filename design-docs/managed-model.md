@@ -754,3 +754,4 @@ As above, for `ManagedSet`.
     - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
 - Support getting "address" (creation/canonical path) of a managed object
 - Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely)
+- Attempt to call setter method in (abstract class) managed model from non-abstract getter receives error when extracting type metadata
