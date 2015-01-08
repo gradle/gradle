@@ -1,3 +1,8 @@
+sudo: false
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.gradle/wrapper
 language: java
 jdk:
   - oraclejdk7
