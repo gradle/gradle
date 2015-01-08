@@ -81,7 +81,7 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
         }
-        modelNode.mutateSelf(ModelActionRole.Initialize, initializer);
+        modelNode.applyToSelf(ModelActionRole.Initialize, initializer);
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
@@ -153,7 +153,7 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         public void execute(MutableModelNode modelNode, Inputs inputs) {
             T instance = modelInstantiator.newInstance(schema);
             modelNode.setPrivateData(schema.getType(), instance);
-            modelNode.mutateSelf(ModelActionRole.Initialize, modelAction);
+            modelNode.applyToSelf(ModelActionRole.Initialize, modelAction);
         }
     }
 }

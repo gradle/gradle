@@ -223,6 +223,137 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
     }
 
+    def "rule method can apply defaults to a managed set"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void people(ManagedSet<Person> people) {
+                println "initialize"
+              }
+
+              @Defaults void initialPeople(ManagedSet<Person> people) {
+                println "apply defaults"
+              }
+
+              @Mutate void customPeople(ManagedSet<Person> people) {
+                println "configure"
+              }
+
+              @Finalize void finalPeople(ManagedSet<Person> people) {
+                println "finalize"
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printPeople") {
+                  it.doLast {
+                    def people = $("people")
+                    println "people: $people"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains '''apply defaults
+initialize
+configure
+finalize
+'''
+    }
+
+    def "creation and configuration of managed set elements is deferred until required"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+              Person() {
+                println "construct Person"
+              }
+              abstract String getName()
+              abstract void setName(String string)
+            }
+
+            @RuleSource
+            class Rules {
+              @Model
+              void people(ManagedSet<Person> people) {
+                people.create {
+                    println "configure p1"
+                    name = "p1"
+                }
+                println "p1 defined"
+              }
+
+              @Mutate void addPeople(ManagedSet<Person> people) {
+                people.create {
+                  println "configure p2"
+                  name = "p2"
+                }
+                println "p2 defined"
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              people {
+                create {
+                  println "configure p3"
+                  name = "p3"
+                }
+                println "p3 defined"
+              }
+
+              tasks {
+                create("printPeople") {
+                  it.doLast {
+                    def names = $("people")*.name.sort().join(", ")
+                    println "people: $names"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains '''
+p1 defined
+p2 defined
+p3 defined
+Person created
+configure p1
+Person created
+configure p2
+Person created
+configure p3
+'''
+    }
+
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
         when:
         buildScript '''

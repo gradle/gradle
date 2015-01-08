@@ -272,7 +272,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateAllLinks(ModelActionRole.Mutate, mutator(null, Bean, String, mutatorAction))
+            node.applyToAllLinks(ModelActionRole.Mutate, mutator(null, Bean, String, mutatorAction))
             node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }
@@ -293,7 +293,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateAllLinks(ModelActionRole.Mutate, mutator(null, Bean, mutatorAction))
+            node.applyToAllLinks(ModelActionRole.Mutate, mutator(null, Bean, mutatorAction))
             node.addLink(creator("parent.foo", String, "ignore me"))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }
@@ -313,7 +313,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create(nodeCreator("parent", Integer, creatorAction))
         creatorAction.execute(_) >> { MutableModelNode node ->
-            node.mutateLink(ModelActionRole.Mutate, mutator("parent.foo", Bean, String, mutatorAction))
+            node.applyToLink(ModelActionRole.Mutate, mutator("parent.foo", Bean, String, mutatorAction))
             node.addLink(creator("parent.foo", Bean, new Bean(value: "foo")))
             node.addLink(creator("parent.bar", Bean, new Bean(value: "bar")))
         }

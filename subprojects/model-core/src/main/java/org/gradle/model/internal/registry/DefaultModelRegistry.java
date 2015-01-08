@@ -585,23 +585,23 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void mutateSelf(ModelActionRole type, ModelAction<T> mutator) {
-            if (!getPath().equals(mutator.getSubject().getPath())) {
-                throw new IllegalArgumentException(String.format("Element mutator reference has path (%s) which does not reference this node (%s).", mutator.getSubject().getPath(), getPath()));
+        public <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+            if (!getPath().equals(action.getSubject().getPath())) {
+                throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), getPath()));
             }
-            bind(mutator.getSubject(), type, mutator);
+            bind(action.getSubject(), type, action);
         }
 
         @Override
-        public <T> void mutateLink(ModelActionRole type, ModelAction<T> mutator) {
-            if (!getPath().isDirectChild(mutator.getSubject().getPath())) {
-                throw new IllegalArgumentException(String.format("Linked element mutator reference has a path (%s) which is not a child of this node (%s).", mutator.getSubject().getPath(), getPath()));
+        public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+            if (!getPath().isDirectChild(action.getSubject().getPath())) {
+                throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
             }
-            bind(mutator.getSubject(), type, mutator);
+            bind(action.getSubject(), type, action);
         }
 
         @Override
-        public <T> void mutateAllLinks(final ModelActionRole type, final ModelAction<T> action) {
+        public <T> void applyToAllLinks(final ModelActionRole type, final ModelAction<T> action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
@@ -642,7 +642,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public void ensureCreated() {
+        public void ensureUsable() {
             ensureAt(node, DefaultsApplied);
         }
 

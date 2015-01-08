@@ -42,19 +42,19 @@ public interface MutableModelNode {
     void removeLink(String name);
 
     /**
-     * Adds a mutation to this element.
+     * Applies an action to this element.
      */
-    <T> void mutateSelf(ModelActionRole type, ModelAction<T> mutator);
+    <T> void applyToSelf(ModelActionRole type, ModelAction<T> action);
 
     /**
-     * Adds a mutation to all elements linked from this element.
+     * Applies an action to all elements linked from this element.
      */
-    <T> void mutateAllLinks(ModelActionRole type, ModelAction<T> mutator);
+    <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action);
 
     /**
-     * Adds a mutation to a linked element.
+     * Applies an action to a linked element.
      */
-    <T> void mutateLink(ModelActionRole type, ModelAction<T> mutator);
+    <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
 
     @Nullable
     MutableModelNode getLink(String name);
@@ -74,7 +74,7 @@ public interface MutableModelNode {
     /**
      * Ensure that the views are available, with default values applied.
      */
-    void ensureCreated();
+    void ensureUsable();
 
     boolean isMutable();
 }
