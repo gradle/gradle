@@ -156,12 +156,15 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         if (handle != null) {
             try {
                 playUrl("shutdown").bytes
+            } catch (SocketException e) {
+                // Expected
+            }
+
+            try {
                 handle.abort()
             } catch (IllegalStateException e) {
                 // Ignore if process is already not running
                 println "Did not abort play process since current state is: ${handle.state.toString()}"
-            } catch (SocketException e) {
-                // Expected
             }
         }
     }

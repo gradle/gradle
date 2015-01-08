@@ -29,7 +29,6 @@ import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
@@ -184,7 +183,6 @@ model {
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    @Unroll
     def "can run play distribution" () {
         ExecHandleBuilder builder
         ExecHandle handle
@@ -214,12 +212,15 @@ model {
         if (handle != null) {
             try {
                 playUrl("shutdown").bytes
+            } catch (SocketException e) {
+                // Expected
+            }
+
+            try {
                 handle.abort()
             } catch (IllegalStateException e) {
                 // Ignore if process is already not running
                 println "Did not abort play process since current state is: ${handle.state.toString()}"
-            } catch (SocketException e) {
-                // Expected
             }
         }
     }
