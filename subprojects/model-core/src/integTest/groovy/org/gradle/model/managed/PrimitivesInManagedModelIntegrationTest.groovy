@@ -76,6 +76,12 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             interface PrimitiveProperty {
                 Long getLongProperty();
                 void setLongProperty(Long value);
+                Integer getIntegerProperty();
+                void setIntegerProperty(Integer value);
+                Boolean getBooleanProperty();
+                void setBooleanProperty(Boolean value);
+                Character getCharacterProperty();
+                void setCharacterProperty(Character value);
             }
 
             @RuleSource
@@ -83,6 +89,9 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 @Model
                 void createPrimitiveProperty(PrimitiveProperty primitiveProperty) {
                     primitiveProperty.setLongProperty(123l);
+                    primitiveProperty.setIntegerProperty(456);
+                    primitiveProperty.setBooleanProperty(true);
+                    primitiveProperty.setCharacterProperty('a');
                 }
 
                 @Mutate
@@ -91,7 +100,10 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
                                 public void execute(Task unused) {
-                                    System.out.println(String.format("value: %d", primitiveProperty.getLongProperty()));
+                                    System.out.println(String.format("long: %d", primitiveProperty.getLongProperty()));
+                                    System.out.println(String.format("integer: %d", primitiveProperty.getIntegerProperty()));
+                                    System.out.println(String.format("boolean: %s", primitiveProperty.getBooleanProperty()));
+                                    System.out.println(String.format("character: %s", primitiveProperty.getCharacterProperty()));
                                 }
                             });
                         }
@@ -108,6 +120,9 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "echo"
 
         and:
-        output.contains "value: 123"
+        output.contains "long: 123"
+        output.contains "integer: 456"
+        output.contains "boolean: true"
+        output.contains "character: a"
     }
 }
