@@ -100,6 +100,9 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 - ~~Calling `setOperatingSystem()` with “non managed” impl of `OperatingSystem` is a runtime error (i.e. only managed objects can be used)~~
 
+#### Open issues
+
+- Should be able to path to and through the property value.
 
 ### ~~Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference~~
 
@@ -558,19 +561,6 @@ interface ManagedSet<T> implements Set<T> {
 
 The initial target for this functionality will be to replace the `PlatformContainer` model element, but more functionality will be needed before this is possible.
 
-### Replace PlatformContainer with PolymorphicManagedSet<Platform>
-
-1. Make NativePlatform managed
-    - Remove `architecture()` & `operatingSystem()` (make inherent properties)
-    - Change Architecture and OperatingSystem to be managed (push methods out so somewhere else, remove internal subclasses)
-    - Provide string to Architecture/OS instance as static methods for time being (proper pattern comes later)
-2. Make ScalaPlatform managed
-3. Remove 'platforms' extension
-4. Introduce managed set for 'platforms' model element
-5. Change populating in NativePlatforms to use new container
-6. Push `chooseFromTargets` implementation out to static method
-7. Remove PlatformContainerInternal
-
 ## Feature: Tasks defined using `CollectionBuilder` are not eagerly created and configured
 
 ### Plugin uses `CollectionBuilder` API to apply rules to container elements
@@ -582,8 +572,9 @@ Add methods to `CollectionBuilder` to allow mutation rules to be defined for all
 - ~~Add `named(String, Action)` to `CollectionBuilder`~~
 - ~~Add `withType(Class, Action)` to `CollectionBuilder`~~
 - ~~Add `withType(Class)` to `CollectionBuilder` to filter.~~
-- Verify usable from Groovy using closures.
+- ~~Verify usable from Groovy using closures.~~
 - Verify usable from Java 8 using lambdas.
+- Reasonable error message when actions fail.
 
 #### Issues
 
@@ -601,7 +592,8 @@ Add a way to mutate a model element prior to it being exposed to 'user' code.
 
 - ~~Add `@Defaults` annotation. Apply these before `@Mutate` rules.~~
 - ~~Add `CollectionBuilder.beforeEach(Action)`.~~
-- Apply defaults to managed object before initializer method is invoked.
+- ~~Apply defaults to managed object before initializer method is invoked.~~
+- Reasonable error message when actions fail
 
 #### Issues
 
@@ -612,10 +604,12 @@ Add a way to mutate a model element prior to it being exposed to 'user' code.
 
 Add a way to validate a model element prior to it being used as an input by 'user' code.
 
-- ~Add `@Validate` annotation. Apply these after `@Finalize` rules.~
-- ~Rename 'mutate' methods and types.~
+- ~~Add `@Validate` annotation. Apply these after `@Finalize` rules.~~
+- Rename 'mutate' methods and types.~~
 - Add `CollectionBuilder.validateEach(Action)`
 - Don't include wrapper exception when rule fails, or add some validation failure collector.
+- Add specific exception to be thrown on validation failure
+- Nice error message when validation fails.
 
 #### Issues
 
@@ -681,6 +675,12 @@ Other issues:
 - Handle old style rules creating tasks during DAG building.
 - Add validation to prevent removing links from an immutable model element.
 
+## Feature: Support for managed container of tasks
+
+### ManagedSet defers creation of elements
+
+### ManagedSet supports Groovy DSL
+
 ### Support for managed container of tasks
 
 - Rename `CollectionBuilder` to `ManagedMap`.
@@ -727,6 +727,9 @@ As above, for `ManagedSet`.
 ### Implementations
 
 - Mix DSL and Groovy methods into managed type implementations.
+    - Add DSL and Groovy type coercion for enums, closures, files, etc
+    - Missing property and method error messages use public type instead of implementation type.
+- Add Java API for type coercion
 - Support parameterized non-collection types as managed types:
 
 ### Collections
