@@ -43,6 +43,7 @@ class ToolingApi implements TestRule {
     private boolean useSeparateDaemonBaseDir
     private boolean inProcess;
     private boolean requiresDaemon
+    private boolean requireIsolatedDaemons
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
@@ -80,6 +81,7 @@ class ToolingApi implements TestRule {
         } else {
             gradleUserHomeDir = testWorkDirProvider.testDirectory.file("user-home-dir")
         }
+        requireIsolatedDaemons = true
         requiresDaemon = true
     }
 
@@ -173,7 +175,9 @@ class ToolingApi implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
-                    new DaemonLogsAnalyzer(getDaemonBaseDir()).killAll()
+                    if(requireIsolatedDaemons){
+                        getDaemons().killAll()
+                    }
                 }
             }
         };
