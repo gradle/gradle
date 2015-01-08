@@ -74,7 +74,7 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
 
         MutableModelNode childNode;
 
-        if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
+        if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
             ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
             ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
                     .withProjection(projection)
@@ -83,10 +83,8 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
             // TODO - defer creation
             childNode.ensureCreated();
 
-            if (!property.isWritable()) {
-                for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-                    addPropertyLink(childNode, modelProperty);
-                }
+            for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
+                addPropertyLink(childNode, modelProperty);
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
