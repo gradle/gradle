@@ -479,7 +479,6 @@ ${ManagedWithNonManageableParents.name}
         fromFirstExtraction.is(fromSecondExtraction)
     }
 
-    @Unroll
     def "cache does not hold strong references"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)
