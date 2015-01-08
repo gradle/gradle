@@ -64,7 +64,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-        gradleProject.setTasks(tasks(gradleProject, taskLister.listProjectTasks(project)));
+        gradleProject.setTasks(tasks(gradleProject, project.getTasks()));
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
