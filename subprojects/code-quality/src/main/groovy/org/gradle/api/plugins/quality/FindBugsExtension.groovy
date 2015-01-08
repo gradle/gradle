@@ -42,6 +42,7 @@ import org.gradle.api.resources.TextResource
  *         omitVisitors = ["FindNonShortCircuit"]
  *         includeFilter = file("$rootProject.projectDir/config/findbugs/includeFilter.xml")
  *         excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+ *         excludeBugsFilter = file("$rootProject.projectDir/config/findbugs/excludeBugsFilter.xml")
  *     }
  * </pre>
  *
@@ -96,6 +97,14 @@ class FindBugsExtension extends CodeQualityExtension {
     TextResource excludeFilterConfig
 
     /**
+     * A filter specifying baseline bugs to exclude from being reported.
+     *
+     * @since 2.4
+     */
+    @Incubating
+    TextResource excludeBugsFilterConfig
+
+    /**
      * The filename of a filter specifying which bugs are reported.
      */
     File getIncludeFilter() {
@@ -121,5 +130,19 @@ class FindBugsExtension extends CodeQualityExtension {
      */
     void setExcludeFilter(File filter) {
         setExcludeFilterConfig(prj.resources.text.fromFile(filter))
+    }
+
+    /**
+     * The filename of a filter specifying baseline bugs to exclude from being reported.
+     */
+    File getExcludeBugsFilter() {
+        getExcludeBugsFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying baseline bugs to exclude from being reported.
+     */
+    void setExcludeBugsFilter(File filter) {
+        setExcludeBugsFilterConfig(prj.resources.text.fromFile(filter))
     }
 }

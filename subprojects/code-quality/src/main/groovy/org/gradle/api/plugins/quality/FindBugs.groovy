@@ -131,6 +131,14 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     @Optional
     TextResource excludeFilterConfig
 
+    /**
+     * A filter specifying baseline bugs to exclude from being reported.
+     */
+    @Incubating
+    @Nested
+    @Optional
+    TextResource excludeBugsFilterConfig
+
     @Nested
     private final FindBugsReportsImpl reports
 
@@ -207,6 +215,20 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
         setExcludeFilterConfig(project.resources.text.fromFile(filter))
     }
 
+    /**
+     * The filename of a filter specifying baseline bugs to exclude from being reported.
+     */
+    File getExcludeBugsFilter() {
+        getExcludeBugsFilterConfig()?.asFile()
+    }
+
+    /**
+     * The filename of a filter specifying baseline bugs to exclude from being reported.
+     */
+    void setExcludeBugsFilter(File filter) {
+        setExcludeBugsFilterConfig(project.resources.text.fromFile(filter))
+    }
+
     @TaskAction
     void run() {
         new FindBugsClasspathValidator(JavaVersion.current()).validateClasspath(getFindbugsClasspath().files*.name)
@@ -238,6 +260,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
             .withOmitVisitors(getOmitVisitors())
             .withExcludeFilter(getExcludeFilter())
             .withIncludeFilter(getIncludeFilter())
+            .withExcludeBugsFilter(getExcludeBugsFilter())
             .configureReports(getReports())
 
         return specBuilder.build()

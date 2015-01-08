@@ -133,6 +133,39 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
+    void "excludes baseline bug for matching bug instance"() {
+        given:
+        String baselineExcludeFilename = 'baselineExclude.xml'
+
+        buildFile << """
+            findbugs {
+                excludeBugsFilterConfig resources.text.fromFile('${baselineExcludeFilename}')
+            }
+            findbugsMain.reports {
+                xml.enabled true
+            }
+        """
+
+        and:
+        badCode()
+
+        when:
+        writeBaselineBugsFilterFile(baselineExcludeFilename, new JavaClass('org.gradle', 'BadClass'))
+
+        then:
+        succeeds("check")
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.BadClass"))
+
+        when:
+        writeBaselineBugsFilterFile(baselineExcludeFilename, new JavaClass('org.gradle', 'SomeOtherClass'))
+
+        then:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':findbugsMain'.")
+        failure.assertThatCause(startsWith("FindBugs rule violations were found. See the report at:"))
+        file("build/reports/findbugs/main.xml").assertContents(containsClass("org.gradle.BadClass"))
+    }
+
     def "can generate html reports"() {
         given:
         buildFile << """
@@ -384,5 +417,37 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             </Match>
             </FindBugsFilter>
         """
+    }
+
+    private void writeBaselineBugsFilterFile(String filename, JavaClass javaClass) {
+        file(filename) << """
+            <BugCollection>
+                <BugInstance type="DM_EXIT" priority="2" rank="16" abbrev="Dm" category="BAD_PRACTICE">
+                    <Class classname="${javaClass.fullyQualifiedClassName}">
+                        <SourceLine classname="${javaClass.fullyQualifiedClassName}" start="1" end="1" sourcefile="${javaClass.classFilename}" sourcepath="${javaClass.fullyQualifiedClassFilename}"/>
+                    </Class>
+                    <Method classname="${javaClass.fullyQualifiedClassName}" name="isFoo" signature="(Ljava/lang/Object;)Z" isStatic="false">
+                        <SourceLine classname="${javaClass.fullyQualifiedClassName}" start="1" end="1" startBytecode="0" endBytecode="57" sourcefile="${javaClass.classFilename}" sourcepath="${javaClass.fullyQualifiedClassFilename}"/>
+                    </Method>
+                    <SourceLine classname="${javaClass.fullyQualifiedClassName}" start="1" end="1" startBytecode="1" endBytecode="1" sourcefile="${javaClass.classFilename}" sourcepath="${javaClass.fullyQualifiedClassFilename}"/>
+                </BugInstance>
+            </BugCollection>
+        """
+    }
+
+    private class JavaClass {
+        String pkg
+        String className
+        String fullyQualifiedClassName
+        String classFilename
+        String fullyQualifiedClassFilename
+
+        JavaClass(String pkg, String className) {
+            this.pkg = pkg
+            this.className = className
+            fullyQualifiedClassName = "${pkg}.${className}"
+            classFilename = "${className}.java"
+            fullyQualifiedClassFilename = "${pkg.replaceAll('\\.', '/')}/${classFilename}"
+        }
     }
 }

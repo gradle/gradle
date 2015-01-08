@@ -16,11 +16,10 @@
 
 package org.gradle.api.plugins.quality
 
-import spock.lang.Specification
-
+import org.gradle.api.GradleException
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.api.GradleException
+import spock.lang.Specification
 
 class FindBugsTest extends Specification {
     def project = ProjectBuilder.builder().build()
@@ -118,5 +117,13 @@ class FindBugsTest extends Specification {
         expect:
         findbugs.excludeFilter == project.file("config/file.txt")
         findbugs.excludeFilterConfig.inputFiles.singleFile == project.file("config/file.txt")
+    }
+
+    def "can use legacy excludeBugsFilter property"() {
+        findbugs.excludeBugsFilter = project.file("config/file.txt")
+
+        expect:
+        findbugs.excludeBugsFilter == project.file("config/file.txt")
+        findbugs.excludeBugsFilterConfig.inputFiles.singleFile == project.file("config/file.txt")
     }
 }
