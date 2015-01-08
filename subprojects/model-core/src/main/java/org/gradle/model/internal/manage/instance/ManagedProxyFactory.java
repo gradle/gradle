@@ -32,13 +32,9 @@ public class ManagedProxyFactory {
             }
             Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
             return constructor.newInstance(state);
-        } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());
-        } catch (InstantiationException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
