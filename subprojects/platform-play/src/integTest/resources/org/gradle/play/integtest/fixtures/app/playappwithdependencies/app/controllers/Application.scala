@@ -26,4 +26,8 @@ object Application extends Controller {
     Ok(views.html.index(Strings.nullToEmpty("Your new application is ready.")))
   }
 
+  def shutdown = Action {
+    System.exit(0)
+    Ok("shutdown")
+  }
 }

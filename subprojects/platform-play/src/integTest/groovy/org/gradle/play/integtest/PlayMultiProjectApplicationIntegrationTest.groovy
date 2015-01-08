@@ -94,6 +94,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
     }
 
+    
     def "can run play app"(){
         setup:
         httpPort = portFinder.nextAvailable
@@ -130,7 +131,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    def "can run staged play distribution" () {
+    def "can run play distribution" () {
         println file(".")
 
         ExecHandle handle
@@ -154,10 +155,13 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         cleanup:
         if (handle != null) {
             try {
+                playUrl("shutdown").bytes
                 handle.abort()
             } catch (IllegalStateException e) {
                 // Ignore if process is already not running
                 println "Did not abort play process since current state is: ${handle.state.toString()}"
+            } catch (SocketException e) {
+                // Expected
             }
         }
     }

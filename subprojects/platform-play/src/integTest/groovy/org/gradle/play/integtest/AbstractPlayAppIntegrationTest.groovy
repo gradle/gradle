@@ -75,32 +75,32 @@ model {
         skipped(":createPlayBinaryJar", ":twirlCompilePlayBinary")
 
         when:
-        succeeds("dist")
+        succeeds("stage")
 
         then:
         executedAndNotSkipped(
                 ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist")
+                ":stagePlayBinaryDist")
         skipped(
                 ":routesCompilePlayBinary",
                 ":twirlCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar")
 
-        and:
-        verifyZips()
-
         when:
-        succeeds("stage")
+        succeeds("dist")
 
         then:
-        executedAndNotSkipped(":stagePlayBinaryDist")
+        executedAndNotSkipped(":createPlayBinaryDist")
         skipped(
                 ":routesCompilePlayBinary",
                 ":twirlCompilePlayBinary",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts")
+                ":stagePlayBinaryDist")
+
+        and:
+        verifyZips()
 
         and:
         verifyStaged()
@@ -183,27 +183,17 @@ model {
         notAvailable(url)
     }
 
-    @Requires([ TestPrecondition.NOT_UNKNOWN_OS, TestPrecondition.NOT_WINDOWS ])
+    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
     @Unroll
-    def "can run #type play distribution" () {
+    def "can run play distribution" () {
         ExecHandleBuilder builder
         ExecHandle handle
+        String distDirName = "build/stage"
         String distDirPath = new File(testDirectory, distDirName).path
-        buildFile << """
-            model {
-                tasks {
-                    create("unzipDist", Copy) {
-                        from (zipTree(tasks.createPlayBinaryDist.archivePath))
-                        into "${distDirName}"
-                        dependsOn tasks.createPlayBinaryDist
-                    }
-                }
-            }
-        """
 
         setup:
         httpPort = portFinder.nextAvailable
-        run "${task}"
+        run "stage"
         if (OperatingSystem.current().unix) {
             assert file("${distDirName}/playBinary/bin/playBinary").mode == 0755
         }
@@ -223,17 +213,15 @@ model {
         cleanup:
         if (handle != null) {
             try {
+                playUrl("shutdown").bytes
                 handle.abort()
             } catch (IllegalStateException e) {
                 // Ignore if process is already not running
                 println "Did not abort play process since current state is: ${handle.state.toString()}"
+            } catch (SocketException e) {
+                // Expected
             }
         }
-
-        where:
-        type     | task        | distDirName
-        "staged" | "stage"     | "build/stage"
-        "zipped" | "unzipDist" | "build/dist"
     }
 
     void verifyJars() {

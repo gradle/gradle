@@ -135,17 +135,18 @@ public class PlayDistributionPlugin {
         }
 
         for (final PlayDistribution distribution : distributions) {
-            String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
+            final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
+            final File stageDir = new File(buildDir, "stage");
+            final String baseName = StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();
             tasks.create(stageTaskName, Copy.class, new Action<Copy>() {
                 @Override
                 public void execute(Copy copy) {
                     copy.setDescription("Copies the binary distribution to a staging directory.");
                     copy.setGroup(DISTRIBUTION_GROUP);
-                    copy.setDestinationDir(new File(buildDir, "stage"));
+                    copy.setDestinationDir(stageDir);
 
-                    String baseDirName = distribution.getName();
                     CopySpecInternal baseSpec = copy.getRootSpec().addChild();
-                    baseSpec.into(baseDirName);
+                    baseSpec.into(baseName);
                     baseSpec.with(distribution.getContents());
                 }
             });
@@ -156,7 +157,7 @@ public class PlayDistributionPlugin {
                 public void execute(final Zip zip) {
                     zip.setDescription("Bundles the play binary as a distribution.");
                     zip.setGroup(DISTRIBUTION_GROUP);
-                    zip.setBaseName(StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName());
+                    zip.setBaseName(baseName);
                     zip.setDestinationDir(new File(buildDir, "distributions"));
 
                     ConventionMapping mapping = zip.getConventionMapping();
@@ -170,7 +171,9 @@ public class PlayDistributionPlugin {
                     String baseDirName = zip.getArchiveName().substring(0, zip.getArchiveName().length() - zip.getExtension().length() - 1);
                     CopySpecInternal baseSpec = zip.getRootSpec().addChild();
                     baseSpec.into(baseDirName);
-                    baseSpec.with(distribution.getContents());
+                    baseSpec.from(new File(stageDir, baseName));
+
+                    zip.dependsOn(stageTaskName);
                 }
             });
         }

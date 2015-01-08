@@ -122,10 +122,11 @@ class PlayDistributionPluginTest extends Specification {
                 }
                 1 * getRootSpec() >> Mock(CopySpecInternal) {
                     1 * addChild() >> Mock(CopySpecInternal) {
-                        1 * into("playBinary")
-                        1 * with(_ as CopySpecInternal)
+                        1 * into("playBinary") >> Mock(CopySpecInternal)
+                        1 * from(_)
                     }
                 }
+                1 * dependsOn("stagePlayBinaryDist")
             })
         }
         1 * tasks.create("stagePlayBinaryDist", Copy, _) >> { String name, Class type, Action action ->

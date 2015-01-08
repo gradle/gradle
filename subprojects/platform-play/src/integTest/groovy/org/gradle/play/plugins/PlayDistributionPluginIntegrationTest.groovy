@@ -64,18 +64,31 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "dist"
+        succeeds "stage"
 
         then:
         executedAndNotSkipped(
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist")
+                ":stagePlayBinaryDist")
         skipped(
                 ":routesCompilePlayBinary",
                 ":twirlCompilePlayBinary",
                 ":scalaCompilePlayBinary")
+
+        when:
+        succeeds "dist"
+
+        then:
+        executedAndNotSkipped(":createPlayBinaryDist")
+        skipped(
+                ":routesCompilePlayBinary",
+                ":twirlCompilePlayBinary",
+                ":scalaCompilePlayBinary",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts")
 
         and:
         zip("build/distributions/playBinary.zip").containsDescendants(
@@ -84,19 +97,6 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 "playBinary/bin/playBinary",
                 "playBinary/bin/playBinary.bat"
         )
-
-        when:
-        succeeds "stage"
-
-        then:
-        executedAndNotSkipped(":stagePlayBinaryDist")
-        skipped(
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":routesCompilePlayBinary",
-                ":twirlCompilePlayBinary",
-                ":scalaCompilePlayBinary")
 
         and:
         [ "playBinary/lib/dist-play-app.jar",

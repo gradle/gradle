@@ -11,4 +11,8 @@ object Application extends Controller {
     Ok(Util.fullStop("Your new application is ready"))
   }
 
+  def shutdown = Action {
+    System.exit(0)
+    Ok("shutdown")
+  }
 }
