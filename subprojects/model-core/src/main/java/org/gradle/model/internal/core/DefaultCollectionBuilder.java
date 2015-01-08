@@ -257,4 +257,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.mutateAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<S>(subject, configAction, descriptor));
     }
+
+    public static <I> ModelType<CollectionBuilder<I>> typeOf(ModelType<I> type) {
+        return new ModelType.Builder<CollectionBuilder<I>>() {
+        }.where(
+                new ModelType.Parameter<I>() {
+                }, type
+        ).build();
+    }
 }

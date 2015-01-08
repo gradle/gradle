@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Map;
 
 public class ModelNode {
+
+    // Note: order is crucial here
     public enum State {
         Known(true),
         Created(true),

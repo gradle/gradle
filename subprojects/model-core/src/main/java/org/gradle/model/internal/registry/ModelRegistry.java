@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRegistrar;
 import org.gradle.model.internal.type.ModelType;
@@ -24,6 +25,9 @@ import org.gradle.model.internal.type.ModelType;
 public interface ModelRegistry extends ModelRegistrar {
 
     public <T> T get(ModelPath path, ModelType<T> type);
+
+    @Nullable
+    public ModelNode get(ModelPath path, ModelNode.State state);
 
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);

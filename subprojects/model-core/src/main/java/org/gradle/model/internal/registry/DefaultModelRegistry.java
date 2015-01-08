@@ -167,7 +167,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                             boundMutator.getMutator().getDescriptor(),
                             path,
                             subject.getState()
-                            ));
+                    ));
                 }
                 actions.put(new MutationKey(path, type), boundMutator);
             }
@@ -203,6 +203,16 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public <T> T get(ModelPath path, ModelType<T> type) {
         return toType(type, require(path), "get(ModelPath, ModelType)");
+    }
+
+    @Override
+    public ModelNode get(ModelPath path, ModelNode.State state) {
+        ModelNode node = modelGraph.find(path);
+        if (node == null) {
+            return null;
+        }
+        transition(node, state);
+        return node;
     }
 
     public <T> T find(ModelPath path, ModelType<T> type) {
@@ -327,41 +337,24 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void close(ModelNode node) {
-        if (node.getState() == GraphClosed) {
+        transition(node, GraphClosed);
+    }
+
+    private void transition(ModelNode node, ModelNode.State desired) {
+        ModelPath path = node.getPath();
+        ModelNode.State state = node.getState();
+
+        LOGGER.debug("Transitioning model element {} from state {} to {}", path, state.name(), desired.name());
+
+        if (desired.ordinal() < state.ordinal()) {
+            throw new IllegalStateException("Cannot lifecycle model node " + path + " to state " + desired.name() + " as it is already at " + state.name());
+        }
+
+        if (state == desired) {
             return;
         }
 
-        ModelPath path = node.getPath();
-        LOGGER.debug("Closing {}", path);
-
-        maybeCreate(node);
-        maybeMutate(node);
-        maybeCloseLinked(node);
-
-        LOGGER.debug("Finished closing {}", path);
-    }
-
-    private void maybeCloseLinked(ModelNode node) {
-        if (node.getState() == SelfClosed) {
-            for (ModelNode child : node.getLinks().values()) {
-                close(child);
-            }
-            node.setState(GraphClosed);
-        }
-    }
-
-    private void maybeMutate(ModelNode node) {
-        ModelPath path = node.getPath();
-        fireMutations(node, path, Defaults, Created, DefaultsApplied);
-        fireMutations(node, path, Initialize, DefaultsApplied, Initialized);
-        fireMutations(node, path, Mutate, Initialized, Mutated);
-        fireMutations(node, path, Finalize, Mutated, Finalized);
-        fireMutations(node, path, Validate, Finalized, SelfClosed);
-    }
-
-    private void maybeCreate(ModelNode node) {
-        ModelPath path = node.getPath();
-        if (node.getState() == Known) {
+        if (state == Known && desired.ordinal() >= Created.ordinal()) {
             BoundModelCreator creator = creators.remove(path);
             if (creator == null) {
                 // Unbound creator - should give better error message here
@@ -369,12 +362,43 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             doCreate(node, creator);
             node.setState(Created);
+
+            if (desired == Created) {
+                return;
+            }
         }
+
+        if (!fireMutations(node, path, state, Defaults, DefaultsApplied, desired)) {
+            return;
+        }
+        if (!fireMutations(node, path, state, Initialize, Initialized, desired)) {
+            return;
+        }
+        if (!fireMutations(node, path, state, Mutate, Mutated, desired)) {
+            return;
+        }
+        if (!fireMutations(node, path, state, Finalize, Finalized, desired)) {
+            return;
+        }
+        if (!fireMutations(node, path, state, Validate, SelfClosed, desired)) {
+            return;
+        }
+
+        if (desired.ordinal() >= GraphClosed.ordinal()) {
+            for (ModelNode child : node.getLinks().values()) {
+                close(child);
+            }
+            node.setState(GraphClosed);
+        }
+
+        LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
-    private void fireMutations(ModelNode node, ModelPath path, ModelActionRole type, ModelNode.State from, ModelNode.State to) {
-        if (node.getState() != from) {
-            return;
+    // NOTE: this should only be called from transition() as implicit logic is shared
+    private boolean fireMutations(ModelNode node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
+        ModelNode.State nodeState = node.getState();
+        if (nodeState.ordinal() >= to.ordinal()) {
+            return nodeState.ordinal() < desired.ordinal();
         }
 
         Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
@@ -390,6 +414,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         node.setState(to);
+
+        if (to == desired) {
+            LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, originalState.name(), desired.name());
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private <T> ModelView<? extends T> assertView(ModelNode node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
@@ -605,7 +636,16 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureCreated() {
-            maybeCreate(node);
+            ModelPath path = node.getPath();
+            if (node.getState() == Known) {
+                BoundModelCreator creator = creators.remove(path);
+                if (creator == null) {
+                    // Unbound creator - should give better error message here
+                    throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
+                }
+                doCreate(node, creator);
+                node.setState(Created);
+            }
         }
 
         @Override

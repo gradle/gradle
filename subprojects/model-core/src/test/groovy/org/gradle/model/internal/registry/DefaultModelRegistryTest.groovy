@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
 import org.gradle.internal.Factory
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
@@ -391,9 +392,175 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Validate   | ModelActionRole.Finalize
     }
 
+    @Unroll
+    def "can get node at state"() {
+        given:
+        registry.create(creator("thing", Bean, new Bean(value: "created")))
+        ModelActionRole.values().each { role ->
+            registry.apply(role, mutator("thing", Bean) {
+                if (it) {
+                    it.value = role.name()
+                }
+            })
+        }
+
+        expect:
+        registry.get(ModelPath.path("thing"), state).getPrivateData(ModelType.of(Bean))?.value == expected
+
+        where:
+        state                           | expected
+        ModelNode.State.Known           | null
+        ModelNode.State.Created         | "created"
+        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults.name()
+        ModelNode.State.Initialized     | ModelActionRole.Initialize.name()
+        ModelNode.State.Mutated         | ModelActionRole.Mutate.name()
+        ModelNode.State.Finalized       | ModelActionRole.Finalize.name()
+        ModelNode.State.SelfClosed      | ModelActionRole.Validate.name()
+        ModelNode.State.GraphClosed     | ModelActionRole.Validate.name()
+    }
+
+    def "asking for element at known state does not invoke creator"() {
+        given:
+        def events = []
+        registry.create(creator("thing", Bean, new Bean(), { events << "created" } as Action))
+
+        when:
+        registry.get(ModelPath.path("thing"), ModelNode.State.Known)
+
+        then:
+        events == []
+
+        when:
+        registry.get(ModelPath.path("thing"), ModelNode.State.Created)
+
+        then:
+        events == ["created"]
+    }
+
+    @Unroll
+    def "asking for unknown element at any state returns null"() {
+        expect:
+        registry.get(ModelPath.path("thing"), state) == null
+
+        where:
+        state << ModelNode.State.values().toList()
+    }
+
+    def "getting self closed collection defines all links but does not realise them until graph closed"() {
+        given:
+        def events = []
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry.create(collection("things", Bean))
+        registry.apply(ModelActionRole.Mutate, mutator("things", cbType) { c ->
+            events << "collection mutated"
+            c.create("c1") { events << "$it.name created" }
+        })
+
+        when:
+        def cbNode = registry.get(ModelPath.path("things"), ModelNode.State.SelfClosed)
+
+        then:
+        events == ["collection mutated"]
+        cbNode.links.keySet().toList() == ["c1"]
+
+        when:
+        registry.get(ModelPath.path("things"), ModelNode.State.GraphClosed)
+
+        then:
+        events == ["collection mutated", "c1 created"]
+    }
+
+    @Unroll
+    def "cannot request model node at earlier state"() {
+        given:
+        registry.create(creator("thing", Bean, new Bean()))
+
+        expect:
+        registry.get(ModelPath.path("thing"), state)
+
+        when:
+        // This has to be in a when block to stop Spock rewriting it
+        ModelNode.State.values().findAll { it.ordinal() < state.ordinal() }.each { earlier ->
+            try {
+                registry.get(ModelPath.path("thing"), earlier)
+                throw new AssertionError("Expected error")
+            } catch (IllegalStateException e) {
+                // expected
+            }
+        }
+
+        then:
+        true
+
+        where:
+        state << ModelNode.State.values().toList()
+    }
+
+    @Unroll
+    def "is benign to request element at current state"() {
+        given:
+        registry.create(creator("thing", Bean, new Bean()))
+
+        when:
+        // not in loop to get different stacktrace line numbers
+        registry.get(ModelPath.path("thing"), state)
+        registry.get(ModelPath.path("thing"), state)
+        registry.get(ModelPath.path("thing"), state)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        state << ModelNode.State.values().toList()
+    }
+
+    @Unroll
+    def "requesting at current state does not reinvoke actions"() {
+        given:
+        def events = []
+        registry.create(creator("thing", Bean, new Bean()))
+        def uptoRole = ModelActionRole.values().findAll { it.ordinal() <= role.ordinal() }
+        uptoRole.each { r ->
+            registry.apply(r, mutator("thing", Bean) { events << r.name() })
+        }
+
+        when:
+        registry.get(ModelPath.path("thing"), state)
+
+        then:
+        events == uptoRole*.name()
+
+        when:
+        registry.get(ModelPath.path("thing"), state)
+
+        then:
+        events == uptoRole*.name()
+
+        where:
+        state                           | role
+        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
+        ModelNode.State.Initialized     | ModelActionRole.Initialize
+        ModelNode.State.Mutated         | ModelActionRole.Mutate
+        ModelNode.State.Finalized       | ModelActionRole.Finalize
+        ModelNode.State.SelfClosed      | ModelActionRole.Validate
+        ModelNode.State.GraphClosed     | ModelActionRole.Validate
+    }
+
     class Bean {
+        String name
         String value
     }
+
+    public <I> ModelCreator collection(String path, Class<I> itemType) {
+        def itemModelType = ModelType.of(itemType)
+        def collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType)
+        ModelCreators.of(ModelReference.of(path, collectionBuilderType)) { node, inputs ->
+            node.setPrivateData(collectionBuilderType, new DefaultCollectionBuilder<I>(itemModelType, { name, type -> new Bean(name: name) }, [], new SimpleModelRuleDescriptor("collection creator"), node))
+        }
+        .withProjection(new UnmanagedModelProjection<CollectionBuilder<I>>(collectionBuilderType, true, true))
+                .build()
+    }
+
 
     public <C> ModelCreator creator(String path, Class<C> type, C value) {
         creator(path, type, { value } as Factory)
@@ -468,7 +635,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action to mutate the value of the given element.
      */
-    public <S> ModelAction<?> mutator(String path, Class<S> type, Action<? super S> action) {
+    public <S> ModelAction<?> mutator(String path, ModelType<S> type, Action<? super S> action) {
         ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
@@ -477,6 +644,10 @@ class DefaultModelRegistryTest extends Specification {
             action.execute(object)
         }
         return mutator
+    }
+
+    public <S> ModelAction<?> mutator(String path, Class<S> type, Action<? super S> action) {
+        return mutator(path, ModelType.of(type), action)
     }
 
     /**
@@ -506,4 +677,5 @@ class DefaultModelRegistryTest extends Specification {
         }
         return mutator
     }
+
 }
