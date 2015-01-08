@@ -152,10 +152,10 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 
 ### Test Coverage
 
-- Rule based plugin can be applied to multiple projects with identical results, and rules are extracted only once
-- Cache must not prevent classes from being garbage collected
-- Rules extracted from core plugins are reused across builds when using the daemon
-- Rules extracted from user plugins are reused across builds when using the daemon and classloader caching
+- ~~Rule based plugin can be applied to multiple projects with identical results, and rules are extracted only once~~
+- ~~Cache must not prevent classes from being garbage collected~~
+- ~~Rules extracted from core plugins are reused across builds when using the daemon~~
+- ~~Rules extracted from user plugins are reused across builds when using the daemon and classloader caching~~
 
 ## Task selection/listing realises only required tasks from model registry instead of using task container
 
