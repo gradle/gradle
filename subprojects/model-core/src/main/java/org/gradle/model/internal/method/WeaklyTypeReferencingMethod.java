@@ -41,7 +41,6 @@ public class WeaklyTypeReferencingMethod<T, R> {
     private final String name;
     private final ImmutableList<ModelType<?>> paramTypes;
     private final int modifiers;
-    private final Annotation[] annotations;
 
 
     public WeaklyTypeReferencingMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
@@ -55,7 +54,6 @@ public class WeaklyTypeReferencingMethod<T, R> {
             }
         }));
         modifiers = method.getModifiers();
-        annotations = method.getAnnotations();
     }
 
     public ModelType<T> getTarget() {
@@ -79,7 +77,9 @@ public class WeaklyTypeReferencingMethod<T, R> {
     }
 
     public Annotation[] getAnnotations() {
-        return annotations;
+        //we could retrieve annotations at construction time and hold references to them but unfortunately
+        //in IBM JDK strong references are held from annotation instance to class in which it is used so we have to reflect
+        return findMethod().getAnnotations();
     }
 
     public Type[] getGenericParameterTypes() {
