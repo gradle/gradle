@@ -64,28 +64,24 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     ModelProperty<?> property = schema.getProperties().get(name);
                     ModelType<?> propertyType = property.getType();
 
-                    return doGet(propertyType, name, property);
+                    return doGet(propertyType, name);
                 }
 
-                private <T> T doGet(ModelType<T> propertyType, String propertyName, ModelProperty<?> property) {
+                private <T> T doGet(ModelType<T> propertyType, String propertyName) {
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
 
-                    if (!property.isWritable()) {
-                        // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the view
-                        if (writable) {
-                            ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
-                            if (closed) {
-                                //noinspection ConstantConditions
-                                modelView.close();
-                            }
+                    // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the view
+                    if (writable) {
+                        ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
+                        if (closed) {
                             //noinspection ConstantConditions
-                            return modelView.getInstance();
-                        } else {
-                            //noinspection ConstantConditions
-                            return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
+                            modelView.close();
                         }
+                        //noinspection ConstantConditions
+                        return modelView.getInstance();
                     } else {
-                        return propertyNode.getPrivateData(propertyType);
+                        //noinspection ConstantConditions
+                        return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                     }
                 }
 
