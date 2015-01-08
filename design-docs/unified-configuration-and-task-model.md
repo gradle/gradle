@@ -225,6 +225,31 @@ That is, robust alignment of lifecycle phases is out of scope.
 1. Mutate rule about container item added during container mutate rule executes and realises inputs when container item is needed.
 1. Rule source is subject to same blanket constraints as rule sources applied at project level, with error message helping user identify the faulty rule
 
+## Model infrastructure performance is benchmarked
+
+Benchmarking builds that use the new model infrastructure vs builds doing the same work using legacy configuration mechanisms will allow to verify if the new way of configuring builds is actually faster.
+Access to benchmark result history of builds using the new model infrastructure will also allow to verify if introduced improvements (e.g. caching, short-circuiting configuration) bring the expected performance gains.
+
+Benchmarking the effect of changing inputs, configuration and rules is out of scope of this story.
+
+Each benchmark should be executed for the following scenarios:
+- build everything
+- build a small subset (if it makes sense)
+- build nothing (e.g. `help` or `clean`)
+
+### Comparison of old and new Java plugins
+
+- a single variant, plain java build
+- for 1, 25 and 500 projects
+
+### Android mock-up
+
+- implemented using a plugin
+- creates tasks for combination of flavours and types
+- uses fully managed types
+- single project
+- for small, medium and large model sets (number of flavours and types)
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
