@@ -18,6 +18,7 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import spock.lang.Ignore
 
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -280,6 +281,7 @@ finalize
 '''
     }
 
+    @Ignore
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
         buildScript '''
