@@ -66,7 +66,11 @@ public class ModelRuleInspector {
     }
 
     private static RuntimeException invalid(Class<?> source, String reason) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+        return invalid(source, reason, null);
+    }
+
+    private static RuntimeException invalid(Class<?> source, String reason, Throwable throwable) {
+        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason, throwable);
     }
 
     private static RuntimeException invalidMethod(Method method, String reason) {
@@ -182,6 +186,18 @@ public class ModelRuleInspector {
             if (constructor.getParameterTypes().length > 0) {
                 throw invalid(source, "cannot declare a constructor that takes arguments");
             }
+        }
+
+        try {
+            Constructor<?> constructor = constructors[0];
+            constructor.setAccessible(true);
+            constructor.newInstance();
+        } catch (InvocationTargetException e) {
+            throw invalid(source, "instance creation failed", e.getCause());
+        } catch (InstantiationException e) {
+            throw invalid(source, "instance creation failed", e);
+        } catch (IllegalAccessException e) {
+            throw invalid(source, "must have an accessible constructor", e);
         }
 
         Field[] fields = source.getDeclaredFields();

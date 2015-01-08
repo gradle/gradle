@@ -422,4 +422,28 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains "name: injected"
     }
+
+    def "plugin application fails if rule source constructor throws exception"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+
+            @RuleSource
+            class Rules {
+                Rules() {
+                    throw new RuntimeException("failing constructor")
+                }
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Failed to apply plugin [class 'Rules']")
+        failure.assertHasCause("Type Rules is not a valid model rule source: instance creation failed")
+        failure.assertHasCause("failing constructor")
+    }
 }

@@ -180,7 +180,7 @@ We should instantiate when extracting rules from the plugin as part of the class
 
 ### Test Coverage
 
-- Rule source plugin throwing exception in default constructor fails plugin _application_
+- ~~Rule source plugin throwing exception in default constructor fails plugin _application_~~
 
 ## Mutation rules are always executed in a reliable order
 

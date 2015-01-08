@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ModelActionRole
@@ -32,6 +33,8 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
+
+import java.beans.Introspector
 
 class ModelRuleInspectorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry()
@@ -482,7 +485,7 @@ ${ManagedWithNonManageableParents.name}
     def "cache does not hold strong references"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)
-        addClass(cl, '''
+        def source = cl.parseClass('''
             import org.gradle.model.*
 
             class RuleSource {
@@ -492,11 +495,16 @@ ${ManagedWithNonManageableParents.name}
             }
         ''')
 
-        expect:
+        when:
+        inspector.inspect(source)
+
+        then:
         inspector.cache.size() == 1
 
         when:
         cl.clearCache()
+        forcefullyClearReferences(source)
+        source = null
 
         then:
         new PollingConditions(timeout: 10).eventually {
@@ -506,9 +514,14 @@ ${ManagedWithNonManageableParents.name}
         }
     }
 
-    private void addClass(GroovyClassLoader cl, String impl) {
-        def type = cl.parseClass(impl)
-        inspector.inspect(type)
-        type = null
+    private void forcefullyClearReferences(Class<?> clazz) {
+        // Remove soft references (dependent on Groovy internals)
+        def f = ClassInfo.getDeclaredField("globalClassSet")
+        f.setAccessible(true)
+        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
+        globalClassSet.remove(clazz)
+
+        // Remove soft references
+        Introspector.flushFromCaches(clazz)
     }
 }
