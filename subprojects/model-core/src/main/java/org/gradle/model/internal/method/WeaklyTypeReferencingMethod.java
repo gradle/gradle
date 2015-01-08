@@ -42,7 +42,6 @@ public class WeaklyTypeReferencingMethod<T, R> {
     private final ImmutableList<ModelType<?>> paramTypes;
     private final int modifiers;
     private final Annotation[] annotations;
-    private final Annotation[][] parameterAnnotations;
 
 
     public WeaklyTypeReferencingMethod(ModelType<T> target, ModelType<R> returnType, Method method) {
@@ -57,7 +56,6 @@ public class WeaklyTypeReferencingMethod<T, R> {
         }));
         modifiers = method.getModifiers();
         annotations = method.getAnnotations();
-        parameterAnnotations = method.getParameterAnnotations();
     }
 
     public ModelType<T> getTarget() {
@@ -82,10 +80,6 @@ public class WeaklyTypeReferencingMethod<T, R> {
 
     public Annotation[] getAnnotations() {
         return annotations;
-    }
-
-    public Annotation[][] getParameterAnnotations() {
-        return parameterAnnotations;
     }
 
     public Type[] getGenericParameterTypes() {
