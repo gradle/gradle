@@ -26,6 +26,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
@@ -42,7 +43,30 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
     private final ModelInstantiator modelInstantiator;
     private final ModelRuleDescriptor descriptor;
 
-    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ManagedProxyFactory proxyFactory, List<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
+    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor,
+                                           ModelPath path,
+                                           final ModelSchema<T> schema,
+                                           ModelSchemaStore schemaStore,
+                                           final ModelInstantiator modelInstantiator,
+                                           ManagedProxyFactory proxyFactory,
+                                           List<? extends ModelReference<?>> inputs,
+                                           final BiAction<? super MutableModelNode, ? super Inputs> initializer) {
+        if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
+            ModelProjection projection = ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0));
+            return ModelCreators.of(ModelReference.of(path, schema.getType()), new BiAction<MutableModelNode, Inputs>() {
+                @Override
+                public void execute(MutableModelNode modelNode, Inputs inputs) {
+                    T instance = modelInstantiator.newInstance(schema);
+                    modelNode.setPrivateData(schema.getType(), instance);
+                    initializer.execute(modelNode, inputs);
+                }
+            })
+                    .withProjection(projection)
+                    .descriptor(descriptor)
+                    .inputs(inputs)
+                    .build();
+
+        }
         return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, initializer))
                 .descriptor(descriptor)
                 .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
@@ -75,28 +99,15 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         MutableModelNode childNode;
 
         if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
-            ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
-            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
+            ModelCreator creator = ManagedModelInitializer.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, schemaStore, modelInstantiator, proxyFactory, Collections.<ModelReference<?>>emptyList(), NO_OP);
             childNode = modelNode.addLink(creator);
             // TODO - defer creation
             childNode.ensureCreated();
-
-            for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-                addPropertyLink(childNode, modelProperty);
-            }
         } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-            ModelProjection projection = ManagedSetModelProjection.of(propertyType.getTypeVariables().get(0));
-            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
+            ModelCreator creator = ManagedModelInitializer.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, schemaStore, modelInstantiator, proxyFactory, Collections.<ModelReference<?>>emptyList(), NO_OP);
             childNode = modelNode.addLink(creator);
             // TODO - defer creation
             childNode.ensureCreated();
-
-            P instance = modelInstantiator.newInstance(propertySchema);
-            childNode.setPrivateData(propertyType, instance);
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)

@@ -18,9 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -88,20 +86,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction<MutableModelNode, Inputs> initializer;
-        ModelProjection projection;
-
-        if (managedType.getRawClass().equals(ManagedSet.class)) {
-            initializer = new ManagedModelRuleInvokerInstanceBackedTransformer<T>(modelSchema, modelInstantiator, ruleDefinition.getRuleInvoker(), descriptor, inputs);
-            projection = ManagedSetModelProjection.of(managedType.getTypeVariables().get(0));
-            return ModelCreators.of(ModelReference.of(modelPath, managedType), initializer)
-                    .withProjection(projection)
-                    .descriptor(descriptor)
-                    .inputs(inputs)
-                    .build();
-        } else {
-            return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(modelSchema, ruleDefinition.getRuleInvoker(), descriptor, inputs));
-        }
+        return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(modelSchema, ruleDefinition.getRuleInvoker(), descriptor, inputs));
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {
@@ -109,30 +94,6 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             return schemaStore.getSchema(managedType);
         } catch (InvalidManagedModelElementTypeException e) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
-        }
-    }
-
-    // This thing is temporary
-    private static class ManagedModelRuleInvokerInstanceBackedTransformer<T> implements BiAction<MutableModelNode, Inputs> {
-        private final ModelSchema<T> schema;
-        private final ModelInstantiator instantiator;
-        private final ModelRuleInvoker<?> ruleInvoker;
-        private final ModelRuleDescriptor descriptor;
-        private final List<ModelReference<?>> inputReferences;
-
-        public ManagedModelRuleInvokerInstanceBackedTransformer(ModelSchema<T> schema, ModelInstantiator instantiator, ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
-            this.schema = schema;
-            this.instantiator = instantiator;
-            this.ruleInvoker = ruleInvoker;
-            this.descriptor = descriptor;
-            this.inputReferences = inputReferences;
-        }
-
-        public void execute(MutableModelNode modelNode, Inputs inputs) {
-            T instance = instantiator.newInstance(schema);
-            modelNode.setPrivateData(schema.getType(), instance);
-
-            new RuleMethodBackedMutationAction<T>(schema, ruleInvoker, descriptor, inputReferences).execute(modelNode, inputs);
         }
     }
 }
