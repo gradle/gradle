@@ -157,7 +157,7 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 - Rules extracted from core plugins are reused across builds when using the daemon
 - Rules extracted from user plugins are reused across builds when using the daemon and classloader caching
 
-### Task selection/listing realises only required tasks from model registry instead of using task container
+## Task selection/listing realises only required tasks from model registry instead of using task container
 
 1. Add get(ModelPath, ModelNode.State) to ModelRegistry
 1. Support modelRegistry.get(“tasks”, SelfClosed)
