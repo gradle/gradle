@@ -157,6 +157,21 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 - Rules extracted from core plugins are reused across builds when using the daemon
 - Rules extracted from user plugins are reused across builds when using the daemon and classloader caching
 
+### Task selection/listing realises only required tasks from model registry instead of using task container
+
+1. Add get(ModelPath, ModelNode.State) to ModelRegistry
+1. Support modelRegistry.get(“tasks”, SelfClosed)
+1. Change task selection (i.e. resolving command line tasks into tasks to add to TaskGraphExecuter - see TaskSelector) to use modelRegistry.get(“tasks”, SelfClosed).linkNames
+1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
+
+### Test coverage
+
+1. Simple task defined via `tasks.named()` is not realised if not requested on command line
+1. Task container can be self-closed by task selector/lister and then later graph-closed
+1. No error when model node is requested at state it is already at
+1. Error when model node is requested at “previous” state
+1. Existing coverage for command line tasks selection and Tooling API models continues to function without change
+
 ## Rule source plugins are instantiated eagerly and once per JVM
 
 Rules in rule source plugins can be instance scoped.
