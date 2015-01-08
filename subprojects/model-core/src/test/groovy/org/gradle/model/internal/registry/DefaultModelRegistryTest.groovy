@@ -378,7 +378,7 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message.startsWith "Cannot add $targetState rule 'thing' for model element 'thing'"
 
         where:
-        fromState               | targetState
+        fromState                  | targetState
         ModelActionRole.Initialize | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Initialize
@@ -395,21 +395,21 @@ class DefaultModelRegistryTest extends Specification {
         String value
     }
 
-    ModelCreator creator(String path, Class<?> type, def value) {
+    public <C> ModelCreator creator(String path, Class<C> type, C value) {
         creator(path, type, { value } as Factory)
     }
 
     /**
      * Executes the given action when the model element is created.
      */
-    ModelCreator creator(String path, Class<?> type, def value, Action<?> initializer) {
+    public <C> ModelCreator creator(String path, Class<C> type, C value, Action<? super C> initializer) {
         creator(path, type, { initializer.execute(value); value } as Factory)
     }
 
     /**
      * Invokes the given factory to create the model element.
      */
-    ModelCreator creator(String path, Class<?> type, Factory<?> initializer) {
+    public <C> ModelCreator creator(String path, Class<C> type, Factory<? extends C> initializer) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
             @Override
@@ -424,7 +424,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given transformer to take an input of given type and produce the value for the model element.
      */
-    ModelCreator creator(String path, Class<?> type, Class<?> inputType, Transformer<?, ?> action) {
+    public <C, I> ModelCreator creator(String path, Class<C> type, Class<I> inputType, Transformer<? extends C, ? super I> action) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
             @Override
@@ -452,7 +452,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given transformer to take an input of given path and produce the value for the model element.
      */
-    ModelCreator creator(String path, Class<?> type, String inputPath, Transformer<?, ?> action) {
+    public <C> ModelCreator creator(String path, Class<C> type, String inputPath, Transformer<? extends C, ?> action) {
         def modelType = ModelType.of(type)
         ModelCreators.of(ModelReference.of(path, type), new BiAction<MutableModelNode, Inputs>() {
             @Override
@@ -468,7 +468,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action to mutate the value of the given element.
      */
-    ModelAction<?> mutator(String path, Class<?> type, Action<?> action) {
+    public <S> ModelAction<?> mutator(String path, Class<S> type, Action<? super S> action) {
         ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
@@ -482,7 +482,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action to mutate the node for the given element.
      */
-    ModelAction<?> nodeMutator(String path, Class<?> type, Action<? super MutableModelNode> action) {
+    public <S> ModelAction<S> nodeMutator(String path, Class<S> type, Action<? super MutableModelNode> action) {
         ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> []
@@ -496,7 +496,7 @@ class DefaultModelRegistryTest extends Specification {
     /**
      * Invokes the given action with the value for the given element and the given input, to mutate the value for the given element.
      */
-    ModelAction<?> mutator(String path, Class<?> type, Class<?> inputType, BiAction<?, ?> action) {
+    public <S, I> ModelAction<S> mutator(String path, Class<S> type, Class<I> inputType, BiAction<? super S, ? super I> action) {
         ModelAction mutator = Stub(ModelAction)
         mutator.subject >> (path == null ? ModelReference.of(type) : ModelReference.of(path, type))
         mutator.inputs >> [ModelReference.of(inputType)]
