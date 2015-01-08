@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.instance.strategy;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.DefaultManagedSet;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
@@ -27,13 +26,6 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 public class ManagedSetInstantiatorStrategy implements ModelInstantiatorStrategy {
-
-    private final Instantiator instantiator;
-
-    public ManagedSetInstantiatorStrategy(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
     public <T> T newInstance(ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator) {
         ModelType<T> type = schema.getType();
         if (type.getRawClass().equals(ManagedSet.class)) {
@@ -52,7 +44,7 @@ public class ManagedSetInstantiatorStrategy implements ModelInstantiatorStrategy
                 return modelInstantiator.newInstance(elementTypeSchema);
             }
         };
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultManagedSet.class, modelFactory));
+        return Cast.uncheckedCast(new DefaultManagedSet<E>(modelFactory));
     }
 
 }

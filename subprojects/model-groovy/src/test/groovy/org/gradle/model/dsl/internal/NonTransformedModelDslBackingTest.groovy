@@ -17,7 +17,6 @@
 package org.gradle.model.dsl.internal
 
 import org.gradle.internal.BiActions
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
 import org.gradle.model.collection.ManagedSet
 import org.gradle.model.internal.core.ModelCreators
@@ -78,7 +77,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 ModelPath.path("foo"),
                 schemaStore.getSchema(ModelType.of(Foo)),
                 schemaStore,
-                new StrategyBackedModelInstantiator(schemaStore, factory, new DirectInstantiator()),
+                new StrategyBackedModelInstantiator(schemaStore, factory),
                 factory,
                 [],
                 BiActions.doNothing()

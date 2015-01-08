@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.instance.strategy;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -28,10 +27,10 @@ public class StrategyBackedModelInstantiator implements ModelInstantiator {
     private final Iterable<ModelInstantiatorStrategy> instantiators;
     private final ModelSchemaStore schemaStore;
 
-    public StrategyBackedModelInstantiator(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, Instantiator instantiator) {
+    public StrategyBackedModelInstantiator(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.schemaStore = schemaStore;
         this.instantiators = ImmutableList.of(
-                new ManagedSetInstantiatorStrategy(instantiator),
+                new ManagedSetInstantiatorStrategy(),
                 new StructModelInstantiator(proxyFactory)
         );
     }

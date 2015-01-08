@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
@@ -152,6 +154,11 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 @Override
                 public void clear() {
                     delegate.clear();
+                }
+
+                // TODO - mix this in using decoration. Also validate closure parameters, if declared
+                public void create(Closure<?> closure) {
+                    create(new ClosureBackedAction<I>(closure));
                 }
             }
         };

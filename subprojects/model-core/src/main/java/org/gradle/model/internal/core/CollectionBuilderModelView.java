@@ -181,47 +181,47 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
             rawInstance.afterEach(type, configAction);
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public void create(String name, Closure<? super I> configAction) {
             create(name, new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public <S extends I> void create(String name, Class<S> type, Closure<? super S> configAction) {
             create(name, type, new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public void named(String name, Closure<? super I> configAction) {
             named(name, new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public void all(Closure<? super I> configAction) {
             all(new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public <S> void withType(Class<S> type, Closure<? super S> configAction) {
             withType(type, new ClosureBackedAction<S>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public void beforeEach(Closure<? super I> configAction) {
             beforeEach(new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public <S> void beforeEach(Class<S> type, Closure<? super S> configAction) {
             beforeEach(type, new ClosureBackedAction<S>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public void afterEach(Closure<? super I> configAction) {
             afterEach(new ClosureBackedAction<I>(configAction));
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public <S> void afterEach(Class<S> type, Closure<? super S> configAction) {
             afterEach(type, new ClosureBackedAction<S>(configAction));
         }
@@ -236,7 +236,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
             return element;
         }
 
-        // TODO - mix this in
+        // TODO - mix this in and validate closure parameters
         public Void methodMissing(String name, Object argsObj) {
             Object[] args = (Object[]) argsObj;
             if (args.length == 1 && args[0] instanceof Class<?>) {

@@ -19,7 +19,6 @@ package org.gradle.model.internal.inspect;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
@@ -41,9 +40,9 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
     private final ModelInstantiator modelInstantiator;
 
-    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore, Instantiator instantiator) {
+    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory, instantiator);
+        this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory);
     }
 
     public String getDescription() {
