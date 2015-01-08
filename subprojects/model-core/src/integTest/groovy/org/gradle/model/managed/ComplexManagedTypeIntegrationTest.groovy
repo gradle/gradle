@@ -68,6 +68,64 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("platform: windows")
     }
 
+    def "rule can apply defaults to a nested managed model element"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Platform {
+                String getDisplayName()
+                void setDisplayName(String name)
+
+                OperatingSystem getOperatingSystem()
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void platform(Platform platform) {
+                    platform.displayName = "Microsoft Windows"
+                    platform.operatingSystem.name += " OS"
+                }
+
+                @Defaults
+                void defaultOs(@Path('platform.operatingSystem') OperatingSystem os) {
+                    os.name = "default"
+                }
+
+                @Finalize
+                void cleanUpOs(@Path('platform.operatingSystem') OperatingSystem os) {
+                    os.name += " x86"
+                }
+
+                @Mutate
+                void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "platform: $platform.operatingSystem.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("platform: default OS x86")
+    }
+
     def "rule can provide a managed model element that references another managed model element"() {
         when:
         buildScript '''

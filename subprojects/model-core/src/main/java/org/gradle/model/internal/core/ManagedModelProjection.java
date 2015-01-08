@@ -69,6 +69,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 private <T> T doGet(ModelType<T> propertyType, String propertyName) {
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
+                    propertyNode.ensureCreated();
 
                     // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the view
                     if (writable) {
@@ -103,7 +104,9 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                     }
                     T castValue = Cast.uncheckedCast(value);
-                    modelNode.getLink(name).setPrivateData(propertyType, castValue);
+                    MutableModelNode propertyNode = modelNode.getLink(name);
+                    propertyNode.ensureCreated();
+                    propertyNode.setPrivateData(propertyType, castValue);
                 }
             }
         };

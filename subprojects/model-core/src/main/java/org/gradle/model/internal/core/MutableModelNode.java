@@ -72,7 +72,7 @@ public interface MutableModelNode {
     <T> T getPrivateData(ModelType<T> type);
 
     /**
-     * Ensure the node value has been created and that the views are available.
+     * Ensure that the views are available, with default values applied.
      */
     void ensureCreated();
 
