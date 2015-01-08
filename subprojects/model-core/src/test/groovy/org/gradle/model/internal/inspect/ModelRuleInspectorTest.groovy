@@ -16,13 +16,12 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -35,12 +34,9 @@ import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
 
 class ModelRuleInspectorTest extends Specification {
-
-    final static Instantiator UNUSED_INSTANTIATOR = null
-
     ModelRegistry registry = new DefaultModelRegistry()
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(UNUSED_INSTANTIATOR, DefaultModelSchemaStore.instance))
+    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {
         final String name

@@ -184,9 +184,9 @@ public class GlobalScopeServices {
         return new ClassLoaderCacheFactory();
     }
 
-    ModelRuleInspector createModelRuleInspector(ServiceRegistry services, Instantiator instantiator, ModelSchemaStore modelSchemaStore) {
+    ModelRuleInspector createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
-        List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(instantiator, modelSchemaStore);
+        List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
         return new ModelRuleInspector(Iterables.concat(coreExtractors, extractors));
     }
 
