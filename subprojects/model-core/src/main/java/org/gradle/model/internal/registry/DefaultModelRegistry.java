@@ -340,6 +340,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         transition(node, GraphClosed);
     }
 
+    private void ensureAt(ModelNode node, ModelNode.State desired) {
+        if (desired.ordinal() <= node.getState().ordinal()) {
+            return;
+        }
+        transition(node, desired);
+    }
+
     private void transition(ModelNode node, ModelNode.State desired) {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
@@ -636,16 +643,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureCreated() {
-            ModelPath path = node.getPath();
-            if (node.getState() == Known) {
-                BoundModelCreator creator = creators.remove(path);
-                if (creator == null) {
-                    // Unbound creator - should give better error message here
-                    throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
-                }
-                doCreate(node, creator);
-                node.setState(Created);
-            }
+            ensureAt(node, DefaultsApplied);
         }
 
         @Override
