@@ -172,22 +172,15 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 1. Error when model node is requested at “previous” state
 1. Existing coverage for command line tasks selection and Tooling API models continues to function without change
 
-## Rule source plugins are instantiated eagerly and once per JVM
+## Rule source plugins are instantiated eagerly
 
 Rules in rule source plugins can be instance scoped.
-This requires an instance for dispatch to the method rule.
-Currently, a new instance is created for each rule invocation.
-This creates extra objects, and also defers instantiation problems with rule source plugins (e.g. default constructor throws an exception).
 
-We should create one instance for the life of the JVM, and instantiate when extracting rules from the plugin as part of the class level validations.
-
-Note: It _might_ make sense to converge all the class based caches we have around rule infrastructure at this stage.
+We should instantiate when extracting rules from the plugin as part of the class level validations.
 
 ### Test Coverage
 
 - Rule source plugin throwing exception in default constructor fails plugin _application_
-- Rule source plugin is instantiated once (impl idea: default constructor could update some static level counter)
-- Rule source class is not prevented from being garbage collected
 
 ## Mutation rules are always executed in a reliable order
 
@@ -299,6 +292,7 @@ These should be rationalised and ideally replaced with model rules.
 - Cache/reuse model elements, avoiding need to run configuration on every build
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
 - Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
+- Rule source plugins are instantiated once per JVM
 
 ## DSL
 
