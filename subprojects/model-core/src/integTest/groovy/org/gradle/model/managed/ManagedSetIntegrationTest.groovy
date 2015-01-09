@@ -19,7 +19,6 @@ package org.gradle.model.managed
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
-import spock.lang.Ignore
 
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,14 +38,27 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               void setName(String string)
             }
 
+            class Names {
+                List<String> names = []
+            }
+
             @RuleSource
             class Rules {
               @Model
-              void people(ManagedSet<Person> people) {}
+              Names names() {
+                return new Names(names: ["p1", "p2"])
+              }
+
+              @Model
+              void people(ManagedSet<Person> people, Names names) {
+                names.names.each { n ->
+                    people.create { name = n }
+                }
+              }
 
               @Mutate void addPeople(ManagedSet<Person> people) {
-                people.create { it.name = "p1" }
-                people.create { it.name = "p2" }
+                people.create { name = "p3" }
+                people.create { name = "p4" }
               }
             }
 
@@ -54,7 +66,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               people {
-                create { it.name = "p3" }
+                create { it.name = "p0" }
               }
 
               tasks {
@@ -72,7 +84,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains 'people: p1, p2, p3'
+        output.contains 'people: p0, p1, p2, p3, p4'
     }
 
     def "rule can create a managed collection of abstract class backed managed model elements"() {
@@ -282,7 +294,6 @@ finalize
 ''')
     }
 
-    @Ignore
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
         buildScript '''
@@ -348,13 +359,14 @@ finalize
 p1 defined
 p2 defined
 p3 defined
-Person created
+construct Person
 configure p1
-Person created
+construct Person
 configure p2
-Person created
+construct Person
 configure p3
 '''
+        output.contains "p1, p2, p3"
     }
 
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {

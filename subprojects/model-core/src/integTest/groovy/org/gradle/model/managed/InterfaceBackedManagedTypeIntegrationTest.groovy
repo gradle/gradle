@@ -34,15 +34,17 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 void setName(String name)
             }
 
-            class Names {
-                String name
+            @Managed
+            interface Names {
+                String getName()
+                void setName(String name)
             }
 
             @RuleSource
             class RulePlugin {
                 @Model
-                Names name() {
-                    return new Names(name: "foo")
+                void name(Names names) {
+                    names.name = "foo"
                 }
 
                 @Model

@@ -55,14 +55,13 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
-        // TODO reuse pooled projections
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
         if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
             ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, Collections.<ModelReference<?>>emptyList(), NO_OP);
             modelNode.addLink(creator);
-        } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+        } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION && !property.isWritable()) {
             ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, Collections.<ModelReference<?>>emptyList(), NO_OP);
             modelNode.addLink(creator);
         } else {

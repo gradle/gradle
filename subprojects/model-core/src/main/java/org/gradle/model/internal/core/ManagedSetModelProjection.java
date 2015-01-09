@@ -19,26 +19,36 @@ package org.gradle.model.internal.core;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.BiAction;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelCreatorFactory;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ManagedSet<I>> {
+    private final ModelType<I> elementType;
+    private final ModelCreatorFactory modelCreatorFactory;
+    private final ModelSchema<I> elementSchema;
 
-    private ManagedSetModelProjection(ModelType<ManagedSet<I>> type) {
+    private ManagedSetModelProjection(ModelType<ManagedSet<I>> type, ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
         super(type, true, true);
+        this.elementSchema = elementSchema;
+        this.elementType = elementSchema.getType();
+        this.modelCreatorFactory = modelCreatorFactory;
     }
 
-    public static <I> ManagedSetModelProjection<I> of(ModelType<I> elementType) {
+    public static <I> ManagedSetModelProjection<I> of(ModelType<I> elementType, ModelSchemaStore modelSchemaStore, ModelCreatorFactory modelCreatorFactory) {
+        ModelSchema<I> elementSchema = modelSchemaStore.getSchema(elementType);
         return new ManagedSetModelProjection<I>(new ModelType.Builder<ManagedSet<I>>() {
         }.where(new ModelType.Parameter<I>() {
-        }, elementType).build());
+        }, elementType).build(), elementSchema, modelCreatorFactory);
     }
 
     @Override
@@ -63,19 +73,20 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
             }
 
             class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
-
-                private final ManagedSet<I> delegate;
-
-                public DelegatingManagedSet() {
-                    delegate = modelNode.getPrivateData(getType());
-                }
-
                 @Override
-                public void create(Action<? super I> action) {
+                public void create(final Action<? super I> action) {
                     if (!writable || closed) {
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
-                    delegate.create(action);
+
+                    String name = String.valueOf(modelNode.getLinkCount(elementType));
+                    ModelPath path = modelNode.getPath().child(name);
+                    modelNode.addLink(modelCreatorFactory.creator(ruleDescriptor, path, elementSchema, Collections.<ModelReference<?>>emptyList(), new BiAction<I, Inputs>() {
+                        @Override
+                        public void execute(I i, Inputs inputs) {
+                            action.execute(i);
+                        }
+                    }));
                 }
 
                 private void ensureReadable() {
@@ -87,76 +98,80 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 @Override
                 public int size() {
                     ensureReadable();
-                    return delegate.size();
+                    return modelNode.getLinkCount(elementType);
                 }
 
                 @Override
                 public boolean isEmpty() {
                     ensureReadable();
-                    return delegate.isEmpty();
+                    return modelNode.getLinkCount(elementType) == 0;
                 }
 
                 @Override
                 public boolean contains(Object o) {
                     ensureReadable();
-                    return delegate.contains(o);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public Iterator<I> iterator() {
                     ensureReadable();
-                    return delegate.iterator();
+                    List<I> values = new ArrayList<I>();
+                    for (String name : modelNode.getLinkNames(elementType)) {
+                        values.add(modelNode.getLink(name).asReadOnly(elementType, ruleDescriptor).getInstance());
+                    }
+                    return values.iterator();
                 }
 
                 @Override
                 public Object[] toArray() {
                     ensureReadable();
-                    return delegate.toArray();
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public <T> T[] toArray(T[] a) {
                     ensureReadable();
-                    return delegate.toArray(a);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean add(I e) {
-                    return delegate.add(e);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean remove(Object o) {
-                    return delegate.remove(o);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean containsAll(Collection<?> c) {
                     ensureReadable();
-                    return delegate.containsAll(c);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean addAll(Collection<? extends I> c) {
-                    return delegate.addAll(c);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean retainAll(Collection<?> c) {
-                    return delegate.retainAll(c);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public boolean removeAll(Collection<?> c) {
-                    return delegate.removeAll(c);
+                    throw new UnsupportedOperationException();
                 }
 
                 @Override
                 public void clear() {
-                    delegate.clear();
+                    throw new UnsupportedOperationException();
                 }
 
-                // TODO - mix this in using decoration. Also validate closure parameters, if declared
+                // TODO - mix this in using decoration. Also validate closure parameter types, if declared
                 public void create(Closure<?> closure) {
                     create(new ClosureBackedAction<I>(closure));
                 }
