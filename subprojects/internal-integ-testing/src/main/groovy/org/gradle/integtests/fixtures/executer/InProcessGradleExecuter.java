@@ -437,7 +437,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertHasDescription(String context) {
-            assertThatDescription(equalTo(context));
+            assertThatDescription(startsWith(context));
             return this;
         }
 
