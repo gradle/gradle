@@ -24,7 +24,6 @@ import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ModelCreatorFactory;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
