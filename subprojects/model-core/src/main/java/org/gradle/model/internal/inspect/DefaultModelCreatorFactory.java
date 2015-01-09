@@ -20,8 +20,6 @@ import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.instance.ModelInstantiator;
-import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
@@ -29,13 +27,11 @@ import java.util.List;
 
 public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     private final ModelSchemaStore schemaStore;
-    private final ModelInstantiator modelInstantiator;
     private final ManagedProxyFactory proxyFactory;
 
     public DefaultModelCreatorFactory(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
         this.proxyFactory = new ManagedProxyFactory();
-        this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory);
     }
 
     @Override
@@ -44,7 +40,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
         final ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
         final ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
         if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
-            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelInstantiator, schema, modelAction))
+            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelAction))
                     .withProjection(ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0), schemaStore, this))
                     .descriptor(descriptor)
                     .build();

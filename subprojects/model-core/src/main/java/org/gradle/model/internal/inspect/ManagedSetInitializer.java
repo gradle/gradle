@@ -21,24 +21,16 @@ import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.manage.instance.ModelInstantiator;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 
 class ManagedSetInitializer<T> implements BiAction<MutableModelNode, Inputs> {
-    private final ModelInstantiator modelInstantiator;
-    private final ModelSchema<T> schema;
     private final ModelAction<T> modelAction;
 
-    public ManagedSetInitializer(ModelInstantiator modelInstantiator, ModelSchema<T> schema, ModelAction<T> modelAction) {
-        this.modelInstantiator = modelInstantiator;
-        this.schema = schema;
+    public ManagedSetInitializer(ModelAction<T> modelAction) {
         this.modelAction = modelAction;
     }
 
     @Override
     public void execute(MutableModelNode modelNode, Inputs inputs) {
-        T instance = modelInstantiator.newInstance(schema);
-        modelNode.setPrivateData(schema.getType(), instance);
         modelNode.applyToSelf(ModelActionRole.Initialize, modelAction);
     }
 }
