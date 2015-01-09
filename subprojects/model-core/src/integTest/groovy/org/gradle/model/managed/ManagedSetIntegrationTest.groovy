@@ -355,7 +355,7 @@ finalize
         succeeds "printPeople"
 
         and:
-        output.contains '''
+        output.contains TextUtil.toPlatformLineSeparators('''
 p1 defined
 p2 defined
 p3 defined
@@ -365,8 +365,9 @@ construct Person
 configure p2
 construct Person
 configure p3
-'''
-        output.contains "p1, p2, p3"
+''')
+
+        output.contains "people: p1, p2, p3"
     }
 
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
