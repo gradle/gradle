@@ -39,17 +39,15 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     }
 
     @Override
-    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> inputs, BiAction<? super T, ? super Inputs> initializer) {
+    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super Inputs> initializer) {
+        // TODO reuse pooled projections
         final ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        final ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, inputs, initializer);
+        final ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
         if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
-            ModelProjection projection = ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0));
             return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelInstantiator, schema, modelAction))
-                    .withProjection(projection)
+                    .withProjection(ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0), schemaStore, this))
                     .descriptor(descriptor)
-                    .inputs(inputs)
                     .build();
-
         }
         if (schema.getKind() == ModelSchema.Kind.STRUCT) {
             return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, modelAction))
