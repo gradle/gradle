@@ -574,6 +574,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public Set<MutableModelNode> getLinks(ModelType<?> type) {
+            Set<MutableModelNode> nodes = new LinkedHashSet<MutableModelNode>();
+            for (ModelNode linked : node.getLinks().values()) {
+                if (linked.getPromise().canBeViewedAsWritable(type)) {
+                    nodes.add(new NodeWrapper(linked));
+                }
+            }
+            return nodes;
+        }
+
+        @Override
         public boolean hasLink(String name) {
             return node.hasLink(name);
         }

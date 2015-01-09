@@ -55,6 +55,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         return new ModelView<ManagedSet<I>>() {
 
             private boolean closed;
+            private Set<I> elementViews;
 
             @Override
             public ModelType<ManagedSet<I>> getType() {
@@ -92,46 +93,48 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                     if (writable && !closed) {
                         throw new WriteOnlyModelViewException(getType(), ruleDescriptor);
                     }
+                    if (elementViews == null) {
+                        elementViews = new LinkedHashSet<I>();
+                        for (MutableModelNode node : modelNode.getLinks(elementType)) {
+                            elementViews.add(node.asReadOnly(elementType, ruleDescriptor).getInstance());
+                        }
+                    }
                 }
 
                 @Override
                 public int size() {
                     ensureReadable();
-                    return modelNode.getLinkCount(elementType);
+                    return elementViews.size();
                 }
 
                 @Override
                 public boolean isEmpty() {
                     ensureReadable();
-                    return modelNode.getLinkCount(elementType) == 0;
+                    return elementViews.isEmpty();
                 }
 
                 @Override
                 public boolean contains(Object o) {
                     ensureReadable();
-                    throw new UnsupportedOperationException();
+                    return elementViews.contains(o);
                 }
 
                 @Override
                 public Iterator<I> iterator() {
                     ensureReadable();
-                    List<I> values = new ArrayList<I>();
-                    for (String name : modelNode.getLinkNames(elementType)) {
-                        values.add(modelNode.getLink(name).asReadOnly(elementType, ruleDescriptor).getInstance());
-                    }
-                    return values.iterator();
+                    return elementViews.iterator();
                 }
 
                 @Override
                 public Object[] toArray() {
                     ensureReadable();
-                    throw new UnsupportedOperationException();
+                    return elementViews.toArray();
                 }
 
                 @Override
                 public <T> T[] toArray(T[] a) {
                     ensureReadable();
-                    throw new UnsupportedOperationException();
+                    return elementViews.toArray(a);
                 }
 
                 @Override
@@ -147,7 +150,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 @Override
                 public boolean containsAll(Collection<?> c) {
                     ensureReadable();
-                    throw new UnsupportedOperationException();
+                    return elementViews.containsAll(c);
                 }
 
                 @Override
