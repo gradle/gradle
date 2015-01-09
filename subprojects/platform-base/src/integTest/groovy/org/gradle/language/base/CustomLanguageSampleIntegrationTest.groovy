@@ -48,7 +48,7 @@ DefaultSampleComponent 'main'
 
 Source sets
     DefaultSomeLanguageSourceSet 'main:myCustomSources'
-        src/main/myCustomSources
+        src${File.separator}main${File.separator}myCustomSources
 """))
     }
 }
