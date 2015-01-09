@@ -121,9 +121,45 @@ def generators = tasks.withType(ProjectGeneratorTask) {
     testDependencies = configurations.junit
 }
 
+task smallOldJava(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task mediumOldJava(type: ProjectGeneratorTask) {
+    projects = 25
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task bigOldJava(type: ProjectGeneratorTask) {
+    projects = 500
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task smallNewJava(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
+task mediumNewJava(type: ProjectGeneratorTask) {
+    projects = 25
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
+task bigNewJava(type: ProjectGeneratorTask) {
+    projects = 500
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects, smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava])
 
 task report {
     def crossVersionReportDir = new File(buildDir, "performance-tests/report/cross-version")

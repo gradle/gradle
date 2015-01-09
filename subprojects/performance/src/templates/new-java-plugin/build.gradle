@@ -1,0 +1,8 @@
+apply plugin: 'jvm-component'
+apply plugin: 'java-lang'
+
+model {
+    components {
+        main(JvmLibrarySpec)
+    }
+}
