@@ -86,6 +86,10 @@ Generally, the DSL should be the same, except:
 - Using create syntax fails when the element already exists.
 - There are currently no query method on this interface.
 
+### Updated default zinc compiler version
+
+The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
