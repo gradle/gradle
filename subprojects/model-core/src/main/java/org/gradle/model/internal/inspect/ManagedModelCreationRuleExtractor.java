@@ -21,9 +21,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.instance.ModelInstantiator;
-import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
@@ -33,14 +30,12 @@ import java.util.List;
 
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
-
     private final ModelSchemaStore schemaStore;
-    private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
-    private final ModelInstantiator modelInstantiator;
+    private final ModelCreatorFactory modelCreatorFactory;
 
-    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
+    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory) {
         this.schemaStore = schemaStore;
-        this.modelInstantiator = new StrategyBackedModelInstantiator(schemaStore, proxyFactory);
+        this.modelCreatorFactory = modelCreatorFactory;
     }
 
     public String getDescription() {
@@ -86,7 +81,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        return ManagedModelInitializer.creator(descriptor, modelPath, modelSchema, schemaStore, modelInstantiator, proxyFactory, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker(), inputs));
+        return modelCreatorFactory.creator(descriptor, modelPath, modelSchema, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker(), inputs));
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {

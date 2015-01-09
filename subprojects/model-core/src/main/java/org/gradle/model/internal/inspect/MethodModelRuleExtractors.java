@@ -28,7 +28,7 @@ abstract public class MethodModelRuleExtractors {
     public static List<MethodModelRuleExtractor> coreExtractors(ModelSchemaStore modelSchemaStore) {
         return ImmutableList.<MethodModelRuleExtractor>of(
                 new UnmanagedModelCreationRuleExtractor(),
-                new ManagedModelCreationRuleExtractor(modelSchemaStore),
+                new ManagedModelCreationRuleExtractor(modelSchemaStore, new DefaultModelCreatorFactory(modelSchemaStore)),
                 new DefaultsModelRuleExtractor(),
                 new MutateModelRuleExtractor(),
                 new FinalizeModelRuleExtractor(),
