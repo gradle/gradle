@@ -24,9 +24,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.inspect.ManagedModelInitializer
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
-import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
+import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -71,19 +69,14 @@ class NonTransformedModelDslBackingTest extends Specification {
     def "can use property accessors in DSL to build model object path"() {
         given:
         def schemaStore = DefaultModelSchemaStore.instance
-        def factory = new ManagedProxyFactory()
-        modelRegistry.create(ManagedModelInitializer.creator(
+        def factory = new DefaultModelCreatorFactory(schemaStore)
+        modelRegistry.create(factory.creator(
                 new SimpleModelRuleDescriptor("blah"),
                 ModelPath.path("foo"),
                 schemaStore.getSchema(ModelType.of(Foo)),
-                schemaStore,
-                new StrategyBackedModelInstantiator(schemaStore, factory),
-                factory,
                 [],
                 BiActions.doNothing()
         ))
-
-
 
         when:
         modelDsl.configure { foo {} }

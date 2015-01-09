@@ -17,10 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelInstantiator;
@@ -43,6 +40,23 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
 
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> inputs, BiAction<? super T, ? super Inputs> initializer) {
-        return ManagedModelInitializer.creator(descriptor, path, schema, schemaStore, modelInstantiator, proxyFactory, inputs, initializer);
+        final ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
+        final ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, inputs, initializer);
+        if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
+            ModelProjection projection = ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0));
+            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelInstantiator, schema, modelAction))
+                    .withProjection(projection)
+                    .descriptor(descriptor)
+                    .inputs(inputs)
+                    .build();
+
+        }
+        if (schema.getKind() == ModelSchema.Kind.STRUCT) {
+            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, modelAction))
+                    .descriptor(descriptor)
+                    .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
+                    .build();
+        }
+        throw new IllegalArgumentException("Don't know how to create model element from schema for " + schema.getType());
     }
 }
