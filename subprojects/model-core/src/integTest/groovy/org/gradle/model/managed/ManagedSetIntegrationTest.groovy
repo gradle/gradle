@@ -18,6 +18,7 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import org.gradle.util.TextUtil
 import spock.lang.Ignore
 
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
@@ -274,11 +275,11 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains '''apply defaults
+        output.contains TextUtil.toPlatformLineSeparators('''apply defaults
 initialize
 configure
 finalize
-'''
+''')
     }
 
     @Ignore
