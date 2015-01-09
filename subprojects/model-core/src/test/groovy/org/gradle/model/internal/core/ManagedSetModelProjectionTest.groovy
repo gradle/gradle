@@ -60,7 +60,7 @@ class ManagedSetModelProjectionTest extends Specification {
         registry.node(collectionPath)
     }
 
-    def "can define elements"() {
+    def "can define and query elements"() {
         when:
         mutate {
             create { name = '1' }

@@ -48,7 +48,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Model
-                void person(Person person, Names names) {
+                void someone(Person person, Names names) {
                     person.name = names.name
                 }
 
@@ -56,6 +56,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 void addEchoTask(CollectionBuilder<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
+                            println "person: $person"
                             println "name: $person.name"
                         }
                     }
@@ -69,6 +70,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         succeeds "echo"
 
         and:
+        output.contains("person: Person 'someone'")
         output.contains("name: foo")
     }
 

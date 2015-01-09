@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.instance;
 
 public interface ModelElementState {
+    String getDisplayName();
 
     Object get(String name);
 

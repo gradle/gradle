@@ -43,7 +43,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
             @RuleSource
             class RulePlugin {
                 @Model
-                void createPlatform(Platform platform) {
+                void somePlatform(Platform platform) {
                     platform.displayName = "Microsoft Windows"
                     platform.operatingSystem.name = "windows"
                 }
@@ -52,7 +52,9 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
-                            println "platform: $platform.operatingSystem.name"
+                            println "platform: $platform"
+                            println "os: $platform.operatingSystem"
+                            println "platform name: $platform.operatingSystem.name"
                         }
                     }
                 }
@@ -65,7 +67,9 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         succeeds "echo"
 
         and:
-        output.contains("platform: windows")
+        output.contains("platform: Platform 'somePlatform'")
+        output.contains("os: OperatingSystem 'somePlatform.operatingSystem'")
+        output.contains("platform name: windows")
     }
 
     def "rule can apply defaults to a nested managed model element"() {
@@ -150,12 +154,12 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
             @RuleSource
             class RulePlugin {
                 @Model
-                void os(OperatingSystem os) {
+                void windowsOs(OperatingSystem os) {
                   os.name = "windows"
                 }
 
                 @Model
-                void createPlatform(Platform platform, @Path("os") OperatingSystem os) {
+                void windowsPlatform(Platform platform, OperatingSystem os) {
                   platform.displayName = "Microsoft Windows"
                   platform.operatingSystem = os
                 }
@@ -164,7 +168,9 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
                     tasks.create("echo") {
                         it.doLast {
-                            println "platform: $platform.operatingSystem.name"
+                            println "platform: $platform"
+                            println "os: $platform.operatingSystem"
+                            println "platform name: $platform.operatingSystem.name"
                         }
                     }
                 }
@@ -177,6 +183,8 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         succeeds "echo"
 
         and:
-        output.contains("platform: windows")
+        output.contains("platform: Platform 'windowsPlatform'")
+        output.contains("os: OperatingSystem 'windowsOs'")
+        output.contains("platform name: windows")
     }
 }

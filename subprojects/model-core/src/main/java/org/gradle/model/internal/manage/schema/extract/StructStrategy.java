@@ -375,6 +375,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private static class NoOpModelElementState implements ModelElementState {
+        @Override
+        public String getDisplayName() {
+            return null;
+        }
+
         public Object get(String name) {
             return null;
         }

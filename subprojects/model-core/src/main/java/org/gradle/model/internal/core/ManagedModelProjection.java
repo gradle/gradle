@@ -60,6 +60,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
             // TODO we are relying on the creator having established these links, we should be checking
             class State implements ModelElementState {
+                @Override
+                public String getDisplayName() {
+                    return String.format("%s '%s'", getType(), modelNode.getPath().toString());
+                }
+
                 public Object get(String name) {
                     ModelProperty<?> property = schema.getProperties().get(name);
                     ModelType<?> propertyType = property.getType();

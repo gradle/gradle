@@ -49,6 +49,11 @@ public class ManagedProxyClassGenerator {
     private static final String STATE_FIELD_NAME = "state";
     private static final String CAN_CALL_SETTERS_FIELD_NAME = "canCallSetters";
     private static final String CONSTRUCTOR_NAME = "<init>";
+    private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
+    private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
+    private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
+    private static final String CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
+    public static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
 
     public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -60,10 +65,10 @@ public class ManagedProxyClassGenerator {
         List<String> interfaceInternalNames;
         if (managedTypeClass.isInterface()) {
             superclass = Object.class;
-            interfaceInternalNames = ImmutableList.of(Type.getInternalName(managedTypeClass), Type.getInternalName(ManagedInstance.class));
+            interfaceInternalNames = ImmutableList.of(Type.getInternalName(managedTypeClass), MANAGED_INSTANCE_TYPE);
         } else {
             superclass = managedTypeClass;
-            interfaceInternalNames = ImmutableList.of(Type.getInternalName(ManagedInstance.class));
+            interfaceInternalNames = ImmutableList.of(MANAGED_INSTANCE_TYPE);
         }
 
         generateProxyClass(visitor, managedTypeClass, interfaceInternalNames, generatedType, Type.getType(superclass));
@@ -81,6 +86,7 @@ public class ManagedProxyClassGenerator {
         declareStateField(visitor);
         declareCanCallSettersField(visitor);
         writeConstructor(visitor, generatedType, superclassType);
+        writeToString(visitor, generatedType);
         writeMethods(visitor, generatedType, managedTypeClass);
         visitor.visitEnd();
     }
@@ -103,9 +109,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType) {
-        String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(ModelElementState.class));
-
-        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", constructorDescriptor, CONCRETE_SIGNATURE, new String[0]);
+        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
         constructorVisitor.visitCode();
 
         invokeSuperConstructor(constructorVisitor, superclassType);
@@ -119,10 +123,18 @@ public class ManagedProxyClassGenerator {
         constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
+    private void writeToString(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
+        methodVisitor.visitCode();
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+    }
+
     private void assignStateField(MethodVisitor constructorVisitor, Type generatedType) {
         putThisOnStack(constructorVisitor);
         putFirstMethodArgumentOnStack(constructorVisitor);
-        constructorVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, Type.getDescriptor(ModelElementState.class));
+        constructorVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE.getDescriptor());
     }
 
     private void setCanCallSettersField(MethodVisitor methodVisitor, Type generatedType, boolean canCallSetters) {
@@ -205,8 +217,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(ModelElementState.class), "set", methodDescriptor, true);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "set", STATE_SET_METHOD_DESCRIPTOR, true);
     }
 
     private void putConstantOnStack(MethodVisitor methodVisitor, Object value) {
@@ -258,7 +269,7 @@ public class ManagedProxyClassGenerator {
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
         String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(ModelElementState.class), "get", methodDescriptor, true);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
     }
 
     private void writeNonAbstractGetterWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {
