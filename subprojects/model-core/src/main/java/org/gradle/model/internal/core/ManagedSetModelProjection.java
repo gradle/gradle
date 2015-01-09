@@ -63,7 +63,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
 
             @Override
             public ManagedSet<I> getInstance() {
-                return new DelegatingManagedSet();
+                return new ModelNodeBackedManagedSet();
             }
 
             @Override
@@ -71,7 +71,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 closed = true;
             }
 
-            class DelegatingManagedSet implements ManagedSet<I>, ManagedInstance {
+            class ModelNodeBackedManagedSet implements ManagedSet<I>, ManagedInstance {
                 @Override
                 public void create(final Action<? super I> action) {
                     if (!writable || closed) {
