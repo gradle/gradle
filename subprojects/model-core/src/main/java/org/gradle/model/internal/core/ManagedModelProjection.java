@@ -58,7 +58,6 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 closed = true;
             }
 
-            // TODO we are relying on the creator having established these links, we should be checking
             class State implements ModelElementState {
                 @Override
                 public String getDisplayName() {
@@ -73,6 +72,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 }
 
                 private <T> T doGet(ModelType<T> propertyType, String propertyName) {
+                    // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
@@ -109,6 +109,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                     }
                     T castValue = Cast.uncheckedCast(value);
+
+                    // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
                     propertyNode.setPrivateData(propertyType, castValue);
