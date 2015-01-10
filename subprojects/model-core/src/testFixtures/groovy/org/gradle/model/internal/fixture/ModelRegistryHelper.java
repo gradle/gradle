@@ -17,15 +17,14 @@
 package org.gradle.model.internal.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ActionBackedModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.gradle.model.internal.core.ModelPath.nonNullValidatedPath;
 
@@ -68,23 +67,11 @@ public class ModelRegistryHelper {
     public <T> ModelRegistryHelper configure(final String modelPathString, final ModelType<T> type, final Action<? super T> configurer) {
         final ModelPath modelPath = ModelPath.validatedPath(modelPathString);
 
-        modelRegistry.apply(ModelActionRole.Mutate, new ModelAction<T>() {
-            public ModelReference<T> getSubject() {
-                return ModelReference.of(modelPath, type);
-            }
-
-            public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
-                configurer.execute(object);
-            }
-
-            public List<ModelReference<?>> getInputs() {
-                return Collections.emptyList();
-            }
-
-            public ModelRuleDescriptor getDescriptor() {
-                return new SimpleModelRuleDescriptor("ModelRegistryHelper.configure - " + modelPathString);
-            }
-        });
+        modelRegistry.apply(ModelActionRole.Mutate,
+                new ActionBackedModelAction<T>(
+                        ModelReference.of(modelPath, type),
+                        configurer,
+                        new SimpleModelRuleDescriptor("ModelRegistryHelper.configure - " + modelPathString)));
 
         return this;
     }
