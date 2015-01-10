@@ -72,8 +72,10 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printPeople") {
                   it.doLast {
-                    def names = $("people")*.name.sort().join(", ")
-                    println "people: $names"
+                    def people = $("people")
+                    def names = people*.name.sort().join(", ")
+                    println "people: ${people.toString()}"
+                    println "names: $names"
                   }
                 }
               }
@@ -84,7 +86,8 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains 'people: p0, p1, p2, p3, p4'
+        output.contains "people: org.gradle.model.collection.ManagedSet<Person> 'people'"
+        output.contains 'names: p0, p1, p2, p3, p4'
     }
 
     def "rule can create a managed collection of abstract class backed managed model elements"() {

@@ -72,7 +72,24 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                 closed = true;
             }
 
+            private void ensureReadable() {
+                if (writable && !closed) {
+                    throw new WriteOnlyModelViewException(getType(), ruleDescriptor);
+                }
+                if (elementViews == null) {
+                    elementViews = new LinkedHashSet<I>();
+                    for (MutableModelNode node : modelNode.getLinks(elementType)) {
+                        elementViews.add(node.asReadOnly(elementType, ruleDescriptor).getInstance());
+                    }
+                }
+            }
+
             class ModelNodeBackedManagedSet implements ManagedSet<I>, ManagedInstance {
+                @Override
+                public String toString() {
+                    return String.format("%s '%s'", getType(), modelNode.getPath().toString());
+                }
+
                 @Override
                 public void create(final Action<? super I> action) {
                     if (!writable || closed) {
@@ -87,18 +104,6 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                             action.execute(i);
                         }
                     }));
-                }
-
-                private void ensureReadable() {
-                    if (writable && !closed) {
-                        throw new WriteOnlyModelViewException(getType(), ruleDescriptor);
-                    }
-                    if (elementViews == null) {
-                        elementViews = new LinkedHashSet<I>();
-                        for (MutableModelNode node : modelNode.getLinks(elementType)) {
-                            elementViews.add(node.asReadOnly(elementType, ruleDescriptor).getInstance());
-                        }
-                    }
                 }
 
                 @Override
