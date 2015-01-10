@@ -44,7 +44,12 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
             class RulePlugin {
                 @Model
                 void name(Names names) {
+                    assert names == names
+                    assert names.name == null
+
                     names.name = "foo"
+
+                    assert names.name == "foo"
                 }
 
                 @Model

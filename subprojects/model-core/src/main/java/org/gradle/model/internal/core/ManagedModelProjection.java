@@ -27,6 +27,9 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
     private final ModelSchemaStore schemaStore;
@@ -45,6 +48,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
         return new ModelView<M>() {
 
             private boolean closed;
+            private final Map<String, Object> propertyViews = new HashMap<String, Object>();
 
             public ModelType<M> getType() {
                 return ManagedModelProjection.this.getType();
@@ -65,10 +69,16 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 }
 
                 public Object get(String name) {
+                    if (propertyViews.containsKey(name)) {
+                        return propertyViews.get(name);
+                    }
+
                     ModelProperty<?> property = schema.getProperties().get(name);
                     ModelType<?> propertyType = property.getType();
 
-                    return doGet(propertyType, name);
+                    Object value = doGet(propertyType, name);
+                    propertyViews.put(name, value);
+                    return value;
                 }
 
                 private <T> T doGet(ModelType<T> propertyType, String propertyName) {
@@ -100,6 +110,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     ModelType<?> propertyType = property.getType();
 
                     doSet(name, value, propertyType);
+                    propertyViews.remove(name);
                 }
 
                 private <T> void doSet(String name, Object value, ModelType<T> propertyType) {

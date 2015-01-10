@@ -44,8 +44,18 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
             class RulePlugin {
                 @Model
                 void somePlatform(Platform platform) {
+                    assert platform.displayName == null
+                    assert platform.operatingSystem.name == null
+
                     platform.displayName = "Microsoft Windows"
                     platform.operatingSystem.name = "windows"
+
+                    assert platform.displayName == "Microsoft Windows"
+                    assert platform.operatingSystem.name == "windows"
+
+                    def os1 = platform.operatingSystem
+                    def os2 = platform.operatingSystem
+                    assert os1.is(os2)
                 }
 
                 @Mutate
