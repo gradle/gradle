@@ -156,8 +156,11 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               @Model
               void group(Group group) {
                 group.name = "Women in computing"
+
                 group.members.create { name = "Ada Lovelace" }
                 group.members.create { name = "Grace Hooper" }
+
+                assert group.members.is(group.members)
               }
             }
 
@@ -214,7 +217,12 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               @Model
               void group(Group group, @Path("people") ManagedSet<Person> people) {
                 group.name = "Women in computing"
+
+                assert group.members == null
+
                 group.members = people
+
+                assert group.members.is(people)
               }
             }
 

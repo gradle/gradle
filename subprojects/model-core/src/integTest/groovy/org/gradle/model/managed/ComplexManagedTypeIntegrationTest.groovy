@@ -45,6 +45,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 @Model
                 void somePlatform(Platform platform) {
                     assert platform.displayName == null
+                    assert platform.operatingSystem != null
                     assert platform.operatingSystem.name == null
 
                     platform.displayName = "Microsoft Windows"
@@ -53,9 +54,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                     assert platform.displayName == "Microsoft Windows"
                     assert platform.operatingSystem.name == "windows"
 
-                    def os1 = platform.operatingSystem
-                    def os2 = platform.operatingSystem
-                    assert os1.is(os2)
+                    assert platform.operatingSystem.is(platform.operatingSystem)
                 }
 
                 @Mutate
@@ -171,7 +170,12 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 @Model
                 void windowsPlatform(Platform platform, OperatingSystem os) {
                   platform.displayName = "Microsoft Windows"
+
+                  assert platform.operatingSystem == null
+
                   platform.operatingSystem = os
+
+                  assert platform.operatingSystem.is(os)
                 }
 
                 @Mutate
