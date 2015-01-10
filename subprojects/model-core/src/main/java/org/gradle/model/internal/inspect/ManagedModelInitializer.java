@@ -24,8 +24,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
     private static final BiAction<Object, Inputs> NO_OP = new BiAction<Object, Inputs>() {
         @Override
@@ -51,7 +49,9 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
         }
-        modelNode.applyToSelf(ModelActionRole.Initialize, initializer);
+        if (initializer != null) {
+            modelNode.applyToSelf(ModelActionRole.Initialize, initializer);
+        }
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
@@ -59,10 +59,10 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
         if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
-            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, Collections.<ModelReference<?>>emptyList(), NO_OP);
+            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
             modelNode.addLink(creator);
         } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION && !property.isWritable()) {
-            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema, Collections.<ModelReference<?>>emptyList(), NO_OP);
+            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
             modelNode.addLink(creator);
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);

@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -35,20 +37,37 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     }
 
     @Override
+    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema) {
+        ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
+        return creator(descriptor, modelReference, schema, null);
+    }
+
+    @Override
+    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, Action<? super T> initializer) {
+        ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
+        ModelAction<T> modelAction = new ActionBackedModelAction<T>(modelReference, initializer, descriptor);
+        return creator(descriptor, modelReference, schema, modelAction);
+    }
+
+    @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super Inputs> initializer) {
+        ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
+        ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
+        return creator(descriptor, modelReference, schema, modelAction);
+    }
+
+    private <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelReference<T> modelReference, ModelSchema<T> schema, @Nullable ModelAction<T> initializer) {
         // TODO reuse pooled projections
-        final ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        final ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
         if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
-            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(modelAction))
+            return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
                     .withProjection(ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0), schemaStore, this))
                     .descriptor(descriptor)
                     .build();
         }
         if (schema.getKind() == ModelSchema.Kind.STRUCT) {
-            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, modelAction))
-                    .descriptor(descriptor)
+            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, initializer))
                     .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
+                    .descriptor(descriptor)
                     .build();
         }
         throw new IllegalArgumentException("Don't know how to create model element from schema for " + schema.getType());

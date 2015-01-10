@@ -31,6 +31,8 @@ class ManagedSetInitializer<T> implements BiAction<MutableModelNode, Inputs> {
 
     @Override
     public void execute(MutableModelNode modelNode, Inputs inputs) {
-        modelNode.applyToSelf(ModelActionRole.Initialize, modelAction);
+        if (modelAction != null) {
+            modelNode.applyToSelf(ModelActionRole.Initialize, modelAction);
+        }
     }
 }

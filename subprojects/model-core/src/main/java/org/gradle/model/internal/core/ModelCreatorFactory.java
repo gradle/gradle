@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -26,6 +27,15 @@ public interface ModelCreatorFactory {
     <T> ModelCreator creator(ModelRuleDescriptor descriptor,
                              ModelPath path,
                              ModelSchema<T> schema,
+                             Action<? super T> initializer);
+
+    <T> ModelCreator creator(ModelRuleDescriptor descriptor,
+                             ModelPath path,
+                             ModelSchema<T> schema,
                              List<ModelReference<?>> initializerInputs,
                              BiAction<? super T, ? super Inputs> initializer);
+
+    <T> ModelCreator creator(ModelRuleDescriptor descriptor,
+                             ModelPath path,
+                             ModelSchema<T> schema);
 }
