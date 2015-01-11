@@ -21,44 +21,6 @@ Moreover, we consider owning the implementation of model elements an enabler for
    
 ## Stories
                                             
-### ~~Plugin creates model element of custom, composite, type without supplying an implementation~~
-
-    @Managed
-    interface Platform {
-        String getDisplayName();
-        void setDisplayName(String name);
-        OperatingSystem getOperatingSystem();
-    }
-    
-    @Managed 
-    interface OperatingSystem {
-        String getName();
-        void setName(String name);
-    }
-    
-    class RulePlugin {
-        @Model
-        void createPlatform(Platform platform) {
-          platform.setDisplayName("Microsoft Windows")
-          platform.getOperatingSystem().setName("windows")
-        }
-        
-        @Mutate
-        void addPersonTask(CollectionBuilder<Task> tasks, Platform platform) {
-            tasks.create("echo", t -> 
-              t.doLast(t2 -> System.out.println(platform.getOperatingSystem().getName())); // prints 'windows'
-            );
-        }
-    }
-
-1. It is an error to have a read only property for a type other than a `@Managed` interface
-1. The nested model element has the same constraints as the parent
-
-#### Test Coverage
-
-- ~~Nested element is not `@Managed` causes error~~
-- ~~Nested element violates constraints (error message indicates that it's being considered due to being nested, and indicates why enclosing class was being considered)~~
-
 ### ~~Plugin creates model element of custom, reference having, type without supplying an implementation~~
 
     @Managed
