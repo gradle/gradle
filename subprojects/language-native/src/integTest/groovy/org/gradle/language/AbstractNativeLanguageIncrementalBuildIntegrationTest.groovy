@@ -345,7 +345,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     def "relinks binary but does not recompile when linker option changed"() {
         given:
-        run "installMainExecutable"
+        run "mainExecutable"
 
         when:
         def executable = executable("build/binaries/mainExecutable/main")
@@ -366,7 +366,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
 """
 
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         skipped libraryCompileTask
@@ -375,7 +375,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
-        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
