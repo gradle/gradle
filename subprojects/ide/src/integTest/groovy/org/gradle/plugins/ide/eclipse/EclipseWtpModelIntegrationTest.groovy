@@ -507,15 +507,10 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then
-        def classpath = classpath
-        def component = wtpComponent
-
-        //the jar dependency is configured in the WTP component file and in the classpath
-        classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
-        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
-
-        classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
-        component.lib('myFoo.jar').assertDeployedAt('/WEB-INF/lib')
+        //the jar dependencies are configured in the classpath and not in the WTP component file
+        classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('myFoo.jar').assertIsDeployedTo('/WEB-INF/lib')
+        assert wtpComponent.modules.size() == 0
     }
 
     @Test

@@ -81,17 +81,18 @@ class WtpComponentFactory {
     }
 
     // must NOT include transitive library dependencies
-    private Set getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+    public static Collection resolveDependenciesFor(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations) {
         def extractor = new IdeDependenciesExtractor()
         //below is not perfect because we're skipping the unresolved dependencies completely
         //however, it should be better anyway. Sometime soon we will hopefully change the wtp component stuff
         def externals = extractor.resolvedExternalDependencies(plusConfigurations, minusConfigurations)
         def locals = extractor.extractLocalFileDependencies(plusConfigurations, minusConfigurations)
+        return externals + locals
+    }
 
-        def libFiles = (externals + locals)*.file
-
-        libFiles.collect { file ->
-            createWbDependentModuleEntry(file, wtp.fileReferenceFactory, deployPath)
+    private Set getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
+        resolveDependenciesFor(plusConfigurations, minusConfigurations).collect { dep ->
+            createWbDependentModuleEntry(dep.file, wtp.fileReferenceFactory, deployPath)
         }
     }
 

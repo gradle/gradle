@@ -80,7 +80,7 @@ project(':java') {
 
         def webClasspath = classpath('web')
         webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', "guava-18.0.jar", 'hamcrest-core-1.3.jar')
-        webClasspath.lib('commons-lang3-3.0.jar').assertIsExcludedFromDeployment()
+        webClasspath.lib('commons-lang3-3.0.jar').assertIsDeployedTo('/WEB-INF/lib')
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
@@ -106,8 +106,7 @@ project(':java') {
         webComponent.resources.size() == 2
         webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
-        webComponent.modules.size() == 3
-        webComponent.lib('commons-lang3-3.0.jar').assertDeployedAt('/WEB-INF/lib')
+        webComponent.modules.size() == 1
         webComponent.project('java').assertDeployedAt('/WEB-INF/lib')
     }
 }
