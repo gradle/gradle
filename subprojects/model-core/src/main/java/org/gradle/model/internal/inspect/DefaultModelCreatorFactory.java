@@ -66,7 +66,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
         }
         if (schema.getKind() == ModelSchema.Kind.STRUCT) {
             return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, initializer))
-                    .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
+                    .withProjection(new ManagedModelProjection<T>(schema, schemaStore, proxyFactory))
                     .descriptor(descriptor)
                     .build();
         }

@@ -36,9 +36,9 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchema<M> schema;
 
-    public ManagedModelProjection(ModelType<M> type, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
-        super(type, true, true);
-        this.schema = schemaStore.getSchema(type);
+    public ManagedModelProjection(ModelSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+        super(schema.getType(), true, true);
+        this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
     }
