@@ -102,7 +102,15 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 #### Open issues
 
-- Should be able to path to and through the property value.
+- Should be able to path to and through the referenced element.
+- Implementation should link to the referenced node, rather than a view of the element.
+- When a rule receives a view of an object graph, a particular element that is linked into multiple locations in the graph should be represented using the same object instance
+  in every location:
+    - One link is an 'inherent' property, the rest are references
+    - All links are references
+    - The links occurs in multiple locations in the view graph
+    - Link occurs in a collection
+    - The same element appears in different inputs to a rule
 
 ### ~~Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference~~
 
@@ -223,7 +231,7 @@ Notes:
     
 - ~~Attempt to create collection of non managed type~~
 - ~~Attempt to create collection of invalid managed type~~
-    
+
 ### ~~Managed model interface extends other interfaces~~
 
     interface Named {
@@ -483,6 +491,10 @@ Use class generation tool that allows specifying the name of a generated class, 
 - ~~Constructor can not call any setter methods (at least a runtime error)~~
 - ~~Class that cannot be instantiated (e.g. default constructor throws)~~
 
+#### Open issues
+
+- Abstract class should be able to provide a custom `toString()` implementation, should only be able to use inherent properties of the object.
+
 ### Managed type implemented as abstract class can have generative getters
 
     @Managed
@@ -540,7 +552,6 @@ Use class generation tool that allows specifying the name of a generated class, 
 #### Test Coverage
 
 - ~~like snippet above~~
-
 
 ### Support for polymorphic managed sets
 
@@ -605,7 +616,7 @@ Add a way to mutate a model element prior to it being exposed to 'user' code.
 Add a way to validate a model element prior to it being used as an input by 'user' code.
 
 - ~~Add `@Validate` annotation. Apply these after `@Finalize` rules.~~
-- Rename 'mutate' methods and types.~~
+- ~~Rename 'mutate' methods and types.~~
 - Add `CollectionBuilder.validateEach(Action)`
 - Don't include wrapper exception when rule fails, or add some validation failure collector.
 - Add specific exception to be thrown on validation failure
@@ -635,6 +646,7 @@ Add a way to validate a model element prior to it being used as an input by 'use
     }
 
 - Add factory to mix in Groovy DSL and state checking, share with managed types and managed set.
+- Validate closure parameter types.
 - Verify:
     - Can apply rule to all elements in container using DSL
     - Can apply rule to single element in container using DSL
@@ -679,22 +691,34 @@ Other issues:
 
 ### ManagedSet defers creation of elements
 
+- Reasonable error message when action fails.
+- Support 'anonymous' links
+- Sync view logic with `CollectionBuilder` views.
+- Use same descriptor scheme as `CollectionBuilder`.
+- Use more efficient implementation of set query methods.
+- Allow `ManagedSet` to be used as a task dependency.
+- Fail when mutator rule for an input is not bound.
+
 ### ManagedSet supports Groovy DSL
+
+- Support passing a closure to `create()`
+- Validate closure parameter types.
 
 ### Support for managed container of tasks
 
 - Rename `CollectionBuilder` to `ManagedMap`.
 - Currently it is possible to get an element via `CollectionBuilder`, to help with migration. Lock down access to `get()` and other query methods.
     - Same for `size()`.
-- Add a read-only view of `ManagedMap`.
+- Lock down read-only view of `ManagedMap`, provide a `Map` as view.
 - Change `ManagedMap` to extend `Map`.
 - Mix in the DSL conveniences into the managed collections and managed objects, don't reuse the existing decorator.
-- Allow a `ManagedMap` to be added to model space by a `@Model` rule.
+- Allow a `ManagedMap` to be added to model space using a `@Model` rule.
 - Synchronisation back to `TaskContainer`, so that `project.tasks.all { }` and `project.tasks { $name { } }` works.
-- Need efficient implementation that does not scan all linked elements to check type.
-- Lock down read-only view of `ManagedMap`, provide `Map` as view.
+- Need efficient implementation of query methods that does not scan all linked elements to check type.
 - Implement `containsValue()`.
-- Separate out type registry.
+- Separate out type registry from the component/binary/source set containers.
+- Allow `ManagedMap` and `ManagedMap.values()` to be used as a task dependency.
+- Add `toString()` implementation.
 
 ### Expose a `ManagedMap` view for all model elements of type `PolymorphicDomainObjectContainer`.
 
@@ -704,10 +728,6 @@ Other issues:
 
 ### Support for managed container of source sets
 
-As above, for `ManagedSet`.
-
-- Change `ManagedSet` implementation to register a creation rule rather than eagerly instantiating and configuring.
-    - Allow model nodes to be identified by something other than a path.
 - Add `all(Action<? super T)` method to `ManagedSet`.
 - Add DSL support for `all { }` rule.
 
@@ -724,13 +744,14 @@ As above, for `ManagedSet`.
 1. Should we require that types that are designed to be managed model elements be annotated?
 2. Do we need to consider non identity based equals/hashCode at this time?
 
-### Implementations
+### Managed types
 
 - Mix DSL and Groovy methods into managed type implementations.
     - Add DSL and Groovy type coercion for enums, closures, files, etc
     - Missing property and method error messages use public type instead of implementation type.
 - Add Java API for type coercion
-- Support parameterized non-collection types as managed types:
+- Support parameterized non-collection types as managed types
+- Read only views should not strongly reference backing node once the view has been fully realized.
 
 ### Collections
 
