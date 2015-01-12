@@ -82,12 +82,13 @@ public class DefaultCommandLineTool implements CommandLineTool {
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if(OperatingSystem.current().isWindows()){
-                toolExec.environment(pathVar.toUpperCase(), toolPath);
+            if(OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())){
+                toolExec.getEnvironment().remove(pathVar.toUpperCase());
             }
         }
 
         toolExec.environment(invocation.getEnvironment());
+
 
         try {
             toolExec.execute();
