@@ -27,11 +27,11 @@ buildTypes {
     sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
 
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
-    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "test"
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "test"
 
     // For testing pull requests
-    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "classes"
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality"
 
     // A full (in-process) test
     developerBuild "check"
