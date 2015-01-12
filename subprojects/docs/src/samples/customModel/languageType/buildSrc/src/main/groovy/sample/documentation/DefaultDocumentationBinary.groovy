@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -13,18 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import sample.markdown.MarkdownSourceSet
-import sample.markdown.MarkdownPlugin
 
-apply plugin:sample.documentation.DocumentationPlugin
-apply plugin:sample.markdown.MarkdownPlugin
+package sample.documentation
 
-model {
-    components {
-        docs {
-            sources {
-                userguide(MarkdownSourceSet)
-            }
-        }
+import org.gradle.platform.base.binary.BaseBinarySpec
+
+class DefaultDocumentationBinary extends BaseBinarySpec implements DocumentationBinary {
+    Map content = [:]
+    void add(String name, Object contentProvider) {
+        content.put(name, contentProvider)
     }
 }

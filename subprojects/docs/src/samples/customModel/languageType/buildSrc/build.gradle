@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import sample.markdown.MarkdownSourceSet
-import sample.markdown.MarkdownPlugin
 
-apply plugin:sample.documentation.DocumentationPlugin
-apply plugin:sample.markdown.MarkdownPlugin
+apply plugin:'groovy'
 
-model {
-    components {
-        docs {
-            sources {
-                userguide(MarkdownSourceSet)
-            }
-        }
-    }
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile "org.pegdown:pegdown:1.1.0"
 }

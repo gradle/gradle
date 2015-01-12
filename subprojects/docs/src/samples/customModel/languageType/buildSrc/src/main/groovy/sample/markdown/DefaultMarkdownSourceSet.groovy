@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import sample.markdown.MarkdownSourceSet
-import sample.markdown.MarkdownPlugin
 
-apply plugin:sample.documentation.DocumentationPlugin
-apply plugin:sample.markdown.MarkdownPlugin
+package sample.markdown
 
-model {
-    components {
-        docs {
-            sources {
-                userguide(MarkdownSourceSet)
-            }
-        }
-    }
-}
+import org.gradle.language.base.sources.BaseLanguageSourceSet
+
+class DefaultMarkdownSourceSet extends BaseLanguageSourceSet implements MarkdownSourceSet {}

@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import sample.markdown.MarkdownSourceSet
-import sample.markdown.MarkdownPlugin
 
-apply plugin:sample.documentation.DocumentationPlugin
-apply plugin:sample.markdown.MarkdownPlugin
+package sample.documentation
 
-model {
-    components {
-        docs {
-            sources {
-                userguide(MarkdownSourceSet)
-            }
-        }
-    }
+import org.gradle.platform.base.BinarySpec
+
+interface DocumentationBinary extends BinarySpec {
+    void add(String name, Object contentProvider)
+    Map<String, Object> content;
 }
