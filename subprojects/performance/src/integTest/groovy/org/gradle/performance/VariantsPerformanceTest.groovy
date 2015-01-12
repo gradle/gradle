@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
+
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildSpecification
 import spock.lang.Unroll
 
-class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
-    def "#size project old vs new java plugin #scenario build"() {
+    def "#size project using variants #scenario build"() {
         given:
-        runner.testId = "$size project old vs new java plugin $scenario build"
+        runner.testId = "$size project using variants $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).build()
         ]
 
         when:
@@ -39,18 +40,20 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         where:
         [size, tasks] << GroovyCollections.combinations(
                 ["small", "medium", "big"],
-                [["clean", "assemble"], ["help"]]
+                [["allVariants"], ["help"]]
         )
         scenario = tasks == ["help"] ? "empty" : "full"
     }
 
     @Unroll
-    def "#size project old vs new java plugin partial build"() {
+    def "#size project using variants partial build"() {
         given:
-        runner.testId = "$size project old vs new java plugin partial build"
+        def tasks = (0..<builtVariants).collect { "flavour${(it % flavourAndTypeCount) + 1}type${it.intdiv(flavourAndTypeCount) + 1}" }
+
+        runner.testId = "$size project using variants partial build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).build()
         ]
 
         when:
@@ -60,10 +63,8 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         result.assertEveryBuildSucceeds()
 
         where:
-        size     | builtProjects
-        "medium" | 5
-        "big"    | 100
-
-        tasks = (1..builtProjects).collectMany { [":project${it}:clean", ":project${it}:assemble"] }
+        size     | flavourAndTypeCount | builtVariants
+        "medium" | 5                   | 5
+        "big"    | 23                  | 100
     }
 }

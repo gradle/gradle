@@ -157,9 +157,71 @@ task bigNewJava(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
+task smallVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 1,
+            typeCount: 1
+    ]
+    testDependencies = files()
+}
+
+task mediumVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 5,
+            typeCount: 5
+    ]
+    testDependencies = files()
+}
+
+task bigVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
+task smallVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 1,
+            typeCount: 1
+    ]
+    testDependencies = files()
+}
+
+task mediumVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 5,
+            typeCount: 5
+    ]
+    testDependencies = files()
+}
+
+task bigVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects, smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+                                smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
+                                smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel])
 
 task report {
     def crossVersionReportDir = new File(buildDir, "performance-tests/report/cross-version")

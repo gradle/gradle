@@ -51,6 +51,8 @@ class ProjectGeneratorTask extends DefaultTask {
     final SimpleTemplateEngine engine = new SimpleTemplateEngine()
     final Map<File, Template> templates = [:]
 
+    Map<String, Object> templateArgs = [:]
+
     final DependencyGraph dependencyGraph = new DependencyGraph()
 
     def ProjectGeneratorTask() {
@@ -175,6 +177,8 @@ class ProjectGeneratorTask extends DefaultTask {
                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies:testProject.dependencies,
                 testProject: testProject
                 ]
+
+        args += templateArgs
 
         files.each {String name ->
             generate(name, name, args)
