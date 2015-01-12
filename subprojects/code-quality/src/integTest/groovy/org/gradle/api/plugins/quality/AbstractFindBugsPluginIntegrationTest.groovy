@@ -389,7 +389,7 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         fails("check")
         failure.assertHasCause 'FindBugs encountered an error.'
         failure.assertHasDescription "Execution failed for task ':findbugsMain'."
-        errorOutput.contains 'Caused by: java.lang.NoClassDefFoundError: org/apache/bcel/classfile/ClassFormatException'
+        errorOutput.contains 'Caused by: java.lang.NoClassDefFoundError'
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {
