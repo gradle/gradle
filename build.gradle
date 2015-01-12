@@ -93,7 +93,7 @@ ext {
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'cunit',
+        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
         'pluginDevelopment', 'pluginUse'
     ].collect {
         project(it)
