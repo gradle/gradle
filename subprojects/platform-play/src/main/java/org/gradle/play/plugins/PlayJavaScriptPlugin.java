@@ -47,7 +47,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @Incubating
 public class PlayJavaScriptPlugin {
     @LanguageType
-    void registerCoffeeScript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
+    void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
         builder.setLanguageName("javaScript");
         builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
     }

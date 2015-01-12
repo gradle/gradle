@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.util.GFileUtils;
@@ -32,6 +33,7 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -95,11 +97,25 @@ public class JavaScriptCompiler implements Compiler<JavaScriptCompileSpec>, Seri
                     errors.add(error.toString());
                 }
             }
-
-            return errors;
-        } catch (Exception e) {
-           throw new RuntimeException("Error invoking the Play javascript compiler.", e);
+        } catch (NoSuchMethodException e) {
+            throwUncheckedException(e);
+        } catch (IllegalAccessException e) {
+            throwUncheckedException(e);
+        } catch (InstantiationException e) {
+            throwUncheckedException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrapAndRethrow(e);
+        } catch (NoSuchFieldException e) {
+            throwUncheckedException(e);
+        } catch (ClassNotFoundException e) {
+            throwUncheckedException(e);
         }
+
+        return errors;
+    }
+
+    void throwUncheckedException(Throwable e) {
+        throw UncheckedException.throwAsUncheckedException(e);
     }
 
     private void loadCompilerClasses(ClassLoader cl) throws ClassNotFoundException {

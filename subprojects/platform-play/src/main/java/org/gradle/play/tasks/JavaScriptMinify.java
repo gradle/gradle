@@ -64,7 +64,7 @@ public class JavaScriptMinify extends SourceTask {
     }
 
     /**
-     * Returns the tool chain that will be used to compile the routes source.
+     * Returns the tool chain that will be used to compile the javascript source.
      *
      * @return The tool chain.
      */
@@ -74,15 +74,30 @@ public class JavaScriptMinify extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns the output directory that processed javascript is written to.
+     *
+     * @return The output directory.
+     */
     @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
 
+    /**
+     * Sets the output directory where processed javascript should be written.
+     *
+     * @param destinationDir The output directory.
+     */
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
+    /**
+     * Sets the target Play platform.
+     *
+     * @param playPlatform The target Play platform.
+     */
     public void setPlayPlatform(PlayPlatform playPlatform) {
         this.playPlatform = playPlatform;
     }
@@ -96,6 +111,11 @@ public class JavaScriptMinify extends SourceTask {
         return compiler;
     }
 
+    /**
+     * The fork options to be applied to the javascript compiler.
+     *
+     * @return The fork options for the javascript compiler.
+     */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
             forkOptions = new BaseForkOptions();
