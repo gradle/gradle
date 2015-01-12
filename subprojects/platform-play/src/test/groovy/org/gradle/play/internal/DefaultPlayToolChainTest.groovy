@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.play.internal.toolchain.DefaultPlayToolChain
 import org.gradle.play.platform.PlayPlatform
+import org.gradle.process.internal.WorkerProcessBuilder
 import spock.lang.Specification
 
 class DefaultPlayToolChainTest extends Specification {
@@ -30,6 +31,7 @@ class DefaultPlayToolChainTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     DependencyHandler dependencyHandler = Mock()
     PlayPlatform playPlatform = Mock()
+    org.gradle.internal.Factory<WorkerProcessBuilder>  workerProcessBuilderFactory = Mock()
 
     def setup() {
         _ * playPlatform.playVersion >> "2.3.7"
@@ -37,14 +39,14 @@ class DefaultPlayToolChainTest extends Specification {
 
     def "provides meaningful name"() {
         given:
-        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
         expect:
         toolChain.getName() == "PlayToolchain"
     }
 
     def "provides meaningful displayname"() {
         given:
-        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
 
         expect:
         toolChain.getDisplayName() == "Default Play Toolchain"
@@ -52,7 +54,7 @@ class DefaultPlayToolChainTest extends Specification {
 
     def "can select toolprovider"() {
         given:
-        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler)
+        def toolChain = new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory)
 
         expect:
         toolChain.select(playPlatform) != null

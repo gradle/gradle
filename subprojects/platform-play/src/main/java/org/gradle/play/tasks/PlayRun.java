@@ -25,7 +25,6 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
@@ -36,7 +35,6 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
-import org.gradle.process.internal.WorkerProcessBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +65,6 @@ public class PlayRun extends ConventionTask {
 
     private PlayApplicationRunnerToken runnerToken;
 
-
     /**
      * fork options for the running a play application.
      */
@@ -92,9 +89,9 @@ public class PlayRun extends ConventionTask {
         applicationJars = applicationJars.plus(runtimeClasspath);
 
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
-        PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
+        PlayApplicationRunner playApplicationRunner = toolProvider.newApplicationRunner();
         try {
-            runnerToken = manager.start();
+            runnerToken = playApplicationRunner.start(spec);
             progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
@@ -119,11 +116,6 @@ public class PlayRun extends ConventionTask {
                 throw new UncheckedIOException(e);
             }
         }
-    }
-
-    @Inject
-    public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
     }
 
     public int getHttpPort() {

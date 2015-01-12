@@ -59,12 +59,14 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final DependencyHandler dependencyHandler;
     private final PlayPlatform targetPlatform;
     private final PlayMajorVersion playMajorVersion;
+    private Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
-    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, PlayPlatform targetPlatform) {
+    public DefaultPlayToolProvider(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayPlatform targetPlatform) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
         this.targetPlatform = targetPlatform;
         this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
     }
@@ -95,10 +97,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
     }
 
-    public PlayApplicationRunner newApplicationRunner(Factory<WorkerProcessBuilder> workerProcessBuilderFactory, PlayRunSpec spec) {
+    public PlayApplicationRunner newApplicationRunner() {
         VersionedPlayRunAdapter playRunAdapter = createPlayRunAdapter();
-        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, spec, playRunAdapter);
+        return new PlayApplicationRunner(fileResolver.resolve("."), workerProcessBuilderFactory, playRunAdapter);
     }
+
 
     private VersionedPlayRunAdapter createPlayRunAdapter() {
         switch (playMajorVersion) {

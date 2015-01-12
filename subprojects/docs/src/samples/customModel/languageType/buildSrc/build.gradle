@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.toolchain;
+apply plugin:'groovy'
 
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
-import org.gradle.play.internal.run.PlayApplicationRunner;
+repositories {
+    jcenter()
+}
 
-public interface PlayToolProvider extends ToolProvider {
-    public PlayApplicationRunner newApplicationRunner();
+dependencies {
+    compile localGroovy()
+    compile gradleApi()
+    compile "org.pegdown:pegdown:1.1.0"
 }

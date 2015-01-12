@@ -20,19 +20,24 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.internal.Factory;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.WorkerProcessBuilder;
 
 public class DefaultPlayToolChain implements PlayToolChainInternal {
     private FileResolver fileResolver;
     private CompilerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
+    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
+
+    public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
+        this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
     public String getName() {
@@ -44,6 +49,6 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     }
 
     public PlayToolProvider select(PlayPlatform targetPlatform) {
-        return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, targetPlatform);
+        return new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, targetPlatform);
     }
 }

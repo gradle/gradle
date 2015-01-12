@@ -27,17 +27,15 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final File workingDir;
     private final Factory<WorkerProcessBuilder> workerFactory;
-    private final PlayRunSpec spec;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(File workingDir, Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
         this.workingDir = workingDir;
         this.workerFactory = workerFactory;
-        this.spec = spec;
         this.adapter = adapter;
     }
 
-    public PlayApplicationRunnerToken start() {
+    public PlayApplicationRunnerToken start(PlayRunSpec spec) {
         WorkerProcess process = createWorkerProcess(workingDir, workerFactory, spec, adapter);
         process.start();
 
