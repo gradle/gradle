@@ -22,7 +22,7 @@ import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class CustomLanguageSampleIntegrationTest extends AbstractIntegrationSpec {
+class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
     def "shows custom language sourcesets in component"() {

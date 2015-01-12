@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class CustomLanguageTypeIntegrationTest extends AbstractIntegrationSpec {
+class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
