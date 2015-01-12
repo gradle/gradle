@@ -14,46 +14,150 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        maven { url 'https://repo.gradle.org/gradle/libs' }
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.pegdown:pegdown:1.1.0"
+    }
+}
+
 import org.gradle.model.*
 import org.gradle.model.collection.*
+import org.pegdown.PegDownProcessor
 
-interface SampleComponent extends ComponentSpec {}
-class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 
-interface SomeLanguageSourceSet extends LanguageSourceSet {}
-class DefaultSomeLanguageSourceSet extends BaseLanguageSourceSet implements SomeLanguageSourceSet {}
+interface DocumentationComponent extends ComponentSpec {}
+class DefaultDocumentationComponent extends BaseComponentSpec implements DocumentationComponent {}
+
+interface DocumentationBinary extends BinarySpec {
+    void add(String name, Object contentProvider)
+    Map<String, Object> content;
+}
+class DefaultDocumentationBinary extends BaseBinarySpec implements DocumentationBinary {
+    Map content = [:]
+    void add(String name, Object contentProvider) {
+        content.put(name, contentProvider)
+    }
+}
+
+interface MarkdownSourceSet extends LanguageSourceSet {}
+class DefaultMarkdownSourceSet extends BaseLanguageSourceSet implements MarkdownSourceSet {}
 
 @RuleSource
-class CustomComponentPlugin{
+class DocumentationPlugin {
     @ComponentType
-    void register(ComponentTypeBuilder<SampleComponent> builder) {
-        builder.defaultImplementation(DefaultSampleComponent)
+    void register(ComponentTypeBuilder<DocumentationComponent> builder) {
+        builder.defaultImplementation(DefaultDocumentationComponent)
     }
 
     @Mutate
-    void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
-        componentSpecs.create("main")
+    void createSampleComponentComponents(CollectionBuilder<DocumentationComponent> componentSpecs) {
+        componentSpecs.create("docs")
+    }
+
+    @BinaryType
+    void register(BinaryTypeBuilder<DocumentationBinary> builder) {
+        builder.defaultImplementation(DefaultDocumentationBinary)
+    }
+
+    @ComponentBinaries
+    void createBinariesForBinaryComponent(CollectionBuilder<DocumentationBinary> binaries, DocumentationComponent component) {
+        binaries.create("${component.name}Binary")
+    }
+
+    @BinaryTasks
+    void createZip(CollectionBuilder<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
+        tasks.create("zip${binary.name}", Zip, new Action<Zip>() {
+            @Override
+            public void execute(Zip zipBinary) {
+                binary.content.each { target, content ->
+                    zipBinary.into(target) {
+                        from(content)
+                    }
+                }
+                zipBinary.setDestinationDir(new File(buildDir, binary.name))
+                zipBinary.setArchiveName(binary.name + ".zip")
+            }
+        });
+    }
+}
+
+class MarkdownHtmlCompile extends SourceTask {
+    @OutputDirectory
+    File destinationDir
+
+    @TaskAction
+    void process() {
+        def encoding = "UTF-8"
+        PegDownProcessor processor = new PegDownProcessor()
+
+        getSource().each { sourceFile ->
+            String markdown = sourceFile.getText(encoding)
+            String html = processor.markdownToHtml(markdown)
+            File outputFile = new File(destinationDir, sourceFile.name.replace(".md", ".html"))
+            outputFile.write(html, encoding)
+        }
+        generateIndex()
+    }
+
+    def generateIndex() {
+        File indexFile = new File(destinationDir, "index.html")
+        indexFile.withWriter { writer ->
+            def markup = new groovy.xml.MarkupBuilder(writer)  // the builder
+            markup.html{
+                h1"Sample Userguide"
+                h2"Content"
+                ol {
+                    getSource().each { sourceFile ->
+                        def chapterTitle = sourceFile.name - ".md"
+                        li {
+                            a(href:chapterTitle + ".html", chapterTitle)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @RuleSource
-class SomeLanguagePlugin {
+class MarkdownPlugin {
     @LanguageType
-    void declareCustomLanguage(LanguageTypeBuilder<SomeLanguageSourceSet> builder) {
-        builder.setLanguageName("SomeLanguage")
-        builder.defaultImplementation(DefaultSomeLanguageSourceSet)
+    void declareMarkdownLanguage(LanguageTypeBuilder<MarkdownSourceSet> builder) {
+        builder.setLanguageName("Markdown")
+        builder.defaultImplementation(DefaultMarkdownSourceSet)
+    }
+
+    @BinaryTasks
+    void createMarkdownHtmlCompilerTasks(CollectionBuilder<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
+        for (final MarkdownSourceSet markdownSourceSet : binary.getSource().withType(MarkdownSourceSet.class)) {
+            final String taskName = binary.getName() + markdownSourceSet.getName().capitalize() + "HtmlCompile"
+            final File htmlOutputDirectory = new File(buildDir, "${binary.name}/src/${markdownSourceSet.name}");
+            tasks.create(taskName, MarkdownHtmlCompile.class, new Action<MarkdownHtmlCompile>() {
+                @Override
+                public void execute(MarkdownHtmlCompile markdownHtmlCompile) {
+                    markdownHtmlCompile.setSource(markdownSourceSet.getSource());
+                    markdownHtmlCompile.setDestinationDir(htmlOutputDirectory);
+                    binary.add(markdownSourceSet.name, markdownHtmlCompile)
+                }
+            });
+        }
     }
 }
 
-apply plugin:CustomComponentPlugin
-apply plugin:SomeLanguagePlugin
+apply plugin:DocumentationPlugin
+apply plugin:MarkdownPlugin
 
 
 model {
     components {
-        main {
+        docs {
             sources {
-                myCustomSources(SomeLanguageSourceSet)
+                userguide(MarkdownSourceSet)
             }
         }
     }

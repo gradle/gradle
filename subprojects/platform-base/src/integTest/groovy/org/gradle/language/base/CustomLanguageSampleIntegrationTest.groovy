@@ -17,38 +17,47 @@
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CustomLanguageSampleIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample customLanguageType = new Sample(temporaryFolder, "customLanguageType")
+    @Rule Sample customLanguageTypeSample = new Sample(temporaryFolder, "customLanguageType")
 
-    def "can use custom language in component"() {
+    def "shows custom language sourcesets in component"() {
         given:
-        sample customLanguageType
-        /*customLanguageType.dir.file("build.gradle") << """
-
-task checkModel << {
-    assert project.componentSpecs.size() == 2
-    def titleAImage = project.componentSpecs.TitleA
-    assert titleAImage instanceof ImageComponent
-    assert titleAImage.projectPath == project.path
-    assert titleAImage.displayName == "DefaultImageComponent 'TitleA'"
-    assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
-}
-
-"""       */
+        sample customLanguageTypeSample
         when:
         succeeds "components"
         then:
         output.contains(toPlatformLineSeparators("""
-DefaultSampleComponent 'main'
------------------------------
+DefaultDocumentationComponent 'docs'
+------------------------------------
 
 Source sets
-    DefaultSomeLanguageSourceSet 'main:myCustomSources'
-        src${File.separator}main${File.separator}myCustomSources
+    DefaultMarkdownSourceSet 'docs:userguide'
+        src${File.separator}docs${File.separator}userguide
+
+Binaries
+    DefaultDocumentationBinary 'docsBinary'
+        build using task: :docsBinary
 """))
+
+    }
+
+    def "can build binary"() {
+        given:
+        sample customLanguageTypeSample
+        when:
+        succeeds "assemble"
+        then:
+        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipdocsBinary", ":docsBinary", ":assemble"]
+        and:
+        new ZipTestFixture(customLanguageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
+                "userguide/chapter1.html",
+                "userguide/chapter2.html",
+                "userguide/index.html")
+
     }
 }
