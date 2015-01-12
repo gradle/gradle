@@ -281,15 +281,6 @@ public class JavaReflectionUtil {
         }
     }
 
-    public static boolean isClassAvailable(String className) {
-        try {
-            JavaReflectionUtil.class.getClassLoader().loadClass(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
     public static <T> Factory<T> factory(final Instantiator instantiator, final Class<? extends T> type, final Object... args) {
         return new InstantiatingFactory<T>(instantiator, type, args);
     }

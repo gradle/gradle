@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.gradle.internal.reflect;
 
-/**
- * Thrown when an object cannot be instantiated.
- */
-public class ObjectInstantiationException extends RuntimeException {
-    public ObjectInstantiationException(Class<?> targetType, Throwable throwable) {
-        super(String.format("Could not create an instance of type %s.", targetType.getName()), throwable);
-    }
+import java.lang.reflect.Method;
+import java.util.List;
+
+public interface PropertyDetails {
+    String getName();
+
+    List<Method> getGetters();
+
+    List<Method> getSetters();
 }
