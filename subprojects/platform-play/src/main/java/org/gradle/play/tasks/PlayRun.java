@@ -31,14 +31,10 @@ import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
-import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.toolchain.PlayToolChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,7 +46,6 @@ public class PlayRun extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(PlayRun.class);
 
     private int httpPort;
-    private PlayPlatform targetPlatform;
 
     @InputFile
     private File applicationJar;
@@ -64,6 +59,7 @@ public class PlayRun extends ConventionTask {
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
+    private PlayToolProvider toolProvider;
 
     /**
      * fork options for the running a play application.
@@ -86,7 +82,6 @@ public class PlayRun extends ConventionTask {
         applicationJars = applicationJars.plus(runtimeClasspath);
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
 
-        PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
         PlayApplicationRunner playApplicationRunner = toolProvider.newApplicationRunner();
         try {
             runnerToken = playApplicationRunner.start(spec);
@@ -124,20 +119,6 @@ public class PlayRun extends ConventionTask {
         this.httpPort = httpPort;
     }
 
-    @Incubating
-    @Inject
-    public PlayToolChain getToolChain() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void setTargetPlatform(PlayPlatform targetPlatform) {
-        this.targetPlatform = targetPlatform;
-    }
-
-    public PlayPlatform getTargetPlatform() {
-        return targetPlatform;
-    }
-
     public void setApplicationJar(File applicationJar) {
         this.applicationJar = applicationJar;
     }
@@ -148,5 +129,9 @@ public class PlayRun extends ConventionTask {
 
     public void setRuntimeClasspath(FileCollection runtimeClasspath) {
         this.runtimeClasspath = runtimeClasspath;
+    }
+
+    public void setToolProvider(PlayToolProvider toolProvider) {
+        this.toolProvider = toolProvider;
     }
 }

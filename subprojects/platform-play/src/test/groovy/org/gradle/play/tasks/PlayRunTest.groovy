@@ -15,14 +15,11 @@
  */
 
 package org.gradle.play.tasks
-
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
-import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
-import org.gradle.play.platform.PlayPlatform
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -32,8 +29,6 @@ class PlayRunTest extends Specification {
 
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
-    PlayToolChainInternal toolChain = Mock(PlayToolChainInternal)
-    PlayPlatform playPlatform = Mock(PlayPlatform)
     PlayToolProvider toolProvider = Mock()
     InputStream systemInputStream = Mock()
 
@@ -43,14 +38,10 @@ class PlayRunTest extends Specification {
     PlayRun playRun
 
     def setup() {
-        playRun = TestUtil.createTask(PlayRun, [__toolChain__: toolChain])
+        playRun = TestUtil.createTask(PlayRun)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
-
-        _ * playPlatform.playVersion >> "2.2.3"
-        _ * playPlatform.scalaMainVersion >> "2.10"
-        1 * toolChain.select(playPlatform) >> toolProvider
-        playRun.targetPlatform = playPlatform
+        playRun.toolProvider = toolProvider
         System.in = systemInputStream
     }
 

@@ -308,13 +308,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations) {
+        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayToolChainInternal toolChain, final PlayPluginConfigurations configurations) {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setTargetPlatform(binary.getTargetPlatform());
+                        playRun.setToolProvider(toolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());
