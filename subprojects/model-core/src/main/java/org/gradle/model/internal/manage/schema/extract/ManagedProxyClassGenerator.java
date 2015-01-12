@@ -20,17 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.internal.reflect.*;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.util.CollectionUtils;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.List;
 
 public class ManagedProxyClassGenerator {
@@ -158,21 +154,17 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
-        List<Method> methods = CollectionUtils.dedup(Arrays.asList(managedTypeClass.getMethods()), new MethodSignatureEquivalence());
-        for (Method method : methods) {
-            if (Modifier.isAbstract(method.getModifiers())) {
-                if (method.getName().startsWith("get")) {
+        ClassDetails classDetails = ClassInspector.inspect(managedTypeClass);
+        for (PropertyDetails property : classDetails.getProperties()) {
+            for (Method method : property.getGetters()) {
+                if (Modifier.isAbstract(method.getModifiers())) {
                     writeGetter(visitor, generatedType, method);
-                } else if (method.getName().startsWith("set")) {
-                    writeSetter(visitor, generatedType, method);
-                } else {
-                    String messageFormat = "Unexpected method encountered when generating implementation class for a managed type '%s': %s";
-                    throw new RuntimeException(String.format(messageFormat, managedTypeClass.getName(), method.toString()));
-                }
-            } else {
-                if (method.getName().startsWith("get") && !Modifier.isFinal(method.getModifiers()) && method.getParameterTypes().length == 0 && !method.getName().equals("getMetaClass")) {
+                } else if (!Modifier.isFinal(method.getModifiers()) && !property.getName().equals("metaClass")) {
                     writeNonAbstractGetterWrapper(visitor, generatedType, managedTypeClass, method);
                 }
+            }
+            for (Method method : property.getSetters()) {
+                writeSetter(visitor, generatedType, method);
             }
         }
     }

@@ -38,6 +38,13 @@ class ClassInspectorTest extends Specification {
         writeOnly.setters.size() == 1
     }
 
+    def "extracts property names"() {
+        expect:
+        def details = ClassInspector.inspect(PropNames)
+
+        details.propertyNames == ['metaClass', 'a', 'b', 'URL', 'url', '_A'] as Set
+    }
+
     def "extracts properties of a Groovy interface"() {
         expect:
         def details = ClassInspector.inspect(SomeInterface)
@@ -85,9 +92,55 @@ class ClassInspectorTest extends Specification {
         prop.setters.size() == 3
     }
 
-    def "extracts properties from superclass"() {
+    def "extracts properties from super class"() {
         expect:
-        def details = ClassInspector.inspect(SubType)
+        def details = ClassInspector.inspect(SubClass)
+
+        details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
+
+        def prop = details.getProperty('prop')
+        prop.getters.size() == 1
+        prop.setters.size() == 1
+
+        def other = details.getProperty('other')
+        other.getters.size() == 1
+        other.setters.size() == 1
+
+        def readOnly = details.getProperty('readOnly')
+        readOnly.getters.size() == 1
+        readOnly.setters.size() == 0
+
+        def writeOnly = details.getProperty('writeOnly')
+        writeOnly.getters.size() == 0
+        writeOnly.setters.size() == 1
+    }
+
+    def "extracts properties from super interface"() {
+        expect:
+        def details = ClassInspector.inspect(SubInterface)
+
+        details.propertyNames == ['prop', 'readOnly', 'writeOnly', 'other'] as Set
+
+        def prop = details.getProperty('prop')
+        prop.getters.size() == 1
+        prop.setters.size() == 1
+
+        def other = details.getProperty('other')
+        other.getters.size() == 1
+        other.setters.size() == 1
+
+        def readOnly = details.getProperty('readOnly')
+        readOnly.getters.size() == 1
+        readOnly.setters.size() == 0
+
+        def writeOnly = details.getProperty('writeOnly')
+        writeOnly.getters.size() == 0
+        writeOnly.setters.size() == 1
+    }
+
+    def "extracts properties from super type graph"() {
+        expect:
+        def details = ClassInspector.inspect(AbstractSubClass)
 
         details.propertyNames == ['metaClass', 'prop', 'readOnly', 'writeOnly', 'other'] as Set
 
@@ -194,8 +247,8 @@ class ClassInspectorTest extends Specification {
     }
 
     interface SomeInterface {
-        String getProp()
-        void setProp(String value)
+        Number getProp()
+        void setProp(Number value)
 
         String getReadOnly()
 
@@ -208,6 +261,14 @@ class ClassInspectorTest extends Specification {
         void getProp(String value)
 
         void setProp()
+    }
+
+    class PropNames {
+        String getA() { null }
+        String getB() { null }
+        String getURL() { null }
+        String getUrl() { null }
+        String get_A() { null }
     }
 
     class BooleanProps {
@@ -244,7 +305,20 @@ class ClassInspectorTest extends Specification {
         }
     }
 
-    class SubType extends SomeClass {
+    class SubClass extends SomeClass {
+        Long other
+    }
+
+    interface SubInterface extends SomeInterface {
+        Long getOther()
+        void setOther(Long l)
+    }
+
+    abstract class AbstractSuperClass implements SomeInterface {
+        Number prop
+    }
+
+    abstract class AbstractSubClass extends AbstractSuperClass implements SubInterface {
         Long other
     }
 

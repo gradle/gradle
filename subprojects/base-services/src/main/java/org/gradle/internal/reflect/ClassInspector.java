@@ -21,12 +21,32 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class ClassInspector {
+    /**
+     * Extracts a view of the given class.
+     */
     public static ClassDetails inspect(Class<?> type) {
         DefaultClassDetails classDetails = new DefaultClassDetails(type);
-        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
-            inspectClass(current, classDetails);
-        }
+        visitGraph(type, classDetails);
         return classDetails;
+    }
+
+    private static void visitGraph(Class<?> type, DefaultClassDetails classDetails) {
+        Set<Class<?>> seen = new HashSet<Class<?>>();
+        List<Class<?>> queue = new ArrayList<Class<?>>();
+        queue.add(type);
+        while (!queue.isEmpty()) {
+            Class<?> current = queue.remove(0);
+            if (!seen.add(current)) {
+                continue;
+            }
+            inspectClass(current, classDetails);
+            for (Class<?> c : current.getInterfaces()) {
+                queue.add(0, c);
+            }
+            if (current.getSuperclass() != null && current.getSuperclass() != Object.class) {
+                queue.add(0, current.getSuperclass());
+            }
+        }
     }
 
     private static void inspectClass(Class<?> type, DefaultClassDetails classDetails) {
@@ -38,30 +58,37 @@ public class ClassInspector {
             }
 
             Class<?>[] parameterTypes = method.getParameterTypes();
-            if (method.getName().startsWith("get")
-                    && method.getName().length() > 3
+            String methodName = method.getName();
+            if (methodName.startsWith("get")
+                    && methodName.length() > 3
                     && !method.getReturnType().equals(Void.TYPE)
                     && parameterTypes.length == 0) {
-                String propertyName = method.getName().substring(3);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+                String propertyName = propertyName(methodName, 3);
                 classDetails.property(propertyName).addGetter(method);
-            } else if (method.getName().startsWith("is")
-                    && method.getName().length() > 2
+            } else if (methodName.startsWith("is")
+                    && methodName.length() > 2
                     && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE))
                     && parameterTypes.length == 0) {
-                String propertyName = method.getName().substring(2);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+                String propertyName = propertyName(methodName, 2);
                 classDetails.property(propertyName).addGetter(method);
-            } else if (method.getName().startsWith("set")
-                    && method.getName().length() > 3
+            } else if (methodName.startsWith("set")
+                    && methodName.length() > 3
                     && parameterTypes.length == 1) {
-                String propertyName = method.getName().substring(3);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
+                String propertyName = propertyName(methodName, 3);
                 classDetails.property(propertyName).addSetter(method);
             } else {
                 classDetails.instanceMethod(method);
             }
         }
+    }
+
+    private static String propertyName(String methodName, int beginIndex) {
+        String propertyName = methodName.substring(beginIndex);
+        if (Character.isUpperCase(propertyName.charAt(0)) && propertyName.length() > 1 && Character.isUpperCase(propertyName.charAt(1))) {
+            // First 2 chars are upper-case -> leave name unmodified
+            return propertyName;
+        }
+        return Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
     }
 
     private static class MethodSignature {
