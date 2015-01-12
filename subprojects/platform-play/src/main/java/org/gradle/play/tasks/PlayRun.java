@@ -82,13 +82,11 @@ public class PlayRun extends ConventionTask {
                 .start("Start Play server", "Starting Play");
 
         int httpPort = getHttpPort();
-
-        PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
-
         FileCollection applicationJars = new SimpleFileCollection(applicationJar, assetsJar);
         applicationJars = applicationJars.plus(runtimeClasspath);
-
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
+
+        PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
         PlayApplicationRunner playApplicationRunner = toolProvider.newApplicationRunner();
         try {
             runnerToken = playApplicationRunner.start(spec);
