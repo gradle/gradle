@@ -21,6 +21,22 @@ The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gr
 
     org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
 
+### Support for AWS S3 backed maven repositories
+
+Gradle now supports S3 backed maven repositories. Here's an example on how to declare a S3 backed maven repository in gradle:
+
+    repositories {
+        maven {
+            url "s3://someS3Bucket/maven/release"
+            credentials(AwsCredentials) {
+                accessKey "someKey"
+                secretKey "someSecret"
+            }
+        }
+    }
+
+A big thank you goes to Adrian Kelly for implementing this feature.
+
 ### Improved performance with class loader caching
 
 We want each new version of Gradle to perform better.
@@ -107,6 +123,7 @@ The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Adrian Kelly](https://github.com/adrianbk) - adding support for AWS S3 backed maven repositories
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
 * [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
