@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matcher
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
@@ -374,6 +375,21 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
         file("build/reports/findbugs/main.html").exists()
         !(":findbugsMain" in nonSkippedTasks)
         ":findbugsMain" in skippedTasks
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3214")
+    def "Thrown java.lang.Error due to missing transitive dependency is handled and fails the build"() {
+        given:
+        buildFile << 'configurations.findbugs.transitive = false'
+
+        and:
+        goodCode()
+
+        expect:
+        fails("check")
+        failure.assertHasCause 'FindBugs encountered an error.'
+        failure.assertHasDescription "Execution failed for task ':findbugsMain'."
+        errorOutput.contains 'Caused by: java.lang.NoClassDefFoundError: org/apache/bcel/classfile/ClassFormatException'
     }
 
     private static boolean containsXmlMessages(File xmlReportFile) {
