@@ -112,6 +112,14 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - ~(something like snippet above)~
 - ~should also support situations where more than two types are taking part in forming a cycle~
 
+#### Open issues
+
+- Blows up for nested objects
+- Schema does not hold reference to schemas for properties or collection element types
+    - Each time a managed object is created, need to do a cache lookup for the schema of each property.
+    - Each time a managed set is created, need to do a cache lookup for the schema of the element type.
+    - Each time a managed object property is set, need to do a cache lookup to do validation.
+
 ### ~~Plugin creates model element of custom type, containing properties of Java boxed primitive-ish types, without supplying an implementation~~
 
 Adds support for:
@@ -146,6 +154,9 @@ Use of `byte` and `Byte` is unsupported.
 
 #### Open questions
 
+- Does not support `is` style getters for boolean properties.
+- Does not support all numeric types.
+- Does not support primitives.
 - Is this the right set of things to support? Should we just directly support all of Java's primitive types? 
 
 ### ~~Plugin creates model element of a collection of managed model elements~~
@@ -455,6 +466,7 @@ Use class generation tool that allows specifying the name of a generated class, 
 
 #### Open issues
 
+- Ignores protected and private methods. eg can have an abstract protected method
 - Abstract class should be able to provide a custom `toString()` implementation, should only be able to use inherent properties of the object.
 
 ### Managed type implemented as abstract class can have generative getters
