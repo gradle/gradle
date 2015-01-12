@@ -378,7 +378,10 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         and:
         executable.assertExists()
-        executable.assertHasChangedSince(snapshot)
+
+        if (toolChain.id != "mingw") { // Identical binary is produced on mingw
+            executable.assertHasChangedSince(snapshot)
+        }
     }
 
     def "cleans up stale object files when executable source file renamed"() {
