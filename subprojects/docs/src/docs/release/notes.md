@@ -188,6 +188,11 @@ file to the new syntax.
 Note that this functionality is a work-in-progress, and in some cases it may be preferable to remain on an earlier version of Gradle until
 it has stabilised.
 
+### Mapping of Maven version range selectors
+
+The maven version declaration `LATEST` is mapped to `latest.integration` and `RELEASE` is mapped to `latest.release` when resolving a dependency from
+a maven repository and vice versa when generating a pom file in Gradle (e.g. for publishing via `maven-publish` or `maven plugin`).
+
 ### Ivy dependency exclude rules
 
 Previous versions of Gradle improperly handled the `name` attribute for [dependency exclude rules](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact-exclude.html).
