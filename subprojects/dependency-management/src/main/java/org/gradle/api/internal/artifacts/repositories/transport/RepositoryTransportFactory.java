@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.credentials.Credentials;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.transport.aws.s3.S3TransportBuilder;
+import org.gradle.internal.resource.transport.aws.s3.S3Transport;
 import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.internal.resource.transport.http.HttpTransport;
 import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
@@ -84,15 +84,13 @@ public class RepositoryTransportFactory {
     }
 
     private RepositoryTransport createS3Transport(String name, Credentials credentials) {
-        return new S3TransportBuilder()
-                .awsCredentials((AwsCredentials) credentials)
-                .cacheLockingManager(cacheLockingManager)
-                .cachedExternalResourceIndex(cachedExternalResourceIndex)
-                .name(name)
-                .progressLoggerFactory(progressLoggerFactory)
-                .temporaryFileProvider(temporaryFileProvider)
-                .timeProvider(timeProvider)
-                .build();
+        return new S3Transport(name,
+                (AwsCredentials) credentials,
+                progressLoggerFactory,
+                temporaryFileProvider,
+                cachedExternalResourceIndex,
+                timeProvider,
+                cacheLockingManager);
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials) {

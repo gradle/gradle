@@ -34,8 +34,7 @@ public class S3Transport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
-
-    protected S3Transport(String name, AwsCredentials awsCredentials,
+    public S3Transport(String name, AwsCredentials awsCredentials,
                           ProgressLoggerFactory progressLoggerFactory,
                           TemporaryFileProvider temporaryFileProvider,
                           CachedExternalResourceIndex<String> cachedExternalResourceIndex,

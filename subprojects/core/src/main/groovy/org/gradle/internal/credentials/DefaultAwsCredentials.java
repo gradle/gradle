@@ -23,9 +23,6 @@ public class DefaultAwsCredentials implements AwsCredentials {
     private String accessKey;
     private String secretKey;
 
-    public DefaultAwsCredentials() {
-    }
-
     public String getAccessKey() {
         return accessKey;
     }

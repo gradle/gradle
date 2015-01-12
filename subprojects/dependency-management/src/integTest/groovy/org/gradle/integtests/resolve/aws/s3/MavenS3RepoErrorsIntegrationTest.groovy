@@ -20,10 +20,6 @@ package org.gradle.integtests.resolve.aws.s3
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
 
-    @Override
-    String getBucket() {
-        return 'tests3bucket'
-    }
 
     @Override
     String getRepositoryPath() {

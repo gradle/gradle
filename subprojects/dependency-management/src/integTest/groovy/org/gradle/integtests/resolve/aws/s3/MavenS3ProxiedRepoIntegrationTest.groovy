@@ -34,11 +34,6 @@ class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTe
     final String artifactVersion = "1.85"
 
     @Override
-    String getBucket() {
-        return 'tests3bucket'
-    }
-
-    @Override
     String getRepositoryPath() {
         return '/maven/release/'
     }

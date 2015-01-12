@@ -21,11 +21,6 @@ import org.gradle.test.fixtures.server.s3.MavenS3Module
 class MavenS3SnapshotRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
     @Override
-    String getBucket() {
-        return 'tests3bucket'
-    }
-
-    @Override
     String getRepositoryPath() {
         return '/maven/snapshot/'
     }

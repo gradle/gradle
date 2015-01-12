@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.aws.s3
 
-import groovy.io.FileType
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.s3.MavenS3Repository
@@ -36,7 +35,9 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
         executer.withArgument("-D${S3ConnectionProperties.S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}")
     }
 
-    abstract String getBucket()
+    String getBucket() {
+        return 'tests3bucket'
+    }
 
     abstract String getRepositoryPath()
 
@@ -48,17 +49,6 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
     def assertLocallyAvailableLogged(S3Resource... resources) {
         resources.each {
             assert output.contains("Found locally available resource with matching checksum: [s3:/${it.relativeFilePath()}")
-        }
-    }
-
-    def listDirs = {
-        def list = []
-        getTestDirectory().eachFileRecurse(FileType.ANY) { file ->
-            list << file
-        }
-        println "Contents of test directory are:"
-        list.each {
-            println it
         }
     }
 
