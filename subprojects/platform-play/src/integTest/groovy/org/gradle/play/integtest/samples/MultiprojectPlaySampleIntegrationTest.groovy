@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest
+package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.junit.Rule

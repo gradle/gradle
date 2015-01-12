@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-    
-package org.gradle.play.integtest
 
-import org.gradle.integtests.fixtures.TestExecutionResult
+package org.gradle.play.integtest.dependencies
+
+import org.gradle.play.integtest.PlayDistributionApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
 
-class PlayApplicationDependenciesIntegrationTest extends AbstractPlayAppIntegrationTest {
-    PlayApp playApp = new PlayAppWithDependencies()
-
+class PlayDistributionAppWithDependenciesIntegrationTest extends PlayDistributionApplicationIntegrationTest {
     @Override
-    void verifyTestOutput(TestExecutionResult result) {
-        result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec")
-        result.testClass("ApplicationSpec").assertTestCount(2, 0, 0)
-        result.testClass("IntegrationSpec").assertTestCount(1, 0, 0)
+    PlayApp getPlayApp() {
+        return new PlayAppWithDependencies()
     }
 }

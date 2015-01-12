@@ -118,7 +118,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         available(url, "Play app", 60000)
 
         and:
-        validateRuningApp();
+        validateRunningApp();
 
         when: "stopping gradle"
         userInput.write(4) // ctrl+d
@@ -150,7 +150,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         available(playUrl().toString(), "Play app", 60000)
 
         and:
-        validateRuningApp()
+        validateRunningApp()
 
         cleanup:
         if (handle != null) {
@@ -169,7 +169,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def validateRuningApp() {
+    def validateRunningApp() {
         assertUrlContent playUrl(), "Your new application is ready."
         assertUrlContent playUrl("assets/primary.txt"), "Primary asset"
         assertUrlContent playUrl("submodule"), "Submodule page"

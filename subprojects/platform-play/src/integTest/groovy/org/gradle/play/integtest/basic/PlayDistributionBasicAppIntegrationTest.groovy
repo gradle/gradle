@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest
+package org.gradle.play.integtest.basic
 
-import org.gradle.integtests.fixtures.Sample
-import org.junit.Rule
+import org.gradle.play.integtest.PlayDistributionApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+import org.gradle.play.integtest.fixtures.app.PlayApp
 
-class BasicPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
-    @Rule
-    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic")
-
-    Sample getPlaySample() {
-        return basicPlaySample
+class PlayDistributionBasicAppIntegrationTest extends PlayDistributionApplicationIntegrationTest {
+    @Override
+    PlayApp getPlayApp() {
+        return new BasicPlayApp()
     }
 }

@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest
-import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.play.integtest.fixtures.app.PlayApp
-import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+package org.gradle.play.integtest.samples
 
-class BasicPlayApplicationIntegrationTest extends AbstractPlayAppIntegrationTest {
-    PlayApp playApp = new BasicPlayApp()
+import org.gradle.integtests.fixtures.Sample
+import org.junit.Rule
 
-    @Override
-    void verifyTestOutput(TestExecutionResult result) {
-        result.assertTestClassesExecuted("ApplicationSpec", "IntegrationSpec")
-        result.testClass("ApplicationSpec").assertTestCount(2, 0, 0)
-        result.testClass("IntegrationSpec").assertTestCount(1, 0, 0)
+class BasicPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
+    @Rule
+    Sample basicPlaySample = new Sample(temporaryFolder, "play/basic")
+
+    Sample getPlaySample() {
+        return basicPlaySample
     }
 }

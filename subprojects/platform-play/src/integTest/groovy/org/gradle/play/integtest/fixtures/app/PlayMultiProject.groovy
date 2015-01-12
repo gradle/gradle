@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.integtest.fixtures.app
+
 import org.gradle.integtests.fixtures.SourceFile
 
 class PlayMultiProject extends PlayApp {

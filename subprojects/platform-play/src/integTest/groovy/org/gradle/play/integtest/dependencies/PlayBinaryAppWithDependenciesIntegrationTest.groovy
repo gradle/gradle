@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package org.gradle.play.integtest.dependencies
 
-class BasicPlayApp extends PlayApp {
+import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
+import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
+
+class PlayBinaryAppWithDependenciesIntegrationTest extends PlayBinaryApplicationIntegrationTest {
+    @Override
+    PlayApp getPlayApp() {
+        return new PlayAppWithDependencies()
+    }
 }
