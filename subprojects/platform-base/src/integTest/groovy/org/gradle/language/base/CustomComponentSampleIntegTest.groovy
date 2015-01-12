@@ -20,12 +20,12 @@ import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class CustomComponentSampleIntegTest extends AbstractIntegrationSpec {
-    @Rule Sample customComponent = new Sample(temporaryFolder, "customComponent")
+    @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType")
 
     def "can create custom component with binaries"() {
         given:
-        sample customComponent
-        customComponent.dir.file("build.gradle") << """
+        sample componentTypeSample
+        componentTypeSample.dir.file("build.gradle") << """
 
 task checkModel << {
     assert project.componentSpecs.size() == 2
@@ -43,7 +43,7 @@ task checkModel << {
 
     def "can create all binaries"() {
         given:
-        sample customComponent
+        sample componentTypeSample
         when:
         succeeds "assemble"
         then:
@@ -52,7 +52,7 @@ task checkModel << {
                               ":renderTitleB40pxSvg", ":TitleB40pxBinary", ":assemble"
 
         and:
-        customComponent.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
+        componentTypeSample.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
                                                                          "TitleB_28px.svg", "TitleB_40px.svg")
     }
 }

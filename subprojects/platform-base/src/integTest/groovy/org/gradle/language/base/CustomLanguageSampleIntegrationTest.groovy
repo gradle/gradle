@@ -23,11 +23,11 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class CustomLanguageSampleIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample customLanguageTypeSample = new Sample(temporaryFolder, "customLanguageType")
+    @Rule Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
     def "shows custom language sourcesets in component"() {
         given:
-        sample customLanguageTypeSample
+        sample languageTypeSample
         when:
         succeeds "components"
         then:
@@ -48,13 +48,13 @@ Binaries
 
     def "can build binary"() {
         given:
-        sample customLanguageTypeSample
+        sample languageTypeSample
         when:
         succeeds "assemble"
         then:
         executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipdocsBinary", ":docsBinary", ":assemble"]
         and:
-        new ZipTestFixture(customLanguageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
+        new ZipTestFixture(languageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
                 "userguide/chapter1.html",
                 "userguide/chapter2.html",
                 "userguide/index.html")
