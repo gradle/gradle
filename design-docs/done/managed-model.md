@@ -1,3 +1,4 @@
+
 ### ~~Plugin creates model element of custom, simple, type without supplying an implementation~~
 
 This story makes the following possible…
@@ -74,3 +75,73 @@ This story makes the following possible…
 
 - ~~Nested element is not `@Managed` causes error~~
 - ~~Nested element violates constraints (error message indicates that it's being considered due to being nested, and indicates why enclosing class was being considered)~~
+
+### ~~Plugin creates model element of custom type, containing properties of Java boxed primitive-ish types, without supplying an implementation~~
+
+Adds support for:
+
+1. `Boolean`
+1. `Integer`
+1. `Long`
+1. `Double`
+1. `BigInteger`
+1. `BigDecimal`
+
+Use of non primitive types is not allowed.
+Attempt to declare a property of a primitive type should yield an error message indicating that a boxed type should be used instead.
+
+1. boolean -> Boolean
+1. char -> Integer
+1. float -> Double
+1. int -> Integer
+1. long	-> Long
+1. short -> Integer
+1. double -> Double
+
+Use of other boxed types is not allowed.
+Attempt to declare a property of a such a type should yield an error message indicating that an alternative type should be used (see mappings above).
+
+Use of `byte` and `Byte` is unsupported.
+
+#### Test coverage
+
+- ~~Can get/set properties of all supported types~~
+- ~~Can narrow/widen values as per normal (e.g. set a `Long` property with a literal `int`)~~
+
+### ~~Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference~~
+
+    The story makes the following possible:
+
+    @Managed
+    interface Parent {
+        String getName();
+        void setName(String name);
+
+        Child getChild();
+    }
+
+    @Managed
+    interface Child {
+        Parent getParent();
+        void setParent(Parent parent);
+    }
+
+    class RulePlugin {
+        @Model
+        void createParent(Parent parent) {
+            parent.setName("parent");
+            parent.getChild().setParent(parent)
+        }
+
+        @Mutate
+        void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
+            tasks.create("echo", t ->
+              t.doLast(t2 -> System.out.println(parent.getChild().getParent().getName())); // prints "parent"
+            );
+        }
+    }
+
+#### Test Coverage
+
+- ~(something like snippet above)~
+- ~should also support situations where more than two types are taking part in forming a cycle~

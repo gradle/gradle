@@ -74,91 +74,6 @@ Moreover, we consider owning the implementation of model elements an enabler for
     - Link occurs in a collection
     - The same element appears in different inputs to a rule
 
-### ~~Plugin creates model element of custom, composite, type without supplying an implementation with a cyclical type reference~~
-
-    The story makes the following possible:
-    
-    @Managed
-    interface Parent {
-        String getName();
-        void setName(String name);
-        
-        Child getChild();
-    }
-    
-    @Managed 
-    interface Child {
-        Parent getParent();
-        void setParent(Parent parent);
-    }
-    
-    class RulePlugin {
-        @Model
-        void createParent(Parent parent) {
-            parent.setName("parent");
-            parent.getChild().setParent(parent)
-        }
-        
-        @Mutate
-        void addEchoTask(CollectionBuilder<Task> tasks, Parent parent) {
-            tasks.create("echo", t -> 
-              t.doLast(t2 -> System.out.println(parent.getChild().getParent().getName())); // prints "parent"
-            );
-        }
-    }
-
-#### Test Coverage
-
-- ~(something like snippet above)~
-- ~should also support situations where more than two types are taking part in forming a cycle~
-
-#### Open issues
-
-- Blows up for nested objects
-- Schema does not hold reference to schemas for properties or collection element types
-    - Each time a managed object is created, need to do a cache lookup for the schema of each property.
-    - Each time a managed set is created, need to do a cache lookup for the schema of the element type.
-    - Each time a managed object property is set, need to do a cache lookup to do validation.
-
-### ~~Plugin creates model element of custom type, containing properties of Java boxed primitive-ish types, without supplying an implementation~~
-
-Adds support for:
-
-1. `Boolean`
-1. `Integer`
-1. `Long`
-1. `Double`
-1. `BigInteger`
-1. `BigDecimal`
-
-Use of non primitive types is not allowed.
-Attempt to declare a property of a primitive type should yield an error message indicating that a boxed type should be used instead.
- 
-1. boolean -> Boolean	
-1. char -> Integer
-1. float -> Double	
-1. int -> Integer
-1. long	-> Long
-1. short -> Integer	
-1. double -> Double
-
-Use of other boxed types is not allowed.
-Attempt to declare a property of a such a type should yield an error message indicating that an alternative type should be used (see mappings above).
-
-Use of `byte` and `Byte` is unsupported. 
-
-#### Test coverage
-
-- ~~Can get/set properties of all supported types~~
-- ~~Can narrow/widen values as per normal (e.g. set a `Long` property with a literal `int`)~~
-
-#### Open questions
-
-- Does not support `is` style getters for boolean properties.
-- Does not support all numeric types.
-- Does not support primitives.
-- Is this the right set of things to support? Should we just directly support all of Java's primitive types? 
-
 ### ~~Plugin creates model element of a collection of managed model elements~~
 
     @Managed
@@ -716,10 +631,13 @@ Other issues:
 ### Open questions
 
 1. Should we require that types that are designed to be managed model elements be annotated?
-2. Do we need to consider non identity based equals/hashCode at this time?
 
 ### Managed types
 
+- Value types:
+    - Does not support `is` style getters for boolean properties.
+    - Does not support all numeric types.
+    - Does not support primitives.
 - Mix DSL and Groovy methods into managed type implementations.
     - Add DSL and Groovy type coercion for enums, closures, files, etc
     - Missing property and method error messages use public type instead of implementation type.
@@ -744,8 +662,16 @@ Other issues:
 - Extending model elements with new properties
 - Specializing model elements to apply new views
 
+### Performance
+
+- ModelSchema does not hold reference to schemas for property types or collection element types
+    - Each time a managed object is created, need to do a cache lookup for the schema of each property.
+    - Each time a managed set is created, need to do a cache lookup for the schema of the element type.
+    - Each time a managed object property is set, need to do a cache lookup to do validation.
+
 ### Misc
 
+- Validation error messages need some work
 - Allow some control over generated display name property
 - Semantics of equals/hashCode
 - User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
