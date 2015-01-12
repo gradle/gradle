@@ -17,7 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.credentials.Credentials;
+import org.gradle.api.credentials.Credentials;
 
 /**
  * An artifact repository which supports username/password authentication.

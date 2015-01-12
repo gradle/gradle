@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.credentials.Credentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
 

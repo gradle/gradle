@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.repositories;
-
-import org.gradle.api.credentials.Credentials;
+package org.gradle.api.credentials;
 
 /**
- * Represents credentials used to authenticate with Amazon Web Services.
- */
-public interface AwsCredentials extends Credentials {
-
-    public String getAccessKey();
-
-    public void setAccessKey(String accessKey);
-
-    public String getSecretKey();
-
-    public void setSecretKey(String secretKey);
-
+ * Base interface for credentials used for different authentication purposes.
+ * (e.g authenticated {@link org.gradle.api.artifacts.dsl.RepositoryHandler})
+ * */
+public interface Credentials {
 }

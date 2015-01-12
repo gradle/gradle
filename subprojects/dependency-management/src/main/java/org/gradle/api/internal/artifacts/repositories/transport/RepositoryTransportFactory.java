@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.credentials.Credentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.transport.aws.s3.S3Transport;
 import org.gradle.internal.resource.transport.file.FileTransport;
