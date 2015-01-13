@@ -103,7 +103,7 @@ public class PlayDistributionPlugin {
 
     @Mutate
     void createDistributionTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final @Path("buildDir") File buildDir,
-                                 final @Path("distributions") PlayDistributionContainer distributions, final PlayToolChainInternal playToolChain) {
+                                 final @Path("distributions") PlayDistributionContainer distributions) {
         for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
 
