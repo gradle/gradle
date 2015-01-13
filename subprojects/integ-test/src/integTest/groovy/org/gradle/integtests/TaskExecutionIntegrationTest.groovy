@@ -22,7 +22,7 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.startsWith
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
-    
+
     def taskCanAccessTaskGraph() {
         buildFile << """
     boolean notified = false
@@ -49,7 +49,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
         when:
         succeeds "a"
-        
+
         then:
         result.assertTasksExecuted(":b", ":a");
     }
@@ -82,7 +82,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         task c(dependsOn: ['b', ':a'])
     };
 """
-        
+
         expect:
         run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c");
         run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c");
@@ -264,7 +264,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         when:
         buildFile << """
         task thing
-        tasks.addPlaceholderAction("b") {
+        tasks.addPlaceholderAction("b", DefaultTask) {
             throw new RuntimeException()
         }
         task otherThing { dependsOn tasks.thing }
@@ -279,9 +279,9 @@ task someTask(dependsOn: [someDep, someOtherDep])
     def "explicit tasks are preferred over placeholder tasks"() {
         buildFile << """
         task someTask << {println "explicit sometask"}
-        tasks.addPlaceholderAction("someTask"){
+        tasks.addPlaceholderAction("someTask", DefaultTask) {
             println  "placeholder action triggered"
-            task someTask << { throw new RuntimeException() }
+            it.doLast { throw new RuntimeException() }
         }
 """
         when:
