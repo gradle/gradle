@@ -16,10 +16,9 @@
 
 package org.gradle.play.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.play.JvmClasses;
@@ -28,6 +27,7 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
+import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
@@ -103,7 +103,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private FileCollection resourceDirs = new UnionFileCollection();
+        private Set<File> resourceDirs = Sets.newLinkedHashSet();
         private File classesDir;
 
         public File getClassesDir() {
@@ -114,24 +114,24 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
             this.classesDir = classesDir;
         }
 
-        public FileCollection getResourceDirs() {
+        public Set<File> getResourceDirs() {
             return resourceDirs;
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(new SimpleFileCollection(resourceDir));
+            resourceDirs.add(resourceDir);
         }
     }
 
     private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
-        private FileCollection resourceDirs = new UnionFileCollection();
+        private Set<File> resourceDirs = Sets.newLinkedHashSet();
 
-        public FileCollection getAssetDirs() {
+        public Set<File> getAssetDirs() {
             return resourceDirs;
         }
 
-        public void addAssetDir(File resourceDir) {
-            resourceDirs.add(new SimpleFileCollection(resourceDir));
+        public void addAssetDir(File assetDir) {
+            resourceDirs.add(assetDir);
         }
     }
 }
