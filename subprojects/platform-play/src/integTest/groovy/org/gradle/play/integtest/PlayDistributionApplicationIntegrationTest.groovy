@@ -79,20 +79,8 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         verifyRunningApp()
 
         cleanup:
-        if (handle != null) {
-            try {
-                playUrl("shutdown").bytes
-            } catch (SocketException e) {
-                // Expected
-            }
-
-            try {
-                handle.abort()
-            } catch (IllegalStateException e) {
-                // Ignore if process is already not running
-                println "Did not abort play process since current state is: ${handle.state.toString()}"
-            }
-        }
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
+        verifyStopped()
     }
 
     void verifyZips() {
