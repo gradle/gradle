@@ -39,7 +39,7 @@ public class TaskNameResolver {
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */
     @Nullable
-    public TaskSelectionResult selectWithName(final String taskName, ProjectInternal project, boolean includeSubProjects) {
+    public TaskSelectionResult selectWithName(final String taskName, final ProjectInternal project, boolean includeSubProjects) {
         final ModelRegistry modelRegistry = project.getModelRegistry();
 
         if (includeSubProjects) {
@@ -53,7 +53,7 @@ public class TaskNameResolver {
                 return new TaskSelectionResult() {
                     @Override
                     public void collectTasks(Collection<? super Task> tasks) {
-                        tasks.add(getTask(modelRegistry, taskName));
+                        tasks.add(getTask(project.getTasks(), modelRegistry, taskName));
                     }
                 };
             }
@@ -84,16 +84,24 @@ public class TaskNameResolver {
     }
 
     private static boolean hasTask(String taskName, ProjectInternal project) {
-        project.getTasks().findByName(taskName); // NEEDED because it may trigger a placeholder task
-        return getTaskNames(project).contains(taskName);
+        project.getTasks().findByName(taskName); // trigger rules / placeholders
+        getTaskNames(project);
+        return project.getTasks().findByName(taskName) != null;
     }
 
     private static ModelNode selfClosedTasksNode(ProjectInternal project) {
         return selfClose(project.getModelRegistry(), TaskContainerInternal.MODEL_PATH);
     }
 
-    private static TaskInternal getTask(ModelRegistry modelRegistry, String taskName) {
-        return (TaskInternal) modelRegistry.realize(TaskContainerInternal.MODEL_PATH.child(taskName), ModelType.of(Task.class));
+    private static TaskInternal getTask(TaskContainer taskContainer, ModelRegistry modelRegistry, String taskName) {
+        // Prefer tasks from the model registry, but fall back to task container in case task was added after task container was closed in model registry
+
+        ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
+        if (modelRegistry.node(path) == null) {
+            return (TaskInternal) taskContainer.getByName(taskName);
+        } else {
+            return (TaskInternal) modelRegistry.realize(path, ModelType.of(Task.class));
+        }
     }
 
     private static Set<String> getTaskNames(ProjectInternal project) {
@@ -157,7 +165,7 @@ public class TaskNameResolver {
 
         private void collect(ProjectInternal project, Collection<? super Task> tasks) {
             if (hasTask(taskName, project)) {
-                TaskInternal task = getTask(project.getModelRegistry(), taskName);
+                TaskInternal task = getTask(project.getTasks(), project.getModelRegistry(), taskName);
                 tasks.add(task);
                 if (task.getImpliesSubProjects()) {
                     return;
