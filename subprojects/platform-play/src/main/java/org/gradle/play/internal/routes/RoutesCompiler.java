@@ -42,7 +42,7 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         });
 
         ArrayList<File> routes = Lists.newArrayList();
-        CollectionUtils.filter(sources, secondaryRoutes, new Spec<File>() {
+        CollectionUtils.filter(sources, routes, new Spec<File>() {
             @Override
             public boolean isSatisfiedBy(File file) {
                 return file.getName().equals("routes");
