@@ -22,7 +22,7 @@ import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 
 public class DefaultPlayDistribution extends DefaultDistribution implements PlayDistribution {
-    PlayApplicationBinarySpec binary;
+    private PlayApplicationBinarySpec binary;
 
     public DefaultPlayDistribution(String name, CopySpec contents) {
         super(name, contents);

@@ -26,8 +26,8 @@ import org.gradle.play.distribution.PlayDistributionContainer;
 public class DefaultPlayDistributionContainer extends AbstractNamedDomainObjectContainer<PlayDistribution> implements PlayDistributionContainer {
     private final FileOperations fileOperations;
 
-    public DefaultPlayDistributionContainer(Class<PlayDistribution> type, Instantiator instantiator, FileOperations fileOperations) {
-        super(type, instantiator);
+    public DefaultPlayDistributionContainer(Instantiator instantiator, FileOperations fileOperations) {
+        super(PlayDistribution.class, instantiator);
         this.fileOperations = fileOperations;
     }
 

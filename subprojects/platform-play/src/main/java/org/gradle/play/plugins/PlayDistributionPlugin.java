@@ -19,10 +19,8 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -42,10 +40,8 @@ import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -61,7 +57,7 @@ public class PlayDistributionPlugin {
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
 
-        return new DefaultPlayDistributionContainer(PlayDistribution.class, instantiator, fileOperations);
+        return new DefaultPlayDistributionContainer(instantiator, fileOperations);
     }
 
     @Mutate
@@ -84,14 +80,14 @@ public class PlayDistributionPlugin {
     }
 
     @Mutate
-    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayToolChainInternal playToolChain) {
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations) {
         for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             PlayDistribution distribution = distributions.create(binary.getName());
 
             CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(binary.getTasks().withType(Jar.class));
-            libSpec.from(binary.getClasspath());
+            libSpec.from(configurations.getPlayRun().getFileCollection());
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");
@@ -102,38 +98,47 @@ public class PlayDistributionPlugin {
     }
 
     @Mutate
-    void createDistributionTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final @Path("buildDir") File buildDir,
-                                 final @Path("distributions") PlayDistributionContainer distributions) {
-        for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-            final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
+    void createStartScriptTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
+                                 final @Path("distributions") PlayDistributionContainer distributions,
+                                 final PlayPluginConfigurations configurations) {
+        for (final PlayDistribution distribution : distributions) {
+            final PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) distribution.getBinary();
+            if (binary != null) {
+                String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
 
-            String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
-            tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
-                @Override
-                public void execute(CreateStartScripts createStartScripts) {
-                    createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                    createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), binary.getClasspath()));
-                    createStartScripts.setMainClassName("play.core.server.NettyServer");
-                    createStartScripts.setApplicationName(binary.getName());
-                    createStartScripts.setOutputDir(scriptsDir);
-
-                    Spec<PlayDistribution> matchingBinary = new Spec<PlayDistribution>() {
+                if (tasks.get(createStartScriptsTaskName) == null) {
+                    final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
+                    tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
                         @Override
-                        public boolean isSatisfiedBy(PlayDistribution distribution) {
-                            return distribution.getBinary() == binary;
+                        public void execute(CreateStartScripts createStartScripts) {
+                        createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
+                        createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), configurations.getPlayRun().getFileCollection()));
+                        createStartScripts.setMainClassName("play.core.server.NettyServer");
+                        createStartScripts.setApplicationName(binary.getName());
+                        createStartScripts.setOutputDir(scriptsDir);
+
+                        Spec<PlayDistribution> matchingBinary = new Spec<PlayDistribution>() {
+                            @Override
+                            public boolean isSatisfiedBy(PlayDistribution distribution) {
+                                return distribution.getBinary() == binary;
+                            }
+                        };
                         }
-                    };
-
-                    for (PlayDistribution distribution : distributions.matching(matchingBinary)) {
-                        CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
-                        CopySpec binSpec = distSpec.addChild().into("bin");
-                        binSpec.from(createStartScripts);
-                        binSpec.setFileMode(0755);
-                    }
+                    });
                 }
-            });
-        }
 
+                Task createStartScripts = tasks.get(createStartScriptsTaskName);
+                CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
+                CopySpec binSpec = distSpec.addChild().into("bin");
+                binSpec.from(createStartScripts);
+                binSpec.setFileMode(0755);
+            }
+        }
+    }
+
+    @Mutate
+    void createDistributionZipTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
+        final @Path("distributions") PlayDistributionContainer distributions) {
         for (final PlayDistribution distribution : distributions) {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");
@@ -151,29 +156,16 @@ public class PlayDistributionPlugin {
                 }
             });
 
+            final Task stageTask = tasks.get(stageTaskName);
             String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
                     zip.setDescription("Bundles the play binary as a distribution.");
                     zip.setGroup(DISTRIBUTION_GROUP);
-                    zip.setBaseName(baseName);
+                    zip.setArchiveName(String.format("%s.zip", baseName));
                     zip.setDestinationDir(new File(buildDir, "distributions"));
-
-                    ConventionMapping mapping = zip.getConventionMapping();
-                    mapping.map("version", new Callable<String>() {
-                        @Override
-                        public String call() throws Exception {
-                            return zip.getProject().getVersion() == Project.DEFAULT_VERSION ? null : zip.getProject().getVersion().toString();
-                        }
-                    });
-
-                    String baseDirName = zip.getArchiveName().substring(0, zip.getArchiveName().length() - zip.getExtension().length() - 1);
-                    CopySpecInternal baseSpec = zip.getRootSpec().addChild();
-                    baseSpec.into(baseDirName);
-                    baseSpec.from(new File(stageDir, baseName));
-
-                    zip.dependsOn(stageTaskName);
+                    zip.from(stageTask);
                 }
             });
         }

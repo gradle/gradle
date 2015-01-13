@@ -59,18 +59,6 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         zip("build/distributions/playBinary.zip").containsDescendants("playBinary/additionalFile.txt")
     }
 
-    def "adds project version to archive name and base directory" () {
-        buildFile << """
-            version = "1.0"
-        """
-
-        when:
-        succeeds "dist"
-
-        then:
-        zip("build/distributions/playBinary-1.0.zip").containsDescendants("playBinary-1.0/lib/dist-play-app.jar")
-    }
-
     def "can add an additional arbitrary distribution" () {
         buildFile << """
             model {

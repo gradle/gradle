@@ -16,12 +16,14 @@
 
 package org.gradle.play.distribution;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.play.PlayApplicationBinarySpec;
 
 /**
  * Represents a Play distribution package
  */
+@Incubating
 public interface PlayDistribution extends Distribution {
     PlayApplicationBinarySpec getBinary();
     void setBinary(PlayApplicationBinarySpec binary);

@@ -46,18 +46,16 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "builds empty distribution when no sources present" () {
         buildFile << """
-            configurations { playDeps }
-            dependencies { playDeps "com.typesafe.play:play_2.11:2.3.7" }
-
             model {
                 tasks.createPlayBinaryStartScripts {
                     doLast {
-                        assert classpath.files.containsAll(configurations.playDeps.files)
+                        configurations.playRun.files.each { assert classpath.files.contains(it) }
                     }
                 }
                 tasks.createPlayBinaryDist {
                     doLast {
-                        assert zipTree(archivePath).collect { it.name }.containsAll(configurations.playDeps.collect { it.name })
+                        def zipFileNames = zipTree(archivePath).collect { it.name }
+                        configurations.playRun.collect { it.name }.each { assert zipFileNames.contains(it) }
                     }
                 }
             }
@@ -99,13 +97,12 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         )
 
         and:
-        [ "playBinary/lib/dist-play-app.jar",
-          "playBinary/lib/dist-play-app-assets.jar",
-          "playBinary/bin/playBinary",
-          "playBinary/bin/playBinary.bat"
-        ].each { fileName ->
-            assert file("build/stage/${fileName}").exists()
-        }
+        file("build/stage/playBinary").assertContainsDescendants(
+                "lib/dist-play-app.jar",
+                "lib/dist-play-app-assets.jar",
+                "bin/playBinary",
+                "bin/playBinary.bat"
+        )
         if (OperatingSystem.current().linux || OperatingSystem.current().macOsX) {
             assert file("build/stage/playBinary/bin/playBinary").mode == 0755
         }
