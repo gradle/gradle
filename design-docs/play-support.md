@@ -261,6 +261,8 @@ Add a TwirlSourceSet and permit multiple instances in a Play application
 
 - handle non html templates
 - Ability for Twirl compiler to prefer Java types in generated sources (i.e. SBT enablePlugins(PlayJava))
+- Verify that default imports are configured: https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/TemplateImports.java
+- Allow Twirl to be used in a non-play project
 
 ### Story: Developer defines routes for Play application
 
