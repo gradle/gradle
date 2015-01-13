@@ -61,7 +61,7 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type) {
-        return of(path == null ? null : ModelPath.path(path), type);
+        return of(ModelPath.path(path), type);
     }
 
     public static <T> ModelReference<T> of(Class<T> type) {
@@ -74,10 +74,6 @@ public class ModelReference<T> {
 
     public static ModelReference<?> of(String path) {
         return of(ModelPath.path(path), ModelType.UNTYPED);
-    }
-
-    public static ModelReference<?> of(ModelPath path) {
-        return of(path, ModelType.UNTYPED);
     }
 
     public static ModelReference<Object> untyped(ModelPath path) {

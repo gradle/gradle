@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.action;
+package org.gradle.configuration.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
-import org.gradle.configuration.project.ProjectConfigureAction;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.model.internal.type.ModelType;
 
-public class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
+/**
+ * Realizes the project tasks by getting the closed task container from the model registry.
+ */
+public class TaskModelRealizingConfigurationAction implements Action<ProjectInternal> {
 
-    public void execute(final ProjectInternal projectInternal) {
-        TaskConfiguration.addWrapperPlaceholder(projectInternal);
+    public void execute(ProjectInternal projectInternal) {
+        projectInternal.getModelRegistry().get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
     }
 
 }

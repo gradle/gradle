@@ -18,8 +18,6 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.model.internal.core.ModelNode;
 
 public class DefaultProjectLocator implements ProjectLocator {
     private final String projectPath;
@@ -38,7 +36,6 @@ public class DefaultProjectLocator implements ProjectLocator {
         ProjectInternal referencedProject = delegate.getProject(path);
         // TODO This is a brain-dead way to ensure that the reference project's model is ready to access
         referencedProject.evaluate();
-        referencedProject.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
         return referencedProject;
     }
 }

@@ -63,7 +63,6 @@ import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerMode
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -212,7 +211,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                     }
                 }
         ));
-        modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {

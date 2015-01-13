@@ -54,7 +54,7 @@ public class TaskSelector {
         if (!taskPath.isQualified()) {
             ProjectInternal targetProject = taskPath.getProject();
             configurer.configure(targetProject);
-            TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), false);
+            TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), true);
             if (tasks != null) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring sub-projects at this point
                 return new TaskPathSpec(targetProject, taskPath.getTaskName());

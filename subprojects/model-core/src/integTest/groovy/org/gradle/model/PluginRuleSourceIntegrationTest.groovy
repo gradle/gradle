@@ -222,7 +222,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin\$Rules#string()")
+        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin\$Rules#string()")
         failure.assertHasCause("oh no!")
     }
 
@@ -255,7 +255,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("Exception thrown while executing model rule: model.string")
+        failure.assertHasCause("Exception thrown while executing model rule: model.string")
         failure.assertHasCause("oh no!")
     }
 

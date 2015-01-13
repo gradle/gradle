@@ -69,14 +69,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         return stringBuilder.toString();
     }
 
-    public DefaultModelRegistry create(ModelCreator creator) {
+    public void create(ModelCreator creator) {
         ModelPath path = creator.getPath();
         if (path.getDepth() != 1) {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
         doCreate(modelGraph.getRoot(), creator);
-        return this;
     }
 
     private ModelNode doCreate(ModelNode parent, ModelCreator creator) {
@@ -124,9 +123,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> DefaultModelRegistry apply(ModelActionRole role, ModelAction<T> action) {
+    public <T> void apply(ModelActionRole role, ModelAction<T> action) {
         bind(action.getSubject(), role, action);
-        return this;
     }
 
     private void bind(final ModelCreator creator) {
@@ -203,37 +201,22 @@ public class DefaultModelRegistry implements ModelRegistry {
         return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
     }
 
-    public <T> T realize(ModelPath path, ModelType<T> type) {
+    public <T> T get(ModelPath path, ModelType<T> type) {
         return toType(type, require(path), "get(ModelPath, ModelType)");
     }
 
     @Override
-    public ModelNode atState(ModelPath path, ModelNode.State state) {
-        return atStateOrMaybeLater(path, state, false);
-    }
-
-    @Override
-    public ModelNode atStateOrLater(ModelPath path, ModelNode.State state) {
-        return atStateOrMaybeLater(path, state, true);
-    }
-
-    private ModelNode atStateOrMaybeLater(ModelPath path, ModelNode.State state, boolean laterOk) {
+    public ModelNode get(ModelPath path, ModelNode.State state) {
         ModelNode node = modelGraph.find(path);
         if (node == null) {
             return null;
         }
-        transition(node, state, laterOk);
+        transition(node, state);
         return node;
     }
 
     public <T> T find(ModelPath path, ModelType<T> type) {
         return toType(type, get(path), "find(ModelPath, ModelType)");
-    }
-
-    @Override
-    public MutableModelNode node(ModelPath path) {
-        ModelNode node = modelGraph.find(path);
-        return node == null ? null : new NodeWrapper(node);
     }
 
     private <T> T toType(ModelType<T> type, ModelNode node, String msg) {
@@ -244,8 +227,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    @Override
-    public MutableModelNode realizeNode(ModelPath path) {
+    public MutableModelNode node(ModelPath path) {
         return new NodeWrapper(require(path));
     }
 
@@ -345,12 +327,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    @Override
-    public ModelNode.State state(ModelPath path) {
-        ModelNode modelNode = modelGraph.find(path);
-        return modelNode == null ? null : modelNode.getState();
-    }
-
     private ModelNode get(ModelPath path) {
         ModelNode node = modelGraph.find(path);
         if (node == null) {
@@ -361,21 +337,24 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void close(ModelNode node) {
-        transition(node, GraphClosed, false);
+        transition(node, GraphClosed);
     }
 
-    private void transition(ModelNode node, ModelNode.State desired, boolean laterOk) {
+    private void ensureAt(ModelNode node, ModelNode.State desired) {
+        if (desired.ordinal() <= node.getState().ordinal()) {
+            return;
+        }
+        transition(node, desired);
+    }
+
+    private void transition(ModelNode node, ModelNode.State desired) {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 
-        LOGGER.debug("Transitioning model element '{}' from state {} to {}", path, state.name(), desired.name());
+        LOGGER.debug("Transitioning model element {} from state {} to {}", path, state.name(), desired.name());
 
         if (desired.ordinal() < state.ordinal()) {
-            if (laterOk) {
-                return;
-            } else {
-                throw new IllegalStateException("Cannot lifecycle model node '" + path + "' to state " + desired.name() + " as it is already at " + state.name());
-            }
+            throw new IllegalStateException("Cannot lifecycle model node " + path + " to state " + desired.name() + " as it is already at " + state.name());
         }
 
         if (state == desired) {
@@ -456,7 +435,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelView<? extends T> view = adapter.asReadOnly(targetType, new NodeWrapper(node), descriptor);
         if (view == null) {
             // TODO better error reporting here
-            throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
+            throw new IllegalArgumentException("Model node is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
         } else {
             return view;
         }
@@ -675,7 +654,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(node, DefaultsApplied, true);
+            ensureAt(node, DefaultsApplied);
         }
 
         @Override

@@ -165,13 +165,13 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
                             public void execute(final I item) {
                                 String name = namer.determineName(item);
 
-                                if (!modelNode.hasLink(name)) {
-                                    // For now, ignore elements added after the container has been closed
-                                    if (!modelNode.isMutable()) {
-                                        LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", modelPath, name);
-                                        return;
-                                    }
+                                // For now, ignore elements added after the container has been closed
+                                if (!modelNode.isMutable()) {
+                                    LOGGER.debug("Ignoring element '{}' added to '{}' after it is closed.", modelPath, name);
+                                    return;
+                                }
 
+                                if (!modelNode.hasLink(name)) {
                                     ModelType<I> itemType = ModelType.typeOf(item);
                                     ModelReference<I> itemReference = ModelReference.of(modelNode.getPath().child(name), itemType);
                                     modelNode.addLink(

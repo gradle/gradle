@@ -30,9 +30,6 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
@@ -63,8 +60,6 @@ public class TestUtility {
             }
         }).build();
 
-        final ModelRegistry modelRegistry = context.mock(ModelRegistry.class, name + " model registry");
-
         context.checking(new Expectations() {{
             allowing(project).getName();
             will(returnValue(name));
@@ -76,9 +71,6 @@ public class TestUtility {
             will(returnValue(depth));
             allowing(project).getServices();
             will(returnValue(services));
-            allowing(project).getModelRegistry();
-            will(returnValue(modelRegistry));
-            allowing(modelRegistry).atState(ModelPath.path("tasks"), ModelNode.State.GraphClosed);
         }});
 
         attachSubProjects(context, project, subProjectArray);

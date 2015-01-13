@@ -50,7 +50,7 @@ class TransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
     def "can registers extracted references"() {
@@ -68,7 +68,7 @@ class TransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == ["123"]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == ["123"]
     }
 
 }

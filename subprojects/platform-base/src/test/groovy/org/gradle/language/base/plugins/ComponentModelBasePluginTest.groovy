@@ -51,7 +51,7 @@ class ComponentModelBasePluginTest extends Specification {
         when:
         project.pluginManager.apply(ComponentModelBasePlugin)
         then:
-        project.modelRegistry.realizeNode(ModelPath.path("components")) != null
+        project.modelRegistry.get(ModelPath.path("components")) != null
     }
 
     def "registers language sourceset factory and created default source set for component"() {
@@ -78,7 +78,6 @@ class ComponentModelBasePluginTest extends Specification {
         }
         project.componentSpecs.add(componentSpecInternal)
         project.evaluate()
-        project.modelRegistry.realizeNode(ModelPath.path("tasks"))
 
         then:
         1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)

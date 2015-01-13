@@ -23,12 +23,9 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
-import org.gradle.util.TestUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -55,12 +52,11 @@ public class TaskReportTaskTest {
     private final ProjectInternal project = context.mock(AbstractProject.class);
     private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class);
     private final TaskContainerInternal implicitTasks = context.mock(TaskContainerInternal.class);
-    private final ModelRegistry modelRegistry = context.mock(ModelRegistry.class);
     private TaskReportTask task;
 
     @Before
     public void setup() {
-        context.checking(new Expectations() {{
+        context.checking(new Expectations(){{
             allowing(project).absoluteProjectPath("list");
             will(returnValue(":path"));
             allowing(project).getTasks();
@@ -71,9 +67,6 @@ public class TaskReportTaskTest {
             will(returnValue(toSet(project)));
             allowing(project).getSubprojects();
             will(returnValue(toSet()));
-            allowing(project).getModelRegistry();
-            will(returnValue(modelRegistry));
-            allowing(modelRegistry).atState(ModelPath.path("tasks"), ModelNode.State.GraphClosed);
         }});
 
         task = TestUtil.createTask(TaskReportTask.class);
@@ -200,7 +193,7 @@ public class TaskReportTaskTest {
     private Task task(String name) {
         return task(name, null);
     }
-
+    
     private Task task(final String name, final String taskGroup, final Task... dependencies) {
         final Task task = context.mock(Task.class);
         context.checking(new Expectations() {{
@@ -225,7 +218,7 @@ public class TaskReportTaskTest {
                     description.appendText("compare to");
                 }
             });
-
+            
             TaskDependency dependency = context.mock(TaskDependency.class);
             allowing(task).getTaskDependencies();
             will(returnValue(dependency));

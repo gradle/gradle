@@ -47,10 +47,11 @@ buildscript {
 }
 
 allprojects {
-    tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
-        it.dependsOn configurations.${config}
-        it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
-        it.configuration = configurations.$config
+    tasks.addPlaceholderAction("checkDeps") {
+        tasks.create(name: "checkDeps", dependsOn: configurations.${config}, type: ${GenerateGraphTask.name}) {
+            outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
+            configuration = configurations.$config
+        }
     }
 }
 """

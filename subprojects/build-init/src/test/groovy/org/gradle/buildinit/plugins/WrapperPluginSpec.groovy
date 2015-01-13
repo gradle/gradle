@@ -19,7 +19,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.buildinit.tasks.internal.TaskConfiguration
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -32,6 +31,6 @@ class WrapperPluginSpec extends Specification {
 
         then:
         project.tasks.wrapper instanceof Wrapper
-        project.tasks.wrapper.group == TaskConfiguration.GROUP
+        project.tasks.wrapper.group == BuildInitPlugin.GROUP
     }
 }

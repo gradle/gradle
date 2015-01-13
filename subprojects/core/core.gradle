@@ -60,7 +60,6 @@ dependencies {
     testRuntime project(":diagnostics")
 
     testFixturesCompile project(":internalTesting")
-    testFixturesCompile project(":internalTesting")
     testFixturesCompile libraries.ivy
 
     testFixturesRuntime project(':dependencyManagement')
@@ -73,7 +72,6 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore")
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

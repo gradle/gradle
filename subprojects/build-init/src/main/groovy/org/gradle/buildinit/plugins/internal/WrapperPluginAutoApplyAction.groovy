@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.action;
+package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
-import org.gradle.configuration.project.ProjectConfigureAction;
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.configuration.project.ProjectConfigureAction
 
-public class BuildInitAutoApplyAction implements ProjectConfigureAction {
-
-    public void execute(final ProjectInternal projectInternal) {
-        TaskConfiguration.addInitPlaceholder(projectInternal);
+class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
+    void execute(ProjectInternal projectInternal) {
+        if (projectInternal.getParent() == null) {
+            projectInternal.tasks.addPlaceholderAction("wrapper", new Runnable() {
+                void run() {
+                    projectInternal.pluginManager.apply("wrapper")
+                }
+            })
+        }
     }
-
 }

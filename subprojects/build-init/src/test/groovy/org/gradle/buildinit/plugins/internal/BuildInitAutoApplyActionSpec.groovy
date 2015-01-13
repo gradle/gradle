@@ -19,8 +19,6 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.buildinit.plugins.internal.action.BuildInitAutoApplyAction
-import org.gradle.buildinit.tasks.InitBuild
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -46,10 +44,10 @@ class BuildInitAutoApplyActionSpec extends Specification {
     def "applies placeholder action for init on taskcontainer"() {
         when:
         new BuildInitAutoApplyAction().execute(projectInternal)
-
         then:
-        1 * taskContainerInternal.addPlaceholderAction("init", InitBuild.class, _)
+        1 * taskContainerInternal.addPlaceholderAction("init", _) >> { args -> args[1].run() }
         1 * projectInternal.getParent() >> null
+        1 * projectInternal.apply([plugin: "build-init"])
     }
 
     def "is not applied on non rootprojects"() {
@@ -57,9 +55,9 @@ class BuildInitAutoApplyActionSpec extends Specification {
         isNotRootProject()
         when:
         new BuildInitAutoApplyAction().execute(projectInternal)
-
         then:
-        0 * taskContainerInternal.addPlaceholderAction(*_)
+        0 * taskContainerInternal.addPlaceholderAction("init", _)
+        0 * projectInternal.apply([plugin: "build-init"])
     }
 
     def isNotRootProject() {

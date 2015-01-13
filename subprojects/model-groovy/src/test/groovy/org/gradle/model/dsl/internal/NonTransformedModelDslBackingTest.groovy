@@ -51,7 +51,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
     @Managed
@@ -89,7 +89,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
+        modelRegistry.get(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
     }
 
     def "does not add rules when not configuring"() {
@@ -105,7 +105,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.realize(ModelPath.path("foo"), ModelType.UNTYPED)
+        modelRegistry.get(ModelPath.path("foo"), ModelType.UNTYPED)
 
         then:
         def e = thrown(ModelRuleExecutionException)
@@ -121,7 +121,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.realize(ModelPath.path("bah"), ModelType.UNTYPED)
+        modelRegistry.get(ModelPath.path("bah"), ModelType.UNTYPED)
 
         then:
         e = thrown(ModelRuleExecutionException)

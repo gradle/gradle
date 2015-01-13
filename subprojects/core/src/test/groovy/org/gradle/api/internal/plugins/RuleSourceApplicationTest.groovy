@@ -40,7 +40,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: 'custom-rule-source'
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "can apply a rule source by type"() {
@@ -49,7 +49,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply type: CustomRuleSource
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "cannot apply a type that is neither a plugin nor a rule source"() {
@@ -80,7 +80,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: CustomRuleSource
 
         then:
-        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "can use id to check for applied plugins and rule sources"() {

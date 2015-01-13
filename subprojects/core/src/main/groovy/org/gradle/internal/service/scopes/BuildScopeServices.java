@@ -56,6 +56,7 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
@@ -166,7 +167,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(withActionsEvaluator, new ModelRegistryValidatingConfigurationAction());
+        Action<? super ProjectInternal> projectFinalizer = Actions.composite(new ModelRegistryValidatingConfigurationAction(), new TaskModelRealizingConfigurationAction());
+        return new LifecycleProjectEvaluator(withActionsEvaluator, projectFinalizer);
     }
 
     protected ITaskFactory createITaskFactory() {

@@ -25,7 +25,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,11 +76,6 @@ abstract public class ModelCreators {
 
         public Builder inputs(List<? extends ModelReference<?>> inputs) {
             this.inputs = inputs;
-            return this;
-        }
-
-        public Builder inputs(ModelReference<?>... inputs) {
-            this.inputs = Arrays.asList(inputs);
             return this;
         }
 

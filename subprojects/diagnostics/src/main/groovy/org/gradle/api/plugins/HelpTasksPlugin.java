@@ -19,9 +19,9 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
@@ -45,73 +45,101 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         final TaskContainerInternal tasks = project.getTasks();
 
-        tasks.addPlaceholderAction(ProjectInternal.HELP_TASK, Help.class, new Action<Help>() {
-            public void execute(Help task) {
-                task.setDescription("Displays a help message.");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new Action<ProjectReportTask>() {
-            public void execute(ProjectReportTask task) {
-                task.setDescription("Displays the sub-projects of " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(ProjectInternal.TASKS_TASK, TaskReportTask.class, new Action<TaskReportTask>() {
-            public void execute(TaskReportTask task) {
-                String description;
-                if (project.getChildProjects().isEmpty()) {
-                    description = "Displays the tasks runnable from " + project + ".";
-                } else {
-                    description = "Displays the tasks runnable from " + project + " (some of the displayed tasks may belong to subprojects).";
-                }
-                task.setDescription(description);
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new Action<PropertyReportTask>() {
-            public void execute(PropertyReportTask task) {
-                task.setDescription("Displays the properties of " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new Action<DependencyInsightReportTask>() {
-            public void execute(final DependencyInsightReportTask task) {
-                task.setDescription("Displays the insight into a specific dependency in " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-                new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
-                    public Object call() {
-                        BuildableJavaComponent javaProject = project.getServices().get(ComponentRegistry.class).getMainComponent();
-                        return javaProject == null ? null : javaProject.getCompileDependencies();
+        tasks.addPlaceholderAction(ProjectInternal.HELP_TASK, new Runnable() {
+            public void run() {
+                tasks.create(ProjectInternal.HELP_TASK, Help.class, new Action<Help>() {
+                    public void execute(Help task) {
+                        task.setDescription("Displays a help message.");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
                     }
                 });
             }
         });
 
-
-        tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new Action<DependencyReportTask>() {
-            public void execute(DependencyReportTask task) {
-                task.setDescription("Displays all dependencies declared in " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
+        tasks.addPlaceholderAction(ProjectInternal.PROJECTS_TASK, new Runnable() {
+            public void run() {
+                tasks.create(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new Action<ProjectReportTask>() {
+                    public void execute(ProjectReportTask task) {
+                        task.setDescription("Displays the sub-projects of " + project + ".");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                    }
+                });
             }
         });
 
-        tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new Action<ComponentReport>() {
-            public void execute(ComponentReport task) {
-                task.setDescription("Displays the components produced by " + project + ". [incubating]");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
+        tasks.addPlaceholderAction(ProjectInternal.TASKS_TASK, new Runnable() {
+            public void run() {
+                tasks.create(ProjectInternal.TASKS_TASK, TaskReportTask.class, new Action<TaskReportTask>() {
+                    public void execute(TaskReportTask task) {
+                        String description;
+                        if (project.getChildProjects().isEmpty()) {
+                            description = "Displays the tasks runnable from " + project + ".";
+                        } else {
+                            description = "Displays the tasks runnable from " + project + " (some of the displayed tasks may belong to subprojects).";
+                        }
+                        task.setDescription(description);
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                    }
+                });
             }
         });
+
+        tasks.addPlaceholderAction(PROPERTIES_TASK, new Runnable() {
+            public void run() {
+                tasks.create(PROPERTIES_TASK, PropertyReportTask.class, new Action<PropertyReportTask>() {
+                    public void execute(PropertyReportTask task) {
+                        task.setDescription("Displays the properties of " + project + ".");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                    }
+                });
+            }
+        });
+
+        tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, new Runnable() {
+            public void run() {
+                tasks.create(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new Action<DependencyInsightReportTask>() {
+                    public void execute(final DependencyInsightReportTask task) {
+                        task.setDescription("Displays the insight into a specific dependency in " + project + ".");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                        new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
+                            public Object call() {
+                                BuildableJavaComponent javaProject = project.getServices().get(ComponentRegistry.class).getMainComponent();
+                                return javaProject == null ? null : javaProject.getCompileDependencies();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        tasks.addPlaceholderAction(DEPENDENCIES_TASK, new Runnable() {
+            public void run() {
+                tasks.create(DEPENDENCIES_TASK, DependencyReportTask.class, new Action<DependencyReportTask>() {
+                    public void execute(DependencyReportTask task) {
+                        task.setDescription("Displays all dependencies declared in " + project + ".");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                    }
+                });
+            }
+        });
+
+        tasks.addPlaceholderAction(COMPONENTS_TASK, new Runnable() {
+            public void run() {
+                tasks.create(COMPONENTS_TASK, ComponentReport.class, new Action<ComponentReport>() {
+                    public void execute(ComponentReport task) {
+                        task.setDescription("Displays the components produced by " + project + ". [incubating]");
+                        task.setGroup(HELP_GROUP);
+                        task.setImpliesSubProjects(true);
+                    }
+                });
+            }
+        });
+
     }
 }

@@ -23,7 +23,6 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -176,6 +175,5 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         closure.delegate = project
         closure()
         project.evaluate()
-        project.modelRegistry.realizeNode(ModelPath.path("tasks"))
     }
 }
