@@ -49,13 +49,13 @@ abstract class NativeToolChainPluginTest extends Specification {
     }
 
     void register() {
-        modelRegistryHelper.configure(NativeToolChainRegistry) {
+        modelRegistryHelper.mutate(NativeToolChainRegistry) {
             it.create(getToolchainName(), getToolchainClass())
         }
     }
 
     void addDefaultToolchain() {
-        modelRegistryHelper.configure(NativeToolChainRegistryInternal) {
+        modelRegistryHelper.mutate(NativeToolChainRegistryInternal) {
             it.addDefaultToolChains()
         }
     }

@@ -164,6 +164,15 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 1. Change task selection (i.e. resolving command line tasks into tasks to add to TaskGraphExecuter - see TaskSelector) to use modelRegistry.get(“tasks”, SelfClosed).linkNames
 1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
 
+### Open Issues
+
+1. Missing coverage of UI with task based rules
+1. Performance regression with unqualified excludes and CoD
+1. Implementation of placeholder actions needs cleanup
+1. TaskConfigurer in build setup module (what's the preferred pattern here?)
+1. ModelRegistry interface method explosion
+1. Test coverage beyond making existing coverage work
+
 ### Test coverage
 
 1. Simple task defined via `tasks.named()` is not realised if not requested on command line

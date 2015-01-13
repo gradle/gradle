@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.model.internal.core.ModelNode;
 
 import java.util.Collection;
 
@@ -27,6 +28,7 @@ public class DefaultProjectTaskLister implements ProjectTaskLister {
         ProjectInternal projectInternal = (ProjectInternal) project;
         TaskContainerInternal tasks = projectInternal.getTasks();
         tasks.actualize();
+        projectInternal.getModelRegistry().atState(TaskContainerInternal.MODEL_PATH, ModelNode.State.GraphClosed);
         return tasks;
     }
 }

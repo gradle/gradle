@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
+import static org.hamcrest.Matchers.startsWith
+
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -410,7 +412,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
+        failure.assertThatDescription(startsWith("Exception thrown while executing model rule: RulePlugin#people"))
         failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
@@ -447,7 +449,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople")
+        failure.assertThatDescription(startsWith("Exception thrown while executing model rule: RulePlugin#readPeople"))
         failure.assertHasCause("Attempt to read a write only view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#readPeople(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
@@ -479,7 +481,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet")
+        failure.assertThatDescription(startsWith("Exception thrown while executing model rule: RulePlugin#tryToMutateInputManagedSet"))
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#tryToMutateInputManagedSet(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
@@ -517,7 +519,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateManagedSetOutsideOfCreationRule")
+        failure.assertThatDescription(startsWith("Exception thrown while executing model rule: RulePlugin#tryToMutateManagedSetOutsideOfCreationRule"))
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
@@ -551,7 +553,7 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
+        failure.assertThatDescription(startsWith("Exception thrown while executing model rule: model.tasks"))
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'model.tasks @ build file")
     }
 }

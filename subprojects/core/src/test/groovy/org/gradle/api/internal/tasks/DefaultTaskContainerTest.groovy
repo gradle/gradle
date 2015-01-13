@@ -20,9 +20,15 @@ import org.gradle.api.*
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
@@ -31,10 +37,30 @@ import static java.util.Collections.singletonMap
 public class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
-    private project = Mock(ProjectInternal, name: "<project>")
+    def registry = new ModelRegistryHelper()
+    private project = Mock(ProjectInternal, name: "<project>") {
+        getModelRegistry() >> registry
+    }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, accessListener)
+
+    def setup() {
+        registry.create(
+                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                        ModelType.of(TaskContainerInternal.class),
+                        ModelType.of(TaskContainer.class),
+                        ModelType.of(Task.class),
+                        TaskContainerInternal.MODEL_PATH,
+                        container,
+                        new Task.Namer(),
+                        "Project.<init>.tasks()",
+                        { "Project.<init>.tasks." + it + "()" }
+                )
+        )
+
+        registry.atState(ModelPath.path("tasks"), ModelNode.State.Created)
+    }
 
     void "creates by Map"() {
         def options = singletonMap("option", "value")
@@ -150,7 +176,7 @@ public class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Cannot add Mock for type 'TaskInternal' named '[task2]' as a task with that name already exists."
+        ex.message == "Cannot add Mock for type 'TaskInternal' named '[task1]' as a task with that name already exists."
         container.getByName("task") == task
     }
 
@@ -284,6 +310,7 @@ public class DefaultTaskContainerTest extends Specification {
         task.dependsOn("b")
 
         addPlaceholderTask("c")
+        1 * taskFactory.create("c", DefaultTask) >> { this.task(it[0], it[1]) }
 
         assert container.size() == 1
 
@@ -297,6 +324,8 @@ public class DefaultTaskContainerTest extends Specification {
     void "can add task via placeholder action"() {
         when:
         addPlaceholderTask("task")
+        1 * taskFactory.create("task", DefaultTask) >> { task(it[0], it[1]) }
+
         then:
         container.getByName("task") != null
     }
@@ -304,34 +333,34 @@ public class DefaultTaskContainerTest extends Specification {
     void "placeholder is ignored when task already exists"() {
         given:
         Task task = addTask("task")
-        Runnable placeholderAction = addPlaceholderTask("task")
+        def placeholderAction = addPlaceholderTask("task")
 
         when:
         container.getByName("task") == task
 
         then:
-        0 * placeholderAction.run()
+        0 * placeholderAction.execute(_)
     }
 
     void "placeholder is ignored when task later defined"() {
         given:
-        Runnable placeholderAction = addPlaceholderTask("task")
+        def placeholderAction = addPlaceholderTask("task")
         Task task = addTask("task")
 
         when:
         container.getByName("task") == task
 
         then:
-        0 * placeholderAction.run()
+        0 * placeholderAction.execute(_)
     }
 
     void "getNames contains task and placeholder action names"() {
         when:
         addTask("task1")
-        Runnable placeholderAction = addPlaceholderTask("task2")
-        0 * placeholderAction.run()
+        def placeholderAction = addPlaceholderTask("task2")
+        0 * placeholderAction.execute(_)
         then:
-        container.names ==  ['task1', 'task2'] as SortedSet
+        container.names == ['task1', 'task2'] as SortedSet
     }
 
     void "maybeCreate creates new task"() {
@@ -395,16 +424,15 @@ public class DefaultTaskContainerTest extends Specification {
     }
 
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
-        Mock(type, name: "[task" + ++taskCount + "]") {
+        Mock(type, name: "[task" + taskCount++ + "]") {
             getName() >> name
         }
     }
 
-    private Runnable addPlaceholderTask(String placeholderName) {
-        Runnable runnable = Mock(Runnable)
-        runnable.run() >> { addTask(placeholderName) }
-        container.addPlaceholderAction(placeholderName, runnable)
-        runnable
+    private Action addPlaceholderTask(String placeholderName) {
+        def action = Mock(Action)
+        container.addPlaceholderAction(placeholderName, DefaultTask, action)
+        action
     }
 
     private Task addTask(String name) {

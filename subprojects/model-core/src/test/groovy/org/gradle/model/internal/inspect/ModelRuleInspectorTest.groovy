@@ -72,7 +72,7 @@ class ModelRuleInspectorTest extends Specification {
         registerRules(SimpleModelCreationRuleInferredName)
 
         then:
-        def element = registry.get(ModelPath.path("modelPath"), ModelType.of(ModelThing))
+        def element = registry.realize(ModelPath.path("modelPath"), ModelType.of(ModelThing))
         element.name == "foo"
     }
 
@@ -103,10 +103,10 @@ class ModelRuleInspectorTest extends Specification {
         registerRules(ParameterizedModel)
 
         then:
-        registry.node(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
-        registry.node(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
-        registry.node(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
-        registry.node(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
+        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
+        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
+        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
+        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule {
@@ -152,7 +152,7 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured"() {
         when:
         registerRules(ConcreteGenericModelType)
-        def node = registry.node(new ModelPath("strings"))
+        def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
@@ -170,7 +170,7 @@ class ModelRuleInspectorTest extends Specification {
     def "type variables of model type are captured when method is generic in interface"() {
         when:
         registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
-        def node = registry.node(new ModelPath("strings"))
+        def node = registry.realizeNode(new ModelPath("strings"))
         def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
@@ -276,7 +276,7 @@ class ModelRuleInspectorTest extends Specification {
 
 
         then:
-        def node = registry.node(path)
+        def node = registry.realizeNode(path)
         node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
     }
 
@@ -311,7 +311,7 @@ class ModelRuleInspectorTest extends Specification {
         registerRules(MutationAndFinalizeRules)
 
         then:
-        def node = registry.node(path)
+        def node = registry.realizeNode(path)
         node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
     }
 

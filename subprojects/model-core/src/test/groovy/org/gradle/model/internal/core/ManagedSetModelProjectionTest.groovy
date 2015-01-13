@@ -31,6 +31,7 @@ class ManagedSetModelProjectionTest extends Specification {
     @Managed
     interface NamedThing {
         String getName()
+
         void setName(String name);
     }
 
@@ -57,7 +58,7 @@ class ManagedSetModelProjectionTest extends Specification {
         mutator.execute(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
         registry.apply(ModelActionRole.Mutate, mutator)
-        registry.node(collectionPath)
+        registry.realizeNode(collectionPath)
     }
 
     def "can define and query elements"() {
@@ -68,7 +69,7 @@ class ManagedSetModelProjectionTest extends Specification {
         }
 
         then:
-        def set = registry.get(collectionPath, collectionType)
+        def set = registry.realize(collectionPath, collectionType)
         set*.name == ['1', '2']
         set.toArray().collect { it.name } == ['1', '2']
         set.toArray(new NamedThing[2]).collect { it.name } == ['1', '2']
@@ -82,7 +83,7 @@ class ManagedSetModelProjectionTest extends Specification {
         }
 
         then:
-        def set = registry.get(collectionPath, collectionType)
+        def set = registry.realize(collectionPath, collectionType)
         def e1 = set.find { it.name == '1' }
         def e2 = set.find { it.name == '1' }
         e1.is(e2)
@@ -96,8 +97,8 @@ class ManagedSetModelProjectionTest extends Specification {
         }
 
         then:
-        !registry.get(collectionPath, collectionType).isEmpty()
-        registry.get(collectionPath, collectionType).size() == 2
+        !registry.realize(collectionPath, collectionType).isEmpty()
+        registry.realize(collectionPath, collectionType).size() == 2
     }
 
     def "can query set membership"() {
@@ -108,8 +109,8 @@ class ManagedSetModelProjectionTest extends Specification {
         }
 
         then:
-        def set = registry.get(collectionPath, collectionType)
-        set.contains(set.find { it.name == '1'})
+        def set = registry.realize(collectionPath, collectionType)
+        set.contains(set.find { it.name == '1' })
         !set.contains("green")
         !set.contains({} as NamedThing)
 

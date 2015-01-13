@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
@@ -27,6 +28,7 @@ import spock.lang.Specification
 
 class NativeComponentPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
+    def registry = new ModelRegistryHelper(project)
 
     def setup() {
         project.pluginManager.apply(NativeComponentPlugin)
@@ -40,6 +42,7 @@ class NativeComponentPluginTest extends Specification {
             }
         }
         project.evaluate()
+        registry.tasks
 
         then:
         def testExecutable = project.binaries.testExecutable
@@ -67,6 +70,7 @@ class NativeComponentPluginTest extends Specification {
             }
         }
         project.evaluate()
+        registry.tasks
 
         then:
         def sharedLibraryBinary = project.binaries.testSharedLibrary

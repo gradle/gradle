@@ -456,12 +456,12 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""tasks defined
-bar created
-bar initialized
-bar configured
 foo created
 foo initialized
 foo configured
+bar created
+bar initialized
+bar configured
 """))
     }
 
@@ -511,7 +511,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
+        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
         failure.assertHasCause("Cannot create 'tasks.a' using creation rule 'MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' as the rule 'MyPlugin#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create this model element.")
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.*
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -167,5 +168,6 @@ class AssemblerPluginTest extends Specification {
         closure.delegate = project
         closure()
         project.evaluate()
+        project.modelRegistry.realizeNode(ModelPath.path("tasks"))
     }
 }

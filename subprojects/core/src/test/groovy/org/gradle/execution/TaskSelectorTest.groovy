@@ -83,7 +83,7 @@ class TaskSelectorTest extends Specification {
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> selectionResult
+        1 * resolver.selectWithName("a", projectB, false) >> selectionResult
         0 * _
 
         and:
@@ -104,7 +104,7 @@ class TaskSelectorTest extends Specification {
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> null
+        1 * resolver.selectWithName("a", projectB, false) >> null
         1 * projectConfigurer.configureHierarchy(projectB)
         1 * resolver.selectWithName("a", projectB, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
@@ -125,7 +125,7 @@ class TaskSelectorTest extends Specification {
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> null
+        1 * resolver.selectWithName("a", projectB, false) >> null
         1 * projectConfigurer.configureHierarchy(projectB)
         1 * resolver.selectWithName("a", projectB, true) >> null
         1 * resolver.selectAll(projectB, true) >> [a1: selectionResult]

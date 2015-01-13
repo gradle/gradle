@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
+package org.gradle.buildinit.plugins;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 
-package org.gradle.buildinit.plugins
+/**
+ * The build init plugin.
+ */
+@Incubating
+public class BuildInitPlugin implements Plugin<Project> {
 
-import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.buildinit.tasks.internal.TaskConfiguration
-import org.gradle.util.TestUtil
-import spock.lang.Specification
-
-class WrapperPluginSpec extends Specification {
-    def project = TestUtil.createRootProject()
-
-    def "adds 'wrapper' task"() {
-        when:
-        project.pluginManager.apply WrapperPlugin
-
-        then:
-        project.tasks.wrapper instanceof Wrapper
-        project.tasks.wrapper.group == TaskConfiguration.GROUP
+    public void apply(final Project project) {
+        TaskConfiguration.createInitTask(project);
     }
+
 }

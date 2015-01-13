@@ -38,7 +38,7 @@ class GoogleTestTest extends Specification {
         project.evaluate()
 
         then:
-        def binaries = project.modelRegistry.get(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer)).getByName("mainTest").binaries
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer)).getByName("mainTest").binaries
         binaries.collect({ it instanceof GoogleTestTestSuiteBinarySpec }) == [true] * binaries.size()
     }
 }

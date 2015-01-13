@@ -20,17 +20,20 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
+    @Rule
+    ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    //parallel mode hides incubating message
     def "presents incubating message"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
@@ -43,7 +46,8 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         output.count("Configuration on demand is an incubating feature") == 1
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    //parallel mode hides incubating message
     def "presents incubating message with parallel mode"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
@@ -425,6 +429,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":b", ":a")
     }
 
+    @Ignore("Support for detecting tasks added without configuring projects temporarily dropped while integrating model registry into task selection - LD")
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
