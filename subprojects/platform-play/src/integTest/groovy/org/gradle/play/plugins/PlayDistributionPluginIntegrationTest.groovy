@@ -30,8 +30,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
-                id 'play-application'
-                id 'play-distribution'
+                id 'play'
             }
 
             repositories {

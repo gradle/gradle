@@ -25,7 +25,6 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'play'
-                id 'play-distribution'
             }
 
             repositories {
