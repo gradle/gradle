@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
@@ -28,9 +28,10 @@ import spock.lang.Specification
 
 class RuleSourceApplicationTest extends Specification {
 
-    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    private Project buildProject() {
+    private ProjectInternal buildProject() {
         ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
     }
 
@@ -40,7 +41,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: 'custom-rule-source'
 
         then:
-        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "can apply a rule source by type"() {
@@ -49,7 +50,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply type: CustomRuleSource
 
         then:
-        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "cannot apply a type that is neither a plugin nor a rule source"() {
@@ -80,7 +81,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply plugin: CustomRuleSource
 
         then:
-        project.modelRegistry.get(ModelPath.path("foo"), ModelType.of(String)) == "bar"
+        project.modelRegistry.realize(ModelPath.path("foo"), ModelType.of(String)) == "bar"
     }
 
     def "can use id to check for applied plugins and rule sources"() {

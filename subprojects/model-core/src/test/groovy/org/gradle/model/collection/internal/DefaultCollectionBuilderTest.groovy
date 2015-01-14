@@ -73,7 +73,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutator.execute(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
         registry.apply(ModelActionRole.Mutate, mutator)
-        registry.node(containerPath)
+        registry.realizeNode(containerPath)
     }
 
     def "can define an item with name"() {
@@ -82,7 +82,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
         then:
         container.getByName("foo") != null
-        registry.get(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
+        registry.realize(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
     }
 
     @Ignore
@@ -97,7 +97,7 @@ class DefaultCollectionBuilderTest extends Specification {
         container.isEmpty()
 
         when:
-        registry.node(containerPath.child("bar"))
+        registry.realizeNode(containerPath.child("bar"))
 
         then:
         container.getByName("bar")
@@ -106,7 +106,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can define item with custom type"() {
         when:
         mutate { create("foo", SpecialNamedThing) }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo") instanceof SpecialNamedThing
@@ -118,8 +118,8 @@ class DefaultCollectionBuilderTest extends Specification {
             withType(SpecialNamedThing).create("foo")
             withType(NamedThing).create("bar")
         }
-        registry.node(containerPath.child("foo"))
-        registry.node(containerPath.child("bar"))
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
 
         then:
         container.getByName("foo") instanceof SpecialNamedThing
@@ -131,7 +131,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutate {
             withType(String).create("foo")
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         ModelRuleExecutionException e = thrown()
@@ -146,7 +146,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "changed"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
@@ -159,7 +159,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "changed"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
@@ -179,7 +179,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).size() == 2
+        registry.realize(containerPath, collectionBuilderType).size() == 2
     }
 
     def "can query filtered collection size"() {
@@ -199,7 +199,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).withType(SpecialNamedThing).size() == 1
+        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).size() == 1
     }
 
     def "can query collection membership"() {
@@ -215,7 +215,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).containsKey("a")
+        registry.realize(containerPath, collectionBuilderType).containsKey("a")
     }
 
     def "can query filtered collection membership"() {
@@ -241,7 +241,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).withType(SpecialNamedThing).containsKey("b")
+        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).containsKey("b")
     }
 
     def "can query collection keys"() {
@@ -256,7 +256,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
+        registry.realize(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
     }
 
     def "can query filtered collection keys"() {
@@ -277,7 +277,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         then:
-        registry.get(containerPath, collectionBuilderType).withType(Special).keySet() as List == ["b"]
+        registry.realize(containerPath, collectionBuilderType).withType(Special).keySet() as List == ["b"]
     }
 
     def "can register mutate rule for item with name"() {
@@ -291,7 +291,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "original"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
@@ -313,7 +313,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "types:"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "types: Object Special SpecialNamedThing"
@@ -326,7 +326,7 @@ class DefaultCollectionBuilderTest extends Specification {
             }
             create("foo")
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         ModelRuleExecutionException e = thrown()
@@ -360,8 +360,8 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "types:"
             }
         }
-        registry.node(containerPath.child("foo"))
-        registry.node(containerPath.child("bar"))
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
 
         then:
         container.getByName("foo").other == "types: Object NamedThing"
@@ -379,7 +379,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "original"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
@@ -407,7 +407,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "bar:"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "foo: Object"
@@ -427,7 +427,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "beforeEach{}"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "beforeEach{} create() all{}"
@@ -455,8 +455,8 @@ class DefaultCollectionBuilderTest extends Specification {
                 other += " create(bar)"
             }
         }
-        registry.node(containerPath.child("foo"))
-        registry.node(containerPath.child("bar"))
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
 
         then:
         container.getByName("foo").other == "Object create(foo)"
@@ -476,7 +476,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "create()"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "create() all{} afterEach{}"
@@ -494,7 +494,7 @@ class DefaultCollectionBuilderTest extends Specification {
             }
             bar(SpecialNamedThing)
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"

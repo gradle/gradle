@@ -27,7 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 public class TaskModelRealizingConfigurationAction implements Action<ProjectInternal> {
 
     public void execute(ProjectInternal projectInternal) {
-        projectInternal.getModelRegistry().get(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
+        projectInternal.getModelRegistry().realize(TaskContainerInternal.MODEL_PATH, ModelType.UNTYPED);
     }
 
 }
