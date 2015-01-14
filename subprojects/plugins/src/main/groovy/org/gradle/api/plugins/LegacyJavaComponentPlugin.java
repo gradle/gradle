@@ -37,7 +37,6 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -61,8 +60,8 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
+        target.getPluginManager().apply(LanguageBasePlugin.class);
 
-        target.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {

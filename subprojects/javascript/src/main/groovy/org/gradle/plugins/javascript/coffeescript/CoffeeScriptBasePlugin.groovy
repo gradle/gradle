@@ -28,13 +28,14 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.plugins.javascript.base.JavaScriptExtension
 import org.gradle.plugins.javascript.rhino.RhinoExtension
+import org.gradle.plugins.javascript.rhino.RhinoPlugin
 
 import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptExtension.*
 
 class CoffeeScriptBasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "rhino")
+        project.pluginManager.apply(RhinoPlugin)
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
         CoffeeScriptExtension csExtension = jsExtension.extensions.create(CoffeeScriptExtension.NAME, CoffeeScriptExtension)
