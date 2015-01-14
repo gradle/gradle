@@ -19,7 +19,6 @@ package org.gradle.model.internal.core.rule.describe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
@@ -32,16 +31,16 @@ import java.util.List;
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
 @ThreadSafe
-public class MethodModelRuleDescriptor<T, R> extends AbstractModelRuleDescriptor {
+public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
-    private final WeaklyTypeReferencingMethod<T, R> method;
+    private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
 
-    public MethodModelRuleDescriptor(ModelType<T> target, ModelType<R> returnType, Method method) {
-        this(new WeaklyTypeReferencingMethod<T, R>(target, returnType, method));
+    public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
+        this(WeaklyTypeReferencingMethod.of(target, returnType, method));
     }
 
-    public MethodModelRuleDescriptor(WeaklyTypeReferencingMethod<T, R> method) {
+    public MethodModelRuleDescriptor(WeaklyTypeReferencingMethod<?, ?> method) {
         this.method = method;
     }
 
@@ -73,7 +72,7 @@ public class MethodModelRuleDescriptor<T, R> extends AbstractModelRuleDescriptor
             return false;
         }
 
-        MethodModelRuleDescriptor<?, ?> that = Cast.uncheckedCast(o);
+        MethodModelRuleDescriptor that = (MethodModelRuleDescriptor) o;
 
         return method.equals(that.method);
     }
@@ -83,7 +82,7 @@ public class MethodModelRuleDescriptor<T, R> extends AbstractModelRuleDescriptor
         return method.hashCode();
     }
 
-    public static <T> ModelRuleDescriptor of(Class<T> clazz, final String methodName) {
+    public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
         List<Method> methodsOfName = CollectionUtils.filter(clazz.getDeclaredMethods(), new Spec<Method>() {
             public boolean isSatisfiedBy(Method element) {
                 return element.getName().equals(methodName);
@@ -102,11 +101,7 @@ public class MethodModelRuleDescriptor<T, R> extends AbstractModelRuleDescriptor
         return of(clazz, method);
     }
 
-    public static <T> ModelRuleDescriptor of(Class<T> clazz, Method method) {
-        return of(ModelType.of(clazz), ModelType.returnType(method), method);
-    }
-
-    private static <T, R> ModelRuleDescriptor of(ModelType<T> target, ModelType<R> returnType, Method method) {
-        return new MethodModelRuleDescriptor<T, R>(target, returnType, method);
+    public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
+        return new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
     }
 }

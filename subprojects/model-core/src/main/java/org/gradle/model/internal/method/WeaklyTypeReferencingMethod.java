@@ -56,6 +56,10 @@ public class WeaklyTypeReferencingMethod<T, R> {
         modifiers = method.getModifiers();
     }
 
+    public static <T, R> WeaklyTypeReferencingMethod<T, R> of(ModelType<T> target, ModelType<R> returnType, Method method) {
+        return new WeaklyTypeReferencingMethod<T, R>(target, returnType, method);
+    }
+
     public ModelType<T> getTarget() {
         return target;
     }

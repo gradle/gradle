@@ -93,7 +93,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return new MethodModelRuleDescriptor<T, R>(method);
+        return new MethodModelRuleDescriptor(method);
     }
 
     public ModelRuleInvoker<R> getRuleInvoker() {
