@@ -1,0 +1,13 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':SimpleAnnotationProcessor')
+}
+
+compileGroovy {
+    options.compilerArgs << '-proc:none'
+}

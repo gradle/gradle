@@ -1,0 +1,12 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+compileGroovy {
+    groovyOptions.with {
+        stubDir = file([buildDir, 'classes', 'stub'].join(File.separator))
+        keepStubs = true
+    }
+}
