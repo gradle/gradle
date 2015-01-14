@@ -318,6 +318,7 @@ These should be rationalised and ideally replaced with model rules.
 - Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
 - Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
 - Rule source plugins are instantiated once per JVM
+- Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
 
 ## DSL
 
