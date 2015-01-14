@@ -126,8 +126,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     private getLogbackResourcesDir() {
         def dir = tmpDir.createDir('logback-config')
-        dir.createFile('tooling-api-logback-test.xml')
-        dir.createFile('tooling-api-logback.xml')
+        dir.createFile('logback-test.xml')
+        dir.createFile('logback.xml')
         return dir;
     }
 }
