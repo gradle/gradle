@@ -16,13 +16,14 @@
 
 package org.gradle.play.plugins;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.specs.Spec;
@@ -40,8 +41,11 @@ import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -82,12 +86,10 @@ public class PlayDistributionPlugin {
     @Mutate
     void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations) {
         for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+            String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(binary.getName()));
             PlayDistribution distribution = distributions.create(binary.getName());
 
             CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
-            CopySpec libSpec = distSpec.addChild().into("lib");
-            libSpec.from(binary.getTasks().withType(Jar.class));
-            libSpec.from(configurations.getPlayRun().getFileCollection());
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");
@@ -98,37 +100,50 @@ public class PlayDistributionPlugin {
     }
 
     @Mutate
-    void createStartScriptTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
-                                 final @Path("distributions") PlayDistributionContainer distributions,
-                                 final PlayPluginConfigurations configurations) {
+    void createDistributionContentTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
+                                        final @Path("distributions") PlayDistributionContainer distributions,
+                                        final PlayPluginConfigurations configurations) {
         for (final PlayDistribution distribution : distributions) {
             final PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) distribution.getBinary();
             if (binary != null) {
-                String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(binary.getName()));
+                String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(distribution.getName()));
 
-                if (tasks.get(createStartScriptsTaskName) == null) {
-                    final File scriptsDir = new File(buildDir, String.format("scripts/%s", binary.getName()));
-                    tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
-                        @Override
-                        public void execute(CreateStartScripts createStartScripts) {
+                final File distJarDir = new File(buildDir, String.format("distributionJars/%s", distribution.getName()));
+                final String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(binary.getName()));
+                tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
+                    @Override
+                    public void execute(Jar jar) {
+                        jar.dependsOn(binary.getTasks().withType(Jar.class));
+                        jar.from(jar.getProject().zipTree(binary.getJarFile()));
+                        jar.setDestinationDir(distJarDir);
+                        jar.setArchiveName(binary.getJarFile().getName());
+
+                        Map<String, Object> classpath = Maps.newHashMap();
+                        classpath.put("Class-Path", new PlayManifestClasspath(configurations.getPlayRun(), binary.getAssetsJarFile()));
+                        jar.getManifest().attributes(classpath);
+                    }
+                });
+
+                final File scriptsDir = new File(buildDir, String.format("scripts/%s", distribution.getName()));
+                tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
+                    @Override
+                    public void execute(CreateStartScripts createStartScripts) {
                         createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                        createStartScripts.setClasspath(new UnionFileCollection(new SimpleFileCollection(binary.getJarFile(), binary.getAssetsJarFile()), configurations.getPlayRun().getFileCollection()));
+                        createStartScripts.setClasspath(new SimpleFileCollection(new File(distJarDir, binary.getJarFile().getName())));
                         createStartScripts.setMainClassName("play.core.server.NettyServer");
                         createStartScripts.setApplicationName(binary.getName());
                         createStartScripts.setOutputDir(scriptsDir);
-
-                        Spec<PlayDistribution> matchingBinary = new Spec<PlayDistribution>() {
-                            @Override
-                            public boolean isSatisfiedBy(PlayDistribution distribution) {
-                                return distribution.getBinary() == binary;
-                            }
-                        };
-                        }
-                    });
-                }
+                        createStartScripts.dependsOn(jarTaskName);
+                    }
+                });
 
                 Task createStartScripts = tasks.get(createStartScriptsTaskName);
+                Task distributionJar = tasks.get(jarTaskName);
                 CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
+                CopySpec libSpec = distSpec.addChild().into("lib");
+                libSpec.from(distributionJar);
+                libSpec.from(binary.getAssetsJarFile());
+                libSpec.from(configurations.getPlayRun().getFileCollection());
                 CopySpec binSpec = distSpec.addChild().into("bin");
                 binSpec.from(createStartScripts);
                 binSpec.setFileMode(0755);
@@ -191,5 +206,32 @@ public class PlayDistributionPlugin {
                 return DISTRIBUTION_GROUP.equals(copyTask.getGroup());
             }
         }));
+    }
+
+    /**
+     * Represents a classpath to be defined in a jar manifest
+     */
+    static class PlayManifestClasspath {
+        final PlayPluginConfigurations.PlayConfiguration playConfiguration;
+        final File assetsJarFile;
+
+        public PlayManifestClasspath(PlayPluginConfigurations.PlayConfiguration playConfiguration, File assetsJarFile) {
+            this.playConfiguration = playConfiguration;
+            this.assetsJarFile = assetsJarFile;
+        }
+
+        @Override
+        public String toString() {
+            Set<File> classpathFiles = playConfiguration.getFileCollection().getFiles();
+            classpathFiles.add(assetsJarFile);
+            Set<String> classpathFileNames = CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
+                @Override
+                public String transform(File file) {
+                    return file.getName();
+                }
+            });
+
+            return StringUtils.join(classpathFileNames, " ");
+        }
     }
 }

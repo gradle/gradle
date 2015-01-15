@@ -33,11 +33,13 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
                 ":routesCompilePlayBinary",
                 ":twirlCompilePlayBinary",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
 
         and:
+        verifyJars()
         verifyStagedFiles()
 
         when:
@@ -49,6 +51,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
                 ":routesCompilePlayBinary",
                 ":twirlCompilePlayBinary",
                 ":createPlayBinaryJar",
+                ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
                 ":stagePlayBinaryDist")
@@ -103,5 +106,16 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
                 "conf/application.conf",
                 "README"
         )
+    }
+
+    void verifyJars() {
+        jar("build/distributionJars/playBinary/${playApp.name}.jar").containsDescendants(
+                "Routes.class",
+                "views/html/index.class",
+                "views/html/main.class",
+                "controllers/Application.class",
+                "application.conf")
+
+        jar("build/distributionJars/playBinary/${playApp.name}.jar").isManifestPresentAndFirstEntry()
     }
 }

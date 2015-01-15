@@ -49,6 +49,20 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
     }
 
     @Override
+    void verifyJars() {
+        super.verifyJars()
+
+        jar("build/distributionJars/playBinary/${playApp.name}.jar").containsDescendants(
+                "views/html/awesome/index.class",
+                "special/strangename/Application.class",
+                "models/DataType.class",
+                "models/ScalaClass.class",
+                "controllers/scala/MixedJava.class",
+                "controllers/jva/PureJava.class"
+        )
+    }
+
+    @Override
     void verifyRunningApp() {
         super.verifyRunningApp()
 

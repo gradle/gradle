@@ -130,7 +130,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         notAvailable(url)
     }
 
-    @Requires([ TestPrecondition.NOT_UNKNOWN_OS, TestPrecondition.NOT_WINDOWS ])
+    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
     def "can run play distribution" () {
         println file(".")
 
