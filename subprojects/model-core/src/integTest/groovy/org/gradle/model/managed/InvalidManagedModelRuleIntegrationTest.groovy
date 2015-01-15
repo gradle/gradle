@@ -52,7 +52,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
         failure.assertThatCause(Matchers.containsLine(Matchers.matchesRegexp(/No signature of method: .*\.setName\(\) is applicable for argument types: \(java.lang.Integer\) values: \[123\]/)))
     }
 
@@ -91,7 +91,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#createPerson(Person)")
         failure.assertHasCause("argument type mismatch")
     }
 
@@ -139,7 +139,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.platform")
+        failure.assertHasDescription("Exception thrown while executing model rule: model.platform")
         failure.assertHasCause("Only managed model instances can be set as property 'operatingSystem' of class 'Platform'")
     }
 

@@ -15,7 +15,9 @@
  */
 
 package org.gradle.nativeplatform.plugins
+
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.internal.core.ModelPath
@@ -60,7 +62,7 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        project.evaluate()
+        realize()
 
         then:
         one(project.binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
@@ -76,8 +78,8 @@ class NativeComponentModelPluginTest extends Specification {
                 .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         and:
-        project.evaluate()
-
+        realize()
+        
         then:
         one(project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
         project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == 1
@@ -101,8 +103,8 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        project.evaluate()
-
+        realize()
+        
         then:
         NativeExecutableSpec executable = one(project.componentSpecs) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
@@ -135,8 +137,8 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        project.evaluate()
-
+        realize()
+        
         then:
         NativeLibrarySpec library = one(project.componentSpecs) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
@@ -176,8 +178,8 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        project.evaluate()
-
+        realize()
+        
         then:
         NativeExecutableBinarySpec executableBinary = project.binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
@@ -194,6 +196,11 @@ class NativeComponentModelPluginTest extends Specification {
             name == staticLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
+    }
+
+    private void realize() {
+        project.evaluate()
+        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
     }
 
     static <T> T one(Collection<T> collection) {

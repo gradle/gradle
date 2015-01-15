@@ -511,7 +511,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
+        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel)")
         failure.assertHasCause("Cannot create 'tasks.a' using creation rule 'MyPlugin#addTasks2(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' as the rule 'MyPlugin#addTasks1(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, MyModel) > create(a)' is already registered to create this model element.")
     }
 
@@ -535,7 +535,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
+        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>) > create(foo)")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>' given to rule 'MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)'")
     }
 
@@ -563,7 +563,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
+        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
         failure.assertHasCause("Could not create task of type 'Faulty'")
     }
 
@@ -587,7 +587,7 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
+        failure.assertHasDescription("Exception thrown while executing model rule: MyPlugin#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
         failure.assertHasCause("config failure")
     }
 

@@ -19,6 +19,8 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 
 import java.util.*;
@@ -28,8 +30,9 @@ public class TaskNameResolver {
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */
     @Nullable
-    public TaskSelectionResult selectWithName(String name, Project project, boolean includeSubProjects) {
+    public TaskSelectionResult selectWithName(String name, ProjectInternal project, boolean includeSubProjects) {
         if (!includeSubProjects) {
+            realizeTasks(project);
             TaskInternal task = (TaskInternal) project.getTasks().findByName(name);
             if (task != null) {
                 return new FixedTaskSelectionResult(Collections.<Task>singleton(task));
@@ -45,13 +48,18 @@ public class TaskNameResolver {
         return null;
     }
 
+    private static void realizeTasks(ProjectInternal project) {
+        project.getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
+    }
+
     /**
      * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
      */
-    public Map<String, TaskSelectionResult> selectAll(Project project, boolean includeSubProjects) {
+    public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
         Map<String, TaskSelectionResult> selected = new LinkedHashMap<String, TaskSelectionResult>();
 
         if (!includeSubProjects) {
+            realizeTasks(project);
             for (String taskName : project.getTasks().getNames()) {
                 selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
             }
@@ -66,10 +74,11 @@ public class TaskNameResolver {
         return selected;
     }
 
-    private void collectTaskNames(Project project, Set<String> result) {
+    private void collectTaskNames(ProjectInternal project, Set<String> result) {
+        realizeTasks(project);
         result.addAll(project.getTasks().getNames());
         for (Project subProject : project.getChildProjects().values()) {
-            collectTaskNames(subProject, result);
+            collectTaskNames((ProjectInternal) subProject, result);
         }
     }
 
@@ -100,10 +109,10 @@ public class TaskNameResolver {
     }
 
     private static class MultiProjectTaskSelectionResult implements TaskSelectionResult {
-        private final Project project;
+        private final ProjectInternal project;
         private final String taskName;
 
-        MultiProjectTaskSelectionResult(String taskName, Project project) {
+        MultiProjectTaskSelectionResult(String taskName, ProjectInternal project) {
             this.project = project;
             this.taskName = taskName;
         }
@@ -112,7 +121,8 @@ public class TaskNameResolver {
             collect(project, tasks);
         }
 
-        private void collect(Project project, Collection<? super Task> tasks) {
+        private void collect(ProjectInternal project, Collection<? super Task> tasks) {
+            realizeTasks(project);
             TaskInternal task = (TaskInternal) project.getTasks().findByName(taskName);
             if (task != null) {
                 tasks.add(task);
@@ -121,7 +131,7 @@ public class TaskNameResolver {
                 }
             }
             for (Project subProject : project.getChildProjects().values()) {
-                collect(subProject, tasks);
+                collect((ProjectInternal) subProject, tasks);
             }
         }
     }

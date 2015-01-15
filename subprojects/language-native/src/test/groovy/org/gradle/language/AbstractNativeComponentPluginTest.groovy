@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -175,5 +176,6 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         closure.delegate = project
         closure()
         project.evaluate()
+        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
     }
 }

@@ -168,7 +168,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'test'.")
+        failure.assertHasDescription("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries")
         failure.assertHasCause("Invalid Flavor: 'unknown'")
     }
 }
