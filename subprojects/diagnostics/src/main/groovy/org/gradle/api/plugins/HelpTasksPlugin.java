@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
+import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
 
@@ -41,6 +42,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String DEPENDENCIES_TASK = "dependencies";
     public static final String DEPENDENCY_INSIGHT_TASK = "dependencyInsight";
     public static final String COMPONENTS_TASK = "components";
+    public static final String MODEL_TASK = "model";
 
     public void apply(final ProjectInternal project) {
         final TaskContainerInternal tasks = project.getTasks();
@@ -109,6 +111,14 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
         tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new Action<ComponentReport>() {
             public void execute(ComponentReport task) {
                 task.setDescription("Displays the components produced by " + project + ". [incubating]");
+                task.setGroup(HELP_GROUP);
+                task.setImpliesSubProjects(true);
+            }
+        });
+
+        tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new Action<ModelReport>() {
+            public void execute(ModelReport task) {
+                task.setDescription("Displays the configuration model of " + project + ". [incubating]");
                 task.setGroup(HELP_GROUP);
                 task.setImpliesSubProjects(true);
             }

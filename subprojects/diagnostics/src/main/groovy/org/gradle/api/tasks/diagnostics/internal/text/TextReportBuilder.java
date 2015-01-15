@@ -27,7 +27,9 @@ public interface TextReportBuilder {
 
     void subheading(String heading);
 
-    <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural);
+    <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural);
+
+    <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer);
 
     void item(String title, String value);
 
