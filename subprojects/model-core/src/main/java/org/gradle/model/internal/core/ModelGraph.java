@@ -29,6 +29,7 @@ public class ModelGraph {
     private final Map<ModelPath, ModelNode> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelCreationListener> parentListeners = LinkedHashMultimap.create();
+    private final SetMultimap<ModelPath, ModelCreationListener> scopeListeners = LinkedHashMultimap.create();
     private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
     private boolean notifying;
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
@@ -64,6 +65,8 @@ public class ModelGraph {
         try {
             notifyListeners(node, pathListeners.get(node.getPath()));
             notifyListeners(node, parentListeners.get(node.getPath().getParent()));
+            notifyListeners(node, scopeListeners.get(node.getPath()));
+            notifyListeners(node, scopeListeners.get(node.getPath().getParent()));
             notifyListeners(node, listeners);
         } finally {
             notifying = false;
@@ -113,6 +116,21 @@ public class ModelGraph {
                     }
                 }
                 parentListeners.put(listener.matchParent(), listener);
+                return;
+            }
+            if (listener.matchScope() != null) {
+                ModelNode scope = flattened.get(listener.matchScope());
+                if (scope != null) {
+                    if (maybeNotify(scope, listener)) {
+                        return;
+                    }
+                    for (ModelNode node : scope.getLinks().values()) {
+                        if (maybeNotify(node, listener)) {
+                            return;
+                        }
+                    }
+                }
+                scopeListeners.put(listener.matchScope(), listener);
                 return;
             }
             for (ModelNode node : flattened.values()) {

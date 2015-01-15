@@ -62,7 +62,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 new ActionBackedModelAction<Object>(
                         ModelReference.untyped(modelPath),
                         new ClosureBackedAction<Object>(action),
-                        new SimpleModelRuleDescriptor("model." + modelPath)));
+                        new SimpleModelRuleDescriptor("model." + modelPath)), ModelPath.ROOT);
     }
 
     public void configure(Closure<?> action) {

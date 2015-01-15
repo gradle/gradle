@@ -25,6 +25,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.core.ModelRuleSourceApplicator;
+import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
@@ -94,7 +96,8 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
+                            PluginClassApplicator pluginClassApplicator) {
             @SuppressWarnings("unchecked")
             Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
             binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {

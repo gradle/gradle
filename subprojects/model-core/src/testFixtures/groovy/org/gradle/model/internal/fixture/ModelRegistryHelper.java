@@ -25,6 +25,11 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.inspect.DefaultModelRuleSourceApplicator;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
@@ -46,17 +51,25 @@ import static org.gradle.model.internal.core.ModelPath.nonNullValidatedPath;
 public class ModelRegistryHelper implements ModelRegistry {
 
     private final ModelRegistry modelRegistry;
+    private final PluginClassApplicator pluginClassApplicator;
+    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
 
     public ModelRegistryHelper() {
-        this(new DefaultModelRegistry());
+        this(
+                new DefaultModelRegistry(null, null),
+                new DefaultModelRuleSourceApplicator(new ModelRuleSourceDetector(), new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance()))),
+                new NoOpPluginClassApplicator()
+        );
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {
-        this(modelRegistryScope.getModelRegistry());
+        this(modelRegistryScope.getModelRegistry(), null, null);
     }
 
-    public ModelRegistryHelper(ModelRegistry modelRegistry) {
+    public ModelRegistryHelper(ModelRegistry modelRegistry, ModelRuleSourceApplicator modelRuleSourceApplicator, PluginClassApplicator pluginClassApplicator) {
         this.modelRegistry = modelRegistry;
+        this.pluginClassApplicator = pluginClassApplicator;
+        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
     }
 
     @Override
@@ -121,26 +134,34 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public <C> ModelRegistryHelper createInstance(String path, final C c) {
-        return create(instanceCreator(path, c));
+        return create(instanceCreator(path, c), ModelPath.ROOT);
     }
 
     public <C> ModelRegistryHelper create(String path, final C c, Action<? super C> action) {
-        return create(creator(path, c, action));
+        return create(creator(path, c, action), ModelPath.ROOT);
     }
 
     private <C> ModelCreator creator(String path, C c, Action<? super C> action) {
         return creator(path).unmanaged(c, action);
     }
 
-    public ModelRegistryHelper create(ModelCreator creator) {
-        modelRegistry.create(creator);
+    public ModelRegistryHelper create(ModelCreator creator, ModelPath scope) {
+        modelRegistry.create(creator, scope);
         return this;
     }
 
+    public ModelRegistryHelper create(ModelCreator creator) {
+        return create(creator, ModelPath.ROOT);
+    }
+
     @Override
-    public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
-        modelRegistry.apply(role, action);
+    public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+        modelRegistry.apply(role, action, scope);
         return this;
+    }
+
+    public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
+        return apply(role, action, ModelPath.ROOT);
     }
 
     public ModelRegistryHelper create(String path, Transformer<? extends ModelCreator, ? super ModelCreatorBuilder> def) {
@@ -148,7 +169,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public ModelRegistryHelper create(ModelPath path, Transformer<? extends ModelCreator, ? super ModelCreatorBuilder> def) {
-        modelRegistry.create(def.transform(creator(path)));
+        modelRegistry.create(def.transform(creator(path)), ModelPath.ROOT);
         return this;
     }
 
@@ -160,7 +181,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return create(path, new Transformer<ModelCreator, ModelCreatorBuilder>() {
             @Override
             public ModelCreator transform(ModelCreatorBuilder modelCreatorBuilder) {
-                return modelCreatorBuilder.collection(itemType, instantiator);
+                return modelCreatorBuilder.collection(itemType, instantiator, modelRuleSourceApplicator, ModelRegistryHelper.this, pluginClassApplicator);
             }
         });
     }
@@ -187,7 +208,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public ModelRegistryHelper apply(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
-        return apply(role, def.transform(ModelActionBuilder.of()));
+        return apply(role, def.transform(ModelActionBuilder.of()), ModelPath.ROOT);
     }
 
     public ModelRegistryHelper mutate(Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
@@ -335,7 +356,8 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
 
                 @Override
-                public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
+                public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
+                                    PluginClassApplicator pluginClassApplicator) {
                     action.execute(modelNode, object, inputs);
                 }
 
@@ -449,14 +471,18 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelCreator collection(Class<I> itemType, final NamedEntityInstantiator<I> instantiator) {
+        public <I> ModelCreator collection(Class<I> itemType, final NamedEntityInstantiator<I> instantiator, final ModelRuleSourceApplicator modelRuleSourceApplicator,
+                                           final ModelRegistrar modelRegistrar, final PluginClassApplicator pluginClassApplicator) {
             final ModelType<I> itemModelType = ModelType.of(itemType);
             final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
 
             return ModelCreators.of(ModelReference.of(path, collectionBuilderType), new BiAction<MutableModelNode, Inputs>() {
                 @Override
                 public void execute(MutableModelNode node, Inputs inputs) {
-                    node.setPrivateData(collectionBuilderType, new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node));
+                    node.setPrivateData(
+                            collectionBuilderType,
+                            new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator)
+                    );
                 }
             })
                     .withProjection(new UnmanagedModelProjection<CollectionBuilder<I>>(collectionBuilderType, true, true))
@@ -466,4 +492,9 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
 
+    private static class NoOpPluginClassApplicator implements PluginClassApplicator {
+        @Override
+        public void apply(Class<?> type) {
+        }
+    }
 }

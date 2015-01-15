@@ -40,8 +40,8 @@ public class ModelMutatorRegistration implements ModelRuleRegistration {
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar) {
-        registrar.apply(role, action);
+    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
+        registrar.apply(role, action, scope);
     }
 
     @Override

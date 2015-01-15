@@ -31,7 +31,7 @@ public class DependencyOnlyRuleRegistration implements ModelRuleRegistration {
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar) {
+    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
     }
 
     public List<Class<?>> getRuleDependencies() {

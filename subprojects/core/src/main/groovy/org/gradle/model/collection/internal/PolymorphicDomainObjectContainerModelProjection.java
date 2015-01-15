@@ -19,15 +19,14 @@ package org.gradle.model.collection.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
-import org.gradle.api.Named;
-import org.gradle.api.Namer;
-import org.gradle.api.Transformer;
+import org.gradle.api.*;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.internal.BiAction;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ModelRuleSourceApplicator;
+import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -54,10 +53,11 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return canBeViewedAsWritable(type);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs,
+                                                 ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
         Class<? extends M> itemType = itemType(targetType);
         if (itemType != null) {
-            return toView(ruleDescriptor, node, itemType, container);
+            return toView(ruleDescriptor, node, itemType, container, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
         }
         return null;
     }
@@ -80,19 +80,22 @@ public class PolymorphicDomainObjectContainerModelProjection<C extends Polymorph
         return null;
     }
 
-    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container) {
+    private <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container,
+                                                           ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(itemType, container.getEntityInstantiator(), container, sourceDescriptor, node);
         ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
         }.where(new ModelType.Parameter<S>() {
         }, itemType).build();
+        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(itemType, container.getEntityInstantiator(), container, sourceDescriptor, node, modelRuleSourceApplicator, modelRegistrar,
+                pluginClassApplicator);
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-        return asWritable(type, modelNode, ruleDescriptor, null);
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor, ModelRuleSourceApplicator modelRuleSourceApplicator,
+                                                 ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+        return asWritable(type, modelNode, ruleDescriptor, null, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
     }
 
     public Iterable<String> getWritableTypeDescriptions() {

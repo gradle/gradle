@@ -128,7 +128,7 @@ class MavenPublishPluginTest extends Specification {
     }
 
     void closeTaskContainer() {
-        new ModelRegistryHelper(project.modelRegistry).get("tasks", TaskContainer)
+        new ModelRegistryHelper(project.modelRegistry, null, null).get("tasks", TaskContainer)
     }
 
     List<PublishToMavenRepository> getPublishTasks() {

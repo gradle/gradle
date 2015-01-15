@@ -29,20 +29,22 @@ class UnboundRulesReporterTest extends Specification {
         reporter.reportOn([
                 UnboundRule.descriptor("r1")
                         .mutableInput(UnboundRuleInput.type(String).path("parent.p1"))
-                        .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p2"))
-                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p3").suggestions("parent.p31", "parent.p32"))
+                        .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
+                        .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p3"))
+                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p4").suggestions("parent.p31", "parent.p32"))
                         .immutableInput(UnboundRuleInput.type(Number))
-                        .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p5")).build()
+                        .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p6")).build()
         ])
 
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
 >   Mutable:
 >     - parent.p1 (java.lang.String)
->     + parent.p2 (java.lang.Integer)
+>     - <unspecified> (java.lang.String) in scope of 'some.scope'
+>     + parent.p3 (java.lang.Integer)
 >   Immutable:
->     - parent.p3 (java.lang.Number) - suggestions: parent.p31, parent.p32
+>     - parent.p4 (java.lang.Number) - suggestions: parent.p31, parent.p32
 >     - <unspecified> (java.lang.Number)
->     + parent.p5 (java.lang.Number)""")
+>     + parent.p6 (java.lang.Number)""")
     }
 }

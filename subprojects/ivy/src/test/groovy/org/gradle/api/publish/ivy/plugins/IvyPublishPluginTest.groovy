@@ -52,7 +52,7 @@ class IvyPublishPluginTest extends Specification {
     }
 
     void closeTaskContainer() {
-        new ModelRegistryHelper(project.modelRegistry).get("tasks", TaskContainer)
+        new ModelRegistryHelper(project.modelRegistry, null, null).get("tasks", TaskContainer)
     }
 
     def "creates publish task for publication and repository"() {

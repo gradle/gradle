@@ -63,6 +63,7 @@ import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerMode
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -178,7 +179,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         );
 
         modelRegistry.create(
@@ -188,29 +190,34 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                     }
                 })
                         .simpleDescriptor("Project.<init>.buildDir()")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         );
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .simpleDescriptor("Project.<init>.projectIdentifier()")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         );
 
-        modelRegistry.create(PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                ModelType.of(TaskContainerInternal.class),
-                ModelType.of(TaskContainer.class),
-                ModelType.of(Task.class),
-                TaskContainerInternal.MODEL_PATH,
-                taskContainer,
-                new Task.Namer(),
-                "Project.<init>.tasks()",
-                new Transformer<String, String>() {
-                    public String transform(String s) {
-                        return "Project.<init>.tasks." + s + "()";
-                    }
-                }
-        ));
+        modelRegistry.create(
+                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                        ModelType.of(TaskContainerInternal.class),
+                        ModelType.of(TaskContainer.class),
+                        ModelType.of(Task.class),
+                        TaskContainerInternal.MODEL_PATH,
+                        taskContainer,
+                        new Task.Namer(),
+                        "Project.<init>.tasks()",
+                        new Transformer<String, String>() {
+                            public String transform(String s) {
+                                return "Project.<init>.tasks." + s + "()";
+                            }
+                        }
+                ),
+                ModelPath.ROOT
+        );
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
@@ -223,7 +230,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
                         .simpleDescriptor("Project.<init>.extensions()")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         );
     }
 

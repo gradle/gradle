@@ -20,6 +20,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
@@ -54,10 +55,10 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.applyTo(modelRegistrar)
+        registration.applyTo(modelRegistrar, ModelPath.ROOT)
 
         then:
-        1 * modelRegistrar.apply(_, _)
+        1 * modelRegistrar.apply(_, _, _)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
@@ -71,7 +72,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.applyTo(modelRegistrar)
+        registration.applyTo(modelRegistrar, ModelPath.ROOT)
 
         then:
         0 * modelRegistrar._

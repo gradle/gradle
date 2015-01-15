@@ -47,7 +47,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
-    def registry = new DefaultModelRegistry()
+    def registry = new DefaultModelRegistry(null, null)
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {
@@ -58,7 +58,8 @@ class DefaultCollectionBuilderTest extends Specification {
                 )
                         .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
                         .simpleDescriptor("foo")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         )
         container.registerFactory(NamedThing) {
             NamedThing.newInstance(name: it)
@@ -70,9 +71,9 @@ class DefaultCollectionBuilderTest extends Specification {
         def mutator = Stub(ModelAction)
         mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.execute(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
+        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.apply(ModelActionRole.Mutate, mutator)
+        registry.apply(ModelActionRole.Mutate, mutator, ModelPath.ROOT)
         registry.realizeNode(containerPath)
     }
 

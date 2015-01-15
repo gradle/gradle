@@ -37,7 +37,7 @@ import spock.util.concurrent.PollingConditions
 import java.beans.Introspector
 
 class ModelRuleInspectorTest extends Specification {
-    ModelRegistry registry = new DefaultModelRegistry()
+    ModelRegistry registry = new DefaultModelRegistry(null, null)
     def registryMock = Mock(ModelRegistry)
     def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
@@ -64,7 +64,7 @@ class ModelRuleInspectorTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source)*.applyTo(registry)
+        inspector.inspect(source)*.applyTo(registry, ModelPath.ROOT)
     }
 
     def "can inspect class with simple model creation rule"() {
@@ -153,7 +153,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelType)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
 
         then:
         type.parameterized
@@ -171,7 +171,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
 
         then:
         type.parameterized
@@ -269,7 +269,7 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
 
         when:
         registerRules(MutationRules)
@@ -277,7 +277,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null, null, registry, null).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules {
@@ -305,14 +305,14 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
 
         when:
         registerRules(MutationAndFinalizeRules)
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null, null, registry, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {
@@ -320,20 +320,20 @@ class ModelRuleInspectorTest extends Specification {
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build(), ModelPath.ROOT)
 
         when:
-        inspector.inspect(MutationAndFinalizeRules)*.applyTo(registryMock)
+        inspector.inspect(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
 
         then:
-        1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") })
+        1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") }, ModelPath.ROOT)
 
         then:
-        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") }, ModelPath.ROOT)
 
         then:
-        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") }, ModelPath.ROOT)
     }
 
     static class InvalidModelNameViaAnnotation {

@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -31,7 +32,7 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
-    def modelRegistry = new DefaultModelRegistry()
+    def modelRegistry = new DefaultModelRegistry(null, null)
     def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class AmbiguousBindingsInOneSource {
@@ -52,7 +53,7 @@ class ModelRuleBindingTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source)*.applyTo(modelRegistry)
+        inspector.inspect(source)*.applyTo(modelRegistry, ModelPath.ROOT)
     }
 
     def "error message produced when unpathed reference matches more than one item"() {

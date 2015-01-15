@@ -45,16 +45,22 @@ public class UnboundRulesProcessor {
         for (RuleBinder<?> binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());
 
+            ModelPath scope = binder.getScope();
+
             if (binder.getSubjectReference() != null) {
                 ModelBinding<?> binding = binder.getSubjectBinding();
                 ModelReference<?> reference = binder.getSubjectReference();
-                builder.mutableInput(toInputBuilder(binding, reference));
+                UnboundRuleInput.Builder inputBuilder = toInputBuilder(binding, reference, scope);
+                if (scope != ModelPath.ROOT) {
+                    inputBuilder.scope(scope.toString());
+                }
+                builder.mutableInput(inputBuilder);
             }
 
             for (int i = 0; i < binder.getInputReferences().size(); ++i) {
                 ModelBinding<?> binding = binder.getInputBindings().get(i);
                 ModelReference<?> reference = binder.getInputReferences().get(i);
-                builder.immutableInput(toInputBuilder(binding, reference));
+                builder.immutableInput(toInputBuilder(binding, reference, binder.getScope()));
             }
 
             unboundRules.add(builder.build());
@@ -62,7 +68,7 @@ public class UnboundRulesProcessor {
         return unboundRules;
     }
 
-    private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference) {
+    private UnboundRuleInput.Builder toInputBuilder(ModelBinding<?> binding, ModelReference<?> reference, ModelPath scope) {
         UnboundRuleInput.Builder builder = UnboundRuleInput.type(reference.getType());
         ModelPath path;
         if (binding != null) {
@@ -71,6 +77,7 @@ public class UnboundRulesProcessor {
         } else {
             path = reference.getPath();
             if (path != null) {
+                path = scope.scope(path);
                 builder.suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
             }
         }

@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class InstanceBackedModelCreatorTest extends Specification {
 
-    def registry = new DefaultModelRegistry()
+    def registry = new DefaultModelRegistry(null, null)
 
     def "action is called"() {
         when:
@@ -34,14 +34,14 @@ class InstanceBackedModelCreatorTest extends Specification {
 
         def fooList = []
         def fooCreator = ModelCreators.bridgedInstance(foo, fooList).descriptor(descriptor).build()
-        registry.create(fooCreator)
+        registry.create(fooCreator, ModelPath.ROOT)
 
         def barList = []
         def factory = Mock(org.gradle.internal.Factory) {
             1 * create() >> barList
         }
         def barCreator = ModelCreators.unmanagedInstance(bar, factory).descriptor(descriptor).build()
-        registry.create(barCreator)
+        registry.create(barCreator, ModelPath.ROOT)
 
         then:
         !fooCreator.promise.canBeViewedAsReadOnly(ModelType.of(String))

@@ -67,7 +67,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         ModelType.of(BinarySpec.class),
                         ModelPath.path("binaries"),
                         binaries,
-                        getClass().getName() + ".apply()"));
+                        getClass().getName() + ".apply()"),
+                ModelPath.ROOT
+        );
     }
 
     /**

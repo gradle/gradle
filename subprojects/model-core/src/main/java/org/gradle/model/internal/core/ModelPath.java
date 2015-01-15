@@ -20,6 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
@@ -36,6 +37,11 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         @Override
         public String toString() {
             return "<root>";
+        }
+
+        @Override
+        public ModelPath scope(ModelPath path) {
+            return path;
         }
     };
 
@@ -153,6 +159,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         }
         ModelPath otherParent = other.getParent();
         return otherParent != null && otherParent.equals(this);
+    }
+
+    public ModelPath scope(ModelPath path) {
+        return path(Iterables.concat(components, path.components));
     }
 
     public static class InvalidNameException extends GradleException {

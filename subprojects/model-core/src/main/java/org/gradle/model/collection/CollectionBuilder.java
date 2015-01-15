@@ -143,6 +143,22 @@ public interface CollectionBuilder<T> {
     void named(String name, Action<? super T> configAction);
 
     /**
+     * Applies the given rule source class to the given item, when the item is required.
+     *
+     * <p>Rules are applied in the scope of the item therefore:
+     * <ul>
+     * <li>subject by-type and by-path bindings are of inner scope</li>
+     * <li>subject can be bound by type to a child of the scope in which the rule is applied</li>
+     * <li>input by-path bindings are of inner scope</li>
+     * <li>input by-type bindings are of outer scope</li>
+     * </ul>
+     *
+     * @param name The name.
+     * @param ruleSource A rule source class.
+     */
+    void named(String name, Class<?> ruleSource);
+
+    /**
      * Applies the given action to each item in this collection, as each item is required.
      *
      * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.

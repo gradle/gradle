@@ -39,7 +39,7 @@ class ManagedSetModelProjectionTest extends Specification {
     def collectionType = new ModelType<ManagedSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
     def factory = new DefaultModelCreatorFactory(schemaStore)
-    def registry = new DefaultModelRegistry()
+    def registry = new DefaultModelRegistry(null, null)
 
     def setup() {
         registry.create(
@@ -48,16 +48,18 @@ class ManagedSetModelProjectionTest extends Specification {
                         collectionPath,
                         schemaStore.getSchema(collectionType),
                         [],
-                        { value, inputs -> } as BiAction))
+                        { value, inputs -> } as BiAction),
+                ModelPath.ROOT
+        )
     }
 
     void mutate(@DelegatesTo(ManagedSet) Closure<? super ManagedSet<NamedThing>> action) {
         def mutator = Stub(ModelAction)
         mutator.subject >> ModelReference.of(collectionPath, new ModelType<ManagedSet<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("mutate collection")
-        mutator.execute(_, _, _) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
+        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.apply(ModelActionRole.Mutate, mutator)
+        registry.apply(ModelActionRole.Mutate, mutator, ModelPath.ROOT)
         registry.realizeNode(collectionPath)
     }
 

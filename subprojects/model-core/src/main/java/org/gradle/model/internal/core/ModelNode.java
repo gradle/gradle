@@ -82,7 +82,7 @@ public class ModelNode {
     }
 
     public boolean canApply(ModelActionRole type) {
-        return type.ordinal() > state.ordinal() - State.Created.ordinal();
+        return type.ordinal() >= state.ordinal() - State.Created.ordinal();
     }
 
     public ModelPromise getPromise() {

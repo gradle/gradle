@@ -47,11 +47,7 @@ public class ModelBinding<T> {
     }
 
     public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelPath path) {
-        if (reference.getPath() != null && !reference.getPath().equals(path)) {
-            throw new IllegalArgumentException("mismatched paths: " + reference.getPath() + " & " + path);
-        } else {
-            return new ModelBinding<T>(reference, path);
-        }
+        return new ModelBinding<T>(reference, path);
     }
 
     public ModelReference<T> getReference() {

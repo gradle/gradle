@@ -64,6 +64,9 @@ public class UnboundRulesReporter {
             if (input.getDescription() != null) {
                 writer.print(String.format(" %s", input.getDescription()));
             }
+            if (input.getPath() == null && input.getScope() != null) {
+                writer.print(String.format(" in scope of '%s'", input.getScope()));
+            }
             if (input.getSuggestedPaths().size() > 0) {
                 writer.print(" - suggestions: ");
                 writer.print(Joiner.on(", ").join(input.getSuggestedPaths()));

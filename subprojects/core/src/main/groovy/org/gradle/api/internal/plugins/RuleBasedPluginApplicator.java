@@ -18,25 +18,19 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.PluginAware;
-import org.gradle.model.internal.core.ModelRuleRegistration;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelRuleSourceApplicator;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-import java.util.List;
+public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
-public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAware> implements PluginApplicator {
-
-    private final ModelRuleInspector inspector;
     private final T target;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final PluginApplicator imperativeApplicator;
+    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
 
-    public RuleBasedPluginApplicator(T target, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
+    public RuleBasedPluginApplicator(T target, ModelRuleSourceApplicator modelRuleSourceApplicator) {
         this.target = target;
-        this.inspector = inspector;
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
         this.imperativeApplicator = new ImperativeOnlyPluginApplicator<T>(target);
     }
 
@@ -45,20 +39,7 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
     }
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
-            List<ModelRuleRegistration> registrations = inspector.inspect(source);
-            for (ModelRuleRegistration registration : registrations) {
-                for (Class<?> dependency : registration.getRuleDependencies()) {
-                    target.getPluginManager().apply(dependency);
-                }
-                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
-                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
-                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
-                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
-                // and do a better job of explaining what went wrong than what we can do at this level.
-                registration.applyTo(target.getModelRegistry());
-            }
-        }
+        modelRuleSourceApplicator.apply(clazz, ModelPath.ROOT, target.getModelRegistry(), target.getPluginManager());
     }
 
     public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {

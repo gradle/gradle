@@ -24,6 +24,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
@@ -85,10 +86,10 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.applyTo(modelRegistrar)
+        registration.applyTo(modelRegistrar, ModelPath.ROOT)
 
         then:
-        1 * modelRegistrar.apply(_, _)
+        1 * modelRegistrar.apply(_, _, _)
     }
 
     def "only applies ComponentModelBasePlugin when implementation not set"() {
@@ -102,7 +103,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.applyTo(modelRegistrar)
+        registration.applyTo(modelRegistrar, ModelPath.ROOT)
 
         then:
         0 * modelRegistrar._

@@ -28,14 +28,14 @@ import spock.lang.Specification
 
 class TransformedModelDslBackingTest extends Specification {
 
-    def modelRegistry = new DefaultModelRegistry()
+    def modelRegistry = new DefaultModelRegistry(null, null)
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def blockOwner = new Object()
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build(), ModelPath.ROOT)
     }
 
     def "can add rules via dsl"() {

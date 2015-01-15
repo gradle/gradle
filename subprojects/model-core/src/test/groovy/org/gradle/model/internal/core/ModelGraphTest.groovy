@@ -228,6 +228,43 @@ class ModelGraphTest extends Specification {
         0 * listener.onCreate(_)
     }
 
+    def "notifies listener about a node with matching scope and its children"() {
+        def listener = Mock(ModelCreationListener)
+
+        def a = node("a", String)
+        def b = node("a.b", String)
+        def c = node("a.b.c", String)
+        def d = node("a.b.d", String)
+        def e = node("a.b.e", Integer)
+        def f = node("a.b.c.f", String)
+
+        given:
+        listener.matchType() >> ModelType.of(String)
+        listener.matchScope() >> b.path
+        b.links >> [c: c]
+
+        when:
+        graph.add(a)
+        graph.add(b)
+        graph.add(c)
+        graph.addListener(listener)
+
+        then:
+        1 * listener.onCreate(b)
+        1 * listener.onCreate(c)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(d)
+        graph.add(e)
+        graph.add(f)
+
+        then:
+        1 * listener.onCreate(d)
+        0 * listener.onCreate(_)
+        0 * listener.onCreate(_)
+    }
+
     def "listener can add listeners when node added"() {
         def listener1 = Mock(ModelCreationListener)
         def listener2 = Mock(ModelCreationListener)

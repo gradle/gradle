@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelRegistrar
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
@@ -74,10 +75,10 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        registration.applyTo(modelRegistrar)
+        registration.applyTo(modelRegistrar, ModelPath.ROOT)
 
         then:
-        1 * modelRegistrar.apply(_, _)
+        1 * modelRegistrar.apply(_, _, _)
     }
 
     interface SomeBinary extends BinarySpec {}

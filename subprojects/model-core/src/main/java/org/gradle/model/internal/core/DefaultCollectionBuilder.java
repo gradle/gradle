@@ -38,13 +38,20 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
+    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
+    private final ModelRegistrar modelRegistrar;
+    private final PluginClassApplicator pluginClassApplicator;
 
-    public DefaultCollectionBuilder(ModelType<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode) {
+    public DefaultCollectionBuilder(ModelType<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor,
+                                    MutableModelNode modelNode, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
         this.elementType = elementType;
         this.instantiator = instantiator;
         this.target = target;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
+        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
+        this.modelRegistrar = modelRegistrar;
+        this.pluginClassApplicator = pluginClassApplicator;
     }
 
     @Override
@@ -71,7 +78,8 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }
         if (elementType.getConcreteClass().isAssignableFrom(type)) {
             @SuppressWarnings("unchecked")
-            CollectionBuilder<S> result = new DefaultCollectionBuilder<S>(ModelType.of(type), (NamedEntityInstantiator<? super S>) instantiator, (Collection<? super S>) target, sourceDescriptor, modelNode);
+            CollectionBuilder<S> result = new DefaultCollectionBuilder<S>(ModelType.of(type), (NamedEntityInstantiator<? super S>) instantiator, (Collection<? super S>) target, sourceDescriptor,
+                    modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
             return result;
         }
         return new DefaultCollectionBuilder<S>(ModelType.of(type), new NamedEntityInstantiator<S>() {
@@ -79,7 +87,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             public <U extends S> U create(String name, Class<U> type) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type.getName(), elementType.toString()));
             }
-        }, ImmutableList.<S>builder().build(), sourceDescriptor, modelNode);
+        }, ImmutableList.<S>builder().build(), sourceDescriptor, modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
     }
 
     @Nullable
@@ -190,6 +198,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         }));
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
         modelNode.applyToLink(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, configAction, descriptor));
+    }
+
+    @Override
+    public void named(String name, Class<?> ruleSource) {
+        modelRuleSourceApplicator.apply(ruleSource, modelNode.getPath().child(name), modelRegistrar, pluginClassApplicator);
     }
 
     @Override

@@ -81,8 +81,8 @@ public interface ModelRegistry extends ModelRegistrar {
     void validate() throws UnboundModelRulesException;
 
     @Override
-    ModelRegistry create(ModelCreator creator);
+    ModelRegistry create(ModelCreator creator, ModelPath scope);
 
     @Override
-    <T> ModelRegistry apply(ModelActionRole role, ModelAction<T> action);
+    <T> ModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
 }

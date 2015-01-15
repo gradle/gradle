@@ -32,11 +32,11 @@ import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
 
-    def modelRegistry = new DefaultModelRegistry()
+    def modelRegistry = new DefaultModelRegistry(null, null)
     def modelDsl = new NonTransformedModelDslBacking(getModelRegistry())
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build(), ModelPath.ROOT)
     }
 
     def "can add rules via dsl"() {
@@ -70,13 +70,16 @@ class NonTransformedModelDslBackingTest extends Specification {
         given:
         def schemaStore = DefaultModelSchemaStore.instance
         def factory = new DefaultModelCreatorFactory(schemaStore)
-        modelRegistry.create(factory.creator(
-                new SimpleModelRuleDescriptor("blah"),
-                ModelPath.path("foo"),
-                schemaStore.getSchema(ModelType.of(Foo)),
-                [],
-                BiActions.doNothing()
-        ))
+        modelRegistry.create(
+                factory.creator(
+                        new SimpleModelRuleDescriptor("blah"),
+                        ModelPath.path("foo"),
+                        schemaStore.getSchema(ModelType.of(Foo)),
+                        [],
+                        BiActions.doNothing()
+                ),
+                ModelPath.ROOT
+        )
 
         when:
         modelDsl.configure { foo {} }

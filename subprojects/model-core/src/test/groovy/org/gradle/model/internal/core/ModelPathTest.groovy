@@ -110,4 +110,10 @@ class ModelPathTest extends Specification {
         !ModelPath.path("a.b").isDirectChild(ModelPath.path("a"))
         !ModelPath.path("a.b").isDirectChild(null)
     }
+
+    def "can scope paths"() {
+        expect:
+        ModelPath.ROOT.scope(ModelPath.path("c.d")) == ModelPath.path("c.d")
+        ModelPath.path("a.b").scope(ModelPath.path("c.d")) == ModelPath.path("a.b.c.d")
+    }
 }

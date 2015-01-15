@@ -203,8 +203,8 @@ Within a plugin, rules can be ordered in some deterministic way (e.g. sort rules
 
 ## Collection mutation rule specifies input taking mutation rule for particular model element
 
-    interface ManagedMap<V> {
-      void apply(String named, Class<?> ruleSource)
+    interface CollectionBuilder<T> {
+      void named(String named, Class<?> ruleSource)
     }
 
 The rule source class functions the same as a rule source applied to Project except that bindings are relative to the collection item
@@ -212,25 +212,32 @@ The rule source class functions the same as a rule source applied to Project exc
 
 The rule source must be able to bind to the outer scope. For example…
 
-    tasks.named("assemble", new Object() { 
+    @RuleSource
+    class AssembleTaskRules {
         void dependOnBinaries(Task assemble, BinaryContainer binaries) {…}
-    })
+    }
+
+    tasks.named("assemble", AssembleTaskRules)
 
 Here, the subject `assemble` is of the inner scope while the input `binaries` is of the outer scope. 
 All by-path bindings will be interpreted relatively.
-By-type bindings are capable of binding to the outer scope, with the inner scope taking precedence.
-Subject bindings must be of the inner scope (otherwise we are back to anything-can-say-anything-about-anything).
+Input by-type bindings are only capable of binding to the outer scope.
+Subject by-type bindings must be of the inner scope (otherwise we are back to anything-can-say-anything-about-anything) and they can only bind to scope element and it's immediate children.
 
 For this story, no lifecycle alignment validation is specifically required beyond ensuring a `@Mutate` rule where the subject is a `ManagedMap` specifying a `@Mutate` rule for an item and that rule being executed when the item is needed.
 That is, robust alignment of lifecycle phases is out of scope.
 
 ### Test coverage
 
-1. Rule can successfully bind to inputs, which are only realised if rule is required
-1. Rule input binding failure yields useful error message (including information about binding scope, to help debug bindings)
-1. Rule execution failure yields useful error message, allowing user to identify failed rule
-1. Mutate rule about container item added during container mutate rule executes and realises inputs when container item is needed.
-1. Rule source is subject to same blanket constraints as rule sources applied at project level, with error message helping user identify the faulty rule
+1. ~~Rule can successfully bind to inputs, which are only realised if rule is required~~
+1. ~~Rule input binding failure yields useful error message (including information about binding scope, to help debug bindings)~~
+1. ~~Rule execution failure yields useful error message, allowing user to identify failed rule~~
+1. ~~Mutate rule about container item added during container mutate rule executes and realises inputs when container item is needed~~
+1. ~~Rule source is subject to same blanket constraints as rule sources applied at project level, with error message helping user identify the faulty rule~~
+1. ~~Subject by-type and by-path bindings are of inner scope~~
+1. ~~Subject can be bound to a child of the scope in which the rule is applied~~
+1. ~~Input by-path bindings are of inner scope~~
+1. ~~Input by-type bindings are of outer scope~~
 
 ## Model infrastructure performance is benchmarked
 

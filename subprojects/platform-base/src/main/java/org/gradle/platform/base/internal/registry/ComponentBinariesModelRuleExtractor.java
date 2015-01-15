@@ -23,6 +23,8 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.core.ModelRuleSourceApplicator;
+import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -54,7 +56,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
     }
 
     private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-        modelRegistry.apply(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
+        modelRegistry.apply(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition), ModelPath.ROOT);
     }
 
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
@@ -74,7 +76,8 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, final BinaryContainer binaries, final Inputs inputs) {
+        public void execute(MutableModelNode modelNode, BinaryContainer binaries, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
+                            PluginClassApplicator pluginClassApplicator) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
@@ -84,7 +87,11 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                         namedEntityInstantiator,
                         binaries,
                         getDescriptor(),
-                        modelNode);
+                        modelNode,
+                        modelRuleSourceApplicator,
+                        modelRegistrar,
+                        pluginClassApplicator
+                );
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }
         }

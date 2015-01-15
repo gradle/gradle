@@ -146,6 +146,12 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
+        public void named(String name, Class<?> ruleSource) {
+            assertNotClosed();
+            rawInstance.named(name, ruleSource);
+        }
+
+        @Override
         public void beforeEach(Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.beforeEach(configAction);

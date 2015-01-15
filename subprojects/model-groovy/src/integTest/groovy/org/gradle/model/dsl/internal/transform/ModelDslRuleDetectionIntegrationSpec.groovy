@@ -62,7 +62,8 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
               }
               .simpleDescriptor("foo")
               .withProjection(new UnmanagedModelProjection(type, true, true))
-              .build()
+              .build(),
+              ModelPath.ROOT
             )
 
             class MyPlugin {

@@ -36,6 +36,10 @@ public abstract class ModelCreationListener {
         return null;
     }
 
+    public ModelPath matchScope() {
+        return null;
+    }
+
     /**
      * Returns the type of node which this listener is interested in, or null if type is not relevant.
      */

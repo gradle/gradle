@@ -78,7 +78,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         ModelPath.path("components"),
                         components,
                         ComponentModelBasePlugin.class.getName() + ".apply()"
-                ));
+                ),
+                ModelPath.ROOT
+        );
     }
 
     /**

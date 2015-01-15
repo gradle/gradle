@@ -29,8 +29,8 @@ public class ModelCreatorRegistration implements ModelRuleRegistration {
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar) {
-        registrar.create(creator);
+    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
+        registrar.create(creator, scope);
     }
 
     @Override
