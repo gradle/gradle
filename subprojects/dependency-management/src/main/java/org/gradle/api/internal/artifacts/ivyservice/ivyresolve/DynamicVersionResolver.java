@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -172,7 +171,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                     resolveResult.failed(selectionResult.getFailure());
                     break;
                 case Listed:
-                    if (!resolveDependency(dependency, moduleAccess, resolveResult)) {
+                    if (resolveDependency(dependency, moduleAccess, resolveResult).hasNoMatch()) {
                         resolveResult.missing();
                         resolveResult.setAuthoritative(selectionResult.isAuthoritative());
                     }
@@ -180,15 +179,15 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
         }
 
-        private boolean resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-            ModuleComponentIdentifier componentIdentifier = componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess);
-            if (componentIdentifier == null) {
-                return false;
+        private ChosenComponentResult resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
+            ChosenComponentResult chosenComponent = componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess);
+            if (chosenComponent.hasMatch()) {
+                dependency = dependency.withRequestedVersion(chosenComponent.getModuleComponentIdentifier().getVersion());
+                // TODO - reuse meta data if it was fetched to select candidate
+                moduleAccess.resolveComponentMetaData(dependency, chosenComponent.getModuleComponentIdentifier(), resolveResult);
             }
-            dependency = dependency.withRequestedVersion(componentIdentifier.getVersion());
-            // TODO - reuse meta data if it was fetched to select candidate
-            moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
-            return true;
+
+            return chosenComponent;
         }
 
         protected void applyTo(ResourceAwareResolveResult result) {

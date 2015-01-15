@@ -22,14 +22,16 @@ import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.ChosenComponentResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultChosenComponentResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -71,18 +73,25 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public ModuleComponentIdentifier choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+    public ChosenComponentResult choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
+        ChosenComponentResult chosenComponent = new DefaultChosenComponentResult();
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
             MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
+            if(requestedVersion.requiresMetadata() && metadataProvider.getMetaData() == null) {
+                chosenComponent.cannotDetermine();
+                return chosenComponent;
+            }
+
             if (versionMatches(requestedVersion, candidateIdentifier, metadataProvider)) {
                 if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
-                    return candidateIdentifier;
+                    chosenComponent.matches(candidateIdentifier);
+                    return chosenComponent;
                 }
 
                 if (requestedVersion.matchesUniqueVersion()) {
@@ -90,7 +99,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
                 }
             }
         }
-        return null;
+        return chosenComponent;
     }
 
     private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
@@ -129,7 +138,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         public MutableModuleComponentResolveMetaData create() {
             DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
             repository.resolveComponentMetaData(dependency.withRequestedVersion(id.getVersion()), id, result);
-            return result.getMetaData();
+            return result.hasResult() ? result.getMetaData() : null;
         }
     }
 }
