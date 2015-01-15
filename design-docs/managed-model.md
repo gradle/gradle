@@ -658,9 +658,10 @@ Other issues:
 
 ### Extensibility & views
 
-- Convenience and/or enforcement of “internal to plugin” properties of model elements
+- Convenience and/or enforcement of “internal to plugin” properties and views/types
 - Extending model elements with new properties
 - Specializing model elements to apply new views
+- Reporting on usages of deprecated and incubating properties and views/types
 
 ### Performance
 
@@ -679,3 +680,4 @@ Other issues:
 - Support getting "address" (creation/canonical path) of a managed object
 - Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely)
 - Attempt to call setter method in (abstract class) managed model from non-abstract getter receives error when extracting type metadata
+- Declare, configure and manage services, such as tool chains, resolvers.
