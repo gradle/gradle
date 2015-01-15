@@ -26,21 +26,28 @@ import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
  * See spec.versions for individual methods.
  */
-public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Serializable {
+public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
-    public WorkResult execute(VersionedTwirlCompileSpec spec) {
+    private final VersionedTwirlCompilerAdapter adapter;
+
+    public TwirlCompiler(VersionedTwirlCompilerAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
             ClassLoader cl = getClass().getClassLoader();
-            ScalaMethod compile = spec.getCompileMethod(cl);
+            ScalaMethod compile = adapter.getCompileMethod(cl);
             Iterable<File> sources = spec.getSources();
             for (File sourceFile : sources) {
-                Object result = compile.invoke(spec.createCompileParameters(cl, sourceFile));
+                Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getSourceDirectory(), spec.getDestinationDir(), spec.isJavaProject()));
                 ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
                 if (maybeFile.isDefined()) {
                     outputFiles.add(maybeFile.get());
@@ -51,5 +58,13 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
         }
 
         return new SimpleWorkResult(!outputFiles.isEmpty());
+    }
+
+    public Object getDependencyNotation() {
+        return adapter.getDependencyNotation();
+    }
+
+    public List<String> getClassLoaderPackages() {
+        return adapter.getClassLoaderPackages();
     }
 }

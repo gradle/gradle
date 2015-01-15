@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal.twirl;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.scala.internal.reflect.ScalaCodecMapper;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -26,30 +25,37 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec implements VersionedTwirlCompileSpec {
+class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
+
+    private static final String DEFAULT_JAVA_IMPORTS =
+              "import models._;"
+            + "import controllers._;"
+            + "import java.lang._;"
+            + "import java.util._;"
+            + "import scala.collection.JavaConversions._;"
+            + "import scala.collection.JavaConverters._;"
+            + "import play.api.i18n._;"
+            + "import play.core.j.PlayMagicForJava._;"
+            + "import play.mvc._;"
+            + "import play.data._;"
+            + "import play.api.data.Field;"
+            + "import play.mvc.Http.Context.Implicit._;"
+            + "import views.html._;";
+
+    private static final String DEFAULT_SCALA_IMPORTS =
+              "import models._;"
+            + "import controllers._;"
+            + "import play.api.i18n._;"
+            + "import play.api.mvc._;"
+            + "import play.api.data._;"
+            + "import views.html._;";
 
     private final String scalaVersion;
     private final String twirlVersion;
-    private String codec = "UTF-8";
-    private boolean inclusiveDots;
-    private boolean useOldParser;
 
-    public TwirlCompileSpecV10X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, BaseForkOptions forkOptions, boolean javaProject, String twirlVersion, String scalaVersion) {
-        super(sourceDirectory, sources, destinationDirectory, forkOptions, javaProject);
+    public TwirlCompilerAdapterV10X(String twirlVersion, String scalaVersion) {
         this.scalaVersion = scalaVersion;
         this.twirlVersion = twirlVersion;
-    }
-
-    protected String defaultFormatterType() {
-        return "play.twirl.api.HtmlFormat";
-    }
-
-    protected String defaultScalaAdditionalImports(String format) {
-        return String.format("import models._;import controllers._;import play.api.i18n._;import play.api.mvc._;import play.api.data._;import views.%s._;", "html");
-    }
-
-    protected String defaultJavaAdditionalImports(String format) {
-        return String.format("import models._;import controllers._;import java.lang._;import java.util._;import scala.collection.JavaConversions._;import scala.collection.JavaConverters._;import play.api.i18n._;import play.core.j.PlayMagicForJava._;import play.mvc._;import play.data._;import play.api.data.Field;import play.mvc.Http.Context.Implicit._;import views.%s._;", "html");
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
@@ -68,17 +74,25 @@ public class TwirlCompileSpecV10X extends DefaultVersionedTwirlCompileSpec imple
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
-                getSourceDirectory(),
-                getDestinationDir(),
-                getFormatterType(),
-                getAdditionalImports(),
-                ScalaCodecMapper.create(cl, codec),
-                inclusiveDots,
-                useOldParser
+                sourceDirectory,
+                destinationDirectory,
+                "play.twirl.api.HtmlFormat",
+                javaProject ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS,
+                ScalaCodecMapper.create(cl, "UTF-8"),
+                isInclusiveDots(),
+                isUseOldParser()
         };
+    }
+
+    private boolean isInclusiveDots() {
+        return false;
+    }
+
+    private boolean isUseOldParser() {
+        return false;
     }
 
     public List<String> getClassLoaderPackages() {

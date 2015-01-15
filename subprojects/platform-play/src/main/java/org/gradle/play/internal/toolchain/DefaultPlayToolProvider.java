@@ -35,11 +35,14 @@ import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
 import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
-import org.gradle.play.internal.run.*;
+import org.gradle.play.internal.run.PlayApplicationRunner;
+import org.gradle.play.internal.run.PlayRunAdapterV22X;
+import org.gradle.play.internal.run.PlayRunAdapterV23X;
+import org.gradle.play.internal.run.VersionedPlayRunAdapter;
+import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.TwirlCompileSpecFactory;
+import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.internal.twirl.TwirlCompiler;
-import org.gradle.play.internal.twirl.VersionedTwirlCompileSpec;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.CollectionUtils;
@@ -71,14 +74,14 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         this.playMajorVersion = PlayMajorVersion.forPlatform(targetPlatform);
     }
 
-    // TODO:DAZ Detangle Twirl/Routes adapter from compile specs
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
+    // TODO:DAZ Detangle Routes adapter from compile specs
+    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
         if (spec instanceof TwirlCompileSpec) {
-            TwirlCompileSpec twirlCompileSpec = (TwirlCompileSpec) spec;
-            VersionedTwirlCompileSpec versionedSpec = TwirlCompileSpecFactory.create(twirlCompileSpec, targetPlatform);
-            Set<File> twirlClasspath = resolveToolClasspath(versionedSpec.getDependencyNotation()).getFiles();
-            DaemonPlayCompiler<VersionedTwirlCompileSpec> compiler = new DaemonPlayCompiler<VersionedTwirlCompileSpec>(fileResolver.resolve("."), new TwirlCompiler(), compilerDaemonManager, twirlClasspath);
-            @SuppressWarnings("unchecked") Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) new MappingSpecCompiler<TwirlCompileSpec, VersionedTwirlCompileSpec>(compiler, WrapUtil.toMap(twirlCompileSpec, versionedSpec));
+            TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
+            Set<File> twirlClasspath = resolveToolClasspath(twirlCompiler.getDependencyNotation()).getFiles();
+            Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(fileResolver.resolve("."), twirlCompiler, compilerDaemonManager, twirlClasspath, twirlCompiler.getClassLoaderPackages());
+            @SuppressWarnings("unchecked")
+            Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) compiler;
             return twirlCompileSpecCompiler;
         } else if (spec instanceof RoutesCompileSpec) {
             RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec) spec;

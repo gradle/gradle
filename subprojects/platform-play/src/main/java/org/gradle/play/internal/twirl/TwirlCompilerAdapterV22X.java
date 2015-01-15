@@ -16,7 +16,6 @@
 
 package org.gradle.play.internal.twirl;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -25,30 +24,37 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
-public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec implements VersionedTwirlCompileSpec {
+class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
+
+    // TODO:DAZ Validate these
+    private static final String DEFAULT_JAVA_IMPORTS =
+              "import play.api.templates._;"
+            + "import play.api.templates.PlayMagic._;"
+            + "import models._;"
+            + "import controllers._;"
+            + "import play.api.i18n._;"
+            + "import play.api.mvc._;"
+            + "import play.api.mvc._;"
+            + "import play.api.data._;"
+            + "import views.html._;";
+
+    private static final String DEFAULT_SCALA_IMPORTS =
+              "import play.api.templates._;"
+            + "import play.api.templates.PlayMagic._;"
+            + "import models._;"
+            + "import controllers._;"
+            + "import play.api.i18n._;"
+            + "import play.api.mvc._;"
+            + "import play.api.mvc._;"
+            + "import play.api.data._;"
+            + "import views.html._;";
 
     private final String twirlVersion;
     private final String scalaVersion;
 
-    public TwirlCompileSpecV22X(File sourceDirectory, Iterable<File> sources, File destinationDirectory, BaseForkOptions forkOptions, boolean javaProject, String twirlVersion, String scalaVersion) {
-        super(sourceDirectory, sources, destinationDirectory, forkOptions, javaProject);
+    public TwirlCompilerAdapterV22X(String twirlVersion, String scalaVersion) {
         this.twirlVersion = twirlVersion;
         this.scalaVersion = scalaVersion;
-    }
-
-    @Override
-    protected String defaultFormatterType() {
-        return "play.api.templates.HtmlFormat";
-    }
-
-    @Override
-    protected String defaultJavaAdditionalImports(String format) {
-        return String.format("import play.api.templates._; import play.api.templates.PlayMagic._; import models._; import controllers._; import play.api.i18n._; import play.api.mvc._; import play.api.data._; import views.%s._;", format);
-    }
-
-    @Override
-    protected String defaultScalaAdditionalImports(String format) {
-        return String.format("import play.api.templates._; import play.api.templates.PlayMagic._; import models._; import controllers._; import play.api.i18n._; import play.api.mvc._; import play.api.data._; import views.%s._;", format);
     }
 
     public ScalaMethod getCompileMethod(final ClassLoader cl) throws ClassNotFoundException {
@@ -64,13 +70,14 @@ public class TwirlCompileSpecV22X extends DefaultVersionedTwirlCompileSpec imple
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    @Override
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
-                getSourceDirectory(),
-                getDestinationDir(),
-                getFormatterType(),
-                getAdditionalImports()
+                sourceDirectory,
+                destinationDirectory,
+                "play.api.templates.HtmlFormat",
+                javaProject ? DEFAULT_JAVA_IMPORTS : DEFAULT_SCALA_IMPORTS
         };
     }
 
