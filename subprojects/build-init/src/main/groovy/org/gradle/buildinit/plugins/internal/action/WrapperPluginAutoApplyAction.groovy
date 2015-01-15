@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.action
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.project.ProjectConfigureAction;
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.buildinit.tasks.internal.TaskConfiguration
+import org.gradle.configuration.project.ProjectConfigureAction
 
-import java.util.Collections;
-
-public class BuildInitAutoApplyAction implements ProjectConfigureAction {
+public class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
 
     public void execute(final ProjectInternal projectInternal) {
-        if (projectInternal.getParent() == null) {
-            projectInternal.getTasks().addPlaceholderAction("init", new Runnable() {
-                public void run() {
-                    projectInternal.apply(Collections.singletonMap("plugin", "build-init"));
-                }
-            });
-        }
+        TaskConfiguration.addWrapperPlaceholder(projectInternal);
     }
+
 }

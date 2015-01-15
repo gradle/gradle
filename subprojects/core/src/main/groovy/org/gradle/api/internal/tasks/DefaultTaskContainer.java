@@ -196,10 +196,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     }
 
-    public Map<String, Runnable> getPlaceholderActions() {
-        return placeholders;
-    }
-
     public Task findByName(String name) {
         Task task = super.findByName(name);
         if (task != null) {
@@ -218,9 +214,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-    public void addPlaceholderAction(String placeholderName, Runnable runnable) {
-        placeholders.put(placeholderName, runnable);
+    @Override
+    public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> type, final Action<? super T> configure) {
+        placeholders.put(placeholderName, new Runnable() {
+            @Override
+            public void run() {
+                create(placeholderName, type, configure);
+            }
+        });
     }
+
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
