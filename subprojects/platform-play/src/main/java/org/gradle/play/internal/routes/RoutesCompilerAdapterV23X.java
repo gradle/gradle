@@ -17,7 +17,6 @@
 package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.scala.internal.reflect.ScalaListBuffer;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -26,26 +25,12 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class RoutesCompileSpecV23X extends DefaultVersionedRoutesCompileSpec {
-    private final boolean generateRefReverseRouter;
+class RoutesCompilerAdapterV23X extends DefaultVersionedRoutesCompilerAdapter {
+    private final List<String> defaultScalaImports = Lists.newArrayList("controllers.Assets.Asset");
+    private final List<String> defaultJavaImports = Lists.newArrayList("controllers.Assets.Asset", "play.libs.F");
 
-    public RoutesCompileSpecV23X(Iterable<File> sources, File destinationDir, List<String> additionalImports, boolean generateRefReverseRouter, BaseForkOptions forkOptions, boolean javaProject, String playVersion) {
-        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playVersion, "2.10");
-        this.generateRefReverseRouter = generateRefReverseRouter;
-    }
-
-    public boolean getGenerateRefReverseRouter() {
-        return generateRefReverseRouter;
-    }
-
-    protected List<String> defaultScalaImports() {
-        return Lists.newArrayList("controllers.Assets.Asset");
-    }
-
-    protected List<String> defaultJavaImports() {
-        List<String> javaImports = defaultScalaImports();
-        javaImports.add("play.libs.F");
-        return javaImports;
+    public RoutesCompilerAdapterV23X(String playVersion, String scalaCompatibilityVersion) {
+        super(playVersion, scalaCompatibilityVersion);
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
@@ -62,14 +47,15 @@ public class RoutesCompileSpecV23X extends DefaultVersionedRoutesCompileSpec {
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    @Override
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
-                getDestinationDir(),
-                ScalaListBuffer.fromList(cl, getAdditionalImports()),
-                getGenerateReverseRoute(),
-                getGenerateRefReverseRouter(),
-                getNamespaceReverseRouter()
+                destinationDir,
+                ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
+                isGenerateReverseRoute(),
+                isGenerateRefReverseRouter(),
+                isNamespaceReverseRouter()
         };
     }
 

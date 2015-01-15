@@ -16,7 +16,19 @@
 
 package org.gradle.play.internal.routes;
 
-import org.gradle.play.internal.spec.VersionedPlayCompileSpec;
+import org.gradle.scala.internal.reflect.ScalaMethod;
 
-public interface VersionedRoutesCompileSpec extends RoutesCompileSpec, VersionedPlayCompileSpec {
+import java.io.File;
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+public interface VersionedRoutesCompilerAdapter extends Serializable {
+    Object getDependencyNotation();
+
+    ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
+
+    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+
+    List<String> getClassLoaderPackages();
 }

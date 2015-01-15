@@ -32,22 +32,20 @@ import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.javascript.JavaScriptCompiler;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
-import org.gradle.play.internal.routes.RoutesCompileSpecFactory;
 import org.gradle.play.internal.routes.RoutesCompiler;
-import org.gradle.play.internal.routes.VersionedRoutesCompileSpec;
+import org.gradle.play.internal.routes.RoutesCompilerFactory;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayRunAdapterV22X;
 import org.gradle.play.internal.run.PlayRunAdapterV23X;
 import org.gradle.play.internal.run.VersionedPlayRunAdapter;
-import org.gradle.play.internal.twirl.DaemonTwirlCompiler;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
-import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.internal.twirl.TwirlCompiler;
+import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.List;
@@ -79,25 +77,23 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         if (spec instanceof TwirlCompileSpec) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
             Set<File> twirlClasspath = resolveToolClasspath(twirlCompiler.getDependencyNotation()).getFiles();
-            Compiler<TwirlCompileSpec> compiler = new DaemonTwirlCompiler(fileResolver.resolve("."), twirlCompiler, compilerDaemonManager, twirlClasspath, twirlCompiler.getClassLoaderPackages());
-            @SuppressWarnings("unchecked")
-            Compiler<T> twirlCompileSpecCompiler = (Compiler<T>) compiler;
-            return twirlCompileSpecCompiler;
+            return cast(new DaemonPlayCompiler<TwirlCompileSpec>(fileResolver.resolve("."), twirlCompiler, compilerDaemonManager, twirlClasspath, twirlCompiler.getClassLoaderPackages()));
         } else if (spec instanceof RoutesCompileSpec) {
-            RoutesCompileSpec routesCompileSpec = (RoutesCompileSpec) spec;
-            VersionedRoutesCompileSpec versionedSpec = RoutesCompileSpecFactory.create(routesCompileSpec, targetPlatform);
-            Set<File> routesClasspath = resolveToolClasspath(versionedSpec.getDependencyNotation()).getFiles();
-            DaemonPlayCompiler<VersionedRoutesCompileSpec> compiler = new DaemonPlayCompiler<VersionedRoutesCompileSpec>(fileResolver.resolve("."), new RoutesCompiler(), compilerDaemonManager, routesClasspath);
-            @SuppressWarnings("unchecked") Compiler<T> routesSpecCompiler = (Compiler<T>) new MappingSpecCompiler<RoutesCompileSpec, VersionedRoutesCompileSpec>(compiler, WrapUtil.toMap(routesCompileSpec, versionedSpec));
-            return routesSpecCompiler;
+            RoutesCompiler routesCompiler = RoutesCompilerFactory.create(targetPlatform);
+            Set<File> routesClasspath = resolveToolClasspath(routesCompiler.getDependencyNotation()).getFiles();
+            return cast(new DaemonPlayCompiler<RoutesCompileSpec>(fileResolver.resolve("."), routesCompiler, compilerDaemonManager, routesClasspath, routesCompiler.getClassLoaderPackages()));
         } else if (spec instanceof JavaScriptCompileSpec) {
             JavaScriptCompileSpec javaScriptCompileSpec = (JavaScriptCompileSpec) spec;
             Set<File> javaScriptCompilerClasspath = resolveToolClasspath(javaScriptCompileSpec.getDependencyNotation()).getFiles();
-            @SuppressWarnings("unchecked")
-            Compiler<T> compiler = (Compiler<T>) new DaemonJavaScriptCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."), new JavaScriptCompiler(), compilerDaemonManager, javaScriptCompilerClasspath);
-            return compiler;
+            return castCompiler(new DaemonJavaScriptCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."), new JavaScriptCompiler(), compilerDaemonManager, javaScriptCompilerClasspath));
         }
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
+    }
+
+    private <T extends CompileSpec> Compiler<T> cast(Compiler<? extends PlayCompileSpec> raw) {
+        @SuppressWarnings("unchecked")
+        Compiler<T> converted = (Compiler<T>) raw;
+        return converted;
     }
 
     public PlayApplicationRunner newApplicationRunner() {

@@ -17,7 +17,6 @@
 package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.scala.internal.reflect.ScalaListBuffer;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
@@ -26,20 +25,12 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class RoutesCompileSpecV22X extends DefaultVersionedRoutesCompileSpec {
+class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
+    private final List<String> defaultScalaImports = Lists.newArrayList();
+    private final List<String> defaultJavaImports = Lists.newArrayList("play.libs.F");
 
-    protected List<String> defaultScalaImports() {
-        return Lists.newArrayList();
-    }
-
-    protected List<String> defaultJavaImports() {
-        List<String> javaImports = defaultScalaImports();
-        javaImports.add("play.libs.F");
-        return javaImports;
-    }
-
-    public RoutesCompileSpecV22X(Iterable<File> sources, File destinationDir, List<String> additionalImports, BaseForkOptions forkOptions, boolean javaProject, String playVersion) {
-        super(sources, destinationDir, additionalImports, forkOptions, javaProject, playVersion, "2.10");
+    public RoutesCompilerAdapterV22X(String playVersion, String scalaCompatibilityVersion) {
+        super(playVersion, scalaCompatibilityVersion);
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
@@ -55,13 +46,13 @@ public class RoutesCompileSpecV22X extends DefaultVersionedRoutesCompileSpec {
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         return new Object[] {
                 file,
-                getDestinationDir(),
-                ScalaListBuffer.fromList(cl, getAdditionalImports()),
-                getGenerateReverseRoute(),
-                getNamespaceReverseRouter()
+                destinationDir,
+                ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
+                isGenerateReverseRoute(),
+                isNamespaceReverseRouter()
         };
     }
 }

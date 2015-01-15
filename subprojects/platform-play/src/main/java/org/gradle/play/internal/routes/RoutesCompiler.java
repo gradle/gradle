@@ -25,9 +25,16 @@ import org.gradle.scala.internal.reflect.ScalaMethod;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Serializable {
-    public WorkResult execute(VersionedRoutesCompileSpec spec) {
+public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
+    private final VersionedRoutesCompilerAdapter adapter;
+
+    public RoutesCompiler(VersionedRoutesCompilerAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    public WorkResult execute(RoutesCompileSpec spec) {
         boolean didWork = false;
         // Need to compile all secondary routes ("Foo.routes") before primary ("routes")
         ArrayList<File> primaryRoutes = Lists.newArrayList();
@@ -55,12 +62,12 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         return new SimpleWorkResult(didWork);
     }
 
-    private Boolean compile(File sourceFile, VersionedRoutesCompileSpec spec) {
+    private Boolean compile(File sourceFile, RoutesCompileSpec spec) {
 
         try {
             ClassLoader cl = getClass().getClassLoader();
-            ScalaMethod compile = spec.getCompileMethod(cl);
-            Object ret = compile.invoke(spec.createCompileParameters(cl, sourceFile));
+            ScalaMethod compile = adapter.getCompileMethod(cl);
+            Object ret = compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getDestinationDir(), spec.isJavaProject()));
             if (ret != null && ret instanceof Boolean) {
                 return (Boolean) ret;
             } else {
@@ -69,5 +76,13 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         } catch (Exception e) {
             throw new RuntimeException("Error invoking the Play routes compiler.", e);
         }
+    }
+
+    public Object getDependencyNotation() {
+        return adapter.getDependencyNotation();
+    }
+
+    public List<String> getClassLoaderPackages() {
+        return adapter.getClassLoaderPackages();
     }
 }
