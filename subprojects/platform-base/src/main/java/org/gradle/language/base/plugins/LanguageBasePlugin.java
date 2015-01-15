@@ -35,7 +35,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * Base plugin for language support.
