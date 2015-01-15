@@ -57,8 +57,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        target.apply(Collections.singletonMap("plugin", LifecycleBasePlugin.class));
-
+        target.getPluginManager().apply(LifecycleBasePlugin.class);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);

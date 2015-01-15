@@ -27,12 +27,13 @@ import org.gradle.ide.cdt.model.CprojectSettings
 import org.gradle.ide.cdt.model.CprojectDescriptor
 
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
+import org.gradle.nativeplatform.plugins.NativeComponentPlugin
 
 @Incubating
 class CdtIdePlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "native-component")
+        project.pluginManager.apply(NativeComponentPlugin)
         def metadataFileTasks = [addCreateProjectDescriptor(project), addCreateCprojectDescriptor(project)]
 
         project.task("cleanCdt", type: Delete) {

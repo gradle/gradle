@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -43,7 +42,7 @@ public class WarPlugin implements Plugin<Project> {
     public static final String WEB_APP_GROUP = "web application";
 
     public void apply(final Project project) {
-        project.apply(ImmutableMap.of("type", JavaPlugin.class));
+        project.getPluginManager().apply(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 

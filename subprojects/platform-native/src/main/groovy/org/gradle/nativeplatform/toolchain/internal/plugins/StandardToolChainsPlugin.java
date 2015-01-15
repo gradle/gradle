@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
@@ -28,8 +27,8 @@ import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin;
  */
 public class StandardToolChainsPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.apply(ImmutableMap.of("type", MicrosoftVisualCppPlugin.class));
-        project.apply(ImmutableMap.of("type", GccCompilerPlugin.class));
-        project.apply(ImmutableMap.of("type", ClangCompilerPlugin.class));
+        project.getPluginManager().apply(MicrosoftVisualCppPlugin.class);
+        project.getPluginManager().apply(GccCompilerPlugin.class);
+        project.getPluginManager().apply(ClangCompilerPlugin.class);
     }
 }

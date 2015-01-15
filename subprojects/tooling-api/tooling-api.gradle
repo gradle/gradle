@@ -71,7 +71,7 @@ jar {
 
 task publishJar(type: Jar) {
     appendix = "bundle"
-    dependsOn jar, jarjarJar
+    dependsOn jarjarJar
     from(zipTree(jarjarJar.getArchivePath()), { exclude 'META-INF/MANIFEST.MF'})
     manifest = osgiManifest {
         classesDir = sourceSets.main.output.classesDir
@@ -83,7 +83,7 @@ task publishJar(type: Jar) {
     }
 }
 
-sourceJar{
+sourceJar {
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
         from it.dependencyProject.sourceSets.main.java.srcDirs
