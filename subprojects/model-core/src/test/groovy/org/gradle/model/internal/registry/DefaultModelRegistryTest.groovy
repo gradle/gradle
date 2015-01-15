@@ -51,6 +51,11 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("foo"), ModelType.untyped()) == "value"
     }
 
+    def "can get root node"() {
+        expect:
+        registry.realizeNode(ModelPath.ROOT) != null
+    }
+
     def "cannot get element for which creator inputs are not bound"() {
         given:
         registry.create("foo") { it.unmanaged(String, "other", Stub(Transformer)) }
