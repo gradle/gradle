@@ -28,9 +28,9 @@ public class RoutesCompilerFactory {
         String playVersion = playPlatform.getPlayVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
             case PLAY_2_2_X:
-                return new RoutesCompilerAdapterV22X(playVersion, playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
+                return new RoutesCompilerAdapterV22X(playVersion);
             case PLAY_2_3_X:
-                return new RoutesCompilerAdapterV23X(playVersion, playPlatform.getScalaPlatform().getScalaCompatibilityVersion());
+                return new RoutesCompilerAdapterV23X(playVersion);
             default:
                 throw new RuntimeException("Could not create routes compile spec for Play version: " + playVersion);
         }

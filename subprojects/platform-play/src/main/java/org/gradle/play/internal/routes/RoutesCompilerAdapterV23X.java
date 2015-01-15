@@ -29,8 +29,9 @@ class RoutesCompilerAdapterV23X extends DefaultVersionedRoutesCompilerAdapter {
     private final List<String> defaultScalaImports = Lists.newArrayList("controllers.Assets.Asset");
     private final List<String> defaultJavaImports = Lists.newArrayList("controllers.Assets.Asset", "play.libs.F");
 
-    public RoutesCompilerAdapterV23X(String playVersion, String scalaCompatibilityVersion) {
-        super(playVersion, scalaCompatibilityVersion);
+    public RoutesCompilerAdapterV23X(String playVersion) {
+        // No 2.11 version of routes compiler published
+        super(playVersion, "2.10");
     }
 
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
