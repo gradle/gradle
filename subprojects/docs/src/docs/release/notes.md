@@ -43,6 +43,15 @@ Example setting in gradle.properties file:
 
 - TBD
 
+### Model rules
+
+A number of improvements have been made to the model rules execution used by the native language plugins:
+
+- Added a basic `model` report to allow you to see the structure of the model for a particular project.
+- `@Defaults` annotation allow logic to be applied to attach defaults to a model element.
+- `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
+- `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
