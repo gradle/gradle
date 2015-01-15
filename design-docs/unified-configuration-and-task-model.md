@@ -132,6 +132,13 @@ A new API for querying applied plugins that supports both `Plugin` implementing 
 - ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
 - ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
 
+### Other issues
+
+- `TaskRemovalIntegrationTest.cant remove task in after evaluate if task is used by a #annotationClass` is ignored
+- Some int test coverage for inputs that become ambiguous or cannot be coerced to requested type during rule execution.
+- Error message when DSl rule or compiled rule fail should report the purpose (eg could not configure task thing) rather than
+  the mechanics (eg SomeClass.method() threw an exception).
+
 ## Rules are extracted from plugins once and cached globally
 
 Currently, when applying rule based plugins we go reflecting on the plugin and immediately applying rules that we find.
@@ -263,6 +270,9 @@ Unordered and not all appropriately story sized.
 
 ## Diagnostics
 
+- Error message for rule execution/validation failure should include information about 'identity' of the rule, eg the same method attached to different projects.
+- Error message for rule execution/validation failure should include information about 'why' the rule was executed, eg during build script execution, as input to some rule.
+- Progress logging should show something about rule execution, eg when closing the task container for a project.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
   This essentially means more context in the 'thing has been closed' error message.
