@@ -38,9 +38,9 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
-public class JavaScriptCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
-    private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
 
+public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
+    private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
     private Class sourceFileClass;
     private Class compilerOptionsClass;
     private Class compilationLevelClass;

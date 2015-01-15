@@ -28,7 +28,7 @@ import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
-import org.gradle.play.internal.javascript.JavaScriptCompiler;
+import org.gradle.play.internal.javascript.GoogleClosureCompiler;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompiler;
@@ -82,7 +82,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
             Set<File> routesClasspath = resolveToolClasspath(routesCompiler.getDependencyNotation()).getFiles();
             return cast(new DaemonPlayCompiler<RoutesCompileSpec>(fileResolver.resolve("."), routesCompiler, compilerDaemonManager, routesClasspath, routesCompiler.getClassLoaderPackages()));
         } else if (spec instanceof JavaScriptCompileSpec) {
-            JavaScriptCompiler javaScriptCompiler = new JavaScriptCompiler();
+            GoogleClosureCompiler javaScriptCompiler = new GoogleClosureCompiler();
             Set<File> javaScriptCompilerClasspath = resolveToolClasspath(javaScriptCompiler.getDependencyNotation()).getFiles();
             return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."), javaScriptCompiler, compilerDaemonManager, javaScriptCompilerClasspath, javaScriptCompiler.getClassLoaderPackages()));
         }
