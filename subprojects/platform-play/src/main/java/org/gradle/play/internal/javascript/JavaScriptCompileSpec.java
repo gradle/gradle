@@ -19,12 +19,6 @@ package org.gradle.play.internal.javascript;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
-import java.io.File;
-import java.util.List;
-
 public interface JavaScriptCompileSpec extends PlayCompileSpec {
     Iterable<RelativeFile> getSources();
-    File getDestinationDir();
-    List<String> getClassLoaderPackages();
-    Object getDependencyNotation();
 }

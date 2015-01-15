@@ -17,16 +17,13 @@
 package org.gradle.play.internal.javascript;
 
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
 
 public class DefaultJavaScriptCompileSpec implements JavaScriptCompileSpec, Serializable {
-    private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
 
     private final Iterable<RelativeFile> sources;
     private final File destinationDir;
@@ -51,15 +48,5 @@ public class DefaultJavaScriptCompileSpec implements JavaScriptCompileSpec, Seri
     @Override
     public BaseForkOptions getForkOptions() {
         return forkOptions;
-    }
-
-    @Override
-    public List<String> getClassLoaderPackages() {
-        return Lists.newArrayList("com.google.javascript");
-    }
-
-    @Override
-    public Object getDependencyNotation() {
-        return String.format("com.google.javascript:closure-compiler:%s", DEFAULT_GOOGLE_CLOSURE_VERSION);
     }
 }

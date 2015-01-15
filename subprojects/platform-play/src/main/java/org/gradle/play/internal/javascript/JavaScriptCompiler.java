@@ -39,10 +39,20 @@ import java.util.List;
 
 @SuppressWarnings("rawtypes")
 public class JavaScriptCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
+    private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
+
     private Class sourceFileClass;
     private Class compilerOptionsClass;
     private Class compilationLevelClass;
     private Class compilerClass;
+
+    public List<String> getClassLoaderPackages() {
+        return Lists.newArrayList("com.google.javascript");
+    }
+
+    public Object getDependencyNotation() {
+        return String.format("com.google.javascript:closure-compiler:%s", DEFAULT_GOOGLE_CLOSURE_VERSION);
+    }
 
     @Override
     public WorkResult execute(JavaScriptCompileSpec spec) {
