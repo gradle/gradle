@@ -188,7 +188,6 @@ public class AvailableToolChains {
         private final String objectFileNameSuffix;
 
         private String originalPath;
-        private String originalPATH;
 
         public InstalledToolChain(String displayName) {
             this.displayName = displayName;
@@ -246,20 +245,15 @@ public class AvailableToolChains {
 
             if (compilerPath.length() > 0) {
                 originalPath = System.getenv(pathVarName);
-                originalPATH = System.getenv(pathVarName.toUpperCase());
                 String path = compilerPath + File.pathSeparator + originalPath;
                 System.out.println(String.format("Using path %s", path));
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
-                PROCESS_ENVIRONMENT.maybeRemoveEnvironmentVariable(pathVarName.toUpperCase());
             }
         }
 
         public void resetEnvironment() {
             if (originalPath != null) {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
-            }
-            if (originalPATH != null) {
-                PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName.toUpperCase(), originalPATH);
             }
         }
 
