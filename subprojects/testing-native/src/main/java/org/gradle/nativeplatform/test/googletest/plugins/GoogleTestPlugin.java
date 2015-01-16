@@ -35,6 +35,7 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
+import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
@@ -118,7 +119,10 @@ public class GoogleTestPlugin implements Plugin<Project> {
         public void createGoogleTestTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry) {
             for (final GoogleTestTestSuiteSpec googleTestTestSuite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : googleTestTestSuite.getTestedComponent().getNativeBinaries()) {
-
+                    if (testedBinary instanceof SharedLibraryBinary) {
+                        // TODO:DAZ For now, we only create test suites for static library variants
+                        continue;
+                    }
                     DefaultGoogleTestTestSuiteBinary testBinary = createTestBinary(serviceRegistry, googleTestTestSuite, testedBinary);
 
                     configure(testBinary, buildDir);
