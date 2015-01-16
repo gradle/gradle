@@ -28,8 +28,7 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
         interface CustomLanguageSourceSet extends LanguageSourceSet {}
         class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
 
-        @RuleSource
-        class CustomLanguagePlugin {
+        class CustomLanguagePlugin extends RuleSource {
             @LanguageType
             void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
                 builder.setLanguageName("custom")
@@ -72,8 +71,7 @@ model {
         class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
 
 
-        @RuleSource
-        class CustomComponentPlugin{
+        class CustomComponentPlugin extends RuleSource {
             @ComponentType
             void register(ComponentTypeBuilder<SampleComponent> builder) {
                 builder.defaultImplementation(DefaultSampleComponent)

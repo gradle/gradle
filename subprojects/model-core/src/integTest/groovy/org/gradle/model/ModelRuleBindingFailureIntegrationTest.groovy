@@ -35,8 +35,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
                 static class MyThing2 {}
                 static class MyThing3 {}
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     MyThing1 thing1(MyThing2 thing2) {
                         new MyThing1()
@@ -96,8 +95,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTasks(CollectionBuilder<Task> tasks) {
                         tasks.create("foobar")
@@ -119,7 +117,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  model.tasks.foonar @ build file '${buildFile}' line 19, column 17
+  model.tasks.foonar @ build file '${buildFile}' line 18, column 17
     Mutable:
       - tasks.foonar (java.lang.Object) - suggestions: tasks.foobar""")
     }
@@ -130,8 +128,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class Plugin1 {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String s1() {
                         "foo"
@@ -140,8 +137,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             }
 
             class Plugin2 {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String s2() {
                         "bar"
@@ -150,8 +146,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             }
 
             class Plugin3 {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void m(String s) {
                         "foo"
@@ -181,8 +176,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class Plugin1 {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTasks(@Path("tasks") Integer s1) {
 
@@ -210,8 +204,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         buildScript """
             import org.gradle.model.*
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Model
                 Integer foo(@Path("bar") Integer bar) {
                     22
