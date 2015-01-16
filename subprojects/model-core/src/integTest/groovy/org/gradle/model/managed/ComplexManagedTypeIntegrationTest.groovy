@@ -36,6 +36,14 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
             @Managed
             interface OperatingSystem {
+                Family getFamily()
+
+                String getVersion()
+                void setVersion(String name)
+            }
+
+            @Managed
+            interface Family {
                 String getName()
                 void setName(String name)
             }
@@ -46,15 +54,20 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void somePlatform(Platform platform) {
                     assert platform.displayName == null
                     assert platform.operatingSystem != null
-                    assert platform.operatingSystem.name == null
+                    assert platform.operatingSystem.version == null
+                    assert platform.operatingSystem.family != null
+                    assert platform.operatingSystem.family.name == null
 
-                    platform.displayName = "Microsoft Windows"
-                    platform.operatingSystem.name = "windows"
+                    platform.displayName = "Microsoft Windows 8.1"
+                    platform.operatingSystem.version = "8.1"
+                    platform.operatingSystem.family.name = "windows"
 
-                    assert platform.displayName == "Microsoft Windows"
-                    assert platform.operatingSystem.name == "windows"
+                    assert platform.displayName == "Microsoft Windows 8.1"
+                    assert platform.operatingSystem.version == "8.1"
+                    assert platform.operatingSystem.family.name == "windows"
 
                     assert platform.operatingSystem.is(platform.operatingSystem)
+                    assert platform.operatingSystem.family.is(platform.operatingSystem.family)
                 }
 
                 @Mutate
@@ -63,7 +76,8 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                         it.doLast {
                             println "platform: $platform"
                             println "os: $platform.operatingSystem"
-                            println "platform name: $platform.operatingSystem.name"
+                            println "family: $platform.operatingSystem.family"
+                            println "platform name: $platform.operatingSystem.family.name $platform.operatingSystem.version"
                         }
                     }
                 }
@@ -78,7 +92,8 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         and:
         output.contains("platform: Platform 'somePlatform'")
         output.contains("os: OperatingSystem 'somePlatform.operatingSystem'")
-        output.contains("platform name: windows")
+        output.contains("family: Family 'somePlatform.operatingSystem.family'")
+        output.contains("platform name: windows 8.1")
     }
 
     def "rule can apply defaults to a nested managed model element"() {
@@ -160,22 +175,34 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setName(String name)
             }
 
+            @Managed
+            interface OperatingSystems {
+                OperatingSystem getWindows()
+                OperatingSystem getLinux()
+            }
+
             @RuleSource
             class RulePlugin {
                 @Model
-                void windowsOs(OperatingSystem os) {
-                  os.name = "windows"
+                void os(OperatingSystems os) {
+                  os.windows.name = "windows"
+                  os.linux.name = "linux"
                 }
 
                 @Model
-                void windowsPlatform(Platform platform, OperatingSystem os) {
+                void windowsPlatform(Platform platform, OperatingSystems os) {
                   platform.displayName = "Microsoft Windows"
 
                   assert platform.operatingSystem == null
 
-                  platform.operatingSystem = os
+                  platform.operatingSystem = os.linux
+                  assert platform.operatingSystem.is(os.linux)
 
-                  assert platform.operatingSystem.is(os)
+                  platform.operatingSystem = null
+                  assert platform.operatingSystem == null
+
+                  platform.operatingSystem = os.windows
+                  assert platform.operatingSystem.is(os.windows)
                 }
 
                 @Mutate
@@ -198,7 +225,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains("platform: Platform 'windowsPlatform'")
-        output.contains("os: OperatingSystem 'windowsOs'")
+        output.contains("os: OperatingSystem 'os.windows'")
         output.contains("platform name: windows")
     }
 }
