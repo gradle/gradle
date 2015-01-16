@@ -42,8 +42,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 void setUnmanaged(UnmanagedThing unmanaged)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void m(ManagedThing thing) {
                     thing.unmanaged = new UnmanagedThing(value: "foo")
@@ -86,8 +85,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 String name
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {}
 

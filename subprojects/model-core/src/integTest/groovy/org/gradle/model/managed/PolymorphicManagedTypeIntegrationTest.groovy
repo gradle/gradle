@@ -35,8 +35,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
@@ -77,8 +76,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
@@ -121,8 +119,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setValue(String value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void namedThing(NamedThing namedThing) {
                     namedThing.name = "name"
@@ -164,8 +161,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
             interface ManagedNamed extends Named {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void managedNamed(ManagedNamed namedThing) {
                 }
@@ -218,8 +214,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setValue(Integer value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void namedString(NamedString namedString) {
                     namedString.name = "string"

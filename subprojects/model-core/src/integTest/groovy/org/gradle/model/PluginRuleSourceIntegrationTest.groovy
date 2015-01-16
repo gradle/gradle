@@ -32,8 +32,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -73,8 +72,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -103,8 +101,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                class Rules {
+                class Rules extends RuleSource {
                 }
             }
 
@@ -125,16 +122,14 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
             }
 
             class MyOtherPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
@@ -158,16 +153,14 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
             }
 
             class MyOtherPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "bar" }
                 }
@@ -202,8 +195,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { throw new RuntimeException("oh no!") }
                 }
@@ -232,8 +224,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
@@ -265,8 +256,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() {
                       null
@@ -297,8 +287,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyBasePlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void strings(List<String> strings) {
                       strings << "foo"
@@ -311,8 +300,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     project.pluginManager.apply(MyBasePlugin)
                 }
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -354,8 +342,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     project.extensions.create("myExtension", MyExtension)
                 }
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     MyExtension myExtension(ExtensionContainer extensions) {
                         extensions.getByType(MyExtension)
@@ -398,8 +385,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
@@ -428,8 +414,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         buildScript '''
             import org.gradle.model.*
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 Rules() {
                     throw new RuntimeException("failing constructor")
                 }

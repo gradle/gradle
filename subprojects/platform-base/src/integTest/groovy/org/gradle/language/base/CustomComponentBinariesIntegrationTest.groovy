@@ -49,8 +49,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
 
-        @RuleSource
-        static class ComponentModel {
+        static class ComponentModel extends RuleSource {
             @ComponentType
             void register(ComponentTypeBuilder<SampleLibrary> builder) {
                 builder.defaultImplementation(DefaultSampleLibrary)
@@ -180,9 +179,7 @@ Binaries
         class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
-
+            static class Rules extends RuleSource {
                @Model
                CustomModel customModel() {
                    new CustomModel()
@@ -233,8 +230,7 @@ Binaries
          class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary")

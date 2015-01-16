@@ -19,6 +19,7 @@ package sample.markdown
 import org.gradle.api.Action
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
+import org.gradle.model.RuleSource
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -26,8 +27,7 @@ import org.gradle.model.collection.CollectionBuilder
 import org.gradle.api.Task
 import sample.documentation.DocumentationBinary
 
-@RuleSource
-class MarkdownPlugin {
+class MarkdownPlugin extends RuleSource {
     @LanguageType
     void declareMarkdownLanguage(LanguageTypeBuilder<MarkdownSourceSet> builder) {
         builder.setLanguageName("Markdown")

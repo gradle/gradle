@@ -49,8 +49,7 @@ public class CppLangPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<CppSourceSet> builder) {
             builder.setLanguageName("cpp");

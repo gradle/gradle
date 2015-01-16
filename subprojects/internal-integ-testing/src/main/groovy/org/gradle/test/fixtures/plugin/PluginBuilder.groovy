@@ -131,8 +131,7 @@ class PluginBuilder {
         addPluginSource(pluginId, className, """
             package $packageName
 
-            @$RuleSource.name
-            class $className {
+            class $className extends $RuleSource.name {
                 @$Mutate.name
                 void addTask($CollectionBuilder.name<$Task.name> tasks) {
                     tasks.create("fromModelRule") {

@@ -51,8 +51,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<JvmResourceSet> builder) {
             builder.setLanguageName("resources");

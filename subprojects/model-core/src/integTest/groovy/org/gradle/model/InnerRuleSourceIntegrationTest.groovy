@@ -35,16 +35,14 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            @RuleSource
-            class EchoRules {
+            class EchoRules extends RuleSource {
                 @Mutate
                 void mutateEcho(Task echo, String message) {
                     echo.message = message
                 }
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Model
                 String message() {
                     "foo"
@@ -73,16 +71,14 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            @RuleSource
-            class ThrowingRule {
+            class ThrowingRule extends RuleSource {
                 @Mutate
                 void badRule(Task echo) {
                     throw new RuntimeException("I'm broken")
                 }
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.named("taskWithThrowingRuleApplied", ThrowingRule)
@@ -107,15 +103,13 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            @RuleSource
-            class InvalidRuleSource {
+            class InvalidRuleSource extends RuleSource {
                 @Mutate
                 String invalidRule(Task echo) {
                 }
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.named("taskWithInvalidRuleSourceApplied", InvalidRuleSource)
@@ -140,15 +134,13 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
-            @RuleSource
-            class UnboundRuleSource {
+            class UnboundRuleSource extends RuleSource {
                 @Mutate
                 void unboundRule(String string, Integer integer, @Path("some.inner.path") String withInnerPath) {
                 }
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.named("taskWithUnboundRuleSourceApplied", UnboundRuleSource)

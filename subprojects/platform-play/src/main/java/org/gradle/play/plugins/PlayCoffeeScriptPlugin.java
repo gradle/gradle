@@ -46,9 +46,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * a {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet}.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayCoffeeScriptPlugin {
+public class PlayCoffeeScriptPlugin extends RuleSource {
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 

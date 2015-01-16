@@ -43,9 +43,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayJavaScriptPlugin {
+public class PlayJavaScriptPlugin extends RuleSource {
     @LanguageType
     void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
         builder.setLanguageName("javaScript");

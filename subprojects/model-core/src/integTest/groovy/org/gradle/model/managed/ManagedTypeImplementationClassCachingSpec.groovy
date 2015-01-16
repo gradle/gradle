@@ -32,8 +32,7 @@ class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec 
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void first(Named first) {
                 }

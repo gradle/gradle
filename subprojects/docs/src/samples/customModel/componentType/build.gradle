@@ -42,8 +42,7 @@ class MyImageRenderingPlugin implements Plugin<Project> {
     void apply(Project project) {
     }
 
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model("images")
         ImagesExtension createSampleExtension() {
              return new ImagesExtension()

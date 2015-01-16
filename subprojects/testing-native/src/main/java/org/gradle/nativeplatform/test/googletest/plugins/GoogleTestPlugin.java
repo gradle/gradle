@@ -70,8 +70,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Mutate

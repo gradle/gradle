@@ -32,8 +32,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
@@ -77,8 +76,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.firstName = "Alan"
@@ -121,8 +119,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createElement(CustomToString element) {
                     element.stringRepresentation = "custom string representation"
@@ -164,8 +161,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createModelElementCallingSetterInCustomToString(CustomToStringCallingSetter element) {
                 }
@@ -212,8 +208,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         '''
         defineCallsSetterInNonAbstractGetterClass()
         buildFile << '''
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createModelElementCallingSetterInNonAbstractGetter(CallsSetterInNonAbstractGetter element) {
                 }
@@ -254,8 +249,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createModelElementCallingSuperGetterInNonAbstractGetter(CallsSuperGetterInNonAbstractGetter element) {
                 }

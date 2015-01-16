@@ -44,9 +44,8 @@ import java.util.Arrays;
  * Plugin for executing tests from a Play Framework application.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayTestPlugin {
+public class PlayTestPlugin extends RuleSource {
     @Mutate
     void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {

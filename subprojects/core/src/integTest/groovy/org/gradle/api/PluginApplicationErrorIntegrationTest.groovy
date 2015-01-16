@@ -63,7 +63,7 @@ class BrokenPlugin implements Plugin<Project> {
         failure.assertHasCause("throwing plugin")
     }
 
-    def "cannot apply a plugin that does not implement Plugin or is not annotated with @RuleSource"() {
+    def "cannot apply a plugin that does not implement Plugin and does not extend RuleSource"() {
         buildFile << '''
 apply plugin: BrokenPlugin
 

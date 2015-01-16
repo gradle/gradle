@@ -37,8 +37,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void person(Person person) {
                 }
@@ -81,8 +80,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 Pet getPet()
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void person(Person person) {
                 }
@@ -116,8 +114,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void person(Person person) {
                 }
@@ -156,8 +153,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 static Person person
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void person(Person person) {
                     Holder.person = person
@@ -201,8 +197,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 static Person person
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void person(Person person) {
                     Holder.person = person
@@ -247,8 +242,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 static Person person
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void pet(Pet pet) {
                 }

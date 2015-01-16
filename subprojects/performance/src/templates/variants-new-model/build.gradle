@@ -26,8 +26,7 @@ abstract class Variant {
     }
 }
 
-@RuleSource
-class VariantsRuleSource {
+class VariantsRuleSource extends RuleSource {
     @Model
     void flavours(ManagedSet<Flavour> flavours) {
     }

@@ -80,8 +80,7 @@ task checkModel << {
     def "can configure component declared by model rule DSL using model rule method"() {
         when:
         buildFile << """
-            @RuleSource
-            class MySamplePlugin {
+            class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)
@@ -118,8 +117,7 @@ task checkModel << {
     def "can register custom component model without creating"() {
         when:
         buildFile << """
-            @RuleSource
-            class MySamplePlugin {
+            class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)
@@ -168,8 +166,7 @@ BUILD SUCCESSFUL"""))
     def "can have component declaration and creation in separate plugins"() {
         when:
         buildFile << """
-            @RuleSource
-            class MyComponentDeclarationModel {
+            class MyComponentDeclarationModel extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)
@@ -181,8 +178,7 @@ BUILD SUCCESSFUL"""))
                     project.apply(plugin:MyComponentDeclarationModel)
                 }
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void createSampleComponentComponents(CollectionBuilder<SampleComponent> componentSpecs) {
                         componentSpecs.create("sampleLib")
@@ -211,8 +207,7 @@ BUILD SUCCESSFUL"""))
             interface SampleLibrary extends LibrarySpec {}
             class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
 
-            @RuleSource
-            class MySamplePlugin {
+            class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)
@@ -259,8 +254,7 @@ BUILD SUCCESSFUL"""))
         given:
         settingsFile << """rootProject.name = 'custom-component'"""
         buildFile << """
-            @RuleSource
-            class MySamplePlugin {
+            class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder, String illegalOtherParameter) {
                 }
@@ -285,8 +279,7 @@ BUILD SUCCESSFUL"""))
 
         and:
         buildFile << """
-            @RuleSource
-            class MyOtherPlugin {
+            class MyOtherPlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)
@@ -308,8 +301,7 @@ BUILD SUCCESSFUL"""))
     def buildWithCustomComponentPlugin() {
         settingsFile << """rootProject.name = 'custom-component'"""
         buildFile << """
-            @RuleSource
-            class MySamplePlugin {
+            class MySamplePlugin extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleComponent> builder) {
                     builder.defaultImplementation(DefaultSampleComponent)

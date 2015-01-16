@@ -51,9 +51,8 @@ import java.util.Set;
  * A plugin that adds a distribution zip to a Play application build.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayDistributionPlugin {
+public class PlayDistributionPlugin extends RuleSource {
     public static final String DISTRIBUTION_GROUP = "distribution";
 
     @Model

@@ -42,8 +42,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
                   platform.operatingSystem.name = "foo"
@@ -93,8 +92,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {}
 
@@ -142,8 +140,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
                   platform.name = "foo"
@@ -193,8 +190,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
                   platform.operatingSystem.name = "foo"
@@ -239,8 +235,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void operatingSystem(OperatingSystem operatingSystem) {
                   operatingSystem.name = "foo"

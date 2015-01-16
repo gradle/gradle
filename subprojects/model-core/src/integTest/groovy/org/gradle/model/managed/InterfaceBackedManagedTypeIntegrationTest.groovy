@@ -40,8 +40,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void name(Names names) {
                     assert names == names
@@ -95,8 +94,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 String name
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 Names name() {
                     return new Names(name: "before")
@@ -145,7 +143,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "managed type implemented as interface can have generative getter default methods"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -162,8 +160,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.setFirstName("Alan");
@@ -195,7 +192,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "generative getters implemented as default methods cannot call setters"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -211,8 +208,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                 }
@@ -242,7 +238,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "non-abstract setters implemented as default interface methods are not allowed"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -254,8 +250,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                 }
@@ -280,7 +275,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "non-mutative non-abstract methods implemented as default interface methods are not allowed"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -291,8 +286,7 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                 }

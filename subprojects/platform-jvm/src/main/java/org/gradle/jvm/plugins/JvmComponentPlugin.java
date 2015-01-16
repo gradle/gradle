@@ -49,9 +49,8 @@ import java.util.List;
  * the {@link org.gradle.platform.base.ComponentSpecContainer}.
  */
 @Incubating
-@RuleSource
 @SuppressWarnings("UnusedDeclaration")
-public class JvmComponentPlugin {
+public class JvmComponentPlugin extends RuleSource {
     @ComponentType
     void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
         builder.defaultImplementation(DefaultJvmLibrarySpec.class);

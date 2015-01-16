@@ -43,8 +43,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 List<String> tasks = []
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Model
                 MyModel myModel() {
                     new MyModel()
@@ -112,8 +111,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 String message
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Model
                 MyMessage myMessage() {
                     new MyMessage()
@@ -161,8 +159,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 String message
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Model
                 MyMessage myMessage() {
                     new MyMessage()
@@ -214,8 +211,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can validate tasks using rule methods"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Validate
                 void checkTask(@Path('tasks.bar') MessageTask task) {
                     throw new RuntimeException("task is invalid!")
@@ -247,8 +243,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 String message
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Model
                 MyMessage myMessage() {
                     new MyMessage()
@@ -304,8 +299,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can use rule DSL to apply rules to all tasks"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<MessageTask> tasks) {
                     ['foo', 'bar'].each { n ->
@@ -345,8 +339,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "tasks created using legacy DSL are visible to rules"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void applyMessages(CollectionBuilder<MessageTask> tasks) {
                     tasks.afterEach {
@@ -372,8 +365,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<MessageTask> tasks) {
                     tasks.create("foo") {
@@ -399,8 +391,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure dependencies between tasks using task name"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.create("foo")
@@ -431,8 +422,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
                 SomeTask() { println "\$name created" }
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<SomeTask> tasks) {
                     tasks.create("foo") {
@@ -472,8 +462,7 @@ foo configured
                 List<String> tasks = []
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Model
                 MyModel myModel() {
                     new MyModel()
@@ -518,8 +507,7 @@ foo configured
     def "cannot create tasks during config of task"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.create("foo") {
@@ -548,8 +536,7 @@ foo configured
                 }
             }
 
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.create("foo", Faulty)
@@ -570,8 +557,7 @@ foo configured
     def "failure during task initial configuration is reasonably reported"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.create("foo") {
@@ -594,8 +580,7 @@ foo configured
     def "failure during task configuration is reasonably reported"() {
         given:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTasks(CollectionBuilder<Task> tasks) {
                     tasks.create("foo")
@@ -617,14 +602,13 @@ foo configured
         then:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks.foo")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(26)
+        failure.assertHasLineNumber(25)
     }
 
     def "task created in afterEvaluate() is visible to rules"() {
         when:
         buildFile << '''
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void fromAfterEvaluateTaskAvailable(TaskContainer tasks) {
                     tasks.fromAfterEvaluate.value += " and from container rule"
@@ -657,8 +641,7 @@ foo configured
     def "registering a creation rule for a task that is already defined using legacy DSL"() {
         when:
         buildFile << """
-            @RuleSource
-            class MyPlugin {
+            class MyPlugin extends RuleSource {
                 @Mutate
                 void addTask(CollectionBuilder<Task> tasks) {
                     tasks.create("foo")

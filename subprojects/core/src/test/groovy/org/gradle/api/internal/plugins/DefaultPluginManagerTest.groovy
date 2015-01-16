@@ -39,8 +39,7 @@ class DefaultPluginManagerTest extends Specification {
 
     def setup() {
         rulesClass = classLoader.parseClass("""
-            @org.gradle.model.RuleSource
-            class Rules {
+            class Rules extends org.gradle.model.RuleSource {
 
             }
         """)
@@ -55,8 +54,7 @@ class DefaultPluginManagerTest extends Specification {
 
                 }
 
-                @org.gradle.model.RuleSource
-                static class Rules {}
+                static class Rules extends org.gradle.model.RuleSource {}
             }
         """)
 

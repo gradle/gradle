@@ -72,8 +72,7 @@ public class CUnitPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
 
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
 

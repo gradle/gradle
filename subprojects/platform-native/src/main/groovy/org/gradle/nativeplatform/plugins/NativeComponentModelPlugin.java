@@ -76,8 +76,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
 
         @ComponentType
         void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {

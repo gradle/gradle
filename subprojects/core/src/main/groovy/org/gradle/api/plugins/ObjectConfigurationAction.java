@@ -54,7 +54,7 @@ public interface ObjectConfigurationAction {
     /**
      * Adds the plugin implemented by the given class to the target.
      * <p>
-     * The class is expected to either implement {@link Plugin}, and/or be a {@link org.gradle.model.RuleSource}.
+     * The class is expected to either implement {@link Plugin}, or extend {@link org.gradle.model.RuleSource}.
      * An exception will be thrown if the class is not a valid plugin implementation.
      *
      * @param pluginClass the plugin to apply

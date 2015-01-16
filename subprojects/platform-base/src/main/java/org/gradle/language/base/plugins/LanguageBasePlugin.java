@@ -76,8 +76,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         ProjectSourceSet sources(ExtensionContainer extensions) {
             return extensions.getByType(ProjectSourceSet.class);

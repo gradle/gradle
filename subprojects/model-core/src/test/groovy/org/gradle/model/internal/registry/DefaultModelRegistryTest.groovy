@@ -487,8 +487,7 @@ class DefaultModelRegistryTest extends Specification {
         events == ["collection mutated", "c1 created"]
     }
 
-    @RuleSource
-    static class ElementRules {
+    static class ElementRules extends RuleSource {
         @Mutate
         void connectElementToInput(Bean element, String input) {
             element.value = input
@@ -546,8 +545,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("element"), ModelType.of(Bean)).value == null
     }
 
-    @RuleSource
-    static class ByTypeBindingInputRule {
+    static class ByTypeBindingInputRule extends RuleSource {
         @Mutate
         void byTypeInputBindingRule(Bean inner, Bean outer) {
             inner.value = "from outer: $outer.value"
@@ -575,8 +573,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "from outer: outer"
     }
 
-    @RuleSource
-    static class ByTypeSubjectBoundToScopeChildRule {
+    static class ByTypeSubjectBoundToScopeChildRule extends RuleSource {
         @Mutate
         void mutateScopeChild(MutableValue value) {
             value.value = "foo"
@@ -607,8 +604,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("beans.element.mutable"), ModelType.of(MutableValue)).value == "foo"
     }
 
-    @RuleSource
-    static class ByPathBoundInputsChildRule {
+    static class ByPathBoundInputsChildRule extends RuleSource {
         @Mutate
         void mutateFirst(@Path("first") MutableValue first) {
             first.value = "first"

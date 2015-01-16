@@ -61,8 +61,7 @@ class ModelRuleCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             import org.gradle.model.*
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Model
                 String string() {
                 }

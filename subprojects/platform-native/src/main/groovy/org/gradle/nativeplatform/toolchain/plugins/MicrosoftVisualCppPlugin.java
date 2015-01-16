@@ -48,8 +48,7 @@ public class MicrosoftVisualCppPlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
         @Mutate
         public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);

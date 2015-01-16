@@ -34,8 +34,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class MyComponentBasePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @ComponentType
                 void register(ComponentTypeBuilder<SampleLibrary> builder) {
                     builder.defaultImplementation(DefaultSampleLibrary)
@@ -71,8 +70,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryTasks
                 void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
                     tasks.create("\${binary.name}Task")
@@ -99,8 +97,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryTasks
                 void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
                     tasks.create("\${binary.name}Task")
@@ -132,8 +129,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryTasks
                 void createSampleComponentComponents(CollectionBuilder<Task> tasks, SampleBinary binary) {
                     tasks.create("\${binary.name}Task", BinaryCreationTask) {
@@ -162,8 +158,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class MyOtherBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<OtherBinary> builder) {
                     builder.defaultImplementation(DefaultOtherBinary)
@@ -205,8 +200,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
 
                 @Model
                 CustomModel customModel() {
@@ -247,8 +241,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryTasks
                 void createTasks(CollectionBuilder<Task> tasks, SampleBinary binary) {
                     tasks.create("\${binary.name}TaskOne"){

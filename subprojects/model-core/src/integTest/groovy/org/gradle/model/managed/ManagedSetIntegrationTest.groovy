@@ -42,8 +42,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
                 List<String> names = []
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               Names names() {
                 return new Names(names: ["p1", "p2"])
@@ -102,8 +101,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               abstract void setName(String string)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
                 people.create { it.name = "p1" }
@@ -151,8 +149,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               ManagedSet<Person> getMembers()
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void group(Group group) {
                 group.name = "Women in computing"
@@ -206,8 +203,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               void setMembers(ManagedSet<Person> members)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
                 people.create { it.name = "Ada Lovelace" }
@@ -260,8 +256,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
               void setName(String string)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
                 println "initialize"
@@ -320,8 +315,7 @@ finalize
               abstract void setName(String string)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
                 people.create {
@@ -391,8 +385,7 @@ configure p3
             interface Person {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void people(ManagedSet<Person> people) {
                     people.size()
@@ -424,8 +417,7 @@ configure p3
             interface Person {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void people(ManagedSet<Person> people) {
                 }
@@ -461,8 +453,7 @@ configure p3
             interface Person {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void people(ManagedSet<Person> people) {}
 
@@ -497,8 +488,7 @@ configure p3
                 static ManagedSet<Person> people
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void people(ManagedSet<Person> people) {
                     Holder.people = people
@@ -531,8 +521,7 @@ configure p3
             interface Person {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void people(ManagedSet<Person> people) {
                 }

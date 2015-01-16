@@ -33,8 +33,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.setName(123)
@@ -58,7 +57,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Java"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -70,8 +69,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 void setName(String name);
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
                     Method setter = person.getClass().getMethod("setName", String.class);
@@ -113,8 +111,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
                 }
@@ -149,8 +146,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         buildScript '''
             import org.gradle.model.*
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void s(String s) {}
             }
@@ -176,8 +172,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
                 String getName()
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                 }

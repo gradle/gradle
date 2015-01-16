@@ -48,8 +48,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void somePlatform(Platform platform) {
                     assert platform.displayName == null
@@ -116,8 +115,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
                     platform.displayName = "Microsoft Windows"
@@ -181,8 +179,7 @@ class ComplexManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 OperatingSystem getLinux()
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void os(OperatingSystems os) {
                   os.windows.name = "windows"

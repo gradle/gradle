@@ -87,8 +87,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         LanguageRegistry languages(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);

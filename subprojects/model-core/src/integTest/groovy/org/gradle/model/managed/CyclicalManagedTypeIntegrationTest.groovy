@@ -40,8 +40,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setParent(Parent parent)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createParent(Parent parent) {
                     parent.name = "parent"
@@ -93,8 +92,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setA(A a)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createA(A a) {
                     a.name = "a"

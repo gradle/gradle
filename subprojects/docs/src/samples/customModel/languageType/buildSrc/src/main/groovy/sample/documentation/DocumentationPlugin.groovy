@@ -31,8 +31,7 @@ import org.gradle.api.Action
 
 import org.gradle.model.Path
 
-@RuleSource
-class DocumentationPlugin {
+class DocumentationPlugin extends RuleSource {
     @ComponentType
     void register(ComponentTypeBuilder<DocumentationComponent> builder) {
         builder.defaultImplementation(DefaultDocumentationComponent)

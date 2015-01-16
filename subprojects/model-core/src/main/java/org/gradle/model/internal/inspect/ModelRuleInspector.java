@@ -176,11 +176,6 @@ public class ModelRuleInspector {
             }
         }
 
-        Class<?> superclass = source.getSuperclass();
-        if (!superclass.equals(Object.class)) {
-            throw invalid(source, "cannot have superclass");
-        }
-
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
             if (constructor.getParameterTypes().length > 0) {

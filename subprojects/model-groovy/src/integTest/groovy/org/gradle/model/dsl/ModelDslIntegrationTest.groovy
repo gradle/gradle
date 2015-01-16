@@ -39,8 +39,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -82,8 +81,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -121,8 +119,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -156,8 +153,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -212,8 +208,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -231,7 +226,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 18
+        failure.assertHasLineNumber 17
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(RulesVisitor.ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE))
     }

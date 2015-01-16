@@ -89,8 +89,7 @@ model {
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
@@ -115,8 +114,7 @@ model {
         class MyBinaryDeclarationModel implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
@@ -129,8 +127,7 @@ model {
                 project.apply(plugin:MyBinaryDeclarationModel)
             }
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @Mutate
                 void createSampleBinaries(CollectionBuilder<SampleBinary> binaries) {
                     binaries.create("sampleBinary")
@@ -161,8 +158,7 @@ model {
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
@@ -209,8 +205,7 @@ model {
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder, String illegalOtherParameter) {
                 }
@@ -238,8 +233,7 @@ model {
         class MyOtherPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules1 {
+            static class Rules1 extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)
@@ -287,8 +281,7 @@ BUILD SUCCESSFUL"""))
         class MySamplePlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @BinaryType
                 void register(BinaryTypeBuilder<SampleBinary> builder) {
                     builder.defaultImplementation(DefaultSampleBinary)

@@ -67,8 +67,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
                 tasks.remove(foo)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @$annotationClass
                 void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
                    // do nothing
@@ -96,8 +95,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
             task foo {}
             task bar { doLast { tasks.remove(foo) } }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Mutate
                 void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
                    // do nothing

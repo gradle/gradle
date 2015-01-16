@@ -35,8 +35,7 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 void setLongPropertyFromInteger(Long value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPrimitiveTypes(PrimitiveTypes primitiveTypes) {
                     primitiveTypes.longPropertyFromInt = 123
@@ -67,7 +66,7 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     def "values of primitive types are boxed as usual when using java"() {
         when:
-        file('buildSrc/src/main/java/RuleSource.java') << '''
+        file('buildSrc/src/main/java/Rules.java') << '''
             import org.gradle.api.*;
             import org.gradle.model.*;
             import org.gradle.model.collection.*;
@@ -84,8 +83,7 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 void setCharacterProperty(Character value);
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPrimitiveProperty(PrimitiveProperty primitiveProperty) {
                     primitiveProperty.setLongProperty(123l);
@@ -163,8 +161,7 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 void setStringProperty(String value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void supportedUnmanagedTypes(AllSupportedUnmanagedTypes element) {
                     element.booleanProperty = Boolean.TRUE

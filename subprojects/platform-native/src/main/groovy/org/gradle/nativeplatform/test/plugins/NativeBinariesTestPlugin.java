@@ -22,10 +22,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.Finalize;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
@@ -53,8 +50,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
         @Model
         TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);

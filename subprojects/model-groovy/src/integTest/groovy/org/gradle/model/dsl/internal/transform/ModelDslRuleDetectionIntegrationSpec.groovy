@@ -67,8 +67,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
             )
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTask(CollectionBuilder<Task> tasks, @Path("$normalisedPath") List<String> strings) {
                         tasks.create("printStrings") {
