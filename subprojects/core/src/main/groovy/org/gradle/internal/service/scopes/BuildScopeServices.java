@@ -166,7 +166,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new BuildScriptProcessor(get(ScriptPluginFactory.class)),
                 new DelayedConfigurationActions()
         );
-        return new LifecycleProjectEvaluator(withActionsEvaluator, new ModelRegistryValidatingConfigurationAction());
+        return new LifecycleProjectEvaluator(withActionsEvaluator);
     }
 
     protected ITaskFactory createITaskFactory() {

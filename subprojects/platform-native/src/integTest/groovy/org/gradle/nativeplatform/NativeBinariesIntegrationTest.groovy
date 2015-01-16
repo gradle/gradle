@@ -183,7 +183,7 @@ model {
 
         then:
         fails "mainExecutable"
-        failure.assertHasDescription("Exception thrown while executing model rule: model.components > create(main)");
+        failure.assertHasCause("Exception thrown while executing model rule: model.components > create(main)");
         failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
     }
 

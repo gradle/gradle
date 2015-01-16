@@ -34,7 +34,7 @@ class TaskPathProjectEvaluatorTest extends Specification {
         evaluator.configure(project)
 
         then:
-        BuildCancelledException e = thrown()
+        thrown(BuildCancelledException)
 
         and:
         0 * project._

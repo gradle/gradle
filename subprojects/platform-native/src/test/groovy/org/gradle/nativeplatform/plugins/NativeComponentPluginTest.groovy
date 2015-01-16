@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.plugins
 
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -41,8 +40,7 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeExecutableSpec)
             }
         }
-        project.evaluate()
-        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        project.realizeTasksAndValidateModel()
 
         then:
         def testExecutable = project.binaries.testExecutable
@@ -69,8 +67,7 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeLibrarySpec)
             }
         }
-        project.evaluate()
-        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        project.realizeTasksAndValidateModel()
 
         then:
         def sharedLibraryBinary = project.binaries.testSharedLibrary

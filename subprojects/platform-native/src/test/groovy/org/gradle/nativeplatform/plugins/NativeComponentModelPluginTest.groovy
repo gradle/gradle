@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.plugins
 
 import org.gradle.api.Task
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.internal.core.ModelPath
@@ -79,7 +78,7 @@ class NativeComponentModelPluginTest extends Specification {
 
         and:
         realize()
-        
+
         then:
         one(project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
         project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == 1
@@ -104,7 +103,7 @@ class NativeComponentModelPluginTest extends Specification {
             }
         }
         realize()
-        
+
         then:
         NativeExecutableSpec executable = one(project.componentSpecs) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
@@ -138,7 +137,7 @@ class NativeComponentModelPluginTest extends Specification {
             }
         }
         realize()
-        
+
         then:
         NativeLibrarySpec library = one(project.componentSpecs) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
@@ -179,7 +178,7 @@ class NativeComponentModelPluginTest extends Specification {
             }
         }
         realize()
-        
+
         then:
         NativeExecutableBinarySpec executableBinary = project.binaries.exeExecutable as NativeExecutableBinarySpec
         with(oneTask(executableBinary.buildDependencies)) {
@@ -199,8 +198,7 @@ class NativeComponentModelPluginTest extends Specification {
     }
 
     private void realize() {
-        project.evaluate()
-        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        project.realizeTasksAndValidateModel()
     }
 
     static <T> T one(Collection<T> collection) {

@@ -22,7 +22,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -78,9 +77,7 @@ class ComponentModelBasePluginTest extends Specification {
             }
         }
         project.componentSpecs.add(componentSpecInternal)
-        project.evaluate()
-        project.getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH)
-
+        project.realizeTasksAndValidateModel()
 
         then:
         1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)

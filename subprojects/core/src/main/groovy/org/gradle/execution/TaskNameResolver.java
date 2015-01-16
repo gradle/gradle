@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 
 import java.util.*;
@@ -49,7 +48,7 @@ public class TaskNameResolver {
     }
 
     private static void realizeTasks(ProjectInternal project) {
-        project.getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
+        project.realizeTasksAndValidateModel();
     }
 
     /**

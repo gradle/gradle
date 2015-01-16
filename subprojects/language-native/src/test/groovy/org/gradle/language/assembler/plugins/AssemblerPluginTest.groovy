@@ -17,7 +17,6 @@
 package org.gradle.language.assembler.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
@@ -167,7 +166,6 @@ class AssemblerPluginTest extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.evaluate()
-        project.modelRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        project.realizeTasksAndValidateModel()
     }
 }

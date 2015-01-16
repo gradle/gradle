@@ -98,7 +98,7 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("Exception thrown while executing model rule: ThrowingRule#badRule(org.gradle.api.Task)")
+        failure.assertHasCause("Exception thrown while executing model rule: ThrowingRule#badRule(org.gradle.api.Task)")
         failure.assertHasCause("I'm broken")
     }
 
@@ -131,7 +131,7 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
+        failure.assertHasCause("Exception thrown while executing model rule: Rules#addTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>)")
         failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
     }
 

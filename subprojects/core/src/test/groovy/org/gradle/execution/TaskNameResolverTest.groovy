@@ -19,17 +19,13 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 class TaskNameResolverTest extends Specification {
     def tasks = Mock(TaskContainerInternal)
-    def registry = Mock(ModelRegistry)
     def project = Mock(ProjectInternal) {
         getTasks() >> tasks
-        getModelRegistry() >> registry
     }
-
 
     private final TaskNameResolver resolver = new TaskNameResolver()
 
@@ -41,7 +37,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task]
@@ -57,16 +53,15 @@ class TaskNameResolverTest extends Specification {
         then:
         candidates == null
         1 * tasks.findByName('task') >> null
+        1 * project.realizeTasksAndValidateModel()
     }
 
     def "eagerly locates tasks with given name for multiple projects"() {
         def childProject = Mock(ProjectInternal)
         def childProjectTasks = Mock(TaskContainerInternal)
-        def childProjectRegistry = Mock(ModelRegistry)
         _ * project.childProjects >> [child: childProject]
         _ * childProject.tasks >> childProjectTasks
         _ * childProject.childProjects >> [:]
-        _ * childProject.modelRegistry >> childProjectRegistry
 
         def task1 = task('task')
         def task2 = task('task')
@@ -76,9 +71,9 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task1
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
         1 * childProjectTasks.findByName('task') >> task2
-        1 * childProjectRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * childProject.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1, task2]
@@ -103,7 +98,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task1
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1]
@@ -116,11 +111,9 @@ class TaskNameResolverTest extends Specification {
     def "locates tasks in child projects with given name when missing in starting project"() {
         def childProject = Mock(ProjectInternal)
         def childProjectTasks = Mock(TaskContainerInternal)
-        def childProjectRegistry = Mock(ModelRegistry)
         _ * project.childProjects >> [child: childProject]
         _ * childProject.tasks >> childProjectTasks
         _ * childProject.childProjects >> [:]
-        _ * childProject.modelRegistry >> childProjectRegistry
 
         def task1 = task('task')
 
@@ -129,9 +122,9 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> null
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
         1 * childProjectTasks.findByName('task') >> task1
-        1 * childProjectRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * childProject.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1]
@@ -149,7 +142,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.names >> (['task1', 'task2'] as SortedSet)
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
         0 * tasks._
 
         when:
@@ -163,11 +156,9 @@ class TaskNameResolverTest extends Specification {
     def "lazily locates all tasks for multiple projects"() {
         def childProject = Mock(ProjectInternal)
         def childProjectTasks = Mock(TaskContainerInternal)
-        def childProjectRegistry = Mock(ModelRegistry)
         _ * project.childProjects >> [child: childProject]
         _ * childProject.tasks >> childProjectTasks
         _ * childProject.childProjects >> [:]
-        _ * childProject.modelRegistry >> childProjectRegistry
 
         def task1 = task('name1')
         def task2 = task('name2')
@@ -178,8 +169,8 @@ class TaskNameResolverTest extends Specification {
         then:
         1 * tasks.names >> (['name1', 'name2'] as SortedSet)
         1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
-        1 * childProjectRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
+        1 * childProject.realizeTasksAndValidateModel()
         0 * tasks._
         0 * childProjectTasks._
 
@@ -196,12 +187,9 @@ class TaskNameResolverTest extends Specification {
     def "does not visit sub-projects when task implies sub-projects"() {
         def childProject = Mock(ProjectInternal)
         def childProjectTasks = Mock(TaskContainerInternal)
-        def childProjectRegistry = Mock(ModelRegistry)
         _ * project.childProjects >> [child: childProject]
         _ * childProject.tasks >> childProjectTasks
         _ * childProject.childProjects >> [:]
-        _ * childProject.modelRegistry >> childProjectRegistry
-
 
         def task1 = task('name1')
         _ * task1.impliesSubProjects >> true
@@ -212,8 +200,8 @@ class TaskNameResolverTest extends Specification {
         then:
         1 * tasks.names >> (['name1', 'name2'] as SortedSet)
         1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
-        1 * registry.realizeNode(TaskContainerInternal.MODEL_PATH)
-        1 * childProjectRegistry.realizeNode(TaskContainerInternal.MODEL_PATH)
+        1 * project.realizeTasksAndValidateModel()
+        1 * childProject.realizeTasksAndValidateModel()
         0 * tasks._
         0 * childProjectTasks._
 
