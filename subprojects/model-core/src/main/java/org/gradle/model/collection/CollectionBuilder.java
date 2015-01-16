@@ -19,6 +19,7 @@ package org.gradle.model.collection;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 
 import java.util.Set;
 
@@ -152,11 +153,10 @@ public interface CollectionBuilder<T> {
      * <li>input by-path bindings are of inner scope</li>
      * <li>input by-type bindings are of outer scope</li>
      * </ul>
-     *
      * @param name The name.
      * @param ruleSource A rule source class.
      */
-    void named(String name, Class<?> ruleSource);
+    void named(String name, Class<? extends RuleSource> ruleSource);
 
     /**
      * Applies the given action to each item in this collection, as each item is required.

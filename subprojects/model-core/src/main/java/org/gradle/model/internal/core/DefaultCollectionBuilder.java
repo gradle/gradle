@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.Factory;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -201,7 +202,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
-    public void named(String name, Class<?> ruleSource) {
+    public void named(String name, Class<? extends RuleSource> ruleSource) {
         modelRuleSourceApplicator.apply(ruleSource, modelNode.getPath().child(name), modelRegistrar, pluginClassApplicator);
     }
 

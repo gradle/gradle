@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -146,7 +147,7 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
-        public void named(String name, Class<?> ruleSource) {
+        public void named(String name, Class<? extends RuleSource> ruleSource) {
             assertNotClosed();
             rawInstance.named(name, ruleSource);
         }
