@@ -58,12 +58,17 @@ public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, In
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
-        if (propertySchema.getKind() == ModelSchema.Kind.STRUCT && !property.isWritable()) {
-            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
-            modelNode.addLink(creator);
-        } else if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION && !property.isWritable()) {
-            ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
-            modelNode.addLink(creator);
+        if (propertySchema.getKind().isManaged()) {
+            if (!property.isWritable()) {
+                ModelCreator creator = modelCreatorFactory.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
+                modelNode.addLink(creator);
+            } else {
+                ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
+                ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
+                        .withProjection(projection)
+                        .descriptor(descriptor).build();
+                modelNode.addReference(creator);
+            }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)

@@ -32,9 +32,14 @@ public interface MutableModelNode {
     <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     /**
+     * Adds a reference to the graph. A reference is an element that refers to some other element elsewhere in the graph, similar to a symbolic link.
+     */
+    void addReference(ModelCreator creator);
+
+    /**
      * Adds an element to the graph, linked from this element. The given creator is used to initialize the element when required.
      */
-    MutableModelNode addLink(ModelCreator creator);
+    void addLink(ModelCreator creator);
 
     /**
      * Removes an element linked from this element from the graph.

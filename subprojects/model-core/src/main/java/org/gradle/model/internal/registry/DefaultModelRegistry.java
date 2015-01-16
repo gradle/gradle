@@ -29,8 +29,6 @@ import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.report.unbound.UnboundRule;
@@ -676,12 +674,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public MutableModelNode addLink(ModelCreator creator) {
+        public void addReference(ModelCreator creator) {
+            addLink(creator);
+        }
+
+        @Override
+        public void addLink(ModelCreator creator) {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            return new NodeWrapper(doCreate(node, creator));
-
+            doCreate(node, creator);
         }
 
         @Override
