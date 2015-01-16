@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.projection;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.internal.BiAction;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.collection.ManagedSet;
@@ -30,7 +29,10 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ManagedSet<I>> {
     private final ModelType<I> elementType;
@@ -102,14 +104,11 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
+                    // Generate a synthetic path for the element
                     String name = String.valueOf(modelNode.getLinkCount(elementType));
                     ModelPath path = modelNode.getPath().child(name);
-                    modelNode.addLink(modelCreatorFactory.creator(ruleDescriptor, path, elementSchema, Collections.<ModelReference<?>>emptyList(), new BiAction<I, Inputs>() {
-                        @Override
-                        public void execute(I i, Inputs inputs) {
-                            action.execute(i);
-                        }
-                    }));
+
+                    modelNode.addLink(modelCreatorFactory.creator(ruleDescriptor, path, elementSchema, action));
                 }
 
                 @Override
