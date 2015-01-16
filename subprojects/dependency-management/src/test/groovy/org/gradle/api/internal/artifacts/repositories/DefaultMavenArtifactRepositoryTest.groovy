@@ -23,28 +23,30 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
-    final PasswordCredentials credentials = Mock()
+    final PasswordCredentials passwordCredentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Stub()
 
+
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, pomParser)
+            resolver, passwordCredentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', credentials) >> transport()
+        transportFactory.createTransport('file', 'repo', passwordCredentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -62,9 +64,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        _ * credentials.getUsername() >> 'username'
-        _ * credentials.getPassword() >> 'password'
-        transportFactory.createTransport('http', 'repo', credentials) >> transport()
+        transportFactory.createTransport('http', 'repo', passwordCredentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -86,7 +86,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', credentials) >> transport()
+        transportFactory.createTransport('http', 'repo', passwordCredentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -105,6 +105,25 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.artifactPatterns.any { it.startsWith uri2.toString() }
     }
 
+    def "creates s3 repository"() {
+        given:
+        def uri = new URI("s3://localhost:9090/repo")
+        _ * resolver.resolveUri(_) >> uri
+        transportFactory.createTransport(_, 'repo', _) >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def repo = repository.createRealResolver()
+
+        then:
+        repo instanceof MavenResolver
+        repo.root == uri
+
+    }
+
     def "fails when no root url specified"() {
         when:
         repository.createRealResolver()
@@ -119,5 +138,4 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
             getRepository() >> resourceRepository
         }
     }
-
 }

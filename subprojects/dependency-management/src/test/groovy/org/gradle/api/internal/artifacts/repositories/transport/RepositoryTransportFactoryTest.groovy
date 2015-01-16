@@ -17,7 +17,14 @@
 package org.gradle.api.internal.artifacts.repositories.transport
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.resource.transport.aws.s3.S3Transport
+import org.gradle.internal.resource.transport.http.HttpTransport
+import org.gradle.internal.resource.transport.sftp.SftpTransport
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class RepositoryTransportFactoryTest extends Specification {
 
@@ -29,7 +36,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http', 'https' and 'sftp' URLs for a repository."
+        e.message == "You may only specify 'file', 'http', 'https', 'sftp' and 's3' URLs for a repository."
     }
 
     def "cannot creates a transport for mixed url scheme"() {
@@ -39,5 +46,29 @@ class RepositoryTransportFactoryTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == "You cannot mix different URL schemes for a single repository. Please declare separate repositories."
+    }
+
+    @Unroll
+    def "should create a transport for [#scheme]"() {
+        when:
+        def transport = repositoryTransportFactory.createTransport([scheme] as Set, null, credentials)
+
+        then:
+        transport.class == expected
+
+        where:
+        scheme | credentials                                               || expected
+        's3'   | new DefaultAwsCredentials(accessKey: 'a', secretKey: 's') || S3Transport
+        'http' | Mock(DefaultPasswordCredentials)                          || HttpTransport
+        'sftp' | Mock(DefaultPasswordCredentials)                          || SftpTransport
+    }
+
+    def "should throw when credentials types is invalid"(){
+        when:
+        repositoryTransportFactory.convertPasswordCredentials(new DefaultAwsCredentials())
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Credentials must be an instance of: ${PasswordCredentials.class.getCanonicalName()}"
     }
 }

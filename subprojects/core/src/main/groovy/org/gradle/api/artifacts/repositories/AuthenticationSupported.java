@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.credentials.Credentials;
 
 /**
  * An artifact repository which supports username/password authentication.
@@ -24,10 +25,17 @@ import org.gradle.api.Action;
 public interface AuthenticationSupported {
 
     /**
-     * Returns the credentials used to authenticate to this repository.
-     * @return The credentials
+     * Returns the standard username and password credentials used to authenticate to this repository.
+     * @return The PasswordCredentials
      */
     PasswordCredentials getCredentials();
+
+    /**
+     * Returns the alternative credentials used to authenticate with this repository.
+     * Alternative credentials are used for non username/password credentials.
+     * @return The Credentials
+     */
+    Credentials getAlternativeCredentials();
 
     /**
      * Configure the credentials for this repository using the supplied Closure.
@@ -60,4 +68,20 @@ public interface AuthenticationSupported {
      * </pre>
      */
     void credentials(Action<? super PasswordCredentials> action);
+
+    /**
+     * Configures strongly typed credentials for this repository using the supplied action.
+     *
+     * repositories {
+     *    maven {
+     *        url "${url}"
+     *        credentials(AwsCredentials) {
+     *            accessKey "myAccessKey"
+     *            secretKey "mySecret"
+     *        }
+     *    }
+     *  }
+     *
+     */
+    <T extends Credentials> void credentials(Class<T> clazz, Action<? super Credentials> action);
 }
