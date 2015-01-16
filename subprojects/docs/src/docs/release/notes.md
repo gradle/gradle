@@ -52,6 +52,10 @@ A number of improvements have been made to the model rules execution used by the
 - `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
 - `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
 
+### Tooling API improvements
+
+There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
