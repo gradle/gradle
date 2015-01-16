@@ -23,6 +23,9 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 public class ModelReportRenderer extends TextReportRenderer {
     private final NodeRenderer nodeRenderer = new NodeRenderer();
 
@@ -38,7 +41,12 @@ public class ModelReportRenderer extends TextReportRenderer {
             } else {
                 output.getOutput().println(model.getPath().getName());
             }
-            output.collection(model.getLinks(ModelType.untyped()), this);
+
+            Map<String, MutableModelNode> links = new TreeMap<String, MutableModelNode>();
+            for (MutableModelNode node : model.getLinks(ModelType.untyped())) {
+                links.put(node.getPath().getName(), node);
+            }
+            output.collection(links.values(), this);
         }
     }
 }
