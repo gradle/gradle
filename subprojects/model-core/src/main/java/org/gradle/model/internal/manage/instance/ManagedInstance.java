@@ -16,8 +16,14 @@
 
 package org.gradle.model.internal.manage.instance;
 
+import org.gradle.model.internal.core.MutableModelNode;
+
 /**
  * A marker interface that is implemented by instances of managed model types
  */
 public interface ManagedInstance {
+    /**
+     * Returns the node that this managed instance is backed by.
+     */
+    MutableModelNode getBackingNode();
 }

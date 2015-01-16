@@ -86,6 +86,11 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
 
             class ModelNodeBackedManagedSet implements ManagedSet<I>, ManagedInstance {
                 @Override
+                public MutableModelNode getBackingNode() {
+                    return modelNode;
+                }
+
+                @Override
                 public String toString() {
                     return String.format("%s '%s'", getType(), modelNode.getPath().toString());
                 }

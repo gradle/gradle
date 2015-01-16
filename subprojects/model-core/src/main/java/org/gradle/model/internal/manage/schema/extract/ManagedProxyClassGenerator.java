@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.*;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.objectweb.asm.*;
@@ -49,7 +50,8 @@ public class ManagedProxyClassGenerator {
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
     private static final String CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
-    public static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
+    private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
+    private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
 
     public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -83,6 +85,7 @@ public class ManagedProxyClassGenerator {
         declareCanCallSettersField(visitor);
         writeConstructor(visitor, generatedType, superclassType);
         writeToString(visitor, generatedType);
+        writeManagedInstanceMethods(visitor, generatedType);
         writeMethods(visitor, generatedType, managedTypeClass);
         visitor.visitEnd();
     }
@@ -124,6 +127,14 @@ public class ManagedProxyClassGenerator {
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+    }
+
+    private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
+        methodVisitor.visitCode();
+        putStateFieldValueOnStack(methodVisitor, generatedType);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
     }
 

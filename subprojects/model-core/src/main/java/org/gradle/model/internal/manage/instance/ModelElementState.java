@@ -16,7 +16,11 @@
 
 package org.gradle.model.internal.manage.instance;
 
+import org.gradle.model.internal.core.MutableModelNode;
+
 public interface ModelElementState {
+    MutableModelNode getBackingNode();
+
     String getDisplayName();
 
     Object get(String name);

@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
@@ -375,6 +376,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private static class NoOpModelElementState implements ModelElementState {
+        @Override
+        public MutableModelNode getBackingNode() {
+            return null;
+        }
+
         @Override
         public String getDisplayName() {
             return null;

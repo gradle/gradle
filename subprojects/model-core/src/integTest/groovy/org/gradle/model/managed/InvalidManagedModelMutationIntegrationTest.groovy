@@ -243,6 +243,10 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 void setPet(Pet pet)
             }
 
+            class Holder {
+                static Person person
+            }
+
             @RuleSource
             class RulePlugin {
                 @Model
@@ -252,11 +256,12 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
                 @Model
                 void person(Person person, Pet pet) {
                     person.pet = pet
+                    Holder.person = person
                 }
 
                 @Mutate
                 void tryToModifyManagedObject(CollectionBuilder<Task> tasks, Person person) {
-                    person.pet.name = "foo"
+                    Holder.person.pet.name = "foo"
                 }
             }
 

@@ -64,6 +64,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
             class State implements ModelElementState {
                 @Override
+                public MutableModelNode getBackingNode() {
+                    return modelNode;
+                }
+
+                @Override
                 public String getDisplayName() {
                     return String.format("%s '%s'", getType(), modelNode.getPath().toString());
                 }
@@ -74,21 +79,30 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     }
 
                     ModelProperty<?> property = schema.getProperties().get(name);
-                    ModelType<?> propertyType = property.getType();
 
-                    Object value = doGet(propertyType, name);
+                    Object value = doGet(property, name);
                     propertyViews.put(name, value);
                     return value;
                 }
 
-                private <T> T doGet(ModelType<T> propertyType, String propertyName) {
+                private <T> T doGet(ModelProperty<T> property, String propertyName) {
+                    ModelType<T> propertyType = property.getType();
+                    ModelSchema<T> schema = schemaStore.getSchema(propertyType);
+
                     // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
-                    // TODO we are creating a new object each time the getter is called - we should reuse the instance for the life of the view
+                    MutableModelNode targetNode = propertyNode;
+                    if (property.isWritable() && schema.getKind().isManaged()) {
+                        targetNode = propertyNode.getPrivateData(ModelType.of(MutableModelNode.class));
+                        if (targetNode == null) {
+                            return null;
+                        }
+                    }
+
                     if (writable) {
-                        ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
+                        ModelView<? extends T> modelView = targetNode.asWritable(propertyType, ruleDescriptor, null);
                         if (closed) {
                             //noinspection ConstantConditions
                             modelView.close();
@@ -97,7 +111,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         return modelView.getInstance();
                     } else {
                         //noinspection ConstantConditions
-                        return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
+                        return targetNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                     }
                 }
 
@@ -110,21 +124,32 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     ModelType<?> propertyType = property.getType();
 
                     doSet(name, value, propertyType);
-                    propertyViews.remove(name);
+                    propertyViews.put(name, value);
                 }
 
                 private <T> void doSet(String name, Object value, ModelType<T> propertyType) {
                     ModelSchema<T> schema = schemaStore.getSchema(propertyType);
 
-                    if (schema.getKind().isManaged() && !ManagedInstance.class.isInstance(value)) {
-                        throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
-                    }
-                    T castValue = Cast.uncheckedCast(value);
-
                     // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
-                    propertyNode.setPrivateData(propertyType, castValue);
+
+                    if (value == null) {
+                        propertyNode.setPrivateData(propertyType, null);
+                        return;
+                    }
+
+                    if (schema.getKind().isManaged()) {
+                        if (!ManagedInstance.class.isInstance(value)) {
+                            throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
+                        }
+                        ManagedInstance managedInstance = (ManagedInstance) value;
+                        MutableModelNode targetNode = managedInstance.getBackingNode();
+                        propertyNode.setPrivateData(ModelType.of(MutableModelNode.class), targetNode);
+                    } else {
+                        T castValue = Cast.uncheckedCast(value);
+                        propertyNode.setPrivateData(propertyType, castValue);
+                    }
                 }
             }
         };
