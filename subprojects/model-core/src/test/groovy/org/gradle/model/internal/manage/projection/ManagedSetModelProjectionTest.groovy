@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core
+package org.gradle.model.internal.manage.projection
 
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
 import org.gradle.model.Managed
 import org.gradle.model.collection.ManagedSet
+import org.gradle.model.internal.core.ModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
