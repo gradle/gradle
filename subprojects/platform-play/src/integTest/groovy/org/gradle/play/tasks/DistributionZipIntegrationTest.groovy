@@ -65,7 +65,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
                     myDist {
                         baseName = "mySpecialDist"
                         contents {
-                            from binaries.playBinary.tasks.withType(org.gradle.jvm.tasks.Jar)
+                            binary = binaries.playBinary
                             into("txt") {
                                 from "additionalFile.txt"
                             }
@@ -77,30 +77,52 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         file("additionalFile.txt").createFile()
 
         when:
+        succeeds "stage"
+
+        then:
+        file("build/stage/mySpecialDist").assertContainsDescendants(
+                "lib/dist-play-app.jar",
+                "lib/dist-play-app-assets.jar",
+                "txt/additionalFile.txt"
+        )
+
+        when:
         succeeds "dist"
 
         then:
         executedAndNotSkipped(
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
                 ":createMyDistDist")
 
         and:
         zip("build/distributions/mySpecialDist.zip").containsDescendants(
-                "mySpecialDist/dist-play-app.jar",
-                "mySpecialDist/dist-play-app-assets.jar",
+                "mySpecialDist/lib/dist-play-app.jar",
+                "mySpecialDist/lib/dist-play-app-assets.jar",
                 "mySpecialDist/txt/additionalFile.txt")
+    }
+
+    def "produces sensible error when distribution has no binary" () {
+        buildFile << """
+            model {
+                distributions {
+                    myDist {
+                        baseName = "mySpecialDist"
+                        contents {
+                            into("txt") {
+                                from "additionalFile.txt"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("additionalFile.txt").createFile()
 
         when:
-        succeeds "stage"
+        fails "stage"
 
         then:
-        [ "dist-play-app.jar",
-          "dist-play-app-assets.jar",
-          "txt/additionalFile.txt"
-        ].each { fileName ->
-            file("build/stage/myDist/${fileName}").exists()
-        }
+        failureDescriptionContains("A problem occurred configuring root project 'dist-play-app'.")
+        failureHasCause("Play Distribution 'myDist' does not have a configured Play binary.")
     }
 
     ZipTestFixture zip(String path) {

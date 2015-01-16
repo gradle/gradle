@@ -52,9 +52,7 @@ class PlayDistributionPluginTest extends Specification {
         PlayApplicationBinarySpecInternal bin2 = binary("bin2", jarTasks2)
         BinaryContainer binaryContainer = binaryContainer([ bin1, bin2 ])
 
-        CopySpec spec1 = confSpec()
-        CopySpec spec2 = confSpec()
-        def distributions = [ bin1: distribution(spec1, bin1), bin2: distribution(spec2, bin2) ]
+        def distributions = [ bin1: distribution(bin1), bin2: distribution(bin2) ]
         PlayDistributionContainer distributionContainer = Mock(PlayDistributionContainer) {
             findByName(_) >> { String name ->
                 return distributions[name]
@@ -90,6 +88,7 @@ class PlayDistributionPluginTest extends Specification {
             getName() >> "playBinary"
             getBinary() >> binary
             getContents() >> Mock(CopySpecInternal) {
+                1 * from("README")
                 addChild() >> Mock(CopySpecInternal) {
                     into("lib") >> Mock(CopySpec) {
                         1 * from(_ as Jar)
@@ -99,6 +98,11 @@ class PlayDistributionPluginTest extends Specification {
                     into("bin") >> Mock(CopySpec) {
                         1 * from(_ as CreateStartScripts)
                         1 * setFileMode(0755)
+                    }
+                    into("conf") >> Mock(CopySpec) {
+                        1 * from("conf") >> Mock(CopySpec) {
+                            1 * exclude("routes")
+                        }
                     }
                 }
             }
@@ -121,6 +125,7 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setMainClassName("play.core.server.NettyServer")
                 1 * setApplicationName("playBinary")
                 1 * setOutputDir(_)
+                1 * dependsOn('createPlayBinaryDistributionJar')
             })
         }
         1 * tasks.create("createPlayBinaryDistributionJar", Jar, _) >> { String name, Class type, Action action ->
@@ -208,23 +213,9 @@ class PlayDistributionPluginTest extends Specification {
         }
     }
 
-    def distribution(CopySpec spec, PlayApplicationBinarySpec binary) {
+    def distribution(PlayApplicationBinarySpec binary) {
         return Mock(PlayDistribution) {
-            getContents() >> Mock(CopySpecInternal) {
-                addChild() >> spec
-                1 * from("README")
-            }
             getBinary() >> binary
-        }
-    }
-
-    def confSpec() {
-        return Mock(CopySpecInternal) {
-            1 * into("conf") >> Mock(CopySpec) {
-                1 * from("conf") >> Mock(CopySpec) {
-                    1 * exclude("routes")
-                }
-            }
         }
     }
 }

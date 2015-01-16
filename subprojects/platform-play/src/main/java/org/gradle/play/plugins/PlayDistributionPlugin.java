@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
@@ -87,12 +88,6 @@ public class PlayDistributionPlugin extends RuleSource {
         for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
             String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(binary.getName()));
             PlayDistribution distribution = distributions.create(binary.getName());
-
-            CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
-            CopySpec confSpec = distSpec.addChild().into("conf");
-            confSpec.from("conf").exclude("routes");
-            distSpec.from("README");
-
             distribution.setBinary(binary);
             distribution.setBaseName(binary.getName());
         }
@@ -102,51 +97,55 @@ public class PlayDistributionPlugin extends RuleSource {
     void createDistributionContentTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
                                         final @Path("distributions") PlayDistributionContainer distributions,
                                         final PlayPluginConfigurations configurations) {
-        for (final PlayDistribution distribution : distributions) {
+        for (PlayDistribution distribution : distributions) {
             final PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) distribution.getBinary();
-            if (binary != null) {
-                String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(distribution.getName()));
-
-                final File distJarDir = new File(buildDir, String.format("distributionJars/%s", distribution.getName()));
-                final String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(binary.getName()));
-                tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
-                    @Override
-                    public void execute(Jar jar) {
-                        jar.dependsOn(binary.getTasks().withType(Jar.class));
-                        jar.from(jar.getProject().zipTree(binary.getJarFile()));
-                        jar.setDestinationDir(distJarDir);
-                        jar.setArchiveName(binary.getJarFile().getName());
-
-                        Map<String, Object> classpath = Maps.newHashMap();
-                        classpath.put("Class-Path", new PlayManifestClasspath(configurations.getPlayRun(), binary.getAssetsJarFile()));
-                        jar.getManifest().attributes(classpath);
-                    }
-                });
-
-                final File scriptsDir = new File(buildDir, String.format("scripts/%s", distribution.getName()));
-                tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
-                    @Override
-                    public void execute(CreateStartScripts createStartScripts) {
-                        createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                        createStartScripts.setClasspath(new SimpleFileCollection(new File(distJarDir, binary.getJarFile().getName())));
-                        createStartScripts.setMainClassName("play.core.server.NettyServer");
-                        createStartScripts.setApplicationName(binary.getName());
-                        createStartScripts.setOutputDir(scriptsDir);
-                        createStartScripts.dependsOn(jarTaskName);
-                    }
-                });
-
-                Task createStartScripts = tasks.get(createStartScriptsTaskName);
-                Task distributionJar = tasks.get(jarTaskName);
-                CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
-                CopySpec libSpec = distSpec.addChild().into("lib");
-                libSpec.from(distributionJar);
-                libSpec.from(binary.getAssetsJarFile());
-                libSpec.from(configurations.getPlayRun().getFileCollection());
-                CopySpec binSpec = distSpec.addChild().into("bin");
-                binSpec.from(createStartScripts);
-                binSpec.setFileMode(0755);
+            if (binary == null) {
+                throw new InvalidUserCodeException(String.format("Play Distribution '%s' does not have a configured Play binary.", distribution.getName()));
             }
+
+            final File distJarDir = new File(buildDir, String.format("distributionJars/%s", distribution.getName()));
+            final String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(distribution.getName()));
+            tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
+                @Override
+                public void execute(Jar jar) {
+                    jar.dependsOn(binary.getTasks().withType(Jar.class));
+                    jar.from(jar.getProject().zipTree(binary.getJarFile()));
+                    jar.setDestinationDir(distJarDir);
+                    jar.setArchiveName(binary.getJarFile().getName());
+
+                    Map<String, Object> classpath = Maps.newHashMap();
+                    classpath.put("Class-Path", new PlayManifestClasspath(configurations.getPlayRun(), binary.getAssetsJarFile()));
+                    jar.getManifest().attributes(classpath);
+                }
+            });
+
+            final File scriptsDir = new File(buildDir, String.format("scripts/%s", distribution.getName()));
+            String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(distribution.getName()));
+            tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
+                @Override
+                public void execute(CreateStartScripts createStartScripts) {
+                    createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
+                    createStartScripts.setClasspath(new SimpleFileCollection(new File(distJarDir, binary.getJarFile().getName())));
+                    createStartScripts.setMainClassName("play.core.server.NettyServer");
+                    createStartScripts.setApplicationName(binary.getName());
+                    createStartScripts.setOutputDir(scriptsDir);
+                    createStartScripts.dependsOn(jarTaskName);
+                }
+            });
+
+            Task createStartScripts = tasks.get(createStartScriptsTaskName);
+            Task distributionJar = tasks.get(jarTaskName);
+            CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
+            CopySpec libSpec = distSpec.addChild().into("lib");
+            libSpec.from(distributionJar);
+            libSpec.from(binary.getAssetsJarFile());
+            libSpec.from(configurations.getPlayRun().getFileCollection());
+            CopySpec binSpec = distSpec.addChild().into("bin");
+            binSpec.from(createStartScripts);
+            binSpec.setFileMode(0755);
+            CopySpec confSpec = distSpec.addChild().into("conf");
+            confSpec.from("conf").exclude("routes");
+            distSpec.from("README");
         }
     }
 
