@@ -25,6 +25,21 @@ import org.gradle.api.tasks.TaskContainer;
 import java.util.*;
 
 public class TaskNameResolver {
+
+    /**
+     * Non-exhaustively searches for at least one task with the given name, by not evaluating projects before searching.
+     */
+    public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectInternal project) {
+        // don't evaluate children, see if we know it's without validating it
+        for (Project project1 : project.getAllprojects()) {
+            if (project1.getTasks().getNames().contains(name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */

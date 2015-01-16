@@ -76,14 +76,12 @@ class TaskSelectorTest extends Specification {
     }
 
     def "unqualified exclude filter configures default project only and filters tasks by path"() {
-        def selectionResult = Stub(TaskSelectionResult)
-
         when:
         def filter = selector.getFilter("a")
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> selectionResult
+        1 * resolver.tryFindUnqualifiedTaskCheaply("a", projectB) >> true
         0 * _
 
         and:
@@ -104,7 +102,7 @@ class TaskSelectorTest extends Specification {
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> null
+        1 * resolver.tryFindUnqualifiedTaskCheaply("a", projectB) >> false
         1 * projectConfigurer.configureHierarchy(projectB)
         1 * resolver.selectWithName("a", projectB, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
@@ -125,7 +123,7 @@ class TaskSelectorTest extends Specification {
 
         then:
         1 * projectConfigurer.configure(projectB)
-        1 * resolver.selectWithName("a", projectB, true) >> null
+        1 * resolver.tryFindUnqualifiedTaskCheaply("a", projectB) >> false
         1 * projectConfigurer.configureHierarchy(projectB)
         1 * resolver.selectWithName("a", projectB, true) >> null
         1 * resolver.selectAll(projectB, true) >> [a1: selectionResult]
