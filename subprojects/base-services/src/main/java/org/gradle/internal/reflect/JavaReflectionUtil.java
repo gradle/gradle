@@ -24,6 +24,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -60,6 +61,22 @@ public class JavaReflectionUtil {
             throw new NoSuchPropertyException(String.format("Could not find getter method for property '%s' on class %s.", property, target.getSimpleName()));
         }
         return new GetterMethodBackedPropertyAccessor(property, getterMethod);
+    }
+
+    /**
+     * Locates the field with the given name as a readable property.  Searches only public fields.
+     *
+     * @throws NoSuchPropertyException
+     */
+    public static PropertyAccessor readableField(Class<?> target, String fieldName) throws NoSuchPropertyException {
+        Field field;
+        try {
+            field = target.getField(fieldName);
+        } catch (java.lang.NoSuchFieldException e) {
+            throw new NoSuchPropertyException(String.format("Could not find field '%s' on class %s.", fieldName, target.getSimpleName()));
+        }
+
+        return new FieldBackedPropertyAccessor(fieldName, field);
     }
 
     private static Method findGetterMethod(Class<?> target, String property) {
@@ -313,6 +330,35 @@ public class JavaReflectionUtil {
             } catch (InvocationTargetException e) {
                 throw UncheckedException.unwrapAndRethrow(e);
             } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
+    private static class FieldBackedPropertyAccessor implements PropertyAccessor {
+        private final String property;
+        private final Field field;
+
+        public FieldBackedPropertyAccessor(String property, Field field) {
+            this.property = property;
+            this.field = field;
+        }
+
+        @Override
+        public String getName() {
+            return property;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return field.getType();
+        }
+
+        @Override
+        public Object getValue(Object target) {
+            try {
+                return field.get(target);
+            } catch (IllegalAccessException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }

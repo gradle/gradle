@@ -20,8 +20,14 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.plugins.javascript.base.SourceTransformationException;
 import org.gradle.util.GFileUtils;
@@ -31,10 +37,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
@@ -73,74 +77,82 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
     @SuppressWarnings("unchecked")
     List<String> compile(RelativeFile javascriptFile, JavaScriptCompileSpec spec, JavaScriptCompileDestinationCalculator destinationCalculator) {
         List<String> errors = Lists.newArrayList();
-        try {
-            loadCompilerClasses(getClass().getClassLoader());
 
-            Method fromCodeMethod = sourceFileClass.getMethod("fromCode", String.class, String.class);
-            Object extern = fromCodeMethod.invoke(null, "/dev/null", "");
+        loadCompilerClasses(getClass().getClassLoader());
 
-            Method fromFileMethod = sourceFileClass.getMethod("fromFile", File.class);
-            Object sourceFile = fromFileMethod.invoke(null, javascriptFile.getFile());
+        // Create a SourceFile object to represent an "empty" extern
+        JavaMethod fromCodeJavaMethod = getStaticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
+        Object extern = fromCodeJavaMethod.invoke(null, "/dev/null", "");
 
-            Constructor compilerOptionsConstructor = compilerOptionsClass.getConstructor();
-            Object compilerOptions = compilerOptionsConstructor.newInstance();
+        // Create a SourceFile object to represent the javascript file to compile
+        JavaMethod fromFileJavaMethod = getStaticMethod(sourceFileClass, Object.class, "fromFile", File.class);
+        Object sourceFile = fromFileJavaMethod.invoke(null, javascriptFile.getFile());
 
-            Object simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
-            Method setOptionsForCompilationLevelMethod = compilationLevelClass.getMethod("setOptionsForCompilationLevel", compilerOptionsClass);
-            setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
+        // Construct a new CompilerOptions class
+        Factory<?> compilerOptionsFactory = JavaReflectionUtil.factory(new DirectInstantiator(), compilerOptionsClass);
+        Object compilerOptions = compilerOptionsFactory.create();
 
-            Constructor compilerConstructor = compilerClass.getConstructor(PrintStream.class);
-            Object compiler = compilerConstructor.newInstance(getDummyPrintStream());
+        // Get the CompilationLevel.SIMPLE_OPTIMIZATIONS class and set it on the CompilerOptions class
+        Enum simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
+        JavaMethod setOptionsForCompilationLevelMethod = JavaReflectionUtil.method(compilationLevelClass, Void.class, "setOptionsForCompilationLevel", compilerOptionsClass);
+        setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
 
-            Method compileMethod = compilerClass.getMethod("compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
-            Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
+        // Construct a new Compiler class
+        Factory<?> compilerFactory = JavaReflectionUtil.factory(new DirectInstantiator(), compilerClass, getDummyPrintStream());
+        Object compiler = compilerFactory.create();
 
-            Field jsErrorsField = result.getClass().getField("errors");
-            Object[] jsErrors = (Object[]) jsErrorsField.get(result);
+        // Compile the javascript file with the options we've created
+        JavaMethod compileMethod = JavaReflectionUtil.method(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
+        Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
-            if (jsErrors.length == 0) {
-                Method toSourceMethod = compilerClass.getMethod("toSource");
-                String compiledSource = (String) toSourceMethod.invoke(compiler);
-                GFileUtils.writeFile(compiledSource, destinationCalculator.transform(javascriptFile));
-            } else {
-                for (Object error : jsErrors) {
-                    errors.add(error.toString());
-                }
+        // Get any errors from the compiler result
+        PropertyAccessor jsErrorsField = JavaReflectionUtil.readableField(result.getClass(), "errors");
+        Object[] jsErrors = (Object[]) jsErrorsField.getValue(result);
+
+        if (jsErrors.length == 0) {
+            // If no errors, get the compiled source and write it to the destination file
+            JavaMethod<Object, String> toSourceMethod = JavaReflectionUtil.method(compilerClass, String.class, "toSource");
+            String compiledSource = toSourceMethod.invoke(compiler);
+            GFileUtils.writeFile(compiledSource, destinationCalculator.transform(javascriptFile));
+        } else {
+            for (Object error : jsErrors) {
+                errors.add(error.toString());
             }
-        } catch (NoSuchMethodException e) {
-            throwUncheckedException(e);
-        } catch (IllegalAccessException e) {
-            throwUncheckedException(e);
-        } catch (InstantiationException e) {
-            throwUncheckedException(e);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.unwrapAndRethrow(e);
-        } catch (NoSuchFieldException e) {
-            throwUncheckedException(e);
-        } catch (ClassNotFoundException e) {
-            throwUncheckedException(e);
         }
 
         return errors;
     }
 
-    void throwUncheckedException(Throwable e) {
-        throw UncheckedException.throwAsUncheckedException(e);
+    private void loadCompilerClasses(ClassLoader cl) {
+        try {
+            if (sourceFileClass == null) {
+                sourceFileClass = cl.loadClass("com.google.javascript.jscomp.SourceFile");
+            }
+            if (compilerOptionsClass == null) {
+                compilerOptionsClass = cl.loadClass("com.google.javascript.jscomp.CompilerOptions");
+            }
+            if (compilationLevelClass == null) {
+                compilationLevelClass = cl.loadClass("com.google.javascript.jscomp.CompilationLevel");
+            }
+            if (compilerClass == null) {
+                compilerClass = cl.loadClass("com.google.javascript.jscomp.Compiler");
+            }
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
-    private void loadCompilerClasses(ClassLoader cl) throws ClassNotFoundException {
-        if (sourceFileClass == null) {
-            sourceFileClass = cl.loadClass("com.google.javascript.jscomp.SourceFile");
-        }
-        if (compilerOptionsClass == null) {
-            compilerOptionsClass = cl.loadClass("com.google.javascript.jscomp.CompilerOptions");
-        }
-        if (compilationLevelClass == null) {
-            compilationLevelClass = cl.loadClass("com.google.javascript.jscomp.CompilationLevel");
-        }
-        if (compilerClass == null) {
-            compilerClass = cl.loadClass("com.google.javascript.jscomp.Compiler");
-        }
+    /**
+     * We have to find static methods like this because the other JavaReflectionUtil.method() ignores static methods
+     */
+    private static <T, R> JavaMethod<T, R> getStaticMethod(Class<T> type, Class<R> returnType, final String name, final Object... parameterTypes) {
+        Method method = JavaReflectionUtil.findMethod(type, new Spec<Method>() {
+            @Override
+            public boolean isSatisfiedBy(Method method) {
+                return method.getName().equals(name) && Arrays.equals(method.getParameterTypes(), parameterTypes);
+            }
+        });
+        return JavaReflectionUtil.method(type, returnType, method);
     }
 
     private PrintStream getDummyPrintStream() {
