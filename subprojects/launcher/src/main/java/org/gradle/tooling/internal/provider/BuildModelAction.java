@@ -15,7 +15,9 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
@@ -45,6 +47,9 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
             buildController.configure();
             // Currently need to force everything to be configured
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                ((ProjectInternal) project).realizeTasksAndValidateModel();
+            }
         }
 
         ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
@@ -52,7 +57,7 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
         try {
             builder = builderRegistry.getBuilder(modelName);
         } catch (UnknownModelException e) {
-            throw (InternalUnsupportedModelException)new InternalUnsupportedModelException().initCause(e);
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
 
         Object result;
