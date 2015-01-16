@@ -43,6 +43,29 @@ class GradleProjectCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion(">=2.3")
+    def "empty list of tasks to execute when asking for model from target Gradle is treated like null tasks and executes no tasks"() {
+        projectDir.file('build.gradle') << """
+            defaultTasks 'alpha'
+            task alpha() << { println 'task alpha invoked'}
+            task beta() << { println 'task beta invoked'}
+        """
+
+        def outputStream = new ByteArrayOutputStream()
+
+        when:
+        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
+            ModelBuilder<GradleProject> modelBuilder = connection.model(GradleProject.class)
+            modelBuilder.forTasks(null)
+            modelBuilder.setStandardOutput(outputStream)
+            modelBuilder.get()
+        }
+
+        then:
+        model != null
+        assert !outputStream.toString().contains('task alpha invoked')
+    }
+
+    @ToolingApiVersion(">=2.3")
     @TargetGradleVersion(">=2.3")
     def "populate isPublic field on tasks from GradleProject"() {
         file("build.gradle") << """
