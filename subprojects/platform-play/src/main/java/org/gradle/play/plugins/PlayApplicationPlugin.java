@@ -72,8 +72,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
         @Model
         PlayPluginConfigurations configurations(ExtensionContainer extensions) {
             return extensions.getByType(PlayPluginConfigurations.class);
