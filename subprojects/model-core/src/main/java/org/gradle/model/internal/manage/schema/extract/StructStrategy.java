@@ -289,6 +289,26 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         }
 
         ensureNoInstanceScopedFields(extractionContext, typeClass);
+        ensureNoProtectedOrPrivateMethods(extractionContext, typeClass);
+    }
+
+    private void ensureNoProtectedOrPrivateMethods(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
+        Class<?> superClass = typeClass.getSuperclass();
+        if (superClass != null && !superClass.equals(Object.class)) {
+            ensureNoProtectedOrPrivateMethods(extractionContext, superClass);
+        }
+
+        Iterable<Method> protectedAndPrivateMethods = Iterables.filter(Arrays.asList(typeClass.getDeclaredMethods()), new Predicate<Method>() {
+            @Override
+            public boolean apply(Method method) {
+                int modifiers = method.getModifiers();
+                return !method.isSynthetic() && (Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
+            }
+        });
+
+        if (!Iterables.isEmpty(protectedAndPrivateMethods)) {
+            throw invalidMethods(extractionContext, "protected and private methods are not allowed", protectedAndPrivateMethods);
+        }
     }
 
     private void ensureNoInstanceScopedFields(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {

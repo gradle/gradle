@@ -745,6 +745,48 @@ $type
         e.cause.message == "Calling setters of a managed type on itself is not allowed"
     }
 
+    @Managed
+    static abstract class ProtectedAbstractMethods {
+        protected abstract String getName()
+        protected abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class ProtectedAbstractMethodsInSuper extends ProtectedAbstractMethods {
+    }
+
+    def "protected abstract methods are not allowed"() {
+        given:
+        def getterDescription = MethodDescription.name("getName").owner(ProtectedAbstractMethods).takes().returns(String)
+        def setterDescription = MethodDescription.name("setName").owner(ProtectedAbstractMethods).returns(void.class).takes(String)
+
+        expect:
+        fail ProtectedAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        fail ProtectedAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethods {
+        protected String getName() {
+            return null;
+        }
+        private void setName(String name) {}
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethodsInSuper extends ProtectedAndPrivateNonAbstractMethods {
+    }
+
+    def "protected and private non-abstract methods are not allowed"() {
+        given:
+        def getterDescription = MethodDescription.name("getName").owner(ProtectedAndPrivateNonAbstractMethods).takes().returns(String)
+        def setterDescription = MethodDescription.name("setName").owner(ProtectedAndPrivateNonAbstractMethods).returns(void.class).takes(String)
+
+        expect:
+        fail ProtectedAndPrivateNonAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        fail ProtectedAndPrivateNonAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+    }
+
     private void fail(extractType, errorType, String msgPattern) {
         try {
             extract(extractType)

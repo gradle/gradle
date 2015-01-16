@@ -378,10 +378,10 @@ Use class generation tool that allows specifying the name of a generated class, 
 - ~~Class can extend other classes (all classes up to `Object` must conform to the same rules)~~
 - ~~Constructor can not call any setter methods (at least a runtime error)~~
 - ~~Class that cannot be instantiated (e.g. default constructor throws)~~
+- ~~Class and its ancestors cannot have protected or private abstract and non-abstract methods~~ 
 
 #### Open issues
 
-- Ignores protected and private methods. eg can have an abstract protected method
 - Abstract class should be able to provide a custom `toString()` implementation, should only be able to use inherent properties of the object.
 
 ### Managed type implemented as abstract class can have generative getters
