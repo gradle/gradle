@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -135,7 +134,6 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
     }
 
-    @Ignore
     def "unbound inputs of inner rules are reported and their scope is shown"() {
         when:
         buildScript '''
