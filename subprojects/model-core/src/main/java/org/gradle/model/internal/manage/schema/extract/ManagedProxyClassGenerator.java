@@ -26,6 +26,9 @@ import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.objectweb.asm.*;
 
+//CHECKSTYLE:OFF This import is needed to override wildcard import of of org.gradle.internal.reflect.NoSuchMethodException
+import java.lang.NoSuchMethodException;
+//CHECKSTYLE:ON
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -84,9 +87,9 @@ public class ManagedProxyClassGenerator {
         declareStateField(visitor);
         declareCanCallSettersField(visitor);
         writeConstructor(visitor, generatedType, superclassType);
-        writeToString(visitor, generatedType);
+        writeToString(visitor, generatedType, managedTypeClass);
         writeManagedInstanceMethods(visitor, generatedType);
-        writeMethods(visitor, generatedType, managedTypeClass);
+        writeMutationMethods(visitor, generatedType, managedTypeClass);
         visitor.visitEnd();
     }
 
@@ -122,12 +125,30 @@ public class ManagedProxyClassGenerator {
         constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
-    private void writeToString(ClassVisitor visitor, Type generatedType) {
+    private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
+        Method toStringMethod = getToStringMethod(managedTypeClass);
+
+        if (toStringMethod == null || toStringMethod.getDeclaringClass().equals(Object.class)) {
+            writeDefaultToString(visitor, generatedType);
+        } else {
+            writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, toStringMethod);
+        }
+    }
+
+    private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
         MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+    }
+
+    private Method getToStringMethod(Class<?> managedTypeClass) {
+        try {
+            return managedTypeClass.getMethod("toString");
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
@@ -164,14 +185,14 @@ public class ManagedProxyClassGenerator {
         methodVisitor.visitEnd();
     }
 
-    private void writeMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
+    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
         ClassDetails classDetails = ClassInspector.inspect(managedTypeClass);
         for (PropertyDetails property : classDetails.getProperties()) {
             for (Method method : property.getGetters()) {
                 if (Modifier.isAbstract(method.getModifiers())) {
                     writeGetter(visitor, generatedType, method);
                 } else if (!Modifier.isFinal(method.getModifiers()) && !property.getName().equals("metaClass")) {
-                    writeNonAbstractGetterWrapper(visitor, generatedType, managedTypeClass, method);
+                    writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, method);
                 }
             }
             for (Method method : property.getSetters()) {
@@ -275,7 +296,7 @@ public class ManagedProxyClassGenerator {
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
     }
 
-    private void writeNonAbstractGetterWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {
+    private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {
         Label start = new Label();
         Label end = new Label();
         Label handler = new Label();

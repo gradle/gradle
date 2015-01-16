@@ -105,6 +105,91 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         output.contains("name: Alan Turing")
     }
 
+    def "managed type implemented as abstract class can have a custom toString() implementation"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class CustomToString {
+                abstract String getStringRepresentation()
+                abstract void setStringRepresentation(String representation)
+
+                String toString() {
+                    stringRepresentation
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createElement(CustomToString element) {
+                    element.stringRepresentation = "custom string representation"
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, CustomToString element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "element: ${element.toString()}"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("element: custom string representation")
+    }
+
+    def "calling setters from custom toString() implementation is not allowed"() {
+        when:
+        buildFile << '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class CustomToStringCallingSetter {
+                abstract String getStringRepresentation()
+                abstract void setStringRepresentation(String representation)
+
+                String toString() {
+                    stringRepresentation = "foo"
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createModelElementCallingSetterInCustomToString(CustomToStringCallingSetter element) {
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, CustomToStringCallingSetter element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "element: ${element.toString()}"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'echo'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
+
     private void defineCallsSetterInNonAbstractGetterClass() {
         buildFile << '''
             @Managed
