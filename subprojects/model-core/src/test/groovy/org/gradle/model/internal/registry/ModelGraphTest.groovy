@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core
+package org.gradle.model.internal.registry
 
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelPromise
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
