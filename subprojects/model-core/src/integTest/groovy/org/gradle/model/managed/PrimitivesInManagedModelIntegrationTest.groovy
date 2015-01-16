@@ -125,4 +125,86 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "boolean: true"
         output.contains "character: a"
     }
+
+    def "can set/get properties of all supported unmanaged types"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface AllSupportedUnmanagedTypes {
+                Boolean getBooleanProperty()
+
+                void setBooleanProperty(Boolean value)
+
+                Integer getIntegerProperty()
+
+                void setIntegerProperty(Integer value)
+
+                Long getLongProperty()
+
+                void setLongProperty(Long value)
+
+                Double getDoubleProperty()
+
+                void setDoubleProperty(Double value)
+
+                BigInteger getBigIntegerProperty()
+
+                void setBigIntegerProperty(BigInteger value)
+
+                BigDecimal getBigDecimalProperty()
+
+                void setBigDecimalProperty(BigDecimal value)
+
+                String getStringProperty()
+
+                void setStringProperty(String value)
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void supportedUnmanagedTypes(AllSupportedUnmanagedTypes element) {
+                    element.booleanProperty = Boolean.TRUE
+                    element.integerProperty = Integer.valueOf(1)
+                    element.longProperty = Long.valueOf(2L)
+                    element.doubleProperty = Double.valueOf(3.3)
+                    element.bigIntegerProperty = new BigInteger("4")
+                    element.bigDecimalProperty = new BigDecimal("5.5")
+                    element.stringProperty = "test"
+                }
+
+                @Mutate
+                void addEchoTask(CollectionBuilder<Task> tasks, AllSupportedUnmanagedTypes element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "boolean: ${element.booleanProperty}"
+                            println "integer: ${element.integerProperty}"
+                            println "long: ${element.longProperty}"
+                            println "double: ${element.doubleProperty}"
+                            println "big integer: ${element.bigIntegerProperty}"
+                            println "big decimal: ${element.bigDecimalProperty}"
+                            println "string: ${element.stringProperty}"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "boolean: true"
+        output.contains "integer: 1"
+        output.contains "long: 2"
+        output.contains "double: 3.3"
+        output.contains "big integer: 4"
+        output.contains "big decimal: 5.5"
+        output.contains "string: test"
+    }
 }

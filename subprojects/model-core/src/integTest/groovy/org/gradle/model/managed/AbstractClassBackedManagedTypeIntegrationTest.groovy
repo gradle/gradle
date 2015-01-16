@@ -104,4 +104,90 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         and:
         output.contains("name: Alan Turing")
     }
+
+    private void defineCallsSetterInNonAbstractGetterClass() {
+        buildFile << '''
+            @Managed
+            abstract class CallsSetterInNonAbstractGetter {
+                abstract String getName()
+                abstract void setName(String name)
+
+                String getInvalidGenerativeProperty() {
+                    name = "foo"
+                }
+            }
+        '''
+    }
+
+    def "calling setters from non-abstract getters is not allowed"() {
+        when:
+        buildFile << '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+        '''
+        defineCallsSetterInNonAbstractGetterClass()
+        buildFile << '''
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createModelElementCallingSetterInNonAbstractGetter(CallsSetterInNonAbstractGetter element) {
+                }
+
+                @Mutate
+                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSetterInNonAbstractGetter element) {
+                    element.invalidGenerativeProperty
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'tasks'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
+
+    def "calling setters of super class from non-abstract getters is not allowed"() {
+        when:
+        buildFile << '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+        '''
+        defineCallsSetterInNonAbstractGetterClass()
+        buildFile << '''
+            @Managed
+            abstract class CallsSuperGetterInNonAbstractGetter extends CallsSetterInNonAbstractGetter {
+
+                String getInvalidGenerativeProperty() {
+                    super.getInvalidGenerativeProperty()
+                }
+
+                String getGenerativeProperty() {
+                    super.getGenerativeProperty()
+                }
+            }
+
+            @RuleSource
+            class RulePlugin {
+                @Model
+                void createModelElementCallingSuperGetterInNonAbstractGetter(CallsSuperGetterInNonAbstractGetter element) {
+                }
+
+                @Mutate
+                void accessInvalidGenerativeProperty(CollectionBuilder<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
+                    element.invalidGenerativeProperty
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'tasks'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
 }
