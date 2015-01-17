@@ -34,6 +34,22 @@ public interface ModelRegistry extends ModelRegistrar {
      */
     public <T> T realize(ModelPath path, ModelType<T> type);
 
+    @Nullable
+    MutableModelNode realizeNode(ModelPath path);
+
+    /**
+     * Get the fully defined model element at the given path as the given type, if present.
+     * <p>
+     * No attempt to mutate the returned object should be made.
+     *
+     * @param path the path for the node
+     * @param type the type to project the node as
+     * @param <T> the type to project the node as
+     * @return the node as the given type or null if no such element.
+     */
+    @Nullable
+    <T> T find(ModelPath path, ModelType<T> type);
+
     /**
      * Returns the node at the given path at the desired state, if it exists.
      * <p>
@@ -66,15 +82,6 @@ public interface ModelRegistry extends ModelRegistrar {
     public ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
 
     public ModelNode.State state(ModelPath path);
-
-    @Nullable
-    <T> T find(ModelPath path, ModelType<T> type);
-
-    @Nullable
-    MutableModelNode node(ModelPath path);
-
-    @Nullable
-    MutableModelNode realizeNode(ModelPath path);
 
     void remove(ModelPath path);
 

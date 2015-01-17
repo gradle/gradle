@@ -100,12 +100,6 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.find(path, type);
     }
 
-    @Nullable
-    @Override
-    public MutableModelNode node(ModelPath path) {
-        return modelRegistry.node(path);
-    }
-
     @Override
     public MutableModelNode realizeNode(ModelPath path) {
         return modelRegistry.realizeNode(path);

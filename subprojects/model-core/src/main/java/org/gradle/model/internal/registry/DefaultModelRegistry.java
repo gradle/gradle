@@ -244,12 +244,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         return toType(type, get(path), "find(ModelPath, ModelType)");
     }
 
-    @Override
-    public MutableModelNode node(ModelPath path) {
-        ModelNodeData node = modelGraph.find(path);
-        return node == null ? null : new NodeWrapper(node);
-    }
-
     private <T> T toType(ModelType<T> type, ModelNodeData node, String msg) {
         if (node == null) {
             return null;
