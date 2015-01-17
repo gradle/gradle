@@ -16,11 +16,12 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.S3Object
-import com.amazonaws.services.s3.model.S3ObjectInputStream
+//import com.amazonaws.services.s3.model.ObjectMetadata
+//import com.amazonaws.services.s3.model.S3Object
+//import com.amazonaws.services.s3.model.S3ObjectInputStream
 import org.apache.commons.io.IOUtils
 import org.gradle.internal.hash.HashValue
+import org.jets3t.service.model.S3Object
 import spock.lang.Specification
 
 class S3ResourceConnectorTest extends Specification {
@@ -37,11 +38,8 @@ class S3ResourceConnectorTest extends Specification {
     }
 
     def "should get a resource"() {
-        ObjectMetadata objectMetadata = Mock()
         S3Client s3Client = Mock {
-            1 * getResource(uri) >> Mock(S3Object) {
-                getObjectMetadata() >> objectMetadata
-            }
+            1 * getResource(uri) >> Mock(S3Object)
         }
         when:
         S3Resource s3Resource = new S3ResourceConnector(s3Client).getResource(uri)
@@ -53,8 +51,8 @@ class S3ResourceConnectorTest extends Specification {
         given:
         URI shaUri = new URI(uri.toString() + ".sha1")
         S3Object s3Object = Mock()
-        S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(IOUtils.toInputStream(SHA1_STRING), null)
-        s3Object.getObjectContent() >> s3ObjectInputStream
+        InputStream s3ObjectInputStream = IOUtils.toInputStream(SHA1_STRING)
+        s3Object.getDataInputStream() >> s3ObjectInputStream
 
         S3Client s3Client = Mock()
         1 * s3Client.getResource(_) >> { URI u ->

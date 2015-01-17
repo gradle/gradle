@@ -26,7 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-import static com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME;
+import static org.jets3t.service.Constants.S3_DEFAULT_HOSTNAME;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.System.getProperty;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -79,6 +79,6 @@ public class S3ConnectionProperties {
                 return Optional.fromNullable(secureProxySettings.getProxy(host));
             }
         }
-        return Optional.fromNullable(secureProxySettings.getProxy(S3_HOSTNAME));
+        return Optional.fromNullable(secureProxySettings.getProxy(S3_DEFAULT_HOSTNAME));
     }
 }

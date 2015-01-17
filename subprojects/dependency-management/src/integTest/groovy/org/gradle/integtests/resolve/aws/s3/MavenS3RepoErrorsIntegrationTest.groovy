@@ -20,7 +20,6 @@ package org.gradle.integtests.resolve.aws.s3
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
 
-
     @Override
     String getRepositoryPath() {
         return '/maven/release/'
@@ -52,8 +51,7 @@ task retrieve(type: Sync) {
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
-                "The AWS Access Key Id you provided does not exist in our records. " +
-                "(Service: Amazon S3; Status Code: 403; Error Code: InvalidAccessKeyId; Request ID: stubbedAuthFailureRequestId)")
+                "The AWS Access Key Id you provided does not exist in our records.")
 
     }
 
@@ -82,7 +80,7 @@ task retrieve(type: Sync) {
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
-                "The specified key does not exist. (Service: Amazon S3; Status Code: 404; Error Code: NoSuchKey; Request ID: stubbedRequestId)")
+                "The specified key does not exist.")
 
     }
 }

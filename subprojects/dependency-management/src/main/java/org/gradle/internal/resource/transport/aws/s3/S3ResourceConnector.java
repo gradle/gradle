@@ -16,9 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashValue;
@@ -28,6 +25,9 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.jets3t.service.ServiceException;
+import org.jets3t.service.model.S3Object;
+import org.jets3t.service.model.StorageObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,9 +61,11 @@ public class S3ResourceConnector implements ExternalResourceLister, ExternalReso
     public HashValue getResourceSha1(URI location) {
         try {
             S3Object resource = s3Client.getResource(new URI(location.toString() + ".sha1"));
-            S3ObjectInputStream objectContent = resource.getObjectContent();
+            InputStream objectContent = resource.getDataInputStream();
             String sha = IOUtils.toString(objectContent);
             return HashValue.parse(sha);
+        } catch (ServiceException e) {
+            LOGGER.error("Could not get contents of resource sha", e);
         } catch (IOException e) {
             LOGGER.error("Could not get contents of resource sha", e);
         } catch (URISyntaxException e) {
@@ -74,9 +76,9 @@ public class S3ResourceConnector implements ExternalResourceLister, ExternalReso
 
     public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
-        ObjectMetadata metaData = s3Client.getMetaData(location);
+        StorageObject metaData = s3Client.getMetaData(location);
         DefaultExternalResourceMetaData defaultExternalResourceMetaData = new DefaultExternalResourceMetaData(location,
-                metaData.getLastModified().getTime(),
+                metaData.getLastModifiedDate().getTime(),
                 metaData.getContentLength(),
                 metaData.getETag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)

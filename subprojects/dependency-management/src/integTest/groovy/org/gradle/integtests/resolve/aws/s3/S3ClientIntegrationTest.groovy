@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.resolve.aws.s3
 
-import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.S3Object
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -26,6 +24,8 @@ import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.model.StorageObject
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -36,6 +36,7 @@ class S3ClientIntegrationTest extends Specification {
     final String accessKey = 'gradle-access-key'
     final String secret = 'gradle-secret-key'
     final String bucketName = 'org.gradle.artifacts'
+
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -76,14 +77,14 @@ class S3ClientIntegrationTest extends Specification {
         s3Client.put(stream, file.length(), uri)
 
         then:
-        ObjectMetadata data = s3Client.getMetaData(uri)
-        data.instanceLength == fileContents.length()
+        StorageObject data = s3Client.getMetaData(uri)
+        data.getContentLength() == fileContents.length()
         data.getETag() ==~ /\w{32}/
 
         and:
         S3Object object = s3Client.getResource(uri)
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-        IOUtils.copyLarge(object.getObjectContent(), outStream);
+        IOUtils.copyLarge(object.getDataInputStream(), outStream);
         outStream.toString() == fileContents
 
         and:
@@ -113,7 +114,6 @@ class S3ClientIntegrationTest extends Specification {
         def stream = new FileInputStream(file)
         def uri = new URI("s3://${bucketName}/maven/release/mavenTest.txt")
         s3Client.put(stream, file.length(), uri)
-
         s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
     }
 }

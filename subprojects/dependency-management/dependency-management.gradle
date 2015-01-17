@@ -22,7 +22,7 @@ dependencies {
     compile libraries.maven_ant_tasks
     compile libraries.jsch
     compile libraries.gson
-    compile libraries.aws
+    compile libraries.jets3t
     runtime libraries.xbean //maven3 classes dependency
     runtime libraries.bouncycastle_provider
 

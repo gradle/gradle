@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.internal.Constants
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import spock.lang.Specification
 

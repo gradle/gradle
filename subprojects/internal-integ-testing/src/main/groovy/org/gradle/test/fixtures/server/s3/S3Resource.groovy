@@ -70,7 +70,7 @@ class S3Resource implements RemoteResource {
     }
 
     def relativeFilePath() {
-        String absolute = file.absolutePath
+        String absolute = file.toURI()
         String base = "/${bucket}$repositoryPath"
         absolute.substring(absolute.indexOf(base), absolute.length())
     }
