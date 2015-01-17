@@ -253,7 +253,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public MutableModelNode realizeNode(ModelPath path) {
+    public ModelNode realizeNode(ModelPath path) {
         return new NodeWrapper(require(path));
     }
 

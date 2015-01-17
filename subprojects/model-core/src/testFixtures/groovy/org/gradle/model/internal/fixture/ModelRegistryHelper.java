@@ -101,11 +101,11 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public MutableModelNode realizeNode(ModelPath path) {
+    public ModelNode realizeNode(ModelPath path) {
         return modelRegistry.realizeNode(path);
     }
 
-    public MutableModelNode realizeNode(String path) {
+    public ModelNode realizeNode(String path) {
         return realizeNode(ModelPath.path(path));
     }
 

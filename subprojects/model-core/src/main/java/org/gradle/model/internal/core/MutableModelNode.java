@@ -66,7 +66,7 @@ public interface MutableModelNode extends ModelNode {
 
     Set<String> getLinkNames(ModelType<?> type);
 
-    Iterable<MutableModelNode> getLinks(ModelType<?> type);
+    Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
     boolean hasLink(String name);
 

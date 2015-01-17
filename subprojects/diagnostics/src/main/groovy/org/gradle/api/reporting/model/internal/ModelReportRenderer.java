@@ -18,8 +18,8 @@ package org.gradle.api.reporting.model.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
@@ -29,21 +29,21 @@ import java.util.TreeMap;
 public class ModelReportRenderer extends TextReportRenderer {
     private final NodeRenderer nodeRenderer = new NodeRenderer();
 
-    public void render(MutableModelNode node) {
+    public void render(ModelNode node) {
         nodeRenderer.render(node, getBuilder());
     }
 
-    private static class NodeRenderer extends ReportRenderer<MutableModelNode, TextReportBuilder> {
+    private static class NodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
         @Override
-        public void render(MutableModelNode model, TextReportBuilder output) {
+        public void render(ModelNode model, TextReportBuilder output) {
             if (model.getPath().equals(ModelPath.ROOT)) {
                 output.getOutput().println("model");
             } else {
                 output.getOutput().println(model.getPath().getName());
             }
 
-            Map<String, MutableModelNode> links = new TreeMap<String, MutableModelNode>();
-            for (MutableModelNode node : model.getLinks(ModelType.untyped())) {
+            Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
+            for (ModelNode node : model.getLinks(ModelType.untyped())) {
                 links.put(node.getPath().getName(), node);
             }
             output.collection(links.values(), this);

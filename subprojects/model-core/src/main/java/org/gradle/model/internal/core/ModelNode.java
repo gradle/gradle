@@ -55,4 +55,6 @@ public interface ModelNode {
     <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     Set<String> getLinkNames(ModelType<?> type);
+
+    Iterable<? extends ModelNode> getLinks(ModelType<?> type);
 }

@@ -34,8 +34,16 @@ public interface ModelRegistry extends ModelRegistrar {
      */
     public <T> T realize(ModelPath path, ModelType<T> type);
 
+    /**
+     * Get the fully defined model element at the given path.
+     * <p>
+     * No attempt to mutate the returned object should be made.
+     *
+     * @param path the path for the node
+     * @return the node, or null if no such element.
+     */
     @Nullable
-    MutableModelNode realizeNode(ModelPath path);
+    ModelNode realizeNode(ModelPath path);
 
     /**
      * Get the fully defined model element at the given path as the given type, if present.

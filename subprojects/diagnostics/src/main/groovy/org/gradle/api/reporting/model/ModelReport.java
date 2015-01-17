@@ -23,8 +23,8 @@ import org.gradle.api.reporting.model.internal.ModelReportRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import javax.inject.Inject;
@@ -55,7 +55,7 @@ public class ModelReport extends DefaultTask {
         renderer.startProject(project);
 
         // Configure the world
-        MutableModelNode rootNode = getModelRegistry().realizeNode(ModelPath.ROOT);
+        ModelNode rootNode = getModelRegistry().realizeNode(ModelPath.ROOT);
         renderer.render(rootNode);
 
         renderer.completeProject(project);
