@@ -25,7 +25,7 @@ import org.gradle.tooling.model.GradleProject
 
 class GradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
-    @ToolingApiVersion(">=1.12")
+    @ToolingApiVersion(">=2.1")
     @TargetGradleVersion(">=2.3")
     def "populate isPublic field on tasks from GradleProject"() {
         file("build.gradle") << """
