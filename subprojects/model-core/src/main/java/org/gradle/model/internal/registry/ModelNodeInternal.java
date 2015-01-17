@@ -31,11 +31,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
     private final ModelAdapter adapter;
+    private ModelNode.State state = ModelNode.State.Known;
 
     private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
     private Object privateData;
     private ModelType<?> privateDataType;
-    private ModelNode.State state = ModelNode.State.Known;
 
     public ModelNodeInternal(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         this.creationPath = creationPath;
@@ -115,6 +115,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public <T> void setPrivateData(ModelType<T> type, T object) {
+        if (!isMutable()) {
+            throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
+        }
         this.privateDataType = type;
         this.privateData = object;
     }

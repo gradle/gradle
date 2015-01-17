@@ -90,12 +90,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        doCreate(modelGraph.getRoot(), creator);
+        doCreate(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         return this;
     }
 
-    private ModelNodeInternal doCreate(ModelNodeInternal parent, ModelCreator creator) {
-        ModelPath path = creator.getPath();
+    private ModelNodeInternal doCreate(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
+        ModelPath path = child.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
@@ -132,7 +132,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        node = parent.addLink(new ModelElementNode(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter()));
+        node = parent.addLink(child);
         modelGraph.add(node);
         bind(creator);
         return node;
@@ -534,8 +534,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ModelRuleInput.of(binding, view);
     }
 
-    private class ModelElementNode extends ModelNodeInternal {
-        public ModelElementNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+    // Bust this out to top level
+    private abstract class RegistryAwareNode extends ModelNodeInternal {
+        public RegistryAwareNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
             super(creationPath, descriptor, promise, adapter);
         }
 
@@ -549,6 +550,67 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
             return getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+        }
+    }
+
+    private class ModelReferenceNode extends RegistryAwareNode {
+        public ModelReferenceNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+            super(creationPath, descriptor, promise, adapter);
+        }
+
+        @Override
+        public void addLink(ModelCreator creator) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addReference(ModelCreator creator) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int getLinkCount(ModelType<?> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<String> getLinkNames(ModelType<?> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean hasLink(String name, ModelType<?> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void ensureUsable() {
+        }
+    }
+
+    private class ModelElementNode extends RegistryAwareNode {
+        public ModelElementNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+            super(creationPath, descriptor, promise, adapter);
         }
 
         @Override
@@ -635,7 +697,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelCreator creator) {
-            addLink(creator);
+            if (!getPath().isDirectChild(creator.getPath())) {
+                throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
+            }
+            doCreate(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
@@ -643,7 +708,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(this, creator);
+            doCreate(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
@@ -654,14 +719,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public void ensureUsable() {
             transition(this, DefaultsApplied, true);
-        }
-
-        @Override
-        public <T> void setPrivateData(ModelType<T> type, T object) {
-            if (!isMutable()) {
-                throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
-            }
-            super.setPrivateData(type, object);
         }
     }
 
