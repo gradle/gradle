@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
@@ -54,5 +53,5 @@ public abstract class ModelCreationListener {
      * Invoked for each node that matches the criteria specified by {@link #matchPath()}, {@link #matchParent()} or {@link #matchType()}, or every node if
      * no criteria specified. Stops notifying listener with further node when this method returns true.
      */
-    public abstract boolean onCreate(ModelNode node);
+    public abstract boolean onCreate(ModelNodeData node);
 }

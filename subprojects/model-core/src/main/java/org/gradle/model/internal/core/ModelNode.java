@@ -16,16 +16,13 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Set;
 
-public class ModelNode {
+public interface ModelNode {
 
     // Note: order is crucial here
     public enum State {
@@ -38,103 +35,24 @@ public class ModelNode {
         SelfClosed(false),
         GraphClosed(false);
 
-        final boolean mutable;
+        public final boolean mutable;
 
         State(boolean mutable) {
             this.mutable = mutable;
         }
     }
-    private final ModelPath creationPath;
-    private final ModelRuleDescriptor descriptor;
-    private final ModelPromise promise;
-    private final ModelAdapter adapter;
 
-    private final Map<String, ModelNode> links = Maps.newTreeMap();
-    private Object privateData;
-    private ModelType<?> privateDataType;
-    private State state = State.Known;
+    ModelPath getPath();
 
-    public ModelNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        this.creationPath = creationPath;
-        this.descriptor = descriptor;
-        this.promise = promise;
-        this.adapter = adapter;
-    }
+    ModelRuleDescriptor getDescriptor();
 
-    public ModelPath getPath() {
-        return creationPath;
-    }
+    State getState();
 
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public State getState() {
-        return state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
-    }
-
-    public boolean isMutable() {
-        return state.mutable;
-    }
-
-    public boolean canApply(ModelActionRole type) {
-        return type.ordinal() >= state.ordinal() - State.Created.ordinal();
-    }
-
-    public ModelPromise getPromise() {
-        return promise;
-    }
-
-    public ModelAdapter getAdapter() {
-        return adapter;
-    }
-
-    @Override
-    public String toString() {
-        return creationPath.toString();
-    }
-
-    public boolean hasLink(String name) {
-        return links.containsKey(name);
-    }
-
+    /**
+     * Creates a read-only view over this node's value.
+     */
     @Nullable
-    public ModelNode getLink(String name) {
-        return links.get(name);
-    }
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
-    public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelNode node = new ModelNode(creationPath.child(name), descriptor, promise, adapter);
-        links.put(name, node);
-        return node;
-    }
-
-    public Map<String, ModelNode> getLinks() {
-        return Collections.unmodifiableMap(links);
-    }
-
-    @Nullable
-    public ModelNode removeLink(String name) {
-        return links.remove(name);
-    }
-
-    public <T> T getPrivateData(ModelType<T> type) {
-        if (privateData == null) {
-            return null;
-        }
-
-        if (!type.isAssignableFrom(privateDataType)) {
-            throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
-        }
-        return Cast.uncheckedCast(privateData);
-    }
-
-    public <T> void setPrivateData(ModelType<T> type, T object) {
-        this.privateDataType = type;
-        this.privateData = object;
-    }
+    Set<String> getLinkNames(ModelType<?> type);
 }

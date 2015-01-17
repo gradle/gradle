@@ -478,7 +478,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         events == ["collection mutated"]
-        cbNode.links.keySet().toList() == ["c1"]
+        cbNode.getLinkNames(ModelType.of(Bean)).toList() == ["c1"]
 
         when:
         registry.atState(ModelPath.path("things"), ModelNode.State.GraphClosed)

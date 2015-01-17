@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry
 
-import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelPromise
 import org.gradle.model.internal.type.ModelType
@@ -346,7 +345,7 @@ class ModelGraphTest extends Specification {
     }
 
     def node(String path, Class<?> type = String) {
-        return Stub(ModelNode) {
+        return Stub(ModelNodeData) {
             getPath() >> ModelPath.path(path)
             getPromise() >> Stub(ModelPromise) {
                 canBeViewedAsWritable(_) >> { ModelType t -> return t.concreteClass == type }

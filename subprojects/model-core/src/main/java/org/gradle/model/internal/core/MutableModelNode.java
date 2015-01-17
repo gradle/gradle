@@ -22,20 +22,12 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
-public interface MutableModelNode {
-    ModelPath getPath();
-
+public interface MutableModelNode extends ModelNode {
     /**
      * Creates a mutable view over this node's value.
      */
     @Nullable
     <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
-
-    /**
-     * Creates a read-only view over this node's value.
-     */
-    @Nullable
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
