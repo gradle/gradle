@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
@@ -424,7 +425,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (desired.ordinal() >= GraphClosed.ordinal()) {
-            for (ModelNodeInternal child : node.getLinks().values()) {
+            for (ModelNodeInternal child : node.getLinks()) {
                 close(child);
             }
             node.setState(GraphClosed);
@@ -554,8 +555,25 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class ModelReferenceNode extends RegistryAwareNode {
+        private ModelNodeInternal target;
+
         public ModelReferenceNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
             super(creationPath, descriptor, promise, adapter);
+        }
+
+        @Override
+        public ModelNodeInternal getTarget() {
+            return target;
+        }
+
+        @Override
+        public void setTarget(ModelNode target) {
+            this.target = (ModelNodeInternal) target;
+        }
+
+        @Override
+        public ModelNodeInternal addLink(ModelNodeInternal node) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -565,6 +583,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelCreator creator) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeLink(String name) {
             throw new UnsupportedOperationException();
         }
 
@@ -585,21 +608,47 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public int getLinkCount(ModelType<?> type) {
-            throw new UnsupportedOperationException();
+            return 0;
         }
 
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
-            throw new UnsupportedOperationException();
+            return Collections.emptySet();
+        }
+
+        @Nullable
+        @Override
+        public MutableModelNode getLink(String name) {
+            return null;
+        }
+
+        @Override
+        public Iterable<? extends ModelNodeInternal> getLinks() {
+            return Collections.emptySet();
         }
 
         @Override
         public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-            throw new UnsupportedOperationException();
+            return Collections.emptySet();
         }
 
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
+            return false;
+        }
+
+        @Override
+        public boolean hasLink(String name) {
+            return false;
+        }
+
+        @Override
+        public <T> T getPrivateData(ModelType<T> type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> void setPrivateData(ModelType<T> type, T object) {
             throw new UnsupportedOperationException();
         }
 
@@ -609,14 +658,56 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class ModelElementNode extends RegistryAwareNode {
+        private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
+        private Object privateData;
+        private ModelType<?> privateDataType;
+
         public ModelElementNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
             super(creationPath, descriptor, promise, adapter);
         }
 
         @Override
+        public ModelNodeInternal addLink(ModelNodeInternal node) {
+            links.put(node.getPath().getName(), node);
+            return node;
+        }
+
+        public <T> T getPrivateData(ModelType<T> type) {
+            if (privateData == null) {
+                return null;
+            }
+
+            if (!type.isAssignableFrom(privateDataType)) {
+                throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
+            }
+            return Cast.uncheckedCast(privateData);
+        }
+
+        public <T> void setPrivateData(ModelType<T> type, T object) {
+            if (!isMutable()) {
+                throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
+            }
+            this.privateDataType = type;
+            this.privateData = object;
+        }
+
+        public boolean hasLink(String name) {
+            return links.containsKey(name);
+        }
+
+        @Nullable
+        public ModelNodeInternal getLink(String name) {
+            return links.get(name);
+        }
+
+        public Iterable<? extends ModelNodeInternal> getLinks() {
+            return links.values();
+        }
+
+        @Override
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
-            for (ModelNodeInternal linked : getLinks().values()) {
+            for (ModelNodeInternal linked : links.values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
                     count++;
                 }
@@ -627,7 +718,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = new TreeSet<String>();
-            for (Map.Entry<String, ModelNodeInternal> entry : getLinks().entrySet()) {
+            for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
                 if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
                     names.add(entry.getKey());
                 }
@@ -638,7 +729,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<MutableModelNode> getLinks(ModelType<?> type) {
             Set<MutableModelNode> nodes = new LinkedHashSet<MutableModelNode>();
-            for (ModelNodeInternal linked : getLinks().values()) {
+            for (ModelNodeInternal linked : links.values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
                     nodes.add(linked);
                 }
@@ -713,7 +804,18 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void removeLink(String name) {
+            links.remove(name);
             remove(getPath().child(name));
+        }
+
+        @Override
+        public ModelNodeInternal getTarget() {
+            return this;
+        }
+
+        @Override
+        public void setTarget(ModelNode target) {
+            throw new UnsupportedOperationException(String.format("This node (%s) is not a reference to another node.", getPath()));
         }
 
         @Override

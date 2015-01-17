@@ -108,7 +108,7 @@ public class ModelGraph {
             if (listener.matchParent() != null) {
                 ModelNodeInternal parent = flattened.get(listener.matchParent());
                 if (parent != null) {
-                    for (ModelNodeInternal node : parent.getLinks().values()) {
+                    for (ModelNodeInternal node : parent.getLinks()) {
                         if (maybeNotify(node, listener)) {
                             return;
                         }
@@ -123,7 +123,7 @@ public class ModelGraph {
                     if (maybeNotify(scope, listener)) {
                         return;
                     }
-                    for (ModelNodeInternal node : scope.getLinks().values()) {
+                    for (ModelNodeInternal node : scope.getLinks()) {
                         if (maybeNotify(node, listener)) {
                             return;
                         }

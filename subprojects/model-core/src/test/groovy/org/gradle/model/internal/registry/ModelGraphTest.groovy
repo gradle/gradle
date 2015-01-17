@@ -155,7 +155,7 @@ class ModelGraphTest extends Specification {
 
         given:
         listener.matchParent() >> a.path
-        a.links >> [b: b]
+        a.links >> [b]
 
         when:
         graph.add(a)
@@ -210,7 +210,7 @@ class ModelGraphTest extends Specification {
         given:
         listener.matchType() >> ModelType.of(String)
         listener.matchParent() >> a.path
-        a.links >> [b: b]
+        a.links >> [b]
 
         when:
         graph.add(a)
@@ -243,7 +243,7 @@ class ModelGraphTest extends Specification {
         given:
         listener.matchType() >> ModelType.of(String)
         listener.matchScope() >> b.path
-        b.links >> [c: c]
+        b.links >> [c]
 
         when:
         graph.add(a)

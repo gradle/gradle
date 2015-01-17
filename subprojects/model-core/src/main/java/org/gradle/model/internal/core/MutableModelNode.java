@@ -76,6 +76,11 @@ public interface MutableModelNode extends ModelNode {
 
     <T> T getPrivateData(ModelType<T> type);
 
+    @Nullable
+    MutableModelNode getTarget();
+
+    void setTarget(ModelNode target);
+
     /**
      * Ensure that the views are available, with default values applied.
      */

@@ -98,7 +98,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                     MutableModelNode targetNode = propertyNode;
                     if (property.isWritable() && schema.getKind().isManaged()) {
-                        targetNode = propertyNode.getPrivateData(ModelType.of(MutableModelNode.class));
+                        targetNode = propertyNode.getTarget();
                         if (targetNode == null) {
                             return null;
                         }
@@ -137,18 +137,16 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (value == null) {
-                        propertyNode.setPrivateData(propertyType, null);
-                        return;
-                    }
-
                     if (schema.getKind().isManaged()) {
-                        if (!ManagedInstance.class.isInstance(value)) {
+                        if (value == null) {
+                            propertyNode.setTarget(null);
+                        } else if (ManagedInstance.class.isInstance(value)) {
+                            ManagedInstance managedInstance = (ManagedInstance) value;
+                            MutableModelNode targetNode = managedInstance.getBackingNode();
+                            propertyNode.setTarget(targetNode);
+                        } else {
                             throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                         }
-                        ManagedInstance managedInstance = (ManagedInstance) value;
-                        MutableModelNode targetNode = managedInstance.getBackingNode();
-                        propertyNode.setPrivateData(ModelType.of(MutableModelNode.class), targetNode);
                     } else {
                         T castValue = Cast.uncheckedCast(value);
                         propertyNode.setPrivateData(propertyType, castValue);

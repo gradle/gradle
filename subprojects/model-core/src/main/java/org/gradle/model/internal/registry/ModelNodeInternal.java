@@ -16,15 +16,8 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
-import java.util.Map;
 
 abstract class ModelNodeInternal implements MutableModelNode {
     private final ModelPath creationPath;
@@ -32,10 +25,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final ModelPromise promise;
     private final ModelAdapter adapter;
     private ModelNode.State state = ModelNode.State.Known;
-
-    private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
-    private Object privateData;
-    private ModelType<?> privateDataType;
 
     public ModelNodeInternal(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         this.creationPath = creationPath;
@@ -81,44 +70,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return creationPath.toString();
     }
 
-    public boolean hasLink(String name) {
-        return links.containsKey(name);
-    }
+    public abstract ModelNodeInternal getTarget();
 
-    @Nullable
-    public ModelNodeInternal getLink(String name) {
-        return links.get(name);
-    }
+    public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
-    public ModelNodeInternal addLink(ModelNodeInternal node) {
-        links.put(node.getPath().getName(), node);
-        return node;
-    }
-
-    public Map<String, ModelNodeInternal> getLinks() {
-        return Collections.unmodifiableMap(links);
-    }
-
-    public void removeLink(String name) {
-        links.remove(name);
-    }
-
-    public <T> T getPrivateData(ModelType<T> type) {
-        if (privateData == null) {
-            return null;
-        }
-
-        if (!type.isAssignableFrom(privateDataType)) {
-            throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
-        }
-        return Cast.uncheckedCast(privateData);
-    }
-
-    public <T> void setPrivateData(ModelType<T> type, T object) {
-        if (!isMutable()) {
-            throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
-        }
-        this.privateDataType = type;
-        this.privateData = object;
-    }
+    public abstract ModelNodeInternal addLink(ModelNodeInternal node);
 }
