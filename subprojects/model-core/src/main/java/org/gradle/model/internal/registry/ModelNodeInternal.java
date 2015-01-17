@@ -26,18 +26,18 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-abstract class ModelNodeData implements MutableModelNode {
+abstract class ModelNodeInternal implements MutableModelNode {
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
     private final ModelAdapter adapter;
 
-    private final Map<String, ModelNodeData> links = Maps.newTreeMap();
+    private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
     private Object privateData;
     private ModelType<?> privateDataType;
     private ModelNode.State state = ModelNode.State.Known;
 
-    public ModelNodeData(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+    public ModelNodeInternal(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
         this.creationPath = creationPath;
         this.descriptor = descriptor;
         this.promise = promise;
@@ -86,16 +86,16 @@ abstract class ModelNodeData implements MutableModelNode {
     }
 
     @Nullable
-    public ModelNodeData getLink(String name) {
+    public ModelNodeInternal getLink(String name) {
         return links.get(name);
     }
 
-    public ModelNodeData addLink(ModelNodeData node) {
+    public ModelNodeInternal addLink(ModelNodeInternal node) {
         links.put(node.getPath().getName(), node);
         return node;
     }
 
-    public Map<String, ModelNodeData> getLinks() {
+    public Map<String, ModelNodeInternal> getLinks() {
         return Collections.unmodifiableMap(links);
     }
 

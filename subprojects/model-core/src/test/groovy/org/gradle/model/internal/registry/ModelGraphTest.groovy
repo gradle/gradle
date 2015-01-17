@@ -345,7 +345,7 @@ class ModelGraphTest extends Specification {
     }
 
     def node(String path, Class<?> type = String) {
-        return Stub(ModelNodeData) {
+        return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.path(path)
             getPromise() >> Stub(ModelPromise) {
                 canBeViewedAsWritable(_) >> { ModelType t -> return t.concreteClass == type }
@@ -355,7 +355,7 @@ class ModelGraphTest extends Specification {
     }
 
     def root() {
-        return Stub(ModelNodeData) {
+        return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.ROOT
         }
     }

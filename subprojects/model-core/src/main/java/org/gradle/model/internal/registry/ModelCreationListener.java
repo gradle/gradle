@@ -53,5 +53,5 @@ public abstract class ModelCreationListener {
      * Invoked for each node that matches the criteria specified by {@link #matchPath()}, {@link #matchParent()} or {@link #matchType()}, or every node if
      * no criteria specified. Stops notifying listener with further node when this method returns true.
      */
-    public abstract boolean onCreate(ModelNodeData node);
+    public abstract boolean onCreate(ModelNodeInternal node);
 }

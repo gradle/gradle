@@ -71,7 +71,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         this.modelRuleSourceApplicator = modelRuleSourceApplicator;
         this.pluginClassApplicator = pluginClassApplicator;
         EmptyModelProjection projection = new EmptyModelProjection();
-        modelGraph = new ModelGraph(new NodeWrapper(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
+        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -94,13 +94,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private ModelNodeData doCreate(ModelNodeData parent, ModelCreator creator) {
+    private ModelNodeInternal doCreate(ModelNodeInternal parent, ModelCreator creator) {
         ModelPath path = creator.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        ModelNodeData node = modelGraph.find(path);
+        ModelNodeInternal node = modelGraph.find(path);
         if (node != null) {
             if (node.getState() == Known) {
                 throw new DuplicateModelException(
@@ -132,7 +132,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        node = parent.addLink(new NodeWrapper(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter()));
+        node = parent.addLink(new ModelElementNode(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter()));
         modelGraph.add(node);
         bind(creator);
         return node;
@@ -176,7 +176,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
                 ModelPath path = boundMutator.getSubject().getPath();
-                ModelNodeData subject = modelGraph.find(path);
+                ModelNodeInternal subject = modelGraph.find(path);
                 if (!subject.canApply(type)) {
                     throw new IllegalStateException(String.format(
                             "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
@@ -235,7 +235,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNode atStateOrMaybeLater(ModelPath path, ModelNode.State state, boolean laterOk) {
-        ModelNodeData node = modelGraph.find(path);
+        ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return null;
         }
@@ -247,7 +247,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return toType(type, get(path), "find(ModelPath, ModelType)");
     }
 
-    private <T> T toType(ModelType<T> type, ModelNodeData node, String msg) {
+    private <T> T toType(ModelType<T> type, ModelNodeInternal node, String msg) {
         if (node == null) {
             return null;
         } else {
@@ -348,8 +348,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return false;
     }
 
-    private ModelNodeData require(ModelPath path) {
-        ModelNodeData node = get(path);
+    private ModelNodeInternal require(ModelPath path) {
+        ModelNodeInternal node = get(path);
         if (node == null) {
             throw new IllegalStateException("No model node at '" + path + "'");
         }
@@ -358,12 +358,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     @Override
     public ModelNode.State state(ModelPath path) {
-        ModelNodeData modelNode = modelGraph.find(path);
+        ModelNodeInternal modelNode = modelGraph.find(path);
         return modelNode == null ? null : modelNode.getState();
     }
 
-    private ModelNodeData get(ModelPath path) {
-        ModelNodeData node = modelGraph.find(path);
+    private ModelNodeInternal get(ModelPath path) {
+        ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return null;
         }
@@ -371,11 +371,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private void close(ModelNodeData node) {
+    private void close(ModelNodeInternal node) {
         transition(node, GraphClosed, false);
     }
 
-    private void transition(ModelNodeData node, ModelNode.State desired, boolean laterOk) {
+    private void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 
@@ -424,7 +424,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (desired.ordinal() >= GraphClosed.ordinal()) {
-            for (ModelNodeData child : node.getLinks().values()) {
+            for (ModelNodeInternal child : node.getLinks().values()) {
                 close(child);
             }
             node.setState(GraphClosed);
@@ -434,7 +434,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     // NOTE: this should only be called from transition() as implicit logic is shared
-    private boolean fireMutations(ModelNodeData node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
+    private boolean fireMutations(ModelNodeInternal node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
         ModelNode.State nodeState = node.getState();
         if (nodeState.ordinal() >= to.ordinal()) {
             return nodeState.ordinal() < desired.ordinal();
@@ -462,7 +462,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeData node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
+    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
         ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor, modelRuleSourceApplicator, this, pluginClassApplicator);
         if (view == null) {
@@ -473,7 +473,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeData node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
+    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = node.getAdapter();
         ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
         if (view == null) {
@@ -484,7 +484,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNodeData doCreate(ModelNodeData node, BoundModelCreator boundCreator) {
+    private ModelNodeInternal doCreate(ModelNodeInternal node, BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
         Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
@@ -500,7 +500,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(ModelNodeData node, BoundModelMutator<T> boundMutator) {
+    private <T> void fireMutation(ModelNodeInternal node, BoundModelMutator<T> boundMutator) {
         Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
         ModelAction<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
@@ -529,13 +529,13 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding, ModelRuleDescriptor ruleDescriptor) {
         ModelPath path = binding.getPath();
-        ModelNodeData element = require(path);
+        ModelNodeInternal element = require(path);
         ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
         return ModelRuleInput.of(binding, view);
     }
 
-    private class NodeWrapper extends ModelNodeData {
-        public NodeWrapper(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+    private class ModelElementNode extends ModelNodeInternal {
+        public ModelElementNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
             super(creationPath, descriptor, promise, adapter);
         }
 
@@ -554,7 +554,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
-            for (ModelNodeData linked : getLinks().values()) {
+            for (ModelNodeInternal linked : getLinks().values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
                     count++;
                 }
@@ -565,7 +565,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = new TreeSet<String>();
-            for (Map.Entry<String, ModelNodeData> entry : getLinks().entrySet()) {
+            for (Map.Entry<String, ModelNodeInternal> entry : getLinks().entrySet()) {
                 if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
                     names.add(entry.getKey());
                 }
@@ -576,7 +576,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<MutableModelNode> getLinks(ModelType<?> type) {
             Set<MutableModelNode> nodes = new LinkedHashSet<MutableModelNode>();
-            for (ModelNodeData linked : getLinks().values()) {
+            for (ModelNodeInternal linked : getLinks().values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
                     nodes.add(linked);
                 }
@@ -586,7 +586,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
-            ModelNodeData linked = getLink(name);
+            ModelNodeInternal linked = getLink(name);
             return linked != null && linked.getPromise().canBeViewedAsWritable(type);
         }
 
@@ -626,7 +626,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 }
 
                 @Override
-                public boolean onCreate(ModelNodeData node) {
+                public boolean onCreate(ModelNodeInternal node) {
                     bind(ModelReference.of(node.getPath(), action.getSubject().getType()), type, action, ModelPath.ROOT);
                     return false;
                 }
@@ -718,7 +718,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return path;
         }
 
-        public boolean onCreate(ModelNodeData node) {
+        public boolean onCreate(ModelNodeInternal node) {
             ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
             ModelPath path = node.getPath();
             ModelPromise promise = node.getPromise();
@@ -762,7 +762,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return reference.getType();
         }
 
-        public boolean onCreate(ModelNodeData node) {
+        public boolean onCreate(ModelNodeInternal node) {
             ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
             ModelPath path = node.getPath();
             if (boundTo != null) {

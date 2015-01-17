@@ -25,30 +25,30 @@ import org.gradle.model.internal.core.ModelPath;
 import java.util.*;
 
 public class ModelGraph {
-    private final ModelNodeData root;
-    private final Map<ModelPath, ModelNodeData> flattened = Maps.newTreeMap();
+    private final ModelNodeInternal root;
+    private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelCreationListener> parentListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelCreationListener> scopeListeners = LinkedHashMultimap.create();
     private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
     private boolean notifying;
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
-    private final List<ModelNodeData> pendingNodes = new ArrayList<ModelNodeData>();
+    private final List<ModelNodeInternal> pendingNodes = new ArrayList<ModelNodeInternal>();
 
-    public ModelGraph(ModelNodeData rootNode) {
+    public ModelGraph(ModelNodeInternal rootNode) {
         this.root = rootNode;
         flattened.put(root.getPath(), root);
     }
 
-    public ModelNodeData getRoot() {
+    public ModelNodeInternal getRoot() {
         return root;
     }
 
-    public Map<ModelPath, ModelNodeData> getFlattened() {
+    public Map<ModelPath, ModelNodeInternal> getFlattened() {
         return Collections.unmodifiableMap(flattened);
     }
 
-    public void add(ModelNodeData node) {
+    public void add(ModelNodeInternal node) {
         if (notifying) {
             pendingNodes.add(node);
             return;
@@ -58,7 +58,7 @@ public class ModelGraph {
         flush();
     }
 
-    private void doAdd(ModelNodeData node) {
+    private void doAdd(ModelNodeInternal node) {
         flattened.put(node.getPath(), node);
         notifying = true;
         try {
@@ -72,7 +72,7 @@ public class ModelGraph {
         }
     }
 
-    private void notifyListeners(ModelNodeData node, Iterable<ModelCreationListener> listeners) {
+    private void notifyListeners(ModelNodeInternal node, Iterable<ModelCreationListener> listeners) {
         Iterator<ModelCreationListener> iterator = listeners.iterator();
         while (iterator.hasNext()) {
             ModelCreationListener listener = iterator.next();
@@ -96,7 +96,7 @@ public class ModelGraph {
         notifying = true;
         try {
             if (listener.matchPath() != null) {
-                ModelNodeData node = flattened.get(listener.matchPath());
+                ModelNodeInternal node = flattened.get(listener.matchPath());
                 if (node != null) {
                     if (maybeNotify(node, listener)) {
                         return;
@@ -106,9 +106,9 @@ public class ModelGraph {
                 return;
             }
             if (listener.matchParent() != null) {
-                ModelNodeData parent = flattened.get(listener.matchParent());
+                ModelNodeInternal parent = flattened.get(listener.matchParent());
                 if (parent != null) {
-                    for (ModelNodeData node : parent.getLinks().values()) {
+                    for (ModelNodeInternal node : parent.getLinks().values()) {
                         if (maybeNotify(node, listener)) {
                             return;
                         }
@@ -118,12 +118,12 @@ public class ModelGraph {
                 return;
             }
             if (listener.matchScope() != null) {
-                ModelNodeData scope = flattened.get(listener.matchScope());
+                ModelNodeInternal scope = flattened.get(listener.matchScope());
                 if (scope != null) {
                     if (maybeNotify(scope, listener)) {
                         return;
                     }
-                    for (ModelNodeData node : scope.getLinks().values()) {
+                    for (ModelNodeInternal node : scope.getLinks().values()) {
                         if (maybeNotify(node, listener)) {
                             return;
                         }
@@ -132,7 +132,7 @@ public class ModelGraph {
                 scopeListeners.put(listener.matchScope(), listener);
                 return;
             }
-            for (ModelNodeData node : flattened.values()) {
+            for (ModelNodeInternal node : flattened.values()) {
                 if (maybeNotify(node, listener)) {
                     return;
                 }
@@ -152,7 +152,7 @@ public class ModelGraph {
         }
     }
 
-    private boolean maybeNotify(ModelNodeData node, ModelCreationListener listener) {
+    private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
         if (listener.matchType() != null && !node.getPromise().canBeViewedAsWritable(listener.matchType()) && !node.getPromise().canBeViewedAsReadOnly(listener.matchType())) {
             return false;
         }
@@ -160,13 +160,13 @@ public class ModelGraph {
     }
 
     @Nullable
-    public ModelNodeData find(ModelPath path) {
+    public ModelNodeInternal find(ModelPath path) {
         return flattened.get(path);
     }
 
     @Nullable
-    public ModelNodeData remove(ModelPath path) {
-        ModelNodeData parentNode = find(path.getParent());
+    public ModelNodeInternal remove(ModelPath path) {
+        ModelNodeInternal parentNode = find(path.getParent());
         if (parentNode != null) {
             parentNode.removeLink(path.getName());
         }
