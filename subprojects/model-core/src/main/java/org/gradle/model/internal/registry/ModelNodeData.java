@@ -26,7 +26,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.Map;
 
-public class ModelNodeData {
+abstract class ModelNodeData implements MutableModelNode {
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
@@ -90,9 +90,8 @@ public class ModelNodeData {
         return links.get(name);
     }
 
-    public ModelNodeData addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelNodeData node = new ModelNodeData(creationPath.child(name), descriptor, promise, adapter);
-        links.put(name, node);
+    public ModelNodeData addLink(ModelNodeData node) {
+        links.put(node.getPath().getName(), node);
         return node;
     }
 
@@ -100,9 +99,8 @@ public class ModelNodeData {
         return Collections.unmodifiableMap(links);
     }
 
-    @Nullable
-    public ModelNodeData removeLink(String name) {
-        return links.remove(name);
+    public void removeLink(String name) {
+        links.remove(name);
     }
 
     public <T> T getPrivateData(ModelType<T> type) {

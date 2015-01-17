@@ -29,6 +29,7 @@ import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.report.unbound.UnboundRule;
@@ -55,7 +56,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 - Detecting a rule binding the same input twice (maybe that's ok)
                 - Detecting a rule trying to bind the same element to mutate and to read
              */
-    private final ModelGraph modelGraph = new ModelGraph();
+    private final ModelGraph modelGraph;
 
     private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
     private final Multimap<MutationKey, BoundModelMutator<?>> actions = ArrayListMultimap.create();
@@ -69,6 +70,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry(ModelRuleSourceApplicator modelRuleSourceApplicator, PluginClassApplicator pluginClassApplicator) {
         this.modelRuleSourceApplicator = modelRuleSourceApplicator;
         this.pluginClassApplicator = pluginClassApplicator;
+        EmptyModelProjection projection = new EmptyModelProjection();
+        modelGraph = new ModelGraph(new NodeWrapper(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -80,10 +83,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public DefaultModelRegistry create(ModelCreator creator, ModelPath scope) {
         ModelPath path = creator.getPath();
-        if (scope != ModelPath.ROOT) {
-            throw new IllegalStateException("Creator in scope " + path + " not supported, must be top level");
+        if (!scope.equals(ModelPath.ROOT)) {
+            throw new IllegalStateException("Creator in scope " + scope + " not supported, must be root");
         }
-        if (path.getDepth() != 1) {
+        if (!ModelPath.ROOT.isDirectChild(path)) {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
@@ -129,7 +132,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             );
         }
 
-        node = parent.addLink(path.getName(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter());
+        node = parent.addLink(new NodeWrapper(path, creator.getDescriptor(), creator.getPromise(), creator.getAdapter()));
         modelGraph.add(node);
         bind(creator);
         return node;
@@ -237,7 +240,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return null;
         }
         transition(node, state, laterOk);
-        return new NodeWrapper(node);
+        return node;
     }
 
     public <T> T find(ModelPath path, ModelType<T> type) {
@@ -254,7 +257,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     @Override
     public ModelNode realizeNode(ModelPath path) {
-        return new NodeWrapper(require(path));
+        return require(path);
     }
 
     private void registerListener(ModelCreationListener listener) {
@@ -461,7 +464,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNodeData node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, new NodeWrapper(node), descriptor, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor, modelRuleSourceApplicator, this, pluginClassApplicator);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -472,7 +475,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNodeData node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), new NodeWrapper(node), sourceDescriptor, inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
@@ -488,7 +491,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
         try {
-            creator.create(new NodeWrapper(node), inputs);
+            creator.create(node, inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
@@ -506,7 +509,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
         try {
-            mutator.execute(new NodeWrapper(node), view.getInstance(), inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+            mutator.execute(node, view.getInstance(), inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
@@ -531,69 +534,27 @@ public class DefaultModelRegistry implements ModelRegistry {
         return ModelRuleInput.of(binding, view);
     }
 
-    private class NodeWrapper implements MutableModelNode {
-        private final ModelNodeData node;
-
-        public NodeWrapper(ModelNodeData node) {
-            this.node = node;
-        }
-
-        @Override
-        public State getState() {
-            return node.getState();
-        }
-
-        @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return node.getDescriptor();
-        }
-
-        @Override
-        public String toString() {
-            return node.toString();
-        }
-
-        public ModelPromise getPromise() {
-            return node.getPromise();
-        }
-
-        public ModelAdapter getAdapter() {
-            return node.getAdapter();
-        }
-
-        @Override
-        public ModelPath getPath() {
-            return node.getPath();
-        }
-
-        @Override
-        public boolean isMutable() {
-            return node.isMutable();
+    private class NodeWrapper extends ModelNodeData {
+        public NodeWrapper(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
+            super(creationPath, descriptor, promise, adapter);
         }
 
         @Nullable
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            return node.getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            return getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
         }
 
         @Nullable
         @Override
         public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
-            return node.getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
-        }
-
-        @Nullable
-        @Override
-        public MutableModelNode getLink(String name) {
-            ModelNodeData node = this.node.getLink(name);
-            return node == null ? null : new NodeWrapper(node);
+            return getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
         }
 
         @Override
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
-            for (ModelNodeData linked : node.getLinks().values()) {
+            for (ModelNodeData linked : getLinks().values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
                     count++;
                 }
@@ -604,7 +565,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = new TreeSet<String>();
-            for (Map.Entry<String, ModelNodeData> entry : node.getLinks().entrySet()) {
+            for (Map.Entry<String, ModelNodeData> entry : getLinks().entrySet()) {
                 if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
                     names.add(entry.getKey());
                 }
@@ -615,22 +576,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public Set<MutableModelNode> getLinks(ModelType<?> type) {
             Set<MutableModelNode> nodes = new LinkedHashSet<MutableModelNode>();
-            for (ModelNodeData linked : node.getLinks().values()) {
+            for (ModelNodeData linked : getLinks().values()) {
                 if (linked.getPromise().canBeViewedAsWritable(type)) {
-                    nodes.add(new NodeWrapper(linked));
+                    nodes.add(linked);
                 }
             }
             return nodes;
         }
 
         @Override
-        public boolean hasLink(String name) {
-            return node.hasLink(name);
-        }
-
-        @Override
         public boolean hasLink(String name, ModelType<?> type) {
-            ModelNodeData linked = node.getLink(name);
+            ModelNodeData linked = getLink(name);
             return linked != null && linked.getPromise().canBeViewedAsWritable(type);
         }
 
@@ -660,7 +616,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 @Nullable
                 @Override
                 public ModelPath matchParent() {
-                    return node.getPath();
+                    return getPath();
                 }
 
                 @Nullable
@@ -687,7 +643,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(node, creator);
+            doCreate(this, creator);
         }
 
         @Override
@@ -697,20 +653,15 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(node, DefaultsApplied, true);
-        }
-
-        @Override
-        public <T> T getPrivateData(ModelType<T> type) {
-            return node.getPrivateData(type);
+            transition(this, DefaultsApplied, true);
         }
 
         @Override
         public <T> void setPrivateData(ModelType<T> type, T object) {
-            if (!node.isMutable()) {
+            if (!isMutable()) {
                 throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
             }
-            node.setPrivateData(type, object);
+            super.setPrivateData(type, object);
         }
     }
 

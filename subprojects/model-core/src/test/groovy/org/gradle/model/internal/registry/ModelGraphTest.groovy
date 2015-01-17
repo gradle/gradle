@@ -22,7 +22,7 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class ModelGraphTest extends Specification {
-    def graph = new ModelGraph()
+    def graph = new ModelGraph(root())
     def nodes = [:]
 
     def setup() {
@@ -351,6 +351,12 @@ class ModelGraphTest extends Specification {
                 canBeViewedAsWritable(_) >> { ModelType t -> return t.concreteClass == type }
             }
             toString() >> "node $path"
+        }
+    }
+
+    def root() {
+        return Stub(ModelNodeData) {
+            getPath() >> ModelPath.ROOT
         }
     }
 }

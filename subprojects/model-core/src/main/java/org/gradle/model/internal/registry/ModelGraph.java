@@ -20,9 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.EmptyModelProjection;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import java.util.*;
 
@@ -37,9 +35,8 @@ public class ModelGraph {
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
     private final List<ModelNodeData> pendingNodes = new ArrayList<ModelNodeData>();
 
-    public ModelGraph() {
-        EmptyModelProjection projection = new EmptyModelProjection();
-        root = new ModelNodeData(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection);
+    public ModelGraph(ModelNodeData rootNode) {
+        this.root = rootNode;
         flattened.put(root.getPath(), root);
     }
 
