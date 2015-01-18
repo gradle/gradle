@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
@@ -91,7 +92,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
-                    .setPublic(task.getGroup() != null));
+                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
         }
         return tasks;
     }
@@ -113,7 +114,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             }
 
             // visible tasks are specified as those that have a non-empty group
-            if (task.getGroup() != null) {
+            if (PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)) {
                 visibleTasks.add(task.getName());
             }
         }
