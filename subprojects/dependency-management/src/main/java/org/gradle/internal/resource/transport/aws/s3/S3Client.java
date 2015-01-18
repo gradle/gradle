@@ -41,6 +41,16 @@ import java.util.regex.Pattern;
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
     private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
+    public static final String S3SERVICE_S3_ENDPOINT = "s3service.s3-endpoint";
+    public static final String S3SERVICE_S3_ENDPOINT_HTTP_PORT = "s3service.s3-endpoint-http-port";
+    public static final String S3SERVICE_HTTPS_ONLY = "s3service.https-only";
+    public static final String S3SERVICE_DISABLE_DNS_BUCKETS = "s3service.disable-dns-buckets";
+    public static final String HTTPCLIENT_PROXY_AUTODETECT = "httpclient.proxy-autodetect";
+    public static final String HTTPCLIENT_PROXY_HOST = "httpclient.proxy-host";
+    public static final String HTTPCLIENT_PROXY_PORT = "httpclient.proxy-port";
+    public static final String HTTPCLIENT_PROXY_USER = "httpclient.proxy-user";
+    public static final String HTTPCLIENT_PROXY_PASSWORD = "httpclient.proxy-password";
+
     private RestS3Service s3Service;
     private final S3ConnectionProperties s3ConnectionProperties;
 
@@ -52,7 +62,11 @@ public class S3Client {
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         AWSCredentials credentials = new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
-        s3Service = new RestS3Service(credentials, null, null, createConnectionProperties());
+        try {
+            s3Service = new RestS3Service(credentials, null, null, createConnectionProperties());
+        } catch (S3ServiceException e) {
+            throw new S3Exception("Could instantiate S3 Service", e);
+        }
     }
 
     private Jets3tProperties createConnectionProperties() {

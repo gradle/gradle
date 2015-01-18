@@ -19,20 +19,23 @@ package org.gradle.internal.resource.transport.aws.s3
 import com.google.common.base.Optional
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.http.HttpProxySettings
+import org.jets3t.service.Constants
 import org.jets3t.service.S3ServiceException
 import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.model.S3Object
 import spock.lang.Ignore
 import spock.lang.Specification
 
-@Ignore
 class S3ClientTest extends Specification {
 
     final S3ConnectionProperties s3SystemProperties = Mock()
+    final RestS3Service restS3Service = Mock()
 
     def "should resolve bucket name from uri"() {
         given:
         URI uri = new URI(uriStr)
-        def client = new S3Client(Mock(RestS3Service), s3SystemProperties)
+
+        def client = new S3Client(restS3Service, s3SystemProperties)
 
         expect:
         client.getBucketName(uri) == expected
@@ -59,23 +62,20 @@ class S3ClientTest extends Specification {
         's3://localhost/maven/release/myFile.txt'  || 'maven/release/myFile.txt'
         's3://localhost/maven/snapshot/myFile.txt' || 'maven/snapshot/myFile.txt'
         's3://localhost/maven/'                    || 'maven/'
-
     }
 
     def "Should upload to s3"() {
         given:
-        RestS3Service restS3Service= Mock()
         S3Client client = new S3Client(restS3Service, s3SystemProperties)
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
         when:
         client.put(Mock(InputStream), 12L, uri)
-
         then:
-        1 * restS3Service.putObject(*_) >> { args ->
+        1 * restS3Service.putObject(_, _) >> { args ->
             assert args[0] == 'localhost'
-            assert args[1] == 'maven/snapshot/myFile.txt'
-            assert args[3].contentLength == 12
+            assert args[1].key == 'maven/snapshot/myFile.txt'
+            assert args[1].contentLength == 12
         }
     }
 
@@ -97,38 +97,22 @@ class S3ClientTest extends Specification {
 
     def "should resolve resource names from an AWS objectlisting"() {
         setup:
-        S3Client s3Client = new S3Client(Mock(RestS3Service), s3SystemProperties)
-//        ObjectListing objectListing = Mock()
-//        S3ObjectSummary objectSummary = Mock()
-//        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
-//        objectListing.getObjectSummaries() >> [objectSummary]
+        S3Client s3Client = new S3Client(restS3Service, s3SystemProperties)
+        S3Object s3Object1 = Mock(S3Object)
+        S3Object s3Object2 = Mock(S3Object)
+
+        s3Object1.getKey() >> '/SNAPSHOT/some.jar'
+        s3Object2.getKey() >> '/SNAPSHOT/someOther.jar'
+        S3Object[] s3Objects = [s3Object1, s3Object2]
 
         when:
-        def results = s3Client.resolveResourceNames(objectListing)
+        def results = s3Client.resolveResourceNames(s3Objects)
 
         then:
-        results == ['some.jar']
+        results == ['some.jar', 'someOther.jar']
     }
 
-//    def "should make batch call when more than one object listing exists"() {
-//        def s3Service = Mock(RestS3Service)
-//        S3Client s3Client = new S3Client(s3Service, s3SystemProperties)
-//        def uri = new URI("s3://mybucket.com.au/maven/release/")
-//        ObjectListing firstListing = Mock()
-//        firstListing.isTruncated() >> true
-//
-//        ObjectListing secondListing = Mock()
-//        secondListing.isTruncated() >> false
-//
-//        when:
-//        s3Client.list(uri)
-//
-//        then:
-//        1 * s3Service.listObjects(_) >> firstListing
-//        1 * s3Service.listNextBatchOfObjects(_) >> secondListing
-//    }
-
-    def "should apply endpoint override with path style access"() {
+    def "should apply endpoint override with dns buckets disabled"() {
         setup:
         Optional<URI> someEndpoint = Optional.of(new URI("http://someEndpoint"))
         S3ConnectionProperties s3Properties = Stub()
@@ -138,8 +122,8 @@ class S3ClientTest extends Specification {
         S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
-        s3Client.s3Service.clientOptions.pathStyleAccess == true
-        s3Client.s3Service.endpoint == someEndpoint.get()
+        s3Client.s3Service.jetS3tProperties.getBoolProperty(S3Client.S3SERVICE_DISABLE_DNS_BUCKETS, false)
+        s3Client.s3Service.endpoint == someEndpoint.get().getHost()
     }
 
     def "should configure HTTPS proxy"() {
@@ -151,12 +135,13 @@ class S3ClientTest extends Specification {
         S3Client s3Client = new S3Client(credentials(), s3Properties)
 
         then:
-        s3Client.s3Service.clientConfiguration.proxyHost == 'localhost'
-        s3Client.s3Service.clientConfiguration.proxyPort == 8080
-        s3Client.s3Service.clientConfiguration.proxyPassword == 'password'
-        s3Client.s3Service.clientConfiguration.proxyUsername == 'username'
+        s3Client.s3Service.jetS3tProperties.getStringProperty(S3Client.HTTPCLIENT_PROXY_HOST, null) == "localhost"
+        s3Client.s3Service.jetS3tProperties.getIntProperty(S3Client.HTTPCLIENT_PROXY_PORT, 0) == 8080
+        s3Client.s3Service.jetS3tProperties.getStringProperty(S3Client.HTTPCLIENT_PROXY_PASSWORD, null) == "password"
+        s3Client.s3Service.jetS3tProperties.getStringProperty(S3Client.HTTPCLIENT_PROXY_USER, null) == "username"
     }
 
+    @Ignore
     def "should not configure HTTPS proxy when non-proxied host"() {
         setup:
         HttpProxySettings proxySettings = Mock()
@@ -169,23 +154,23 @@ class S3ClientTest extends Specification {
 
         S3Client s3Client = new S3Client(credentials(), s3Properties)
         then:
-        s3Client.s3Service.clientConfiguration.proxyHost == null
-        s3Client.s3Service.clientConfiguration.proxyPort == -1
-        s3Client.s3Service.clientConfiguration.proxyPassword == null
-        s3Client.s3Service.clientConfiguration.proxyUsername == null
+        s3Client.s3Service.jetS3tProperties.properties.getProperty(S3Client.HTTPCLIENT_PROXY_HOST) == null
+        s3Client.s3Service.jetS3tProperties.properties.get(S3Client.HTTPCLIENT_PROXY_PORT) == null
+        s3Client.s3Service.jetS3tProperties.properties.getProperty(S3Client.HTTPCLIENT_PROXY_PASSWORD) == null
+        s3Client.s3Service.jetS3tProperties.properties.getProperty(S3Client.HTTPCLIENT_PROXY_USER) == null
 
         where:
-        nonProxied                                               | endpointOverride
-        com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
-        "mydomain.com"                                           | Optional.absent()
+        nonProxied                    | endpointOverride
+        Constants.S3_DEFAULT_HOSTNAME | Optional.absent()
+        "mydomain.com"                | Optional.absent()
     }
 
     def "should include uri when meta-data not found"() {
         RestS3Service restS3Service = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(restS3Service, Mock(S3ConnectionProperties))
-        S3ServiceException s3ServiceException= new S3ServiceException("test exception")
-        restS3Service.getObjectMetadata(_, _) >> { throw s3ServiceException }
+        S3ServiceException s3ServiceException = new S3ServiceException("test exception")
+        restS3Service.getObjectDetails(_, _) >> { throw s3ServiceException }
 
         when:
         s3Client.getMetaData(uri)
@@ -195,10 +180,9 @@ class S3ClientTest extends Specification {
     }
 
     def "should include uri when file not found"() {
-        RestS3Service restS3Service = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(restS3Service, Mock(S3ConnectionProperties))
-        S3ServiceException s3ServiceException= new S3ServiceException("test exception")
+        S3ServiceException s3ServiceException = new S3ServiceException("test exception")
         restS3Service.getObject(_, _) >> { throw s3ServiceException }
 
         when:
@@ -209,10 +193,9 @@ class S3ClientTest extends Specification {
     }
 
     def "should include uri when upload fails"() {
-        RestS3Service restS3Service = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(restS3Service, Mock(S3ConnectionProperties))
-        S3ServiceException s3ServiceException= new S3ServiceException("test exception")
+        S3ServiceException s3ServiceException = new S3ServiceException("test exception")
         restS3Service.putObject(*_) >> { throw s3ServiceException }
 
         when:
