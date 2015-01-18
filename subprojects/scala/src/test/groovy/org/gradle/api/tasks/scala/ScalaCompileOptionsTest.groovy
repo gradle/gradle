@@ -69,7 +69,7 @@ class ScalaCompileOptionsTest {
     }
 
     @Test void testOptionMapContainsForce() {
-        assertSimpleStringValue('force', 'force', 'never', 'changed')
+        assertBooleanValue('force', 'force', false)
     }
 
     @Test void testOptionMapDoesNotContainTargetCompatibility() {

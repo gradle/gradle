@@ -95,4 +95,23 @@ compileScala.scalaCompileOptions.with {
         house.lastModified() != old(house.lastModified())
         other.lastModified() == old(other.lastModified())
     }
+
+    def compilesAllScalaCodeWhenForced() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala") << "package uk\n\nclass Person"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() != old(other.lastModified())
+    }
 }

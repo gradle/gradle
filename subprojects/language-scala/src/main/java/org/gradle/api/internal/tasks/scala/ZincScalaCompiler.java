@@ -27,6 +27,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.GFileUtils;
 import scala.Option;
 import xsbti.F0;
 
@@ -63,6 +64,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
+            }
+
+            if (spec.getScalaCompileOptions().isForce()) {
+                GFileUtils.deleteDirectory(spec.getDestinationDir());
             }
 
             try {

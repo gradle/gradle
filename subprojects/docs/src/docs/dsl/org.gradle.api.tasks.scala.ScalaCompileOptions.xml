@@ -58,7 +58,7 @@
             </tr>
             <tr>
                 <td>force</td>
-                <td><literal>never</literal></td>
+                <td><literal>false</literal></td>
             </tr>
             <tr>
                 <td>additionalParameters</td>

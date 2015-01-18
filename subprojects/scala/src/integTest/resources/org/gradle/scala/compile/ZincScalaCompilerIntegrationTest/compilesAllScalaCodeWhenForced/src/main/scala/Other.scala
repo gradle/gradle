@@ -1,0 +1,3 @@
+package uk
+
+class Other
