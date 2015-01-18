@@ -25,7 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
@@ -118,6 +117,7 @@ public class PlayDistributionPlugin extends RuleSource {
                     jar.getManifest().attributes(classpath);
                 }
             });
+            final Task distributionJar = tasks.get(jarTaskName);
 
             final File scriptsDir = new File(buildDir, String.format("scripts/%s", distribution.getName()));
             String createStartScriptsTaskName = String.format("create%sStartScripts", StringUtils.capitalize(distribution.getName()));
@@ -125,24 +125,24 @@ public class PlayDistributionPlugin extends RuleSource {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
                     createStartScripts.setDescription("Creates OS specific scripts to run the play application.");
-                    createStartScripts.setClasspath(new SimpleFileCollection(new File(distJarDir, binary.getJarFile().getName())));
+                    createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(binary.getName());
                     createStartScripts.setOutputDir(scriptsDir);
-                    createStartScripts.dependsOn(jarTaskName);
                 }
             });
-
             Task createStartScripts = tasks.get(createStartScriptsTaskName);
-            Task distributionJar = tasks.get(jarTaskName);
+
             CopySpecInternal distSpec = (CopySpecInternal) distribution.getContents();
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
             libSpec.from(configurations.getPlayRun().getFileCollection());
+
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
             binSpec.setFileMode(0755);
+
             CopySpec confSpec = distSpec.addChild().into("conf");
             confSpec.from("conf").exclude("routes");
             distSpec.from("README");

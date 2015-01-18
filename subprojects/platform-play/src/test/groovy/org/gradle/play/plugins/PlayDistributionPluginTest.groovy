@@ -125,7 +125,6 @@ class PlayDistributionPluginTest extends Specification {
                 1 * setMainClassName("play.core.server.NettyServer")
                 1 * setApplicationName("playBinary")
                 1 * setOutputDir(_)
-                1 * dependsOn('createPlayBinaryDistributionJar')
             })
         }
         1 * tasks.create("createPlayBinaryDistributionJar", Jar, _) >> { String name, Class type, Action action ->
