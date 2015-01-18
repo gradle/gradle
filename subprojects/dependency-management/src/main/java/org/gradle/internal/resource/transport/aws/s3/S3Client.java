@@ -44,9 +44,9 @@ public class S3Client {
     private RestS3Service s3Service;
     private final S3ConnectionProperties s3ConnectionProperties;
 
-    public S3Client(RestS3Service amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
+    public S3Client(RestS3Service restS3Service, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        this.s3Service = amazonS3Client;
+        this.s3Service = restS3Service;
     }
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {

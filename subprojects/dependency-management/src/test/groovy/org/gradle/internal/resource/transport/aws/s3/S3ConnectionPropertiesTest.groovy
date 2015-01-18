@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.aws.s3
 
 import org.gradle.internal.resource.transport.http.HttpProxySettings
+import org.jets3t.service.Constants
 import spock.lang.Specification
 
 class S3ConnectionPropertiesTest extends Specification {
@@ -53,7 +54,7 @@ class S3ConnectionPropertiesTest extends Specification {
         HttpProxySettings.HttpProxy secureProxy = Mock()
         HttpProxySettings secureHttpProxySettings = Mock()
 
-        1 * secureHttpProxySettings.getProxy(Constants.S3_HOSTNAME) >> secureProxy
+        1 * secureHttpProxySettings.getProxy(Constants.S3_DEFAULT_HOSTNAME) >> secureProxy
 
         when:
         S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, null)
