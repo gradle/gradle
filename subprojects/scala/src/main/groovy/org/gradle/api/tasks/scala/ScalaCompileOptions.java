@@ -15,9 +15,13 @@
  */
 package org.gradle.api.tasks.scala;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+
+import java.util.regex.Pattern;
 
 /**
  * Options for Scala compilation, including the use of the Ant-backed compiler.
@@ -128,7 +132,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(getAdditionalParameters());
+            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(Iterables.transform(getAdditionalParameters(), TO_ESCAPED_STRING));
         }
         return value;
     }
@@ -136,6 +140,23 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     private String toOnOffString(boolean flag) {
         return flag ? "on" : "off";
     }
+
+    private static final Function<String, String> TO_ESCAPED_STRING = new Function<String, String>() {
+
+        private final Pattern SINGLE_QUOTED = Pattern.compile("^\".*\"$");
+        private final Pattern DOUBLE_QUOTED = Pattern.compile("^'.*'$");
+
+        @Override
+        public String apply(String input) {
+            if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches()) {
+                return input;
+            } else if(input.contains(" ")) {
+                return String.format("'%1$s'", input.replaceAll("'", "\\'"));
+            } else {
+                return input;
+            }
+        }
+    };
 
 
 }

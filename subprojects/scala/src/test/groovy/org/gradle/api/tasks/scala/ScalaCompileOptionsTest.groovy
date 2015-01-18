@@ -76,13 +76,33 @@ class ScalaCompileOptionsTest {
         assert !compileOptions.optionMap().containsKey("target")
     }
 
-    @Test void testOptionMapContainsValuesForAdditionalParameters() {
+    String addParams(List<String> inputs) {
         String antProperty = 'addparams'
         assertNull(compileOptions.additionalParameters)
         assertFalse(compileOptions.optionMap().containsKey(antProperty))
 
-        compileOptions.additionalParameters = ['-opt1', '-opt2']
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('-opt1 -opt2' as String))
+        compileOptions.additionalParameters = inputs
+        return compileOptions.optionMap()[antProperty] as String
+    }
+
+    @Test void testOptionMapContainsValuesForAdditionalParameters() {
+        assertThat(addParams(['-opt1', '-opt2']), equalTo('-opt1 -opt2'))
+    }
+
+    @Test void testOptionMapEscapesValuesForAdditionalParameters() {
+        assertThat(addParams(['arg with spaces']), equalTo('\'arg with spaces\''))
+    }
+
+    @Test void testOptionMapEscapesQuoteInValuesForAdditionalParameters() {
+        assertThat(addParams(['arg with \' and spaces']), equalTo('\'arg \\\' with spaces\''))
+    }
+
+    @Test void testOptionMapDoesNotEscapeSingleQuotedValuesAdditionalParameters() {
+        assertThat(addParams(['\'arg with spaces\'']), equalTo('\'arg with spaces\''))
+    }
+
+    @Test void testOptionMapDoesNotEscapeDoubleQuotedValuesAdditionalParameters() {
+        assertThat(addParams(['"arg with spaces"']), equalTo('"arg with spaces"'))
     }
 
     @Test void testOptionMapContainsListFiles() {
