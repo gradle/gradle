@@ -264,6 +264,29 @@ Each benchmark should be executed for the following scenarios:
 - single project
 - for small, medium and large model sets (number of flavours and types)
 
+## Improved model rule validation 
+
+Our current model rule validation hinges on detecting rules with “unbound references”.
+That is, we look for rules where at that point in time the rule could not be executed because we are unable to satisfy its dependencies.
+Our current mechanism does not attempt to find out if the rule's dependencies could be satisfied by realising more of the model.
+This story improves validation by doing this.
+That is, validating based on the state of the model registry (a.k.a. meta model), not on the current state of the model.
+
+For each unbound rule reference, we will effectively “force” it to bind. 
+For unbound by-type bindings this will involve “self closing” the root node (or relevant scope), as this will give us knowledge of all the top level elements (based on rules discovered so far).
+For unbound by-path bindings this will involve “self closing” from the root node to the parent of the path.
+
+As validation will now realize elements, preventing future rules from applying, we will have to move validation to occur as late as possible.
+Ideally just before execution begins.
+
+We should not perform validation on a project that is not required for a build.
+
+### Test Coverage
+
+- Existing validation coverage
+- Model rule with dependency on non task related collection element that does exist, passes validation
+- Model rule that does not bind, specified for project that is not used in build, does not fail the build
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
