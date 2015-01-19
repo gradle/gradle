@@ -23,15 +23,21 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 class GradleExecuterProvider {
 
     GradleExecuter executer(BuildParametersSpecification buildSpecification, GradleDistribution dist, File projectDir, TestDirectoryProvider testDirectoryProvider) {
-        dist.executer(testDirectoryProvider).
+        def executer = dist.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
                 withDeprecationChecksDisabled().
                 withStackTraceChecksDisabled().
-                withArguments('-u').
+                withArgument('-u').
                 inDirectory(projectDir).
                 withTasks(buildSpecification.tasksToRun).
-                withArguments(buildSpecification.args).
                 withGradleOpts(buildSpecification.gradleOpts)
+
+        buildSpecification.args.each { executer.withArgument(it) }
+
+        if (buildSpecification.useDaemon) {
+            executer.withArgument('--daemon')
+        }
+        executer
     }
 }

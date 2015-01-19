@@ -36,8 +36,12 @@ public class GCLoggingCollector implements DataCollector {
     private File logFile;
     private boolean useDaemon;
 
-    void useDaemon() {
-        this.useDaemon = true;
+    public void useDaemon() {
+        useDaemon(true);
+    }
+
+    public void useDaemon(boolean useDaemon) {
+        this.useDaemon = useDaemon;
     }
 
     public void beforeExecute(File testProjectDir, GradleExecuter executer) {

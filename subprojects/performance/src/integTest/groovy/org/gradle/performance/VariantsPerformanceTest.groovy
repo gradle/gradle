@@ -27,9 +27,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         given:
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
+        runner.runs = 2
+        runner.subRuns = 5
 
         when:
         def result = runner.run()
@@ -52,9 +54,11 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         runner.testId = "$size project using variants partial build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
+        runner.runs = 2
+        runner.subRuns = 5
 
         when:
         def result = runner.run()

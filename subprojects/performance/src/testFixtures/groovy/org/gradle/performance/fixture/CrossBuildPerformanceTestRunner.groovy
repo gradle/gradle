@@ -79,6 +79,7 @@ class CrossBuildPerformanceTestRunner {
     }
 
     void runNow(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results, int subRuns) {
+        gcCollector.useDaemon(buildSpecification.useDaemon);
         def operation = timer.measure { MeasuredOperation operation ->
             subRuns.times {
                 //creation of executer is included in measuer operation
@@ -88,6 +89,9 @@ class CrossBuildPerformanceTestRunner {
                 dataCollector.beforeExecute(projectDir, executer)
                 executer.run()
             }
+        }
+        if (buildSpecification.useDaemon) {
+            executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).withTasks().withArgument('--stop').run()
         }
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
