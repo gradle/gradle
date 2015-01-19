@@ -17,23 +17,22 @@
 package org.gradle.internal.resource.transport.aws.s3;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings;
+import org.jets3t.service.Constants;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-import static org.jets3t.service.Constants.S3_DEFAULT_HOSTNAME;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.System.getProperty;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class S3ConnectionProperties {
     public static final String S3_ENDPOINT_PROPERTY = "org.gradle.s3.endpoint";
-    private static final Set<String> SUPPORTED_SCHEMES = newHashSet("HTTP", "HTTPS");
+    private static final Set<String> SUPPORTED_SCHEMES = Sets.newHashSet("HTTP", "HTTPS");
 
     private final Optional<URI> endpoint;
     private final HttpProxySettings proxySettings;
@@ -56,7 +55,7 @@ public class S3ConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
+                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
                     throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {
@@ -79,6 +78,6 @@ public class S3ConnectionProperties {
                 return Optional.fromNullable(secureProxySettings.getProxy(host));
             }
         }
-        return Optional.fromNullable(secureProxySettings.getProxy(S3_DEFAULT_HOSTNAME));
+        return Optional.fromNullable(secureProxySettings.getProxy(Constants.S3_DEFAULT_HOSTNAME));
     }
 }

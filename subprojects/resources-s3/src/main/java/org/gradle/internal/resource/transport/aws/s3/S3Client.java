@@ -75,27 +75,27 @@ public class S3Client {
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             URI uri = endpoint.get();
-            properties.setProperty("s3service.s3-endpoint", uri.getHost());
-            properties.setProperty("s3service.s3-endpoint-http-port", Integer.toString(uri.getPort()));
-            properties.setProperty("s3service.https-only", Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
+            properties.setProperty(S3SERVICE_S3_ENDPOINT, uri.getHost());
+            properties.setProperty(S3SERVICE_S3_ENDPOINT_HTTP_PORT, Integer.toString(uri.getPort()));
+            properties.setProperty(S3SERVICE_HTTPS_ONLY, Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
 
-            properties.setProperty("s3service.disable-dns-buckets", "true");
+            properties.setProperty(S3SERVICE_DISABLE_DNS_BUCKETS, "true");
         }
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
             HttpProxySettings.HttpProxy proxy = proxyOptional.get();
-            properties.setProperty("httpclient.proxy-autodetect", "false");
-            properties.setProperty("httpclient.proxy-host", proxy.host);
-            properties.setProperty("httpclient.proxy-port", Integer.toString(proxy.port));
+            properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT, "false");
+            properties.setProperty(HTTPCLIENT_PROXY_HOST, proxy.host);
+            properties.setProperty(HTTPCLIENT_PROXY_PORT, Integer.toString(proxy.port));
 
             PasswordCredentials credentials = proxy.credentials;
 
             if (credentials != null) {
-                properties.setProperty("httpclient.proxy-user", credentials.getUsername());
-                properties.setProperty("httpclient.proxy-password", credentials.getPassword());
+                properties.setProperty(HTTPCLIENT_PROXY_USER, credentials.getUsername());
+                properties.setProperty(HTTPCLIENT_PROXY_PASSWORD, credentials.getPassword());
             }
         } else {
-            properties.setProperty("httpclient.proxy-autodetect", "true");
+            properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT, "true");
         }
         return properties;
     }

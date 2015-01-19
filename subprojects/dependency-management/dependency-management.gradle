@@ -14,7 +14,7 @@ repositories {
 dependencies {
     compile project(":core")
     compile project(":resourcesHttp")
-
+    compile project(":resourcesS3")
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy
@@ -22,7 +22,6 @@ dependencies {
     compile libraries.maven_ant_tasks
     compile libraries.jsch
     compile libraries.gson
-    compile libraries.jets3t
     runtime libraries.xbean //maven3 classes dependency
     runtime libraries.bouncycastle_provider
 
