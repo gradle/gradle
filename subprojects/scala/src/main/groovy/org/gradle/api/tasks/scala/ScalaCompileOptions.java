@@ -143,12 +143,12 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
     private static final Function<String, String> TO_ESCAPED_STRING = new Function<String, String>() {
 
-        private final Pattern SINGLE_QUOTED = Pattern.compile("^\".*\"$");
-        private final Pattern DOUBLE_QUOTED = Pattern.compile("^'.*'$");
+        private final Pattern singleQuoted = Pattern.compile("^\".*\"$");
+        private final Pattern doubleQuoted = Pattern.compile("^'.*'$");
 
         @Override
         public String apply(String input) {
-            if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches()) {
+            if (singleQuoted.matcher(input).matches() || doubleQuoted.matcher(input).matches()) {
                 return input;
             } else if(input.contains(" ")) {
                 return String.format("'%1$s'", input.replaceAll("'", "\\'"));
