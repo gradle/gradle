@@ -205,7 +205,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         for (int i = 0; i < inputReferences.size(); i++) {
             final int finalI = i;
             ModelReference<?> input = inputReferences.get(i);
-            ModelPath effectiveScope = input.getPath() != null ? scope : ModelPath.ROOT;
+            ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : scope;
             registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelPath>() {
                 public void execute(ModelPath modelPath) {
                     binder.bindInput(finalI, modelPath);
