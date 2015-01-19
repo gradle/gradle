@@ -33,7 +33,7 @@ class PathBinderCreationListener extends BinderCreationListener {
     public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelPath> bindAction) {
         super(descriptor, reference, writable);
         this.bindAction = bindAction;
-        this.path = scope.scope(reference.getPath());
+        this.path = scope.descendant(reference.getPath());
     }
 
     @Nullable

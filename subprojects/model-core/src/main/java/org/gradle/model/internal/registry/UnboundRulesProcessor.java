@@ -77,7 +77,7 @@ public class UnboundRulesProcessor {
         } else {
             path = reference.getPath();
             if (path != null) {
-                path = scope.scope(path);
+                path = scope.descendant(path);
                 builder.suggestions(CollectionUtils.stringize(suggestionsProvider.transform(path)));
             }
         }

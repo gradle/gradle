@@ -111,9 +111,9 @@ class ModelPathTest extends Specification {
         !ModelPath.path("a.b").isDirectChild(null)
     }
 
-    def "can scope paths"() {
+    def "can create paths for indirect descendants"() {
         expect:
-        ModelPath.ROOT.scope(ModelPath.path("c.d")) == ModelPath.path("c.d")
-        ModelPath.path("a.b").scope(ModelPath.path("c.d")) == ModelPath.path("a.b.c.d")
+        ModelPath.ROOT.descendant(ModelPath.path("c.d")) == ModelPath.path("c.d")
+        ModelPath.path("a.b").descendant(ModelPath.path("c.d")) == ModelPath.path("a.b.c.d")
     }
 }

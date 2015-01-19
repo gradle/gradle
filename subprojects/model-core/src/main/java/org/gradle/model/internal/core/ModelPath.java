@@ -40,7 +40,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         }
 
         @Override
-        public ModelPath scope(ModelPath path) {
+        public ModelPath descendant(ModelPath path) {
             return path;
         }
     };
@@ -161,7 +161,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return otherParent != null && otherParent.equals(this);
     }
 
-    public ModelPath scope(ModelPath path) {
+    public ModelPath descendant(ModelPath path) {
         return path(Iterables.concat(components, path.components));
     }
 
