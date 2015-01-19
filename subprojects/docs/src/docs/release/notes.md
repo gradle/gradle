@@ -123,7 +123,9 @@ The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Adrian Kelly](https://github.com/adrianbk) - adding support for AWS S3 backed maven repositories
+* [Adrian Kelly](https://github.com/adrianbk)
+    - Adding support for AWS S3 backed maven repositories
+    - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
 * [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
