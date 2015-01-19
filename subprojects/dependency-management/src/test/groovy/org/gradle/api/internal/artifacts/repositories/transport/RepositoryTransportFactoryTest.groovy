@@ -20,9 +20,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.credentials.DefaultAwsCredentials
-import org.gradle.internal.resource.transport.aws.s3.S3Transport
-import org.gradle.internal.resource.transport.http.HttpTransport
-import org.gradle.internal.resource.transport.sftp.SftpTransport
+import org.gradle.internal.resource.transport.S3Transport
+import org.gradle.internal.resource.transport.HttpTransport
+import org.gradle.internal.resource.transport.SftpTransport
 import spock.lang.Specification
 import spock.lang.Unroll
 

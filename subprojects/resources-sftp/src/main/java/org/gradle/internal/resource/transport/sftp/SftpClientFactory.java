@@ -93,7 +93,7 @@ public class SftpClientFactory implements Stoppable {
                 }
                 jsch.setHostKeyRepository(new HostKeyRepository() {
                     public int check(String host, byte[] key) {
-                        return OK;
+                        return HostKeyRepository.OK;
                     }
 
                     public void add(HostKey hostkey, UserInfo ui) {

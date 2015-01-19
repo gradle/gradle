@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.transport.http;
+
+package org.gradle.internal.resource.transport;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -23,33 +24,36 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
-import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
-import org.gradle.internal.resource.transport.DefaultExternalResourceRepository;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
+import org.gradle.internal.resource.transport.sftp.SftpResourceAccessor;
+import org.gradle.internal.resource.transport.sftp.SftpResourceLister;
+import org.gradle.internal.resource.transport.sftp.SftpResourceUploader;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-public class HttpTransport extends AbstractRepositoryTransport {
+public class SftpTransport extends AbstractRepositoryTransport {
+
     private final ExternalResourceRepository repository;
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public HttpTransport(String name, PasswordCredentials credentials,
+    public SftpTransport(String name,
+                         PasswordCredentials credentials,
                          ProgressLoggerFactory progressLoggerFactory,
                          TemporaryFileProvider temporaryFileProvider,
                          CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                          BuildCommencedTimeProvider timeProvider,
+                         SftpClientFactory sftpClientFactory,
                          CacheLockingManager cacheLockingManager) {
         super(name);
-        HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
-        HttpResourceAccessor accessor = new HttpResourceAccessor(http);
-        HttpResourceUploader uploader = new HttpResourceUploader(http);
+        SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, credentials);
+        SftpResourceUploader uploader = new SftpResourceUploader(sftpClientFactory, credentials);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager);
         repository = new DefaultExternalResourceRepository(
                 name,
                 accessor,
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
-                new HttpResourceLister(accessor)
+                new SftpResourceLister(sftpClientFactory, credentials)
         );
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.aws.s3;
+package org.gradle.internal.resource.transport;
 
 import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -24,9 +24,9 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
-import org.gradle.internal.resource.transport.AbstractRepositoryTransport;
-import org.gradle.internal.resource.transport.DefaultExternalResourceRepository;
-import org.gradle.internal.resource.transport.ExternalResourceRepository;
+import org.gradle.internal.resource.transport.aws.s3.S3Client;
+import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties;
+import org.gradle.internal.resource.transport.aws.s3.S3ResourceConnector;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
