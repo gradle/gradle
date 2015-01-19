@@ -1,8 +1,13 @@
-A paragraph about what the feature is.
-
 # Use cases
 
-What are the use cases we are trying to solve with this feature? That is, why should the user care? What's out of scope?
+In order to permit Gradle projects to be assembled in more flexible ways, the difference between an external dependency and a project dependency
+needs to be less fixed. By allowing an external dependency to be substituted with a project dependency (and vice-versa) a particular project
+can more easily be incorporated into an ad-hoc assembly of projects.
+
+Prezi Pride builds on top of Gradle to make it easy to assemble a multi-project build from separate single project builds. However, these builds
+must use a special dependency syntax that can be used to generate an external or project dependency by the Pride plugin, depending on the 
+projects included in the 'Pride'. One goal is to make it possible for Pride to be able to include regular single-project Gradle builds into a Pride,
+where no special dependency syntax is required.
 
 # Feature: Dependency substitution rules handle project dependencies
 
