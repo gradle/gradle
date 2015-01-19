@@ -18,11 +18,13 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildSpecification
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
+    @Ignore
     def "#size project using variants #scenario build"() {
         given:
         runner.testId = "$size project using variants $scenario build"
@@ -50,12 +52,10 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "#size project using variants partial build"() {
         given:
-        def tasks = (0..<builtVariants).collect { "flavour${(it % flavourAndTypeCount) + 1}type${it.intdiv(flavourAndTypeCount) + 1}" }
-
         runner.testId = "$size project using variants partial build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
         runner.runs = 2
         runner.subRuns = 5
@@ -67,8 +67,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         result.assertEveryBuildSucceeds()
 
         where:
-        size     | flavourAndTypeCount | builtVariants
-        "medium" | 5                   | 5
-        "big"    | 23                  | 100
+        size << ["medium", "big"]
     }
 }
