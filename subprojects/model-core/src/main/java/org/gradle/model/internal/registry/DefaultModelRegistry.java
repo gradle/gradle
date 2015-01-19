@@ -23,16 +23,11 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
-import org.gradle.model.InvalidModelRuleException;
-import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.report.AmbiguousBindingReporter;
-import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
@@ -146,24 +141,13 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(final ModelCreator creator) {
-        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new Action<RuleBinder<Void>>() {
-            public void execute(RuleBinder<Void> ruleBinding) {
-                BoundModelCreator boundCreator = new BoundModelCreator(creator, ruleBinding.getInputBindings());
-                creators.put(creator.getPath(), boundCreator);
-            }
-        });
-
+        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators));
         bindInputs(binder, ModelPath.ROOT);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, Action<? super RuleBinder<T>> onBind) {
-        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, Actions.composite(new Action<RuleBinder<T>>() {
-            public void execute(RuleBinder<T> binder) {
-                // TODO this is going to run even if we never added the binder to the bindings (inefficient)
-                binders.remove(binder);
-            }
-        }, onBind));
+    private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
+        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
 
         if (!binder.isBound()) {
             binders.add(binder);
@@ -172,45 +156,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         return binder;
     }
 
-    private <T> void bind(ModelReference<T> subject, final ModelActionRole type, final ModelAction<T> mutator, ModelPath scope) {
-        final RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new Action<RuleBinder<T>>() {
-            public void execute(RuleBinder<T> ruleBinder) {
-                BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
-                ModelPath path = boundMutator.getSubject().getPath();
-                ModelNodeInternal subject = modelGraph.get(path);
-                if (!subject.canApply(type)) {
-                    throw new IllegalStateException(String.format(
-                            "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
-                            type,
-                            boundMutator.getMutator().getDescriptor(),
-                            path,
-                            subject.getState()
-                    ));
-                }
-                actions.put(new MutationKey(path, type), boundMutator);
-            }
-        });
-
-        registerListener(listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new Action<ModelPath>() {
-            public void execute(ModelPath modelPath) {
-                binder.bindSubject(modelPath);
-            }
-        }));
-
+    private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
+        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, modelGraph, actions));
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder));
+        registerListener(listener);
         bindInputs(binder, scope);
     }
 
     private void bindInputs(final RuleBinder<?> binder, ModelPath scope) {
         List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
         for (int i = 0; i < inputReferences.size(); i++) {
-            final int finalI = i;
             ModelReference<?> input = inputReferences.get(i);
             ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : scope;
-            registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelPath>() {
-                public void execute(ModelPath modelPath) {
-                    binder.bindInput(finalI, modelPath);
-                }
-            }));
+            registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new BindInput(binder, i)));
         }
     }
 
@@ -824,116 +782,4 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private static class MutationKey {
-        final ModelPath path;
-        final ModelActionRole type;
-
-        public MutationKey(ModelPath path, ModelActionRole type) {
-            this.path = path;
-            this.type = type;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            MutationKey other = (MutationKey) obj;
-            return path.equals(other.path) && type.equals(other.type);
-        }
-
-        @Override
-        public int hashCode() {
-            return path.hashCode() ^ type.hashCode();
-        }
-    }
-
-    private static abstract class BinderCreationListener extends ModelCreationListener {
-        final ModelRuleDescriptor descriptor;
-        final ModelReference<?> reference;
-        final boolean writable;
-
-        public BinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, boolean writable) {
-            this.descriptor = descriptor;
-            this.reference = reference;
-            this.writable = writable;
-        }
-
-        boolean isTypeCompatible(ModelPromise promise) {
-            return writable ? promise.canBeViewedAsWritable(reference.getType()) : promise.canBeViewedAsReadOnly(reference.getType());
-        }
-    }
-
-    private static class PathBinderCreationListener extends BinderCreationListener {
-        private final Action<? super ModelPath> bindAction;
-        private final ModelPath path;
-
-        public PathBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelPath> bindAction) {
-            super(descriptor, reference, writable);
-            this.bindAction = bindAction;
-            this.path = scope.scope(reference.getPath());
-        }
-
-        @Nullable
-        @Override
-        public ModelPath matchPath() {
-            return path;
-        }
-
-        public boolean onCreate(ModelNodeInternal node) {
-            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
-            ModelPath path = node.getPath();
-            ModelPromise promise = node.getPromise();
-            if (isTypeCompatible(promise)) {
-                bindAction.execute(path);
-                return true; // bound by type and path, stop listening
-            } else {
-                throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                        IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
-                ));
-            }
-        }
-    }
-
-    private static class OneOfTypeBinderCreationListener extends BinderCreationListener {
-        private final Action<? super ModelPath> bindAction;
-        private ModelPath boundTo;
-        private ModelRuleDescriptor boundToCreator;
-        private final ModelPath scope;
-
-        public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelPath> bindAction) {
-            super(descriptor, reference, writable);
-            this.bindAction = bindAction;
-            this.scope = scope;
-        }
-
-        @Nullable
-        @Override
-        public ModelPath matchParent() {
-            return null;
-        }
-
-        @Override
-        public ModelPath matchScope() {
-            return scope;
-        }
-
-        @Nullable
-        @Override
-        public ModelType<?> matchType() {
-            return reference.getType();
-        }
-
-        public boolean onCreate(ModelNodeInternal node) {
-            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
-            ModelPath path = node.getPath();
-            if (boundTo != null) {
-                throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                        new AmbiguousBindingReporter(reference, boundTo, boundToCreator, path, creatorDescriptor).asString()
-                ));
-            } else {
-                bindAction.execute(path);
-                boundTo = path;
-                boundToCreator = creatorDescriptor;
-                return false; // don't unregister listener, need to keep listening for other potential bindings
-            }
-        }
-    }
 }
