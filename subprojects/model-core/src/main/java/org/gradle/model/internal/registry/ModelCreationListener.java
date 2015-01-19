@@ -37,6 +37,13 @@ public abstract class ModelCreationListener {
         return null;
     }
 
+    /**
+     * Return the path of the scope this listener is interested in, or null if the scope is not relevant.
+     *
+     * If the returned value is not null then the listener will be informed about element created at the returned path and about its immediate children if other criteria specified by this listener
+     * match as well.
+     */
+    @Nullable
     public ModelPath matchScope() {
         return null;
     }
@@ -50,8 +57,8 @@ public abstract class ModelCreationListener {
     }
 
     /**
-     * Invoked for each node that matches the criteria specified by {@link #matchPath()}, {@link #matchParent()} or {@link #matchType()}, or every node if
-     * no criteria specified. Stops notifying listener with further node when this method returns true.
+     * Invoked for each node that matches the criteria specified by {@link #matchPath()}, {@link #matchParent()}, {@link #matchScope()} or {@link #matchType()}, or every node if
+     * no criteria specified. Stops notifying listener with further nodes when this method returns true.
      */
     public abstract boolean onCreate(ModelNodeInternal node);
 }
