@@ -24,6 +24,7 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
     @Unroll
     def "#size project old vs new java plugin #scenario build"() {
         given:
+        runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
@@ -49,6 +50,7 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
     @Unroll
     def "#size project old vs new java plugin partial build"() {
         given:
+        runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin partial build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),

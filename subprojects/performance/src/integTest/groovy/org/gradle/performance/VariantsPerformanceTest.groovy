@@ -27,6 +27,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Ignore
     def "#size project using variants #scenario build"() {
         given:
+        runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
@@ -52,6 +53,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "#size project using variants partial build"() {
         given:
+        runner.testGroup = "project using variants"
         runner.testId = "$size project using variants partial build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),

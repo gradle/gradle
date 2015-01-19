@@ -32,6 +32,7 @@ class CrossBuildPerformanceTestRunner {
 
     OperationTimer timer = new OperationTimer()
 
+    String testGroup
     String testId
     int runs = 5
     int warmUpRuns = 1
@@ -52,6 +53,7 @@ class CrossBuildPerformanceTestRunner {
 
         results = new CrossBuildPerformanceResults(
                 testId: testId,
+                testGroup: testGroup,
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
