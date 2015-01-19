@@ -49,14 +49,14 @@ class ModelRuleInspectorTest extends Specification {
         }
     }
 
-    static class EmptyClass {}
+    static class EmptyClass extends RuleSource {}
 
     def "can inspect class with no rules"() {
         expect:
         inspector.inspect(EmptyClass).empty
     }
 
-    static class SimpleModelCreationRuleInferredName {
+    static class SimpleModelCreationRuleInferredName extends RuleSource {
         @Model
         static ModelThing modelPath() {
             new ModelThing("foo")
@@ -76,7 +76,7 @@ class ModelRuleInspectorTest extends Specification {
         element.name == "foo"
     }
 
-    static class ParameterizedModel {
+    static class ParameterizedModel extends RuleSource{
         @Model
         List<String> strings() {
             Arrays.asList("foo")
@@ -109,7 +109,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
     }
 
-    static class HasGenericModelRule {
+    static class HasGenericModelRule extends RuleSource {
         @Model
         static <T> List<T> thing() {
             []
@@ -125,7 +125,7 @@ class ModelRuleInspectorTest extends Specification {
         e.message == "$HasGenericModelRule.name#thing() is not a valid model rule method: cannot have type variables (i.e. cannot be a generic method)"
     }
 
-    static class HasMultipleRuleAnnotations {
+    static class HasMultipleRuleAnnotations extends RuleSource {
         @Model
         @Mutate
         static String thing() {
@@ -142,7 +142,7 @@ class ModelRuleInspectorTest extends Specification {
         e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
-    static class ConcreteGenericModelType {
+    static class ConcreteGenericModelType extends RuleSource {
         @Model
         static List<String> strings() {
             []
@@ -160,7 +160,7 @@ class ModelRuleInspectorTest extends Specification {
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static class ConcreteGenericModelTypeImplementingGenericInterface implements HasStrings<String> {
+    static class ConcreteGenericModelTypeImplementingGenericInterface extends RuleSource implements HasStrings<String> {
         @Model
         List<String> strings() {
             []
@@ -178,7 +178,7 @@ class ModelRuleInspectorTest extends Specification {
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static class HasRuleWithIdentityCrisis {
+    static class HasRuleWithIdentityCrisis extends RuleSource {
         @Mutate
         @Model
         void foo() {}
@@ -192,7 +192,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class GenericMutationRule {
+    static class GenericMutationRule extends RuleSource {
         @Mutate
         <T> void mutate(T thing) {}
     }
@@ -205,7 +205,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class NonVoidMutationRule {
+    static class NonVoidMutationRule extends RuleSource {
         @Mutate
         String mutate(String thing) {}
     }
@@ -218,7 +218,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleWithEmptyInputPath {
+    static class RuleWithEmptyInputPath extends RuleSource {
         @Model
         String create(@Path("") String thing) {}
     }
@@ -231,7 +231,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleWithInvalidInputPath {
+    static class RuleWithInvalidInputPath extends RuleSource {
         @Model
         String create(@Path("!!!!") String thing) {}
     }
@@ -244,7 +244,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class MutationRules {
+    static class MutationRules extends RuleSource {
         @Mutate
         static void mutate1(List<String> strings) {
             strings << "1"
@@ -280,7 +280,7 @@ class ModelRuleInspectorTest extends Specification {
         node.adapter.asReadOnly(type, node, null, null, registry, null).instance.sort() == ["1", "2"]
     }
 
-    static class MutationAndFinalizeRules {
+    static class MutationAndFinalizeRules extends RuleSource {
         @Mutate
         static void mutate3(List<Integer> strings) {
             strings << 3
@@ -336,7 +336,7 @@ class ModelRuleInspectorTest extends Specification {
         1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") }, ModelPath.ROOT)
     }
 
-    static class InvalidModelNameViaAnnotation {
+    static class InvalidModelNameViaAnnotation extends RuleSource {
         @Model(" ")
         String foo() {
             "foo"
@@ -351,7 +351,7 @@ class ModelRuleInspectorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged {
+    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged extends RuleSource {
         @Model
         void bar(NonManaged foo) {
         }
@@ -362,12 +362,11 @@ class ModelRuleInspectorTest extends Specification {
         registerRules(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged)
 
         then:
-
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
     }
 
-    static class RuleSourceCreatingAClassAnnotatedWithManaged {
+    static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
         @Model
         void bar(ManagedAnnotatedClass foo) {
         }
@@ -384,7 +383,7 @@ class ModelRuleInspectorTest extends Specification {
         e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface or an abstract class."
     }
 
-    static class RuleSourceWithAVoidReturningNoArgumentMethod {
+    static class RuleSourceWithAVoidReturningNoArgumentMethod extends RuleSource {
         @Model
         void bar() {
         }
@@ -399,13 +398,13 @@ class ModelRuleInspectorTest extends Specification {
         e.message == "$RuleSourceWithAVoidReturningNoArgumentMethod.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
     }
 
-    static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType {
+    static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType extends RuleSource {
         @Model
         void bar(ManagedWithNestedPropertyOfInvalidManagedType foo) {
         }
     }
 
-    static class RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType {
+    static class RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType extends RuleSource {
         @Model
         void bar(ManagedWithNestedReferenceOfInvalidManagedType foo) {
         }
@@ -434,7 +433,7 @@ ${managedType.name}
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
-    static class RuleSourceCreatingManagedWithNonManageableParent {
+    static class RuleSourceCreatingManagedWithNonManageableParent extends RuleSource {
         @Model
         void bar(ManagedWithNonManageableParents foo) {
         }
@@ -457,7 +456,7 @@ ${ManagedWithNonManageableParents.name}
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
-    static class HasRuleWithUncheckedCollectionBuilder {
+    static class HasRuleWithUncheckedCollectionBuilder extends RuleSource {
         @Model
         static ModelThing modelPath(CollectionBuilder foo) {
             new ModelThing("foo")
@@ -488,7 +487,7 @@ ${ManagedWithNonManageableParents.name}
         def source = cl.parseClass('''
             import org.gradle.model.*
 
-            class RuleSource {
+            class Rules extends RuleSource {
                 @Mutate
                 void mutate(String value) {
                 }

@@ -27,6 +27,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -174,6 +175,10 @@ public class ModelRuleInspector {
             } else {
                 throw invalid(source, "enclosed classes must be static and non private");
             }
+        }
+
+        if (!source.getSuperclass().equals(RuleSource.class)) {
+            throw invalid(source, String.format("rule source classes have to directly extend %s", RuleSource.class.getName()));
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
