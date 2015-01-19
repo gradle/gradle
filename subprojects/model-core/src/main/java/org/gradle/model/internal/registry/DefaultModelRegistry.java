@@ -177,7 +177,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             public void execute(RuleBinder<T> ruleBinder) {
                 BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
                 ModelPath path = boundMutator.getSubject().getPath();
-                ModelNodeInternal subject = modelGraph.find(path);
+                ModelNodeInternal subject = modelGraph.get(path);
                 if (!subject.canApply(type)) {
                     throw new IllegalStateException(String.format(
                             "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",

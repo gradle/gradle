@@ -164,6 +164,15 @@ public class ModelGraph {
         return flattened.get(path);
     }
 
+    public ModelNodeInternal get(ModelPath path) {
+        ModelNodeInternal found = find(path);
+        if (found == null) {
+            throw new IllegalStateException("Expected model node @ '" + path + "' but none was found");
+        }
+
+        return found;
+    }
+
     @Nullable
     public ModelNodeInternal remove(ModelPath path) {
         ModelNodeInternal parentNode = find(path.getParent());
