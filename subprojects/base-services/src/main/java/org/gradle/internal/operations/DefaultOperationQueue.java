@@ -16,35 +16,67 @@
 
 package org.gradle.internal.operations;
 
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.UncheckedException;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 /**
  *
  */
 public class DefaultOperationQueue<T> implements OperationQueue<T> {
-    final StoppableExecutor executor;
-    final Action<? super T> worker;
+    private final ListeningExecutorService executor;
+    private final Action<? super T> worker;
+    private final List<ListenableFuture<Void>> workFutures;
 
-    public DefaultOperationQueue(StoppableExecutor executor, Action<? super T> worker) {
+    private boolean completed = false;
+
+    public DefaultOperationQueue(ListeningExecutorService executor, Action<? super T> worker) {
         this.executor = executor;
         this.worker = worker;
+        this.workFutures = Lists.newLinkedList();
     }
 
     public void add(final T operation) {
-        executor.execute(new Runnable() {
-            public void run() {
-                worker.execute(operation);
-            }
-
-            public String toString() {
-                return String.format("Worker %s for operation %s", worker, operation);
-            }
-        });
+        if (completed) {
+            throw new IllegalStateException("OperationQueues cannot be reused once they have started completion");
+        }
+        workFutures.add(executor.submit(new Operation(operation)));
     }
 
     public void waitForCompletion() throws GradleException {
-        executor.stop();
+        completed = true;
+
+        try {
+            Futures.allAsList(workFutures).get();
+        } catch (InterruptedException e) {
+            throw new UncheckedException(e);
+        } catch (ExecutionException e) {
+            throw new GradleException(String.format("Build operations for worker %s", worker), e.getCause());
+        }
+    }
+
+    class Operation implements Callable<Void> {
+        private final T operation;
+
+        Operation(T operation) {
+            this.operation = operation;
+        }
+
+        public Void call() {
+            worker.execute(operation);
+            return null;
+        }
+
+        public String toString() {
+            return String.format("Worker %s for operation %s", worker, operation);
+        }
     }
 }

@@ -16,21 +16,31 @@
 
 package org.gradle.internal.operations;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
-import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ThreadFactoryImpl;
 
-/**
- *
- */
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
 
-    private final ExecutorFactory executorFactory;
+    private final ListeningExecutorService fixedSizePool;
 
     public DefaultBuildOperationProcessor(int maxThreads) {
-        this.executorFactory = new FixedExecutorFactory(maxThreads);
+        final ExecutorService underlyingExecutor;
+        if (maxThreads < 0) {
+            underlyingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl("build operations"));
+        } else if (maxThreads == 0) {
+            underlyingExecutor = MoreExecutors.sameThreadExecutor();
+        } else {
+            underlyingExecutor = Executors.newFixedThreadPool(maxThreads, new ThreadFactoryImpl("build operations"));
+        }
+        fixedSizePool = MoreExecutors.listeningDecorator(underlyingExecutor);
     }
 
     public <T> OperationQueue<T> newQueue(Action<? super T> worker) {
-        return new DefaultOperationQueue<T>(executorFactory.create("build operations"), worker);
+        return new DefaultOperationQueue<T>(fixedSizePool, worker);
     }
 }
