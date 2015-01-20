@@ -145,3 +145,49 @@ Use of `byte` and `Byte` is unsupported.
 
 - ~(something like snippet above)~
 - ~should also support situations where more than two types are taking part in forming a cycle~
+
+### ~~Plugin creates model element of a collection of managed model elements~~
+
+    @Managed
+    interface Person {
+      String getName(); void setName(String string)
+    }
+
+    package org.gradle.model.collection
+    interface ManagedSet<T> extends Set<T> {
+      void create(Action<? super T> action)
+    }
+
+    class Rules {
+      @Model
+      void people(ManagedSet<Person> people) {}
+
+      @Mutate void addPeople(ManagedSet<Person> people) {
+        people.create(p -> p.setName("p1"))
+        people.create(p -> p.setName("p2"))
+      }
+    }
+
+    model {
+      people {
+        create { it.name = "p3" }
+      }
+
+      tasks {
+        create("printPeople") {
+          it.doLast {
+            assert $("people")*.name.sort() == ["p1", "p2", "p3"]
+          }
+        }
+      }
+    }
+
+Notes:
+
+- No lifecycle management at this stage (i.e. we don't prevent reading the collection when mutating and vice versa)
+- All mutative methods of the `java.lang.Set` interface throw `UnsupportedOperationException`
+
+#### Test coverage
+
+- ~~Attempt to create collection of non managed type~~
+- ~~Attempt to create collection of invalid managed type~~
