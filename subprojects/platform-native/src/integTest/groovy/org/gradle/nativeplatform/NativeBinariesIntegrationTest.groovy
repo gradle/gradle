@@ -17,8 +17,10 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.hamcrest.Matchers
 
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
@@ -51,23 +53,23 @@ model {
 
         and:
         buildFile << """
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
+
 apply plugin: 'c'
 
 model {
-    buildTypes {
-        debug
-        optimised
-        release
+    platforms {
+        unknown {
+            architecture "unknown"
+        }
     }
 }
 model {
     components {
-        main(NativeExecutableSpec)
-    }
-}
-binaries.all { binary ->
-    if (binary.buildType == buildTypes.optimised) {
-        binary.buildable = false
+        main(NativeExecutableSpec) {
+            targetPlatform "unknown"
+            targetPlatform NativePlatforms.defaultPlatformName
+        }
     }
 }
 """
@@ -75,13 +77,47 @@ binaries.all { binary ->
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":debugMainExecutable", ":releaseMainExecutable"
-        notExecuted ":optimisedMainExecutable"
+        executedAndNotSkipped ":${NativePlatforms.defaultPlatformName}MainExecutable"
+        notExecuted ":unknownMainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/debug/main").assertExists()
-        executable("build/binaries/mainExecutable/optimised/main").assertDoesNotExist()
-        executable("build/binaries/mainExecutable/release/main").assertExists()
+        executable("build/binaries/mainExecutable/${NativePlatforms.defaultPlatformName}/main").assertExists()
+        executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
+    }
+
+    def "assemble task produces sensible error when there are no buildable binaries" () {
+        buildFile << """
+apply plugin: 'c'
+
+model {
+    platforms {
+        unknown {
+            architecture "unknown"
+        }
+    }
+}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "unknown"
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "unknown"
+        }
+    }
+}
+"""
+        when:
+        fails "assemble"
+
+        then:
+        failureDescriptionContains("Execution failed for task ':assemble'.")
+        failure.assertThatCause(Matchers.<String>allOf(
+                Matchers.startsWith("No buildable binaries found:"),
+                Matchers.containsString("helloSharedLibrary: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("helloStaticLibrary: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'")
+        ))
     }
 
     def "assemble executable from component with multiple language source sets"() {

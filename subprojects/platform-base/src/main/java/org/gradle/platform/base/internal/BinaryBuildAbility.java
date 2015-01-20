@@ -16,15 +16,9 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.util.TreeVisitor;
 
-public interface BinarySpecInternal extends BinarySpec {
-    FunctionalSourceSet getBinarySources();
-
-    void setBinarySources(FunctionalSourceSet sources);
-
-    BinaryBuildAbility getBuildAbility();
-
-    boolean isLegacyBinary();
+public interface BinaryBuildAbility {
+    boolean isBuildable();
+    void explain(TreeVisitor<? super String> visitor);
 }

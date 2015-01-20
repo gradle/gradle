@@ -21,6 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -100,6 +102,11 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     @Override
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        return new DefaultBinaryBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

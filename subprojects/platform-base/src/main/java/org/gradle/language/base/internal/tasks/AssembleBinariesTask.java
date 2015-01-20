@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.List;
@@ -40,7 +41,17 @@ public class AssembleBinariesTask extends DefaultTask {
         Set<? extends Task> taskDependencies = getTaskDependencies().getDependencies(this);
 
         if (taskDependencies.size() == 0 && notBuildableBinaries.size() > 0) {
-            throw new GradleException(String.format("No buildable binaries found."));
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("No buildable binaries found");
+            formatter.startChildren();
+            for (BinarySpecInternal binary : notBuildableBinaries) {
+                formatter.node(binary.getName());
+                formatter.startChildren();
+                binary.getBuildAbility().explain(formatter);
+                formatter.endChildren();
+            }
+            formatter.endChildren();
+            throw new GradleException(formatter.toString());
         }
     }
 }

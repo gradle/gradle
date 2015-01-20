@@ -17,9 +17,12 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
 
 import java.io.File;
 
@@ -87,5 +90,10 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     public void setResourcesDir(File resourcesDir) {
         this.resourcesDir = resourcesDir;
+    }
+
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        return new DefaultBinaryBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()));
     }
 }

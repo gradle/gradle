@@ -22,12 +22,16 @@ import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -144,6 +148,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal platformInternal = (NativePlatformInternal) getTargetPlatform();
+        return new DefaultBinaryBuildAbility(toolChainInternal.select(platformInternal));
     }
 
     public void binaryInputs(FileCollection files) {

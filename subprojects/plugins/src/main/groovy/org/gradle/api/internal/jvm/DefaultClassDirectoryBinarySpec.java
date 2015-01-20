@@ -22,11 +22,14 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
 
 import java.io.File;
 
@@ -139,4 +142,8 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return getDisplayName();
     }
 
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        return new DefaultBinaryBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()));
+    }
 }

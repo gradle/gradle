@@ -108,9 +108,6 @@ public class JvmComponentPlugin extends RuleSource {
                     jarBinary.setResourcesDir(outputDir);
                     jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
 
-                    boolean canBuild = toolChain.select(jarBinary.getTargetPlatform()).isAvailable();
-                    jarBinaryInternal.setBuildable(canBuild);
-
                     jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
                 }
             });

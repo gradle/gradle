@@ -16,15 +16,23 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.util.TreeVisitor;
 
-public interface BinarySpecInternal extends BinarySpec {
-    FunctionalSourceSet getBinarySources();
+public class DefaultBinaryBuildAbility implements BinaryBuildAbility {
+    final ToolSearchResult result;
 
-    void setBinarySources(FunctionalSourceSet sources);
+    public DefaultBinaryBuildAbility(ToolSearchResult result) {
+        this.result = result;
+    }
 
-    BinaryBuildAbility getBuildAbility();
+    @Override
+    public boolean isBuildable() {
+        return result.isAvailable();
+    }
 
-    boolean isLegacyBinary();
+    @Override
+    public void explain(TreeVisitor<? super String> visitor) {
+        result.explain(visitor);
+    }
 }
