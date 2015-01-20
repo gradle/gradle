@@ -375,6 +375,42 @@ configure p3
         output.contains "people: p1, p2, p3"
     }
 
+    def "reports failure that occurs in collection item initializer"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+              String getName()
+              void setName(String string)
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void people(ManagedSet<Person> people) {
+                people.create {
+                    throw new RuntimeException("broken")
+                }
+              }
+
+              @Mutate
+              void tasks(CollectionBuilder<Task> tasks, ManagedSet<Person> people) { }
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "printPeople"
+
+        and:
+        failure.assertHasDescription('A problem occurred configuring root project')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(org.gradle.model.collection.ManagedSet<Person>)')
+        failure.assertHasCause('broken')
+    }
+
     def "read methods of ManagedSet throw exceptions when used in a creation rule"() {
         when:
         buildScript '''
@@ -511,7 +547,7 @@ configure p3
         failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.collection.ManagedSet<Person>' given to rule 'RulePlugin#people(org.gradle.model.collection.ManagedSet<Person>)'")
     }
 
-    def "mutating managed set which is an input of a dsl rule is not allowed"() {
+    def "mutating managed set which is an input of a DSL rule is not allowed"() {
         when:
         buildScript '''
             import org.gradle.model.*
