@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -55,13 +55,13 @@ public class MicrosoftVisualCppPlugin implements Plugin<Project> {
             final ExecActionFactory execActionFactory = serviceRegistry.get(ExecActionFactory.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final OperatingSystem operatingSystem = serviceRegistry.get(OperatingSystem.class);
-            final StartParameter startParameter = serviceRegistry.get(StartParameter.class);
+            final BuildOperationProcessor buildOperationProcessor = serviceRegistry.get(BuildOperationProcessor.class);
             final VisualStudioLocator visualStudioLocator = serviceRegistry.get(VisualStudioLocator.class);
             final WindowsSdkLocator windowsSdkLocator = serviceRegistry.get(WindowsSdkLocator.class);
 
             toolChainRegistry.registerFactory(VisualCpp.class, new NamedDomainObjectFactory<VisualCpp>() {
                 public VisualCpp create(String name) {
-                    return instantiator.newInstance(VisualCppToolChain.class, name, operatingSystem, fileResolver, execActionFactory, startParameter, visualStudioLocator, windowsSdkLocator, instantiator);
+                    return instantiator.newInstance(VisualCppToolChain.class, name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp.class);

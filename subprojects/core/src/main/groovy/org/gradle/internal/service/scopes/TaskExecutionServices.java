@@ -30,8 +30,11 @@ import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.FixedExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.serialize.DefaultSerializerRegistry;
@@ -93,5 +96,15 @@ public class TaskExecutionServices {
 
     TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
         return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
+    }
+
+    BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter) {
+        int maxThreads = startParameter.getParallelThreadCount();
+        if (maxThreads < 0) {
+            maxThreads = Runtime.getRuntime().availableProcessors();
+        } else if (maxThreads == 0) {
+            maxThreads = 1;
+        }
+        return new DefaultBuildOperationProcessor(new FixedExecutorFactory(maxThreads));
     }
 }

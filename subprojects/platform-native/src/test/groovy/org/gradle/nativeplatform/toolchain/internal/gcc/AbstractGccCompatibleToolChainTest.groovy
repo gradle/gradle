@@ -15,9 +15,9 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -26,13 +26,13 @@ import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
@@ -54,10 +54,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
     def metaDataProvider = Stub(CompilerMetaDataProvider)
     def operatingSystem = Stub(OperatingSystem)
-    def startParameter = Stub(StartParameter)
+    def buildOperationProcessor = Stub(BuildOperationProcessor)
 
     def instantiator = new DirectInstantiator()
-    def toolChain = new TestNativeToolChain("test", operatingSystem, fileResolver, execActionFactory, startParameter, toolSearchPath, metaDataProvider, instantiator)
+    def toolChain = new TestNativeToolChain("test", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, startParameter, toolSearchPath, metaDataProvider, instantiator)
     def platform = Stub(NativePlatformInternal)
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
@@ -367,8 +367,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     static class TestNativeToolChain extends AbstractGccCompatibleToolChain {
-        TestNativeToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
-            super(name, operatingSystem, fileResolver, execActionFactory, startParameter, tools, metaDataProvider, instantiator)
+        TestNativeToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+            super(name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, tools, metaDataProvider, instantiator)
         }
 
         @Override

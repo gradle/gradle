@@ -15,8 +15,8 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.toolchain.Gcc;
@@ -31,8 +31,8 @@ import org.gradle.process.internal.ExecActionFactory;
 public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc {
     public static final String DEFAULT_NAME = "gcc";
 
-    public GccToolChain(Instantiator instantiator, String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter, CompilerMetaDataProviderFactory metaDataProviderFactory) {
-        super(name, operatingSystem, fileResolver, execActionFactory, startParameter, metaDataProviderFactory.gcc(), instantiator);
+    public GccToolChain(Instantiator instantiator, String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProviderFactory metaDataProviderFactory) {
+        super(name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, metaDataProviderFactory.gcc(), instantiator);
     }
 
     @Override

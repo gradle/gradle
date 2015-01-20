@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -27,8 +28,8 @@ import org.gradle.util.TreeVisitor;
 public class UnavailablePlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchResult failure;
 
-    public UnavailablePlatformToolProvider(OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
-        super(operatingSystem, 0);
+    public UnavailablePlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
+        super(buildOperationProcessor, operatingSystem);
         this.failure = failure;
     }
 

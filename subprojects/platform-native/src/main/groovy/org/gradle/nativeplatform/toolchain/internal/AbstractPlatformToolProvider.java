@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.internal.concurrent.FixedExecutorFactory;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -33,9 +31,9 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
     protected final BuildOperationProcessor buildOperationProcessor;
 
-    public AbstractPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, final int numberOfThreads) {
+    public AbstractPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
-        this.buildOperationProcessor = new DefaultBuildOperationProcessor(new FixedExecutorFactory(numberOfThreads));
+        this.buildOperationProcessor = buildOperationProcessor;
     }
 
     public boolean isAvailable() {

@@ -16,14 +16,17 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
@@ -44,7 +47,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
-    private final StartParameter startParameter;
     private final Instantiator instantiator;
     private File installDir;
     private File windowsSdkDir;
@@ -52,9 +54,9 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private WindowsSdk windowsSdk;
     private ToolChainAvailability availability;
 
-    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, StartParameter startParameter,
+    public VisualCppToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, Instantiator instantiator) {
-        super(name, operatingSystem, fileResolver);
+        super(name, buildOperationProcessor, operatingSystem, fileResolver);
 
         this.name = name;
         this.operatingSystem = operatingSystem;
@@ -62,7 +64,6 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
         this.windowsSdkLocator = windowsSdkLocator;
-        this.startParameter = startParameter;
         this.instantiator = instantiator;
     }
 
@@ -93,13 +94,13 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
         }
         if (!result.isAvailable()) {
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+            return new UnavailablePlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), result);
         }
 
         DefaultVisualCppPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultVisualCppPlatformToolChain.class, targetPlatform, instantiator);
         configureActions.execute(configurableToolChain);
 
-        return new VisualCppPlatformToolProvider(targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory, startParameter.getParallelThreadCount());
+        return new VisualCppPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), configurableToolChain.tools, visualCpp, windowsSdk, targetPlatform, execActionFactory);
     }
 
     private ToolChainAvailability getAvailability() {
