@@ -21,6 +21,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
@@ -100,8 +101,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 @Override
                 public void execute(Task assemble) {
                     for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                        if (!binary.isLegacyBinary() && binary.isBuildable()) {
-                            assemble.dependsOn(binary);
+                        if (!binary.isLegacyBinary()) {
+                            if (binary.isBuildable()) {
+                                assemble.dependsOn(binary);
+                            } else {
+                                ((AssembleBinariesTask)assemble).notBuildable(binary);
+                            }
                         }
                     }
                 }

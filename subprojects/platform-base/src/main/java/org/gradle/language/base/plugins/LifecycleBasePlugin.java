@@ -19,6 +19,7 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.*;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
+import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -59,7 +60,7 @@ public class LifecycleBasePlugin implements Plugin<Project> {
     }
 
     private void addAssemble(Project project) {
-        Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME);
+        Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME, AssembleBinariesTask.class);
         assembleTask.setDescription("Assembles the outputs of this project.");
         assembleTask.setGroup(BUILD_GROUP);
     }
