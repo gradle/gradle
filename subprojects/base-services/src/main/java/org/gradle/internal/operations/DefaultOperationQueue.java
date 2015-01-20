@@ -25,7 +25,6 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -34,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 public class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
     private final Action<? super T> worker;
-    private final List<ListenableFuture<Void>> workFutures;
+    private final List<ListenableFuture<?>> workFutures;
 
     private boolean completed = false;
 
@@ -55,24 +54,24 @@ public class DefaultOperationQueue<T> implements OperationQueue<T> {
         completed = true;
 
         try {
+            // wait for all tasks to complete
             Futures.allAsList(workFutures).get();
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
         } catch (ExecutionException e) {
-            throw new GradleException(String.format("Build operations for worker %s", worker), e.getCause());
+            throw new GradleException(String.format("Build operation for worker %s failed", worker), e.getCause());
         }
     }
 
-    class Operation implements Callable<Void> {
+    class Operation implements Runnable {
         private final T operation;
 
         Operation(T operation) {
             this.operation = operation;
         }
 
-        public Void call() {
+        public void run() {
             worker.execute(operation);
-            return null;
         }
 
         public String toString() {
