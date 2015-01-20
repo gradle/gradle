@@ -217,11 +217,32 @@ task bigVariantsOldModel(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
+task variantsNewModelMultiproject(type: ProjectGeneratorTask) {
+    projects = 10
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
+task variantsOldModelMultiproject(type: ProjectGeneratorTask) {
+    projects = 10
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
-                                smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel])
+                                smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
+                                variantsNewModelMultiproject, variantsOldModelMultiproject])
 
 task report {
     def crossVersionReportDir = new File(buildDir, "performance-tests/report/cross-version")

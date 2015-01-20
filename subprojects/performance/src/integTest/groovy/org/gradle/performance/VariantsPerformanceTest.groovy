@@ -18,13 +18,11 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildSpecification
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
-    @Ignore
     def "#size project using variants #scenario build"() {
         given:
         runner.testGroup = "project using variants"
@@ -70,5 +68,30 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         where:
         size << ["medium", "big"]
+    }
+
+    @Unroll
+    def "multiproject using variants #scenario build"() {
+        given:
+        runner.testGroup = "project using variants"
+        runner.testId = "multiproject using variants $scenario build"
+        runner.buildSpecifications = [
+                BuildSpecification.forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
+                BuildSpecification.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+        ]
+        runner.runs = 2
+        runner.subRuns = 5
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertEveryBuildSucceeds()
+
+        where:
+        scenario                      | tasks
+        "single variant"              | [":project1:flavour1type1"]
+        "all variants single project" | [":project1:allVariants"]
+        "all variants all projects"   | ["allVariants"]
     }
 }
