@@ -40,4 +40,33 @@ class GradleProjectBuilderTest extends Specification {
         model.buildDirectory == project.buildDir
         model.buildScript.sourceFile == buildFile
     }
+
+    def "handles task placeholders"() {
+        def buildFile = tmpDir.file("build.gradle") << "//empty"
+        def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
+        project.description = 'a test project'
+        project.tasks.addPlaceholderAction("placeholderTask", new Runnable() {
+            @Override
+            void run() {
+                project.tasks.create("placeholderTask") {
+                    description = "some description"
+                    group = "some group"
+                }
+            }
+        });
+
+        when:
+        def model = builder.buildAll(project)
+
+        then:
+        model.path == ':'
+        model.name == 'test'
+        model.description == 'a test project'
+        model.buildDirectory == project.buildDir
+        model.buildScript.sourceFile == buildFile
+        model.tasks.size() == 1
+        model.tasks[0].name == "placeholderTask"
+        model.tasks[0].description == "some description"
+        model.tasks[0].path == ":placeholderTask"
+    }
 }

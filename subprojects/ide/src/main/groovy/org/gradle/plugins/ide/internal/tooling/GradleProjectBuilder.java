@@ -69,16 +69,18 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
         List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
-
-        for (Task t : tasks) {
-            out.add(new LaunchableGradleProjectTask()
-                    .setProject(owner)
-                    .setPath(t.getPath())
-                    .setName(t.getName())
-                    .setDisplayName(t.toString())
-                    .setDescription(t.getDescription())
-                    .setPublic(t.getGroup() != null)
-                    );
+        for (String taskName : tasks.getNames()) {
+            Task t = tasks.findByName(taskName);
+            if(t!=null){
+                out.add(new LaunchableGradleProjectTask()
+                                .setProject(owner)
+                                .setPath(t.getPath())
+                                .setName(t.getName())
+                                .setDisplayName(t.toString())
+                                .setDescription(t.getDescription())
+                                .setPublic(t.getGroup() != null)
+                );
+            }
         }
 
         return out;
