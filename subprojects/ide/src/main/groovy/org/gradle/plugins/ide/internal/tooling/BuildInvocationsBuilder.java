@@ -67,12 +67,11 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         findTasks(project, selectorsByName, visibleTasks);
         for (String selectorName : selectorsByName.keySet()) {
             LaunchableGradleTaskSelector selector = selectorsByName.get(selectorName);
-            selectors.add(new LaunchableGradleTaskSelector().
+            selectors.add(selector.
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectPath(project.getPath()).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
-                    setDescription(selector.getDescription()).
                     setPublic(visibleTasks.contains(selectorName)));
         }
 
