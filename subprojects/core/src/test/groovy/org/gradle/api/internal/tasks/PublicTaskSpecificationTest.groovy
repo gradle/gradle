@@ -35,6 +35,18 @@ class PublicTaskSpecificationTest extends Specification {
         !isPublic
     }
 
+    def "task with empty group is private task"() {
+        given:
+        def privateTask = Mock(Task)
+        privateTask.getGroup() >> { "" }
+
+        when:
+        def isPublic = publicTaskSpec.isSatisfiedBy(privateTask)
+
+        then:
+        !isPublic
+    }
+
     def "task with non-null group is public task"() {
         given:
         def publicTask = Mock(Task)

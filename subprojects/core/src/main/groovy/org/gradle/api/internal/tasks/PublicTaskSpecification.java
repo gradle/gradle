@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Strings;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
@@ -31,7 +32,7 @@ public final class PublicTaskSpecification implements Spec<Task> {
 
     @Override
     public boolean isSatisfiedBy(Task task) {
-        return task.getGroup() != null;
+        return !Strings.isNullOrEmpty(task.getGroup());
     }
 
 }
