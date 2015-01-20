@@ -111,6 +111,10 @@ external dependency, the correct tasks are included for execution:
 - Dependency substitution rules already apply when resolving project dependencies as well as external dependencies.
 - `DependencyResolveDetails.getRequested()` should return `ComponentSelector`
 
+## Story: IDE plugins include correct set of projects based on dependency substitution
+
+## Story: Dependency reports provide information on dependency substitution
+
 # Feature: Improve the dependency substitution rule DSL
 
 ## Story: Make the DSL for dependency substitution rules more consistent with component selection rules
@@ -153,5 +157,4 @@ resolution {
 - Should allow component selection rules to be configured here
 - Should allow cache timeouts to be configured here
 
-## Dependency reports provide information on dependency substitution
 
