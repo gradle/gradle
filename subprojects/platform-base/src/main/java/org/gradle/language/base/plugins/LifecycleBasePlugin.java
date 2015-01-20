@@ -65,20 +65,22 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         assembleTask.setGroup(BUILD_GROUP);
     }
 
-    private void addCheck(ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
+    private void addCheck(final ProjectInternal project) {
+        project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, new Runnable() {
             @Override
-            public void execute(DefaultTask checkTask) {
+            public void run() {
+                Task checkTask = project.getTasks().maybeCreate(CHECK_TASK_NAME);
                 checkTask.setDescription("Runs all checks.");
                 checkTask.setGroup(VERIFICATION_GROUP);
             }
         });
     }
 
-    private void addBuild(ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
+    private void addBuild(final ProjectInternal project) {
+        project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, new Runnable() {
             @Override
-            public void execute(DefaultTask buildTask) {
+            public void run() {
+                Task buildTask = project.getTasks().maybeCreate(BUILD_TASK_NAME);
                 buildTask.setDescription("Assembles and tests this project.");
                 buildTask.setGroup(BUILD_GROUP);
                 buildTask.dependsOn(ASSEMBLE_TASK_NAME);
