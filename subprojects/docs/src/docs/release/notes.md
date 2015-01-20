@@ -220,6 +220,19 @@ removed all the default facets instead of adding it to the default applied facet
 
 This fix was contributed by [Andreas Schmid](https://github.com/aaschmid).
 
+### GradleProjectBuilder handles placeholder tasks now
+
+The `GradleProjectBuilder` now lists _all_ tasks including the following helper tasks
+
+   * `components`
+   * `dependencies`
+   * `dependencyInsight`
+   * `help`
+   * `init`
+   * `projects`
+   * `properties`
+   * `tasks`
+   * `wrapper`
 
 ## External contributions
 
