@@ -32,6 +32,8 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
 
     <T extends TaskInternal> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
 
+    void addPlaceholderAction(String placeholderName, Runnable runnable);
+
     /**
      * Force the entire graph to come into existence.
      *

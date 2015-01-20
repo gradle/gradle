@@ -224,6 +224,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
+    @Override
+    public void addPlaceholderAction(String placeholderName, Runnable runnable) {
+        placeholders.put(placeholderName, runnable);
+    }
+
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
