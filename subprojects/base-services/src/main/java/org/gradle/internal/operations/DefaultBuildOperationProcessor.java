@@ -24,10 +24,10 @@ import org.gradle.internal.concurrent.ExecutorFactory;
  */
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
 
-    final ExecutorFactory executorFactory;
+    private final ExecutorFactory executorFactory;
 
-    public DefaultBuildOperationProcessor(ExecutorFactory executorFactory) {
-        this.executorFactory = executorFactory;
+    public DefaultBuildOperationProcessor(int maxThreads) {
+        this.executorFactory = new FixedExecutorFactory(maxThreads);
     }
 
     public <T> OperationQueue<T> newQueue(Action<? super T> worker) {

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.internal.operations;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.concurrent.ThreadFactoryImpl;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -26,8 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-// TODO: Expand this to support a shared thread pool + dedicated worker pools?
-public class FixedExecutorFactory implements ExecutorFactory {
+class FixedExecutorFactory implements ExecutorFactory {
     private final int maxWorkerThreads;
 
     public FixedExecutorFactory(int maxWorkerThreads) {
@@ -41,11 +42,11 @@ public class FixedExecutorFactory implements ExecutorFactory {
 
     protected ExecutorService createExecutor(String displayName) {
         if (maxWorkerThreads < 0) {
-            return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new DefaultExecutorFactory.ThreadFactoryImpl(displayName));
+            return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl(displayName));
         } else if (maxWorkerThreads == 0) {
             return MoreExecutors.sameThreadExecutor();
         } else {
-            return Executors.newFixedThreadPool(maxWorkerThreads, new DefaultExecutorFactory.ThreadFactoryImpl(displayName));
+            return Executors.newFixedThreadPool(maxWorkerThreads, new ThreadFactoryImpl(displayName));
         }
     }
 
@@ -97,9 +98,7 @@ public class FixedExecutorFactory implements ExecutorFactory {
                 throw new UncheckedException(e);
             }
             if (!failures.isEmpty()) {
-                // TODO: Grab all of the exceptions, not just the first one.
-                Throwable firstException = failures.iterator().next();
-                throw new GradleException(firstException.getMessage());
+                throw new MultipleOperationFailures(failures);
             }
         }
     }

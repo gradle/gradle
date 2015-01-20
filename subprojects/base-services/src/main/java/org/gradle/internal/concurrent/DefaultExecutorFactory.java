@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
@@ -101,26 +100,6 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
             } finally {
                 executors.remove(this);
             }
-        }
-    }
-
-    protected static class ThreadFactoryImpl implements ThreadFactory {
-        private final AtomicLong counter = new AtomicLong();
-        private final String displayName;
-
-        public ThreadFactoryImpl(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            long count = counter.incrementAndGet();
-            if (count == 1) {
-                thread.setName(displayName);
-            } else {
-                thread.setName(String.format("%s Thread %s", displayName, count));
-            }
-            return thread;
         }
     }
 }
