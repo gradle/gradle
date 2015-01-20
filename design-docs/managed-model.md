@@ -635,9 +635,9 @@ Other issues:
 ### Managed types
 
 - Value types:
-    - Does not support `is` style getters for boolean properties.
-    - Does not support all numeric types.
-    - Does not support primitives.
+    - Should support `is` style getters for boolean properties.
+    - Should support all numeric types.
+    - Should support primitives.
 - Mix DSL and Groovy methods into managed type implementations.
     - Add DSL and Groovy type coercion for enums, closures, files, etc
     - Missing property and method error messages use public type instead of implementation type.
@@ -647,7 +647,9 @@ Other issues:
 
 ### Collections
 
+- Implement `add()` and treat it as adding a reference, and remove() and treat it as removing a reference.
 - Collections of value elements
+- Collections of collections
 - Map type collections
 - Ordered collections
 - Semi ordered collections (e.g. command line, where some elements have an order relationship)
