@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.language.base.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.DefaultBinaryContainer
 import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-class LanguageBasePluginTest extends WellBehavedPluginTest {
+class LanguageBasePluginTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
 
     def setup() {

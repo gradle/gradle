@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
 import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -36,6 +37,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
+    public static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom ‘%s’ task is deprecated when using standard lifecycle plugin";
 
     public void apply(ProjectInternal project) {
         addClean(project);
@@ -43,6 +45,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         addAssemble(project);
         addCheck(project);
         addBuild(project);
+        addDeprecationWarningsAboutCustomLifecycleTasks(project);
     }
 
     private void addClean(final Project project) {
@@ -70,9 +73,14 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, new Runnable() {
             @Override
             public void run() {
-                Task checkTask = project.getTasks().maybeCreate(CHECK_TASK_NAME);
-                checkTask.setDescription("Runs all checks.");
-                checkTask.setGroup(VERIFICATION_GROUP);
+                DeprecationLogger.whileDisabled(new Runnable() {
+                    @Override
+                    public void run() {
+                        Task checkTask = project.getTasks().maybeCreate(CHECK_TASK_NAME);
+                        checkTask.setDescription("Runs all checks.");
+                        checkTask.setGroup(VERIFICATION_GROUP);
+                    }
+                });
             }
         });
     }
@@ -81,11 +89,30 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, new Runnable() {
             @Override
             public void run() {
-                Task buildTask = project.getTasks().maybeCreate(BUILD_TASK_NAME);
-                buildTask.setDescription("Assembles and tests this project.");
-                buildTask.setGroup(BUILD_GROUP);
-                buildTask.dependsOn(ASSEMBLE_TASK_NAME);
-                buildTask.dependsOn(CHECK_TASK_NAME);
+                DeprecationLogger.whileDisabled(new Runnable() {
+                    @Override
+                    public void run() {
+                        Task buildTask = project.getTasks().maybeCreate(BUILD_TASK_NAME);
+                        buildTask.setDescription("Assembles and tests this project.");
+                        buildTask.setGroup(BUILD_GROUP);
+                        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+                        buildTask.dependsOn(CHECK_TASK_NAME);
+                    }
+                });
+            }
+        });
+    }
+
+    private void addDeprecationWarningsAboutCustomLifecycleTasks(ProjectInternal project) {
+        project.getTasks().all(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (task.getName().equals(BUILD_TASK_NAME)) {
+                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, BUILD_TASK_NAME));
+                }
+                if (task.getName().equals(CHECK_TASK_NAME)) {
+                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, CHECK_TASK_NAME));
+                }
             }
         });
     }
