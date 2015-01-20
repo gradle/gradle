@@ -137,7 +137,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -151,6 +151,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         performanceResults.setJvm(testExecutions.getString(5));
                         performanceResults.setVcsBranch(testExecutions.getString(6).trim());
                         performanceResults.setVcsCommit(testExecutions.getString(7));
+                        performanceResults.setTestGroup(testExecutions.getString(8));
 
                         results.add(performanceResults);
 

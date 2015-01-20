@@ -31,7 +31,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
     def "persists reports"() {
         given:
-        def results1 = crossBuildResults(testId: "test1")
+        def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
         def buildResults1 = results1.buildResult(BuildSpecification.forProject("simple")
                 .displayName("simple display")
                 .tasksToRun("build")
@@ -50,7 +50,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         buildResults2 << operation()
 
         and:
-        def results2 = crossBuildResults(testId: "test2")
+        def results2 = crossBuildResults(testId: "test2", testGroup: "group2")
         results2.buildResult(BuildSpecification.forProject("simple")
                 .displayName("simple display")
                 .tasksToRun("build")
