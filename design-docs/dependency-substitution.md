@@ -54,6 +54,38 @@ How are we going to test this feature? How do we prove that the work is done?
 
 This section is to keep track of assumptions and things we haven't figured out yet.
 
+## Story: Option to re-resolve Configuration when modified after resolution
+
+- Detect and track _all_ changes made to a Configuration after resolution
+- After resolution, the configuration should be in a 'closed' state.
+    - Warning emitted on any subsequent mutation
+    - Changes made after this point will be ignored
+- Provide an internal mechanism, set configuration to a 'mutable' state.
+    - No warnings on subsequent mutation.
+    - When resolved configuration is next required, the configuration is re-resolved, and state set to 'closed'
+    
+### Test coverage
+
+- Warning emitted and change ignored when Configuration mutated after resolution:
+   - Dependency added/replaced/removed
+   - Set of parent configurations changes
+   - ResolutionStrategy modified
+   - Set of exclude rules changes
+   - Calls to `ResolvableDependencies.beforeResolve` and `afterResolve`
+   - Any mutation to parent configuration (even if that configuration has not been explicitly resolved)
+- When a previously-resolved Configuration is set to a 'mutable' state and not mutated:
+   - Use of `FileCollection` API uses previous resolution result
+   - New and existing `ResolvedConfiguration` instances use previous resolution result
+   - New and existing `ResolvableDependencies` instances use previous resolution result
+- When a previously-resolved Configuration is set to a 'mutable' state and is mutated:
+   - Use of `FileCollection` API forces re-resolve and uses new resolution result
+   - Use of new and existing `ResolvedConfiguration` instances forces re-resolve and uses new resolution result
+   - Use of new and existing `ResolvableDependencies` instances forces re-resolve and uses new resolution result
+
+### Open issues
+
+- Permit a user to set a configuration back to 'mutable' state, to avoid warnings and permit re-resolve?
+
 ## Task graph includes correct tasks for replaced project dependencies
 
 Update the algorithm for building the `TaskExecutionGraph` such that if a project dependency is substituted for an
@@ -73,22 +105,6 @@ external dependency, the correct tasks are included for execution:
 ### Test coverage
 
 ### Open issues
-
-## Configuration is not re-resolved if not modified after task graph is built
-
-Detect any changes made to a Configuration after resolution, and re-resolve a modified configuration when required.
-
-- After a regular resolution, the configuration should be in an 'immutable' state.
-    - Warning emitted on any subsequent mutation
-    - Changes made after this point will be ignored
-- After initial resolve to compose task graph, set configuration to a 'mutable' state.
-    - No warnings on subsequent mutation.
-    - When resolved configuration is next required, the configuration is re-resolved.
-     
-### Open issues
-
-- Permit a user to set a configuration back to 'mutable' state?
-- Force the user to explicitly set the configuration to 'mutable' if changes are made during task execution?
 
 ## Story: Use dependency substitution rule to replace project dependency with external dependency
 
