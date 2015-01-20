@@ -83,6 +83,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      * @return The project directory.
      * @since 2.4
      */
+    @Incubating
     File getProjectDirectory();
 
 }
