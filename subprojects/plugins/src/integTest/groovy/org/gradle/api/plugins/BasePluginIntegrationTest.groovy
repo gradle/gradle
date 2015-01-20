@@ -42,4 +42,28 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         lock?.release()
     }
 
+    def "can define 'build' and 'check' tasks when applying plugin"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            task build {
+                dependsOn 'check'
+                doLast {
+                    println "-building"
+                }
+            }
+
+            task check << {
+                print "checking"
+            }
+"""
+        when:
+        executer.withArgument("-q")
+        succeeds "build"
+
+        then:
+        executedAndNotSkipped ":check", ":build"
+        output.contains "checking-building"
+    }
+
 }
