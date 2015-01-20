@@ -25,7 +25,7 @@ class CCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolInvocation invocation, String objectFileExtension, boolean useCommandFile) {
-        new CCompiler(executorFactory, commandLineTool, invocation, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
+        new CCompiler(buildOperationProcessor, commandLineTool, invocation, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
     }
 
     @Override

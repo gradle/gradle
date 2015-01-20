@@ -51,23 +51,6 @@ public class DefaultCommandLineTool implements CommandLineTool {
     }
 
     public void execute(CommandLineToolInvocation invocation) {
-        toRunnableExecution(invocation).run();
-    }
-
-    public Runnable toRunnableExecution(final CommandLineToolInvocation invocation) {
-        return new Runnable() {
-            public void run() {
-                DefaultCommandLineTool.this.internalExecute(invocation);
-            }
-
-            @Override
-            public String toString() {
-                return DefaultCommandLineTool.this.toString();
-            }
-        };
-    }
-
-    protected void internalExecute(CommandLineToolInvocation invocation) {
         ExecAction toolExec = execActionFactory.newExecAction();
         toolExec.executable(executable);
         if (invocation.getWorkDirectory() != null) {

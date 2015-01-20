@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.internal.operations;
 
-import org.gradle.api.Action;
-import org.gradle.api.Named;
+import org.gradle.api.GradleException;
 
-public interface CommandLineTool extends Named, Action<CommandLineToolInvocation> {
-    /**
-     * Returns a human consumable name for this tool.
-     */
-    String getDisplayName();
+/**
+ *
+ */
+public interface OperationQueue<T> {
+    public void add(T operation);
+    public void waitForCompletion() throws GradleException;
 }

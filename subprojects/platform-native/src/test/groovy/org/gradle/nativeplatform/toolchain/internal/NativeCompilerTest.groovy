@@ -15,8 +15,10 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal
-import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.StoppableExecutor
+
+import org.gradle.internal.concurrent.FixedExecutorFactory
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -36,13 +38,8 @@ public abstract class NativeCompilerTest extends Specification {
     protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
     protected CommandLineTool commandLineTool = Mock(CommandLineTool)
-    protected ExecutorFactory executorFactory = Stub(ExecutorFactory) {
-        create(_) >> {
-            return Stub(StoppableExecutor) {
-                execute(_) >> { args -> args[0].run() }
-            }
-        }
-    }
+    // TODO:
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new FixedExecutorFactory(1))
 
     def "arguments include source file"() {
         given:
@@ -127,12 +124,8 @@ public abstract class NativeCompilerTest extends Specification {
 
         then:
 
-        1 * commandLineTool.getDisplayName()
-
         sourceFiles.each{ sourceFile ->
-            Runnable run = Mock(Runnable)
-            1 * commandLineTool.toRunnableExecution(_) >> run
-            1 * run.run()
+            1 * commandLineTool.execute(_)
         }
         0 * _
 

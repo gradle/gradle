@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
-import org.gradle.api.Named;
+import org.gradle.internal.concurrent.ExecutorFactory;
 
-public interface CommandLineTool extends Named, Action<CommandLineToolInvocation> {
-    /**
-     * Returns a human consumable name for this tool.
-     */
-    String getDisplayName();
+/**
+ *
+ */
+public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
+
+    final ExecutorFactory executorFactory;
+
+    public DefaultBuildOperationProcessor(ExecutorFactory executorFactory) {
+        this.executorFactory = executorFactory;
+    }
+
+    public <T> OperationQueue<T> newQueue(Action<? super T> worker) {
+        return new DefaultOperationQueue<T>(executorFactory.create("build operations"), worker);
+    }
 }

@@ -21,8 +21,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.OperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
@@ -39,32 +39,32 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final String objectFileSuffix;
     private final boolean useCommandFile;
 
-    private final ExecutorFactory executorFactory;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    public NativeCompiler(ExecutorFactory executorFactory, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineTool = commandLineTool;
-        this.executorFactory = executorFactory;
+        this.buildOperationProcessor = buildOperationProcessor;
     }
 
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final StoppableExecutor executor = getExecutor();
+        final OperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineTool);
 
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {
             CommandLineToolInvocation perFileInvocation =
                     createPerFileInvocation(genericArgs, sourceFile, objectDir);
-            executor.execute(commandLineTool.toRunnableExecution(perFileInvocation));
+            buildQueue.add(perFileInvocation);
         }
 
-        // Wait on all executions to complete and clean-up executor
-        executor.stop();
+        // Wait on all executions to complete or fail
+        buildQueue.waitForCompletion();
 
         return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
     }
@@ -116,9 +116,5 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         perFileInvocation.setWorkDirectory(objectDir);
         perFileInvocation.setArgs(perFileArgs);
         return perFileInvocation;
-    }
-
-    private StoppableExecutor getExecutor() {
-        return executorFactory.create(commandLineTool.getDisplayName());
     }
 }
