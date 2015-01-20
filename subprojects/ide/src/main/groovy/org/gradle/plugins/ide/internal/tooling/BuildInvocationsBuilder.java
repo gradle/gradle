@@ -106,11 +106,15 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             // in the map, store a minimally populated LaunchableGradleTaskSelector that contains just the description and the path
             // replace the LaunchableGradleTaskSelector stored in the map iff we come across a task with the same name whose path has a smaller ordering
             // this way, for each task selector, its description will be the one from the selected task with the 'smallest' path
-            if (!taskSelectors.containsKey(task.getName()) || hasPathWithLowerOrdering(task, taskSelectors.get(task.getName()))) {
+            if (!taskSelectors.containsKey(task.getName())) {
                 LaunchableGradleTaskSelector taskSelector = new LaunchableGradleTaskSelector().
-                        setDescription(task.getDescription()).
-                        setProjectPath(task.getPath());
+                        setDescription(task.getDescription()).setProjectPath(task.getPath());
                 taskSelectors.put(task.getName(), taskSelector);
+            } else {
+                LaunchableGradleTaskSelector taskSelector = taskSelectors.get(task.getName());
+                if (hasPathWithLowerOrdering(task, taskSelector)) {
+                    taskSelector.setDescription(task.getDescription()).setProjectPath(task.getPath());
+                }
             }
 
             // visible tasks are specified as those that have a non-empty group
