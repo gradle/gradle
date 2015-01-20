@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
@@ -66,7 +67,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-        gradleProject.setTasks(tasks(gradleProject, project.getTasks()));
+        gradleProject.setTasks(tasks(gradleProject, (TaskContainerInternal)project.getTasks()));
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
@@ -75,7 +76,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, Iterable<Task> tasks) {
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
         List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
         for (String taskName : tasks.getNames()) {
             Task t = tasks.findByName(taskName);
