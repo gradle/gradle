@@ -35,7 +35,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
         this.fixedSizePool = MoreExecutors.listeningDecorator(underlyingExecutor);
     }
 
-    private int actualThreadCount(int maxThreads) {
+    int actualThreadCount(int maxThreads) {
         final int actualThreads;
         if (maxThreads < 0) {
             actualThreads = Runtime.getRuntime().availableProcessors();

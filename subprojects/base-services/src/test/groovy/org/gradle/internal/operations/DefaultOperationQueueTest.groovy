@@ -74,8 +74,7 @@ class DefaultOperationQueueTest extends Specification {
         5    | _
     }
 
-    // TODO:Make this work in a way that doesn't depend on exact timing
-    @Ignore("Depends on timing")
+    @Ignore("We want to keep going for now, but in the future we'll want to cancel early")
     def "execution stops once failure occurs"() {
         given:
         def operationBefore = Mock(Runnable)
@@ -118,7 +117,7 @@ class DefaultOperationQueueTest extends Specification {
         operationQueue.waitForCompletion()
 
         then:
-        thrown GradleException
+        thrown MultipleBuildOperationFailures
 
         where:
         firstOperation | secondOperation | thirdOperation

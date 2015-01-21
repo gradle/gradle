@@ -16,8 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.GradleException;
-
 /**
  * Queue for holding build operations and submitting them to an underlying executor.
  *
@@ -43,7 +41,7 @@ public interface OperationQueue<T> {
      * On failure, some effort is made to cancel any operations
      * that have not started.
      * </p>
-     * @throws GradleException if <em>any</em> operation failed.
+     * @throws MultipleBuildOperationFailures if <em>any</em> operation failed.
      */
-    public void waitForCompletion() throws GradleException;
+    public void waitForCompletion() throws MultipleBuildOperationFailures;
 }

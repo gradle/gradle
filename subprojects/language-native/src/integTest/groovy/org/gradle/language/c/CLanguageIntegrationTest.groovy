@@ -207,7 +207,7 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
-        failure.assertHasCause("C compiler failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed; see the error output for details.")
     }
 }
 
