@@ -16,10 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.artifacts.Dependency;
-
 public interface LegacyPluginResolveContext {
-
-    Dependency add(String pluginId, String m2RepoUrl, Object dependencyNotation);
-
+    void addLegacy(String pluginId, String m2RepoUrl, Object dependencyNotation);
 }

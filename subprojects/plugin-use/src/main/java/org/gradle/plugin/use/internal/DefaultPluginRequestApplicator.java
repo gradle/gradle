@@ -18,21 +18,21 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
-import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
+import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
@@ -65,7 +65,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             throw new IllegalStateException("Plugin target is 'null' and there are plugin requests");
         }
 
-        final PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator(target);
         final PluginResolver effectivePluginResolver = wrapInNotInClasspathCheck(classLoaderScope);
 
         List<Result> results = collect(requests, new Transformer<Result, PluginRequest>() {
@@ -88,28 +87,31 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         if (!legacy.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
+            final Set<String> repoUrls = Sets.newLinkedHashSet();
 
             for (final Result result : legacy) {
                 result.legacyFound.action.execute(new LegacyPluginResolveContext() {
-                    public Dependency add(String pluginId, final String m2RepoUrl, Object dependencyNotation) {
+                    public void addLegacy(String pluginId, final String m2RepoUrl, Object dependencyNotation) {
                         legacyActualPluginIds.put(result, pluginId);
-
-                        boolean repoExists = any(mavenRepos, new Spec<MavenArtifactRepository>() {
-                            public boolean isSatisfiedBy(MavenArtifactRepository element) {
-                                return element.getUrl().toString().equals(m2RepoUrl);
-                            }
-                        });
-                        if (!repoExists) {
-                            repositories.maven(new Action<MavenArtifactRepository>() {
-                                public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                                    mavenArtifactRepository.setUrl(m2RepoUrl);
-                                }
-                            });
-                        }
-
-                        return scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, dependencyNotation);
+                        repoUrls.add(m2RepoUrl);
+                        scriptHandler.getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, dependencyNotation);
                     }
                 });
+            }
+
+            for (final String m2RepoUrl : repoUrls) {
+                boolean repoExists = any(mavenRepos, new Spec<MavenArtifactRepository>() {
+                    public boolean isSatisfiedBy(MavenArtifactRepository element) {
+                        return element.getUrl().toString().equals(m2RepoUrl);
+                    }
+                });
+                if (!repoExists) {
+                    repositories.maven(new Action<MavenArtifactRepository>() {
+                        public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                            mavenArtifactRepository.setUrl(m2RepoUrl);
+                        }
+                    });
+                }
             }
         }
 
@@ -131,7 +133,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         for (final Result result : nonLegacy) {
             applyPlugin(result.request, result.found.resolution.getPluginId().toString(), new Runnable() {
                 public void run() {
-                    resolutionApplicator.execute(result.found.resolution);
+                    Class<?> pluginClass = result.found.resolution.resolve();
+                    target.apply(pluginClass);
                 }
             });
         }
