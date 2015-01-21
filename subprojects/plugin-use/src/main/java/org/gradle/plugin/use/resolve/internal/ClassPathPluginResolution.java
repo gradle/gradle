@@ -44,7 +44,8 @@ public class ClassPathPluginResolution implements PluginResolution {
         return pluginId;
     }
 
-    public Class<?> resolve() {
+    @Override
+    public void execute(PluginResolveContext pluginResolveContext) {
         ClassPath classPath = classPathFactory.create();
         ClassLoaderScope loaderScope = parent.createChild();
         loaderScope.local(classPath);
@@ -53,8 +54,7 @@ public class ClassPathPluginResolution implements PluginResolution {
         PotentialPluginWithId lookup = pluginRegistry.lookup(pluginId.toString());
         if (lookup == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
-
         }
-        return lookup.asClass();
+        pluginResolveContext.add(pluginId, lookup.asClass());
     }
 }
