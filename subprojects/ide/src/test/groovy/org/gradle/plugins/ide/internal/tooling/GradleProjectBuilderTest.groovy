@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.ProjectTaskLister
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -23,7 +24,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class GradleProjectBuilderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule
+    TestNameTestDirectoryProvider tmpDir
     def builder = new GradleProjectBuilder(Stub(ProjectTaskLister))
 
     def "builds basics for project"() {
@@ -46,15 +48,10 @@ class GradleProjectBuilderTest extends Specification {
         def buildFile = tmpDir.file("build.gradle") << "//empty"
         def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
         project.description = 'a test project'
-        project.tasks.addPlaceholderAction("placeholderTask", new Runnable() {
-            @Override
-            void run() {
-                project.tasks.create("placeholderTask") {
-                    description = "some description"
-                    group = "some group"
-                }
-            }
-        });
+        project.tasks.addPlaceholderAction("placeholderTask", DefaultTask) {
+            it.description = "some description"
+            it.group = "some group"
+        }
 
         when:
         def model = builder.buildAll(project)

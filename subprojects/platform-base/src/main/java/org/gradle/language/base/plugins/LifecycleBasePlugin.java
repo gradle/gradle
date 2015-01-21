@@ -17,6 +17,7 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
@@ -70,35 +71,23 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addCheck(final ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, new Runnable() {
+        project.getTasks().addPlaceholderAction(CHECK_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
             @Override
-            public void run() {
-                DeprecationLogger.whileDisabled(new Runnable() {
-                    @Override
-                    public void run() {
-                        Task checkTask = project.getTasks().maybeCreate(CHECK_TASK_NAME);
-                        checkTask.setDescription("Runs all checks.");
-                        checkTask.setGroup(VERIFICATION_GROUP);
-                    }
-                });
+            public void execute(TaskInternal checkTask) {
+                checkTask.setDescription("Runs all checks.");
+                checkTask.setGroup(VERIFICATION_GROUP);
             }
         });
     }
 
     private void addBuild(final ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, new Runnable() {
+        project.getTasks().addPlaceholderAction(BUILD_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
             @Override
-            public void run() {
-                DeprecationLogger.whileDisabled(new Runnable() {
-                    @Override
-                    public void run() {
-                        Task buildTask = project.getTasks().maybeCreate(BUILD_TASK_NAME);
-                        buildTask.setDescription("Assembles and tests this project.");
-                        buildTask.setGroup(BUILD_GROUP);
-                        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
-                        buildTask.dependsOn(CHECK_TASK_NAME);
-                    }
-                });
+            public void execute(DefaultTask buildTask) {
+                buildTask.setDescription("Assembles and tests this project.");
+                buildTask.setGroup(BUILD_GROUP);
+                buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+                buildTask.dependsOn(CHECK_TASK_NAME);
             }
         });
     }

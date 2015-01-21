@@ -30,6 +30,7 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -208,8 +209,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private void maybeMaterializePlaceholder(String name) {
         if (placeholders.containsKey(name)) {
             if (super.findByName(name) == null) {
-                final Runnable placeholderAction = placeholders.remove(name);
-                placeholderAction.run();
+                Runnable placeholderAction = placeholders.remove(name);
+                // Turn off deprecation logging because of checks imposed by LifecycleBasePlugin
+                DeprecationLogger.whileDisabled(placeholderAction);
             }
         }
     }
@@ -222,11 +224,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 create(placeholderName, type, configure);
             }
         });
-    }
-
-    @Override
-    public void addPlaceholderAction(String placeholderName, Runnable runnable) {
-        placeholders.put(placeholderName, runnable);
     }
 
 
