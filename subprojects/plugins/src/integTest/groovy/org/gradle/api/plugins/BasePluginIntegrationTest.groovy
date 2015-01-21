@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +41,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         lock?.release()
     }
 
-    @Ignore
     def "can define 'build' and 'check' tasks when applying plugin"() {
         buildFile << """
             apply plugin: 'base'
