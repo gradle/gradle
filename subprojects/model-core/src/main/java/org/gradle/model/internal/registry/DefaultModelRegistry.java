@@ -86,11 +86,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        doCreate(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+        registerNode(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         return this;
     }
 
-    private ModelNodeInternal doCreate(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
+    private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
         ModelPath path = child.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
@@ -749,7 +749,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
@@ -757,7 +757,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
