@@ -16,10 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -31,7 +27,6 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The progressive binding of the subject/inputs of the references of a model rule.
@@ -126,45 +121,5 @@ public class RuleBinder<T> {
 
     private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelPath path) {
         return ModelBinding.of(reference, path);
-    }
-
-    public Iterable<ModelPath> getUnboundPaths() {
-        Set<ModelPath> subjectUnboundPath = Collections.emptySet();
-        if (subjectReference != null && subjectReference.getPath() != null && subjectBinding == null) {
-            subjectUnboundPath = Collections.singleton(subjectReference.getPath());
-        }
-
-        return Iterables.concat(
-                subjectUnboundPath,
-                FluentIterable
-                        .from(getInputReferences())
-                        .filter(new Predicate<ModelReference<?>>() {
-                            public boolean apply(final ModelReference<?> reference) {
-                                return reference.getPath() != null && !Iterables.any(getInputBindings(), new Predicate<ModelBinding<?>>() {
-                                    public boolean apply(@Nullable ModelBinding<?> binding) {
-                                        return binding != null && binding.getReference() == reference;
-                                    }
-                                });
-                            }
-                        })
-                        .transform(new Function<ModelReference<?>, ModelPath>() {
-                            public ModelPath apply(ModelReference<?> input) {
-                                return input.getPath();
-                            }
-                        })
-
-        );
-    }
-
-    public boolean getHasUnboundTypeReferences() {
-        if (subjectReference != null && subjectBinding == null) {
-            return true;
-        }
-        for (int i = 0; i < inputReferences.size(); i++) {
-            if (inputReferences.get(i).getPath() == null && inputBindings.get(i) == null) {
-                return true;
-            }
-        }
-        return false;
     }
 }

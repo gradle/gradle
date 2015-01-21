@@ -796,6 +796,39 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.GraphClosed     | ModelActionRole.Validate
     }
 
+    def "only rules that actually have unbound inputs are reported as unbound"() {
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("foo", new Bean())
+                .mutate {
+            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean)) {
+            }
+        }
+        .mutate {
+            it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
+            }
+        }
+        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+            }
+        }
+        .collection("emptyBeans", Bean) { name, type -> new Bean(name: name) }
+
+        when:
+        registry.validate()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        e.message == '''The following model rules are unbound:
+  non-bindable
+    Mutable:
+      + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
+    Immutable:
+      - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
+    }
+
     class Bean {
         String name
         String value

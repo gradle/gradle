@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -264,26 +263,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         // TODO if we push more knowledge of nested properties up out of constructors, we can potentially bind such references without creating the parent chain.
 
-        while (!binders.isEmpty()) {
-            for (ModelPath scope : getBinderScopesWithUnboundByTypeReferences()) {
-                selfCloseAllComponents(scope);
-            }
-
-            Iterable<ModelPath> unboundPaths = Iterables.concat(Iterables.transform(binders, new Function<RuleBinder<?>, Iterable<ModelPath>>() {
-                public Iterable<ModelPath> apply(RuleBinder<?> input) {
-                    return input.getUnboundPaths();
-                }
-            }));
-
-            ModelPath unboundPath = Iterables.getFirst(unboundPaths, null);
-
-            if (unboundPath != null) {
-                ModelNode selfClosedParent = selfCloseAllComponents(unboundPath.getParent());
-                if (selfClosedParent == null || modelGraph.find(unboundPath) == null) {
-                    break;
-                }
-            } else {
-                break;
+        boolean newInputsBound = true;
+        while (!binders.isEmpty() && newInputsBound) {
+            newInputsBound = false;
+            for (int i = 0; i < binders.size(); i++) {
+                newInputsBound = newInputsBound || tryForceBind(binders.get(i));
             }
         }
 
@@ -418,13 +402,39 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
+    private boolean forceBindReference(ModelReference<?> reference, ModelBinding<?> binding, ModelPath scope) {
+        if (binding == null) {
+            if (reference.getPath() == null) {
+                selfCloseAllComponents(scope);
+            } else {
+                selfCloseAllComponents(reference.getPath().getParent());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryForceBind(RuleBinder<?> binder) {
+        boolean newInputsBound = false;
+        ModelPath scope = binder.getScope();
+
+        if (binder.getSubjectReference() != null && binder.getSubjectBinding() == null) {
+            if (forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope)) {
+                newInputsBound = binder.getSubjectBinding() != null;
+            }
+        }
+
+        for (int i = 0; i < binder.getInputReferences().size(); i++) {
+            if (forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope)) {
+                newInputsBound = newInputsBound || binder.getInputBindings().get(i) != null;
+            }
+        }
+
+        return newInputsBound;
+    }
+
     private void forceBind(RuleBinder<?> binder) {
-        if (binder.getHasUnboundTypeReferences()) {
-            selfCloseAllComponents(binder.getScope());
-        }
-        for (ModelPath unboundPath : binder.getUnboundPaths()) {
-            selfCloseAllComponents(unboundPath.getParent());
-        }
+        tryForceBind(binder);
         if (!binder.isBound()) {
             throw unbound(Collections.<RuleBinder<?>>singleton(binder));
         }
@@ -533,21 +543,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelNodeInternal element = require(path);
         ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
         return ModelRuleInput.of(binding, view);
-    }
-
-    public Set<ModelPath> getBinderScopesWithUnboundByTypeReferences() {
-        Iterable<ModelPath> binderScopesWithUnboundByTypeReferences = FluentIterable.from(binders)
-                .filter(new Predicate<RuleBinder<?>>() {
-                    public boolean apply(RuleBinder<?> binder) {
-                        return binder.getHasUnboundTypeReferences();
-                    }
-                })
-                .transform(new Function<RuleBinder<?>, ModelPath>() {
-                    public ModelPath apply(RuleBinder<?> input) {
-                        return input.getScope();
-                    }
-                });
-        return ImmutableSet.copyOf(binderScopesWithUnboundByTypeReferences);
     }
 
     // Bust this out to top level
