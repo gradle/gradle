@@ -20,42 +20,36 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultBuildOperationProcessorTest extends Specification {
-    class CountingOperation implements Runnable {
-        int count = 0
-
-        synchronized void run() {
-            count++
-        }
-    }
 
     @Unroll
-    def "all #runs operations run to completion for #maxThreads threads"() {
+    def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
         BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(maxThreads)
-        def operation = new CountingOperation()
+        def operation = Mock(Runnable)
+        def worker = new DefaultOperationQueueTest.SimpleWorker()
 
         when:
-        def queue = buildOperationProcessor.newQueue(new DefaultOperationQueueTest.SimpleWorker())
-        runs.times { queue.add(operation) }
+        def queue = buildOperationProcessor.newQueue(worker)
+        operations.times { queue.add(operation) }
         and:
         queue.waitForCompletion()
 
         then:
-        operation.count == runs
+        operations * operation.run()
 
         where:
-        runs | maxThreads
-        1    | -1
-        1    | 0
-        1    | 1
-        1    | 4
-        5    | -1
-        5    | 0
-        5    | 1
-        5    | 4
-        20   | -1
-        20   | 0
-        20   | 1
-        20   | 4
+        operations | maxThreads
+        1          | -1
+        1          | 0
+        1          | 1
+        1          | 4
+        5          | -1
+        5          | 0
+        5          | 1
+        5          | 4
+        20         | -1
+        20         | 0
+        20         | 1
+        20         | 4
     }
 }

@@ -48,6 +48,7 @@ class DefaultOperationQueueTest extends Specification {
         }
     }
 
+    // Tests assume a single worker thread
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(1))
     OperationQueue operationQueue = new DefaultOperationQueue(executor, new SimpleWorker())
 
@@ -72,6 +73,25 @@ class DefaultOperationQueueTest extends Specification {
         5    | _
     }
 
+    def "execution stops once failure occurs"() {
+        given:
+        def operationBefore = Mock(Runnable)
+        def failure = new Failure()
+        def operationAfter = Mock(Runnable)
+
+        when:
+        operationQueue.add(operationBefore)
+        operationQueue.add(failure)
+        operationQueue.add(operationAfter)
+
+        and:
+        operationQueue.waitForCompletion()
+
+        then:
+        1 * operationBefore.run()
+        thrown GradleException
+        0 * operationAfter.run()
+    }
 
     def "cannot use operation queue once it has completed"() {
         given:
@@ -85,7 +105,7 @@ class DefaultOperationQueueTest extends Specification {
     }
 
     @Unroll
-    def "failures propagate to caller regardless of failed operation (#firstOperation, #secondOperation, #thirdOperation)"() {
+    def "failures propagate to caller regardless of when it failed (#firstOperation, #secondOperation, #thirdOperation)"() {
         given:
         operationQueue.add(firstOperation)
         operationQueue.add(secondOperation)
