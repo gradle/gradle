@@ -59,7 +59,7 @@ class CorePluginResolverTest extends Specification {
 
         then:
         1 * pluginRegistry.lookup("foo") >> Mock(PotentialPluginWithId) { asClass() >> MyPlugin }
-        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.pluginClass == MyPlugin })
+        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
     }
 
     def "can resolve qualified"() {
@@ -68,7 +68,7 @@ class CorePluginResolverTest extends Specification {
 
         then:
         1 * pluginRegistry.lookup("foo") >> Mock(PotentialPluginWithId) { asClass() >> MyPlugin }
-        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.pluginClass == MyPlugin })
+        1 * result.found(resolver.getDescription(), { it instanceof SimplePluginResolution && it.plugin.asClass() == MyPlugin })
     }
 
     def "cannot have version number"() {

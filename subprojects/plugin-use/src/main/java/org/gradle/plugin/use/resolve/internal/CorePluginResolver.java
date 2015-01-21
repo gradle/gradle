@@ -42,14 +42,13 @@ public class CorePluginResolver implements PluginResolver {
             if (lookup == null) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             } else {
-                Class<?> typeForId = lookup.asClass();
                 if (pluginRequest.getVersion() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                result.found(getDescription(), new SimplePluginResolution(id, typeForId));
+                result.found(getDescription(), new SimplePluginResolution(lookup));
             }
         } else {
             result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", DefaultPluginManager.CORE_PLUGIN_NAMESPACE));

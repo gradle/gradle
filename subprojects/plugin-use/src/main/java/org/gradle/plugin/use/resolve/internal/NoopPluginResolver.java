@@ -17,6 +17,8 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.plugins.PotentialPlugin;
+import org.gradle.api.internal.plugins.PotentialPluginWithId;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -28,7 +30,27 @@ public class NoopPluginResolver implements PluginResolver {
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getId().equals(NOOP_PLUGIN_ID)) {
-            result.found("noop resolver", new SimplePluginResolution(NOOP_PLUGIN_ID, NoopPlugin.class));
+            result.found("noop resolver", new SimplePluginResolution(PotentialPluginWithId.of(NOOP_PLUGIN_ID, new PotentialPlugin<NoopPlugin>(){
+                @Override
+                public Class<NoopPlugin> asClass() {
+                    return NoopPlugin.class;
+                }
+
+                @Override
+                public boolean isImperative() {
+                    return true;
+                }
+
+                @Override
+                public boolean isHasRules() {
+                    return false;
+                }
+
+                @Override
+                public Type getType() {
+                    return Type.IMPERATIVE_CLASS;
+                }
+            })));
         }
     }
 

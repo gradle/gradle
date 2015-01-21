@@ -27,11 +27,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
-import org.gradle.api.internal.plugins.PluginDescriptorLocator;
-import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.*;
 import org.gradle.api.plugins.InvalidPluginException;
-import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
@@ -56,7 +53,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginResolver = pluginResolver;
     }
 
-    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginManager target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
             return;
@@ -76,7 +73,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         // Could be different to ids in the requests as they may be unqualified
         final Map<Result, PluginId> legacyActualPluginIds = Maps.newLinkedHashMap();
-        final Map<Result, Class<?>> pluginImpls = Maps.newLinkedHashMap();
+        final Map<Result, PotentialPlugin<?>> pluginImpls = Maps.newLinkedHashMap();
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
@@ -95,8 +92,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                             }
 
                             @Override
-                            public void add(PluginId pluginId, Class<?> implementationClass) {
-                                pluginImpls.put(result, implementationClass);
+                            public void add(PotentialPlugin<?> plugin) {
+                                pluginImpls.put(result, plugin);
                             }
                         });
                     }
@@ -134,11 +131,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             });
         }
 
-        for (final Map.Entry<Result, Class<?>> entry : pluginImpls.entrySet()) {
+        for (final Map.Entry<Result, PotentialPlugin<?>> entry : pluginImpls.entrySet()) {
             final Result result = entry.getKey();
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                 public void run() {
-                    Class<?> pluginClass = entry.getValue();
+                    Class<?> pluginClass = entry.getValue().asClass();
                     target.apply(pluginClass);
                 }
             });

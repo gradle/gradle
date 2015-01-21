@@ -55,6 +55,6 @@ public class ClassPathPluginResolution implements PluginResolution {
         if (lookup == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
-        pluginResolveContext.add(pluginId, lookup.asClass());
+        pluginResolveContext.add(lookup);
     }
 }
