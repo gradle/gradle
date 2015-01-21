@@ -90,9 +90,10 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class));
-        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
+        CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
+        String resOutputFileName = ".res";
+        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), resOutputFileName, false);
+        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, resOutputFileName);
     }
 
     @Override
