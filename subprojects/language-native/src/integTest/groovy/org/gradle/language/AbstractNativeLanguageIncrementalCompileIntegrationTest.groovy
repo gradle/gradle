@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language
-
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -65,6 +64,8 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 """
         objectFileDir = file("build/objs/mainExecutable")
         outputs = new CompilationOutputsFixture(objectFileDir)
+        // TODO: Looking for overlapping test directories
+        System.out.println("OVERLAP? ${getClass().getSimpleName()} - ${testDirectory}")
     }
 
     def "recompiles changed source file only"() {
