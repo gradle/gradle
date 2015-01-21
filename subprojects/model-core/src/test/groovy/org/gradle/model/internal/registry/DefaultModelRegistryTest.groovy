@@ -646,6 +646,58 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("beans.element.second"), ModelType.of(MutableValue)).value == "from first: first"
     }
 
+    def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("foo", new Bean())
+                .mutate {
+            it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
+                subject.value = input.value
+            }
+        }
+        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue(value: "bar")))
+            }
+        }
+
+        when:
+        registry.validate()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ByTypeSubjectBoundToScopeChildRule)
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+            }
+        }
+
+        when:
+        registry.validate()
+
+        then:
+        noExceptionThrown()
+    }
+
     @Unroll
     def "cannot request model node at earlier state"() {
         given:

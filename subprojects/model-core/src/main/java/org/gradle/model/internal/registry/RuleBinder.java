@@ -156,4 +156,15 @@ public class RuleBinder<T> {
         );
     }
 
+    public boolean getHasUnboundTypeReferences() {
+        if (subjectReference != null && subjectBinding == null) {
+            return true;
+        }
+        for (int i = 0; i < inputReferences.size(); i++) {
+            if (inputReferences.get(i).getPath() == null && inputBindings.get(i) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -290,9 +290,9 @@ We should not perform validation on a project that is not required for a build.
 
 ### Test Coverage
 
-- Existing validation coverage
-- Model rule with dependency on non task related collection element that does exist, passes validation
-- Model rule that does not bind, specified for project that is not used in build, does not fail the build
+- ~~Existing validation coverage~~
+- ~~Model rule with dependency on non task related collection element that does exist, passes validation~~
+- ~~Model rule that does not bind, specified for project that is not used in build, does not fail the build~~
 
 # Open Questions
 

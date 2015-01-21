@@ -232,6 +232,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.remove(path);
     }
 
+    private ModelNode selfCloseAllComponents(ModelPath path) {
+        ModelPath parent = path.getParent();
+        if (parent != null) {
+            if (selfCloseAllComponents(parent) == null) {
+                return null;
+            }
+        }
+        return atStateOrLater(path, SelfClosed);
+    }
+
     public void validate() throws UnboundModelRulesException {
         if (binders.isEmpty()) {
             return;
@@ -245,23 +255,21 @@ public class DefaultModelRegistry implements ModelRegistry {
         // TODO if we push more knowledge of nested properties up out of constructors, we can potentially bind such references without creating the parent chain.
 
         while (!binders.isEmpty()) {
+            for (ModelPath scope : getBinderScopesWithUnboundByTypeReferences()) {
+                selfCloseAllComponents(scope);
+            }
+
             Iterable<ModelPath> unboundPaths = Iterables.concat(Iterables.transform(binders, new Function<RuleBinder<?>, Iterable<ModelPath>>() {
                 public Iterable<ModelPath> apply(RuleBinder<?> input) {
                     return input.getUnboundPaths();
                 }
             }));
 
-            ModelPath unboundTopLevelModelPath = Iterables.find(unboundPaths, new Predicate<ModelPath>() {
-                public boolean apply(ModelPath input) {
-                    return input.getRootParent() != null;
-                }
-            }, null);
+            ModelPath unboundPath = Iterables.getFirst(unboundPaths, null);
 
-            if (unboundTopLevelModelPath != null) {
-                ModelPath rootParent = unboundTopLevelModelPath.getRootParent();
-                if (creators.containsKey(rootParent)) {
-                    get(rootParent);
-                } else {
+            if (unboundPath != null) {
+                ModelNode selfClosedParent = selfCloseAllComponents(unboundPath.getParent());
+                if (selfClosedParent == null || modelGraph.find(unboundPath) == null) {
                     break;
                 }
             } else {
@@ -491,6 +499,21 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelNodeInternal element = require(path);
         ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
         return ModelRuleInput.of(binding, view);
+    }
+
+    public Set<ModelPath> getBinderScopesWithUnboundByTypeReferences() {
+        Iterable<ModelPath> binderScopesWithUnboundByTypeReferences = FluentIterable.from(binders)
+                .filter(new Predicate<RuleBinder<?>>() {
+                    public boolean apply(RuleBinder<?> binder) {
+                        return binder.getHasUnboundTypeReferences();
+                    }
+                })
+                .transform(new Function<RuleBinder<?>, ModelPath>() {
+                    public ModelPath apply(RuleBinder<?> input) {
+                        return input.getScope();
+                    }
+                });
+        return ImmutableSet.copyOf(binderScopesWithUnboundByTypeReferences);
     }
 
     // Bust this out to top level
