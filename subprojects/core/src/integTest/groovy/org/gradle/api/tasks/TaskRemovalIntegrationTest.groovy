@@ -56,14 +56,12 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @Ignore
     def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
         given:
         buildScript """
             import org.gradle.model.*
 
             task foo {}
-            task bar {}
 
             afterEvaluate {
                 tasks.remove(foo)
@@ -71,7 +69,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @$annotationClass
-                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                void linkFooToBar(String bar, @Path("tasks.foo") Task foo) {
                    // do nothing
                 }
             }
