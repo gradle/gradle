@@ -19,9 +19,27 @@ package org.gradle.internal.operations;
 import org.gradle.api.GradleException;
 
 /**
+ * Queue for holding build operations and submitting them to an underlying executor.
  *
+ * <p>
+ * Once an OperationQueue has started to wait for the completion of previously added operations,
+ * no new operations may be added to the queue.
+ * </p>
+ *
+ * @param <T> Type of build operations to hold.
  */
 public interface OperationQueue<T> {
+    /**
+     * Adds an operation to be executed.
+     *
+     * @param operation operation to execute.
+     */
     public void add(T operation);
+
+    /**
+     * Waits for all previously added operations to complete.
+     *
+     * @throws GradleException if <em>any</em> operation failed.
+     */
     public void waitForCompletion() throws GradleException;
 }
