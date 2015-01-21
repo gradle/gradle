@@ -38,7 +38,7 @@ public class CorePluginResolver implements PluginResolver {
         PluginId id = pluginRequest.getId();
 
         if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
-            PotentialPluginWithId lookup = pluginRegistry.lookup(id.getName());
+            PotentialPluginWithId<?> lookup = pluginRegistry.lookup(id.getName());
             if (lookup == null) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             } else {

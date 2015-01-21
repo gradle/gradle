@@ -29,10 +29,10 @@ public interface PluginRegistry {
     <T> PotentialPlugin<T> inspect(Class<T> clazz);
 
     @Nullable
-    PotentialPluginWithId lookup(String idOrName);
+    PotentialPluginWithId<?> lookup(String idOrName);
 
     @Nullable
-    PotentialPluginWithId lookup(String idOrName, ClassLoader classLoader);
+    PotentialPluginWithId<?> lookup(String idOrName, ClassLoader classLoader);
 
     PluginRegistry createChild(ClassLoaderScope lookupScope);
 

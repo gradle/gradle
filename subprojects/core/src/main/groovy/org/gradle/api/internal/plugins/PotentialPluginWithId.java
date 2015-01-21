@@ -18,37 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.plugin.internal.PluginId;
 
-public class PotentialPluginWithId<T> implements PotentialPlugin<T> {
-
-    private final PluginId pluginId;
-    private final PotentialPlugin<T> potentialPlugin;
-
-    public static <T> PotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
-        return new PotentialPluginWithId<T>(pluginId, potentialPlugin);
-    }
-
-    private PotentialPluginWithId(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
-        this.pluginId = pluginId;
-        this.potentialPlugin = potentialPlugin;
-    }
-
-    public PluginId getPluginId() {
-        return pluginId;
-    }
-
-    public Class<T> asClass() {
-        return potentialPlugin.asClass();
-    }
-
-    public boolean isImperative() {
-        return potentialPlugin.isImperative();
-    }
-
-    public boolean isHasRules() {
-        return potentialPlugin.isHasRules();
-    }
-
-    public Type getType() {
-        return potentialPlugin.getType();
-    }
+public interface PotentialPluginWithId<T> extends PotentialPlugin<T> {
+    PluginId getPluginId();
 }

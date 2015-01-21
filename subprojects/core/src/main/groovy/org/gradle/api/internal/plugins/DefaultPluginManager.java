@@ -97,7 +97,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public void apply(String pluginId) {
-        PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(pluginId);
+        PotentialPluginWithId<?> potentialPluginWithId = pluginRegistry.lookup(pluginId);
         if (potentialPluginWithId == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
@@ -188,7 +188,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private boolean hasId(Class<?> plugin, String id) {
-        PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(id, plugin.getClassLoader());
+        PotentialPluginWithId<?> potentialPluginWithId = pluginRegistry.lookup(id, plugin.getClassLoader());
         return potentialPluginWithId != null && potentialPluginWithId.getPluginId().toString().equals(id) && potentialPluginWithId.asClass().equals(plugin);
     }
 

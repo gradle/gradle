@@ -48,7 +48,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
 
-        if (!potentialPlugin.isImperative()) {
+        if (!Plugin.class.isAssignableFrom(potentialPlugin.asClass())) {
             throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
             return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(), potentialPlugin.asClass());

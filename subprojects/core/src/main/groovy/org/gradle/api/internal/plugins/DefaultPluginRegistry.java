@@ -80,7 +80,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
 
                 PotentialPlugin<?> potentialPlugin = inspect(implClass);
-                PotentialPluginWithId<?> withId = PotentialPluginWithId.of(PluginId.unvalidated(pluginId), potentialPlugin);
+                PotentialPluginWithId<?> withId = DefaultPotentialPluginWithId.of(PluginId.unvalidated(pluginId), potentialPlugin);
                 return Cast.uncheckedCast(Optional.of(withId));
             }
 
@@ -101,7 +101,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
     }
 
-    public PotentialPluginWithId lookup(String idOrName) {
+    public PotentialPluginWithId<?> lookup(String idOrName) {
         PotentialPluginWithId lookup;
         if (parent != null) {
             lookup = parent.lookup(idOrName);
