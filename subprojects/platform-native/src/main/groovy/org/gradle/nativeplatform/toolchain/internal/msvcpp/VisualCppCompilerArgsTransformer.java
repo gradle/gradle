@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArg;
@@ -29,22 +29,34 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 
 abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     public List<String> transform(T spec) {
-        List<String> args = new ArrayList<String>();
+        List<String> args = Lists.newArrayList();
+        addToolSpecificArgs(spec, args);
+        addMacroArgs(spec, args);
+        addUserArgs(spec, args);
+        addIncludeArgs(spec, args);
+        return args;
+    }
+
+    private void addUserArgs(T spec, List<String> args) {
+        args.addAll(escapeUserArgs(spec.getAllArgs()));
+    }
+
+    protected void addToolSpecificArgs(T spec, List<String> args) {
         args.add(getLanguageOption());
         args.add("/nologo");
-
-        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            args.add(escapeUserArg("/D" + macroArg));
-        }
-        args.addAll(escapeUserArgs(spec.getAllArgs()));
-
-        // TODO: THIS DOESN"T WORK FOR WINDOWS RESOURCE COMPILER
         args.add("/c");
+    }
+
+    protected void addIncludeArgs(T spec, List<String> args) {
         for (File file : spec.getIncludeRoots()) {
             args.add("/I" + file.getAbsolutePath());
         }
+    }
 
-        return args;
+    protected void addMacroArgs(T spec, List<String> args) {
+        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
+            args.add(escapeUserArg("/D" + macroArg));
+        }
     }
 
     protected abstract String getLanguageOption();

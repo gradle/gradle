@@ -21,6 +21,8 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 
+import java.util.List;
+
 class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
     WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
@@ -28,6 +30,10 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
     }
 
     private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
+        protected void addToolSpecificArgs(WindowsResourceCompileSpec spec, List<String> args) {
+            args.add(getLanguageOption());
+            args.add("/nologo");
+        }
         protected String getLanguageOption() {
             return "/r";
         }
