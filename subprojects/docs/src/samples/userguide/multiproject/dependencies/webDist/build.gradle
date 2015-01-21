@@ -17,6 +17,6 @@ subprojects {
 task explodedDist(type: Copy) {
     into "$buildDir/explodedDist"
     subprojects {
-		from tasks.withType(War)
-	}
+        from tasks.withType(War)
+    }
 }
