@@ -34,17 +34,17 @@ import java.util.Map;
 public interface PluginAware {
 
     /**
-     * The container of plugins.
+     * The container of plugins that have been applied to this object.
      * <p>
-     * While not deprecated, it is preferred to use the methods of this interface than use the plugin container directly.
+     * While not deprecated, it is preferred to use the methods of this interface or the {@link #getPluginManager() plugin manager} than use the plugin container.
      * <p>
-     * Use {@link #apply(java.util.Map)} to apply plugins instead of applying via the plugin container.
+     * Use {@link #apply(java.util.Map)} or {@link PluginManager#apply(String) getPluginManager().apply(String)} to apply plugins instead of applying via the plugin container.
      * <p>
-     * Use {@link AppliedPlugins#hasPlugin(String) getAppliedPlugins().hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
+     * Use {@link PluginManager#hasPlugin(String) getPluginManager().hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
      *
      * @return the plugin container
      * @see #apply
-     * @see AppliedPlugins#hasPlugin(String)
+     * @see PluginManager#hasPlugin(String)
      */
     PluginContainer getPlugins();
 

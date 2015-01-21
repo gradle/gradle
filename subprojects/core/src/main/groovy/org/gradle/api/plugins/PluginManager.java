@@ -42,6 +42,7 @@ public interface PluginManager {
      * </pre>
      *
      * @param pluginId the ID of the plugin to apply
+     * @since 2.3
      */
     @Incubating
     void apply(String pluginId);
@@ -58,6 +59,7 @@ public interface PluginManager {
      * </pre>
      *
      * @param type the plugin class to apply
+     * @since 2.3
      */
     @Incubating
     void apply(Class<?> type);
@@ -81,10 +83,8 @@ public interface PluginManager {
 
     /**
      * Returns {@code true} if a plugin with the given ID has already been applied, otherwise {@code false}.
-     * <p>
-     * See {@link #findPlugin(String)} for information about the {@code nameOrId} parameter.
      *
-     * @param id the plugin name (if in the {@code org.gradle} namespace) or ID
+     * @param id the plugin name (if in the {@code org.gradle} namespace) or ID. See {@link #findPlugin(String)}.
      * @return {@code true} if the plugin has been applied
      * @since 2.3
      */
