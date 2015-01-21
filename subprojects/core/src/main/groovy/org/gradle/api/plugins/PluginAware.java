@@ -49,7 +49,7 @@ public interface PluginAware {
     PluginContainer getPlugins();
 
     /**
-     * Applies one or more plugins.
+     * Applies zero or more plugins or scripts.
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
      * <p>
@@ -61,7 +61,7 @@ public interface PluginAware {
     void apply(Closure closure);
 
     /**
-     * Applies one or more plugins.
+     * Applies zero or more plugins or scripts.
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
      * <p>
@@ -73,10 +73,18 @@ public interface PluginAware {
     void apply(Action<? super ObjectConfigurationAction> action);
 
     /**
-     * Applies one or more plugins.
+     * Applies a plugin or script, using the given options provided as a map.
      * <p>
      * The given map is applied as a series of method calls to a newly created {@link ObjectConfigurationAction}.
      * That is, each key in the map is expected to be the name of a method {@link ObjectConfigurationAction} and the value to be compatible arguments to that method.
+     *
+     * <p>The following options are available:</p>
+     *
+     * <ul><li>{@code from}: A script to apply. Accepts any path supported by {@link org.gradle.api.Project#uri(Object)}.</li>
+     *
+     * <li>{@code plugin}: The id or implementation class of the plugin to apply.</li>
+     *
+     * <li>{@code to}: The target delegate object or objects. The default is this plugin aware object. Use this to configure objects other than this object.</li></ul>
      *
      * @param options the options to use to configure and {@link ObjectConfigurationAction} before “executing” it
      */
