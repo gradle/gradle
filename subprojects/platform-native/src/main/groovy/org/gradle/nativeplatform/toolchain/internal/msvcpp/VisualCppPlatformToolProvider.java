@@ -98,8 +98,8 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<LinkerSpec> createLinker() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("Linker", visualCpp.getLinker(targetPlatform));
-        return new LinkExeLinker(commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
+        CommandLineToolInvocationWorker commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
+        return new LinkExeLinker(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
     }
 
     @Override

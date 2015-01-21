@@ -38,6 +38,7 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
         }
         args.addAll(escapeUserArgs(spec.getAllArgs()));
 
+        // TODO: THIS DOESN"T WORK FOR WINDOWS RESOURCE COMPILER
         args.add("/c");
         for (File file : spec.getIncludeRoots()) {
             args.add("/I" + file.getAbsolutePath());

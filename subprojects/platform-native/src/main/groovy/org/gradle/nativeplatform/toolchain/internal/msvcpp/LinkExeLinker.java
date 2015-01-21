@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.OperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -36,8 +38,10 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolInvocation baseInvocation;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    public LinkExeLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+    public LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+        this.buildOperationProcessor = buildOperationProcessor;
         argsTransformer = new LinkerArgsTransformer();
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.baseInvocation = invocation;
@@ -45,10 +49,13 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     }
 
     public WorkResult execute(LinkerSpec spec) {
+        OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
         invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
         commandLineToolInvocationWorker.execute(invocation);
+        queue.add(invocation);
+        queue.waitForCompletion();
         return new SimpleWorkResult(true);
     }
 
