@@ -499,7 +499,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public ProjectInternal realizeTasksAndValidateModel() {
         evaluate();
         try {
-            getModelRegistry().validate();
             getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
             getModelRegistry().validate();
         } catch (Exception e) {

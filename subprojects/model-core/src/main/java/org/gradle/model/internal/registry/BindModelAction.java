@@ -27,17 +27,20 @@ class BindModelAction<T> implements Action<RuleBinder<T>> {
     private final ModelActionRole type;
     private final ModelGraph modelGraph;
     private final Multimap<MutationKey, BoundModelMutator<?>> actions;
+    private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
 
-    public BindModelAction(ModelAction<T> mutator, ModelActionRole type, ModelGraph modelGraph, Multimap<MutationKey, BoundModelMutator<?>> actions) {
+    public BindModelAction(ModelAction<T> mutator, ModelActionRole type, ModelGraph modelGraph, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.mutator = mutator;
         this.type = type;
         this.modelGraph = modelGraph;
         this.actions = actions;
+        this.mutationBinders = mutationBinders;
     }
 
     public void execute(RuleBinder<T> ruleBinder) {
         BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
         ModelPath path = boundMutator.getSubject().getPath();
+        mutationBinders.remove(path, ruleBinder);
         ModelNodeInternal subject = modelGraph.get(path);
         if (!subject.canApply(type)) {
             throw new IllegalStateException(String.format(

@@ -60,6 +60,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
+    private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
+    private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newHashMap();
+
     private final ModelRuleSourceApplicator modelRuleSourceApplicator;
     private final PluginClassApplicator pluginClassApplicator;
 
@@ -67,6 +70,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         this.modelRuleSourceApplicator = modelRuleSourceApplicator;
         this.pluginClassApplicator = pluginClassApplicator;
         EmptyModelProjection projection = new EmptyModelProjection();
+        for (ModelActionRole role : ModelActionRole.values()) {
+            mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
+        }
         modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
         modelGraph.getRoot().setState(Created);
     }
@@ -141,7 +147,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(final ModelCreator creator) {
-        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators));
+        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators, creatorBinders));
+        if (!binder.isBound()) {
+            creatorBinders.put(creator.getPath(), binder);
+        }
         bindInputs(binder, ModelPath.ROOT);
     }
 
@@ -157,8 +166,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
-        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, modelGraph, actions));
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder));
+        Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
+        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, modelGraph, actions, mutationBinders));
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
     }
@@ -278,10 +288,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (!binders.isEmpty()) {
-            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
-            List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
-            throw new UnboundModelRulesException(unboundRules);
+            throw unbound(binders);
         }
+    }
+
+    private UnboundModelRulesException unbound(Iterable<RuleBinder<?>> binders) {
+        ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
+        List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
+        return new UnboundModelRulesException(unboundRules);
     }
 
     // TODO - this needs to consider partially bound rules
@@ -361,6 +375,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (state == Known && desired.ordinal() >= Created.ordinal()) {
+            RuleBinder<?> creatorBinder = creatorBinders.get(path);
+            if (creatorBinder != null) {
+                forceBind(creatorBinder);
+            }
             BoundModelCreator creator = creators.remove(path);
             if (creator == null) {
                 // Unbound creator - should give better error message here
@@ -400,6 +418,18 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
+    private void forceBind(RuleBinder<?> binder) {
+        if (binder.getHasUnboundTypeReferences()) {
+            selfCloseAllComponents(binder.getScope());
+        }
+        for (ModelPath unboundPath : binder.getUnboundPaths()) {
+            selfCloseAllComponents(unboundPath.getParent());
+        }
+        if (!binder.isBound()) {
+            throw unbound(Collections.<RuleBinder<?>>singleton(binder));
+        }
+    }
+
     // NOTE: this should only be called from transition() as implicit logic is shared
     private boolean fireMutations(ModelNodeInternal node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
         ModelNode.State nodeState = node.getState();
@@ -407,6 +437,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             return nodeState.ordinal() < desired.ordinal();
         }
 
+        //MultiMap.get() returns a live collection and force binding rules might change it
+        while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
+            forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
+        }
         Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
         for (BoundModelMutator<?> mutator : mutators) {
             fireMutation(node, mutator);

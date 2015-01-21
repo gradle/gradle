@@ -64,13 +64,17 @@ class DefaultModelRegistryTest extends Specification {
 
     def "cannot get element for which creator inputs are not bound"() {
         given:
-        registry.create("foo") { it.unmanaged(String, "other", Stub(Transformer)) }
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, "other", Stub(Transformer)) }
 
         when:
         registry.realize(ModelPath.path("foo"), ModelType.untyped())
 
         then:
-        thrown IllegalStateException // TODO - reports 'unknown element', should instead complain about unknown inputs
+        UnboundModelRulesException e = thrown()
+        e.message == """The following model rules are unbound:
+  foo creator
+    Immutable:
+      - other (java.lang.Object)"""
     }
 
     def "cannot register creator when element already known"() {

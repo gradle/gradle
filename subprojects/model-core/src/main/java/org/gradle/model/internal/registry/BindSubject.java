@@ -16,17 +16,21 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelPath;
 
 class BindSubject<T> implements Action<ModelPath> {
     private final RuleBinder<T> binder;
+    private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
 
-    public BindSubject(RuleBinder<T> binder) {
+    public BindSubject(RuleBinder<T> binder, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.binder = binder;
+        this.mutationBinders = mutationBinders;
     }
 
     public void execute(ModelPath modelPath) {
+        mutationBinders.put(modelPath, binder);
         binder.bindSubject(modelPath);
     }
 }
