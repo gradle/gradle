@@ -27,7 +27,6 @@ dependencies {
 
     testCompile libraries.groovy
 
-    integTestRuntime project(":plugins")
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
