@@ -59,6 +59,10 @@ public class DefaultOperationQueue<T> implements OperationQueue<T> {
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
         } catch (ExecutionException e) {
+            if (e.getCause() instanceof GradleException) {
+                // propagate GradleException from underlying worker
+                throw (GradleException)e.getCause();
+            }
             throw new GradleException(String.format("Build operation for worker %s failed", worker), e.getCause());
         }
     }
