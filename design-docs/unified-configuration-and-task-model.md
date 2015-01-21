@@ -166,17 +166,24 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 
 ## Task selection/listing realises only required tasks from model registry instead of using task container
 
-1. Add get(ModelPath, ModelNode.State) to ModelRegistry
-1. Support modelRegistry.get(“tasks”, SelfClosed)
-1. Change task selection (i.e. resolving command line tasks into tasks to add to TaskGraphExecuter - see TaskSelector) to use modelRegistry.get(“tasks”, SelfClosed).linkNames
+1. ~~Add get(ModelPath, ModelNode.State) to ModelRegistry~~
+1. ~~Support modelRegistry.get(“tasks”, SelfClosed)~~
+1. ~~Realize the task container as tasks are needed instead of at the end of evaluation (TaskNameResolver, DefaultProjectAccessListener, DefaultProjectLocator) - _interim step_~~
+1. Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism
+1. Change task selection to avoid realising all tasks (i.e. self close the task container, realise just the tasks needed)
 1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
+
+Note: Having `DefaultProjectAccessListener` and `DefaultProjectLocator` require the full closing of the task container is ok for this story.
 
 ### Test coverage
 
+1. ~~No error when model node is requested at state it is already at~~
+1. ~~Error when model node is requested at “previous” state~~
 1. Simple task defined via `tasks.named()` is not realised if not requested on command line
 1. Task container can be self-closed by task selector/lister and then later graph-closed
-1. No error when model node is requested at state it is already at
-1. Error when model node is requested at “previous” state
+1. Tasks defined via rules are present in `gradle tasks` report
+1. Tasks defined via rules are present in relevant Tooling API models that request task list, and can be executed by Tooling API
+1. Tasks defined via rules are present in Gradle UI and can be executed by Gradle UI
 1. Existing coverage for command line tasks selection and Tooling API models continues to function without change
 
 ## Rule source plugins are instantiated eagerly
@@ -359,6 +366,7 @@ These should be rationalised and ideally replaced with model rules.
 - Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
 - Rule source plugins are instantiated once per JVM
 - Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
+- `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
 
 ## DSL
 
