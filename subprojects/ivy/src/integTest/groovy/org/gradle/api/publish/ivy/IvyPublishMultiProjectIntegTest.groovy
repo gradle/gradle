@@ -93,7 +93,7 @@ project(":project3") {
         fails "publish"
 
         then:
-        failure.assertHasDescription "A problem occurred configuring project ':project1'."
+        failure.assertHasDescription "A problem occurred configuring project ':project2'."
         failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 
