@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
@@ -55,6 +56,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @Ignore
     def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
         given:
         buildScript """
@@ -106,7 +108,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "bar"
+        fails ":bar"
         failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
 
     }

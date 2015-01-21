@@ -315,13 +315,14 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    beforeEach {
+                    def messageTasks = withType(MessageTask)
+                    messageTasks.beforeEach {
                         message = "task"
                     }
-                    all {
+                    messageTasks.all {
                         message += " with"
                     }
-                    afterEach {
+                    messageTasks.afterEach {
                         message += " message"
                     }
                 }
@@ -376,7 +377,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
             apply type: MyPlugin
 
-            tasks.all {
+            tasks.withType(MessageTask).all {
                 message = "task \$message"
             }
         """

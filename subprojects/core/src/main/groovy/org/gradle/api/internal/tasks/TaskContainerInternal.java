@@ -22,17 +22,17 @@ import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.type.ModelType;
 
 public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry
-    public ModelPath MODEL_PATH = ModelPath.path("tasks");
+    ModelPath MODEL_PATH = ModelPath.path("tasks");
+    ModelType<TaskContainerInternal> MODEL_TYPE = ModelType.of(TaskContainerInternal.class);
 
     DynamicObject getTasksAsDynamicObject();
 
     <T extends TaskInternal> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
-
-    void addPlaceholderAction(String placeholderName, Runnable runnable);
 
     /**
      * Force the entire graph to come into existence.

@@ -48,10 +48,8 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.DefaultModelRuleSourceApplicator;
 import org.gradle.model.internal.core.ModelRuleSourceApplicator;
 import org.gradle.model.internal.core.PluginClassApplicator;
-import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -120,16 +118,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
-    protected ModelRuleSourceApplicator createModelRuleSourceApplicator(ModelRuleInspector inspector) {
-        return new DefaultModelRuleSourceApplicator(get(ModelRuleSourceDetector.class), inspector);
-    }
-
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
         return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
-        return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {

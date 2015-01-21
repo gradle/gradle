@@ -22,7 +22,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.util.GUtil
 import spock.lang.Specification
 
@@ -31,10 +32,13 @@ import static java.util.Collections.singletonMap
 public class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
-    private project = Mock(ProjectInternal, name: "<project>")
+    def modelRegistry = new DefaultModelRegistry(null, null)
+    private project = Mock(ProjectInternal, name: "<project>") {
+        getModelRegistry() >> modelRegistry
+    }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainer(project, Mock(Instantiator), taskFactory, accessListener)
+    private container = new DefaultTaskContainerFactory(modelRegistry, new DirectInstantiator(), taskFactory, project, accessListener).create()
 
     void "creates by Map"() {
         def options = singletonMap("option", "value")
@@ -284,7 +288,7 @@ public class DefaultTaskContainerTest extends Specification {
         task.dependsOn("b")
 
         addPlaceholderTask("c")
-        1 * taskFactory.createTask(_) >> { this.task("c", DefaultTask) }
+        1 * taskFactory.create("c", DefaultTask) >> { this.task(it[0], it[1]) }
 
         assert container.size() == 1
 
@@ -298,7 +302,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "can add task via placeholder action"() {
         when:
         addPlaceholderTask("task")
-        1 * taskFactory.createTask(_) >> { task("task", DefaultTask) }
+        1 * taskFactory.create("task", DefaultTask) >> { task(it[0], it[1]) }
 
         then:
         container.getByName("task") != null
