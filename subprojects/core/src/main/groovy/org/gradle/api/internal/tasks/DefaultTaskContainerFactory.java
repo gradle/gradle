@@ -55,7 +55,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                         new Transformer<TaskContainerInternal, MutableModelNode>() {
                             @Override
                             public TaskContainerInternal transform(MutableModelNode mutableModelNode) {
-                                return instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener);
+                                return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener);
                             }
                         },
                         new Task.Namer(),

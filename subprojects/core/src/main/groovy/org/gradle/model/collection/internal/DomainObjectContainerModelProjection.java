@@ -31,10 +31,12 @@ import java.util.Collection;
 
 public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
-    protected final Class<M> itemType;
+    protected final Class<M> baseItemType;
+    private final ModelType<M> baseItemModelType;
 
-    public DomainObjectContainerModelProjection(Class<M> itemType) {
-        this.itemType = itemType;
+    public DomainObjectContainerModelProjection(Class<M> baseItemType) {
+        this.baseItemType = baseItemType;
+        this.baseItemModelType = ModelType.of(baseItemType);
     }
 
     protected abstract C getContainer(MutableModelNode node);
@@ -51,12 +53,11 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
     protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container,
                                                              ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        ModelType<CollectionBuilder<S>> viewType = new ModelType.Builder<CollectionBuilder<S>>() {
-        }.where(new ModelType.Parameter<S>() {
-        }, itemType).build();
-        CollectionBuilder<S> builder = new DefaultCollectionBuilder<S>(itemType, container.getEntityInstantiator(), container, sourceDescriptor, node, modelRuleSourceApplicator, modelRegistrar,
+        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container.getEntityInstantiator(), container, sourceDescriptor, node, modelRuleSourceApplicator, modelRegistrar,
                 pluginClassApplicator);
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(viewType, builder, sourceDescriptor);
+
+        CollectionBuilder<S> subBuilder = builder.withType(itemClass);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }
@@ -87,16 +88,16 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
         Class<?> targetClass = targetType.getRawClass();
         if (targetClass.equals(CollectionBuilder.class)) {
             Class<?> targetItemClass = targetType.getTypeVariables().get(0).getRawClass();
-            if (targetItemClass.isAssignableFrom(itemType)) {
-                return itemType;
+            if (targetItemClass.isAssignableFrom(baseItemType)) {
+                return baseItemType;
             }
-            if (itemType.isAssignableFrom(targetItemClass)) {
-                return targetItemClass.asSubclass(itemType);
+            if (baseItemType.isAssignableFrom(targetItemClass)) {
+                return targetItemClass.asSubclass(baseItemType);
             }
             return null;
         }
         if (targetClass.isAssignableFrom(CollectionBuilder.class)) {
-            return itemType;
+            return baseItemType;
         }
         return null;
     }

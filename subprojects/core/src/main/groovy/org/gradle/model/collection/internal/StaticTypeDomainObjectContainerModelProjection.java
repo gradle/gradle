@@ -38,6 +38,6 @@ public class StaticTypeDomainObjectContainerModelProjection<C extends Polymorphi
 
     @Override
     public Iterable<String> getWritableTypeDescriptions() {
-        return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(Collections.singleton(itemType)));
+        return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(Collections.singleton(baseItemType)));
     }
 }

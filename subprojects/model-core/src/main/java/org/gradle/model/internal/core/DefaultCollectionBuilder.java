@@ -88,7 +88,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             public <U extends S> U create(String name, Class<U> type) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type.getName(), elementType.toString()));
             }
-        }, ImmutableList.<S>builder().build(), sourceDescriptor, modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+        }, ImmutableList.<S>of(), sourceDescriptor, modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
     }
 
     @Nullable
