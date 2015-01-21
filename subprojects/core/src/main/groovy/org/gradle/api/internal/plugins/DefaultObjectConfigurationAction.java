@@ -119,8 +119,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyType(Class<?> pluginClass) {
         for (Object target : targets) {
-            if (target instanceof PluginAwareInternal) {
-                ((PluginAwareInternal) target).getPluginManager().apply(pluginClass);
+            if (target instanceof PluginAware) {
+                ((PluginAware) target).getPluginManager().apply(pluginClass);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }

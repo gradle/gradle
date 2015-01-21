@@ -91,6 +91,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginContainer;
     }
 
+    @Override
+    public void apply(PotentialPluginWithId<?> plugin) {
+        doApply(plugin.getPluginId().toString(), plugin);
+    }
+
     public void apply(String pluginId) {
         PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(pluginId);
         if (potentialPluginWithId == null) {
