@@ -103,8 +103,8 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
-        result.foundLegacy(getDescription(), new Action<LegacyPluginResolveContext>() {
-            public void execute(LegacyPluginResolveContext context) {
+        result.foundLegacy(getDescription(), new Action<PluginResolveContext>() {
+            public void execute(PluginResolveContext context) {
                 context.addLegacy(metadata.id, metadata.implementation.get("repo"), metadata.implementation.get("gav"));
             }
         });

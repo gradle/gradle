@@ -51,7 +51,7 @@ public interface PluginResolutionResult {
      * @param sourceDescription
      * @param action
      */
-    void foundLegacy(String sourceDescription, Action<? super LegacyPluginResolveContext> action);
+    void foundLegacy(String sourceDescription, Action<? super PluginResolveContext> action);
 
     /**
      * Whether the plugin has been found (i.e. has {@link #found(String, PluginResolution)} has been called)

@@ -90,7 +90,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final Set<String> repoUrls = Sets.newLinkedHashSet();
 
             for (final Result result : legacy) {
-                result.legacyFound.action.execute(new LegacyPluginResolveContext() {
+                result.legacyFound.action.execute(new PluginResolveContext() {
                     public void addLegacy(String pluginId, final String m2RepoUrl, Object dependencyNotation) {
                         legacyActualPluginIds.put(result, pluginId);
                         repoUrls.add(m2RepoUrl);
@@ -235,9 +235,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private static class LegacyFound {
         private final String source;
-        private final Action<? super LegacyPluginResolveContext> action;
+        private final Action<? super PluginResolveContext> action;
 
-        private LegacyFound(String source, Action<? super LegacyPluginResolveContext> action) {
+        private LegacyFound(String source, Action<? super PluginResolveContext> action) {
             this.source = source;
             this.action = action;
         }
@@ -262,7 +262,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             found = new Found(sourceDescription, pluginResolution);
         }
 
-        public void foundLegacy(String sourceDescription, Action<? super LegacyPluginResolveContext> action) {
+        public void foundLegacy(String sourceDescription, Action<? super PluginResolveContext> action) {
             this.legacyFound = new LegacyFound(sourceDescription, action);
         }
 
