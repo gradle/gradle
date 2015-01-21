@@ -322,6 +322,7 @@ Unordered and not all appropriately story sized.
 - Bind by path failures understand model space structure and indicate the failed path “link” (e.g. failure to bind `tasks.foo` informs that `tasks` exists and what it is)
 - Collapse rule descriptors to “plugin” granularity where appropriate in error message (i.e. plugin users typically don't need information about plugin internals, but need to know which plugin failed).
 - Error message when no collection builder of requested type should provide more help about what is available
+- Force binding induced cycles for rules that use descendants of subject as inputs which won't bind result in a stack overflow 
 
 ## Cleanup
 
