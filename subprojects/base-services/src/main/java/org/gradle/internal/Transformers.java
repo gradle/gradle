@@ -81,7 +81,7 @@ public abstract class Transformers {
      * @return The naming transformer.
      */
     public static Transformer<String, Named> name() {
-        return name(new Named.Namer());
+        return name(Named.Namer.INSTANCE);
     }
 
     /**

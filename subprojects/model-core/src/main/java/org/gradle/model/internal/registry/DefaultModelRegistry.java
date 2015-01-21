@@ -762,8 +762,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void removeLink(String name) {
-            links.remove(name);
-            remove(getPath().child(name));
+            if (links.remove(name) != null) {
+                remove(getPath().child(name));
+            }
         }
 
         @Override

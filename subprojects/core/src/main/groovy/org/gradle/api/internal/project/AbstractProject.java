@@ -46,7 +46,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -60,14 +59,12 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -199,24 +196,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .simpleDescriptor("Project.<init>.projectIdentifier()")
                         .build(),
-                ModelPath.ROOT
-        );
-
-        modelRegistry.create(
-                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                        ModelType.of(TaskContainerInternal.class),
-                        ModelType.of(TaskContainer.class),
-                        ModelType.of(Task.class),
-                        TaskContainerInternal.MODEL_PATH,
-                        taskContainer,
-                        new Task.Namer(),
-                        "Project.<init>.tasks()",
-                        new Transformer<String, String>() {
-                            public String transform(String s) {
-                                return "Project.<init>.tasks." + s + "()";
-                            }
-                        }
-                ),
                 ModelPath.ROOT
         );
 
@@ -499,7 +478,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public ProjectInternal realizeTasksAndValidateModel() {
         evaluate();
         try {
-            getModelRegistry().validate();
             getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
             getModelRegistry().validate();
         } catch (Exception e) {

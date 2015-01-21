@@ -38,13 +38,17 @@ public interface Named {
      * An implementation of the namer interface for objects implementing the named interface.
      */
     public static class Namer implements org.gradle.api.Namer<Named> {
+
+        public static final org.gradle.api.Namer<Named> INSTANCE = new Namer();
+
         public String determineName(Named object) {
             return object.getName();
         }
-        
+
+        @SuppressWarnings("unchecked")
         public static <T> org.gradle.api.Namer<? super T> forType(Class<? extends T> type) {
             if (Named.class.isAssignableFrom(type)) {
-                return (org.gradle.api.Namer<T>)new Namer();
+                return (org.gradle.api.Namer<T>) INSTANCE;
             } else {
                 throw new IllegalArgumentException(String.format("The '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface.", type));
             }

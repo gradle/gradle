@@ -56,7 +56,7 @@ class DefaultCollectionBuilderTest extends Specification {
                         ModelReference.of(containerPath, containerType),
                         container
                 )
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
+                        .withProjection(new DynamicTypesDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
                         .simpleDescriptor("foo")
                         .build(),
                 ModelPath.ROOT

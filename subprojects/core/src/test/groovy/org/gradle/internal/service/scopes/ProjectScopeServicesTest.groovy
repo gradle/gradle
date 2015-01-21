@@ -48,7 +48,9 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.core.ModelRuleSourceApplicator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -64,7 +66,10 @@ class ProjectScopeServicesTest extends Specification {
     DependencyFactory dependencyFactory = Mock()
     ServiceRegistry parent = Stub()
     ProjectScopeServices registry
-    PluginRegistry pluginRegistry = Mock()
+    PluginRegistry pluginRegistry = Mock() {
+        createChild(_) >> Mock(PluginRegistry)
+    }
+    ModelRegistry modelRegistry = Mock()
     ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
@@ -89,6 +94,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
+        parent.get(ModelRuleSourceApplicator) >> Stub(ModelRuleSourceApplicator)
         registry = new ProjectScopeServices(parent, project)
     }
 
