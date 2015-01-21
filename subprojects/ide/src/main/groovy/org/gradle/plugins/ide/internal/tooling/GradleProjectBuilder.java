@@ -67,7 +67,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-        gradleProject.setTasks(tasks(gradleProject, (TaskContainerInternal)project.getTasks()));
+        gradleProject.setTasks(tasks(gradleProject, (TaskContainerInternal) project.getTasks()));
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
@@ -78,18 +78,15 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
         List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
-        for (String taskName : tasks.getNames()) {
-            Task t = tasks.findByName(taskName);
-            if(t!=null){
-                out.add(new LaunchableGradleProjectTask()
-                                .setProject(owner)
-                                .setPath(t.getPath())
-                                .setName(t.getName())
-                                .setDisplayName(t.toString())
-                                .setDescription(t.getDescription())
-                                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))
-                );
-            }
+        for (Task t : tasks) {
+            out.add(new LaunchableGradleProjectTask()
+                            .setProject(owner)
+                            .setPath(t.getPath())
+                            .setName(t.getName())
+                            .setDisplayName(t.toString())
+                            .setDescription(t.getDescription())
+                            .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))
+            );
         }
 
         return out;

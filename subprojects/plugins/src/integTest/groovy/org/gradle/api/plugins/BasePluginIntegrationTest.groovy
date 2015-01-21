@@ -49,25 +49,21 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
             task build {
                 dependsOn 'check'
                 doLast {
-                    println "custom building"
+                    println "-building"
                 }
             }
 
             task check << {
-                println "custom checking"
+                print "checking"
             }
 """
         when:
-        executer.withDeprecationChecksDisabled()
-        executer.withStackTraceChecksDisabled()
+        executer.withArgument("-q")
         succeeds "build"
 
         then:
         executedAndNotSkipped ":check", ":build"
-        output.contains "custom building"
-        output.contains "custom checking"
-        output.contains "Defining custom ‘check’ task is deprecated when using standard lifecycle plugin has been deprecated and is scheduled to be removed in Gradle 3.0"
-        output.contains "Defining custom ‘build’ task is deprecated when using standard lifecycle plugin has been deprecated and is scheduled to be removed in Gradle 3.0"
+        output.contains "checking-building"
     }
 
 }
