@@ -63,7 +63,22 @@ class JavaReflectionUtilTest extends Specification {
 
     def "read property"() {
         expect:
-        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "myValue"
+        readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "myValue"
+    }
+
+    def "read property using instance"() {
+        expect:
+        readableProperty(myProperties, String, "myProperty").getValue(myProperties) == "myValue"
+    }
+
+    def "read field" () {
+        expect:
+        readableField(JavaTestSubject, String, "myField").getValue(myProperties) == "myFieldValue"
+    }
+
+    def "read field using instance" () {
+        expect:
+        readableField(myProperties, String, "myField").getValue(myProperties) == "myFieldValue"
     }
 
     def "write property"() {
@@ -71,12 +86,17 @@ class JavaReflectionUtilTest extends Specification {
         writeableProperty(JavaTestSubject, "myProperty").setValue(myProperties, "otherValue")
 
         then:
-        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "otherValue"
+        readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "otherValue"
     }
 
     def "read boolean property"() {
         expect:
-        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == true
+        readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == true
+    }
+
+    def "read boolean field" () {
+        expect:
+        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
     }
 
     def "write boolean property"() {
@@ -84,12 +104,12 @@ class JavaReflectionUtilTest extends Specification {
         writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
 
         then:
-        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == false
+        readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == false
     }
 
     def "cannot read property that doesn't have a well formed getter"() {
         when:
-        readableProperty(JavaTestSubject, property)
+        readableProperty(JavaTestSubject, String, property)
 
         then:
         NoSuchPropertyException e = thrown()
@@ -107,7 +127,7 @@ class JavaReflectionUtilTest extends Specification {
 
     def "cannot read property that is not public"() {
         when:
-        readableProperty(JavaTestSubject, property)
+        readableProperty(JavaTestSubject, String, property)
 
         then:
         NoSuchPropertyException e = thrown()

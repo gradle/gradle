@@ -22,6 +22,8 @@ public class JavaTestSubject {
     final IllegalStateException failure = new IllegalStateException();
     private String myProp = "myValue";
     private boolean myBooleanProp = true;
+    public String myField = "myFieldValue";
+    public boolean myBooleanField = true;
 
     public int publicField;
 

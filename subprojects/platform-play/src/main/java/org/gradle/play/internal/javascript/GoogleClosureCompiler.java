@@ -106,8 +106,8 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
         // Get any errors from the compiler result
-        PropertyAccessor jsErrorsField = JavaReflectionUtil.readableField(result.getClass(), "errors");
-        Object[] jsErrors = (Object[]) jsErrorsField.getValue(result);
+        PropertyAccessor<Object, Object[]> jsErrorsField = JavaReflectionUtil.readableField(result, Object[].class, "errors");
+        Object[] jsErrors = jsErrorsField.getValue(result);
 
         if (jsErrors.length == 0) {
             // If no errors, get the compiled source and write it to the destination file
