@@ -33,7 +33,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
         if (maxThreads < 0) {
             underlyingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl("build operations"));
         } else if (maxThreads == 0) {
-            underlyingExecutor = MoreExecutors.sameThreadExecutor();
+            underlyingExecutor = Executors.newFixedThreadPool(1, new ThreadFactoryImpl("build operations"));
         } else {
             underlyingExecutor = Executors.newFixedThreadPool(maxThreads, new ThreadFactoryImpl("build operations"));
         }
