@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
@@ -111,7 +112,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private Object status;
 
-    private final Map<String, Project> childProjects = new HashMap<String, Project>();
+    private final Map<String, Project> childProjects = Maps.newTreeMap();
 
     private List<String> defaultTasks = new ArrayList<String>();
 
