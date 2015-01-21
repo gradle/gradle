@@ -18,18 +18,20 @@ package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatforms;
+import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+// TODO:DAZ We shouldn't be instantiating all binary instances: instead should be instantiating required binary instance when resolving
 public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Instantiator instantiator;
     private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
@@ -40,6 +42,7 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
                                       Collection<? extends NativePlatform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.allPlatforms.addAll(allPlatforms);
+        this.allPlatforms.addAll(NativePlatforms.defaultPlatformDefinitions());
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
     }

@@ -592,6 +592,10 @@ class HttpServer extends ServerWithExpectations {
         })
     }
 
+    void addHandler(Handler handler){
+        collection.addHandler(handler)
+    }
+
     int getPort() {
         return server.connectors[0].localPort
     }

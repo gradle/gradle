@@ -47,7 +47,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup) values (?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
@@ -56,6 +56,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         statement.setString(5, results.getJvm());
                         statement.setString(6, results.getVcsBranch());
                         statement.setString(7, results.getVcsCommit());
+                        statement.setString(8, results.getTestGroup());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -105,10 +106,18 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             return db.withConnection(new ConnectionAction<List<String>>() {
                 public List<String> execute(Connection connection) throws Exception {
                     List<String> testNames = new ArrayList<String>();
-                    ResultSet testExecutions = connection.createStatement().executeQuery("select distinct testId from testExecution order by testId");
-                    while (testExecutions.next()) {
-                        testNames.add(testExecutions.getString(1));
+                    ResultSet testGroups = connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
+                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? order by testId");
+                    while (testGroups.next()) {
+                        testIdsStatement.setString(1, testGroups.getString(1));
+                        ResultSet testExecutions = testIdsStatement.executeQuery();
+                        while (testExecutions.next()) {
+                            testNames.add(testExecutions.getString(1));
+                        }
+                        testExecutions.close();
                     }
+                    testIdsStatement.close();
+                    testGroups.close();
                     return testNames;
                 }
             });
@@ -128,7 +137,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -142,6 +151,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         performanceResults.setJvm(testExecutions.getString(5));
                         performanceResults.setVcsBranch(testExecutions.getString(6).trim());
                         performanceResults.setVcsCommit(testExecutions.getString(7));
+                        performanceResults.setTestGroup(testExecutions.getString(8));
 
                         results.add(performanceResults);
 
@@ -194,6 +204,11 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             Statement statement = connection.createStatement();
             statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, versionUnderTest varchar not null, operatingSystem varchar not null, jvm varchar not null, vcsBranch varchar not null, vcsCommit varchar)");
             statement.execute("create table if not exists testOperation (testExecution bigint not null, testProject varchar not null, displayName varchar not null, tasks array not null, args array not null, executionTimeMs decimal not null, heapUsageBytes decimal not null, totalHeapUsageBytes decimal, maxHeapUsageBytes decimal, maxUncollectedHeapBytes decimal, maxCommittedHeapBytes decimal, foreign key(testExecution) references testExecution(id))");
+            statement.execute("alter table testExecution add column if not exists testGroup varchar");
+            statement.execute("update testExecution set testGroup = 'old vs new java plugin' where testGroup is null and testId like '%old vs new java plugin%'");
+            statement.execute("update testExecution set testGroup = 'project using variants' where testGroup is null and testId like '%project using variants%'");
+            statement.execute("update testExecution set testGroup = testId where testGroup is null");
+            statement.execute("alter table testExecution alter column testGroup set not null");
             statement.close();
             return null;
         }

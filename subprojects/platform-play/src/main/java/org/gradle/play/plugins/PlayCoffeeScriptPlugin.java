@@ -28,14 +28,13 @@ import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
-import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.tasks.JavaScriptProcessResources;
+import org.gradle.play.tasks.JavaScriptMinify;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
 import java.io.File;
@@ -47,9 +46,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * a {@link org.gradle.language.coffeescript.CoffeeScriptSourceSet}.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayCoffeeScriptPlugin {
+public class PlayCoffeeScriptPlugin extends RuleSource {
     private static final String DEFAULT_COFFEESCRIPT_VERSION = "1.8.0";
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
@@ -68,12 +66,16 @@ public class PlayCoffeeScriptPlugin {
     }
 
     @Mutate
-    void createCoffeeScriptSourceSets(ComponentSpecContainer components) {
-        for (PlayApplicationSpec playComponent : components.withType(PlayApplicationSpec.class)) {
-            CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
-            coffeeScriptSourceSet.getSource().srcDir("app/assets");
-            coffeeScriptSourceSet.getSource().include("**/*.coffee");
-        }
+    void createCoffeeScriptSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+        components.beforeEach(new Action<PlayApplicationSpec>() {
+            @Override
+            public void execute(PlayApplicationSpec playComponent) {
+                // TODO - should have some way to lookup using internal type
+                CoffeeScriptSourceSet coffeeScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("coffeeScriptAssets", CoffeeScriptSourceSet.class);
+                coffeeScriptSourceSet.getSource().srcDir("app/assets");
+                coffeeScriptSourceSet.getSource().include("**/*.coffee");
+            }
+        });
     }
 
     @BinaryTasks
@@ -106,17 +108,18 @@ public class PlayCoffeeScriptPlugin {
 
     private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
                                          final String compileTaskName) {
-        final String processTaskName = "process" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
-        tasks.create(processTaskName, JavaScriptProcessResources.class, new Action<JavaScriptProcessResources>() {
+        final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+        tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
             @Override
-            public void execute(JavaScriptProcessResources processGeneratedJavascript) {
-                processGeneratedJavascript.dependsOn(compileTaskName);
-                processGeneratedJavascript.from(outputDirectory(buildDir, binary, compileTaskName));
+            public void execute(JavaScriptMinify javaScriptMinify) {
+                javaScriptMinify.dependsOn(compileTaskName);
+                javaScriptMinify.setSource(outputDirectory(buildDir, binary, compileTaskName));
+                javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
 
-                File coffeeScriptProcessOutputDirectory = outputDirectory(buildDir, binary, processTaskName);
-                processGeneratedJavascript.setDestinationDir(coffeeScriptProcessOutputDirectory);
-                binary.getAssets().builtBy(processGeneratedJavascript);
-                binary.getAssets().addAssetDir(coffeeScriptProcessOutputDirectory);
+                File minifyOutputDirectory = outputDirectory(buildDir, binary, minifyTaskName);
+                javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+                binary.getAssets().builtBy(javaScriptMinify);
+                binary.getAssets().addAssetDir(minifyOutputDirectory);
             }
         });
     }

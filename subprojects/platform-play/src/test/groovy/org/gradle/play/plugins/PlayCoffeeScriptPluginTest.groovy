@@ -15,20 +15,20 @@
  */
 
 package org.gradle.play.plugins
+
+import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet
-import org.gradle.platform.base.ComponentSpecContainer
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.play.PlayApplicationSpec
 import spock.lang.Specification
 
-import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
-
 class PlayCoffeeScriptPluginTest extends Specification {
     def "adds coffeescript source sets to play components" () {
         def plugin = new PlayCoffeeScriptPlugin()
-        def components = Mock(ComponentSpecContainer)
+        def components = Mock(CollectionBuilder)
         def sources = Mock(FunctionalSourceSet)
         def sourceSet = Mock(CoffeeScriptSourceSet)
         def sourceDirSet = Mock(SourceDirectorySet)
@@ -38,7 +38,7 @@ class PlayCoffeeScriptPluginTest extends Specification {
             getName() >> "play"
             getSources() >> sources
         }
-        _ * components.withType(PlayApplicationSpec) >> toNamedDomainObjectSet(PlayApplicationSpec, playApp)
+        _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
 
         and:
         plugin.createCoffeeScriptSourceSets(components)

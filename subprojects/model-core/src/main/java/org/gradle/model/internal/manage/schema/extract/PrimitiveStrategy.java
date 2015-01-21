@@ -27,7 +27,7 @@ public class PrimitiveStrategy implements ModelSchemaExtractionStrategy {
 
     private final static Map<ModelType<?>, Class<?>> BOXED_REPLACEMENTS = ImmutableMap.<ModelType<?>, Class<?>>builder()
             .put(ModelType.of(Boolean.TYPE), Boolean.class)
-            .put(ModelType.of(Character.TYPE), Integer.class)
+            .put(ModelType.of(Character.TYPE), Character.class)
             .put(ModelType.of(Float.TYPE), Double.class)
             .put(ModelType.of(Integer.TYPE), Integer.class)
             .put(ModelType.of(Long.TYPE), Long.class)

@@ -175,7 +175,7 @@ integTestTasks.all { Test task ->
 
     systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? project.multiVersion : 'all'
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {

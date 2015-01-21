@@ -18,26 +18,23 @@ package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
-import org.gradle.play.platform.PlayPlatform;
-import org.gradle.play.toolchain.PlayToolChain;
-import org.gradle.process.internal.WorkerProcessBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -49,15 +46,20 @@ public class PlayRun extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(PlayRun.class);
 
     private int httpPort;
-    private PlayPlatform targetPlatform;
 
     @InputFile
     private File applicationJar;
 
+    @InputFile
+    private File assetsJar;
+
+    @InputFiles
+    private FileCollection runtimeClasspath;
+
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
-
+    private PlayToolProvider toolProvider;
 
     /**
      * fork options for the running a play application.
@@ -76,12 +78,13 @@ public class PlayRun extends ConventionTask {
                 .start("Start Play server", "Starting Play");
 
         int httpPort = getHttpPort();
+        FileCollection applicationJars = new SimpleFileCollection(applicationJar, assetsJar);
+        applicationJars = applicationJars.plus(runtimeClasspath);
+        PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
 
-        PlayRunSpec spec = new DefaultPlayRunSpec(getProject().files(applicationJar), getProject().getProjectDir(), getForkOptions(), httpPort);
-        PlayToolProvider toolProvider = ((PlayToolChainInternal) getToolChain()).select(getTargetPlatform());
-        PlayApplicationRunner manager = toolProvider.newApplicationRunner(getWorkerProcessBuilderFactory(), spec);
+        PlayApplicationRunner playApplicationRunner = toolProvider.newApplicationRunner();
         try {
-            runnerToken = manager.start();
+            runnerToken = playApplicationRunner.start(spec);
             progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
@@ -108,11 +111,6 @@ public class PlayRun extends ConventionTask {
         }
     }
 
-    @Inject
-    public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
     public int getHttpPort() {
         return httpPort;
     }
@@ -121,21 +119,19 @@ public class PlayRun extends ConventionTask {
         this.httpPort = httpPort;
     }
 
-    @Incubating
-    @Inject
-    public PlayToolChain getToolChain() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void setTargetPlatform(PlayPlatform targetPlatform) {
-        this.targetPlatform = targetPlatform;
-    }
-
-    public PlayPlatform getTargetPlatform() {
-        return targetPlatform;
-    }
-
     public void setApplicationJar(File applicationJar) {
         this.applicationJar = applicationJar;
+    }
+
+    public void setAssetsJar(File assetsJar) {
+        this.assetsJar = assetsJar;
+    }
+
+    public void setRuntimeClasspath(FileCollection runtimeClasspath) {
+        this.runtimeClasspath = runtimeClasspath;
+    }
+
+    public void setToolProvider(PlayToolProvider toolProvider) {
+        this.toolProvider = toolProvider;
     }
 }

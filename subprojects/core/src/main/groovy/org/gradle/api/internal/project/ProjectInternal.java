@@ -53,6 +53,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     Project evaluate();
 
+    ProjectInternal realizeTasksAndValidateModel();
+
     TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();

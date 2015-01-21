@@ -32,8 +32,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -73,8 +72,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -103,8 +101,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                class Rules {
+                class Rules extends RuleSource {
                 }
             }
 
@@ -125,16 +122,14 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
             }
 
             class MyOtherPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
@@ -149,7 +144,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered to create a model element at this path")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' is already registered to create this model element.")
     }
 
     def "informative error message when two plugins declare model at the same path and model is already created"() {
@@ -158,16 +153,14 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
             }
 
             class MyOtherPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "bar" }
                 }
@@ -193,7 +186,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot register model creation rule 'MyOtherPlugin\$Rules#string()' for path 'string' as the rule 'MyPlugin\$Rules#string()' is already registered (and the model element has been created)")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin\$Rules#string()' as the rule 'MyPlugin\$Rules#string()' has already been used to create this model element.")
     }
 
     def "informative error message when creation rule throws"() {
@@ -202,8 +195,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { throw new RuntimeException("oh no!") }
                 }
@@ -232,8 +224,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() { "foo" }
                 }
@@ -265,8 +256,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     String string() {
                       null
@@ -297,8 +287,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyBasePlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void strings(List<String> strings) {
                       strings << "foo"
@@ -311,8 +300,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     project.pluginManager.apply(MyBasePlugin)
                 }
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     List<String> strings() {
                       []
@@ -354,8 +342,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
                     project.extensions.create("myExtension", MyExtension)
                 }
 
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model
                     MyExtension myExtension(ExtensionContainer extensions) {
                         extensions.getByType(MyExtension)
@@ -398,8 +385,7 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTasks(CollectionBuilder<Task> tasks, @Path("tasks.injected") Exec execTask) {
                         tasks.create("name") {
@@ -421,5 +407,28 @@ class PluginRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains "name: injected"
+    }
+
+    def "plugin application fails if rule source constructor throws exception"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+
+            class Rules extends RuleSource {
+                Rules() {
+                    throw new RuntimeException("failing constructor")
+                }
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Failed to apply plugin [class 'Rules']")
+        failure.assertHasCause("Type Rules is not a valid model rule source: instance creation failed")
+        failure.assertHasCause("failing constructor")
     }
 }

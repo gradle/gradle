@@ -32,6 +32,8 @@ import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.serialize.DefaultSerializerRegistry;
@@ -93,5 +95,9 @@ public class TaskExecutionServices {
 
     TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
         return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
+    }
+
+    BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter) {
+        return new DefaultBuildOperationProcessor(startParameter.getParallelThreadCount());
     }
 }

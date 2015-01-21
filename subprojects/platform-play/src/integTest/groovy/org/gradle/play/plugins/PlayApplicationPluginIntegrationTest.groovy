@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.plugins
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -27,9 +28,7 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
-        settingsFile << """
-        rootProject.name = 'play-app'
-"""
+        settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
         plugins {
             id 'play-application'
@@ -61,7 +60,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: PlayPlatform2.3.7
+        platform: Play Platform (Play 2.3.7, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})
         tool chain: Default Play Toolchain"""))
     }
 
@@ -87,14 +86,15 @@ Binaries
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":playBinary", ":assemble")
+        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":assemble")
         skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
 
         and:
-        jar("build/playBinary/lib/play.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {
-        new JarTestFixture(file(fileName))
+           new JarTestFixture(file(fileName))
     }
 }

@@ -41,7 +41,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.addPostArgsAction(new VisualCppOptionsFileArgTransformer(spec.getTempDir()));
+        invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
         invocation.setArgs(args.transform(spec));
         commandLineTool.execute(invocation);
         return new SimpleWorkResult(true);

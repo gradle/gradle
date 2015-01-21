@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
+import org.gradle.language.base.internal.tasks.AssembleBinariesTask
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,7 +44,7 @@ class LifecycleBasePluginTest extends Specification {
         and:
         def assemble = project.tasks[ASSEMBLE_TASK_NAME]
         assemble.group == BUILD_GROUP
-        assemble instanceOf(DefaultTask)
+        assemble instanceOf(AssembleBinariesTask)
 
         and:
         def check = project.tasks[CHECK_TASK_NAME]

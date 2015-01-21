@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -63,7 +62,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     public void apply(Project project) {
-        project.apply(ImmutableMap.of("type", LifecycleBasePlugin.class));
+        project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         BasePluginConvention convention = new BasePluginConvention(project);
         project.getConvention().getPlugins().put("base", convention);

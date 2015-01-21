@@ -16,21 +16,38 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
+import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 
-class TwirlCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
+class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
-    def setup(){
-        buildFile << """
-        model {
-            tasks {
-                create("twirlCompile", TwirlCompile){ task ->
-                    task.outputDirectory = file('build/twirl')
-                    task.sourceDirectory = file('./app')
-                    task.platform = platforms["PlayPlatform${version}"]
-                }
-            }
+    def setup() {
+        buildFile <<"""
+plugins {
+    id 'play'
+}
+
+model {
+    components {
+        play {
+            targetPlatform "play-${version}"
         }
+    }
+    tasks {
+        create("twirlCompile", TwirlCompile){ task ->
+            task.outputDirectory = file('build/twirl')
+            task.sourceDirectory = file('./app')
+            task.platform = binaries.playBinary.targetPlatform
+        }
+    }
+}
+
+repositories{
+    jcenter()
+    maven{
+        name = "typesafe-maven-release"
+        url = "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+}
 """
     }
 

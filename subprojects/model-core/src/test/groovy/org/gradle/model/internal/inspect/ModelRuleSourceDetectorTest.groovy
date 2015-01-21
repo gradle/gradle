@@ -26,24 +26,20 @@ class ModelRuleSourceDetectorTest extends Specification {
     private ModelRuleSourceDetector detector = new ModelRuleSourceDetector()
 
     static class HasOneSource {
-        @RuleSource
-        static class Source {}
+        static class Source extends RuleSource {}
 
         static class NotSource {}
     }
 
     static class HasTwoSources {
-        @RuleSource
-        static class SourceOne {}
+        static class SourceOne extends RuleSource {}
 
-        @RuleSource
-        static class SourceTwo {}
+        static class SourceTwo extends RuleSource {}
 
         static class NotSource {}
     }
 
-    @RuleSource
-    static class IsASource {
+    static class IsASource extends RuleSource {
     }
 
     @Unroll
@@ -93,8 +89,8 @@ class ModelRuleSourceDetectorTest extends Specification {
         where:
         impl << [
                 "class SomeThing {}",
-                "@${RuleSource.name} class SomeThing {}",
-                "class SomeThing { @${RuleSource.name} static class Inner { } }",
+                "class SomeThing extends ${RuleSource.name} {}",
+                "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
         ]
     }
 

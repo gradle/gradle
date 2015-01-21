@@ -1,0 +1,45 @@
+class Flavour {
+    String name
+}
+
+class Type {
+    String name
+}
+
+class Variant {
+    String name
+}
+
+class VariantsPlugin implements Plugin<Project> {
+
+    void apply(Project project) {
+        project.extensions.flavours = project.container(Flavour) { new Flavour(name: it) }
+        project.extensions.types = project.container(Type) { new Type(name: it) }
+        project.extensions.variants = project.container(Variant) { new Variant(name: it) }
+
+        project.afterEvaluate {
+            project.flavours.each { flavour ->
+                project.types.each { type ->
+                    project.variants.create(flavour.name + type.name)
+                }
+            }
+        }
+
+        def allVariantsTask = project.tasks.create("allVariants")
+
+        project.variants.all { variant ->
+            def variantTask = project.tasks.create(variant.name)
+            allVariantsTask.dependsOn variantTask
+        }
+    }
+}
+
+apply type: VariantsPlugin
+
+<% flavourCount.times { %>
+flavours.create("flavour${it + 1}")
+<% } %>
+
+<% typeCount.times { %>
+types.create("type${it + 1}")
+<% } %>

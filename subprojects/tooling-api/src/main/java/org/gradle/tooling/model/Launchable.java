@@ -47,7 +47,7 @@ public interface Launchable {
 
     /**
      * Returns whether launchable is public or not.
-     * Public tasks are those that have non-null {@code group} property.
+     * Public tasks are those that have a non-empty {@code group} property.
      *
      * @return Public property.
      * @since 2.1

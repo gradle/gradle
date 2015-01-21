@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.platform
+
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
@@ -220,7 +221,10 @@ model {
     }
     components {
         main {
-            targetPlatform "x86", "x86_64", "itanium", "arm"
+            targetPlatform "x86"
+            targetPlatform "x86_64"
+            targetPlatform "itanium"
+            targetPlatform "arm"
         }
     }
 }
@@ -364,7 +368,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-platform'.")
+        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries")
         failure.assertHasCause("Invalid NativePlatform: unknown")
     }
 

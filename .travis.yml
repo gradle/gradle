@@ -1,6 +1,8 @@
 language: java
 jdk:
   - oraclejdk7
+install:
+  - true
 script:
   - ./gradlew pullRequestValidation
 env:

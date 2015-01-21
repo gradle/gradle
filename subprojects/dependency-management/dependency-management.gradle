@@ -1,21 +1,27 @@
 apply plugin: "groovy"
 
-import org.gradle.build.*
+import org.gradle.build.JarJar
 
 configurations {
     mvn3Input
 }
 
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
 dependencies {
     compile project(":core")
     compile project(":resourcesHttp")
-
+    compile project(":resourcesS3")
+    compile project(":resourcesSftp")
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy
     compile libraries.slf4j_api
     compile libraries.maven_ant_tasks
-    compile libraries.jsch
+    compile libraries.gson
     runtime libraries.xbean //maven3 classes dependency
     runtime libraries.bouncycastle_provider
 
@@ -49,8 +55,8 @@ task jarJarMaven3(type: JarJar) {
     avoidConflictingPlexusComponents(it)
 }
 
-if(isWindows && javaVersion.java5){
-    compileTestGroovy.options.fork (memoryMaximumSize: '512m')
+if (isWindows && javaVersion.java5) {
+    compileTestGroovy.options.fork(memoryMaximumSize: '512m')
 }
 
 classpathManifest.dependsOn jarJarMaven3 //see GRADLE-2521

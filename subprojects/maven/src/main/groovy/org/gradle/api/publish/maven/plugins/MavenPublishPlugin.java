@@ -95,8 +95,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
         public void realizePublishingTasks(CollectionBuilder<Task> tasks, @Path("tasks.publish") Task publishLifecycleTask, @Path("tasks.publishToMavenLocal") Task publishLocalLifecycleTask,

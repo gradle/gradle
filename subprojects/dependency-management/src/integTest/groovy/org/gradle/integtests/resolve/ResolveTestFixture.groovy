@@ -47,11 +47,10 @@ buildscript {
 }
 
 allprojects {
-    tasks.addPlaceholderAction("checkDeps") {
-        tasks.create(name: "checkDeps", dependsOn: configurations.${config}, type: ${GenerateGraphTask.name}) {
-            outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
-            configuration = configurations.$config
-        }
+    tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
+        it.dependsOn configurations.${config}
+        it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
+        it.configuration = configurations.$config
     }
 }
 """
@@ -285,11 +284,11 @@ allprojects {
         /**
          * Defines a dependency of the current node.
          */
-         EdgeBuilder dependency(Map requested) {
-             def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
-             deps << edge
-             return edge
-         }
+        EdgeBuilder dependency(Map requested) {
+            def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
+            deps << edge
+            return edge
+        }
 
         /**
          * Marks that this node was selected due to conflict resolution.

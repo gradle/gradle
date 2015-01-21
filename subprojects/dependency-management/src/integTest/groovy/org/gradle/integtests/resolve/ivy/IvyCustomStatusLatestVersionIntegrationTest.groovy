@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IvyCustomStatusLatestVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -107,7 +106,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-1.1.jar")
     }
 
-    @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3216")
     def "uses changing provided by component metadata rule for latest.xyz"() {
         given:
@@ -170,7 +168,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-1.2.jar")
     }
 
-    @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3216")
     def "handles changing module with latest.release"() {
         given:

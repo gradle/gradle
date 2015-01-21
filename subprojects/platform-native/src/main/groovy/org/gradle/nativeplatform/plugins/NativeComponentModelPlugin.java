@@ -31,6 +31,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.*;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
@@ -40,14 +41,15 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.PlatformResolvers;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -55,17 +57,26 @@ import java.io.File;
  */
 @Incubating
 public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
+    private final Instantiator instantiator;
+
+    @Inject
+    public NativeComponentModelPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
+
+        project.getExtensions().create("buildTypes", DefaultBuildTypeContainer.class, instantiator);
+        project.getExtensions().create("flavors", DefaultFlavorContainer.class, instantiator);
+        project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
     }
 
     /**
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    public static class Rules {
+    public static class Rules extends RuleSource {
 
         @ComponentType
         void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
@@ -86,21 +97,18 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NativeToolChainRegistryInternal toolChains(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultNativeToolChainRegistry.class, instantiator);
+        NativeToolChainRegistryInternal toolChains(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(NativeToolChainRegistryInternal.class);
         }
 
         @Model
-        BuildTypeContainer buildTypes(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
+        BuildTypeContainer buildTypes(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(BuildTypeContainer.class);
         }
 
         @Model
-        FlavorContainer flavors(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
+        FlavorContainer flavors(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(FlavorContainer.class);
         }
 
         @Model
@@ -109,13 +117,12 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void registerExtensions(ExtensionContainer extensions, BuildTypeContainer buildTypes, FlavorContainer flavors) {
-            extensions.add("buildTypes", buildTypes);
-            extensions.add("flavors", flavors);
+        public void registerNativePlatformResolver(PlatformResolvers resolvers) {
+            resolvers.register(new NativePlatformResolver());
         }
 
         @Mutate
-        public void registerNativePlatformFactory(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+        public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
                 public NativePlatform create(String name) {
@@ -133,7 +140,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
-                                         PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
+                                         PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
@@ -149,12 +156,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 createBinariesAction.execute(component);
                 binaries.addAll(component.getBinaries());
             }
-        }
-
-        @Mutate
-        public void createDefaultPlatforms(PlatformContainer platforms) {
-            // TODO:DAZ Should be creating, not adding
-            platforms.addAll(NativePlatforms.defaultPlatformDefinitions());
         }
 
         @Finalize
@@ -178,37 +179,42 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-            // This should be @Mutate for each component in a container, rather than finalizing the container itself
-        void configureGeneratedSourceSets(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
-                    Task generatorTask = languageSourceSet.getGeneratorTask();
-                    if (generatorTask != null) {
-                        languageSourceSet.builtBy(generatorTask);
-                        maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
-                        if (languageSourceSet instanceof HeaderExportingSourceSet) {
-                            maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
+        @Mutate
+        void configureGeneratedSourceSets(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
+                        Task generatorTask = languageSourceSet.getGeneratorTask();
+                        if (generatorTask != null) {
+                            languageSourceSet.builtBy(generatorTask);
+                            maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                            if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                                maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
+                            }
                         }
                     }
                 }
-            }
+            });
         }
 
-        @Finalize // This is providing defaults for each component in the container, but the only mechanism for now is to finalize the collection
-        public void applyHeaderSourceSetConventions(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
-                for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
-                    // Only apply default locations when none explicitly configured
-                    if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                        headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
-                    }
+        @Mutate
+        public void applyHeaderSourceSetConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
+                    for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
+                        // Only apply default locations when none explicitly configured
+                        if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
+                            headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", componentSpec.getName()));
+                        }
 
-                    headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
-                    headerSourceSet.getImplicitHeaders().include("**/*.h");
+                        headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());
+                        headerSourceSet.getImplicitHeaders().include("**/*.h");
+                    }
                 }
-            }
+            });
         }
 
         private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {

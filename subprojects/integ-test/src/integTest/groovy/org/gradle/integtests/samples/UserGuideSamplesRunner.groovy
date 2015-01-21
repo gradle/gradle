@@ -112,6 +112,7 @@ class UserGuideSamplesRunner extends Runner {
             }
             notifier.fireTestFinished(childDescription)
         }
+        temporaryFolder.testDirectory.deleteDir()
     }
 
     private void cleanup(SampleRun run) {

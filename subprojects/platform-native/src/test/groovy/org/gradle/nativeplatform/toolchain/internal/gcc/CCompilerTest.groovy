@@ -16,67 +16,24 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
+import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
 
-class CCompilerTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+class CCompilerTest extends GccCompatibleNativeCompilerTest {
 
-    def executable = new File("executable")
-    def invocation = Mock(MutableCommandLineToolInvocation)
-    CommandLineTool commandLineTool = Mock(CommandLineTool)
-    String objectFileExtension = ".o";
-    CCompiler compiler = new CCompiler(commandLineTool, invocation, objectFileExtension, false);
-
-    def "compiles all source files in separate executions"() {
-        given:
-        def testDir = tmpDirProvider.testDirectory
-        def objectFileDir = testDir.file("output/objects")
-
-        when:
-        CCompileSpec compileSpec = Stub(CCompileSpec) {
-            getMacros() >> [foo: "bar", empty: null]
-            getObjectFileDir() >> objectFileDir
-            getAllArgs() >> ["-firstArg", "-secondArg"]
-            getIncludeRoots() >> [testDir.file("include.h")]
-            getSourceFiles() >> [testDir.file("one.c"), testDir.file("two.c")]
-        }
-
-        and:
-        compiler.execute(compileSpec)
-
-        then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setWorkDirectory(objectFileDir)
-
-        ["one.c", "two.c"].each{ sourceFileName ->
-
-            TestFile sourceFile = testDir.file(sourceFileName)
-            File outputFile = outputFile(objectFileDir, sourceFile)
-
-            1 * invocation.setArgs([
-                    "-x", "c",
-                    "-Dfoo=bar", "-Dempty",
-                    "-firstArg", "-secondArg",
-                    "-c",
-                    "-I", testDir.file("include.h").absolutePath,
-                    testDir.file(sourceFileName).absolutePath,
-                    "-o", outputFile.absolutePath])
-            1 * commandLineTool.execute(invocation)
-        }
-        0 * _
+    @Override
+    protected NativeCompiler getCompiler(CommandLineToolInvocation invocation, String objectFileExtension, boolean useCommandFile) {
+        new CCompiler(buildOperationProcessor, commandLineTool, invocation, objectFileExtension, useCommandFile)
     }
 
-    File outputFile(File outputRoot, TestFile inputFile) {
-        return new CompilerOutputFileNamingScheme()
-                .withOutputBaseFolder(outputRoot)
-                .withObjectFileNameSuffix(objectFileExtension)
-                .map(inputFile)
+    @Override
+    protected Class<CCompileSpec> getCompileSpecType() {
+        CCompileSpec
+    }
+
+    @Override
+    protected List<String> getCompilerSpecificArguments(File includeDir) {
+        [ '-x', 'c' ] + super.getCompilerSpecificArguments(includeDir)
     }
 }

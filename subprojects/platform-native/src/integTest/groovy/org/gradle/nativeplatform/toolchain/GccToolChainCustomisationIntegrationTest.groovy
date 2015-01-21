@@ -83,11 +83,10 @@ model {
         }
     }
     components {
-        main {
-           targetPlatform "arm", "i386", "sparc"
-        }
-        hello {
-           targetPlatform "arm", "i386", "sparc"
+        all {
+            targetPlatform "arm"
+            targetPlatform "i386"
+            targetPlatform "sparc"
         }
     }
 }
@@ -181,13 +180,16 @@ model {
     }
     components {
         execTest(NativeExecutableSpec) {
-            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+            targetPlatform "alwaysFrench"
+            targetPlatform "alwaysCPlusPlus"
         }
-        main(NativeExecutableSpec) {
-            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+        main {
+            targetPlatform "alwaysFrench"
+            targetPlatform "alwaysCPlusPlus"
         }
-        hello(NativeLibrarySpec) {
-            targetPlatform "alwaysFrench", "alwaysCPlusPlus"
+        hello {
+            targetPlatform "alwaysFrench"
+            targetPlatform "alwaysCPlusPlus"
         }
     }
 }

@@ -25,13 +25,15 @@ class BuildSpecification implements BuildParametersSpecification {
     final String[] tasksToRun
     final String[] args
     final String[] gradleOpts
+    final boolean useDaemon
 
-    BuildSpecification(String projectName, String displayName, String[] tasksToRun, String[] args, String[] gradleOpts) {
+    BuildSpecification(String projectName, String displayName, String[] tasksToRun, String[] args, String[] gradleOpts, boolean useDaemon) {
         this.projectName = projectName
         this.displayName = displayName
         this.tasksToRun = tasksToRun
         this.args = args
         this.gradleOpts = gradleOpts
+        this.useDaemon = useDaemon
     }
 
     String getDisplayName() {
@@ -48,6 +50,7 @@ class BuildSpecification implements BuildParametersSpecification {
         private String[] tasksToRun
         private String[] args
         private String[] gradleOpts
+        private boolean useDaemon
 
         Builder(String projectName) {
             this.projectName = projectName
@@ -73,8 +76,13 @@ class BuildSpecification implements BuildParametersSpecification {
             this
         }
 
+        Builder useDaemon() {
+            this.useDaemon = true
+            this
+        }
+
         BuildSpecification build() {
-            new BuildSpecification(projectName, displayName, tasksToRun ?: new String[0], args ?: new String[0], gradleOpts ?: new String[0])
+            new BuildSpecification(projectName, displayName, tasksToRun ?: new String[0], args ?: new String[0], gradleOpts ?: new String[0], useDaemon)
         }
     }
 }

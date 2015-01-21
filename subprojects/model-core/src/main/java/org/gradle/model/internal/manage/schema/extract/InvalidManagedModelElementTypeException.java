@@ -69,7 +69,11 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
     }
 
     public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
-        super(getMessage(extractionContext, message));
+        this(extractionContext, message, null);
+    }
+
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
+        super(getMessage(extractionContext, message), throwable);
     }
 
 }

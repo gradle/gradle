@@ -43,7 +43,7 @@ public class ModelRuleSourceDetector {
             .build(new CacheLoader<Class<?>, Collection<Reference<Class<?>>>>() {
                 @Override
                 public Collection<Reference<Class<?>>> load(Class<?> container) throws Exception {
-                    if (container.isAnnotationPresent(RuleSource.class)) {
+                    if (isRuleSource(container)) {
                         return ImmutableSet.<Reference<Class<?>>>of(new WeakReference<Class<?>>(container));
                     }
                     Class<?>[] declaredClasses = container.getDeclaredClasses();
@@ -52,7 +52,7 @@ public class ModelRuleSourceDetector {
                     } else {
                         ImmutableList.Builder<Reference<Class<?>>> found = ImmutableList.builder();
                         for (Class<?> declaredClass : declaredClasses) {
-                            if (declaredClass.isAnnotationPresent(RuleSource.class)) {
+                            if (isRuleSource(declaredClass)) {
                                 found.add(new WeakReference<Class<?>>(declaredClass));
                             }
                         }
@@ -80,5 +80,9 @@ public class ModelRuleSourceDetector {
 
     public boolean hasModelSources(Class<?> container) {
         return !Iterables.isEmpty(getDeclaredSources(container));
+    }
+
+    private boolean isRuleSource(Class<?> clazz) {
+        return RuleSource.class.isAssignableFrom(clazz);
     }
 }

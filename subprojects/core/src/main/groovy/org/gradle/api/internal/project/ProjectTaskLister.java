@@ -24,7 +24,6 @@ import java.util.Collection;
 /**
  * Service to provide all tasks in a project including both regular tasks,
  * and implicit tasks.
- * Used by {@code :diagnostics} and {@code :toolingApi}.
  */
 public interface ProjectTaskLister {
     Collection<Task> listProjectTasks(Project project);

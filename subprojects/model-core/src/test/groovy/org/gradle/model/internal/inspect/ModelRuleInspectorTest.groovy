@@ -16,9 +16,10 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.internal.reflect.Instantiator
+import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -31,15 +32,14 @@ import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
+
+import java.beans.Introspector
 
 class ModelRuleInspectorTest extends Specification {
-
-    final static Instantiator UNUSED_INSTANTIATOR = null
-
-    ModelRegistry registry = new DefaultModelRegistry()
+    ModelRegistry registry = new DefaultModelRegistry(null, null)
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
-    def dependencies = Mock(RuleSourceDependencies)
+    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {
         final String name
@@ -49,33 +49,34 @@ class ModelRuleInspectorTest extends Specification {
         }
     }
 
-    static class EmptyClass {}
+    static class EmptyClass extends RuleSource {}
 
     def "can inspect class with no rules"() {
-        when:
-        inspector.inspect(EmptyClass, registryMock, dependencies)
-
-        then:
-        0 * registryMock._
+        expect:
+        inspector.inspect(EmptyClass).empty
     }
 
-    static class SimpleModelCreationRuleInferredName {
+    static class SimpleModelCreationRuleInferredName extends RuleSource {
         @Model
         static ModelThing modelPath() {
             new ModelThing("foo")
         }
     }
 
+    void registerRules(Class<?> source) {
+        inspector.inspect(source)*.applyTo(registry, ModelPath.ROOT)
+    }
+
     def "can inspect class with simple model creation rule"() {
         when:
-        inspector.inspect(SimpleModelCreationRuleInferredName, registry, dependencies)
+        registerRules(SimpleModelCreationRuleInferredName)
 
         then:
-        def element = registry.get(ModelPath.path("modelPath"), ModelType.of(ModelThing))
+        def element = registry.realize(ModelPath.path("modelPath"), ModelType.of(ModelThing))
         element.name == "foo"
     }
 
-    static class ParameterizedModel {
+    static class ParameterizedModel extends RuleSource{
         @Model
         List<String> strings() {
             Arrays.asList("foo")
@@ -99,16 +100,16 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with model creation rule for paramaterized type"() {
         when:
-        inspector.inspect(ParameterizedModel, registry, dependencies)
+        registerRules(ParameterizedModel)
 
         then:
-        registry.node(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
-        registry.node(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
-        registry.node(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
-        registry.node(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
+        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
+        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
+        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
+        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
     }
 
-    static class HasGenericModelRule {
+    static class HasGenericModelRule extends RuleSource {
         @Model
         static <T> List<T> thing() {
             []
@@ -117,14 +118,14 @@ class ModelRuleInspectorTest extends Specification {
 
     def "model creation rule cannot be generic"() {
         when:
-        inspector.inspect(HasGenericModelRule, registry, dependencies)
+        registerRules(HasGenericModelRule)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
         e.message == "$HasGenericModelRule.name#thing() is not a valid model rule method: cannot have type variables (i.e. cannot be a generic method)"
     }
 
-    static class HasMultipleRuleAnnotations {
+    static class HasMultipleRuleAnnotations extends RuleSource {
         @Model
         @Mutate
         static String thing() {
@@ -134,14 +135,14 @@ class ModelRuleInspectorTest extends Specification {
 
     def "model rule method cannot be annotated with multiple rule annotations"() {
         when:
-        inspector.inspect(HasMultipleRuleAnnotations, registry, dependencies)
+        registerRules(HasMultipleRuleAnnotations)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Mutate, annotated with @Finalize]"
+        e.message == "$HasMultipleRuleAnnotations.name#thing() is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
-    static class ConcreteGenericModelType {
+    static class ConcreteGenericModelType extends RuleSource {
         @Model
         static List<String> strings() {
             []
@@ -150,16 +151,16 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type variables of model type are captured"() {
         when:
-        inspector.inspect(ConcreteGenericModelType, registry, dependencies)
-        def node = registry.node(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        registerRules(ConcreteGenericModelType)
+        def node = registry.realizeNode(new ModelPath("strings"))
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
 
         then:
         type.parameterized
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static class ConcreteGenericModelTypeImplementingGenericInterface implements HasStrings<String> {
+    static class ConcreteGenericModelTypeImplementingGenericInterface extends RuleSource implements HasStrings<String> {
         @Model
         List<String> strings() {
             []
@@ -168,16 +169,16 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type variables of model type are captured when method is generic in interface"() {
         when:
-        inspector.inspect(ConcreteGenericModelTypeImplementingGenericInterface, registry, dependencies)
-        def node = registry.node(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
+        def node = registry.realizeNode(new ModelPath("strings"))
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
 
         then:
         type.parameterized
         type.typeVariables[0] == ModelType.of(String)
     }
 
-    static class HasRuleWithIdentityCrisis {
+    static class HasRuleWithIdentityCrisis extends RuleSource {
         @Mutate
         @Model
         void foo() {}
@@ -185,65 +186,65 @@ class ModelRuleInspectorTest extends Specification {
 
     def "rule cannot be of more than one type"() {
         when:
-        inspector.inspect(HasRuleWithIdentityCrisis, registry, dependencies)
+        registerRules(HasRuleWithIdentityCrisis)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class GenericMutationRule {
+    static class GenericMutationRule extends RuleSource {
         @Mutate
         <T> void mutate(T thing) {}
     }
 
     def "mutation rule cannot be generic"() {
         when:
-        inspector.inspect(GenericMutationRule, registry, dependencies)
+        registerRules(GenericMutationRule)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class NonVoidMutationRule {
+    static class NonVoidMutationRule extends RuleSource {
         @Mutate
         String mutate(String thing) {}
     }
 
     def "only void is allowed as return type of a mutation rule"() {
         when:
-        inspector.inspect(NonVoidMutationRule, registry, dependencies)
+        registerRules(NonVoidMutationRule)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleWithEmptyInputPath {
+    static class RuleWithEmptyInputPath extends RuleSource {
         @Model
         String create(@Path("") String thing) {}
     }
 
     def "path of rule input cannot be empty"() {
         when:
-        inspector.inspect(RuleWithEmptyInputPath, registry, dependencies)
+        registerRules(RuleWithEmptyInputPath)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleWithInvalidInputPath {
+    static class RuleWithInvalidInputPath extends RuleSource {
         @Model
         String create(@Path("!!!!") String thing) {}
     }
 
     def "path of rule input has to be valid"() {
         when:
-        inspector.inspect(RuleWithInvalidInputPath, registry, dependencies)
+        registerRules(RuleWithInvalidInputPath)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class MutationRules {
+    static class MutationRules extends RuleSource {
         @Mutate
         static void mutate1(List<String> strings) {
             strings << "1"
@@ -268,18 +269,18 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
 
         when:
-        inspector.inspect(MutationRules, registry, dependencies)
+        registerRules(MutationRules)
 
 
         then:
-        def node = registry.node(path)
-        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
+        def node = registry.realizeNode(path)
+        node.adapter.asReadOnly(type, node, null, null, registry, null).instance.sort() == ["1", "2"]
     }
 
-    static class MutationAndFinalizeRules {
+    static class MutationAndFinalizeRules extends RuleSource {
         @Mutate
         static void mutate3(List<Integer> strings) {
             strings << 3
@@ -304,14 +305,14 @@ class ModelRuleInspectorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
 
         when:
-        inspector.inspect(MutationAndFinalizeRules, registry, dependencies)
+        registerRules(MutationAndFinalizeRules)
 
         then:
-        def node = registry.node(path)
-        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
+        def node = registry.realizeNode(path)
+        node.adapter.asReadOnly(type, node, null, null, registry, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {
@@ -319,23 +320,23 @@ class ModelRuleInspectorTest extends Specification {
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build(), ModelPath.ROOT)
 
         when:
-        inspector.inspect(MutationAndFinalizeRules, registryMock, dependencies)
+        inspector.inspect(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
 
         then:
-        1 * registryMock.finalize({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "finalize1" }) })
+        1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") }, ModelPath.ROOT)
 
         then:
-        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate1" }) })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") }, ModelPath.ROOT)
 
         then:
-        1 * registryMock.mutate({ it.descriptor == new MethodModelRuleDescriptor(MutationAndFinalizeRules.declaredMethods.find { it.name == "mutate3" }) })
+        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") }, ModelPath.ROOT)
     }
 
-    static class InvalidModelNameViaAnnotation {
+    static class InvalidModelNameViaAnnotation extends RuleSource {
         @Model(" ")
         String foo() {
             "foo"
@@ -344,13 +345,13 @@ class ModelRuleInspectorTest extends Specification {
 
     def "invalid model name is not allowed"() {
         when:
-        inspector.inspect(InvalidModelNameViaAnnotation, registry, dependencies)
+        registerRules(InvalidModelNameViaAnnotation)
 
         then:
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged {
+    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged extends RuleSource {
         @Model
         void bar(NonManaged foo) {
         }
@@ -358,15 +359,14 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type of the first argument of void returning model definition has to be @Managed annotated"() {
         when:
-        inspector.inspect(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged, registry, dependencies)
+        registerRules(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged)
 
         then:
-
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged.name#bar($NonManaged.name) is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument"
     }
 
-    static class RuleSourceCreatingAClassAnnotatedWithManaged {
+    static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
         @Model
         void bar(ManagedAnnotatedClass foo) {
         }
@@ -374,16 +374,16 @@ class ModelRuleInspectorTest extends Specification {
 
     def "type of the first argument of void returning model definition has to be a valid managed type"() {
         when:
-        inspector.inspect(RuleSourceCreatingAClassAnnotatedWithManaged, registry, dependencies)
+        registerRules(RuleSourceCreatingAClassAnnotatedWithManaged)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "Declaration of model rule $RuleSourceCreatingAClassAnnotatedWithManaged.name#bar($ManagedAnnotatedClass.name) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
-        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface."
+        e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface or an abstract class."
     }
 
-    static class RuleSourceWithAVoidReturningNoArgumentMethod {
+    static class RuleSourceWithAVoidReturningNoArgumentMethod extends RuleSource {
         @Model
         void bar() {
         }
@@ -391,20 +391,20 @@ class ModelRuleInspectorTest extends Specification {
 
     def "void returning model definition has to take at least one argument"() {
         when:
-        inspector.inspect(RuleSourceWithAVoidReturningNoArgumentMethod, registry, dependencies)
+        registerRules(RuleSourceWithAVoidReturningNoArgumentMethod)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$RuleSourceWithAVoidReturningNoArgumentMethod.name#bar() is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument"
     }
 
-    static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType {
+    static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType extends RuleSource {
         @Model
         void bar(ManagedWithNestedPropertyOfInvalidManagedType foo) {
         }
     }
 
-    static class RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType {
+    static class RuleSourceCreatingManagedWithNestedReferenceOfInvalidManagedType extends RuleSource {
         @Model
         void bar(ManagedWithNestedReferenceOfInvalidManagedType foo) {
         }
@@ -413,7 +413,7 @@ class ModelRuleInspectorTest extends Specification {
     @Unroll
     def "void returning model definition with for a type with a nested property of invalid managed type - #inspected.simpleName"() {
         when:
-        inspector.inspect(inspected, registry, dependencies)
+        registerRules(inspected)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -433,7 +433,7 @@ ${managedType.name}
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
-    static class RuleSourceCreatingManagedWithNonManageableParent {
+    static class RuleSourceCreatingManagedWithNonManageableParent extends RuleSource {
         @Model
         void bar(ManagedWithNonManageableParents foo) {
         }
@@ -441,7 +441,7 @@ ${managedType.name}
 
     def "error message produced when super type is not a manageable type indicates the original (sub) type"() {
         when:
-        inspector.inspect(RuleSourceCreatingManagedWithNonManageableParent, registry, dependencies)
+        registerRules(RuleSourceCreatingManagedWithNonManageableParent)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
@@ -456,7 +456,7 @@ ${ManagedWithNonManageableParents.name}
         invalidTypeName = "$ParametrizedManaged.name<$String.name>"
     }
 
-    static class HasRuleWithUncheckedCollectionBuilder {
+    static class HasRuleWithUncheckedCollectionBuilder extends RuleSource {
         @Model
         static ModelThing modelPath(CollectionBuilder foo) {
             new ModelThing("foo")
@@ -465,10 +465,62 @@ ${ManagedWithNonManageableParents.name}
 
     def "error when trying to use collection builder without specifying type param"() {
         when:
-        inspector.inspect(HasRuleWithUncheckedCollectionBuilder, registry, dependencies)
+        registerRules(HasRuleWithUncheckedCollectionBuilder)
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
         e.message == "$HasRuleWithUncheckedCollectionBuilder.name#modelPath(org.gradle.model.collection.CollectionBuilder) is not a valid model rule method: raw type org.gradle.model.collection.CollectionBuilder used for parameter 1 (all type parameters must be specified of parameterized type)"
+    }
+
+    def "extracted rules are cached"() {
+        when:
+        def fromFirstExtraction = inspector.inspect(MutationRules)
+        def fromSecondExtraction = inspector.inspect(MutationRules)
+
+        then:
+        fromFirstExtraction.is(fromSecondExtraction)
+    }
+
+    def "cache does not hold strong references"() {
+        given:
+        def cl = new GroovyClassLoader(getClass().classLoader)
+        def source = cl.parseClass('''
+            import org.gradle.model.*
+
+            class Rules extends RuleSource {
+                @Mutate
+                void mutate(String value) {
+                }
+            }
+        ''')
+
+        when:
+        inspector.inspect(source)
+
+        then:
+        inspector.cache.size() == 1
+
+        when:
+        cl.clearCache()
+        forcefullyClearReferences(source)
+        source = null
+
+        then:
+        new PollingConditions(timeout: 10).eventually {
+            System.gc()
+            inspector.cache.cleanUp()
+            inspector.cache.size() == 0
+        }
+    }
+
+    private void forcefullyClearReferences(Class<?> clazz) {
+        // Remove soft references (dependent on Groovy internals)
+        def f = ClassInfo.getDeclaredField("globalClassSet")
+        f.setAccessible(true)
+        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
+        globalClassSet.remove(clazz)
+
+        // Remove soft references
+        Introspector.flushFromCaches(clazz)
     }
 }

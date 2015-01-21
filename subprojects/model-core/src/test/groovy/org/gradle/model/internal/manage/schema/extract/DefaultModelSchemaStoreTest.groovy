@@ -16,12 +16,17 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.Managed
 import org.gradle.model.collection.ManagedSet
+import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
+
+import java.beans.Introspector
 
 class DefaultModelSchemaStoreTest extends Specification {
 
@@ -62,6 +67,50 @@ class DefaultModelSchemaStoreTest extends Specification {
                 "@${Managed.name} interface SomeThing { ${ManagedSet.name}<SomeThing> getThings() }",
                 "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ManagedSet.name}<Child> getThings() }",
         ]
+    }
+
+    @Unroll
+    def "does not hold strong reference to a managed #type type"() {
+        given:
+        def modelType = ModelType.of(new GroovyClassLoader(getClass().classLoader).parseClass("@${Managed.name} $type ManagedType {}"))
+
+        when:
+        def schema = store.getSchema(modelType)
+
+        then:
+        store.cache.size() > 0
+
+        when:
+        forcefullyClearReferences(schema)
+
+        then:
+        new PollingConditions(timeout: 10).eventually {
+            System.gc()
+            store.cleanUp()
+            store.size() == 0
+            schema.managedImpl == null // collected too
+        }
+
+        where:
+        type << ["abstract class", "interface"]
+    }
+
+    @CompileStatic
+    // must be compile static to avoid call sites being created with soft class refs
+    private static void forcefullyClearReferences(ModelSchema schema) {
+        // Remove strong internal circular ref
+        (schema.type.rawClass.classLoader as GroovyClassLoader).clearCache()
+
+        // Remove soft references (dependent on Groovy internals)
+        def f = ClassInfo.getDeclaredField("globalClassSet")
+        f.setAccessible(true)
+        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
+        globalClassSet.remove(schema.type.rawClass)
+        globalClassSet.remove(schema.managedImpl)
+
+        // Remove soft references
+        Introspector.flushFromCaches(schema.type.rawClass)
+        Introspector.flushFromCaches(schema.managedImpl)
     }
 
     def "canonicalizes introspection for different sites of generic type"() {

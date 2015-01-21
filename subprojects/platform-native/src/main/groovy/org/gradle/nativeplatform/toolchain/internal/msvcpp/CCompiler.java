@@ -17,14 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
-class CCompiler extends NativeCompiler<CCompileSpec> {
+class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
 
-    CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer) {
-        super(commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer);
+    CCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CCompileSpec, CCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocation, new CCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
@@ -32,4 +33,5 @@ class CCompiler extends NativeCompiler<CCompileSpec> {
             return "/TC";
         }
     }
+
 }

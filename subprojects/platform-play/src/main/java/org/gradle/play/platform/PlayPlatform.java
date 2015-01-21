@@ -19,7 +19,6 @@ package org.gradle.play.platform;
 import org.gradle.api.Incubating;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.scala.ScalaPlatform;
-import org.gradle.model.Unmanaged;
 import org.gradle.platform.base.Platform;
 
 /**
@@ -30,14 +29,7 @@ public interface PlayPlatform extends Platform {
 
     public String getPlayVersion();
 
-    /**
-     * Should be managed at one point
-     */
-    @Unmanaged
     public ScalaPlatform getScalaPlatform();
 
-    public String getTwirlVersion();
-
-    @Unmanaged
     public JavaPlatform getJavaPlatform();
 }

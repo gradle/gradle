@@ -18,24 +18,40 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.play.integtest.fixtures.MultiPlayVersionIntegrationTest
+import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class RoutesCompileIntegrationTest extends MultiPlayVersionIntegrationTest {
+class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/routes/"
     def destinationDir = file(destinationDirPath)
 
-    def setup(){
+    def setup() {
+        buildFile <<"""
+plugins {
+    id 'play'
+}
 
-        buildFile << """
-        model {
-            tasks {
-                create("routesCompile", RoutesCompile){ task ->
-                    task.outputDirectory = file('$destinationDirPath')
-                    task.platform = platforms["PlayPlatform${version}"]
-                }
-            }
+model {
+    components {
+        play {
+            targetPlatform "play-${version}"
         }
+    }
+    tasks {
+        create("routesCompile", RoutesCompile){ task ->
+            task.outputDirectory = file('$destinationDirPath')
+            task.platform = binaries.playBinary.targetPlatform
+        }
+    }
+}
+
+repositories{
+    jcenter()
+    maven{
+        name = "typesafe-maven-release"
+        url = "https://repo.typesafe.com/typesafe/maven-releases"
+    }
+}
 """
     }
 

@@ -45,8 +45,7 @@ import java.lang.annotation.Target;
  *      }
  * }
  *
- * {@literal @}RuleSource
- * class MyCustomBinariesPlugin {
+ * class MyCustomBinariesPlugin extends RuleSource {
  *     {@literal @}BinaryType
  *     void register(BinaryTypeBuilder<SampleBinary> builder) {
  *         builder.defaultImplementation(DefaultSampleBinary)

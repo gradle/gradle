@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Named;
+import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
 import org.gradle.nativeplatform.NativeComponentSpec;
@@ -28,22 +29,25 @@ import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.platform.base.PlatformContainer;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
 public class NativeComponentSpecInitializer implements Action<NativeComponentSpec> {
     private final NativeBinariesFactory factory;
     private final NativeToolChainRegistryInternal toolChainRegistry;
-    private final PlatformContainer platforms;
+    private final PlatformResolvers platforms;
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
     private final BinaryNamingSchemeBuilder namingSchemeBuilder;
 
     public NativeComponentSpecInitializer(NativeBinariesFactory factory, BinaryNamingSchemeBuilder namingSchemeBuilder, NativeToolChainRegistryInternal toolChainRegistry,
-                                          PlatformContainer platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+                                          PlatformResolvers platforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.factory = factory;
         this.namingSchemeBuilder = namingSchemeBuilder;
         this.toolChainRegistry = toolChainRegistry;
@@ -54,20 +58,30 @@ public class NativeComponentSpecInitializer implements Action<NativeComponentSpe
 
     public void execute(NativeComponentSpec projectNativeComponent) {
         TargetedNativeComponentInternal targetedComponent = (TargetedNativeComponentInternal) projectNativeComponent;
-        List<String> targetPlatformNames = targetedComponent.getTargetPlatforms();
-        if (targetPlatformNames.isEmpty()) {
-            targetPlatformNames = Collections.singletonList(NativePlatforms.getDefaultPlatformName());
-        }
-        List<NativePlatform> targetPlatforms = platforms.chooseFromTargets(NativePlatform.class, targetPlatformNames);
+        List<NativePlatform> resolvedPlatforms = resolvePlatforms(targetedComponent);
 
-        for (NativePlatform platform: targetPlatforms) {
+        for (NativePlatform platform: resolvedPlatforms) {
             NativeToolChainInternal toolChain = (NativeToolChainInternal) toolChainRegistry.getForPlatform(platform);
             PlatformToolProvider toolProvider = toolChain.select((NativePlatformInternal) platform);
 
             BinaryNamingSchemeBuilder builder = namingSchemeBuilder.withComponentName(projectNativeComponent.getName());
-            builder = maybeAddDimension(builder, platform, targetPlatforms);
+            builder = maybeAddDimension(builder, platform, resolvedPlatforms);
             executeForEachBuildType(projectNativeComponent, (NativePlatformInternal) platform, builder, toolChain, toolProvider);
         }
+    }
+
+    private List<NativePlatform> resolvePlatforms(TargetedNativeComponentInternal targetedComponent) {
+        List<PlatformRequirement> targetPlatforms = targetedComponent.getTargetPlatforms();
+        if (targetPlatforms.isEmpty()) {
+            PlatformRequirement requirement = DefaultPlatformRequirement.create(NativePlatforms.getDefaultPlatformName());
+            targetPlatforms = Collections.singletonList(requirement);
+        }
+        return CollectionUtils.collect(targetPlatforms, new Transformer<NativePlatform, PlatformRequirement>() {
+            @Override
+            public NativePlatform transform(PlatformRequirement platformRequirement) {
+                return platforms.resolve(NativePlatform.class, platformRequirement);
+            }
+        });
     }
 
     private void executeForEachBuildType(NativeComponentSpec projectNativeComponent, NativePlatformInternal platform, BinaryNamingSchemeBuilder builder, NativeToolChainInternal toolChain, PlatformToolProvider toolProvider) {

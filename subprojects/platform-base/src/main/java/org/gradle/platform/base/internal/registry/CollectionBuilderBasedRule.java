@@ -19,7 +19,10 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRuleInput;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
@@ -28,15 +31,15 @@ import org.gradle.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelMutator<C> {
+public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAction<C> {
     private final ModelReference<C> subject;
     private final Class<? extends T> baseType;
-    private final MethodRuleDefinition<R> ruleDefinition;
+    private final MethodRuleDefinition<R, ?> ruleDefinition;
 
     private ImmutableList<ModelReference<?>> inputs;
     protected int baseTypeParameterIndex;
 
-    public CollectionBuilderBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R> ruleDefinition, ModelReference<?>... additionalInput) {
+    public CollectionBuilderBasedRule(ModelReference<C> subject, Class<? extends T> baseType, MethodRuleDefinition<R, ?> ruleDefinition, ModelReference<?>... additionalInput) {
         this.subject = subject;
         this.baseType = baseType;
         this.ruleDefinition = ruleDefinition;

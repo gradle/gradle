@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.*
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -32,13 +32,10 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
+    def modelRegistry = new DefaultModelRegistry(null, null)
+    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
-    final static Instantiator UNUSED_INSTANTIATOR = null
-
-    def modelRegistry = new DefaultModelRegistry()
-    def inspector = new ModelRuleInspector(MethodRuleDefinitionHandlers.coreHandlers(UNUSED_INSTANTIATOR, new DefaultModelSchemaStore()))
-
-    static class AmbiguousBindingsInOneSource {
+    static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate
         void m(String s) {
 
@@ -55,9 +52,13 @@ class ModelRuleBindingTest extends Specification {
         }
     }
 
+    void registerRules(Class<?> source) {
+        inspector.inspect(source)*.applyTo(modelRegistry, ModelPath.ROOT)
+    }
+
     def "error message produced when unpathed reference matches more than one item"() {
         when:
-        inspector.inspect(AmbiguousBindingsInOneSource, modelRegistry, {})
+        registerRules(AmbiguousBindingsInOneSource)
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -71,21 +72,21 @@ class ModelRuleBindingTest extends Specification {
         cause.message == message
     }
 
-    static class ProvidesStringOne {
+    static class ProvidesStringOne extends RuleSource {
         @Model
         String s1() {
             "foo"
         }
     }
 
-    static class ProvidesStringTwo {
+    static class ProvidesStringTwo extends RuleSource {
         @Model
         String s2() {
             "bar"
         }
     }
 
-    static class MutatesString {
+    static class MutatesString extends RuleSource {
         @Mutate
         void m(String s) {
 
@@ -96,7 +97,7 @@ class ModelRuleBindingTest extends Specification {
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:
@@ -115,7 +116,7 @@ class ModelRuleBindingTest extends Specification {
         order << [ProvidesStringOne, ProvidesStringTwo, MutatesString].permutations()
     }
 
-    static class MutatesS1AsInteger {
+    static class MutatesS1AsInteger extends RuleSource {
         @Mutate
         void m(@Path("s1") Integer s1) {
 
@@ -126,7 +127,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:
@@ -149,7 +150,7 @@ class ModelRuleBindingTest extends Specification {
         order << [ProvidesStringOne, MutatesS1AsInteger].permutations()
     }
 
-    static class ReadS1AsInteger {
+    static class ReadS1AsInteger extends RuleSource {
         @Mutate
         void m(Integer unbound, @Path("s1") Integer s1) {
 
@@ -160,7 +161,7 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            inspector.inspect(it, modelRegistry, {})
+            registerRules(it)
         }
 
         then:

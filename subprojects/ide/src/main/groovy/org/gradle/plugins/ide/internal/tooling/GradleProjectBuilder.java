@@ -18,7 +18,8 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
@@ -32,6 +33,12 @@ import java.util.List;
  * Builds the GradleProject that contains the project hierarchy and task information
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
+    private final ProjectTaskLister taskLister;
+
+    public GradleProjectBuilder(ProjectTaskLister taskLister) {
+        this.taskLister = taskLister;
+    }
+
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
@@ -55,6 +62,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setName(project.getName())
                 .setDescription(project.getDescription())
                 .setBuildDirectory(project.getBuildDir())
+                .setProjectDirectory(project.getProjectDir())
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
@@ -67,7 +75,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainer tasks) {
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, Iterable<Task> tasks) {
         List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
 
         for (Task t : tasks) {
@@ -77,7 +85,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                     .setName(t.getName())
                     .setDisplayName(t.toString())
                     .setDescription(t.getDescription())
-                    .setPublic(t.getGroup() != null)
+                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))
                     );
         }
 

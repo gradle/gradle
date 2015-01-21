@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec{
+class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
@@ -49,8 +49,7 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
     class MyBinaryDeclarationModel implements Plugin<Project> {
         void apply(final Project project) {}
 
-        @RuleSource
-        static class ComponentModel {
+        static class ComponentModel extends RuleSource {
             @ComponentType
             void register(ComponentTypeBuilder<SampleLibrary> builder) {
                 builder.defaultImplementation(DefaultSampleLibrary)
@@ -180,9 +179,7 @@ Binaries
         class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
-
+            static class Rules extends RuleSource {
                @Model
                CustomModel customModel() {
                    new CustomModel()
@@ -228,14 +225,12 @@ Binaries
         ruleInputs << ["SampleLibrary library, CustomModel myModel"]//,  "CustomModel myModel, SampleLibrary library"]
     }
 
-
     String withSimpleComponentBinaries() {
         """
          class MyComponentBinariesPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
-            @RuleSource
-            static class Rules {
+            static class Rules extends RuleSource {
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleLibrary library) {
                     binaries.create("\${library.name}Binary")

@@ -27,23 +27,23 @@ buildTypes {
     sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
 
     // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
-    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "test"
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "test"
 
     // For testing pull requests
-    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "classes"
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality"
 
     // A full (in-process) test
     developerBuild "check"
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
-    quickTest "runtimeTests", "runtimeIntegTests", multiVersion: "last"
+    quickTest "runtimeTests", "runtimeIntegTests"
 
     // Used for builds to run all tests, but not necessarily on all platforms
-    fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllPlatforms: true
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true, testAllPlatforms: true
 
     // Tests using the daemon mode
     daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
@@ -93,7 +93,7 @@ ext {
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'cunit',
+        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
         'pluginDevelopment', 'pluginUse'
     ].collect {
         project(it)

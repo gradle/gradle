@@ -76,4 +76,14 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
      */
     @Incubating
     File getBuildDirectory();
+
+    /**
+     * Returns the project directory for this project.
+     *
+     * @return The project directory.
+     * @since 2.4
+     */
+    @Incubating
+    File getProjectDirectory();
+
 }

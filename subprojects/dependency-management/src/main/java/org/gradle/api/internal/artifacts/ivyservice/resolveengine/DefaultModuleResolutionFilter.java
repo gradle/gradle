@@ -19,11 +19,10 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.MatcherHelper;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.*;
@@ -41,6 +40,7 @@ import java.util.*;
  */
 public abstract class DefaultModuleResolutionFilter implements ModuleResolutionFilter {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
+    private static final String WILDCARD = "*";
 
     public static ModuleResolutionFilter forExcludes(ExcludeRule... excludeRules) {
         return forExcludes(Arrays.asList(excludeRules));
@@ -54,6 +54,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return ALL_SPEC;
         }
         return new ExcludeRuleBackedSpec(excludeRules);
+    }
+
+    private static boolean isWildcard(String attribute) {
+        return WILDCARD.equals(attribute);
     }
 
     public ModuleResolutionFilter union(ModuleResolutionFilter other) {
@@ -204,8 +208,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 }
                 ArtifactId artifactId = rule.getId();
                 ModuleId moduleId = artifactId.getModuleId();
-                boolean wildcardOrganisation = PatternMatcher.ANY_EXPRESSION.equals(moduleId.getOrganisation());
-                boolean wildcardModule = PatternMatcher.ANY_EXPRESSION.equals(moduleId.getName());
+                boolean wildcardOrganisation = isWildcard(moduleId.getOrganisation());
+                boolean wildcardModule = isWildcard(moduleId.getName());
+                boolean wildcardArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
 
                 if (wildcardOrganisation && wildcardModule) {
                     excludeSpecs.add(new ExcludeRuleSpec(rule));
@@ -213,16 +218,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     excludeSpecs.add(new ModuleNameSpec(moduleId.getName()));
                 } else if (wildcardModule) {
                     excludeSpecs.add(new GroupNameSpec(moduleId.getOrganisation()));
+                } else if (wildcardArtifact) {
+                    excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
                 } else {
-                    boolean wildcardName = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getName());
-                    boolean wildcardType = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getType());
-                    boolean wildcardExt = PatternMatcher.ANY_EXPRESSION.equals(artifactId.getExt());
-
-                    if(wildcardName && wildcardType && wildcardExt) {
-                        excludeSpecs.add(new ModuleIdSpec(moduleId.getOrganisation(), moduleId.getName()));
-                    } else {
-                        excludeSpecs.add(new ExcludeRuleSpec(rule));
-                    }
+                    excludeSpecs.add(new ExcludeRuleSpec(rule));
                 }
             }
         }
@@ -561,15 +560,19 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     }
 
     private static class ExcludeRuleSpec extends DefaultModuleResolutionFilter {
-        private final ExcludeRule rule;
+        private final ModuleIdentifier moduleId;
+        private final IvyArtifactName ivyArtifactName;
+        private final PatternMatcher matcher;
 
         private ExcludeRuleSpec(ExcludeRule rule) {
-            this.rule = rule;
+            this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
+            this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
+            this.matcher = rule.getMatcher();
         }
 
         @Override
         public String toString() {
-            return String.format("{exclude-rule %s}", rule);
+            return String.format("{exclude-rule %s:%s with matcher %s}", moduleId, ivyArtifactName, matcher.getName());
         }
 
         @Override
@@ -581,39 +584,40 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 return false;
             }
             ExcludeRuleSpec other = (ExcludeRuleSpec) o;
-            // Can't use equals(), as DefaultExcludeRule.equals() does not consider the pattern matcher
-            return rule == other.rule;
+            return doAcceptsSameModulesAs(other);
         }
 
         @Override
         public int hashCode() {
-            return rule.hashCode();
+            return moduleId.hashCode() ^ ivyArtifactName.hashCode();
         }
 
         @Override
         protected boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            ExcludeRuleSpec excludeRuleSpec = (ExcludeRuleSpec) other;
-            // Can't use equals(), as DefaultExcludeRule.equals() does not consider the pattern matcher
-            return rule == excludeRuleSpec.rule;
+            ExcludeRuleSpec otherSpec = (ExcludeRuleSpec) other;
+            return moduleId.equals(otherSpec.moduleId)
+                    && ivyArtifactName.equals(otherSpec.ivyArtifactName)
+                    && matcher.getName().equals(otherSpec.matcher.getName());
         }
 
-        public boolean acceptModule(ModuleIdentifier element) {
-            ArtifactId rulePattern = rule.getId();
-            ModuleId moduleId = IvyUtil.createModuleId(element.getGroup(), element.getName());
-            boolean matchesRule = MatcherHelper.matches(rule.getMatcher(), rulePattern.getModuleId(), moduleId);
-            return !(matchesRule
-                    && matchesAnyExpression(rulePattern.getName())
-                    && matchesAnyExpression(rulePattern.getType())
-                    && matchesAnyExpression(rulePattern.getExt()));
+        public boolean acceptModule(ModuleIdentifier module) {
+            return !(matches(moduleId.getGroup(), module.getGroup())
+                    && matches(moduleId.getName(), module.getName())
+                    && isWildcard(ivyArtifactName.getName())
+                    && isWildcard(ivyArtifactName.getType())
+                    && isWildcard(ivyArtifactName.getExtension()));
         }
 
-        private boolean matchesAnyExpression(String attribute) {
-            return PatternMatcher.ANY_EXPRESSION.equals(attribute);
+        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+            return !(matches(moduleId.getGroup(), module.getGroup())
+                    && matches(moduleId.getName(), module.getName())
+                    && matches(ivyArtifactName.getName(), artifact.getName())
+                    && matches(ivyArtifactName.getExtension(), artifact.getExtension())
+                    && matches(ivyArtifactName.getType(), artifact.getType()));
         }
 
-        public boolean acceptArtifact(ModuleIdentifier id, IvyArtifactName artifact) {
-            ArtifactId artifactId = IvyUtil.createArtifactId(id.getGroup(), id.getName(), artifact.getName(), artifact.getType(), artifact.getExtension());
-            return !MatcherHelper.matches(rule.getMatcher(), rule.getId(), artifactId);
+        private boolean matches(String expression, String input) {
+            return matcher.getMatcher(expression).matches(input);
         }
     }
 }

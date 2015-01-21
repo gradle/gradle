@@ -87,8 +87,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
         public void createTasks(CollectionBuilder<Task> tasks, final @Path("tasks.publish") Task publishLifecycleTask, PublishingExtension publishingExtension) {

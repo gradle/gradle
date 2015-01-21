@@ -49,8 +49,7 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<ObjectiveCSourceSet> builder) {
             builder.setLanguageName("objc");

@@ -1,0 +1,19 @@
+plugins {
+    id 'play'
+}
+
+allprojects {
+    repositories{
+        jcenter()
+        maven{
+            name = "typesafe-maven-release"
+            url = "https://repo.typesafe.com/typesafe/maven-releases"
+        }
+    }
+}
+
+dependencies {
+    play project(":admin")
+    play project(":user")
+    play project(":util")
+}

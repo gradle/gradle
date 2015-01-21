@@ -34,7 +34,7 @@ import java.util.Queue;
 import static org.gradle.internal.SystemProperties.getLineSeparator;
 
 @ThreadSafe
-public class ModelSchemaExtractor {
+class ModelSchemaExtractor {
 
     private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
         public String create() {
@@ -46,7 +46,7 @@ public class ModelSchemaExtractor {
             new EnumStrategy(),
             new JdkValueTypeStrategy(),
             new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(this, supportedTypeDescriptions),
+            new StructStrategy(supportedTypeDescriptions),
             new UnmanagedStrategy()
     );
 
@@ -65,7 +65,7 @@ public class ModelSchemaExtractor {
             extractionContext = unsatisfiedDependencies.poll();
         }
 
-        for (ModelSchemaExtractionContext<?> validationContext : validations) {
+        for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
             validationContext.validate();
         }
 

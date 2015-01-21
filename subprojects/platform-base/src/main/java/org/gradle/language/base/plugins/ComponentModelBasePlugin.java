@@ -16,7 +16,6 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -34,17 +33,14 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.PlatformContainer;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
-import org.gradle.platform.base.internal.DefaultPlatformContainer;
+import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
 
@@ -75,10 +71,15 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         modelRegistry.create(
-                ModelCreators.bridgedInstance(ModelReference.of("components", DefaultComponentSpecContainer.class), components)
-                        .simpleDescriptor("Project.<init>.components()")
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultComponentSpecContainer, ComponentSpec>(instantiator, components, ComponentSpec.class))
-                        .build()
+                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                        ModelType.of(DefaultComponentSpecContainer.class),
+                        ModelType.of(DefaultComponentSpecContainer.class),
+                        ModelType.of(ComponentSpec.class),
+                        ModelPath.path("components"),
+                        components,
+                        ComponentModelBasePlugin.class.getName() + ".apply()"
+                ),
+                ModelPath.ROOT
         );
     }
 
@@ -86,8 +87,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         LanguageRegistry languages(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);
@@ -99,13 +99,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void initializeSourceSetsForComponents(final ComponentSpecContainer components, final LanguageRegistry languageRegistry, final LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
-            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-
+        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
-                // TODO:DAZ Using live collection here in order to add 'default' construction for components, which should be executed before any user component configuration is applied.
-                components.withType(ComponentSpecInternal.class, ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
+                // TODO - allow beforeEach() to be applied to internal types
+                components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
             }
         }
 
@@ -142,17 +139,19 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        @Finalize
-            // This is setting defaults for each component in the container. Should not be finalizing the container.
-        void applyDefaultSourceConventions(ComponentSpecContainer componentSpecs) {
-            for (ComponentSpec componentSpec : componentSpecs) {
-                for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
-                    // Only apply default locations when none explicitly configured
-                    if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
-                        languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
+        @Mutate
+        void applyDefaultSourceConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+            componentSpecs.afterEach(new Action<ComponentSpec>() {
+                @Override
+                public void execute(ComponentSpec componentSpec) {
+                    for (LanguageSourceSet languageSourceSet : componentSpec.getSource()) {
+                        // Only apply default locations when none explicitly configured
+                        if (languageSourceSet.getSource().getSrcDirs().isEmpty()) {
+                            languageSourceSet.getSource().srcDir(String.format("src/%s/%s", componentSpec.getName(), languageSourceSet.getName()));
+                        }
                     }
                 }
-            }
+            });
         }
 
         // TODO:DAZ Work out why this is required
@@ -167,6 +166,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
+        @Model
+        PlatformResolvers platformResolver(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            return instantiator.newInstance(DefaultPlatformResolvers.class, platforms);
+        }
+
         @Mutate
         void registerPlatformExtension(ExtensionContainer extensions, PlatformContainer platforms) {
             extensions.add("platforms", platforms);
@@ -175,7 +180,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     }
 
     // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
-    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
+    private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpec> {
         private final LanguageRegistration<U> languageRegistration;
         private final LanguageTransformContainer languageTransforms;
 
@@ -188,7 +193,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return new ComponentSourcesRegistrationAction<U>(registration, languageTransforms);
         }
 
-        public void execute(ComponentSpecInternal componentSpecInternal) {
+        public void execute(ComponentSpec componentSpec) {
+            ComponentSpecInternal componentSpecInternal = (ComponentSpecInternal) componentSpec;
             registerLanguageSourceSetFactory(componentSpecInternal);
             createDefaultSourceSetForComponents(componentSpecInternal);
         }

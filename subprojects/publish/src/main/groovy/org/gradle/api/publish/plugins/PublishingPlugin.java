@@ -16,7 +16,10 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
@@ -73,8 +76,7 @@ public class PublishingPlugin implements Plugin<Project> {
     /**
      * Model rules.
      */
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         PublishingExtension publishing(ExtensionContainer extensions) {
             return extensions.getByType(PublishingExtension.class);

@@ -1,0 +1,8 @@
+plugins {
+    id 'play'
+}
+
+dependencies {
+    play project(":submodule")
+    play project(":javalibrary")
+}

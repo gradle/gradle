@@ -28,4 +28,8 @@ object Application extends Controller {
   def root = Action {
     Ok(views.html.awesome.index(List(new DataType("bar", 2))))
   }
+  def shutdown = Action {
+    System.exit(0)
+    Ok("shutdown")
+  }
 }

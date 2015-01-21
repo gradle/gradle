@@ -174,6 +174,6 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.evaluate()
+        project.realizeTasksAndValidateModel()
     }
 }

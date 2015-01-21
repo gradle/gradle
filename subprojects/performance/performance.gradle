@@ -121,9 +121,128 @@ def generators = tasks.withType(ProjectGeneratorTask) {
     testDependencies = configurations.junit
 }
 
+task smallOldJava(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task mediumOldJava(type: ProjectGeneratorTask) {
+    projects = 25
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task bigOldJava(type: ProjectGeneratorTask) {
+    projects = 500
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
+task smallNewJava(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
+task mediumNewJava(type: ProjectGeneratorTask) {
+    projects = 25
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
+task bigNewJava(type: ProjectGeneratorTask) {
+    projects = 500
+    subProjectTemplates = ['java-source', 'new-java-plugin']
+    testDependencies = files()
+}
+
+task smallVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 1,
+            typeCount: 1
+    ]
+    testDependencies = files()
+}
+
+task mediumVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 5,
+            typeCount: 5
+    ]
+    testDependencies = files()
+}
+
+task bigVariantsNewModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
+task smallVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 1,
+            typeCount: 1
+    ]
+    testDependencies = files()
+}
+
+task mediumVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 5,
+            typeCount: 5
+    ]
+    testDependencies = files()
+}
+
+task bigVariantsOldModel(type: ProjectGeneratorTask) {
+    projects = 1
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
+task variantsNewModelMultiproject(type: ProjectGeneratorTask) {
+    projects = 10
+    subProjectTemplates = ['variants-new-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
+task variantsOldModelMultiproject(type: ProjectGeneratorTask) {
+    projects = 10
+    subProjectTemplates = ['variants-old-model']
+    templateArgs = [
+            flavourCount: 23,
+            typeCount: 23
+    ]
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects])
+task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+                                smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
+                                smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
+                                variantsNewModelMultiproject, variantsOldModelMultiproject])
 
 task report {
     def crossVersionReportDir = new File(buildDir, "performance-tests/report/cross-version")

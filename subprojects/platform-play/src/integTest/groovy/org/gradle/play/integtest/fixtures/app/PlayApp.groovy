@@ -22,9 +22,20 @@ import org.gradle.util.GFileUtils
 
 abstract class PlayApp {
 
+    String getName() {
+        getClass().getSimpleName().toLowerCase()
+    }
 
     List<SourceFile> getAllFiles() {
-        return appSources + testSources + viewSources + assetSources + confSources
+        return appSources + testSources + viewSources + assetSources + confSources + otherSources
+    }
+
+    SourceFile getGradleBuild() {
+        sourceFile("", "build.gradle")
+    }
+
+    List<SourceFile> getAssetSources() {
+        sourceFiles("public", "shared")
     }
 
     List<SourceFile> getAppSources() {
@@ -33,24 +44,37 @@ abstract class PlayApp {
         }
     }
 
-    abstract List<SourceFile> getViewSources();
-    abstract List<SourceFile> getConfSources();
-    abstract List<SourceFile> getAssetSources();
+    List<SourceFile> getViewSources() {
+        return sourceFiles("app/views");
+    }
+
+    List<SourceFile> getConfSources() {
+        return sourceFiles("conf", "shared") + sourceFiles("conf")
+    }
+
+    List<SourceFile> getTestSources() {
+        return sourceFiles("test")
+    }
+
+    List<SourceFile> getOtherSources() {
+        return [ sourceFile("", "README", "shared") ]
+    }
 
 
-    protected SourceFile sourceFile(String path, String name, String baseDir = getClass().getSimpleName().toLowerCase()) {
+    protected SourceFile sourceFile(String path, String name, String baseDir = getName()) {
         URL resource = getClass().getResource("$baseDir/$path/$name");
         File file = new File(resource.toURI())
         return new SourceFile(path, name, file.text);
     }
 
     void writeSources(TestFile sourceDir) {
+        gradleBuild.writeToDir(sourceDir)
         for (SourceFile srcFile : allFiles) {
             srcFile.writeToDir(sourceDir)
         }
     }
 
-    List<SourceFile> sourceFiles(String baseDir, String rootDir = getClass().getSimpleName().toLowerCase()) {
+    List<SourceFile> sourceFiles(String baseDir, String rootDir = getName()) {
         List sourceFiles = new ArrayList()
 
         URL resource = getClass().getResource("$rootDir/$baseDir")

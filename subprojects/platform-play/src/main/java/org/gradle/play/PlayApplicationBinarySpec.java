@@ -37,6 +37,8 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
 
     File getJarFile();
 
+    File getAssetsJarFile();
+
     JvmClasses getClasses();
 
     PublicAssets getAssets();

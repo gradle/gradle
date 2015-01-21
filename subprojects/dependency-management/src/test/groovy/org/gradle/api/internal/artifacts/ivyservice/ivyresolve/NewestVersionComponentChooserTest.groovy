@@ -111,7 +111,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
     def "chooses newest matching version requiring metadata"() {
@@ -142,7 +142,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
     def "rejects dynamic version by rule without metadata" () {
@@ -179,7 +179,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
     }
 
     def "rejects dynamic version by rule with metadata" () {
@@ -223,7 +223,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         then:
         // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
-        chooser.choose(listing, dependency, repo) == null
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
 
     }
 
@@ -252,7 +252,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == null
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
     }
 
     def "returns null when no versions match without metadata"() {
@@ -276,7 +276,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == null
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
     }
 
     def "returns null when no versions are chosen with metadata"() {
@@ -306,7 +306,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == null
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
     }
 
     def "returns null when all matching versions match are rejected by rule"() {
@@ -333,7 +333,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo) == null
+        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
     }
 
     def rules(Closure closure) {

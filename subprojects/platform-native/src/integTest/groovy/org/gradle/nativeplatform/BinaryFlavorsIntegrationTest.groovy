@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
@@ -136,10 +137,10 @@ model {
 apply plugin: "cpp"
 model {
     components {
-        hello(NativeLibrarySpec) {
+        hello {
             targetFlavors "english", "french"
         }
-        main(NativeExecutableSpec) {
+        main {
             targetFlavors "english", "german"
             binaries.all {
                 lib library: 'hello'
@@ -168,7 +169,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'test'.")
+        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#createNativeBinaries")
         failure.assertHasCause("Invalid Flavor: 'unknown'")
     }
 }

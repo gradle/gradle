@@ -20,17 +20,30 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 @ThreadSafe
 public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
+    public static final ModelPath ROOT = new ModelPath("", Collections.<String>emptyList()) {
+        @Override
+        public String toString() {
+            return "<root>";
+        }
+
+        @Override
+        public ModelPath descendant(ModelPath path) {
+            return path;
+        }
+    };
 
     public static final String SEPARATOR = ".";
     public static final Splitter PATH_SPLITTER = Splitter.on('.');
@@ -47,6 +60,11 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     public ModelPath(Iterable<String> parts) {
         this.path = PATH_JOINER.join(parts);
         this.components = ImmutableList.copyOf(parts);
+    }
+
+    private ModelPath(String path, List<String> parts) {
+        this.path = path;
+        this.components = parts;
     }
 
     public int compareTo(ModelPath other) {
@@ -108,27 +126,43 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public boolean isTopLevel() {
-        return getRootParent() == null;
+        return getDepth() == 1;
     }
 
     public ModelPath getRootParent() {
-        return components.size() == 1 ? null : ModelPath.path(components.get(0));
+        return components.size() <= 1 ? null : ModelPath.path(components.get(0));
     }
 
     public ModelPath getParent() {
-        if (components.size() == 1) {
+        if (components.isEmpty()) {
             return null;
+        }
+        if (components.size() == 1) {
+            return ROOT;
         }
         return path(components.subList(0, components.size() - 1));
     }
 
     public String getName() {
+        if (components.isEmpty()) {
+            return "";
+        }
         return components.get(components.size() - 1);
     }
 
-    public boolean isDirectChild(ModelPath other) {
+    public boolean isDirectChild(@Nullable ModelPath other) {
+        if (other == null) {
+            return false;
+        }
+        if (other.getDepth() != getDepth() + 1) {
+            return false;
+        }
         ModelPath otherParent = other.getParent();
         return otherParent != null && otherParent.equals(this);
+    }
+
+    public ModelPath descendant(ModelPath path) {
+        return path(Iterables.concat(components, path.components));
     }
 
     public static class InvalidNameException extends GradleException {

@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {
-    public static final String GENERATE_SUBCLASS = "generateSubclass";
     private final ClassGenerator generator;
     private final ProjectInternal project;
     private final Instantiator instantiator;
@@ -51,7 +50,6 @@ public class TaskFactory implements ITaskFactory {
         this.project = project;
         this.instantiator = instantiator;
 
-
         validTaskArguments = new HashSet<String>();
         validTaskArguments.add(Task.TASK_ACTION);
         validTaskArguments.add(Task.TASK_DEPENDS_ON);
@@ -60,7 +58,6 @@ public class TaskFactory implements ITaskFactory {
         validTaskArguments.add(Task.TASK_NAME);
         validTaskArguments.add(Task.TASK_OVERWRITE);
         validTaskArguments.add(Task.TASK_TYPE);
-
     }
 
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
@@ -77,8 +74,7 @@ public class TaskFactory implements ITaskFactory {
         }
 
         Class<? extends TaskInternal> type = (Class) actualArgs.get(Task.TASK_TYPE);
-        Boolean generateSubclass = Boolean.valueOf(actualArgs.get(GENERATE_SUBCLASS).toString());
-        TaskInternal task = createTaskObject(project, type, name, generateSubclass);
+        TaskInternal task = create(name, type);
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -104,22 +100,23 @@ public class TaskFactory implements ITaskFactory {
         return task;
     }
 
-    private TaskInternal createTaskObject(ProjectInternal project, final Class<? extends TaskInternal> type, String name, boolean generateGetters) {
+    @Override
+    public <S extends TaskInternal> S create(String name, final Class<S> type) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new InvalidUserDataException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
                     type.getSimpleName()));
         }
 
-        final Class<? extends TaskInternal> generatedType;
-        if (generateGetters) {
-            generatedType = generator.generate(type);
+        final Class<? extends Task> generatedType;
+        if (type.isAssignableFrom(DefaultTask.class)) {
+            generatedType = generator.generate(DefaultTask.class);
         } else {
-            generatedType = type;
+            generatedType = generator.generate(type);
         }
 
-        return AbstractTask.injectIntoNewInstance(project, name, new Callable<TaskInternal>() {
-            public TaskInternal call() throws Exception {
+        return type.cast(AbstractTask.injectIntoNewInstance(project, name, new Callable<Task>() {
+            public Task call() throws Exception {
                 try {
                     return instantiator.newInstance(generatedType);
                 } catch (ObjectInstantiationException e) {
@@ -127,17 +124,13 @@ public class TaskFactory implements ITaskFactory {
                             e.getCause());
                 }
             }
-        });
+        }));
     }
 
     private void checkTaskArgsAndCreateDefaultValues(Map<String, Object> args) {
         validateArgs(args);
         setIfNull(args, Task.TASK_NAME, "");
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
-        if (((Class) args.get(Task.TASK_TYPE)).isAssignableFrom(DefaultTask.class)) {
-            args.put(Task.TASK_TYPE, DefaultTask.class);
-        }
-        setIfNull(args, GENERATE_SUBCLASS, "true");
     }
 
     private void validateArgs(Map<String, Object> args) {

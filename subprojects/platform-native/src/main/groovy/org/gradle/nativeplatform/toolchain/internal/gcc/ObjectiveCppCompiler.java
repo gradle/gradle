@@ -16,14 +16,16 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 
-public class ObjectiveCppCompiler extends NativeCompiler<ObjectiveCppCompileSpec> {
+class ObjectiveCppCompiler extends GccCompatibleNativeCompiler<ObjectiveCppCompileSpec> {
 
-    public ObjectiveCppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new ObjectiveCppCompileArgsTransformer(), objectFileSuffix, useCommandFile);
+    ObjectiveCppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, baseInvocation, new ObjectiveCppCompileArgsTransformer(), Transformers.<ObjectiveCppCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class ObjectiveCppCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCppCompileSpec> {

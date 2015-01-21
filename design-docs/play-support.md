@@ -261,6 +261,8 @@ Add a TwirlSourceSet and permit multiple instances in a Play application
 
 - handle non html templates
 - Ability for Twirl compiler to prefer Java types in generated sources (i.e. SBT enablePlugins(PlayJava))
+- Verify that default imports are configured: https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/TemplateImports.java
+- Allow Twirl to be used in a non-play project
 
 ### Story: Developer defines routes for Play application
 
@@ -371,17 +373,37 @@ Introduce some lifecycle tasks to allow the developer to package up the Play app
 developer may run `gradle stage` to stage the local application, or `gradle dist` to create a standalone distribution.
 
 - Build distribution image and zips, as per `play stage` and `play dist`
-- Integrate with the distribution plugin.
+- Default distributions are added for each play binary
+- Developer can add additional content to a default distribution:
+```
+model {
+    distributions {
+        playBinary {
+            contents {
+                from "docs"
+            }
+        }
+    }
+}
+```
+
 
 #### Test cases
+- Default distributions are added for each play binary
+- Stage and Zip tasks are added for each distribution
+- Lifecycle tasks for "stage" and "dist" are added to aggregate all distribution tasks
+- Distribution base name defaults to distribution name, which defaults to play binary name
+- Distribution archive name defaults to "[distribution-base-name]-[project.version].zip"
 - Public assets are packaged in a separate jar with a classifier of "assets".
-- Distribution zip contains:
-    - all content under a directory named "<play-application-name>-<version>"
+- Default distribution zip contains:
+    - all content under a directory named "[distribution-base-name]-[project.version]"
     - jar and assets jar in "lib".
     - all runtime libraries in "lib".
     - application script and batch file in "bin".
-    - application.conf and secondary routes files in "conf".
+    - application.conf and any secondary routes files in "conf".
     - any README file provided in conventional location "${projectDir}/README"
+- content added to the distribution is also included in the zip
+- additional arbitrary distributions can be created
 - application script and batch file will successfully run play:
     - can access a public asset
     - can access a custom route
@@ -389,6 +411,7 @@ developer may run `gradle stage` to stage the local application, or `gradle dist
 #### Open Issues
 - A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need 
 a scaladoc task wired in to duplicate this functionality.
+- Play compile and runtime dependencies need to be added to distribution.
     
 ### Implementation
 
@@ -639,11 +662,20 @@ For example, running `gradle --watch test run` would restart the application if 
 This story adds an equivalent of Play's run command, where a build is triggered by the developer reloading the application in the browser
 and some source files have changed.
 
-The plugin will need to depend on Play's [sbt-link](http://repo.typesafe.com/typesafe/releases/com/typesafe/play/sbt-link/) library.
+The plugin will need to depend on Play's [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library.
 See [Play's BuildLink.java](https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/core/BuildLink.java)
 for good documentation about interfacing between Play and the build system. Gradle must implement the BuildLink interface and provide
 it to Play's NettyServer. When a new request comes in, Play will call Gradle's implementation of BuildLink.reload and if any files have
-changed then Gradle will have to recompile and return a new classloader to Play.
+changed then Gradle will have to recompile and return a new classloader to Play. See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
+and [PlayReloader](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayReloader.scala) for
+the SBT implementation of this logic, which may be a helpful guide.
+
+To determine if files have changed and the application needs to be reloaded it may be helpful to use Play's
+[runsupport](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/run-support_2.11/) library, which provides a FileWatchService. The FileWatchService
+chooses a watcher implementation to optimally watch the file system with JDK7 NIO, JNotify, or polling depending on what works best for the given platform.
+The FileWatchService was originally written only for Scala and will be callable from Java/Groovy only in version 2.4.0-M3 or greater. Note that it is perfectly
+fine to use runsupport 2.4.0 with older versions of Play. The version of the runsupport library that is used does not need to match the version of Play since
+it only provides file system watching independent of Play.
 
 ## Feature: Resources are built on demand when running Play application
 

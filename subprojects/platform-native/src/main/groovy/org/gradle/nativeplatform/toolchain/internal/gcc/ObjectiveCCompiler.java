@@ -16,14 +16,16 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
 
-public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
+class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSpec> {
 
-    public ObjectiveCCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), objectFileSuffix, useCommandFile);
+    ObjectiveCCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, baseInvocation, new ObjectiveCCompileArgsTransformer(), Transformers.<ObjectiveCCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
     }
 
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
@@ -31,6 +33,5 @@ public class ObjectiveCCompiler extends NativeCompiler<ObjectiveCCompileSpec> {
             return "objective-c";
         }
     }
-
 
 }

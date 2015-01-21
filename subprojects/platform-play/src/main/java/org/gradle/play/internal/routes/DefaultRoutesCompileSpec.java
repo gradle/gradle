@@ -19,21 +19,16 @@ package org.gradle.play.internal.routes;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
-import java.util.List;
 
 public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final Iterable<File> sourceFiles;
     private final File outputDirectory;
-    private final List<String> additionalImports;
-    private final boolean namespaceReverseRouter;
     private final BaseForkOptions forkOptions;
     private final boolean javaProject;
 
-    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, List<String> additionalImports, boolean namespaceReverseRouter, BaseForkOptions forkOptions, boolean javaProject) {
+    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject) {
         this.sourceFiles = sourceFiles;
         this.outputDirectory = outputDirectory;
-        this.additionalImports = additionalImports;
-        this.namespaceReverseRouter = namespaceReverseRouter;
         this.forkOptions = forkOptions;
         this.javaProject = javaProject;
     }
@@ -42,23 +37,15 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
         return sourceFiles;
     }
 
+    public File getDestinationDir() {
+        return outputDirectory;
+    }
+
     public BaseForkOptions getForkOptions() {
         return forkOptions;
     }
 
     public boolean isJavaProject() {
         return javaProject;
-    }
-
-    public File getDestinationDir() {
-        return outputDirectory;
-    }
-
-    public List<String> getAdditionalImports() {
-        return additionalImports;
-    }
-
-    public boolean isNamespaceReverseRouter() {
-        return namespaceReverseRouter;
     }
 }

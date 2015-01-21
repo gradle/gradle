@@ -15,7 +15,6 @@
  */
 
 package org.gradle.jvm.internal.plugins
-
 import org.gradle.api.Action
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -33,18 +32,18 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.PlatformContainer
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
     def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
-    def rule = new JvmComponentPlugin.Rules()
-    def platforms = Mock(PlatformContainer)
+    def rule = new JvmComponentPlugin()
+    def platforms = Mock(PlatformResolvers)
     CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
     def instantiator = Mock(Instantiator)
     def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator(), Stub(ProjectSourceSet))
@@ -70,7 +69,7 @@ class CreateJvmBinariesTest extends Specification {
         rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
-        1 * platforms.chooseFromTargets(JavaPlatform, _) >> [platform]
+        1 * platforms.resolve(JavaPlatform, _) >> platform
         1 * toolChainRegistry.getForPlatform(platform) >> toolChain
         1 * namingSchemeBuilder.withComponentName("jvmLibOne") >> namingSchemeBuilder
         1 * namingSchemeBuilder.withTypeString("jar") >> namingSchemeBuilder

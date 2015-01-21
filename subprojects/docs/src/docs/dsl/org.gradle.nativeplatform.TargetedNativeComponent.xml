@@ -40,9 +40,6 @@
             <tr>
                 <td>targetBuildTypes</td>
             </tr>
-            <tr>
-                <td>targetPlatforms</td>
-            </tr>
         </table>
     </section>
 </section>

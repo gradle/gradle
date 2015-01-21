@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
@@ -67,8 +68,14 @@ public abstract class ModelType<T> {
         return new Simple<T>(method.getGenericReturnType());
     }
 
+    @Nullable
     public static <T> ModelType<T> paramType(Method method, int i) {
-        return new Simple<T>(method.getGenericParameterTypes()[i]);
+        Type[] parameterTypes = method.getGenericParameterTypes();
+        if (i < parameterTypes.length) {
+            return new Simple<T>(parameterTypes[i]);
+        } else {
+            return null;
+        }
     }
 
     public static <T> ModelType<T> typeOf(T instance) {
@@ -93,7 +100,6 @@ public abstract class ModelType<T> {
         Type type = getType();
         return type instanceof Class && ((Class) type).getTypeParameters().length > 0;
     }
-
 
     public Type getType() {
         return wrapper.unwrap();
@@ -120,6 +126,7 @@ public abstract class ModelType<T> {
         }
     }
 
+    @Nullable
     public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
         if (isWildcard() || modelType.isWildcard()) {
             return null;
@@ -317,7 +324,7 @@ public abstract class ModelType<T> {
             return new ClassTypeWrapper((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            return new ParameterizedTypeImpl(
+            return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
                     wrap(parameterizedType.getRawType()),
                     wrap(parameterizedType.getOwnerType()),
@@ -325,7 +332,7 @@ public abstract class ModelType<T> {
             );
         } else if (type instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) type;
-            return new WildcardTypeImpl(
+            return new WildcardTypeWrapper(
                     toWrappers(wildcardType.getUpperBounds()),
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()

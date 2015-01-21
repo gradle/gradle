@@ -19,7 +19,6 @@ import org.apache.http.HttpRequest
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.AuthState
 import org.apache.http.client.methods.HttpHead
-import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.protocol.ClientContext
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.params.HttpProtocolParams

@@ -18,36 +18,55 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.*;
 import com.google.common.collect.*;
+import groovy.lang.GroovyObject;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.MethodDescription;
+import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class StructStrategy implements ModelSchemaExtractionStrategy {
-    protected final Factory<String> supportedTypeDescriptions;
-    protected final ModelSchemaExtractor extractor;
 
-    public StructStrategy(ModelSchemaExtractor extractor, Factory<String> supportedTypeDescriptions) {
+    private static final NoOpModelElementState NO_OP_MODEL_ELEMENT_STATE = new NoOpModelElementState();
+
+    private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
+
+    private final Factory<String> supportedTypeDescriptions;
+    private final MethodSignatureEquivalence equivalence = new MethodSignatureEquivalence();
+
+    private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
+    private final ManagedProxyFactory proxyFactory = new ManagedProxyFactory();
+
+    public StructStrategy(Factory<String> supportedTypeDescriptions) {
         this.supportedTypeDescriptions = supportedTypeDescriptions;
-        this.extractor = extractor;
+
+        Iterable<Method> ignoredMethods = Iterables.concat(Arrays.asList(Object.class.getMethods()), Arrays.asList(GroovyObject.class.getMethods()));
+        this.ignoredMethods = ImmutableSet.copyOf(Iterables.transform(ignoredMethods, new Function<Method, Equivalence.Wrapper<Method>>() {
+            public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
+                return equivalence.wrap(input);
+            }
+        }));
     }
 
     public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton("interfaces annotated with " + Managed.class.getName());
+        return Collections.singleton("interfaces and abstract classes annotated with " + Managed.class.getName());
     }
 
     public <R> ModelSchemaExtractionResult<R> extract(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaCache cache) {
@@ -56,7 +75,11 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         if (clazz.isAnnotationPresent(Managed.class)) {
             validateType(type, extractionContext);
 
-            ImmutableListMultimap<String, Method> methodsByName = Multimaps.index(Arrays.asList(clazz.getMethods()), new Function<Method, String>() {
+            Iterable<Method> methods = Arrays.asList(clazz.getMethods());
+            if (!clazz.isInterface()) {
+                methods = filterIgnoredMethods(methods);
+            }
+            ImmutableListMultimap<String, Method> methodsByName = Multimaps.index(methods, new Function<Method, String>() {
                 public String apply(Method method) {
                     return method.getName();
                 }
@@ -76,6 +99,8 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                     // So, taking the first one with the most specialized return type is fine.
                     Method sampleMethod = returnTypeSpecializationOrdering.max(getterMethods);
 
+                    boolean abstractGetter = Modifier.isAbstract(sampleMethod.getModifiers());
+
                     if (sampleMethod.getParameterTypes().length != 0) {
                         throw invalidMethod(extractionContext, "getter methods cannot take parameters", sampleMethod);
                     }
@@ -94,23 +119,30 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
                     boolean isWritable = !setterMethods.isEmpty();
                     if (isWritable) {
-                        validateSetter(extractionContext, returnType, setterMethods.get(0));
+                        Method setter = setterMethods.get(0);
+
+                        if (!abstractGetter) {
+                            throw invalidMethod(extractionContext, "setters are not allowed for non-abstract getters", setter);
+                        }
+                        validateSetter(extractionContext, returnType, setter);
                         handled.addAll(setterMethods);
                     }
 
-                    ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterMethods, new Function<Method, ModelType<?>>() {
-                        public ModelType<?> apply(Method input) {
-                            return ModelType.of(input.getDeclaringClass());
-                        }
-                    }));
+                    if (abstractGetter) {
+                        ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterMethods, new Function<Method, ModelType<?>>() {
+                            public ModelType<?> apply(Method input) {
+                                return ModelType.of(input.getDeclaringClass());
+                            }
+                        }));
 
-                    boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
-                        public boolean apply(Method input) {
-                            return input.getAnnotation(Unmanaged.class) != null;
-                        }
-                    });
+                        boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
+                            public boolean apply(Method input) {
+                                return input.getAnnotation(Unmanaged.class) != null;
+                            }
+                        });
 
-                    properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
+                        properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
+                    }
                     handled.addAll(getterMethods);
                 }
             }
@@ -122,7 +154,15 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", notHandled);
             }
 
-            ModelSchema<R> schema = ModelSchema.struct(type, properties);
+            Class<R> concreteClass = type.getConcreteClass();
+            Class<? extends R> implClass = classGenerator.generate(concreteClass);
+            final ModelSchema<R> schema = ModelSchema.struct(type, properties, implClass);
+            extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
+                @Override
+                public void execute(ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext) {
+                    ensureCanBeInstantiated(extractionContext, schema);
+                }
+            });
             Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
                 public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
                     return toPropertyExtractionContext(extractionContext, property, cache);
@@ -135,12 +175,29 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
+    private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelSchema<R> schema) {
+        try {
+            proxyFactory.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
+        } catch (Throwable e) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, "instance creation failed", e);
+        }
+    }
+
+    private Iterable<Method> filterIgnoredMethods(Iterable<Method> methods) {
+        return Iterables.filter(methods, new Predicate<Method>() {
+            @Override
+            public boolean apply(Method method) {
+                return !method.isSynthetic() && !ignoredMethods.contains(equivalence.wrap(method));
+            }
+        });
+    }
+
     private <R> void ensureNoOverloadedMethods(ModelSchemaExtractionContext<R> extractionContext, final ImmutableListMultimap<String, Method> methodsByName) {
         ImmutableSet<String> methodNames = methodsByName.keySet();
         for (String methodName : methodNames) {
             ImmutableList<Method> methods = methodsByName.get(methodName);
             if (methods.size() > 1) {
-                List<Method> deduped = CollectionUtils.dedup(methods, new MethodSignatureEquivalence());
+                List<Method> deduped = CollectionUtils.dedup(methods, equivalence);
                 if (deduped.size() > 1) {
                     throw invalidMethods(extractionContext, "overloaded methods are not supported", deduped);
                 }
@@ -155,7 +212,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
                 if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remote the @Managed annotation.%n%s",
+                            "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n%s",
                             property.getName(), property.getType(), supportedTypeDescriptions.create()
                     ));
                 }
@@ -195,6 +252,10 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, Method setter) {
+        if (!Modifier.isAbstract(setter.getModifiers())) {
+            throw invalidMethod(extractionContext, "non-abstract setters are not allowed", setter);
+        }
+
         if (!setter.getReturnType().equals(void.class)) {
             throw invalidMethod(extractionContext, "setter method must have void return type", setter);
         }
@@ -214,59 +275,105 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
     private void validateType(ModelType<?> type, ModelSchemaExtractionContext<?> extractionContext) {
         Class<?> typeClass = type.getConcreteClass();
 
-        if (!typeClass.isInterface()) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface.");
+        if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface or an abstract class.");
         }
 
         if (typeClass.getTypeParameters().length > 0) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "cannot be a parameterized type.");
         }
+
+        Constructor<?> customConstructor = findCustomConstructor(typeClass);
+        if (customConstructor != null) {
+            throw invalidMethod(extractionContext, "custom constructors are not allowed", customConstructor);
+        }
+
+        ensureNoInstanceScopedFields(extractionContext, typeClass);
+        ensureNoProtectedOrPrivateMethods(extractionContext, typeClass);
+    }
+
+    private void ensureNoProtectedOrPrivateMethods(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
+        Class<?> superClass = typeClass.getSuperclass();
+        if (superClass != null && !superClass.equals(Object.class)) {
+            ensureNoProtectedOrPrivateMethods(extractionContext, superClass);
+        }
+
+        Iterable<Method> protectedAndPrivateMethods = Iterables.filter(Arrays.asList(typeClass.getDeclaredMethods()), new Predicate<Method>() {
+            @Override
+            public boolean apply(Method method) {
+                int modifiers = method.getModifiers();
+                return !method.isSynthetic() && (Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
+            }
+        });
+
+        if (!Iterables.isEmpty(protectedAndPrivateMethods)) {
+            throw invalidMethods(extractionContext, "protected and private methods are not allowed", protectedAndPrivateMethods);
+        }
+    }
+
+    private void ensureNoInstanceScopedFields(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
+        Class<?> superClass = typeClass.getSuperclass();
+        if (superClass != null && !superClass.equals(Object.class)) {
+            ensureNoInstanceScopedFields(extractionContext, superClass);
+        }
+
+        List<Field> declaredFields = Arrays.asList(typeClass.getDeclaredFields());
+        Iterable<Field> instanceScopedFields = Iterables.filter(declaredFields, new Predicate<Field>() {
+            public boolean apply(Field field) {
+                return !Modifier.isStatic(field.getModifiers()) && !field.getName().equals("metaClass");
+            }
+        });
+        ImmutableSortedSet<String> sortedDescriptions = ImmutableSortedSet.copyOf(Iterables.transform(instanceScopedFields, new Function<Field, String>() {
+            public String apply(Field field) {
+                return field.toString();
+            }
+        }));
+        if (!sortedDescriptions.isEmpty()) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, "instance scoped fields are not allowed (found fields: " + Joiner.on(", ").join(sortedDescriptions) + ").");
+        }
+    }
+
+    private Constructor<?> findCustomConstructor(Class<?> typeClass) {
+        Class<?> superClass = typeClass.getSuperclass();
+        if (superClass != null && !superClass.equals(Object.class)) {
+            Constructor<?> customSuperConstructor = findCustomConstructor(typeClass.getSuperclass());
+            if (customSuperConstructor != null) {
+                return customSuperConstructor;
+            }
+        }
+        Constructor<?>[] constructors = typeClass.getConstructors();
+        if (constructors.length == 0 || (constructors.length == 1 && constructors[0].getParameterTypes().length == 0)) {
+            return null;
+        } else {
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterTypes().length > 0) {
+                    return constructor;
+                }
+            }
+            //this should never happen
+            throw new RuntimeException(String.format("Expected a constructor taking at least one argument in %s but no such constructors were found", typeClass.getName()));
+        }
     }
 
     private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + description(method) + ").");
+        return invalidMethod(extractionContext, message, MethodDescription.of(method));
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
+        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription.toString() + ").");
     }
 
     private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, final Iterable<Method> methods) {
         final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
             public String apply(Method method) {
-                return description(method).toString();
+                return MethodDescription.of(method).toString();
             }
         }));
         return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
-    }
-
-    private MethodDescription description(Method method) {
-        return MethodDescription.name(method.getName())
-                .owner(method.getDeclaringClass())
-                .returns(method.getGenericReturnType())
-                .takes(method.getGenericParameterTypes())
-                .build();
-    }
-
-    static private class MethodSignatureEquivalence extends Equivalence<Method> {
-
-        @Override
-        protected boolean doEquivalent(Method a, Method b) {
-            boolean equals = new EqualsBuilder()
-                    .append(a.getName(), b.getName())
-                    .append(a.getGenericParameterTypes(), b.getGenericParameterTypes())
-                    .isEquals();
-            if (equals) {
-                equals = a.getReturnType().equals(b.getReturnType())
-                        || a.getReturnType().isAssignableFrom(b.getReturnType())
-                        || b.getReturnType().isAssignableFrom(a.getReturnType());
-            }
-            return equals;
-        }
-
-        @Override
-        protected int doHash(Method method) {
-            return new HashCodeBuilder()
-                    .append(method.getName())
-                    .append(method.getGenericParameterTypes())
-                    .toHashCode();
-        }
     }
 
     static private class ReturnTypeSpecializationOrdering extends Ordering<Method> {
@@ -285,6 +392,25 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
                 return 1;
             }
             throw new UnsupportedOperationException(String.format("Cannot compare two types that aren't part of an inheritance hierarchy: %s, %s", leftType, rightType));
+        }
+    }
+
+    private static class NoOpModelElementState implements ModelElementState {
+        @Override
+        public MutableModelNode getBackingNode() {
+            return null;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return null;
+        }
+
+        public Object get(String name) {
+            return null;
+        }
+
+        public void set(String name, Object value) {
         }
     }
 }

@@ -24,11 +24,11 @@ dependencies {
 
 dependencies {
     components {
-        eachComponent { ComponentMetadataDetails details ->
+        all { ComponentMetadataDetails details ->
             def version = details.id.version
             if(version.matches("(\\d\\.?)+")){
                 details.status = "release"
-            }else{
+            } else {
                 details.status = "integration"
             }
             details.statusScheme = ["integration", "release"]

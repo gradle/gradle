@@ -46,6 +46,8 @@ public class RuleBinder<T> {
 
     private final ModelRuleDescriptor descriptor;
 
+    private final ModelPath scope;
+
     private Action<? super RuleBinder<T>> onBind;
 
     private int inputsBound;
@@ -53,10 +55,12 @@ public class RuleBinder<T> {
     private ModelBinding<T> subjectBinding;
     private List<ModelBinding<?>> inputBindings;
 
-    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Action<? super RuleBinder<T>> onBind) {
+    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope,
+                      Action<? super RuleBinder<T>> onBind) {
         this.subjectReference = subjectReference;
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
+        this.scope = scope;
         this.onBind = onBind;
 
         this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
@@ -83,6 +87,10 @@ public class RuleBinder<T> {
 
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
+    }
+
+    public ModelPath getScope() {
+        return scope;
     }
 
     public boolean bindSubject(ModelPath path) {

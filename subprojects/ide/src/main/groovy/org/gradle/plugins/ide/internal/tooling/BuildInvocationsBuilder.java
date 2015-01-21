@@ -18,11 +18,14 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.tasks.PublicTaskSpecification;
+import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
@@ -35,64 +38,48 @@ import java.util.Set;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
 
-    private static class TaskSelectorBuilder {
-        private String selectorName;
-        private String description;
-
-        public TaskSelectorBuilder(String selectorName, String description) {
-            this.selectorName = selectorName;
-            this.description = description;
-        }
-
-        public void addDescription(String description) {
-            if (description != null) {
-                this.description = description;
-            }
-        }
-
-        LaunchableGradleTaskSelector build(Project project, Set<String> visibleTasks) {
-            String desc = description != null
-                    ? description
-                    : (project.getParent() != null
-                        ? String.format("%s:%s task selector", project.getPath(), selectorName)
-                        : String.format("%s task selector", selectorName));
-            return new LaunchableGradleTaskSelector().
-                    setName(selectorName).
-                    setTaskName(selectorName).
-                    setProjectPath(project.getPath()).
-                    setDescription(desc).
-                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
-                    setPublic(visibleTasks.contains(selectorName));
-        }
-    }
     private final ProjectTaskLister taskLister;
+    private final TaskNameComparator taskNameComparator;
 
     public BuildInvocationsBuilder(ProjectTaskLister taskLister) {
         this.taskLister = taskLister;
+        this.taskNameComparator = new TaskNameComparator();
     }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
+    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
+        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
+    }
+
+    @SuppressWarnings("StringEquality")
     public DefaultBuildInvocations buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
-        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        Map<String, TaskSelectorBuilder> aggregatedTasks = Maps.newLinkedHashMap();
-        Set<String> visibleTasks = Sets.newLinkedHashSet();
-        findTasks(project, aggregatedTasks, visibleTasks);
-        for (TaskSelectorBuilder selectorData : aggregatedTasks.values()) {
-            selectors.add(selectorData.build(project, visibleTasks));
-        }
-        return new DefaultBuildInvocations()
-                .setSelectors(selectors)
-                .setTasks(tasks(project));
-    }
 
-    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
-        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
+        // construct task selectors
+        List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
+        Map<String, LaunchableGradleTaskSelector> selectorsByName = Maps.newTreeMap(Ordering.natural());
+        Set<String> visibleTasks = Sets.newLinkedHashSet();
+        findTasks(project, selectorsByName, visibleTasks);
+        for (String selectorName : selectorsByName.keySet()) {
+            LaunchableGradleTaskSelector selector = selectorsByName.get(selectorName);
+            selectors.add(selector.
+                    setName(selectorName).
+                    setTaskName(selectorName).
+                    setProjectPath(project.getPath()).
+                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
+                    setPublic(visibleTasks.contains(selectorName)));
+        }
+
+        // construct project tasks
+        List<LaunchableGradleTask> projectTasks = tasks(project);
+
+        // construct build invocations from task selectors and project tasks
+        return new DefaultBuildInvocations().setSelectors(selectors).setTasks(projectTasks);
     }
 
     // build tasks without project reference
@@ -104,26 +91,40 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     .setName(task.getName())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
-                    .setPublic(task.getGroup() != null));
+                    .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
         }
         return tasks;
     }
 
-    private void findTasks(Project project, Map<String, TaskSelectorBuilder> tasks, Collection<String> visibleTasks) {
+    private void findTasks(Project project, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
         for (Project child : project.getChildProjects().values()) {
-            findTasks(child, tasks, visibleTasks);
+            findTasks(child, taskSelectors, visibleTasks);
         }
+
         for (Task task : taskLister.listProjectTasks(project)) {
-            TaskSelectorBuilder selectorBuilder = tasks.get(task.getName());
-            if (selectorBuilder != null) {
-                selectorBuilder.addDescription(task.getDescription());
+            // in the map, store a minimally populated LaunchableGradleTaskSelector that contains just the description and the path
+            // replace the LaunchableGradleTaskSelector stored in the map iff we come across a task with the same name whose path has a smaller ordering
+            // this way, for each task selector, its description will be the one from the selected task with the 'smallest' path
+            if (!taskSelectors.containsKey(task.getName())) {
+                LaunchableGradleTaskSelector taskSelector = new LaunchableGradleTaskSelector().
+                        setDescription(task.getDescription()).setProjectPath(task.getPath());
+                taskSelectors.put(task.getName(), taskSelector);
             } else {
-                tasks.put(task.getName(), new TaskSelectorBuilder(task.getName(), task.getDescription()));
+                LaunchableGradleTaskSelector taskSelector = taskSelectors.get(task.getName());
+                if (hasPathWithLowerOrdering(task, taskSelector)) {
+                    taskSelector.setDescription(task.getDescription()).setProjectPath(task.getPath());
+                }
             }
-            if (task.getGroup() != null) {
+
+            // visible tasks are specified as those that have a non-empty group
+            if (PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)) {
                 visibleTasks.add(task.getName());
             }
         }
+    }
+
+    private boolean hasPathWithLowerOrdering(Task task, LaunchableGradleTaskSelector referenceTaskSelector) {
+        return taskNameComparator.compare(task.getPath(), referenceTaskSelector.getProjectPath()) < 0;
     }
 
 }

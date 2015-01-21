@@ -72,18 +72,27 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.style(Normal).println();
     }
 
-    public <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+    public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
         textOutput.println(title);
-        if (collection.isEmpty()) {
+        if (items.isEmpty()) {
             textOutput.formatln("    No %s.", elementsPlural);
             return;
         }
+        collection(items, renderer);
+    }
+
+    @Override
+    public <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer) {
         StyledTextOutput original = textOutput;
+        boolean hasItem = false;
         try {
             textOutput = new LinePrefixingStyledTextOutput(original, "    ");
-            // TODO - change LinePrefixingStyledTextOutput to prefix every line
-            textOutput.append("    ");
-            for (T t : collection) {
+            for (T t : items) {
+                // TODO - change LinePrefixingStyledTextOutput to prefix every line
+                if (!hasItem) {
+                    textOutput.append("    ");
+                    hasItem = true;
+                }
                 try {
                     renderer.render(t, this);
                 } catch (IOException e) {

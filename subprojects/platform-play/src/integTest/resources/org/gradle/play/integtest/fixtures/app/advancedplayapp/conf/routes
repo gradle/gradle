@@ -1,6 +1,8 @@
 # Routes
 GET /          controllers.Application.index
 GET /root      controllers.Application.root
+GET /shutdown  controllers.Application.shutdown
+
 ->  /scala     scala.Routes
 ->  /java      jva.Routes
 

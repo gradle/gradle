@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -49,18 +48,16 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandler;
-import org.gradle.model.internal.inspect.MethodRuleDefinitionHandlers;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.inspect.DefaultModelRuleSourceApplicator;
+import org.gradle.model.internal.core.ModelRuleSourceApplicator;
+import org.gradle.model.internal.core.PluginClassApplicator;
+import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -119,14 +116,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginManagerInternal createPluginManager() {
-        List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
-        List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(
-                get(Instantiator.class),
-                get(ModelSchemaStore.class)
-        );
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
-        PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
+        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleSourceApplicator.class));
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+    }
+
+    protected ModelRuleSourceApplicator createModelRuleSourceApplicator(ModelRuleInspector inspector) {
+        return new DefaultModelRuleSourceApplicator(get(ModelRuleSourceDetector.class), inspector);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
@@ -151,7 +146,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ModelRegistry createModelRegistry() {
-        return new DefaultModelRegistry();
+        return new DefaultModelRegistry(get(ModelRuleSourceApplicator.class), get(PluginClassApplicator.class));
     }
 
     protected ScriptHandler createScriptHandler() {

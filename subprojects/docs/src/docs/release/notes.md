@@ -21,6 +21,22 @@ The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gr
 
     org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
 
+### Support for AWS S3 backed maven repositories
+
+Gradle now supports S3 backed maven repositories. Here's an example on how to declare a S3 backed maven repository in gradle:
+
+    repositories {
+        maven {
+            url "s3://someS3Bucket/maven/release"
+            credentials(AwsCredentials) {
+                accessKey "someKey"
+                secretKey "someSecret"
+            }
+        }
+    }
+
+A big thank you goes to Adrian Kelly for implementing this feature.
+
 ### Improved performance with class loader caching
 
 We want each new version of Gradle to perform better.
@@ -42,6 +58,19 @@ Example setting in gradle.properties file:
 ### Google Test support (i)
 
 - TBD
+
+### Model rules
+
+A number of improvements have been made to the model rules execution used by the native language plugins:
+
+- Added a basic `model` report to allow you to see the structure of the model for a particular project.
+- `@Defaults` annotation allow logic to be applied to attach defaults to a model element.
+- `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
+- `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
+
+### Tooling API improvements
+
+There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
 
 ## Promoted features
 
@@ -69,14 +98,34 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Model DSL changes
+
+There have been some changes to the behaviour of the `model { ... }` block:
+
+- The `tasks` container now delegates to a `CollectionBuilder<Task>` instead of a `TaskContainer`.
+- The `components` container now delegates to a `CollectionBuilder<ComponentSpec>` instead of a `ComponentSpecContainer`.
+- The `binaries` container now delegates to a `CollectionBuilder<BinarySpec>` instead of a `BinaryContainer`.
+
+Generally, the DSL should be the same, except:
+
+- Elements are not implicitly created. In particular, to define a task with default type, you need to use `model { tasks { myTask(Task) { ... } }`
+- Elements are not created or configured eagerly, but are configured as required.
+- The `create` method returns void.
+- The `withType()` method selects elements based on the public contract type rather than implementation type.
+- Using create syntax fails when the element already exists.
+- There are currently no query method on this interface.
+
+### Updated default zinc compiler version
+
+The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Adrian Kelly](https://github.com/adrianbk)
+    - Adding support for AWS S3 backed maven repositories
+    - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
 * [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)

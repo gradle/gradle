@@ -151,7 +151,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     public ExecutionFailure assertHasDescription(String context) {
-        assertThatDescription(equalTo(context));
+        assertThatDescription(startsWith(context));
         return this;
     }
 

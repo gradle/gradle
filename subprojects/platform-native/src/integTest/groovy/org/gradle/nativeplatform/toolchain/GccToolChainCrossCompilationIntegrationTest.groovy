@@ -70,7 +70,7 @@ model {
     }
     components {
         all {
-            targetPlatforms "custom"
+            targetPlatform "custom"
         }
     }
 }

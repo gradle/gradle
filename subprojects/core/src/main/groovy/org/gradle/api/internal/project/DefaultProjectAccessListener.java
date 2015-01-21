@@ -22,9 +22,11 @@ public class DefaultProjectAccessListener implements ProjectAccessListener {
 
     public void beforeRequestingTaskByPath(ProjectInternal targetProject) {
         targetProject.evaluate();
+        // don't realize tasks here because we don't make model tasks visible during configuration
     }
 
     public void beforeResolvingProjectDependency(ProjectInternal dependencyProject) {
         dependencyProject.evaluate();
+        dependencyProject.realizeTasksAndValidateModel();
     }
 }

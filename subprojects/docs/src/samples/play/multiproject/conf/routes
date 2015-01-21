@@ -1,0 +1,11 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+# Module routes
+->     /                            admin.Routes
+->     /                            user.Routes

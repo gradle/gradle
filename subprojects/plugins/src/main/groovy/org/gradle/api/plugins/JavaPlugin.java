@@ -61,11 +61,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     public void apply(ProjectInternal project) {
-        project.apply(new Action<ObjectConfigurationAction>() {
-            public void execute(ObjectConfigurationAction objectConfigurationAction) {
-                objectConfigurationAction.plugin(JavaBasePlugin.class);
-            }
-        });
+        project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));

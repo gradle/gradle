@@ -47,6 +47,7 @@ public class FindBugsSpecBuilder {
     private Collection<String> omitVisitors;
     private File excludeFilter;
     private File includeFilter;
+    private File excludeBugsFilter;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -128,6 +129,16 @@ public class FindBugsSpecBuilder {
         return this;
     }
 
+    public FindBugsSpecBuilder withExcludeBugsFilter(File excludeBugsFilter) {
+        if (excludeBugsFilter != null && !excludeBugsFilter.canRead()) {
+            String errorStr = String.format("Cannot read file specified for FindBugs 'excludeBugsFilter' property: %s", excludeBugsFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.excludeBugsFilter = excludeBugsFilter;
+        return this;
+    }
+
     public FindBugsSpecBuilder withDebugging(boolean debugEnabled){
         this.debugEnabled = debugEnabled;
         return this;
@@ -201,6 +212,11 @@ public class FindBugsSpecBuilder {
         if (has(includeFilter)) {
             args.add("-include");
             args.add(includeFilter.getPath());
+        }
+
+        if (has(excludeBugsFilter)) {
+            args.add("-excludeBugs");
+            args.add(excludeBugsFilter.getPath());
         }
 
         for (File classFile : classes.getFiles()) {

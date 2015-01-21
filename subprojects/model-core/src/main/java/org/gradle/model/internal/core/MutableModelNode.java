@@ -20,26 +20,71 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-public interface MutableModelNode {
-    ModelPath getPath();
+import java.util.Set;
 
+public interface MutableModelNode extends ModelNode {
+    /**
+     * Creates a mutable view over this node's value.
+     */
     @Nullable
     <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
 
-    @Nullable
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
+    /**
+     * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
+     */
+    void addReference(ModelCreator creator);
 
-    MutableModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter);
+    /**
+     * Adds a node to the graph, linked from this node. The given creator is used to initialize the node when required.
+     */
+    void addLink(ModelCreator creator);
 
-    // Name is baked into the creator's path
-    MutableModelNode addLink(ModelCreator creator);
+    /**
+     * Removes a node linked from this node from the graph.
+     */
+    void removeLink(String name);
+
+    /**
+     * Applies an action to this node.
+     */
+    <T> void applyToSelf(ModelActionRole type, ModelAction<T> action);
+
+    /**
+     * Applies an action to all nodes linked from this node.
+     */
+    <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action);
+
+    /**
+     * Applies an action to a linked node.
+     */
+    <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
 
     @Nullable
     MutableModelNode getLink(String name);
 
+    int getLinkCount(ModelType<?> type);
+
+    Set<String> getLinkNames(ModelType<?> type);
+
+    Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
+
     boolean hasLink(String name);
+
+    boolean hasLink(String name, ModelType<?> type);
 
     <T> void setPrivateData(ModelType<T> type, T object);
 
     <T> T getPrivateData(ModelType<T> type);
+
+    @Nullable
+    MutableModelNode getTarget();
+
+    void setTarget(ModelNode target);
+
+    /**
+     * Ensure that the views are available, with default values applied.
+     */
+    void ensureUsable();
+
+    boolean isMutable();
 }

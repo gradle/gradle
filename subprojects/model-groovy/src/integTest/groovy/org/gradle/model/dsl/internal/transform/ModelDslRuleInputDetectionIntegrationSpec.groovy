@@ -69,8 +69,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -105,8 +104,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate void addPrintTask(CollectionBuilder<Task> tasks, List<String> strings) {
                         tasks.create("printMessage", PrintTask) {
                             it.message = strings
@@ -165,8 +163,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -185,7 +182,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(17)
         failure.assertThatCause(containsString("Invalid model path given as rule input."))
         failure.assertThatCause(containsString("Model path 'foo. bar' is invalid due to invalid name component."))
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
@@ -198,8 +195,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             import org.gradle.model.collection.*
 
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
                     void addTasks(CollectionBuilder<Task> tasks) {
                         tasks.create("foobar")
@@ -224,10 +220,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks", buildFile, 19, 17)
+                UnboundRule.descriptor("model.tasks", buildFile, 18, 17)
                         .mutableInput(UnboundRuleInput.type(Object).path("tasks").bound())
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 20"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 21"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 19"))
+                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 20"))
         ))
     }
 

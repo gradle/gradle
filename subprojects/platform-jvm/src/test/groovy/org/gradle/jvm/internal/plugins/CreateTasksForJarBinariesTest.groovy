@@ -27,7 +27,7 @@ import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toNamedDomainObjectSet
 
 class CreateTasksForJarBinariesTest extends Specification {
-    def rule = new JvmComponentPlugin.Rules()
+    def rule = new JvmComponentPlugin()
     def tasks = Mock(TaskContainer)
     def binaries = Mock(BinaryContainer)
 

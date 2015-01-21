@@ -21,4 +21,5 @@ public interface BuildParametersSpecification {
     String[] getTasksToRun()
     String[] getArgs()
     String[] getGradleOpts()
+    boolean getUseDaemon()
 }

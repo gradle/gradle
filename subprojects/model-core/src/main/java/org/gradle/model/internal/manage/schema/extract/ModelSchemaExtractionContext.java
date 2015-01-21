@@ -16,27 +16,38 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.Lists;
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
+
+@NotThreadSafe
 public class ModelSchemaExtractionContext<T> {
 
     private final ModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private final Action<? super ModelSchemaExtractionContext<T>> validator;
+    private final List<Action<? super ModelSchemaExtractionContext<T>>> validators;
 
     private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
-        this.validator = validator;
+        this.validators = Lists.newArrayListWithCapacity(2);
+
+        validators.add(validator);
     }
 
     public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
         return new ModelSchemaExtractionContext<T>(null, type, null, Actions.doNothing());
+    }
+
+    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type, Action<? super ModelSchemaExtractionContext<T>> validator) {
+        return new ModelSchemaExtractionContext<T>(null, type, null, validator);
     }
 
     /**
@@ -64,7 +75,12 @@ public class ModelSchemaExtractionContext<T> {
     }
 
     public void validate() {
-        validator.execute(this);
+        for (Action<? super ModelSchemaExtractionContext<T>> validator : validators) {
+            validator.execute(this);
+        }
     }
 
+    public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
+        validators.add(validator);
+    }
 }

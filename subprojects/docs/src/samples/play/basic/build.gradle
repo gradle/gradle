@@ -1,5 +1,10 @@
 plugins {
-	id 'play'
+    id 'play'
+}
+
+dependencies {
+    play 'commons-lang:commons-lang:2.6'
+    playTest "com.google.guava:guava:17.0"
 }
 
 repositories{

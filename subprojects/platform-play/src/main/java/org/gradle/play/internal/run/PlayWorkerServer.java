@@ -27,11 +27,13 @@ import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
 
-    private VersionedPlayRunSpec spec;
+    private PlayRunSpec runSpec;
+    private VersionedPlayRunAdapter spec;
 
     private volatile CountDownLatch stop;
 
-    public PlayWorkerServer(VersionedPlayRunSpec spec) {
+    public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter spec) {
+        this.runSpec = runSpec;
         this.spec = spec;
     }
 
@@ -53,7 +55,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
 
     private PlayAppLifecycleUpdate startServer() {
         try {
-            run(spec);
+            run();
             return PlayAppLifecycleUpdate.running();
         } catch (Exception e) {
             Logging.getLogger(this.getClass()).error("Failed to run Play", e);
@@ -61,15 +63,15 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         }
     }
 
-    private void run(VersionedPlayRunSpec spec) {
+    private void run() {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             ClassLoader docsClassLoader = getClass().getClassLoader();
 
-            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader);
+            Object buildDocHandler = spec.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
             ScalaMethod runMethod = spec.getNettyServerDevHttpMethod(classLoader, docsClassLoader);
-            Object buildLink = spec.getBuildLink(classLoader);
-            runMethod.invoke(buildLink, buildDocHandler, spec.getHttpPort());
+            Object buildLink = spec.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getClasspath());
+            runMethod.invoke(buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

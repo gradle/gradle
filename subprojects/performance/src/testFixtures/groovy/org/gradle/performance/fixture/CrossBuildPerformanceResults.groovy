@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 class CrossBuildPerformanceResults {
     String testId
+    String testGroup
     String jvm
     String versionUnderTest
     String operatingSystem

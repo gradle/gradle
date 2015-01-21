@@ -17,31 +17,48 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Joiner;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ModelRuleRegistration;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleInspector {
 
-    private final Iterable<MethodRuleDefinitionHandler> handlers;
+    final LoadingCache<Class<?>, List<ModelRuleRegistration>> cache = CacheBuilder.newBuilder()
+            .weakKeys()
+            .build(new CacheLoader<Class<?>, List<ModelRuleRegistration>>() {
+                public List<ModelRuleRegistration> load(Class<?> source) throws Exception {
+                    return doInspect(source);
+                }
+            });
 
-    public ModelRuleInspector(Iterable<MethodRuleDefinitionHandler> handlers) {
+    private final Iterable<MethodModelRuleExtractor> handlers;
+
+    public ModelRuleInspector(Iterable<MethodModelRuleExtractor> handlers) {
         this.handlers = handlers;
     }
 
     private String describeHandlers() {
-        String desc = Joiner.on(", ").join(CollectionUtils.collect(handlers, new Transformer<String, MethodRuleDefinitionHandler>() {
-            public String transform(MethodRuleDefinitionHandler original) {
+        String desc = Joiner.on(", ").join(CollectionUtils.collect(handlers, new Transformer<String, MethodModelRuleExtractor>() {
+            public String transform(MethodModelRuleExtractor original) {
                 return original.getDescription();
             }
         }));
@@ -50,22 +67,44 @@ public class ModelRuleInspector {
     }
 
     private static RuntimeException invalid(Class<?> source, String reason) {
-        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason);
+        return invalid(source, reason, null);
     }
 
-    private static RuntimeException invalid(Method method, String reason) {
-        return invalid("model rule method", new MethodModelRuleDescriptor(method), reason);
+    private static RuntimeException invalid(Class<?> source, String reason, Throwable throwable) {
+        return new InvalidModelRuleDeclarationException("Type " + source.getName() + " is not a valid model rule source: " + reason, throwable);
     }
 
-    private static RuntimeException invalid(String description, ModelRuleDescriptor rule, String reason) {
+    private static RuntimeException invalidMethod(Method method, String reason) {
+        String description = MethodDescription.name(method.getName())
+                .owner(method.getDeclaringClass())
+                .takes(method.getGenericParameterTypes())
+                .toString();
+        return invalid(description, reason);
+    }
+
+    private static RuntimeException invalid(ModelRuleDescriptor rule, String reason) {
         StringBuilder sb = new StringBuilder();
         rule.describeTo(sb);
-        sb.append(" is not a valid ").append(description).append(": ").append(reason);
+        return invalid(sb.toString(), reason);
+    }
+
+    private static RuntimeException invalid(String ruleDescription, String reason) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(ruleDescription).append(" is not a valid model rule method").append(": ").append(reason);
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    // TODO should either return the extracted rule, or metadata about the extraction (i.e. for reporting etc.)
-    public <T> void inspect(Class<T> source, ModelRegistry modelRegistry, RuleSourceDependencies dependencies) {
+    public List<ModelRuleRegistration> inspect(Class<?> source) {
+        try {
+            return cache.get(source);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
+    private List<ModelRuleRegistration> doInspect(Class<?> source) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
@@ -76,33 +115,34 @@ public class ModelRuleInspector {
             }
         });
 
+        ImmutableList.Builder<ModelRuleRegistration> registrations = ImmutableList.builder();
+
         for (Method method : methods) {
             if (method.getTypeParameters().length > 0) {
-                throw invalid(method, "cannot have type variables (i.e. cannot be a generic method)");
+                throw invalidMethod(method, "cannot have type variables (i.e. cannot be a generic method)");
             }
 
-            MethodRuleDefinition<?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
-            MethodRuleDefinitionHandler handler = getMethodHandler(ruleDefinition);
+            MethodRuleDefinition<?, ?> ruleDefinition = DefaultMethodRuleDefinition.create(source, method);
+            MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
-                validate(method);
-                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
-                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
-                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
-                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
-                // and do a better job of explaining what went wrong than what we can do at this level.
-                handler.register(ruleDefinition, modelRegistry, dependencies);
+                validateMethod(method);
+                ModelRuleRegistration registration = handler.registration(ruleDefinition);
+                if (registration != null) {
+                    registrations.add(registration);
+                }
             }
         }
+        return registrations.build();
     }
 
-    private MethodRuleDefinitionHandler getMethodHandler(MethodRuleDefinition<?> ruleDefinition) {
-        MethodRuleDefinitionHandler handler = null;
-        for (MethodRuleDefinitionHandler candidateHandler : handlers) {
+    private MethodModelRuleExtractor getMethodHandler(MethodRuleDefinition<?, ?> ruleDefinition) {
+        MethodModelRuleExtractor handler = null;
+        for (MethodModelRuleExtractor candidateHandler : handlers) {
             if (candidateHandler.getSpec().isSatisfiedBy(ruleDefinition)) {
                 if (handler == null) {
                     handler = candidateHandler;
                 } else {
-                    throw invalid("model rule method", ruleDefinition.getDescriptor(), "can only be one of " + describeHandlers());
+                    throw invalid(ruleDefinition.getDescriptor(), "can only be one of " + describeHandlers());
                 }
             }
         }
@@ -137,9 +177,8 @@ public class ModelRuleInspector {
             }
         }
 
-        Class<?> superclass = source.getSuperclass();
-        if (!superclass.equals(Object.class)) {
-            throw invalid(source, "cannot have superclass");
+        if (!source.getSuperclass().equals(RuleSource.class)) {
+            throw invalid(source, String.format("rule source classes have to directly extend %s", RuleSource.class.getName()));
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
@@ -147,6 +186,18 @@ public class ModelRuleInspector {
             if (constructor.getParameterTypes().length > 0) {
                 throw invalid(source, "cannot declare a constructor that takes arguments");
             }
+        }
+
+        try {
+            Constructor<?> constructor = constructors[0];
+            constructor.setAccessible(true);
+            constructor.newInstance();
+        } catch (InvocationTargetException e) {
+            throw invalid(source, "instance creation failed", e.getCause());
+        } catch (InstantiationException e) {
+            throw invalid(source, "instance creation failed", e);
+        } catch (IllegalAccessException e) {
+            throw invalid(source, "must have an accessible constructor", e);
         }
 
         Field[] fields = source.getDeclaredFields();
@@ -158,11 +209,11 @@ public class ModelRuleInspector {
         }
     }
 
-    private void validate(Method ruleMethod) {
+    private void validateMethod(Method ruleMethod) {
         // TODO validations on method: synthetic, bridge methods, varargs, abstract, native
         ModelType<?> returnType = ModelType.returnType(ruleMethod);
         if (returnType.isRawClassOfParameterizedType()) {
-            throw invalid(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
+            throw invalidMethod(ruleMethod, "raw type " + returnType + " used for return type (all type parameters must be specified of parameterized type)");
         }
 
         int i = 0;
@@ -170,7 +221,7 @@ public class ModelRuleInspector {
             ++i;
             ModelType<?> modelType = ModelType.of(type);
             if (modelType.isRawClassOfParameterizedType()) {
-                throw invalid(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
+                throw invalidMethod(ruleMethod, "raw type " + modelType + " used for parameter " + i + " (all type parameters must be specified of parameterized type)");
             }
         }
     }

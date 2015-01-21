@@ -26,6 +26,7 @@ class TaskNameResolverTest extends Specification {
     def project = Mock(ProjectInternal) {
         getTasks() >> tasks
     }
+
     private final TaskNameResolver resolver = new TaskNameResolver()
 
     def "eagerly locates task with given name for single project"() {
@@ -36,6 +37,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task
+        1 * project.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task]
@@ -51,6 +53,7 @@ class TaskNameResolverTest extends Specification {
         then:
         candidates == null
         1 * tasks.findByName('task') >> null
+        1 * project.realizeTasksAndValidateModel()
     }
 
     def "eagerly locates tasks with given name for multiple projects"() {
@@ -68,7 +71,9 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task1
+        1 * project.realizeTasksAndValidateModel()
         1 * childProjectTasks.findByName('task') >> task2
+        1 * childProject.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1, task2]
@@ -93,6 +98,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> task1
+        1 * project.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1]
@@ -116,7 +122,9 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.findByName('task') >> null
+        1 * project.realizeTasksAndValidateModel()
         1 * childProjectTasks.findByName('task') >> task1
+        1 * childProject.realizeTasksAndValidateModel()
 
         when:
         asTasks(candidates) == [task1]
@@ -134,6 +142,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         1 * tasks.names >> (['task1', 'task2'] as SortedSet)
+        1 * project.realizeTasksAndValidateModel()
         0 * tasks._
 
         when:
@@ -160,6 +169,8 @@ class TaskNameResolverTest extends Specification {
         then:
         1 * tasks.names >> (['name1', 'name2'] as SortedSet)
         1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
+        1 * project.realizeTasksAndValidateModel()
+        1 * childProject.realizeTasksAndValidateModel()
         0 * tasks._
         0 * childProjectTasks._
 
@@ -189,6 +200,8 @@ class TaskNameResolverTest extends Specification {
         then:
         1 * tasks.names >> (['name1', 'name2'] as SortedSet)
         1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
+        1 * project.realizeTasksAndValidateModel()
+        1 * childProject.realizeTasksAndValidateModel()
         0 * tasks._
         0 * childProjectTasks._
 

@@ -22,39 +22,36 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
-import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Set;
 
 /**
  * Plugin for executing tests from a Play Framework application.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayTestPlugin {
+public class PlayTestPlugin extends RuleSource {
     @Mutate
-    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, PlayToolChainInternal playToolChain, final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        for (final PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
-            final PlayPlatform targetPlatform = binary.getTargetPlatform();
-            FileCollection playTestDependencies = playToolChain.select(targetPlatform).getPlayTestDependencies();
-            final FileCollection testCompileClasspath = fileResolver.resolveFiles(binary.getJarFile()).plus(playTestDependencies);
+    void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
+                         final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+            final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
+            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
 
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
             // TODO:DAZ Model a test suite
@@ -62,8 +59,9 @@ public class PlayTestPlugin {
             final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.dependsOn(binary.getBuildTask());
                     scalaCompile.setClasspath(testCompileClasspath);
+
+                    scalaCompile.dependsOn(binary.getBuildTask());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     scalaCompile.setDestinationDir(testClassesDir);
                     scalaCompile.setSource(testSourceDir);
@@ -82,9 +80,9 @@ public class PlayTestPlugin {
             final File binaryBuildDir = new File(buildDir, binary.getName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
+                    test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
+
                     test.setTestClassesDir(testClassesDir);
-                    final FileCollection testRuntimeClasspath = testCompileClasspath.plus(fileResolver.resolveFiles(testClassesDir));
-                    test.setClasspath(testRuntimeClasspath);
                     test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
@@ -93,18 +91,30 @@ public class PlayTestPlugin {
                     test.setWorkingDir(projectIdentifier.getProjectDir());
 
                     binary.getTasks().add(test);
-                    // TODO:DAZ Would be good if we could add as a dependency to 'check' lifecycle task here.
                 }
             });
         }
     }
 
-    // TODO Need a better mechanism to wire tasks into lifecycle
-    @Finalize
-    public void wireTestTasksIntoCheckLifecycle(final TaskContainer tasks, BinaryContainer binaryContainer) {
-        Set<PlayApplicationBinarySpec> playBinaries = binaryContainer.withType(PlayApplicationBinarySpec.class);
-        for (final PlayApplicationBinarySpec binary : playBinaries) {
-            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(binary.getTasks().withType(Test.class));
-        }
+    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
+        return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getFileCollection());
+    }
+
+    private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
+        return new SimpleFileCollection(testClassesDir).plus(testCompileClasspath);
+    }
+
+    @Mutate
+    void attachTestSuitesToCheckTask(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+        // TODO - binaries aren't an input to this rule, they're an input to the action
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task checkTask) {
+                // TODO Need a better mechanism to wire tasks into lifecycle
+                for (PlayApplicationBinarySpec binary : binaries.withType(PlayApplicationBinarySpec.class)) {
+                    checkTask.dependsOn(binary.getTasks().withType(Test.class));
+                }
+            }
+        });
     }
 }

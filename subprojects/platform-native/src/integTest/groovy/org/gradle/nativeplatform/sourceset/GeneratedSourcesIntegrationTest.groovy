@@ -338,7 +338,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription "A problem occurred configuring root project 'test'."
+        failure.assertHasCause "Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#configureGeneratedSourceSets("
         failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
     }
 
@@ -447,9 +447,8 @@ model {
         ] as Set
         projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
-        // TODO:DAZ It would be preferable if the default location wasn't included when a generator task was provided
-        // but the way the rules work presently, this is hard to do (multiple @Finalize rules).
         with (projectFile.projectConfigurations['debug']) {
+            // TODO - should not include the default location
             includePath == "src/main/headers;build/src/generated/headers"
         }
     }

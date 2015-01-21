@@ -18,10 +18,7 @@ package org.gradle.model.internal.core;
 
 public interface ModelRegistrar {
 
-    public void create(ModelCreator creator);
+    public ModelRegistrar create(ModelCreator creator, ModelPath scope);
 
-    public <T> void mutate(ModelMutator<T> mutator);
-
-    public <T> void finalize(ModelMutator<T> mutator);
-
+    public <T> ModelRegistrar apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
 }

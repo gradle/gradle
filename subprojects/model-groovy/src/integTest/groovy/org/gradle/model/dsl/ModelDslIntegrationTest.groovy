@@ -39,8 +39,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -57,10 +56,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("printStrings").doLast {
-                  // Being in doLast is significant here.
-                  // This is not going to execute until much later, so we are testing that we can still access the input
-                  println "strings: " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    // Being in doLast is significant here.
+                    // This is not going to execute until much later, so we are testing that we can still access the input
+                    println "strings: " + \$("strings")
+                  }
                 }
               }
               strings {
@@ -80,8 +81,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -93,8 +93,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("printStrings").doLast {
-                  println "strings: " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    println "strings: " + \$("strings")
+                  }
                 }
               }
               strings {
@@ -117,8 +119,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -130,8 +131,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                create("assertDuplicateInputIsSameObject").doLast {
-                  assert \$("strings").is(\$("strings"))
+                create("assertDuplicateInputIsSameObject") {
+                  doLast {
+                    assert \$("strings").is(\$("strings"))
+                  }
                 }
               }
             }
@@ -150,8 +153,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -182,8 +184,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         file("script.gradle") << """
             model {
               tasks {
-                create("printStrings").doLast {
-                  println project.name + ": " + \$("strings")
+                create("printStrings") {
+                  doLast {
+                    println project.name + ": " + \$("strings")
+                  }
                 }
               }
               strings {
@@ -204,8 +208,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -223,7 +226,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 18
+        failure.assertHasLineNumber 17
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(RulesVisitor.ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE))
     }

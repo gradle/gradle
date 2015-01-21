@@ -36,8 +36,7 @@ import java.lang.annotation.Target;
  *
  * apply plugin: MySamplePlugin
  *
- * {@literal @}RuleSource
- * class MySamplePlugin {
+ * class MySamplePlugin extends RuleSource {
  *     {@literal @}LanguageType
  *     void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
  *         builder.setLanguageName("custom")

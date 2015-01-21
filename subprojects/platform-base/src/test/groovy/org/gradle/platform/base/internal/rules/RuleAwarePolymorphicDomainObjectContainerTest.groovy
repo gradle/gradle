@@ -18,7 +18,6 @@ package org.gradle.platform.base.internal.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.Named
-import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
@@ -41,40 +40,10 @@ class RuleAwarePolymorphicDomainObjectContainerTest extends Specification {
 
     def "reports duplicate type registration that was created with rule context"() {
         given:
-        RuleContext.inContext(new SimpleModelRuleDescriptor("<model-rule>"), {
-            container.registerFactory(Dummy, { new Dummy(it) })
-        } as Runnable)
+        container.registerFactory(Dummy, { new Dummy(it) }, new SimpleModelRuleDescriptor("<model-rule>"))
 
         when:
-        container.registerFactory(Dummy, { new Dummy(it) })
-
-        then:
-        def t = thrown GradleException
-        t.message == "Cannot register a factory for type Dummy because a factory for this type was already registered by <model-rule>."
-    }
-
-    def "reports duplicate type registration with factory that was created with rule context"() {
-        given:
-        RuleContext.inContext(new SimpleModelRuleDescriptor("<model-rule>"), {
-            container.registerFactory(Dummy, { new Dummy(it) } as NamedDomainObjectFactory<Dummy>)
-        } as Runnable)
-
-        when:
-        container.registerFactory(Dummy, { new Dummy(it) } as NamedDomainObjectFactory<Dummy>)
-
-        then:
-        def t = thrown GradleException
-        t.message == "Cannot register a factory for type Dummy because a factory for this type was already registered by <model-rule>."
-    }
-
-    def "reports duplicate type binding with factory that was created with rule context"() {
-        given:
-        RuleContext.inContext(new SimpleModelRuleDescriptor("<model-rule>"), {
-            container.registerBinding(Dummy, Dummy)
-        } as Runnable)
-
-        when:
-        container.registerBinding(Dummy, Dummy)
+        container.registerFactory(Dummy, { new Dummy(it) }, new SimpleModelRuleDescriptor("<other-rule>"))
 
         then:
         def t = thrown GradleException

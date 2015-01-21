@@ -18,13 +18,17 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Actions;
+import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.GccCompatibleToolChain;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
+import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
@@ -55,12 +59,12 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final Instantiator instantiator;
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
-        this(name, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), metaDataProvider, instantiator);
+    public AbstractGccCompatibleToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+        this(name, buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, new ToolSearchPath(operatingSystem), metaDataProvider, instantiator);
     }
 
-    AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
-        super(name, operatingSystem, fileResolver);
+    AbstractGccCompatibleToolChain(String name, BuildOperationProcessor buildOperationProcessor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator) {
+        super(name, buildOperationProcessor, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = tools;
         this.metaDataProvider = metaDataProvider;
@@ -111,7 +115,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         ToolChainAvailability result = new ToolChainAvailability();
         if (targetPlatformConfigurationConfiguration == null) {
             result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+            return new UnavailablePlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), result);
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);
@@ -122,10 +126,10 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
         initTools(configurableToolChain, result);
         if (!result.isAvailable()) {
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
+            return new UnavailablePlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, configurableToolChain.isCanUseCommandFile());
+        return new GccPlatformToolProvider(buildOperationProcessor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, configurableToolChain.isCanUseCommandFile());
     }
 
     protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {

@@ -100,7 +100,7 @@ public class RoutesCompile extends SourceTask {
 
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports(), isNamespaceReverseRouter(), getForkOptions(), isJavaProject());
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject());
         if (compiler == null) {
             compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(spec), getOutputs());
         }
@@ -117,14 +117,6 @@ public class RoutesCompile extends SourceTask {
 
     public boolean isJavaProject() {
         return javaProject;
-    }
-
-    public void setJavaProject(boolean javaProject) {
-        this.javaProject = javaProject;
-    }
-
-    public boolean isNamespaceReverseRouter() {
-        return namespaceReverseRouter;
     }
 
     public void setPlatform(PlayPlatform platform) {

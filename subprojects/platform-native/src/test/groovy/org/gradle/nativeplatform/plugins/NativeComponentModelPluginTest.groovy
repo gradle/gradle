@@ -20,12 +20,11 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -43,15 +42,15 @@ class NativeComponentModelPluginTest extends Specification {
 
     def "adds model extensions"() {
         expect:
-        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
-        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
-        project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
-        project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
+        project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
+        project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
+        project.modelRegistry.realize(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
+        project.modelRegistry.realize(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
     }
 
     def "does not provide a default tool chain"() {
         expect:
-        project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)).isEmpty()
+        project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
@@ -62,7 +61,7 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        project.evaluate()
+        realize()
 
         then:
         one(project.binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
@@ -72,29 +71,29 @@ class NativeComponentModelPluginTest extends Specification {
     def "behaves correctly for defaults when domain is explicitly configured"() {
         when:
         modelRegistryHelper
-                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
+                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         and:
-        project.evaluate()
+        realize()
 
         then:
-        one(project.modelRegistry.get(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
-        project.modelRegistry.get(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == NativePlatforms.defaultPlatformDefinitions().size() + 1 //adds one to the defaults
-        one(project.modelRegistry.get(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
-        one(project.modelRegistry.get(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
+        one(project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
+        project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == 1
+        one(project.modelRegistry.realize(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
+        one(project.modelRegistry.realize(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
         modelRegistryHelper
-                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
+                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         project.model {
             components {
@@ -103,7 +102,7 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        project.evaluate()
+        realize()
 
         then:
         NativeExecutableSpec executable = one(project.componentSpecs) as NativeExecutableSpec
@@ -125,10 +124,10 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
         modelRegistryHelper
-                .configure(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .configure(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .configure(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .configure(FlavorContainer) { it.add named(Flavor, "flavor1") }
+                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         project.model {
             components {
@@ -137,7 +136,7 @@ class NativeComponentModelPluginTest extends Specification {
                 }
             }
         }
-        project.evaluate()
+        realize()
 
         then:
         NativeLibrarySpec library = one(project.componentSpecs) as NativeLibrarySpec
@@ -178,7 +177,7 @@ class NativeComponentModelPluginTest extends Specification {
                 lib(NativeLibrarySpec)
             }
         }
-        project.evaluate()
+        realize()
 
         then:
         NativeExecutableBinarySpec executableBinary = project.binaries.exeExecutable as NativeExecutableBinarySpec
@@ -196,6 +195,10 @@ class NativeComponentModelPluginTest extends Specification {
             name == staticLibraryBinary.name
             group == LifecycleBasePlugin.BUILD_GROUP
         }
+    }
+
+    private void realize() {
+        project.realizeTasksAndValidateModel()
     }
 
     static <T> T one(Collection<T> collection) {

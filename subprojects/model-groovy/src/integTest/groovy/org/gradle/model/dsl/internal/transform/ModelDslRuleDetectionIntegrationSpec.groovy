@@ -35,47 +35,42 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.internal.core.*
-            import org.gradle.model.internal.core.rule.describe.*
-            import org.gradle.model.internal.type.*
             import org.gradle.model.collection.*
 
-            def paths = "$normalisedPath".split("\\\\.") as List
-            def root = paths[0]
-            def rest = paths.tail()
-            def type = new ModelType<List<String>>() {}
+            @Managed
+            interface Item {
+                String getValue()
+                void setValue(String value)
+            }
 
-            modelRegistry.create(
-              ModelCreators.of(ModelReference.of(root, type)) { node, inputs ->
-                node.setPrivateData(type, [])
-                def pathParts = [root]
-                rest.each { p ->
-                  def projection = new UnmanagedModelProjection(type, true, true)
-                  node = node.addLink(
-                    p,
-                    new SimpleModelRuleDescriptor("foo"),
-                    projection,
-                    projection
-                  )
-                  node.setPrivateData(type, [])
-                  pathParts << p
-                }
-              }
-              .simpleDescriptor("foo")
-              .withProjection(new UnmanagedModelProjection(type, true, true))
-              .build()
-            )
+            @Managed
+            interface A extends Item {
+                B getB()
+            }
 
-            class MyPlugin {
-                @RuleSource
-                static class Rules {
-                    @Mutate
-                    void addTask(CollectionBuilder<Task> tasks, @Path("$normalisedPath") List<String> strings) {
-                        tasks.create("printStrings") {
-                            it.doLast {
-                                println "strings: " + strings
-                            }
+            @Managed
+            interface B extends Item {
+                C getC()
+            }
+
+            @Managed
+            interface C extends Item {
+                D getD()
+            }
+
+            @Managed
+            interface D extends Item {
+            }
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void a(A a) { }
+
+                @Mutate
+                void addTask(CollectionBuilder<Task> tasks, @Path("$normalisedPath") Item item) {
+                    tasks.create("printValue") {
+                        it.doLast {
+                            println "value: " + item.value
                         }
                     }
                 }
@@ -85,19 +80,14 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
             model {
                 $path {
-                  add "foo"
+                  value = "foo"
                 }
-            }
-
-            // TODO - this can be inferred by closing the parent
-            for (int i = 0; i < paths.size(); i++) {
-                modelRegistry.node(ModelPath.path(paths.subList(0, i+1)))
             }
         """
 
         then:
-        succeeds "printStrings"
-        output.contains("strings: [foo]")
+        succeeds "printValue"
+        output.contains("value: foo")
 
         where:
         path << [
@@ -105,8 +95,7 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
                 "a.b",
                 "a.b.c",
                 "a.b.c.d",
-                'a."b".c."d"',
-                "foo.each",
+                'a."b".c."d"'
         ]
     }
 

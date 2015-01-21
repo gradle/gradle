@@ -345,7 +345,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     def "relinks binary but does not recompile when linker option changed"() {
         given:
-        run "installMainExecutable"
+        run "mainExecutable"
 
         when:
         def executable = executable("build/binaries/mainExecutable/main")
@@ -357,7 +357,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         buildFile << """
         model {
             components {
-                main(NativeExecutableSpec) {
+                main {
                     binaries.all {
                         linker.args ${escapeString(linkerArgs)}
                     }
@@ -366,7 +366,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
 """
 
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         skipped libraryCompileTask
@@ -375,11 +375,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
-        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
-        executable.assertHasChangedSince(snapshot)
+
+        if (toolChain.id != "mingw") { // Identical binary is produced on mingw
+            executable.assertHasChangedSince(snapshot)
+        }
     }
 
     def "cleans up stale object files when executable source file renamed"() {

@@ -78,7 +78,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         buildFile << """
             model {
                 components {
-                    hello(NativeLibrarySpec) {
+                    hello {
                         binaries.all {
                             if (toolChain in VisualCpp) {
                                 assembler.args '/Zf'

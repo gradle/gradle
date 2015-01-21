@@ -40,7 +40,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     protected MissingPropertyException propertyMissingException(String name) {
-        throw new MissingPropertyException(String.format("Could not find property '%s' on %s.", name,
+        return new MissingPropertyException(String.format("Could not find property '%s' on %s.", name,
                 getDisplayName()), name, null);
     }
 

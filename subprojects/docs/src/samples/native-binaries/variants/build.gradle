@@ -29,10 +29,12 @@ model {
 model {
     components {
         hello(NativeLibrarySpec) {
-            targetPlatform "x86", "x64"
+            targetPlatform "x86"
+            targetPlatform "x64"
         }
         main(NativeExecutableSpec) {
-            targetPlatform "x86", "x64"
+            targetPlatform "x86"
+            targetPlatform "x64"
             sources {
                 cpp.lib library: 'hello', linkage: 'static'
             }

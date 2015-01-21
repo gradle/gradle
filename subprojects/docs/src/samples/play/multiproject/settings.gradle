@@ -1,0 +1,5 @@
+include 'admin', 'user', 'util'
+
+project(':admin').projectDir = new File(settingsDir, 'modules/admin')
+project(':user').projectDir = new File(settingsDir, 'modules/user')
+project(':util').projectDir = new File(settingsDir, 'modules/util')

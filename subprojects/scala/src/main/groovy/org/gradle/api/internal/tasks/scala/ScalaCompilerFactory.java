@@ -62,16 +62,9 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         }
 
         Set<File> zincClasspathFiles = zincClasspath.getFiles();
-        // currently, we leave it to ZincScalaCompiler to also compile the Java code
-        Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
-        try {
-            scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader()
-                    .loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").getConstructor(Iterable.class, Iterable.class).newInstance(scalaClasspathFiles, zincClasspathFiles);
-        } catch (Exception e) {
-            throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
-        }
 
-        scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, scalaCompiler, compilerDaemonFactory, zincClasspathFiles);
+        // currently, we leave it to ZincScalaCompiler to also compile the Java code
+        Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(rootProjectDirectory, new ZincScalaCompiler(scalaClasspathFiles, zincClasspathFiles), compilerDaemonFactory, zincClasspathFiles);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

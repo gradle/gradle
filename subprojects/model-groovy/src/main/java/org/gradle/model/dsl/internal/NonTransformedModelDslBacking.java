@@ -23,13 +23,13 @@ import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.ActionBackedModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @NotThreadSafe
@@ -58,23 +58,11 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
-        modelRegistry.mutate(new ModelMutator<Object>() {
-            public ModelReference<Object> getSubject() {
-                return ModelReference.untyped(modelPath);
-            }
-
-            public void mutate(MutableModelNode modelNode, Object object, Inputs inputs) {
-                new ClosureBackedAction<Object>(action).execute(object);
-            }
-
-            public ModelRuleDescriptor getDescriptor() {
-                return new SimpleModelRuleDescriptor("model." + modelPath);
-            }
-
-            public List<ModelReference<?>> getInputs() {
-                return Collections.emptyList();
-            }
-        });
+        modelRegistry.apply(ModelActionRole.Mutate,
+                new ActionBackedModelAction<Object>(
+                        ModelReference.untyped(modelPath),
+                        new ClosureBackedAction<Object>(action),
+                        new SimpleModelRuleDescriptor("model." + modelPath)), ModelPath.ROOT);
     }
 
     public void configure(Closure<?> action) {

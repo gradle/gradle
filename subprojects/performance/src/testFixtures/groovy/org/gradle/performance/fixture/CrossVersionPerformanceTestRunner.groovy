@@ -65,7 +65,6 @@ public class CrossVersionPerformanceTestRunner {
         assert testId
 
         if (useDaemon) {
-            tasksToRun.add("--daemon")
             gcCollector.useDaemon()
         }
 
@@ -166,6 +165,11 @@ public class CrossVersionPerformanceTestRunner {
         @Override
         String[] getGradleOpts() {
             runner.gradleOpts as String[]
+        }
+
+        @Override
+        boolean getUseDaemon() {
+            runner.useDaemon
         }
     }
 }

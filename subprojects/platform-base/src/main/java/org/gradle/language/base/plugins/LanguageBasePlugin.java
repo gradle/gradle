@@ -15,35 +15,32 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
+import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 /**
  * Base plugin for language support.
  *
- * Adds a {@link org.gradle.platform.base.BinaryContainer} named {@code binaries} to the project.
- * Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
+ * Adds a {@link org.gradle.platform.base.BinaryContainer} named {@code binaries} to the project. Adds a {@link org.gradle.language.base.ProjectSourceSet} named {@code sources} to the project.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
@@ -60,17 +57,19 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        target.apply(Collections.singletonMap("plugin", LifecycleBasePlugin.class));
-
+        target.getPluginManager().apply(LifecycleBasePlugin.class);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         modelRegistry.create(
-                ModelCreators.bridgedInstance(ModelReference.of("binaries", BinaryContainer.class), binaries)
-                        .simpleDescriptor("Project.<init>.binaries()")
-                        .inputs(Collections.singletonList(ModelReference.of(ExtensionContainer.class)))
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultBinaryContainer, BinarySpec>(instantiator, binaries, BinarySpec.class))
-                        .build()
+                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                        ModelType.of(DefaultBinaryContainer.class),
+                        ModelType.of(DefaultBinaryContainer.class),
+                        ModelType.of(BinarySpec.class),
+                        ModelPath.path("binaries"),
+                        binaries,
+                        getClass().getName() + ".apply()"),
+                ModelPath.ROOT
         );
     }
 
@@ -78,8 +77,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
      * Model rules.
      */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         ProjectSourceSet sources(ExtensionContainer extensions) {
             return extensions.getByType(ProjectSourceSet.class);
@@ -87,19 +85,32 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Mutate
         void createLifecycleTaskForBinary(TaskContainer tasks, BinaryContainer binaries) {
-            Task assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME);
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
                     Task binaryLifecycleTask = tasks.create(binary.getName());
                     binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                     binary.setBuildTask(binaryLifecycleTask);
-
-                    if (binary.isBuildable()) {
-                        assembleTask.dependsOn(binary);
-                    }
                 }
             }
+        }
+
+        @Mutate
+        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+            tasks.named("assemble", new Action<Task>() {
+                @Override
+                public void execute(Task assemble) {
+                    for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                        if (!binary.isLegacyBinary()) {
+                            if (binary.isBuildable()) {
+                                assemble.dependsOn(binary);
+                            } else {
+                                ((AssembleBinariesTask)assemble).notBuildable(binary);
+                            }
+                        }
+                    }
+                }
+            });
         }
     }
 }

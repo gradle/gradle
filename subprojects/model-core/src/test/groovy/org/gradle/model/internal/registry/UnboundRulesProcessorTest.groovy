@@ -161,6 +161,38 @@ class UnboundRulesProcessorTest extends Specification {
         )
     }
 
+    def "creates scoped unbound rules with by-type bound subject"() {
+        binder {
+            descriptor("ruleWithUnboundSubjectReference")
+            scope("some.scope")
+            subjectReference(String)
+            inputReference(String)
+            inputReference("input", Boolean)
+        }
+
+        expect:
+        reportForProcessedBinders == reportFor(
+                UnboundRule.descriptor("ruleWithUnboundSubjectReference")
+                        .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
+                        .immutableInput(UnboundRuleInput.type(String))
+                        .immutableInput(UnboundRuleInput.type(Boolean).path("some.scope.input"))
+        )
+    }
+
+    def "creates scoped unbound rules with by-path bound subject"() {
+        binder {
+            descriptor("ruleWithUnboundSubjectReference")
+            scope("some.scope")
+            subjectReference("subject", String)
+        }
+
+        expect:
+        reportForProcessedBinders == reportFor(
+                UnboundRule.descriptor("ruleWithUnboundSubjectReference")
+                        .mutableInput(UnboundRuleInput.type(String).path("some.scope.subject"))
+        )
+    }
+
     private class RuleBinderTestBuilder {
 
         private ModelRuleDescriptor descriptor
@@ -168,6 +200,7 @@ class UnboundRulesProcessorTest extends Specification {
         private String subjectReferenceBindingPath
         private List<ModelReference<?>> inputReferences = []
         private Map<Integer, String> boundInputReferencePaths = [:]
+        private ModelPath scope = ModelPath.ROOT
 
         void subjectReference(Class type) {
             subjectReference = ModelReference.of(ModelType.of(type))
@@ -197,8 +230,12 @@ class UnboundRulesProcessorTest extends Specification {
             this.descriptor = new SimpleModelRuleDescriptor(descriptor)
         }
 
+        void scope(String path) {
+            scope = ModelPath.path(path)
+        }
+
         RuleBinder build() {
-            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, null)
+            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, scope, null)
             if (subjectReferenceBindingPath) {
                 binder.bindSubject(new ModelPath(subjectReferenceBindingPath))
             }

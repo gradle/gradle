@@ -5,6 +5,9 @@ import org.junit.runner._
 import play.api.test._
 import play.api.test.Helpers._
 
+import org.apache.commons.lang.StringUtils
+import com.google.common.collect.Lists
+
 /**
  * Add your spec here.
  * You can mock out a whole application including requests, plugins etc.
@@ -25,6 +28,14 @@ class ApplicationSpec extends Specification {
       status(home) must equalTo(OK)
       contentType(home) must beSome.which(_ == "text/html")
       contentAsString(home) must contain ("Your new application is ready.")
+    }
+
+    "tests can use commons-lang play dependency" in {
+      StringUtils.reverse("foobar") must equalTo("raboof")
+    }
+
+    "tests can use guava play-test dependency" in {
+      Lists.newArrayList("foo", "bar").size() must equalTo(2)
     }
   }
 }

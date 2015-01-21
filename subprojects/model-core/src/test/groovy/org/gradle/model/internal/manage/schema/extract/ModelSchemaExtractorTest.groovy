@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.Unmanaged
 import org.gradle.model.collection.ManagedSet
@@ -23,6 +24,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,7 +32,8 @@ import java.util.regex.Pattern
 
 class ModelSchemaExtractorTest extends Specification {
 
-    def extractor = new ModelSchemaExtractor()
+    def store = new ModelSchemaExtractor()
+    @Shared def cache = new ModelSchemaCache()
 
     static interface NotAnnotatedInterface {}
 
@@ -44,7 +47,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "must be interface"() {
         expect:
-        fail EmptyStaticClass, "must be defined as an interface"
+        fail EmptyStaticClass, "must be defined as an interface or an abstract class"
     }
 
     @Managed
@@ -71,8 +74,8 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can only have getters and setters"() {
         expect:
-        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
-        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(HasExtraNonPropertyMethods).takes(String)})")
+        fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
+        fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(HasExtraNonPropertyMethods).takes(String)})")
     }
 
     @Managed
@@ -204,7 +207,7 @@ class ModelSchemaExtractorTest extends Specification {
         where:
         primitiveType | boxedType
         boolean.class | Boolean
-        char.class    | Integer
+        char.class    | Character
         float.class   | Double
         long.class    | Long
         short.class   | Integer
@@ -390,9 +393,9 @@ class ModelSchemaExtractorTest extends Specification {
     def "conflicting properties of super types are detected"() {
         given:
         def invalidMethods = [
-                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float),
-                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer),
-                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String),
+                MethodDescription.name("getValue").owner(SingleFloatValueProperty).returns(Float).takes(),
+                MethodDescription.name("getValue").owner(SingleIntegerValueProperty).returns(Integer).takes(),
+                MethodDescription.name("getValue").owner(SingleStringValueProperty).returns(String).takes(),
         ]
         def message = Pattern.quote("overloaded methods are not supported (invalid methods: ${invalidMethods.join(", ")})")
 
@@ -441,7 +444,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "invalid methods of super types are reported"() {
         expect:
-        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").owner(NoGettersOrSetters).takes(String)})")
+        fail ChildWithNoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
     }
 
     def "type argument of a managed set has to be specified"() {
@@ -506,9 +509,9 @@ class ModelSchemaExtractorTest extends Specification {
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type ${new ModelType<ManagedSet<Object>>() {}}: cannot create a managed set of type $Object.name as it is an unmanaged type.
 Supported types:
  - enum types
- - JDK value types: String, Boolean, Integer, Long, Double, BigInteger, BigDecimal
+ - JDK value types: String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal
  - org.gradle.model.collection.ManagedSet<?> of a managed type
- - interfaces annotated with org.gradle.model.Managed""")
+ - interfaces and abstract classes annotated with org.gradle.model.Managed""")
     }
 
     def "type argument of a managed set has to be a valid managed type"() {
@@ -520,7 +523,7 @@ Supported types:
 
         then:
         InvalidManagedModelElementTypeException e = thrown()
-        def invalidMethodDescription = MethodDescription.name("setName").owner(SetterOnly).takes(String)
+        def invalidMethodDescription = MethodDescription.name("setName").returns(void.class).owner(SetterOnly).takes(String)
         e.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $SetterOnly.name: only paired getter/setter methods are supported (invalid methods: ${invalidMethodDescription}).
 The type was analyzed due to the following dependencies:
 $type
@@ -634,6 +637,156 @@ $type
         extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
     }
 
+    @Managed
+    static abstract class NonAbstractGetterWithSetter {
+        String getName() {}
+        abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class NonAbstractSetter {
+        abstract String getName()
+
+        void setName(String name) {}
+    }
+
+    def "non-abstract mutator methods are not allowed"() {
+        expect:
+        fail NonAbstractGetterWithSetter, Pattern.quote("setters are not allowed for non-abstract getters (invalid method: ${MethodDescription.name("setName").owner(NonAbstractGetterWithSetter).returns(void.class).takes(String)})")
+        fail NonAbstractSetter, Pattern.quote("non-abstract setters are not allowed (invalid method: ${MethodDescription.name("setName").owner(NonAbstractSetter).takes(String).returns(void.class)})")
+    }
+
+    @Managed
+    static abstract class ConstructorWithArguments {
+        ConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class AdditionalConstructorWithArguments {
+        AdditionalConstructorWithArguments() {}
+
+        AdditionalConstructorWithArguments(String arg) {}
+    }
+
+    static class SuperConstructorWithArguments {
+        SuperConstructorWithArguments(String arg) {}
+    }
+
+    @Managed
+    static abstract class ConstructorCallingSuperConstructorWithArgs extends SuperConstructorWithArguments {
+        ConstructorCallingSuperConstructorWithArgs() {
+            super("foo")
+        }
+    }
+
+    @Managed
+    static abstract class CustomConstructorInSuperClass extends ConstructorCallingSuperConstructorWithArgs {
+    }
+
+    def "custom constructors are not allowed"() {
+        expect:
+        fail ConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(ConstructorWithArguments).takes(String)})")
+        fail AdditionalConstructorWithArguments, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(AdditionalConstructorWithArguments).takes(String)})")
+        fail CustomConstructorInSuperClass, Pattern.quote("custom constructors are not allowed (invalid method: ${MethodDescription.name("<init>").owner(SuperConstructorWithArguments).takes(String)})")
+    }
+
+    @Managed
+    static abstract class WithInstanceScopedField {
+        private String name
+        private int age
+    }
+
+    @Managed
+    static abstract class WithInstanceScopedFieldInSuperclass extends WithInstanceScopedField {
+    }
+
+    def "instance scoped fields are not allowed"() {
+        expect:
+        fail WithInstanceScopedField, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
+        fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
+    }
+
+    @Managed
+    static abstract class ThrowsInConstructor {
+        ThrowsInConstructor() {
+            throw new RuntimeException("from constructor")
+        }
+    }
+
+    def "classes that cannot be instantiated are detected as soon as they are extracted"() {
+        when:
+        extract(ThrowsInConstructor)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
+        e.cause.message == "from constructor"
+    }
+
+    @Managed
+    static abstract class CallsSetterInConstructor {
+        abstract String getName()
+
+        abstract void setName(String name)
+
+        CallsSetterInConstructor() {
+            name = "foo"
+        }
+    }
+
+    def "calling setters from constructor is not allowed"() {
+        when:
+        extract(CallsSetterInConstructor)
+
+        then:
+        InvalidManagedModelElementTypeException e = thrown()
+        e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
+        e.cause.class == UnsupportedOperationException
+        e.cause.message == "Calling setters of a managed type on itself is not allowed"
+    }
+
+    @Managed
+    static abstract class ProtectedAbstractMethods {
+        protected abstract String getName()
+        protected abstract void setName(String name)
+    }
+
+    @Managed
+    static abstract class ProtectedAbstractMethodsInSuper extends ProtectedAbstractMethods {
+    }
+
+    def "protected abstract methods are not allowed"() {
+        given:
+        def getterDescription = MethodDescription.name("getName").owner(ProtectedAbstractMethods).takes().returns(String)
+        def setterDescription = MethodDescription.name("setName").owner(ProtectedAbstractMethods).returns(void.class).takes(String)
+
+        expect:
+        fail ProtectedAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        fail ProtectedAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethods {
+        protected String getName() {
+            return null;
+        }
+        private void setName(String name) {}
+    }
+
+    @Managed
+    static abstract class ProtectedAndPrivateNonAbstractMethodsInSuper extends ProtectedAndPrivateNonAbstractMethods {
+    }
+
+    def "protected and private non-abstract methods are not allowed"() {
+        given:
+        def getterDescription = MethodDescription.name("getName").owner(ProtectedAndPrivateNonAbstractMethods).takes().returns(String)
+        def setterDescription = MethodDescription.name("setName").owner(ProtectedAndPrivateNonAbstractMethods).returns(void.class).takes(String)
+
+        expect:
+        fail ProtectedAndPrivateNonAbstractMethods, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+        fail ProtectedAndPrivateNonAbstractMethodsInSuper, Pattern.quote("protected and private methods are not allowed (invalid methods: $getterDescription, $setterDescription)")
+    }
+
     private void fail(extractType, errorType, String msgPattern) {
         try {
             extract(extractType)
@@ -645,7 +798,7 @@ $type
     }
 
     private ModelSchema<?> extract(ModelType<?> modelType) {
-        extractor.extract(modelType, new ModelSchemaCache())
+        store.extract(modelType, cache)
     }
 
     private ModelSchema<?> extract(Class<?> clazz) {

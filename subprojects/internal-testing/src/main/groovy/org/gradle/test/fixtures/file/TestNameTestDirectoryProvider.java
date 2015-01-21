@@ -67,7 +67,7 @@ public class TestNameTestDirectoryProvider implements MethodRule, TestRule, Test
             @Override
             public void evaluate() throws Throwable {
                 base.evaluate();
-                getTestDirectory().maybeDeleteDir();
+                getTestDirectory().deleteDir();
                 // Don't delete on failure
             }
         };

@@ -16,15 +16,14 @@
 
 package org.gradle.model.collection.internal
 
-import org.gradle.api.Action
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.InvalidModelRuleException
+import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelMutator
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -40,23 +39,27 @@ class DefaultCollectionBuilderTest extends Specification {
         String other
     }
 
-    class SpecialNamedThing extends NamedThing {
+    interface Special { }
 
+    class SpecialNamedThing extends NamedThing implements Special {
     }
 
     def containerPath = ModelPath.path("container")
-    def registry = new DefaultModelRegistry()
+    def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
+    def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
+    def registry = new DefaultModelRegistry(null, null)
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {
         registry.create(
                 ModelCreators.bridgedInstance(
-                        ModelReference.of(containerPath, new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}),
+                        ModelReference.of(containerPath, containerType),
                         container
                 )
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(new DirectInstantiator(), container, NamedThing))
+                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
                         .simpleDescriptor("foo")
-                        .build()
+                        .build(),
+                ModelPath.ROOT
         )
         container.registerFactory(NamedThing) {
             NamedThing.newInstance(name: it)
@@ -64,75 +67,438 @@ class DefaultCollectionBuilderTest extends Specification {
         container.registerFactory(SpecialNamedThing) { SpecialNamedThing.newInstance(name: it) }
     }
 
-    void mutate(Action<? super CollectionBuilder<NamedThing>> action) {
-        def mutator = Stub(ModelMutator)
+    void mutate(@DelegatesTo(CollectionBuilder) Closure<? super CollectionBuilder<NamedThing>> action) {
+        def mutator = Stub(ModelAction)
         mutator.subject >> ModelReference.of(containerPath, new ModelType<CollectionBuilder<NamedThing>>() {})
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.mutate(_, _, _) >> { action.execute(it[1]) }
+        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.mutate(mutator)
-        registry.node(containerPath)
+        registry.apply(ModelActionRole.Mutate, mutator, ModelPath.ROOT)
+        registry.realizeNode(containerPath)
     }
 
-    def "simple create"() {
+    def "can define an item with name"() {
         when:
-        mutate { it.create("foo") }
+        mutate { create("foo") }
 
         then:
-        registry.get(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
+        container.getByName("foo") != null
+        registry.realize(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
     }
 
     @Ignore
-    def "does not eagerly create"() {
+    def "does not eagerly create item"() {
         when:
         mutate {
-            it.create("foo")
-            it.create("bar")
+            create("foo")
+            create("bar")
         }
 
         then:
         container.isEmpty()
 
         when:
-        registry.node(containerPath.child("bar"))
+        registry.realizeNode(containerPath.child("bar"))
 
         then:
         container.getByName("bar")
     }
 
-    def "registers as custom type"() {
+    def "can define item with custom type"() {
         when:
-        mutate { it.create("foo", SpecialNamedThing) }
-        registry.node(containerPath.child("foo"))
+        mutate { create("foo", SpecialNamedThing) }
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo") instanceof SpecialNamedThing
     }
 
-    def "can register config rules"() {
+    def "can define item using filtered collection"() {
         when:
         mutate {
-            it.create("foo") {
-                it.other = "changed"
+            withType(SpecialNamedThing).create("foo")
+            withType(NamedThing).create("bar")
+        }
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo") instanceof SpecialNamedThing
+        container.getByName("bar").class == NamedThing
+    }
+
+    def "fails when using filtered collection to define item of type that is not assignable to collection item type"() {
+        when:
+        mutate {
+            withType(String).create("foo")
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Cannot create an item of type java.lang.String as this is not a subtype of $NamedThing.name."
+    }
+
+    def "can register config rules for item"() {
+        when:
+        mutate {
+            create("foo") {
+                other = "changed"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
     }
 
-    def "can register config rules for specified type"() {
+    def "can register config rule and type for item"() {
         when:
         mutate {
-            it.create("foo", SpecialNamedThing) {
-                it.other = "changed"
+            create("foo", SpecialNamedThing) {
+                other = "changed"
             }
         }
-        registry.node(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("foo"))
 
         then:
         container.getByName("foo").other == "changed"
     }
 
+    def "can query collection size"() {
+        when:
+        mutate {
+            assert size() == 0
+            assert it.isEmpty()
+
+            create("a")
+            create("b")
+
+            assert size() == 2
+            assert !isEmpty()
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).size() == 2
+    }
+
+    def "can query filtered collection size"() {
+        when:
+        mutate {
+            create("a")
+            create("b", SpecialNamedThing)
+
+            assert withType(SpecialNamedThing).size() == 1
+            assert withType(Special).size() == 1
+            assert withType(NamedThing).size() == 2
+            assert withType(Object).size() == 2
+            assert withType(String).size() == 0
+
+            assert !withType(SpecialNamedThing).isEmpty()
+            assert withType(String).isEmpty()
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).size() == 1
+    }
+
+    def "can query collection membership"() {
+        when:
+        mutate {
+            assert !containsKey("a")
+            assert !containsKey(12)
+
+            create("a")
+            create("b")
+
+            assert it.containsKey("a")
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).containsKey("a")
+    }
+
+    def "can query filtered collection membership"() {
+        when:
+        mutate {
+            assert !withType(NamedThing).containsKey("a")
+            assert !withType(Integer).containsKey(12)
+
+            create("a")
+            create("b", SpecialNamedThing)
+
+            assert withType(Object).containsKey("a")
+            assert withType(NamedThing).containsKey("a")
+            assert !withType(SpecialNamedThing).containsKey("a")
+            assert !withType(Special).containsKey("a")
+            assert !withType(String).containsKey("a")
+
+            assert withType(Object).containsKey("b")
+            assert withType(NamedThing).containsKey("b")
+            assert withType(SpecialNamedThing).containsKey("b")
+            assert withType(Special).containsKey("b")
+            assert !withType(String).containsKey("b")
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).withType(SpecialNamedThing).containsKey("b")
+    }
+
+    def "can query collection keys"() {
+        when:
+        mutate {
+            assert keySet().isEmpty()
+
+            create("a")
+            create("b")
+
+            assert keySet() as List == ["a", "b"]
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
+    }
+
+    def "can query filtered collection keys"() {
+        when:
+        mutate {
+            assert withType(Object).keySet().isEmpty()
+            assert withType(NamedThing).keySet().isEmpty()
+            assert withType(String).keySet().isEmpty()
+
+            create("b", SpecialNamedThing)
+            create("a")
+
+            assert withType(Object).keySet() as List == ["a", "b"]
+            assert withType(NamedThing).keySet() as List == ["a", "b"]
+            assert withType(SpecialNamedThing).keySet() as List == ["b"]
+            assert withType(Special).keySet() as List == ["b"]
+            assert withType(String).keySet().isEmpty()
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType).withType(Special).keySet() as List == ["b"]
+    }
+
+    def "can register mutate rule for item with name"() {
+        when:
+        mutate {
+            named("foo") {
+                assert other == "original"
+                other = "changed"
+            }
+            create("foo") {
+                other = "original"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+    }
+
+    def "can register mutate rule for item with name using filtered container"() {
+        when:
+        mutate {
+            withType(Object).named("foo") {
+                other += " Object"
+            }
+            withType(Special).named("foo") {
+                other += " Special"
+            }
+            withType(SpecialNamedThing).named("foo") {
+                other += " SpecialNamedThing"
+            }
+            create("foo", SpecialNamedThing) {
+                other = "types:"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "types: Object Special SpecialNamedThing"
+    }
+
+    def "fails when named item does not have view with appropriate type"() {
+        when:
+        mutate {
+            withType(String).named("foo") {
+            }
+            create("foo")
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof InvalidModelRuleException
+        e.cause.cause instanceof ModelRuleBindingException
+        e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
+    }
+
+    def "can register mutate rule for all items using filtered container"() {
+        when:
+        mutate {
+            withType(Object).all {
+                other += " Object"
+            }
+            withType(String).all {
+                other += " String"
+            }
+            withType(NamedThing).all {
+                other += " NamedThing"
+            }
+            withType(Special).all {
+                other += " Special"
+            }
+            withType(SpecialNamedThing).all {
+                other += " SpecialNamedThing"
+            }
+            create("foo") {
+                other = "types:"
+            }
+            create("bar", SpecialNamedThing) {
+                other = "types:"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo").other == "types: Object NamedThing"
+        container.getByName("bar").other == "types: Object NamedThing Special SpecialNamedThing"
+    }
+
+    def "can register mutate rule for all items"() {
+        when:
+        mutate {
+            all {
+                assert other == "original"
+                other = "changed"
+            }
+            create("foo") {
+                other = "original"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+    }
+
+    def "can register mutate rule for all items with specific type"() {
+        when:
+        mutate {
+            withType(Object) {
+                other += " Object"
+            }
+            withType(String) {
+                other += " String"
+            }
+            withType(Special) {
+                other += " Special"
+            }
+            withType(SpecialNamedThing) {
+                other += " SpecialNamedThing"
+            }
+            create("foo") {
+                other = "foo:"
+            }
+            create("bar", SpecialNamedThing) {
+                other = "bar:"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "foo: Object"
+        container.getByName("bar").other == "bar: Object Special SpecialNamedThing"
+    }
+
+    def "can register defaults rule for all items"() {
+        when:
+        mutate {
+            all {
+                other += " all{}"
+            }
+            create("foo") {
+                other += " create()"
+            }
+            beforeEach {
+                other = "beforeEach{}"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "beforeEach{} create() all{}"
+    }
+
+    def "can register defaults rule for all items with type"() {
+        when:
+        mutate {
+            beforeEach(Object) {
+                other = "Object"
+            }
+            beforeEach(String) {
+                other += " String"
+            }
+            beforeEach(Special) {
+                other += " Special"
+            }
+            beforeEach(SpecialNamedThing) {
+                other += " SpecialNamedThing"
+            }
+            create("foo") {
+                other += " create(foo)"
+            }
+            create("bar", SpecialNamedThing) {
+                other += " create(bar)"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+        registry.realizeNode(containerPath.child("bar"))
+
+        then:
+        container.getByName("foo").other == "Object create(foo)"
+        container.getByName("bar").other == "Object Special SpecialNamedThing create(bar)"
+    }
+
+    def "can register finalize rule for all items"() {
+        when:
+        mutate {
+            all {
+                other += " all{}"
+            }
+            afterEach {
+                other += " afterEach{}"
+            }
+            create("foo") {
+                other = "create()"
+            }
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "create() all{} afterEach{}"
+    }
+
+    def "provides groovy DSL"() {
+        when:
+        mutate {
+            foo {
+                assert other == "original"
+                other = "changed"
+            }
+            foo(NamedThing) {
+                other = "original"
+            }
+            bar(SpecialNamedThing)
+        }
+        registry.realizeNode(containerPath.child("foo"))
+
+        then:
+        container.getByName("foo").other == "changed"
+        container.getByName("bar") instanceof SpecialNamedThing
+    }
 }

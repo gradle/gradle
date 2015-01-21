@@ -25,6 +25,7 @@ import java.util.List;
 public class DefaultGradleProject<T> extends PartialGradleProject implements Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
+    private File projectDirectory;
     private List<T> tasks = new LinkedList<T>();
 
     @Override
@@ -66,6 +67,15 @@ public class DefaultGradleProject<T> extends PartialGradleProject implements Ser
 
     public DefaultGradleProject<T> setBuildDirectory(File buildDirectory) {
         this.buildDirectory = buildDirectory;
+        return this;
+    }
+
+    public File getProjectDirectory() {
+        return projectDirectory;
+    }
+
+    public DefaultGradleProject<T> setProjectDirectory(File projectDirectory) {
+        this.projectDirectory = projectDirectory;
         return this;
     }
 

@@ -18,6 +18,5 @@ package org.gradle.api.internal.project
 
 import org.gradle.model.RuleSource
 
-@RuleSource
-class TestRuleSource {
+class TestRuleSource extends RuleSource {
 }

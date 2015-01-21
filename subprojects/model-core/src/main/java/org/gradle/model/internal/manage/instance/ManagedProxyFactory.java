@@ -16,49 +16,27 @@
 
 package org.gradle.model.internal.manage.instance;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.Cast;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.internal.UncheckedException;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
-    public <T> T createProxy(ModelElementState state, ClassLoader classLoader, Class<?>... interfaces) {
-        StateBackedInvocationHandler invocationHandler = new StateBackedInvocationHandler(state);
-        return Cast.uncheckedCast(Proxy.newProxyInstance(classLoader, interfaces, invocationHandler));
-    }
-
-    private static class StateBackedInvocationHandler implements InvocationHandler {
-
-        private final ModelElementState state;
-
-        public StateBackedInvocationHandler(ModelElementState state) {
-            this.state = state;
-        }
-
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            String methodName = method.getName();
-            String propertyName = StringUtils.uncapitalize(methodName.substring(3));
-            if (methodName.startsWith("get")) {
-                return getInstanceProperty(ModelType.returnType(method), propertyName);
-            } else if (methodName.startsWith("set")) {
-                setInstanceProperty(ModelType.paramType(method, 0), propertyName, args[0]);
-                return null;
-            } else if (methodName.equals("hashCode")) {
-                return hashCode();
+    public <T> T createProxy(ModelElementState state, ModelSchema<T> schema) {
+        try {
+            Class<? extends T> generatedClass = schema.getManagedImpl();
+            if (generatedClass == null) {
+                throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
             }
-            throw new Exception("Unexpected method called: " + methodName);
-        }
-
-        private <U> void setInstanceProperty(ModelType<U> type, String name, Object value) {
-            state.set(type, name, Cast.<U>uncheckedCast(value));
-        }
-
-        private <U> U getInstanceProperty(ModelType<U> type, String name) {
-            return state.get(type, name);
+            Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
+            return constructor.newInstance(state);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getTargetException());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
 }

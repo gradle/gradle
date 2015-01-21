@@ -16,19 +16,16 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import com.google.common.reflect.TypeToken;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.MethodDescription;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
@@ -36,17 +33,14 @@ import java.util.List;
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
-    private static final Joiner PARAMS_JOINER = Joiner.on(", ");
-    private static final Function<Type, String> TYPE_TO_STRING = new Function<Type, String>() {
-        public String apply(Type input) {
-            return TypeToken.of(input).toString();
-        }
-    };
-
-    private final Method method;
+    private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
 
-    public MethodModelRuleDescriptor(Method method) {
+    public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
+        this(WeaklyTypeReferencingMethod.of(target, returnType, method));
+    }
+
+    public MethodModelRuleDescriptor(WeaklyTypeReferencingMethod<?, ?> method) {
         this.method = method;
     }
 
@@ -60,13 +54,10 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            StringBuilder sb = new StringBuilder(method.getDeclaringClass().getName());
-            sb.append("#");
-            sb.append(method.getName());
-            sb.append("(");
-            PARAMS_JOINER.appendTo(sb, Iterables.transform(Arrays.asList(method.getGenericParameterTypes()), TYPE_TO_STRING));
-            sb.append(")");
-            description = sb.toString();
+            description = MethodDescription.name(method.getName())
+                    .owner(method.getDeclaringClass())
+                    .takes(method.getGenericParameterTypes())
+                    .toString();
         }
 
         return description;
@@ -106,6 +97,11 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
             throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
         }
 
-        return new MethodModelRuleDescriptor(methodsOfName.get(0));
+        Method method = methodsOfName.get(0);
+        return of(clazz, method);
+    }
+
+    public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
+        return new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
     }
 }

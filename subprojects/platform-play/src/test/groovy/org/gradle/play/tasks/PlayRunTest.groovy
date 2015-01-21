@@ -15,13 +15,11 @@
  */
 
 package org.gradle.play.tasks
-
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
-import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
-import org.gradle.play.platform.PlayPlatform
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -31,29 +29,23 @@ class PlayRunTest extends Specification {
 
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
-    PlayToolChainInternal toolChain = Mock(PlayToolChainInternal)
-    PlayPlatform playPlatform = Mock(PlayPlatform)
     PlayToolProvider toolProvider = Mock()
     InputStream systemInputStream = Mock()
 
-    @Rule RedirectStdIn redirectStdIn;
+    @Rule
+    RedirectStdIn redirectStdIn;
 
     PlayRun playRun
 
-    def setup(){
-        playRun = TestUtil.createTask(PlayRun, [__toolChain__: toolChain])
+    def setup() {
+        playRun = TestUtil.createTask(PlayRun)
         playRun.applicationJar = new File("application.jar")
-
-        _ * playPlatform.playVersion >> "2.2.3"
-        _ * playPlatform.scalaMainVersion >> "2.10"
-        1 * toolChain.select(playPlatform) >> toolProvider
-        playRun.targetPlatform = playPlatform
-        _ * playApplicationRunner.start() >> runnerToken
-
+        playRun.runtimeClasspath = new SimpleFileCollection()
+        playRun.toolProvider = toolProvider
         System.in = systemInputStream
     }
 
-    def "can customize memory"(){
+    def "can customize memory"() {
         given:
         1 * systemInputStream.read() >> 4
         playRun.forkOptions.memoryInitialSize = "1G"
@@ -61,10 +53,11 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner(_, _) >> {factory, PlayRunSpec spec ->
+        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
+        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
             assert spec.getForkOptions().memoryMaximumSize == "5G"
-            playApplicationRunner
+            runnerToken
         }
     }
 
@@ -73,13 +66,15 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner(_, _) >> { factory, PlayRunSpec spec ->
+        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
+
+        1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions() != null
-            playApplicationRunner
+            runnerToken
         }
     }
 
-    def "stops application after receiving ctrl+d"(){
+    def "stops application after receiving ctrl+d"() {
         1 * systemInputStream.read() >> {
             1 * runnerToken.stop()
             return 4
@@ -87,6 +82,7 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner(_, _) >> playApplicationRunner
+        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
+        1 * playApplicationRunner.start(_) >> runnerToken
     }
 }
