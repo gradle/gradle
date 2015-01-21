@@ -36,7 +36,7 @@ public class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final Action<? super T> worker;
     private final List<ListenableFuture<Void>> workFutures;
 
-    private boolean completed = false;
+    private boolean completed;
 
     public DefaultOperationQueue(ListeningExecutorService executor, Action<? super T> worker) {
         this.executor = executor;
