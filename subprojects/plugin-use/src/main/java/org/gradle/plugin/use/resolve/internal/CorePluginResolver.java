@@ -38,8 +38,8 @@ public class CorePluginResolver implements PluginResolver {
         PluginId id = pluginRequest.getId();
 
         if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
-            PotentialPluginWithId<?> lookup = pluginRegistry.lookup(id.getName());
-            if (lookup == null) {
+            PotentialPluginWithId<?> plugin = pluginRegistry.lookup(id.getName());
+            if (plugin == null) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             } else {
                 if (pluginRequest.getVersion() != null) {
@@ -48,7 +48,7 @@ public class CorePluginResolver implements PluginResolver {
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                result.found(getDescription(), new SimplePluginResolution(lookup));
+                result.found(getDescription(), new SimplePluginResolution(plugin));
             }
         } else {
             result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", DefaultPluginManager.CORE_PLUGIN_NAMESPACE));
