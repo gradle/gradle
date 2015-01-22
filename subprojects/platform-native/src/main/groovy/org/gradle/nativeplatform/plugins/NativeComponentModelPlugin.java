@@ -72,11 +72,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
 
         @ComponentType
         void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {

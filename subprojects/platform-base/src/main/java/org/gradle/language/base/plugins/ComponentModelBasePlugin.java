@@ -86,9 +86,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         );
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Model

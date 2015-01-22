@@ -92,9 +92,6 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    /**
-     * Model rules.
-     */
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")

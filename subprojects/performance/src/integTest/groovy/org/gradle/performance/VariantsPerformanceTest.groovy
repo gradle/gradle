@@ -20,7 +20,7 @@ package org.gradle.performance
 import org.gradle.performance.fixture.BuildSpecification
 import spock.lang.Unroll
 
-class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "#size project using variants #scenario build"() {

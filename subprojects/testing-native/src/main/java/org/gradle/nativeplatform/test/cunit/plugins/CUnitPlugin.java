@@ -68,11 +68,8 @@ public class CUnitPlugin implements Plugin<Project> {
         project.getPluginManager().apply(CLangPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
 
         private static final String CUNIT_LAUNCHER_SOURCE_SET = "cunitLauncher";
 

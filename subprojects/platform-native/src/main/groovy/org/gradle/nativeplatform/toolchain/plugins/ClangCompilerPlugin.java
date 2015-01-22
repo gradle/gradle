@@ -44,10 +44,7 @@ public class ClangCompilerPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
         @Mutate
         public static void addToolChain(NativeToolChainRegistryInternal toolChainRegistry, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
