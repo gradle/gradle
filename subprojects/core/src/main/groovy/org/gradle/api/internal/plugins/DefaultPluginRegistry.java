@@ -39,14 +39,14 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final PluginInspector pluginInspector;
     private final Factory<? extends ClassLoader> classLoaderFactory;
 
-    private final LoadingCache<Class<?>, PotentialPlugin> classMappings;
+    private final LoadingCache<Class<?>, PluginImplementation<?>> classMappings;
     private final LoadingCache<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idMappings;
 
     public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
         this(null, pluginInspector, Factories.constant(classLoader));
     }
 
-    private DefaultPluginRegistry(PluginRegistry parent, PluginInspector pluginInspector, final Factory<? extends ClassLoader> classLoaderFactory) {
+    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, final Factory<? extends ClassLoader> classLoaderFactory) {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
         this.classLoaderFactory = classLoaderFactory;
@@ -78,17 +78,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
                             pluginDescriptor), e);
                 }
 
-                PotentialPlugin<?> potentialPlugin = inspect(implClass);
-                PluginImplementation<?> withId = new DefaultPotentialPluginWithId<Object>(pluginId, potentialPlugin) {
-                    @Override
-                    public boolean isAlsoKnownAs(PluginId id) {
-                        if (pluginId.equals(id)) {
-                            return true;
-                        }
-                        PluginImplementation<?> other = lookupSelf(id);
-                        return other != null && other.asClass().equals(implClass);
-                    }
-                };
+                PotentialPlugin<?> potentialPlugin = pluginInspector.inspect(implClass);
+                PluginImplementation<Object> withId = new RegistryAwarePluginImplementation(pluginId, potentialPlugin);
                 return Cast.uncheckedCast(Optional.of(withId));
             }
         });
@@ -102,7 +93,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         });
     }
 
-    public <T> PotentialPlugin<T> inspect(Class<T> clazz) {
+    public <T> PluginImplementation<T> inspect(Class<T> clazz) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
         return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
@@ -194,7 +185,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
-    private static class PotentialPluginCacheLoader extends CacheLoader<Class<?>, PotentialPlugin> {
+    private class PotentialPluginCacheLoader extends CacheLoader<Class<?>, PluginImplementation<?>> {
         private final PluginInspector pluginInspector;
 
         public PotentialPluginCacheLoader(PluginInspector pluginInspector) {
@@ -202,9 +193,26 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         @Override
-        public PotentialPlugin load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
-            return pluginInspector.inspect(key);
+        public PluginImplementation<?> load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
+            return new RegistryAwarePluginImplementation(null, pluginInspector.inspect(key));
         }
     }
 
+    private class RegistryAwarePluginImplementation extends DefaultPotentialPluginWithId<Object> {
+        private final PluginId pluginId;
+
+        public RegistryAwarePluginImplementation(PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
+            super(pluginId, potentialPlugin);
+            this.pluginId = pluginId;
+        }
+
+        @Override
+        public boolean isAlsoKnownAs(PluginId id) {
+            if (id.equals(pluginId)) {
+                return true;
+            }
+            PluginImplementation<?> other = lookupSelf(id);
+            return other != null && other.asClass().equals(asClass());
+        }
+    }
 }

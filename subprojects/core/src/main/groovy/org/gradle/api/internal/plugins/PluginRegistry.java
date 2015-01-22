@@ -23,7 +23,7 @@ import org.gradle.plugin.internal.PluginId;
 
 @ThreadSafe
 public interface PluginRegistry {
-    <T> PotentialPlugin<T> inspect(Class<T> clazz);
+    <T> PluginImplementation<T> inspect(Class<T> clazz);
 
     /**
      * Locates the plugin with the given id. Note that the id of the result may be different to the requested id.

@@ -64,11 +64,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
-        return doApply(plugin.getPluginId().toString(), plugin);
+        return doApply(plugin);
     }
 
     public <P extends Plugin> P addImperativePlugin(Class<P> type) {
-        return doApply(null, pluginRegistry.inspect(type));
+        return doApply(pluginRegistry.inspect(type));
     }
 
     @Nullable
@@ -98,24 +98,25 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public void apply(PluginImplementation<?> plugin) {
-        doApply(plugin.getPluginId().toString(), plugin);
+        doApply(plugin);
     }
 
     public void apply(String pluginId) {
-        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
-        if (pluginImplementation == null) {
+        PluginImplementation<?> plugin = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
+        if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
-        doApply(pluginImplementation.getPluginId().toString(), pluginImplementation);
+        doApply(plugin);
     }
 
     public void apply(Class<?> type) {
-        PotentialPlugin potentialPlugin = pluginRegistry.inspect(type);
-        doApply(null, potentialPlugin);
+        doApply(pluginRegistry.inspect(type));
     }
 
     @Nullable
-    private <T> T doApply(@Nullable final String pluginId, PotentialPlugin<T> potentialPlugin) {
+    private <T> T doApply(PluginImplementation<T> potentialPlugin) {
+        PluginId pluginId = potentialPlugin.getPluginId();
+        String pluginIdStr = pluginId == null ? null : pluginId.toString();
         Class<? extends T> pluginClass = potentialPlugin.asClass();
         try {
             if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
@@ -135,9 +136,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
                         instances.add(cast);
 
                         if (potentialPlugin.isHasRules()) {
-                            applicator.applyImperativeRulesHybrid(pluginId, cast);
+                            applicator.applyImperativeRulesHybrid(pluginIdStr, cast);
                         } else {
-                            applicator.applyImperative(pluginId, cast);
+                            applicator.applyImperative(pluginIdStr, cast);
                         }
 
                         // Important not to add until after it has been applied as there can be
@@ -145,7 +146,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                         pluginContainer.add(cast);
                         return instance;
                     } else {
-                        applicator.applyRules(pluginId, pluginClass);
+                        applicator.applyRules(pluginIdStr, pluginClass);
                     }
                 } else {
                     if (imperative) {

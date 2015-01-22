@@ -63,7 +63,7 @@ class DefaultPluginRegistryTest extends Specification {
         plugin.asClass() == TestRuleSource
     }
 
-    def "returns null for unknown id"() {
+    def "locate returns null for unknown id"() {
         expect:
         pluginRegistry.lookup(PluginId.of("unknownId")) == null
     }
@@ -159,6 +159,45 @@ class DefaultPluginRegistryTest extends Specification {
 
         !plugin1.isAlsoKnownAs(PluginId.of("plugin-2"))
         !plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
+    }
+
+    def "inspects imperative plugin implementation that has no id mapping"() {
+        expect:
+        def plugin = pluginRegistry.inspect(TestPlugin1.class)
+        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
+        plugin.pluginId == null
+        !plugin.isAlsoKnownAs(PluginId.of("org.gradle.some-plugin"))
+    }
+
+    def "inspects class that has multiple id mappings"() {
+        def url = writePluginProperties(TestPlugin1)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/plugin-1.properties") >> url
+        classLoader.getResource("META-INF/gradle-plugins/plugin-2.properties") >> url
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
+        expect:
+        def plugin = pluginRegistry.inspect(TestPlugin1.class)
+        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
+        plugin.pluginId == null
+        plugin.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin.isAlsoKnownAs(PluginId.of("plugin-2"))
+    }
+
+    def "inspects class that has id mapping in org.gradle namespace"() {
+        def url = writePluginProperties(TestPlugin1)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/org.gradle.somePlugin.properties") >> url
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
+        expect:
+        def plugin = pluginRegistry.inspect(TestPlugin1.class)
+        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
+        plugin.pluginId == null
+        plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
+        plugin.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
     }
 
     def "inspects class that is not a plugin implementation"() {

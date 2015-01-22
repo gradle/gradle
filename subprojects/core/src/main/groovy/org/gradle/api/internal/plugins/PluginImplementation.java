@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Nullable;
 import org.gradle.plugin.internal.PluginId;
 
 public interface PluginImplementation<T> extends PotentialPlugin<T> {
+    String getDisplayName();
+
     /**
-     * The canonical id for the plugin implementation.
+     * An id for the plugin implementation, if known.
      */
+    @Nullable
     PluginId getPluginId();
 
     boolean isAlsoKnownAs(PluginId id);

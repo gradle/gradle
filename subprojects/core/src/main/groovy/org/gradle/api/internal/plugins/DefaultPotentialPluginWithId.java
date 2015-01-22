@@ -32,6 +32,11 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
         this.potentialPlugin = potentialPlugin;
     }
 
+    @Override
+    public String getDisplayName() {
+        return String.format("id '%s'", pluginId);
+    }
+
     public PluginId getPluginId() {
         return pluginId;
     }
