@@ -172,8 +172,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
-        final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
+        if (parent != null) {
+            extensibleDynamicObject.setParent(parent.getInheritedScope());
+        }
+        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
+        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+
+        populateModelRegistry(services.get(ModelRegistry.class));
+    }
+
+    private void populateModelRegistry(ModelRegistry modelRegistry) {
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
@@ -198,14 +208,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build(),
                 ModelPath.ROOT
         );
-
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
-        if (parent != null) {
-            extensibleDynamicObject.setParent(parent.getInheritedScope());
-        }
-        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
-
-        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
