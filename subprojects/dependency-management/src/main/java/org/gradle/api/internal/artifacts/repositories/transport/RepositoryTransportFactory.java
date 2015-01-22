@@ -76,6 +76,9 @@ public class RepositoryTransportFactory {
     }
 
     private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(Credentials credentials) {
+        if(credentials == null) {
+            return null;
+        }
         if (!(credentials instanceof PasswordCredentials)) {
             throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
         }

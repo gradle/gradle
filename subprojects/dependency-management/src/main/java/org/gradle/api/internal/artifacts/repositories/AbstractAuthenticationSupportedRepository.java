@@ -26,23 +26,18 @@ import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupported {
-    private PasswordCredentials passwordCredentials;
-    private Credentials alternativeCredentials;
+    private Credentials credentials;
     private final Instantiator instantiator;
 
-    AbstractAuthenticationSupportedRepository(PasswordCredentials passwordCredentials, Instantiator instantiator) {
-        this.passwordCredentials = passwordCredentials;
-        this.alternativeCredentials = passwordCredentials;
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     public PasswordCredentials getCredentials() {
-        if (passwordCredentials == null && alternativeCredentials != null) {
-            throw new IllegalStateException("Password credentials has been overridden by a specific credentials of type ["
-                    + alternativeCredentials.getClass().getName()
-                    + "] Credentials should be accessed using 'getAlternativeCredentials()'");
+        if(credentials != null && !(credentials instanceof PasswordCredentials)) {
+            throw new IllegalStateException(String.format("Requested credentials must be of type '%s'.", PasswordCredentials.class.getName()));
         }
-        return passwordCredentials;
+        return (PasswordCredentials) credentials;
     }
 
     public void credentials(Closure closure) {
@@ -50,40 +45,26 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (passwordCredentials == null) {
-            throw new IllegalStateException("Password credentials is null, most likely an alternative "
-                    + "credentials type has been configured for this repository");
+        if (credentials != null) {
+            throw new IllegalStateException("Cannot overwrite already configured credentials.");
         }
-        action.execute(passwordCredentials);
+        credentials = instantiator.newInstance(DefaultPasswordCredentials.class);
+        action.execute((PasswordCredentials)credentials);
     }
 
     public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
-        if(alternativeCredentials != null) {
-            throw new IllegalStateException("Cannot overwrite already configured strongly typed credentials.");
+        if(credentials != null) {
+            throw new IllegalStateException("Cannot overwrite already configured credentials.");
         }
-        T instance = null;
         if (clazz == AwsCredentials.class) {
-            instance = (T) instantiator.newInstance(DefaultAwsCredentials.class);
+            credentials = instantiator.newInstance(DefaultAwsCredentials.class);
         } else if (clazz == PasswordCredentials.class) {
-            instance = (T) instantiator.newInstance(DefaultPasswordCredentials.class);
+            credentials= instantiator.newInstance(DefaultPasswordCredentials.class);
         }
-        overrideDefaultCredentials(instance);
-        action.execute(instance);
-    }
-
-    /**
-     * Implies the user has configured the DSL with a specific type: { credentials(PasswordCredentials){ ... }
-     */
-    private void overrideDefaultCredentials(Credentials instance) {
-        alternativeCredentials = instance;
-        passwordCredentials = null;
+        action.execute((T) credentials);
     }
 
     public Credentials getAlternativeCredentials() {
-        if (null == alternativeCredentials) {
-            throw new IllegalStateException("This repository has not been configured a specific credentials type "
-                    + "e.g. (credentials(PasswordCredentials){ ... })");
-        }
-        return alternativeCredentials;
+        return credentials;
     }
 }

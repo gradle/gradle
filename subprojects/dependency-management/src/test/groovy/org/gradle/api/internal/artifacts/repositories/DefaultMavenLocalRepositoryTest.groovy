@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -30,7 +29,6 @@ import spock.lang.Specification
 
 class DefaultMavenLocalRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
-    final PasswordCredentials credentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
@@ -38,7 +36,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final MetaDataParser pomParser = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
+            resolver, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {
@@ -46,7 +44,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', credentials) >> transport()
+        transportFactory.createTransport('file', 'repo', null) >> transport()
 
         and:
         repository.name = 'repo'
