@@ -16,35 +16,38 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.publication.maven.internal.ant.CustomInstallTask;
+import org.gradle.api.publication.maven.internal.ant.MavenInstallTask;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher<AntTaskBackedMavenLocalPublisher.MavenLocalInstallTask> {
+public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher<AntTaskBackedMavenLocalPublisher.MavenPublishLocalTask> {
     public AntTaskBackedMavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
     }
 
     @Override
-    protected void postConfigure(MavenLocalInstallTask task, MavenArtifactRepository artifactRepository) {
+    protected void postConfigure(MavenPublishLocalTask task, MavenArtifactRepository artifactRepository) {
         task.setRepoLocation(artifactRepository.getUrl().toString());
     }
 
     @Override
-    protected MavenLocalInstallTask createDeployTask() {
-        return new MavenLocalInstallTask();
+    protected MavenPublishLocalTask createDeployTask(File pomFile) {
+        return new MavenPublishLocalTask(pomFile);
     }
 
-    public static class MavenLocalInstallTask extends CustomInstallTask {
+    public static class MavenPublishLocalTask extends MavenInstallTask {
 
         private String repoLocation;
+
+        protected MavenPublishLocalTask(File pomFile) {
+            super(pomFile);
+        }
 
         private void setRepoLocation(String repoLocation) {
             this.repoLocation = repoLocation;
@@ -54,11 +57,6 @@ public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMaven
         protected ArtifactRepository createLocalArtifactRepository() {
             ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
             return new DefaultArtifactRepository("local", repoLocation, repositoryLayout);
-        }
-
-        @Override
-        protected void updateRepositoryWithSettings(RemoteRepository repository) {
-            // Do nothing
         }
     }
 }

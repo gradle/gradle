@@ -17,28 +17,23 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.maven.artifact.ant.AttachedArtifact;
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
-import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
-import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.util.AntUtil;
 
 import java.io.File;
 import java.util.Set;
@@ -71,7 +66,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return this;
     }
 
-    protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
+    protected abstract MavenPublishTaskSupport createPreConfiguredTask(File pomFile);
 
     public void publish(IvyModulePublishMetaData moduleVersion) {
         for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
@@ -92,20 +87,20 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
     }
 
     private void publish() {
-        InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
-        mavenSettingsSupplier.supply(installDeployTaskSupport);
         for (MavenDeployment mavenDeployment : mavenDeployments) {
-            ((CustomInstallDeployTaskSupport) installDeployTaskSupport).clearAttachedArtifactsList();
+            File pomFile = mavenDeployment.getPomArtifact().getFile();
+            MavenPublishTaskSupport installDeployTaskSupport = createPreConfiguredTask(pomFile);
+            mavenSettingsSupplier.supply(installDeployTaskSupport);
             beforeDeploymentActions.execute(mavenDeployment);
-            addPomAndArtifact(installDeployTaskSupport, mavenDeployment);
+            addArtifacts(installDeployTaskSupport, mavenDeployment);
             execute(installDeployTaskSupport);
+            settings = installDeployTaskSupport.getSettings();
         }
         mavenSettingsSupplier.done();
-        settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
-    private void execute(InstallDeployTaskSupport deployTask) {
+    private void execute(MavenPublishTaskSupport deployTask) {
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
             deployTask.execute();
@@ -114,19 +109,12 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         }
     }
 
-    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, MavenDeployment mavenDeployment) {
-        Pom pom = new Pom();
-        pom.setProject(installOrDeployTask.getProject());
-        pom.setFile(mavenDeployment.getPomArtifact().getFile());
-        installOrDeployTask.addPom(pom);
+    private void addArtifacts(MavenPublishTaskSupport installOrDeployTask, MavenDeployment mavenDeployment) {
         if (mavenDeployment.getMainArtifact() != null) {
-            installOrDeployTask.setFile(mavenDeployment.getMainArtifact().getFile());
+            installOrDeployTask.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }
         for (PublishArtifact classifierArtifact : mavenDeployment.getAttachedArtifacts()) {
-            AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
-            attachedArtifact.setClassifier(classifierArtifact.getClassifier());
-            attachedArtifact.setFile(classifierArtifact.getFile());
-            attachedArtifact.setType(classifierArtifact.getType());
+            installOrDeployTask.addAdditionalArtifact(classifierArtifact.getFile(), classifierArtifact.getType(), classifierArtifact.getClassifier());
         }
     }
 

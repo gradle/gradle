@@ -15,10 +15,7 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.apache.maven.artifact.ant.DeployTask;
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
@@ -48,20 +45,15 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager);
     }
 
-    protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        CustomDeployTask deployTask = createTask();
-        deployTask.setProject(project);
+    protected MavenPublishTaskSupport createPreConfiguredTask(File pomFile) {
+        MavenDeployTask deployTask = new MavenDeployTask(pomFile);
         deployTask.setUniqueVersion(isUniqueVersion());
         addProtocolProvider(deployTask);
         addRemoteRepositories(deployTask);
         return deployTask;
     }
 
-    protected CustomDeployTask createTask() {
-        return new CustomDeployTask();
-    }
-
-    private void addProtocolProvider(CustomDeployTask deployTask) {
+    private void addProtocolProvider(MavenDeployTask deployTask) {
         PlexusContainer plexusContainer = deployTask.getContainer();
         for (File wagonProviderJar : getJars()) {
             try {
@@ -76,9 +68,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
     }
 
-    private void addRemoteRepositories(DeployTask deployTask) {
-        deployTask.addRemoteRepository(remoteRepository);
-        deployTask.addRemoteSnapshotRepository(remoteSnapshotRepository);
+    private void addRemoteRepositories(MavenDeployTask deployTask) {
+        deployTask.setRepositories(remoteRepository, remoteSnapshotRepository);
     }
 
     public RemoteRepository getRepository() {

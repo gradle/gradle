@@ -21,36 +21,37 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.publication.maven.internal.ant.CustomDeployTask;
+import org.gradle.api.publication.maven.internal.ant.MavenDeployTask;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher<CustomDeployTask> {
+public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher<MavenDeployTask> {
     public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
     }
 
-    protected void postConfigure(CustomDeployTask task, MavenArtifactRepository artifactRepository) {
+    protected void postConfigure(MavenDeployTask task, MavenArtifactRepository artifactRepository) {
         addRepository(task, artifactRepository);
     }
 
-    protected CustomDeployTask createDeployTask() {
-        CustomDeployTask deployTask = new DeployTask(temporaryDirFactory);
+    protected MavenDeployTask createDeployTask(File pomFile) {
+        MavenDeployTask deployTask = new MavenPublishTask(pomFile, temporaryDirFactory);
         deployTask.setUniqueVersion(true);
         return deployTask;
     }
 
-    private void addRepository(CustomDeployTask deployTask, MavenArtifactRepository artifactRepository) {
+    private void addRepository(MavenDeployTask deployTask, MavenArtifactRepository artifactRepository) {
         RemoteRepository mavenRepository = new MavenRemoteRepositoryFactory(artifactRepository).create();
-        deployTask.addRemoteRepository(mavenRepository);
+        deployTask.setRepositories(mavenRepository, null);
     }
 
-    private static class DeployTask extends CustomDeployTask {
+    private static class MavenPublishTask extends MavenDeployTask {
         private final Factory<File> tmpDirFactory;
 
-        public DeployTask(Factory<File> tmpDirFactory) {
+        public MavenPublishTask(File pomFile, Factory<File> tmpDirFactory) {
+            super(pomFile);
             this.tmpDirFactory = tmpDirFactory;
         }
 

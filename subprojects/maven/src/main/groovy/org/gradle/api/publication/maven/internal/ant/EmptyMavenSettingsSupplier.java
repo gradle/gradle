@@ -17,7 +17,6 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -30,7 +29,7 @@ public class EmptyMavenSettingsSupplier implements MavenSettingsSupplier {
     private final TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
     private File settingsXml;
 
-    public void supply(InstallDeployTaskSupport installDeployTaskSupport) {
+    public void supply(MavenPublishTaskSupport installDeployTaskSupport) {
         try {
             settingsXml = temporaryFileProvider.createTemporaryFile("gradle_empty_settings", ".xml");
             FileUtils.writeStringToFile(settingsXml, "<settings/>");
@@ -38,7 +37,7 @@ public class EmptyMavenSettingsSupplier implements MavenSettingsSupplier {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        installDeployTaskSupport.setSettingsFile(settingsXml);
+        installDeployTaskSupport.initSettings(settingsXml);
     }
 
     public void done() {

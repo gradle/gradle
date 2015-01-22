@@ -15,12 +15,11 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
-import org.apache.maven.artifact.ant.InstallTask;
-import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.logging.LoggingManagerInternal;
+
+import java.io.File;
 
 public class BaseMavenInstaller extends AbstractMavenResolver {
     public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
@@ -28,13 +27,7 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
         mavenSettingsSupplier = new MaybeUserMavenSettingsSupplier();
     }
 
-    protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        InstallTask installTask = createTask();
-        installTask.setProject(project);
-        return installTask;
-    }
-
-    protected CustomInstallTask createTask() {
-        return new CustomInstallTask();
+    protected MavenPublishTaskSupport createPreConfiguredTask(File pomFile) {
+        return new MavenInstallTask(pomFile);
     }
 }

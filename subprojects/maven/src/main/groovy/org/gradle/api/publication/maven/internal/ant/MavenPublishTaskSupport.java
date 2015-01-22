@@ -15,24 +15,21 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.PlexusContainer;
 
-public class CustomInstallTask extends InstallTask implements CustomInstallDeployTaskSupport {
-    @Override
-    public synchronized Settings getSettings() {
-        return super.getSettings();   
-    }
+import java.io.File;
 
-    public void clearAttachedArtifactsList() {
-        attachedArtifacts.clear();
-    }
+public interface MavenPublishTaskSupport {
+    Settings getSettings();
 
-    @Override
-    public void doExecute() {
-        LoggingHelper.injectLogger(getContainer(), getProject());
-        super.doExecute();
-    }
+    void initSettings(File userSettings);
 
+    void execute();
 
+    PlexusContainer getContainer();
+
+    void setMainArtifact(File file);
+
+    void addAdditionalArtifact(File file, String type, String classifier);
 }
