@@ -34,18 +34,18 @@ class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
         RemoteRepository remoteRepository = new RemoteRepository();
         remoteRepository.setUrl(artifactRepository.getUrl().toString());
 
-        PasswordCredentials credentials = (PasswordCredentials) artifactRepository.getCredentials();
-
-        String username = credentials.getUsername();
-        String password = credentials.getPassword();
-
-        if (username != null || password != null) {
-            Authentication authentication = new Authentication();
-            authentication.setUserName(username);
-            authentication.setPassword(password);
-            remoteRepository.addAuthentication(authentication);
+        PasswordCredentials credentials = artifactRepository.getCredentials();
+        if(credentials != null) {
+            String username = credentials.getUsername();
+            String password = credentials.getPassword();
+            if (username != null || password != null) {
+                Authentication authentication = new Authentication();
+                authentication.setUserName(username);
+                authentication.setPassword(password);
+                remoteRepository.addAuthentication(authentication);
+            }
         }
-
         return remoteRepository;
+
     }
 }
