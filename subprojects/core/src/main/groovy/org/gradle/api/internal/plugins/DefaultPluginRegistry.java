@@ -40,7 +40,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final Factory<? extends ClassLoader> classLoaderFactory;
 
     private final LoadingCache<Class<?>, PotentialPlugin> classMappings;
-    private final LoadingCache<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>> idMappings;
+    private final LoadingCache<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idMappings;
 
     public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
         this(null, pluginInspector, Factories.constant(classLoader));
@@ -51,9 +51,9 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.pluginInspector = pluginInspector;
         this.classLoaderFactory = classLoaderFactory;
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
-        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>>() {
+        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
-            public Optional<PotentialPluginWithId<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
+            public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
                 final PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
@@ -79,13 +79,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
                 }
 
                 PotentialPlugin<?> potentialPlugin = inspect(implClass);
-                PotentialPluginWithId<?> withId = new DefaultPotentialPluginWithId<Object>(pluginId, potentialPlugin) {
+                PluginImplementation<?> withId = new DefaultPotentialPluginWithId<Object>(pluginId, potentialPlugin) {
                     @Override
                     public boolean isAlsoKnownAs(PluginId id) {
                         if (pluginId.equals(id)) {
                             return true;
                         }
-                        PotentialPluginWithId<?> other = lookupSelf(id);
+                        PluginImplementation<?> other = lookupSelf(id);
                         return other != null && other.asClass().equals(implClass);
                     }
                 };
@@ -110,8 +110,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
     @Nullable
     @Override
-    public PotentialPluginWithId<?> lookup(PluginId pluginId) {
-        PotentialPluginWithId lookup;
+    public PluginImplementation<?> lookup(PluginId pluginId) {
+        PluginImplementation lookup;
         if (parent != null) {
             lookup = parent.lookup(pluginId);
             if (lookup != null) {
@@ -122,17 +122,17 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return lookupSelf(pluginId);
     }
 
-    private PotentialPluginWithId<?> lookupSelf(PluginId pluginId) {
+    private PluginImplementation<?> lookupSelf(PluginId pluginId) {
         return lookup(pluginId, classLoaderFactory.create());
     }
 
     @Nullable
     @Override
-    public PotentialPluginWithId<?> lookup(PluginId pluginId, ClassLoader classLoader) {
+    public PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
 
-        PotentialPluginWithId lookup;
+        PluginImplementation lookup;
         if (!pluginId.isQualified()) {
             PluginId qualified = pluginId.maybeQualify(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
             lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();

@@ -73,7 +73,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         // Could be different to ids in the requests as they may be unqualified
         final Map<Result, PluginId> legacyActualPluginIds = Maps.newLinkedHashMap();
-        final Map<Result, PotentialPluginWithId<?>> pluginImpls = Maps.newLinkedHashMap();
+        final Map<Result, PluginImplementation<?>> pluginImpls = Maps.newLinkedHashMap();
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
@@ -92,7 +92,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                             }
 
                             @Override
-                            public void add(PotentialPluginWithId<?> plugin) {
+                            public void add(PluginImplementation<?> plugin) {
                                 pluginImpls.put(result, plugin);
                             }
                         });
@@ -131,7 +131,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             });
         }
 
-        for (final Map.Entry<Result, PotentialPluginWithId<?>> entry : pluginImpls.entrySet()) {
+        for (final Map.Entry<Result, PluginImplementation<?>> entry : pluginImpls.entrySet()) {
             final Result result = entry.getKey();
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                 public void run() {

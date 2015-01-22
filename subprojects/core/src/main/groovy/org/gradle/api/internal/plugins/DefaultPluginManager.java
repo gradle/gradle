@@ -63,7 +63,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     @Override
-    public <P extends Plugin> P addImperativePlugin(PotentialPluginWithId<P> plugin) {
+    public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
         return doApply(plugin.getPluginId().toString(), plugin);
     }
 
@@ -97,16 +97,16 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     @Override
-    public void apply(PotentialPluginWithId<?> plugin) {
+    public void apply(PluginImplementation<?> plugin) {
         doApply(plugin.getPluginId().toString(), plugin);
     }
 
     public void apply(String pluginId) {
-        PotentialPluginWithId<?> potentialPluginWithId = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
-        if (potentialPluginWithId == null) {
+        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
+        if (pluginImplementation == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
-        doApply(potentialPluginWithId.getPluginId().toString(), potentialPluginWithId);
+        doApply(pluginImplementation.getPluginId().toString(), pluginImplementation);
     }
 
     public void apply(Class<?> type) {
@@ -193,8 +193,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private boolean hasId(Class<?> plugin, String id) {
-        PotentialPluginWithId<?> potentialPluginWithId = pluginRegistry.lookup(PluginId.unvalidated(id), plugin.getClassLoader());
-        return potentialPluginWithId != null && potentialPluginWithId.getPluginId().toString().equals(id) && potentialPluginWithId.asClass().equals(plugin);
+        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(PluginId.unvalidated(id), plugin.getClassLoader());
+        return pluginImplementation != null && pluginImplementation.getPluginId().toString().equals(id) && pluginImplementation.asClass().equals(plugin);
     }
 
     public AppliedPlugin findPlugin(final String id) {
