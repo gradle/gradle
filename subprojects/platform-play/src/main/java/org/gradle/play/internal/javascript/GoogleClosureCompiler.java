@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -37,8 +36,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
@@ -81,12 +78,12 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         loadCompilerClasses(getClass().getClassLoader());
 
         // Create a SourceFile object to represent an "empty" extern
-        JavaMethod fromCodeJavaMethod = getStaticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
-        Object extern = fromCodeJavaMethod.invoke(null, "/dev/null", "");
+        JavaMethod fromCodeJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
+        Object extern = fromCodeJavaMethod.invokeStatic("/dev/null", "");
 
         // Create a SourceFile object to represent the javascript file to compile
-        JavaMethod fromFileJavaMethod = getStaticMethod(sourceFileClass, Object.class, "fromFile", File.class);
-        Object sourceFile = fromFileJavaMethod.invoke(null, javascriptFile.getFile());
+        JavaMethod fromFileJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromFile", File.class);
+        Object sourceFile = fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
 
         // Construct a new CompilerOptions class
         Factory<?> compilerOptionsFactory = JavaReflectionUtil.factory(new DirectInstantiator(), compilerOptionsClass);
@@ -140,19 +137,6 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    /**
-     * We have to find static methods like this because the other JavaReflectionUtil.method() ignores static methods
-     */
-    private static <T, R> JavaMethod<T, R> getStaticMethod(Class<T> type, Class<R> returnType, final String name, final Object... parameterTypes) {
-        Method method = JavaReflectionUtil.findMethod(type, new Spec<Method>() {
-            @Override
-            public boolean isSatisfiedBy(Method method) {
-                return method.getName().equals(name) && Arrays.equals(method.getParameterTypes(), parameterTypes);
-            }
-        });
-        return JavaReflectionUtil.method(type, returnType, method);
     }
 
     private PrintStream getDummyPrintStream() {

@@ -181,6 +181,21 @@ class JavaReflectionUtilTest extends Specification {
         method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
     }
 
+    def "call static methods successfully reflectively" () {
+        when:
+        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
+
+        then:
+        staticMethod(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
+    }
+
+    def "static methods are identifiable" () {
+        expect:
+        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
+        staticMethod(myProperties.class, String, "getStaticProperty").isStatic()
+        method(myProperties.class, String, "getMyProperty").isStatic() == false
+    }
+
     def "call failing methods reflectively"() {
         when:
         method(myProperties.class, Void, "throwsException").invoke(myProperties)

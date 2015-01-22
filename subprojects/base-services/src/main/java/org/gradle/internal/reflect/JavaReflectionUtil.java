@@ -185,6 +185,13 @@ public class JavaReflectionUtil {
     }
 
     /**
+     * Locates the given static method. Searches all methods, including private methods.
+     */
+    public static <T, R> JavaMethod<T, R> staticMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
+        return new JavaMethod<T, R>(target, returnType, name, true, paramTypes);
+    }
+
+    /**
      * Locates the given method. Searches all methods, including private methods.
      */
     public static <T, R> JavaMethod<T, R> method(T target, Class<R> returnType, String name, Class<?>... paramTypes) throws NoSuchMethodException {
