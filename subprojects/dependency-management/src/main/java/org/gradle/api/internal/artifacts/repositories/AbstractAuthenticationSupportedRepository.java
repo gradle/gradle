@@ -57,12 +57,15 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         action.execute(passwordCredentials);
     }
 
-    public <T extends Credentials> void credentials(Class<T> clazz, Action<? super Credentials> action) {
-        Credentials instance = null;
+    public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) {
+        if(alternativeCredentials != null) {
+            throw new IllegalStateException("Cannot overwrite already configured strongly typed credentials.");
+        }
+        T instance = null;
         if (clazz == AwsCredentials.class) {
-            instance = instantiator.newInstance(DefaultAwsCredentials.class);
+            instance = (T) instantiator.newInstance(DefaultAwsCredentials.class);
         } else if (clazz == PasswordCredentials.class) {
-            instance = instantiator.newInstance(DefaultPasswordCredentials.class);
+            instance = (T) instantiator.newInstance(DefaultPasswordCredentials.class);
         }
         overrideDefaultCredentials(instance);
         action.execute(instance);

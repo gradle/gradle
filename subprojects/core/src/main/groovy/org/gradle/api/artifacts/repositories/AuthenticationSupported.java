@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 
 /**
@@ -35,6 +36,7 @@ public interface AuthenticationSupported {
      * Alternative credentials are used for non username/password credentials.
      * @return The Credentials
      */
+    @Incubating
     Credentials getAlternativeCredentials();
 
     /**
@@ -83,5 +85,5 @@ public interface AuthenticationSupported {
      *  }
      *
      */
-    <T extends Credentials> void credentials(Class<T> clazz, Action<? super Credentials> action);
+    <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action);
 }

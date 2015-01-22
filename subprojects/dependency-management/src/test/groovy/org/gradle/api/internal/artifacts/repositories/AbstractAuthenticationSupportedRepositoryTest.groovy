@@ -99,7 +99,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         PasswordCredentials | Mock(PasswordCredentials)
     }
 
-    def "should throw when credentials have been pre-configured with a specific type"() {
+    def "should throw IllegalStateException when credentials have been pre-configured with a specific type"() {
         Instantiator instantiator = Mock()
         Action action = Mock()
         AuthSupportedRepository repo = new AuthSupportedRepository(null, instantiator)
@@ -145,7 +145,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getAlternativeCredentials() == pCredentials
     }
 
-    def "Should throw on configuring and password credentials is null"() {
+    def "should throw IllegalStateException on configuring and password credentials is null"() {
         setup:
         def repo = new AuthSupportedRepository(null, new DirectInstantiator())
         def action = new ClosureBackedAction<DefaultPasswordCredentials>({
@@ -158,6 +158,23 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         then:
         def ex = thrown(IllegalStateException)
         ex.message == "Password credentials is null, most likely an alternative credentials type has been configured for this repository"
+    }
+
+    def "should throw IllegalStateException setting explicit authentication type multiple times"() {
+        setup:
+        def repo = new AuthSupportedRepository(null, new DirectInstantiator())
+        def action = new ClosureBackedAction<DefaultPasswordCredentials>({
+            accessKey = 'key'
+            secretKey = 'secret'
+        })
+        when:
+        repo.credentials(AwsCredentials, action)
+        and:
+        repo.credentials(AwsCredentials, action)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Cannot overwrite already configured strongly typed credentials."
     }
 
     private void enhanceCredentials(Credentials credentials, String... props) {
