@@ -574,30 +574,22 @@ Other issues:
 - Add `all(Action<? super T)` method to `ManagedSet`.
 - Add DSL support for `all { }` rule.
 
-## Open Questions
-
-- Set by reference vs. copy (i.e. what are the implications for pathing, and ordering mutation)
-- Should getters of subjects be allowed to be called during mutation rules? (i.e. we can't guarantee they won't change)
-- Should we allow setters being called more than once?
-
 ## Backlog
 
-### Open questions
-
-1. Should we require that types that are designed to be managed model elements be annotated?
-
-### Managed types
+### Managed type constraints/features
 
 - Value types:
     - Should support `is` style getters for boolean properties.
-    - Should support all numeric types.
-    - Should support primitives.
+    - Should support all numeric types. (?)
+    - Should support primitives. (?)
+- Support parameterized non-collection types as managed types
+
+### Type coercions and general conveniences
+
 - Mix DSL and Groovy methods into managed type implementations.
     - Add DSL and Groovy type coercion for enums, closures, files, etc
     - Missing property and method error messages use public type instead of implementation type.
 - Add Java API for type coercion
-- Support parameterized non-collection types as managed types
-- Read only views should not strongly reference backing node once the view has been fully realized.
 
 ### Collections
 
@@ -628,15 +620,19 @@ Other issues:
 - Managed projections should be reused per type
 - Unmanaged projections should be reused per type
 - Unmanaged instance model views should be used for the life of the node (right now we create a new view each time we need the node value)
+- Read only views should not strongly reference backing node once the view has been fully realized
+
+### Behaviour
+
+- Managed types should be able to internally use service (with potentially build local state) to provide convenience methods (?)
+- Declaring “services” (i.e. behaviour is interesting, not state) using same “techniques” as managed types?
 
 ### Misc
 
-- Validation error messages need some work
-- Allow some control over generated display name property
+- Audit of error messages
+    - Invalid managed types
+    - Immutability violations
 - Semantics of equals/hashCode
-- User receives runtime error trying to mutate managed set elements when used as input and outside of mutation method
-    - Also when mutation is transitive (e.g. mutating a property of a managed property of a managed set element)
 - Support getting "address" (creation/canonical path) of a managed object
 - Throw a meaningful exception instead of failing with `OutOfMemoryError` at runtime when a managed type instantiation cycle is encountered (a composite type that contains an instance of itself keeps on creating new instances indefinitely)
-- Attempt to call setter method in (abstract class) managed model from non-abstract getter receives error when extracting type metadata
-- Declare, configure and manage services, such as tool chains, resolvers.
+- Attempt to call setter method in (abstract class) managed model from non-abstract getter receives error when extracting type metadata (i.e. fail sooner than runtime)
