@@ -37,26 +37,26 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         // Need this to make withId() work when someone does project.plugins.add(new SomePlugin());
         whenObjectAdded(new Action<Plugin>() {
             public void execute(Plugin plugin) {
-                pluginManager.addImperativePlugin(null, plugin.getClass());
+                pluginManager.addImperativePlugin(plugin.getClass());
             }
         });
     }
 
     public Plugin apply(String id) {
-        PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
-        if (potentialPlugin == null) {
+        PotentialPluginWithId plugin = pluginRegistry.lookup(id);
+        if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
 
-        if (!Plugin.class.isAssignableFrom(potentialPlugin.asClass())) {
-            throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+        if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
+            throw new IllegalArgumentException("Plugin implementation '" + plugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(), potentialPlugin.asClass());
+            return pluginManager.addImperativePlugin(plugin);
         }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        return pluginManager.addImperativePlugin(null, type);
+        return pluginManager.addImperativePlugin(type);
     }
 
     public boolean hasPlugin(String id) {
@@ -68,7 +68,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     private Plugin doFindPlugin(String id) {
-        for (final DefaultPluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
+        for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
             Plugin plugin = Iterables.find(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());

@@ -62,8 +62,13 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    public <P extends Plugin> P addImperativePlugin(String id, Class<P> type) {
-        return doApply(id, pluginRegistry.inspect(type));
+    @Override
+    public <P extends Plugin> P addImperativePlugin(PotentialPluginWithId<P> plugin) {
+        return doApply(plugin.getPluginId().toString(), plugin);
+    }
+
+    public <P extends Plugin> P addImperativePlugin(Class<P> type) {
+        return doApply(null, pluginRegistry.inspect(type));
     }
 
     @Nullable
