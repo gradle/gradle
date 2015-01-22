@@ -180,7 +180,7 @@ class DefaultPluginRegistryTest extends Specification {
         pluginRegistry.lookup(PluginId.of("noImpl"))
 
         then:
-        PluginInstantiationException e = thrown()
+        InvalidPluginException e = thrown()
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
 
         when:

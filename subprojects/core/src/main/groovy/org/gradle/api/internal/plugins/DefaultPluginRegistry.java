@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
-import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -67,7 +66,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
                 String implClassName = pluginDescriptor.getImplementationClassName();
                 if (!GUtil.isTrue(implClassName)) {
-                    throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.", pluginId, pluginDescriptor));
+                    throw new InvalidPluginException(String.format("No implementation class specified for plugin '%s' in %s.", pluginId, pluginDescriptor));
                 }
 
                 final Class<?> implClass;
