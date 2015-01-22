@@ -28,6 +28,8 @@ import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class DefaultModelRegistryTest extends Specification {
 
     def registry = new ModelRegistryHelper()
@@ -71,7 +73,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        e.message == """The following model rules are unbound:
+        normaliseLineSeparators(e.message) == """The following model rules are unbound:
   foo creator
     Immutable:
       - other (java.lang.Object)"""
@@ -821,7 +823,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        e.message == '''The following model rules are unbound:
+        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
   non-bindable
     Mutable:
       + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
