@@ -15,10 +15,10 @@
  */
 package org.gradle.api.tasks.scala;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
+import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import java.util.regex.Pattern;
@@ -132,7 +132,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(Iterables.transform(getAdditionalParameters(), TO_ESCAPED_STRING));
+            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(CollectionUtils.collect(getAdditionalParameters(), TO_ESCAPED_STRING));
         }
         return value;
     }
@@ -141,13 +141,13 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return flag ? "on" : "off";
     }
 
-    private static final Function<String, String> TO_ESCAPED_STRING = new Function<String, String>() {
+    private static final Transformer<String, String> TO_ESCAPED_STRING = new Transformer<String, String>() {
 
         private final Pattern singleQuoted = Pattern.compile("^\".*\"$");
         private final Pattern doubleQuoted = Pattern.compile("^'.*'$");
 
         @Override
-        public String apply(String input) {
+        public String transform(String input) {
             if (singleQuoted.matcher(input).matches() || doubleQuoted.matcher(input).matches()) {
                 return input;
             } else if(input.contains(" ")) {
