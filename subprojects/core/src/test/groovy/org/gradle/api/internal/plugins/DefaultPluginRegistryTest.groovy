@@ -21,7 +21,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.InvalidPluginException
-import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.internal.PluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
