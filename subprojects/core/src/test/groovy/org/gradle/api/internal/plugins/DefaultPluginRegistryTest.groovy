@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.InvalidPluginException
 import org.gradle.api.plugins.PluginInstantiationException
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.internal.PluginId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.junit.Rule
@@ -35,59 +36,45 @@ class DefaultPluginRegistryTest extends Specification {
     def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
 
-    public void canLookupPluginTypeById() {
+    def "can locate imperative plugin implementation given an id"() {
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
-        _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+        classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        pluginRegistry.lookup("somePlugin").asClass() == TestPlugin1
+        def plugin = pluginRegistry.lookup("somePlugin")
+        plugin.pluginId == PluginId.of("somePlugin")
+        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
+        plugin.asClass() == TestPlugin1
     }
 
-    public void canLookupTypesById() {
+    def "can locate rule source plugin implementation given an id"() {
         def ruleUrl = writePluginProperties("someRuleSource", TestRuleSource)
-        def pluginUrl = writePluginProperties("somePlugin", TestPlugin1)
 
-        when:
+        given:
         classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> ruleUrl
         classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
 
-        then:
-        pluginRegistry.lookup("someRuleSource").asClass() == TestRuleSource
-
-        when:
-        classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> pluginUrl
-        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
-
-        then:
-        pluginRegistry.lookup("somePlugin").asClass() == TestPlugin1
-    }
-
-    public void failsForRuleSourceWhenLookingForAPlugin() {
-
-        def url = writePluginProperties("someRuleSource", TestRuleSource)
-
-        given:
-        classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> url
-        classLoader.loadClass(TestRuleSource.name) >> TestRuleSource
-
         expect:
-        pluginRegistry.inspect((Class) TestRuleSource.class).type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
+        def plugin = pluginRegistry.lookup("someRuleSource")
+        plugin.pluginId == PluginId.of("someRuleSource")
+        plugin.type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
+        plugin.asClass() == TestRuleSource
     }
 
-    public void failsForUnknownId() {
+    def "returns null for unknown id"() {
         expect:
         pluginRegistry.lookup("unknownId") == null
     }
 
-    public void returnsUnknownType() {
+    def "inspects class that is not a plugin implementation"() {
         expect:
-        pluginRegistry.inspect((Class) String.class).type == PotentialPlugin.Type.UNKNOWN
+        pluginRegistry.inspect(String.class).type == PotentialPlugin.Type.UNKNOWN
     }
 
-    public void failsWhenNoImplementationClassSpecifiedInPropertiesFile() {
+    def "fails when no implementation class specified in properties file"() {
         def properties = new Properties()
         def propertiesFile = testDir.file("prop")
         GUtil.saveProperties(properties, propertiesFile)
@@ -111,7 +98,7 @@ class DefaultPluginRegistryTest extends Specification {
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
     }
 
-    public void failsWhenImplementationClassSpecifiedInPropertiesFileDoesNotImplementPlugin() {
+    def "can locate a plugin implementation that is neither imperative or rule source"() {
         def url = writePluginProperties("brokenImpl", String)
 
         given:
@@ -122,7 +109,7 @@ class DefaultPluginRegistryTest extends Specification {
         pluginRegistry.lookup("brokenImpl").type == PotentialPlugin.Type.UNKNOWN
     }
 
-    public void wrapsFailureToLoadImplementationClass() {
+    def "wraps failure to load implementation class"() {
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
@@ -138,7 +125,7 @@ class DefaultPluginRegistryTest extends Specification {
         e.cause instanceof ClassNotFoundException
     }
 
-    public void childDelegatesToParentRegistryToLookupPluginType() throws Exception {
+    def "child delegates to parent registry to locate implementation from an id"() throws Exception {
         def lookupScope = Mock(ClassLoaderScope)
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
@@ -157,7 +144,7 @@ class DefaultPluginRegistryTest extends Specification {
         0 * lookupScope._
     }
 
-    public void childClasspathCanContainAdditionalMappingsForPlugins() throws Exception {
+    def "child classpath can container additional mappings"() throws Exception {
         def childClassLoader = Mock(ClassLoader)
         def lookupScope = Mock(ClassLoaderScope)
         def url = writePluginProperties("somePlugin", TestPlugin1)
