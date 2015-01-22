@@ -61,7 +61,7 @@ public class S3Client {
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        AWSCredentials credentials = awsCredentials == null ? null : new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
         try {
             s3Service = new RestS3Service(credentials, null, null, createConnectionProperties());
         } catch (S3ServiceException e) {

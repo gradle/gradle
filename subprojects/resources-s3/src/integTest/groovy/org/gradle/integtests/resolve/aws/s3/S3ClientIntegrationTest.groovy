@@ -28,7 +28,9 @@ import org.jets3t.service.model.S3Object
 import org.jets3t.service.model.StorageObject
 import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class S3ClientIntegrationTest extends Specification {
 
@@ -40,7 +42,7 @@ class S3ClientIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    final DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
+    @Shared DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
 
     @Rule
     public final S3StubServer server = new S3StubServer()
@@ -51,7 +53,8 @@ class S3ClientIntegrationTest extends Specification {
         awsCredentials.setSecretKey(secret)
     }
 
-    def "should perform put get and list on an S3 bucket"() {
+    @Unroll
+    def "should perform #authenticationType put get and list on an S3 bucket"() {
         setup:
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)
@@ -69,7 +72,7 @@ class S3ClientIntegrationTest extends Specification {
             getProxy() >> Optional.fromNullable(null)
         }
 
-        S3Client s3Client = new S3Client(awsCredentials, s3SystemProperties)
+        S3Client s3Client = new S3Client(authenticationImpl, s3SystemProperties)
 
         when:
         def stream = new FileInputStream(file)
@@ -93,6 +96,11 @@ class S3ClientIntegrationTest extends Specification {
         files.each {
             assert it.contains(".")
         }
+
+        where:
+        authenticationImpl  | authenticationType
+        awsCredentials      | "authenticated"
+        null                | "anonymous"
     }
 
     /**
