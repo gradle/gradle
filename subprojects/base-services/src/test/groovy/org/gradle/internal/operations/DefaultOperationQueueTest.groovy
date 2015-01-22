@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -73,6 +74,8 @@ class DefaultOperationQueueTest extends Specification {
         5    | _
     }
 
+    // TODO:Make this work in a way that doesn't depend on exact timing
+    @Ignore("Depends on timing")
     def "execution stops once failure occurs"() {
         given:
         def operationBefore = Mock(Runnable)

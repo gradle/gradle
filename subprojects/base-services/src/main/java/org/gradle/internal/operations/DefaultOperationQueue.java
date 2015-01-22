@@ -17,22 +17,19 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
  *
  */
-class DefaultOperationQueue<T> implements OperationQueue<T>, FutureCallback<Object> {
+class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
     private final Action<? super T> worker;
     private final List<ListenableFuture<?>> workFutures;
@@ -44,7 +41,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T>, FutureCallback<Obje
         this.executor = executor;
         this.worker = worker;
         this.workFutures = Lists.newLinkedList();
-        this.failures = Collections.synchronizedList(new ArrayList<Throwable>());
+        this.failures = new ArrayList<Throwable>();
     }
 
     public void add(final T operation) {
@@ -52,7 +49,6 @@ class DefaultOperationQueue<T> implements OperationQueue<T>, FutureCallback<Obje
             throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
         }
         ListenableFuture<?> future = executor.submit(new Operation(operation));
-        Futures.addCallback(future, this);
         workFutures.add(future);
     }
 
@@ -73,15 +69,13 @@ class DefaultOperationQueue<T> implements OperationQueue<T>, FutureCallback<Obje
         }
 
         // all operations are complete, check for errors
-        synchronized (failures) {
-            if (!failures.isEmpty()) {
-                // TODO: Multi-cause
-                Throwable firstFailure = failures.get(0);
-                if (firstFailure instanceof GradleException) {
-                    throw (GradleException)firstFailure;
-                }
-                throw new GradleException("build operation failed", failures.get(0));
+        if (!failures.isEmpty()) {
+            // TODO: Multi-cause
+            Throwable firstFailure = failures.get(0);
+            if (firstFailure instanceof GradleException) {
+                throw (GradleException)firstFailure;
             }
+            throw new GradleException("build operation failed", failures.get(0));
         }
     }
 
@@ -93,17 +87,14 @@ class DefaultOperationQueue<T> implements OperationQueue<T>, FutureCallback<Obje
             // Propagate interrupt status
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            // Ignore (failures captured in callback)
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                failures.add(cause);
+            } else {
+                failures.add(e);
+            }
         }
         return true;
-    }
-
-    public void onSuccess(Object result) {
-        // result is always null
-    }
-
-    public void onFailure(Throwable t) {
-        failures.add(t);
     }
 
     class Operation implements Runnable {
