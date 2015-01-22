@@ -312,10 +312,7 @@ Unordered and not all appropriately story sized.
 - Progress logging should show something about rule execution, eg when closing the task container for a project.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
-  This essentially means more context in the 'thing has been closed' error message.
-- Some kind of explorable/browsable representation of the model elements for a build
 - Profile report contains information about execution time of model rules
-- Rule source types are instantiated early to fail fast (i.e. constructor may throw exception)
 - Cyclic dependencies between configuration rules are reported
 - Build user is alerted when a required model rule from a plugin does not bind (i.e. plugin was expecting user to create some element)
 - Build user is alerted when a build script model rule does not bind (i.e. some kind of configuration error)
@@ -361,11 +358,7 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Performance
 
-- Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
-- Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
-- Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
-- Rule source plugins are instantiated once per JVM
 - Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
 - `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
 
