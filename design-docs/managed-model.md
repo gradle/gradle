@@ -625,6 +625,9 @@ Other issues:
     - Each time a managed object is created, need to do a cache lookup for the schema of each property.
     - Each time a managed set is created, need to do a cache lookup for the schema of the element type.
     - Each time a managed object property is set, need to do a cache lookup to do validation.
+- Managed projections should be reused per type
+- Unmanaged projections should be reused per type
+- Unmanaged instance model views should be used for the life of the node (right now we create a new view each time we need the node value)
 
 ### Misc
 
