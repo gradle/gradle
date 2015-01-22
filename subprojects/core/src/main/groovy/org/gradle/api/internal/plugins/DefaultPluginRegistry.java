@@ -21,6 +21,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
@@ -54,12 +55,12 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>>() {
             @Override
             public Optional<PotentialPluginWithId<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-                String pluginId = key.getId();
+                PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
                 PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
 
-                PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(pluginId);
+                PluginDescriptor pluginDescriptor = locator.findPluginDescriptor(pluginId.toString());
                 if (pluginDescriptor == null) {
                     return Optional.absent();
                 }
@@ -80,10 +81,9 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
 
                 PotentialPlugin<?> potentialPlugin = inspect(implClass);
-                PotentialPluginWithId<?> withId = DefaultPotentialPluginWithId.of(PluginId.unvalidated(pluginId), potentialPlugin);
+                PotentialPluginWithId<?> withId = DefaultPotentialPluginWithId.of(pluginId, potentialPlugin);
                 return Cast.uncheckedCast(Optional.of(withId));
             }
-
         });
     }
 
@@ -101,37 +101,36 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
     }
 
-    public PotentialPluginWithId<?> lookup(String idOrName) {
+    @Nullable
+    @Override
+    public PotentialPluginWithId<?> lookup(PluginId pluginId) {
         PotentialPluginWithId lookup;
         if (parent != null) {
-            lookup = parent.lookup(idOrName);
-            if (lookup == null) {
-                String qualified = DefaultPluginManager.maybeQualify(idOrName);
-                if (qualified != null) {
-                    lookup = lookup(qualified);
-                }
-            }
-
+            lookup = parent.lookup(pluginId);
             if (lookup != null) {
                 return lookup;
             }
         }
 
-        return lookup(idOrName, classLoaderFactory.create());
+        return lookup(pluginId, classLoaderFactory.create());
     }
 
-    public PotentialPluginWithId lookup(String idOrName, ClassLoader classLoader) {
+    @Nullable
+    @Override
+    public PotentialPluginWithId<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
-        PotentialPluginWithId lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(idOrName, classLoader)).orNull();
-        if (lookup == null) {
-            String qualified = DefaultPluginManager.maybeQualify(idOrName);
-            if (qualified != null) {
-                lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
+
+        PotentialPluginWithId lookup;
+        if (!pluginId.isQualified()) {
+            PluginId qualified = pluginId.maybeQualify(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
+            lookup = uncheckedGet(idMappings, new PluginIdLookupCacheKey(qualified, classLoader)).orNull();
+            if (lookup != null) {
+                return lookup;
             }
         }
 
-        return lookup;
+        return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader)).orNull();
     }
 
     private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
@@ -147,14 +146,14 @@ public class DefaultPluginRegistry implements PluginRegistry {
     static class PluginIdLookupCacheKey {
 
         private final ClassLoader classLoader;
-        private final String id;
+        private final PluginId id;
 
-        PluginIdLookupCacheKey(String id, ClassLoader classLoader) {
+        PluginIdLookupCacheKey(PluginId id, ClassLoader classLoader) {
             this.classLoader = classLoader;
             this.id = id;
         }
 
-        public String getId() {
+        public PluginId getId() {
             return id;
         }
 
