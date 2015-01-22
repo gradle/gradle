@@ -294,6 +294,77 @@ We should not perform validation on a project that is not required for a build.
 - ~~Model rule with dependency on non task related collection element that does exist, passes validation~~
 - ~~Model rule that does not bind, specified for project that is not used in build, does not fail the build~~
 
+## Model is partially reused across daemon builds, ignoring potential configuration changes
+
+This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
+As this is a large chunk of work, this story covers initial work and does not take the feature to production readiness.
+The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
+It will be wrapped in a feature toggle.
+
+Task instances attached to the model cannot be reused, as they retain references to the `Project` object and other state.
+When “reusing the model”, tasks must be rebuilt.
+By extension any model element that depends on the task container or individual task is also implicitly volatile.
+
+> Note: In the component model BinaryContainer has an unexpressed dependency on TaskContainer due to the implementation of @BinaryTasks and other rules that mutate BinaryContainer as an input
+
+Steps/stages:
+
+1. Add ability to reconstitute/restore a model registry (and backing graph) from another registry (just assumes state at this stage)
+1. Add ability to declare model elements as volatile
+1. When restoring a registry, realised volatile elements are discarded (i.e. reverted to `known` state)
+1. All dependants of volatile elements (elements whose creators/mutators take volatile elements as inputs) are discarded
+1. Mark `tasks` model element as volatile
+1. Add global scope service that retains/provides model registries across builds in some format (store registries by project path)
+1. When feature toggle is active, save/restore registries in between builds
+1. If a build fails, completely purge the registry store, forcing rebuild on next build
+
+Constraints/assumptions:
+
+1. Daemon builds one logical project for its life (i.e. registry store doesn't consider changes)
+1. Build logic does not change for the life of the daemon (incl. used plugins are not “changing”)
+1. Any failure may leave the registry in a non reusable state, and therefore must be purged
+
+The feature will depend on the classloader caching feature.
+
+### Test Coverage
+
+1. Volatile model element is rebuilt when requested from a restored model registry
+1. Dependants of volatile model element are rebuilt …
+    1. Model element where creator depends on a volatile
+    1. Model element where “mutator” of all types depends on a volatile
+1. Descendants of volatile model element are rebuilt …
+    1. Model element where creator depends on descendant of a volatile
+    1. Model element where “mutator” of all types depends on a descendant of a volatile
+1. Model registry is not reused when feature toggle is not active (sanity check)
+1. Correct project specific registries are assigned to each project in multi project build
+1. Model is completely rebuilt following a build failure
+1. Build using Java component plugin can be reused
+1. Tasks are rebuilt each time when reusing model registry
+1. Error when model reuse enabled but not classloader caching
+1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
+
+## Plugin developer declares “volatile” model element
+
+A volatile model element derives its state from inputs unknown to Gradle.
+The distinction between volatile/non-volatile is important when considering reusing model elements across builds.
+Volatile elements cannot be reused and must be recreated each time.
+External inputs to the build will be modeled as volatile model elements.
+
+## Model is implicitly not reused when build logic has changed
+
+This story improves the accuracy of the model reuse feature by _effectively_ considering all build logic to be an explicit volatile dependency of all model elements.
+
+If any build script, plugin etc. changes then any stored model is discarded and rebuilt.
+
+> Note: this will allow model reuse to “work” when a daemon is hopping between projects, but reuse will be defeated.
+
+## Non configuration related build failure does not cause configuration to be fully rebuilt on subsequent build
+
+This story increases the usability of model reuse by not performing a complete invalidation/rebuild when errors such as compilation errors occur.
+
+Errors that occur during the building of configuration have the potential (with the current implementation) to leave the model registry in an incoherent state, preventing it from being reused.
+Actual “build failures” (e.g. test/compilation failures, i.e. execution time failures) should not leave the model in an incoherent state, and should not prevent reuse.
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
@@ -368,6 +439,14 @@ These should be rationalised and ideally replaced with model rules.
 - Specify type of rule subject
 - Plugin author specifies model type to use in DSL when type is unspecified
 - Mechanism for declaring new top level (adhoc?) model elements in build script
+
+## Reuse
+
+- Fine grained reuse on build logic changes (e.g. connect rules to source that changed, and invalidate)
+- Mechanism for force purging the “cached” model (?)
+- Sugar for common types of external (volatile) inputs
+- Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
+- Model is reused when changing between different logical projects
 
 ## Productization
 
