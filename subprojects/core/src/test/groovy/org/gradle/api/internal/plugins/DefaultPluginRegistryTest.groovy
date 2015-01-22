@@ -37,7 +37,7 @@ class DefaultPluginRegistryTest extends Specification {
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
 
     def "can locate imperative plugin implementation given an id"() {
-        def url = writePluginProperties("somePlugin", TestPlugin1)
+        def url = writePluginProperties(TestPlugin1)
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
@@ -51,7 +51,7 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "can locate rule source plugin implementation given an id"() {
-        def ruleUrl = writePluginProperties("someRuleSource", TestRuleSource)
+        def ruleUrl = writePluginProperties(TestRuleSource)
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/someRuleSource.properties") >> ruleUrl
@@ -70,7 +70,7 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "can locate plugin implementation in org.gradle namespace using unqualified id"() {
-        def url = writePluginProperties("org.gradle.somePlugin", TestPlugin1)
+        def url = writePluginProperties(TestPlugin1)
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/org.gradle.somePlugin.properties") >> url
@@ -88,15 +88,78 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "does not search in org.gradle namespace when id is qualified with some other namespace"() {
-        def url = writePluginProperties("org.gradle.thing.somePlugin", TestPlugin1)
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/org.gradle.thing.somePlugin.properties") >> { throw new RuntimeException() }
+
+        expect:
+        pluginRegistry.lookup(PluginId.of("thing.somePlugin")) == null
+    }
+
+    def "plugin implementation with id in org.gradle namespace is also known by unqualified id"() {
+        def url = writePluginProperties(TestPlugin1)
 
         given:
-        classLoader.getResource("META-INF/gradle-plugins/org.gradle.thing.somePlugin.properties") >> url
+        classLoader.getResource("META-INF/gradle-plugins/org.gradle.somePlugin.properties") >> url
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        pluginRegistry.lookup(PluginId.of("org.gradle.thing.somePlugin")) != null
-        pluginRegistry.lookup(PluginId.of("thing.somePlugin")) == null
+        def qualified = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"))
+        qualified.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
+        qualified.isAlsoKnownAs(PluginId.of("somePlugin"))
+
+        def unqualified = pluginRegistry.lookup(PluginId.of("somePlugin"))
+        unqualified.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
+        unqualified.isAlsoKnownAs(PluginId.of("somePlugin"))
+    }
+
+    def "plugin implementation is also known by all id mappings that reference that implementation"() {
+        def url = writePluginProperties(TestPlugin1)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/plugin-1.properties") >> url
+        classLoader.getResource("META-INF/gradle-plugins/plugin-2.properties") >> url
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
+        expect:
+        def plugin1 = pluginRegistry.lookup(PluginId.of("plugin-1"))
+        def plugin2 = pluginRegistry.lookup(PluginId.of("plugin-2"))
+
+        plugin1.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin1.isAlsoKnownAs(PluginId.of("plugin-2"))
+        plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
+        plugin2.isAlsoKnownAs(PluginId.of("plugin-2"))
+    }
+
+    def "plugin implementation is not known by unknown id"() {
+        def url = writePluginProperties(TestPlugin1)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/thing.somePlugin.properties") >> url
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
+        expect:
+        def plugin = pluginRegistry.lookup(PluginId.of("thing.somePlugin"))
+        !plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
+        !plugin.isAlsoKnownAs(PluginId.of("thing.other"))
+        !plugin.isAlsoKnownAs(PluginId.of("org.gradle.thing.somePlugin"))
+    }
+
+    def "plugin implementation is not known by id that maps to another implementation"() {
+        def url1 = writePluginProperties(TestPlugin1)
+        def url2 = writePluginProperties(BrokenPlugin)
+
+        given:
+        classLoader.getResource("META-INF/gradle-plugins/plugin-1.properties") >> url1
+        classLoader.getResource("META-INF/gradle-plugins/plugin-2.properties") >> url2
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+        classLoader.loadClass(BrokenPlugin.name) >> BrokenPlugin
+
+        expect:
+        def plugin1 = pluginRegistry.lookup(PluginId.of("plugin-1"))
+        def plugin2 = pluginRegistry.lookup(PluginId.of("plugin-2"))
+
+        !plugin1.isAlsoKnownAs(PluginId.of("plugin-2"))
+        !plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
     }
 
     def "inspects class that is not a plugin implementation"() {
@@ -129,7 +192,7 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "can locate a plugin implementation that is neither imperative or rule source"() {
-        def url = writePluginProperties("brokenImpl", String)
+        def url = writePluginProperties(String)
 
         given:
         classLoader.getResource("META-INF/gradle-plugins/brokenImpl.properties") >> url
@@ -140,7 +203,7 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "wraps failure to load implementation class"() {
-        def url = writePluginProperties("somePlugin", TestPlugin1)
+        def url = writePluginProperties(TestPlugin1)
 
         given:
         _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
@@ -157,7 +220,7 @@ class DefaultPluginRegistryTest extends Specification {
 
     def "child delegates to parent registry to locate implementation from an id"() throws Exception {
         def lookupScope = Mock(ClassLoaderScope)
-        def url = writePluginProperties("somePlugin", TestPlugin1)
+        def url = writePluginProperties(TestPlugin1)
 
         given:
         PluginRegistry child = pluginRegistry.createChild(lookupScope)
@@ -177,7 +240,7 @@ class DefaultPluginRegistryTest extends Specification {
     def "child classpath can container additional mappings"() throws Exception {
         def childClassLoader = Mock(ClassLoader)
         def lookupScope = Mock(ClassLoaderScope)
-        def url = writePluginProperties("somePlugin", TestPlugin1)
+        def url = writePluginProperties(TestPlugin1)
 
         given:
         PluginRegistry child = pluginRegistry.createChild(lookupScope)
@@ -192,10 +255,10 @@ class DefaultPluginRegistryTest extends Specification {
         type == TestPlugin1
     }
 
-    private URL writePluginProperties(String pluginId, Class implClass) {
+    private URL writePluginProperties(Class implClass) {
         def props = new Properties()
         props.setProperty("implementation-class", implClass.name)
-        def propertiesFile = testDir.file("${pluginId}.properties")
+        def propertiesFile = testDir.file("${implClass}.properties")
         propertiesFile.getParentFile().mkdirs()
         GUtil.saveProperties(props, propertiesFile)
         return propertiesFile.toURI().toURL()

@@ -19,5 +19,10 @@ package org.gradle.api.internal.plugins;
 import org.gradle.plugin.internal.PluginId;
 
 public interface PotentialPluginWithId<T> extends PotentialPlugin<T> {
+    /**
+     * The canonical id for the plugin implementation.
+     */
     PluginId getPluginId();
+
+    boolean isAlsoKnownAs(PluginId id);
 }

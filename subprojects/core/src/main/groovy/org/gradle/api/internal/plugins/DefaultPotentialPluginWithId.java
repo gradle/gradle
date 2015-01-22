@@ -21,13 +21,13 @@ import org.gradle.plugin.internal.PluginId;
 public class DefaultPotentialPluginWithId<T> implements PotentialPluginWithId<T> {
 
     private final PluginId pluginId;
-    private final PotentialPlugin<T> potentialPlugin;
+    private final PotentialPlugin<? extends T> potentialPlugin;
 
     public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
         return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
     }
 
-    private DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+    protected DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {
         this.pluginId = pluginId;
         this.potentialPlugin = potentialPlugin;
     }
@@ -36,7 +36,7 @@ public class DefaultPotentialPluginWithId<T> implements PotentialPluginWithId<T>
         return pluginId;
     }
 
-    public Class<T> asClass() {
+    public Class<? extends T> asClass() {
         return potentialPlugin.asClass();
     }
 
@@ -50,5 +50,10 @@ public class DefaultPotentialPluginWithId<T> implements PotentialPluginWithId<T>
 
     public Type getType() {
         return potentialPlugin.getType();
+    }
+
+    @Override
+    public boolean isAlsoKnownAs(PluginId id) {
+        return false;
     }
 }

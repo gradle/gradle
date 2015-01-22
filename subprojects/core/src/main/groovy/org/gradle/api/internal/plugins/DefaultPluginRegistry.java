@@ -55,7 +55,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PotentialPluginWithId<?>>>() {
             @Override
             public Optional<PotentialPluginWithId<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-                PluginId pluginId = key.getId();
+                final PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
                 PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
@@ -70,7 +70,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
                     throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.", pluginId, pluginDescriptor));
                 }
 
-                Class<?> implClass;
+                final Class<?> implClass;
                 try {
                     implClass = classLoader.loadClass(implClassName);
                 } catch (ClassNotFoundException e) {
@@ -79,9 +79,17 @@ public class DefaultPluginRegistry implements PluginRegistry {
                             pluginDescriptor), e);
                 }
 
-
                 PotentialPlugin<?> potentialPlugin = inspect(implClass);
-                PotentialPluginWithId<?> withId = DefaultPotentialPluginWithId.of(pluginId, potentialPlugin);
+                PotentialPluginWithId<?> withId = new DefaultPotentialPluginWithId<Object>(pluginId, potentialPlugin) {
+                    @Override
+                    public boolean isAlsoKnownAs(PluginId id) {
+                        if (pluginId.equals(id)) {
+                            return true;
+                        }
+                        PotentialPluginWithId<?> other = lookupSelf(id);
+                        return other != null && other.asClass().equals(implClass);
+                    }
+                };
                 return Cast.uncheckedCast(Optional.of(withId));
             }
         });
@@ -112,6 +120,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
+        return lookupSelf(pluginId);
+    }
+
+    private PotentialPluginWithId<?> lookupSelf(PluginId pluginId) {
         return lookup(pluginId, classLoaderFactory.create());
     }
 

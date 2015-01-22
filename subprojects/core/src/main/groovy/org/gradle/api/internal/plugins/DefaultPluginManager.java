@@ -116,7 +116,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Nullable
     private <T> T doApply(@Nullable final String pluginId, PotentialPlugin<T> potentialPlugin) {
-        Class<T> pluginClass = potentialPlugin.asClass();
+        Class<? extends T> pluginClass = potentialPlugin.asClass();
         try {
             if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
