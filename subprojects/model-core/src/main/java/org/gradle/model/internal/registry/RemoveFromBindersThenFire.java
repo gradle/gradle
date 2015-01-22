@@ -30,7 +30,6 @@ class RemoveFromBindersThenFire<T> implements Action<RuleBinder<T>> {
     }
 
     public void execute(RuleBinder<T> binder) {
-        // Note: if the binder fired immediate (i.e. in it's constructor, then it never made it into the 'binders' collection
         binders.remove(binder);
         onBind.execute(binder);
     }

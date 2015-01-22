@@ -147,9 +147,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private void bind(final ModelCreator creator) {
         final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators, creatorBinders));
-        if (!binder.isBound()) {
-            creatorBinders.put(creator.getPath(), binder);
-        }
+
+        creatorBinders.put(creator.getPath(), binder);
+
         bindInputs(binder, ModelPath.ROOT);
     }
 
@@ -157,17 +157,15 @@ public class DefaultModelRegistry implements ModelRegistry {
     private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
         RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
 
-        if (!binder.isBound()) {
-            binders.add(binder);
-        }
+        binders.add(binder);
 
         return binder;
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
         Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
-        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, modelGraph, actions, mutationBinders));
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutationBinders));
+        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, actions, mutationBinders));
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, modelGraph, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
     }
@@ -415,6 +413,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private boolean tryForceBind(RuleBinder<?> binder) {
+        if (binder.maybeFire()) {
+            return true;
+        }
+        
         boolean newInputsBound = false;
         ModelPath scope = binder.getScope();
 
@@ -429,7 +431,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 newInputsBound = newInputsBound || binder.getInputBindings().get(i) != null;
             }
         }
-
+        binder.maybeFire();
         return newInputsBound;
     }
 

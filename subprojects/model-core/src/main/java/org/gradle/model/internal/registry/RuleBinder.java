@@ -59,8 +59,6 @@ public class RuleBinder<T> {
         this.onBind = onBind;
 
         this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
-
-        maybeFire();
     }
 
     @Nullable
@@ -88,20 +86,18 @@ public class RuleBinder<T> {
         return scope;
     }
 
-    public boolean bindSubject(ModelPath path) {
+    public void bindSubject(ModelPath path) {
         assert this.subjectBinding == null;
         this.subjectBinding = bind(subjectReference, path);
-        return maybeFire();
     }
 
-    public boolean bindInput(int i, ModelPath path) {
+    public void bindInput(int i, ModelPath path) {
         assert this.inputBindings.get(i) == null;
         this.inputBindings.set(i, bind(inputReferences.get(i), path));
         inputsBound += 1;
-        return maybeFire();
     }
 
-    private boolean maybeFire() {
+    public boolean maybeFire() {
         if (isBound()) {
             fire();
             return true;
@@ -114,7 +110,7 @@ public class RuleBinder<T> {
         return (subjectReference == null || subjectBinding != null) && inputsBound == inputReferences.size();
     }
 
-    private void fire() {
+    public void fire() {
         onBind.execute(this);
         onBind = null; // let go for gc
     }

@@ -18,18 +18,36 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
 
 class BindSubject<T> implements Action<ModelPath> {
     private final RuleBinder<T> binder;
     private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
+    private final ModelGraph modelGraph;
+    private final ModelActionRole type;
+    private final ModelAction<T> mutator;
 
-    public BindSubject(RuleBinder<T> binder, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
+    public BindSubject(RuleBinder<T> binder, ModelAction<T> mutator, ModelActionRole type, ModelGraph modelGraph, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.binder = binder;
+        this.mutator = mutator;
+        this.type = type;
         this.mutationBinders = mutationBinders;
+        this.modelGraph = modelGraph;
     }
 
     public void execute(ModelPath modelPath) {
+        ModelNodeInternal subject = modelGraph.get(modelPath);
+        if (!subject.canApply(type)) {
+            throw new IllegalStateException(String.format(
+                    "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
+                    type,
+                    mutator.getDescriptor(),
+                    modelPath,
+                    subject.getState()
+            ));
+        }
         mutationBinders.put(modelPath, binder);
         binder.bindSubject(modelPath);
     }

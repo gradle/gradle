@@ -25,14 +25,12 @@ import org.gradle.model.internal.core.ModelPath;
 class BindModelAction<T> implements Action<RuleBinder<T>> {
     private final ModelAction<T> mutator;
     private final ModelActionRole type;
-    private final ModelGraph modelGraph;
     private final Multimap<MutationKey, BoundModelMutator<?>> actions;
     private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
 
-    public BindModelAction(ModelAction<T> mutator, ModelActionRole type, ModelGraph modelGraph, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
+    public BindModelAction(ModelAction<T> mutator, ModelActionRole type, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.mutator = mutator;
         this.type = type;
-        this.modelGraph = modelGraph;
         this.actions = actions;
         this.mutationBinders = mutationBinders;
     }
@@ -41,16 +39,6 @@ class BindModelAction<T> implements Action<RuleBinder<T>> {
         BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
         ModelPath path = boundMutator.getSubject().getPath();
         mutationBinders.remove(path, ruleBinder);
-        ModelNodeInternal subject = modelGraph.get(path);
-        if (!subject.canApply(type)) {
-            throw new IllegalStateException(String.format(
-                    "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
-                    type,
-                    boundMutator.getMutator().getDescriptor(),
-                    path,
-                    subject.getState()
-            ));
-        }
         actions.put(new MutationKey(path, type), boundMutator);
     }
 }
