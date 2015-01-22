@@ -57,7 +57,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         action.execute(passwordCredentials);
     }
 
-    public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) {
+    public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
         if(alternativeCredentials != null) {
             throw new IllegalStateException("Cannot overwrite already configured strongly typed credentials.");
         }
