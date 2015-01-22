@@ -271,7 +271,7 @@ Each benchmark should be executed for the following scenarios:
 - single project
 - for small, medium and large model sets (number of flavours and types)
 
-## Improved model rule validation 
+## Model rule bindings are exhaustively validated
 
 Our current model rule validation hinges on detecting rules with “unbound references”.
 That is, we look for rules where at that point in time the rule could not be executed because we are unable to satisfy its dependencies.
