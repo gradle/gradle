@@ -48,21 +48,22 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
             task build {
                 dependsOn 'check'
                 doLast {
-                    println "-building"
+                    println "CUSTOM BUILD"
                 }
             }
 
             task check << {
-                print "checking"
+                println "CUSTOM CHECK"
             }
 """
         when:
-        executer.withArgument("-q")
+        executer.withDeprecationChecksDisabled()
         succeeds "build"
 
         then:
         executedAndNotSkipped ":check", ":build"
-        output.contains "checking-building"
+        output.contains "CUSTOM CHECK"
+        output.contains "CUSTOM BUILD"
     }
 
 }
