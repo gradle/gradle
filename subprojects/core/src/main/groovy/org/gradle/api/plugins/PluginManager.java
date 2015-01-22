@@ -32,7 +32,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface PluginManager {
 
     /**
-     * Applies the plugin with the given ID.
+     * Applies the plugin with the given ID. Does nothing if the plugin has already been applied.
      * <p>
      * Plugins in the {@code "org.gradle"} namespace can be applied directly via name.
      * That is, the following two lines are equivalent…
@@ -48,7 +48,7 @@ public interface PluginManager {
     void apply(String pluginId);
 
     /**
-     * Applies the given plugin.
+     * Applies the given plugin. Does nothing if the plugin has already been applied.
      * <p>
      * The given class should implement the {@link org.gradle.api.Plugin} interface, and be parameterized for a compatible type of {@code this}.
      * <p>
@@ -65,7 +65,7 @@ public interface PluginManager {
     void apply(Class<?> type);
 
     /**
-     * Returns the information about the plugin that has been applied with the given name or ID, or null if no plugin has been applied with the given name or ID.
+     * Returns the information about the plugin that has been applied with the given ID, or null if no plugin has been applied with the given ID.
      * <p>
      * Plugins in the {@code "org.gradle"} namespace (that is, core Gradle plugins) can be specified by either name (e.g. {@code "java"}) or ID {@code "org.gradle.java"}.
      * All other plugins must be queried for by their full ID (e.g. {@code "org.company.some-plugin"}).
@@ -73,7 +73,7 @@ public interface PluginManager {
      * Some Gradle plugins have not yet migrated to fully qualified plugin IDs.
      * Such plugins can be detected with this method by simply using the unqualified ID (e.g. {@code "some-third-party-plugin"}.
      *
-     * @param id the plugin name (if in the {@code org.gradle} namespace) or ID
+     * @param id the plugin ID
      * @return information about the applied plugin, or {@code null} if no plugin has been applied with the given ID
      * @since 2.3
      */
@@ -84,7 +84,7 @@ public interface PluginManager {
     /**
      * Returns {@code true} if a plugin with the given ID has already been applied, otherwise {@code false}.
      *
-     * @param id the plugin name (if in the {@code org.gradle} namespace) or ID. See {@link #findPlugin(String)}.
+     * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.
      * @return {@code true} if the plugin has been applied
      * @since 2.3
      */
@@ -97,9 +97,8 @@ public interface PluginManager {
      * If a plugin with the given ID has already been applied, the given action will be executed immediately.
      * Otherwise, the action will be executed sometime in the future if a plugin with the given ID is applied.
      * <p>
-     * See {@link #findPlugin(String)} for information about the {@code nameOrId} parameter.
      *
-     * @param id the plugin name (if in the {@code org.gradle} namespace) or ID
+     * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.
      * @param action the action to execute if/when the plugin is applied
      * @since 2.3
      */

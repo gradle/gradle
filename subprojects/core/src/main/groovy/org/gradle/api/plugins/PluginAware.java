@@ -73,7 +73,7 @@ public interface PluginAware {
     void apply(Action<? super ObjectConfigurationAction> action);
 
     /**
-     * Applies a plugin or script, using the given options provided as a map.
+     * Applies a plugin or script, using the given options provided as a map. Does nothing if the plugin has already been applied.
      * <p>
      * The given map is applied as a series of method calls to a newly created {@link ObjectConfigurationAction}.
      * That is, each key in the map is expected to be the name of a method {@link ObjectConfigurationAction} and the value to be compatible arguments to that method.
