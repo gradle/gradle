@@ -99,22 +99,27 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }
 
-        @Mutate
-        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
-            tasks.named("assemble", new Action<Task>() {
-                @Override
-                public void execute(Task assemble) {
-                    for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                        if (!binary.isLegacyBinary()) {
-                            if (binary.isBuildable()) {
-                                assemble.dependsOn(binary);
-                            } else {
-                                ((AssembleBinariesTask) assemble).notBuildable(binary);
-                            }
+        /**
+         * Rules.
+         */
+        static class AssembleRule extends RuleSource {
+            @Mutate
+            void addDependency(Task assemble, BinaryContainer binaries) {
+                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                    if (!binary.isLegacyBinary()) {
+                        if (binary.isBuildable()) {
+                            assemble.dependsOn(binary);
+                        } else {
+                            ((AssembleBinariesTask) assemble).notBuildable(binary);
                         }
                     }
                 }
-            });
+            }
+        }
+
+        @Mutate
+        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+            tasks.named("assemble", AssembleRule.class);
         }
     }
 }
