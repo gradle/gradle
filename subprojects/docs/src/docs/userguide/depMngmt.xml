@@ -888,7 +888,7 @@
         </section>
         <section id='sub:more_about_ivy_resolvers'>
             <title>More about Ivy resolvers</title>
-            <para>Gradle, thanks to Ivy under its hood, is extremely flexible regarding repositories:
+            <para>Gradle is extremely flexible regarding repositories:
             </para>
             <itemizedlist>
                 <listitem>
