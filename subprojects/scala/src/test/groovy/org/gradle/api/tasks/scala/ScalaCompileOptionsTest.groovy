@@ -15,150 +15,148 @@
  */
 package org.gradle.api.tasks.scala
 
-import org.junit.Before
-import org.junit.Test
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.*
+import spock.lang.Specification
+import spock.lang.Unroll
 
-class ScalaCompileOptionsTest {
+class ScalaCompileOptionsTest extends Specification {
 
     private ScalaCompileOptions compileOptions
 
-    @Before void setUp() {
+    def setup() {
         compileOptions = new ScalaCompileOptions()
     }
 
-    @Test void testOptionMapDoesNotContainCompileDaemon() {
-        String antProperty = 'useCompileDaemon'
-        assertFalse(compileOptions.useCompileDaemon)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.useCompileDaemon = true
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
+    def contains(String key) {
+        compileOptions.optionMap().containsKey(key)
     }
 
-    @Test void testOptionMapContainsDaemonServerIfSpecified() {
-        assertSimpleStringValue('daemonServer', 'server', null, 'host:9000')
+    def doesNotContain(String key) {
+        !contains(key)
     }
 
-    @Test void testOptionMapContainsFailOnError() {
-        assertBooleanValue('failOnError', 'failOnError', true)
+    def value(String key) {
+        compileOptions.optionMap().get(key)
     }
 
-    @Test void testOptionMapContainsDeprecation() {
-        assertOnOffValue('deprecation', 'deprecation', true)
+    def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
+        setup:
+        compileOptions.useCompileDaemon = compileDaemonIsEnabled
+        expect:
+        doesNotContain('useCompileDaemon')
+        where:
+        compileDaemonIsEnabled << [true, false]
     }
 
-    @Test void testOptionMapContainsUnchecked() {
-        assertOnOffValue('unchecked', 'unchecked', true)
-    }
-
-    @Test void testOptionMapContainsDebugLevelIfSpecified() {
-        assertSimpleStringValue('debugLevel', 'debuginfo', null, 'line')
-    }
-
-    @Test void testOptionMapContainsOptimize() {
-        assertFalse(compileOptions.optionMap().containsKey('optimise'))
-
-        compileOptions.optimize = true
-        assertThat(compileOptions.optionMap()['optimise'], equalTo('on'))
-    }
-
-    @Test void testOptionMapContainsEncodingIfSpecified() {
-        assertSimpleStringValue('encoding', 'encoding', null, 'utf8')
-    }
-
-    @Test void testOptionMapContainsForce() {
-        assertBooleanValue('force', 'force', false)
-    }
-
-    @Test void testOptionMapDoesNotContainTargetCompatibility() {
-        assert !compileOptions.optionMap().containsKey("target")
-    }
-
-    String addParams(List<String> inputs) {
-        String antProperty = 'addparams'
-        assertNull(compileOptions.additionalParameters)
-        assertFalse(compileOptions.optionMap().containsKey(antProperty))
-
-        compileOptions.additionalParameters = inputs
-        return compileOptions.optionMap()[antProperty] as String
-    }
-
-    @Test void testOptionMapContainsValuesForAdditionalParameters() {
-        assertThat(addParams(['-opt1', '-opt2']), equalTo('-opt1 -opt2'))
-    }
-
-    @Test void testOptionMapEscapesValuesForAdditionalParameters() {
-        assertThat(addParams(['arg with spaces']), equalTo('\'arg with spaces\''))
-    }
-
-    @Test void testOptionMapEscapesQuoteInValuesForAdditionalParameters() {
-        assertThat(addParams(['arg with \' and spaces']), equalTo('\'arg \\\' with spaces\''))
-    }
-
-    @Test void testOptionMapDoesNotEscapeSingleQuotedValuesAdditionalParameters() {
-        assertThat(addParams(['\'arg with spaces\'']), equalTo('\'arg with spaces\''))
-    }
-
-    @Test void testOptionMapDoesNotEscapeDoubleQuotedValuesAdditionalParameters() {
-        assertThat(addParams(['"arg with spaces"']), equalTo('"arg with spaces"'))
-    }
-
-    @Test void testOptionMapContainsListFiles() {
-        assertBooleanValue('listFiles', 'scalacdebugging', false)
-    }
-
-    @Test void testOptionMapContainsLoggingLevelIfSpecified() {
-        assertSimpleStringValue('loggingLevel', 'logging', null, 'verbose')
-    }
-
-    @Test void testOptionMapContainsValueForLoggingPhase() {
-        String antProperty = 'logphase'
-        Map optionMap = compileOptions.optionMap()
-        assertFalse(optionMap.containsKey(antProperty))
-
-        compileOptions.loggingPhases = ['pickler', 'tailcalls']
-        optionMap = compileOptions.optionMap()
-        assertThat(optionMap[antProperty] as String, equalTo('pickler,tailcalls' as String))
-    }
-
-    @Test void disablingUseAntEnablesFork() {
-        assert !compileOptions.fork
-
-        compileOptions.useAnt = false
-        assert compileOptions.fork
-    }
-
-    private assertBooleanValue(String fieldName, String antProperty, boolean defaultValue) {
-        assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('true'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('false'))
-    }
-
-    private assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
-        assertThat(compileOptions."$fieldName" as boolean, equalTo(defaultValue))
-
-        compileOptions."$fieldName" = true
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('on'))
-
-        compileOptions."$fieldName" = false
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo('off'))
-    }
-
-    private assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
-        assertThat(compileOptions."${fieldName}" as String, equalTo(defaultValue))
-        if (defaultValue == null) {
-            assertFalse(compileOptions.optionMap().containsKey(antProperty))
+    @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "simple string values"(Map<String, String> fixture) {
+        given:
+        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+        if (fixture.defaultValue == null) {
+            assert doesNotContain(fixture.antProperty)
         } else {
-            assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(defaultValue))
+            assert value(fixture.antProperty) == fixture.defaultValue
         }
-        compileOptions."${fieldName}" = testValue
-        assertThat(compileOptions.optionMap()[antProperty] as String, equalTo(testValue))
+        when:
+        compileOptions."${fixture.fieldName}" = fixture.testValue
+        then:
+        value(fixture.antProperty) == fixture.testValue
+        where:
+        fixture << [
+                    [fieldName: 'daemonServer', antProperty: 'server', defaultValue: null, testValue: 'host:9000'],
+                    [fieldName: 'encoding', antProperty: 'encoding', defaultValue: null, testValue: 'utf8'],
+                    [fieldName: 'debugLevel', antProperty: 'debuginfo', defaultValue: null, testValue: 'line'],
+                    [fieldName: 'loggingLevel', antProperty: 'logging', defaultValue: null, testValue: 'verbose']
+            ]
     }
+
+    @Unroll("Boolean #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "boolean values"(Map<String, String> fixture) {
+        given:
+        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+
+        when:
+        compileOptions."${fixture.fieldName}" = true
+        then:
+        value(fixture.antProperty) as String == 'true'
+
+        when:
+        compileOptions."${fixture.fieldName}" = false
+        then:
+        value(fixture.antProperty) as String == 'false'
+
+        where:
+        fixture << [
+                [fieldName: 'failOnError', antProperty: 'failOnError', defaultValue: true],
+                [fieldName: 'force', antProperty: 'force', defaultValue: false],
+                [fieldName: 'listFiles', antProperty: 'scalacdebugging', defaultValue: false]        ]
+    }
+
+    @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "onOff values"(Map<String, String> fixture) {
+        given:
+        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+
+        when:
+        compileOptions."${fixture.fieldName}" = true
+        then:
+        value(fixture.antProperty) == 'on'
+
+        when:
+        compileOptions."${fixture.fieldName}" = false
+        then:
+        value(fixture.antProperty) == 'off'
+
+        where:
+        fixture << [
+                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
+                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
+        ]
+    }
+
+    @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
+    def "addParams"(Map<String, Object> fixture) {
+        given:
+        assert compileOptions."${fixture.fieldName}" == null
+        assert value(fixture.antProperty as String) == null
+
+        when:
+        compileOptions."${fixture.fieldName}" = fixture.args as List<String>
+        then:
+        value(fixture.antProperty as String) == fixture.expected
+
+        where:
+        fixture << [
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
+                [fieldName: 'loggingPhases', antProperty: 'logphase', args: ['pickler', 'tailcalls'], expected: 'pickler,tailcalls']
+        ]
+    }
+
+    def "optionMap contains optimise when set"() {
+        given:
+        assert doesNotContain('optimise')
+        when:
+        compileOptions.optimize = true
+        then:
+        value('optimise') == 'on'
+    }
+
+    def "testOptionMapDoesNotContainTargetCompatibility"() {
+        expect:
+        value("target") == null
+    }
+
+    def "disabling UseAnt enables Fork"() {
+        given:
+        assert !compileOptions.fork
+        when:
+        compileOptions.useAnt = false
+        then:
+        compileOptions.fork == true
+    }
+
 
 }
