@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.aws.s3;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
@@ -54,16 +55,25 @@ public class S3ResourceConnector implements ExternalResourceLister, ExternalReso
 
     public ExternalResource getResource(URI location) throws IOException {
         LOGGER.debug("Attempting to get resource: {}", location);
-        S3Object s3Object = s3Client.getResource(location);
-        return new S3Resource(s3Object, location);
+        try {
+            S3Object s3Object = s3Client.getResource(location);
+            if(s3Object== null) {
+                return null;
+            }
+            return new S3Resource(s3Object, location);
+        } catch (S3Exception s3x) {
+            throw new UncheckedIOException(s3x.getMessage(), s3x);
+        }
     }
 
     public HashValue getResourceSha1(URI location) {
         try {
             S3Object resource = s3Client.getResource(new URI(location.toString() + ".sha1"));
-            InputStream objectContent = resource.getDataInputStream();
-            String sha = IOUtils.toString(objectContent);
-            return HashValue.parse(sha);
+            if(resource!= null) {
+                InputStream objectContent = resource.getDataInputStream();
+                String sha = IOUtils.toString(objectContent);
+                return HashValue.parse(sha);
+            }
         } catch (ServiceException e) {
             LOGGER.error("Could not get contents of resource sha", e);
         } catch (IOException e) {
@@ -76,13 +86,20 @@ public class S3ResourceConnector implements ExternalResourceLister, ExternalReso
 
     public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
-        StorageObject metaData = s3Client.getMetaData(location);
-        DefaultExternalResourceMetaData defaultExternalResourceMetaData = new DefaultExternalResourceMetaData(location,
-                metaData.getLastModifiedDate().getTime(),
-                metaData.getContentLength(),
-                metaData.getETag(),
-                null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
-        return defaultExternalResourceMetaData;
+        try {
+            StorageObject metaData = s3Client.getMetaData(location);
+            if(metaData == null) {
+                return null;
+            }
+            return new DefaultExternalResourceMetaData(location,
+                    metaData.getLastModifiedDate().getTime(),
+                    metaData.getContentLength(),
+                    metaData.getETag(),
+                    null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
+
+        } catch (S3Exception s3x) {
+            throw new UncheckedIOException(s3x.getMessage(), s3x);
+        }
     }
 
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {

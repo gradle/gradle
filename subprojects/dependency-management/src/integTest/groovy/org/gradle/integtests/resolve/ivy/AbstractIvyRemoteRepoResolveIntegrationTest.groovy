@@ -148,6 +148,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 into 'libs'
             }
         """
+        println buildFile.text
 
         when:
         thirdPartyModuleInEmptyRepo.ivy.expectDownloadMissing()
