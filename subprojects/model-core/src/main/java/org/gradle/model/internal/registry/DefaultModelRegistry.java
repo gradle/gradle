@@ -416,7 +416,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (binder.maybeFire()) {
             return true;
         }
-        
+
         boolean newInputsBound = false;
         ModelPath scope = binder.getScope();
 
@@ -553,16 +553,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             super(creationPath, descriptor, promise, adapter);
         }
 
-        @Nullable
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            return getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
+            }
+            return modelView;
         }
 
-        @Nullable
         @Override
         public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
-            return getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
+            }
+            return modelView;
         }
     }
 

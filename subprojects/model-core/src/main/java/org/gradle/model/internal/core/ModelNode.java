@@ -50,8 +50,11 @@ public interface ModelNode {
 
     /**
      * Creates a read-only view over this node's value.
+     *
+     * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
+     *
+     * Throws if this node can't be expressed as a read-only view of the requested type.
      */
-    @Nullable
     <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     Set<String> getLinkNames(ModelType<?> type);

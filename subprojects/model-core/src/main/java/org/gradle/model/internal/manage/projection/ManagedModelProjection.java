@@ -107,13 +107,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     if (writable) {
                         ModelView<? extends T> modelView = targetNode.asWritable(propertyType, ruleDescriptor, null);
                         if (closed) {
-                            //noinspection ConstantConditions
                             modelView.close();
                         }
-                        //noinspection ConstantConditions
                         return modelView.getInstance();
                     } else {
-                        //noinspection ConstantConditions
                         return targetNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                     }
                 }

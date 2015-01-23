@@ -23,10 +23,14 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
+
     /**
      * Creates a mutable view over this node's value.
+     *
+     * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
+     *
+     * Throws if this node can't be expressed as a mutable view of the requested type.
      */
-    @Nullable
     <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
 
     /**
