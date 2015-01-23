@@ -24,35 +24,34 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
         return new ScalaCompileOptions()
     }
 
-    def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
-        setup:
-        testObject.useCompileDaemon = compileDaemonIsEnabled
-        expect:
-        doesNotContain('useCompileDaemon')
-        where:
-        compileDaemonIsEnabled << [true, false]
+    @Override
+    List<Map<String, String>> stringProperties() {
+        [
+                [fieldName: 'daemonServer', antProperty: 'server', defaultValue: null, testValue: 'host:9000'],
+                [fieldName: 'encoding', antProperty: 'encoding', defaultValue: null, testValue: 'utf8'],
+                [fieldName: 'debugLevel', antProperty: 'debuginfo', defaultValue: null, testValue: 'line'],
+                [fieldName: 'loggingLevel', antProperty: 'logging', defaultValue: null, testValue: 'verbose']
+        ]
     }
 
-    @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "simple string values"(Map<String, String> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == fixture.defaultValue
-        if (fixture.defaultValue == null) {
-            assert doesNotContain(fixture.antProperty)
-        } else {
-            assert value(fixture.antProperty) == fixture.defaultValue
-        }
-        when:
-        testObject."${fixture.fieldName}" = fixture.testValue
-        then:
-        value(fixture.antProperty) == fixture.testValue
-        where:
-        fixture << [
-                    [fieldName: 'daemonServer', antProperty: 'server', defaultValue: null, testValue: 'host:9000'],
-                    [fieldName: 'encoding', antProperty: 'encoding', defaultValue: null, testValue: 'utf8'],
-                    [fieldName: 'debugLevel', antProperty: 'debuginfo', defaultValue: null, testValue: 'line'],
-                    [fieldName: 'loggingLevel', antProperty: 'logging', defaultValue: null, testValue: 'verbose']
-            ]
+    @Override
+    List<Map<String, String>> onOffProperties() {
+        [
+                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
+                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
+        ]
+    }
+
+    @Override
+    List<Map<String, String>> listProperties() {
+        [
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
+                [fieldName: 'loggingPhases', antProperty: 'logphase', args: ['pickler', 'tailcalls'], expected: 'pickler,tailcalls']
+        ]
     }
 
     @Unroll("Boolean #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
@@ -74,51 +73,17 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
         fixture << [
                 [fieldName: 'failOnError', antProperty: 'failOnError', defaultValue: true],
                 [fieldName: 'force', antProperty: 'force', defaultValue: false],
-                [fieldName: 'listFiles', antProperty: 'scalacdebugging', defaultValue: false]        ]
-    }
-
-    @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "onOff values"(Map<String, String> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == fixture.defaultValue
-
-        when:
-        testObject."${fixture.fieldName}" = true
-        then:
-        value(fixture.antProperty) == 'on'
-
-        when:
-        testObject."${fixture.fieldName}" = false
-        then:
-        value(fixture.antProperty) == 'off'
-
-        where:
-        fixture << [
-                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
-                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
+                [fieldName: 'listFiles', antProperty: 'scalacdebugging', defaultValue: false]
         ]
     }
 
-    @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
-    def "list values"(Map<String, Object> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == null
-        assert value(fixture.antProperty as String) == null
-
-        when:
-        testObject."${fixture.fieldName}" = fixture.args as List<String>
-        then:
-        value(fixture.antProperty as String) == fixture.expected
-
+    def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
+        setup:
+        testObject.useCompileDaemon = compileDaemonIsEnabled
+        expect:
+        doesNotContain('useCompileDaemon')
         where:
-        fixture << [
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
-                [fieldName: 'loggingPhases', antProperty: 'logphase', args: ['pickler', 'tailcalls'], expected: 'pickler,tailcalls']
-        ]
+        compileDaemonIsEnabled << [true, false]
     }
 
     def "optionMap contains optimise when set"() {

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks.scala
 
-import spock.lang.Unroll
-
 public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
 
     @Override
@@ -24,43 +22,9 @@ public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
         return new ScalaDocOptions()
     }
 
-    @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "onOff values"(Map<String, String> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == fixture.defaultValue
-
-        when:
-        testObject."${fixture.fieldName}" = true
-        then:
-        value(fixture.antProperty) == 'on'
-
-        when:
-        testObject."${fixture.fieldName}" = false
-        then:
-        value(fixture.antProperty) == 'off'
-
-        where:
-        fixture << [
-                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
-                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
-        ]
-    }
-
-    @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
-    def "simple string values"(Map<String, String> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == fixture.defaultValue
-        if (fixture.defaultValue == null) {
-            assert doesNotContain(fixture.antProperty)
-        } else {
-            assert value(fixture.antProperty) == fixture.defaultValue
-        }
-        when:
-        testObject."${fixture.fieldName}" = fixture.testValue
-        then:
-        value(fixture.antProperty) == fixture.testValue
-        where:
-        fixture << [
+    @Override
+    List<Map<String, String>> stringProperties() {
+        [
                 [fieldName: 'windowTitle', antProperty: 'windowTitle', defaultValue: null, testValue: 'title-value'],
                 [fieldName: 'docTitle', antProperty: 'docTitle', defaultValue: null, testValue: 'doc-title-value'],
                 [fieldName: 'header', antProperty: 'header', defaultValue: null, testValue: 'header-value'],
@@ -71,7 +35,26 @@ public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
         ]
     }
 
-    def testOptionMapContainsStyleSheetIfSpecified() {
+    @Override
+    List<Map<String, String>> onOffProperties() {
+        [
+                [fieldName: 'deprecation', antProperty: 'deprecation', defaultValue: true],
+                [fieldName: 'unchecked', antProperty: 'unchecked', defaultValue: true]
+        ]
+    }
+
+    @Override
+    List<Map<String, String>> listProperties() {
+        [
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
+                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
+        ]
+    }
+
+    def "optionMap contains stylesheet when set"() {
         String antProperty = 'styleSheet'
         given:
         assert testObject.styleSheet == null
@@ -81,27 +64,6 @@ public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
         testObject.styleSheet = file
         then:
         value(antProperty) == file
-    }
-
-    @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
-    def "addParams"(Map<String, Object> fixture) {
-        given:
-        assert testObject."${fixture.fieldName}" == null
-        assert value(fixture.antProperty as String) == null
-
-        when:
-        testObject."${fixture.fieldName}" = fixture.args as List<String>
-        then:
-        value(fixture.antProperty as String) == fixture.expected
-
-        where:
-        fixture << [
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['-opt1', '-opt2'], expected: '-opt1 -opt2'],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with spaces'], expected: '\'arg with spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['arg with \' and spaces'], expected: '\'arg with \\\' and spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['\'arg with spaces\''], expected: '\'arg with spaces\''],
-                [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
-        ]
     }
 
 

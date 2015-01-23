@@ -17,12 +17,70 @@ package org.gradle.api.tasks.scala
 
 import org.gradle.api.tasks.compile.AbstractOptions
 import spock.lang.Specification
+import spock.lang.Unroll
 
 abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specification {
 
     protected T testObject
 
     abstract T newTestObject()
+
+    abstract List<Map<String, String>> stringProperties()
+
+    abstract List<Map<String, String>> onOffProperties()
+
+    abstract List<Map<String, String>> listProperties()
+
+    @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "string values"(Map<String, String> fixture) {
+        given:
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
+        if (fixture.defaultValue == null) {
+            assert doesNotContain(fixture.antProperty)
+        } else {
+            assert value(fixture.antProperty) == fixture.defaultValue
+        }
+        when:
+        testObject."${fixture.fieldName}" = fixture.testValue
+        then:
+        value(fixture.antProperty) == fixture.testValue
+        where:
+        fixture << stringProperties()
+    }
+
+    @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
+    def "onOff values"(Map<String, String> fixture) {
+        given:
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
+
+        when:
+        testObject."${fixture.fieldName}" = true
+        then:
+        value(fixture.antProperty) == 'on'
+
+        when:
+        testObject."${fixture.fieldName}" = false
+        then:
+        value(fixture.antProperty) == 'off'
+
+        where:
+        fixture << onOffProperties()
+    }
+
+    @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
+    def "list values"(Map<String, Object> fixture) {
+        given:
+        assert testObject."${fixture.fieldName}" == null
+        assert value(fixture.antProperty as String) == null
+
+        when:
+        testObject."${fixture.fieldName}" = fixture.args as List<String>
+        then:
+        value(fixture.antProperty as String) == fixture.expected
+
+        where:
+        fixture << listProperties()
+    }
 
     def setup() {
         testObject = newTestObject()
