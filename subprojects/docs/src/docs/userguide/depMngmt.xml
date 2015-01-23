@@ -805,10 +805,18 @@
             <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
                 <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
             </sample>
-            <para>This adds repositories which look into one or more directories for finding dependencies. If you only
-                work with flat directory resolvers you don't need to set all attributes of a dependency.
-                See
-                <xref linkend='para:dependencies_with_empty_attributes'/>
+            <para>This adds repositories which look into one or more directories for finding dependencies. Note that
+                this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead,
+                Gradle will dynamically generate a module descriptor (without any dependency information) based on the
+                presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from
+                real meta-data rather than being generated, flat directory repositories cannot be used to override
+                artifacts with real meta-data from other repositories. So, for example, if Gradle finds only
+                <filename>jmxri-1.2.1.jar</filename> in a flat directory repository, but <filename>jmxri-1.2.1.pom</filename>
+                in another repository that supports meta-data, it will use the second repository to provide the module.
+                For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository
+                instead whose URL points to a local directory.
+                If you only work with flat directory repositories you don't need to set all attributes of a dependency.
+                See <xref linkend='para:dependencies_with_empty_attributes'/>.
             </para>
         </section>
 
