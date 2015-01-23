@@ -145,16 +145,25 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
 
         private final Pattern singleQuoted = Pattern.compile("^\".*\"$");
         private final Pattern doubleQuoted = Pattern.compile("^'.*'$");
+        private final Pattern aSingleQuote = Pattern.compile("'");
 
         @Override
         public String transform(String input) {
             if (singleQuoted.matcher(input).matches() || doubleQuoted.matcher(input).matches()) {
                 return input;
             } else if(input.contains(" ")) {
-                return String.format("'%1$s'", input.replaceAll("'", "\\'"));
+                return wrapWithSingleQuotes(input);
             } else {
                 return input;
             }
+        }
+
+        private String wrapWithSingleQuotes(String input) {
+            return String.format("'%1$s'", escapeSingleQuotes(input));
+        }
+
+        private String escapeSingleQuotes(String input) {
+            return aSingleQuote.matcher(input).replaceAll("\\\\'");
         }
     };
 
