@@ -16,19 +16,17 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
 abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-c', '-I', includeDir.absoluteFile.toString() ]
+        [ '-c', '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-I', includeDir.absoluteFile.toString() ]
     }
 
     def "arguments include GCC output flag and output file name"() {
         given:
-        def invocation = Mock(MutableCommandLineToolInvocation)
-        def compiler = getCompiler(invocation)
+        def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
         def args = []
         def outputFile = testDir.file("output.ext")

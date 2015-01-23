@@ -251,7 +251,7 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed; see the error output for details.")
     }
 
     def "build fails when link library fails"() {
@@ -282,7 +282,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed; see the error output for details.")
     }
 
     def "build fails when create static library fails"() {
@@ -311,7 +311,7 @@ binaries.withType(StaticLibraryBinarySpec) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
-        failure.assertHasCause("Static library archiver failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed; see the error output for details.")
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

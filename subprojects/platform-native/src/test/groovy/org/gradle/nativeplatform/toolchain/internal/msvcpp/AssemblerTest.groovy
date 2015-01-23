@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc
+package org.gradle.nativeplatform.toolchain.internal.msvcpp
+
+import org.gradle.internal.Transformers
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
 
-class AssemblerTest extends GccCompatibleNativeCompilerTest {
+class AssemblerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        new Assembler(buildOperationProcessor, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
+        new Assembler(buildOperationProcessor, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
     }
 
     @Override
@@ -33,6 +35,6 @@ class AssemblerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '-x', 'assembler' ] + super.getCompilerSpecificArguments(includeDir)
+        [''] + super.getCompilerSpecificArguments(includeDir)
     }
 }

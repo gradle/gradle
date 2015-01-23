@@ -15,17 +15,16 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
-
 import org.gradle.internal.Transformers
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 
 class CCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
-    protected NativeCompiler getCompiler(CommandLineToolInvocation invocation, String objectFileExtension, boolean useCommandFile) {
-        new CCompiler(buildOperationProcessor, commandLineTool, invocation, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
+    protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        new CCompiler(buildOperationProcessor, commandLineTool, invocationContext, Transformers.noOpTransformer(), objectFileExtension, useCommandFile)
     }
 
     @Override

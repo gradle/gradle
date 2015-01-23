@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,22 +35,23 @@ class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
-    private final CommandLineToolInvocation baseInvocation;
+    private final CommandLineToolContext invocationContext;
     private final boolean useCommandFile;
 
-    public GccLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
+    GccLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
         this.argsTransformer = new GccLinkerArgsTransformer();
-        this.baseInvocation = baseInvocation;
+        this.invocationContext = invocationContext;
         this.useCommandFile = useCommandFile;
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
+        List<String> args = argsTransformer.transform(spec);
+        invocationContext.getArgAction().execute(args);
         if (useCommandFile) {
-            invocation.addPostArgsAction(new GccOptionsFileArgsWriter(spec.getTempDir()));
+            new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         }
-        invocation.setArgs(argsTransformer.transform(spec));
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(args);
         commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }

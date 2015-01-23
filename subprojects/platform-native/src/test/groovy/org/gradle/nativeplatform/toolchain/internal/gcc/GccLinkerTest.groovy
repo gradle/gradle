@@ -15,15 +15,16 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
-
+import org.gradle.internal.Actions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
 import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
+import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,11 +33,12 @@ class GccLinkerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def executable = new File("executable")
-    def invocation = Mock(MutableCommandLineToolInvocation)
+    def invocationContext = Mock(CommandLineToolContext)
+    def invocation = Mock(CommandLineToolInvocation)
     CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
-    GccLinker linker = new GccLinker(commandLineTool, invocation, false);
+    GccLinker linker = new GccLinker(commandLineTool, invocationContext, false)
 
-    def "compiles all source files in a single execution"() {
+    def "links all object files in a single execution"() {
         given:
         def testDir = tmpDirProvider.testDirectory
         def outputFile = testDir.file("output/lib")
@@ -65,8 +67,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setArgs(expectedArgs)
+        1 * invocationContext.getArgAction() >> Actions.doNothing()
+        1 * invocationContext.createInvocation(expectedArgs) >> invocation
         1 * commandLineTool.execute(invocation)
         0 * _
     }
@@ -110,8 +112,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setArgs(expectedArgs)
+        1 * invocationContext.getArgAction() >> Actions.doNothing()
+        1 * invocationContext.createInvocation(expectedArgs) >> invocation
         1 * commandLineTool.execute(invocation)
         0 * _
     }
@@ -144,8 +146,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setArgs(expectedArgs)
+        1 * invocationContext.getArgAction() >> Actions.doNothing()
+        1 * invocationContext.createInvocation(expectedArgs) >> invocation
         1 * commandLineTool.execute(invocation)
         0 * _
     }
@@ -179,8 +181,8 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * invocation.copy() >> invocation
-        1 * invocation.setArgs(expectedArgs)
+        1 * invocationContext.getArgAction() >> Actions.doNothing()
+        1 * invocationContext.createInvocation(expectedArgs) >> invocation
         1 * commandLineTool.execute(invocation)
         0 * _
     }

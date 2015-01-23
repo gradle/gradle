@@ -18,13 +18,13 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,19 +35,20 @@ import java.util.List;
  */
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
-    private final CommandLineToolInvocation baseInvocation;
+    private final ArgsTransformer<StaticLibraryArchiverSpec> argsTransformer = new ArchiverSpecToArguments();
+    private final CommandLineToolContext invocationContext;
 
-    public ArStaticLibraryArchiver(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation) {
+    ArStaticLibraryArchiver(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.baseInvocation = baseInvocation;
+        this.invocationContext = invocationContext;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.setArgs(arguments.transform(spec));
+        List<String> args = argsTransformer.transform(spec);
+        invocationContext.getArgAction().execute(args);
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(args);
         commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }

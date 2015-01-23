@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -35,14 +36,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;
     private final Transformer<T, T> specTransformer;
-    private final CommandLineToolInvocation baseInvocation;
+    private final CommandLineToolContext invocationContext;
     private final String objectFileSuffix;
     private final boolean useCommandFile;
 
     private final BuildOperationProcessor buildOperationProcessor;
 
-    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        this.baseInvocation = baseInvocation;
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        this.invocationContext = invocationContext;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransformer = argsTransformer;
@@ -70,18 +71,18 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected List<String> getArguments(T spec) {
-        // TODO: Detangle post args actions from invocation?
-        MutableCommandLineToolInvocation postArgsInvocation = baseInvocation.copy();
-        postArgsInvocation.setArgs(argsTransformer.transform(spec));
-        // NOTE: this triggers the "post args" actions that can modify the arguments
-        List<String> genericArgs = postArgsInvocation.getArgs();
+        List<String> args = argsTransformer.transform(spec);
+
+        Action<List<String>> userArgTransformer = invocationContext.getArgAction();
+        // modifies in place
+        userArgTransformer.execute(args);
 
         if (useCommandFile) {
             // Shorten args and write out an options.txt file
             // This must be called only once per execute()
-            addOptionsFileArgs(genericArgs, spec.getTempDir());
+            addOptionsFileArgs(args, spec.getTempDir());
         }
-        return genericArgs;
+        return args;
     }
 
     protected void addSourceArgs(List<String> args, File sourceFile) {
@@ -111,10 +112,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         addSourceArgs(perFileArgs, sourceFile);
         addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 
-        MutableCommandLineToolInvocation perFileInvocation = baseInvocation.copy();
-        perFileInvocation.clearPostArgsActions();
-        perFileInvocation.setWorkDirectory(objectDir);
-        perFileInvocation.setArgs(perFileArgs);
-        return perFileInvocation;
+        return invocationContext.createInvocation(objectDir, perFileArgs);
     }
 }

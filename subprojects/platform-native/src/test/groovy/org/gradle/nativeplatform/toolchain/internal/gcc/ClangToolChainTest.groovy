@@ -46,7 +46,7 @@ class ClangToolChainTest extends Specification {
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.assembler.executable == 'clang'
             assert platformToolChain.cCompiler.executable == 'clang'
             assert platformToolChain.cppCompiler.executable == 'clang++'
             assert platformToolChain.objcCompiler.executable == 'clang'

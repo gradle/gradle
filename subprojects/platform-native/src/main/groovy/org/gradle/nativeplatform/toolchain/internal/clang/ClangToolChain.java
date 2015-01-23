@@ -40,6 +40,7 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
         toolChain.getCppCompiler().setExecutable("clang++");
         toolChain.getObjcCompiler().setExecutable("clang");
         toolChain.getObjcppCompiler().setExecutable("clang++");
+        toolChain.getAssembler().setExecutable("clang");
     }
 
     @Override

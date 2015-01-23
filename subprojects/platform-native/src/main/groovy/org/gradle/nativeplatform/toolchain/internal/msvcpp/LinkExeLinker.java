@@ -37,23 +37,24 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
-    private final CommandLineToolInvocation baseInvocation;
+    private final CommandLineToolContext invocationContext;
     private final BuildOperationProcessor buildOperationProcessor;
 
-    public LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+    LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
         this.buildOperationProcessor = buildOperationProcessor;
-        argsTransformer = new LinkerArgsTransformer();
+        this.argsTransformer = new LinkerArgsTransformer();
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
-        this.baseInvocation = invocation;
+        this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
         OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
-        invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
-        commandLineToolInvocationWorker.execute(invocation);
+        LinkerSpec transformedSpec = specTransformer.transform(spec);
+        List<String> args = argsTransformer.transform(transformedSpec);
+        invocationContext.getArgAction().execute(args);
+        new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(args);
         queue.add(invocation);
         queue.waitForCompletion();
         return new SimpleWorkResult(true);

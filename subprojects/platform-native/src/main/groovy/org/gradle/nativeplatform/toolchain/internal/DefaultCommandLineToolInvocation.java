@@ -15,78 +15,35 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultCommandLineToolInvocation implements MutableCommandLineToolInvocation {
-    private final List<Action<List<String>>> postArgsActions = new ArrayList<Action<List<String>>>();
-    private final Map<String, String> environment = new HashMap<String, String>();
-    private final List<File> path = new ArrayList<File>();
-    private List<String> args = new ArrayList<String>();
-    private File workDirectory;
+class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
+    private final File workDirectory;
+    private final List<String> args;
+    private final CommandLineToolContext context;
 
-    public MutableCommandLineToolInvocation copy() {
-        DefaultCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
-        for (Action<List<String>> postArgsAction : postArgsActions) {
-            invocation.addPostArgsAction(postArgsAction);
-        }
-        invocation.args.addAll(this.args);
-        invocation.workDirectory = this.workDirectory;
-        invocation.path.addAll(this.path);
-        invocation.environment.putAll(environment);
-        return invocation;
+    DefaultCommandLineToolInvocation(File workDirectory, List<String> args, CommandLineToolContext context) {
+        this.workDirectory = workDirectory;
+        this.args = args;
+        this.context = context;
     }
-
-    public void addPostArgsAction(Action<List<String>> postArgsAction) {
-        postArgsActions.add(postArgsAction);
-    }
-
-    public void clearPostArgsActions() { postArgsActions.clear(); }
 
     public List<String> getArgs() {
-        List<String> transformedArgs = Lists.newArrayList(args);
-        for (Action<List<String>> postArgsAction : postArgsActions) {
-            postArgsAction.execute(transformedArgs);
-        }
-        return transformedArgs;
-    }
-
-    public void setArgs(List<String> args) {
-        this.args = args;
+        return args;
     }
 
     public File getWorkDirectory() {
         return workDirectory;
     }
 
-    public void setWorkDirectory(File workDirectory) {
-        this.workDirectory = workDirectory;
-    }
-
-    public void addPath(File pathEntry) {
-        this.path.add(pathEntry);
-    }
-
-    public void addPath(List<File> path) {
-        this.path.addAll(path);
-    }
-
     public List<File> getPath() {
-        return path;
+        return context.getPath();
     }
 
     public Map<String, String> getEnvironment() {
-        return environment;
-    }
-
-    public void addEnvironmentVar(String key, String value) {
-        this.environment.put(key, value);
+        return context.getEnvironment();
     }
 
     @Override

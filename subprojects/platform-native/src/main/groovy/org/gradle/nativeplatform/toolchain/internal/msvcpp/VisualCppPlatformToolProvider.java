@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -60,22 +61,22 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
 
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
+        CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
         return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix, true);
+        CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix, true);
         return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
     }
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-        return new Assembler(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), outputFileSuffix, false);
+        return new Assembler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), outputFileSuffix, false);
     }
 
     @Override
@@ -92,40 +93,40 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
         String resOutputFileName = ".res";
-        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), resOutputFileName, false);
+        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), resOutputFileName, false);
         return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, resOutputFileName);
     }
 
     @Override
     protected Compiler<LinkerSpec> createLinker() {
         CommandLineToolInvocationWorker commandLineTool = tool("Linker", visualCpp.getLinker(targetPlatform));
-        return new LinkExeLinker(buildOperationProcessor, commandLineTool, invocation(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
+        return new LinkExeLinker(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.LINKER)), addLibraryPath());
     }
 
     @Override
     protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
-        CommandLineToolInvocationWorker commandLineToolInvocationWorker = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
-        return new LibExeStaticLibraryArchiver(commandLineToolInvocationWorker, invocation(commandLineToolConfigurations.get(ToolType.STATIC_LIB_ARCHIVER)));
+        CommandLineToolInvocationWorker commandLineTool = tool("Static library archiver", visualCpp.getArchiver(targetPlatform));
+        return new LibExeStaticLibraryArchiver(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.STATIC_LIB_ARCHIVER)), Transformers.<StaticLibraryArchiverSpec>noOpTransformer());
     }
 
     private CommandLineToolInvocationWorker tool(String toolName, File exe) {
         return new DefaultCommandLineToolInvocationWorker(toolName, exe, execActionFactory);
     }
 
-    private CommandLineToolInvocation invocation(CommandLineToolConfigurationInternal commandLineToolConfiguration) {
-        MutableCommandLineToolInvocation invocation = new DefaultCommandLineToolInvocation();
+    private CommandLineToolContext context(CommandLineToolConfigurationInternal commandLineToolConfiguration) {
+        MutableCommandLineToolContext invocationContext = new DefaultMutableCommandLineToolContext();
         // The visual C++ tools use the path to find other executables
         // TODO:ADAM - restrict this to the specific path for the target tool
-        invocation.addPath(visualCpp.getPath(targetPlatform));
-        invocation.addPath(sdk.getBinDir(targetPlatform));
+        invocationContext.addPath(visualCpp.getPath(targetPlatform));
+        invocationContext.addPath(sdk.getBinDir(targetPlatform));
         // Clear environment variables that might effect cl.exe & link.exe
-        clearEnvironmentVars(invocation, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
+        clearEnvironmentVars(invocationContext, "INCLUDE", "CL", "LIBPATH", "LINK", "LIB");
 
-        invocation.addPostArgsAction(commandLineToolConfiguration.getArgAction());
-        return invocation;
+        invocationContext.setArgAction(commandLineToolConfiguration.getArgAction());
+        return invocationContext;
     }
 
-    private void clearEnvironmentVars(MutableCommandLineToolInvocation invocation, String... names) {
+    private void clearEnvironmentVars(MutableCommandLineToolContext invocation, String... names) {
         // TODO:DAZ This check should really be done in the compiler process
         Map<String, ?> environmentVariables = Jvm.current().getInheritableEnvironmentVariables(System.getenv());
         for (String name : names) {

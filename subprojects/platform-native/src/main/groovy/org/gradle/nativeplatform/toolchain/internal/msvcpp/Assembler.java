@@ -20,18 +20,15 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
 class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolInvocation invocation, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocation, new AssemblerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
     }
 
     private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {
-        // no special language option for assembler
-        protected String getLanguageOption() {
-            return "";
-        }
     }
 }
