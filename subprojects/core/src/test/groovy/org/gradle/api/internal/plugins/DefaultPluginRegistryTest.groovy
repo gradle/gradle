@@ -46,6 +46,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = pluginRegistry.lookup(PluginId.of("somePlugin"))
         plugin.pluginId == PluginId.of("somePlugin")
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
+        plugin.displayName == "id 'somePlugin'"
         plugin.asClass() == TestPlugin1
     }
 
@@ -60,6 +61,7 @@ class DefaultPluginRegistryTest extends Specification {
         def plugin = pluginRegistry.lookup(PluginId.of("someRuleSource"))
         plugin.pluginId == PluginId.of("someRuleSource")
         plugin.type == PotentialPlugin.Type.PURE_RULE_SOURCE_CLASS
+        plugin.displayName == "id 'someRuleSource'"
         plugin.asClass() == TestRuleSource
     }
 
@@ -79,10 +81,12 @@ class DefaultPluginRegistryTest extends Specification {
         expect:
         def unqualified = pluginRegistry.lookup(PluginId.of("somePlugin"))
         unqualified.pluginId == PluginId.of("org.gradle.somePlugin")
+        unqualified.displayName == "id 'org.gradle.somePlugin'"
         unqualified.asClass() == TestPlugin1
 
         def qualified = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"))
         qualified.pluginId == PluginId.of("org.gradle.somePlugin")
+        unqualified.displayName == "id 'org.gradle.somePlugin'"
         qualified.asClass() == TestPlugin1
     }
 
@@ -161,11 +165,17 @@ class DefaultPluginRegistryTest extends Specification {
         !plugin2.isAlsoKnownAs(PluginId.of("plugin-1"))
     }
 
-    def "inspects imperative plugin implementation that has no id mapping"() {
+    def "inspects imperative plugin implementation"() {
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
         plugin.pluginId == null
+        plugin.displayName == "class '${TestPlugin1.name}'"
+    }
+
+    def "inspects imperative plugin implementation that has no id mapping"() {
+        expect:
+        def plugin = pluginRegistry.inspect(TestPlugin1.class)
         !plugin.isAlsoKnownAs(PluginId.of("org.gradle.some-plugin"))
     }
 
@@ -179,7 +189,6 @@ class DefaultPluginRegistryTest extends Specification {
 
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
-        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
         plugin.pluginId == null
         plugin.isAlsoKnownAs(PluginId.of("plugin-1"))
         plugin.isAlsoKnownAs(PluginId.of("plugin-2"))
@@ -194,7 +203,6 @@ class DefaultPluginRegistryTest extends Specification {
 
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
-        plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
         plugin.pluginId == null
         plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
         plugin.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
