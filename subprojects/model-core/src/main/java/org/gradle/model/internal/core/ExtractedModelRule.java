@@ -18,7 +18,7 @@ package org.gradle.model.internal.core;
 
 import java.util.List;
 
-public interface ModelRuleRegistration {
+public interface ExtractedModelRule {
 
     void applyTo(ModelRegistrar registrar, ModelPath scope);
 

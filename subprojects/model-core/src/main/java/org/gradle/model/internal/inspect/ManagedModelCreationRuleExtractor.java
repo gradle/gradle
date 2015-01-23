@@ -53,7 +53,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
     }
 
     @Override
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         String modelName = determineModelName(ruleDefinition);
 
         List<ModelReference<?>> references = ruleDefinition.getReferences();
@@ -62,7 +62,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         ModelType<?> managedType = references.get(0).getType();
-        return new ModelCreatorRegistration(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
+        return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
     private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, ModelPath modelPath) {

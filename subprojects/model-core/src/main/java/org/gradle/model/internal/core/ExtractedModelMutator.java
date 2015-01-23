@@ -23,17 +23,17 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ModelMutatorRegistration implements ModelRuleRegistration {
+public class ExtractedModelMutator implements ExtractedModelRule {
 
     private final ModelActionRole role;
     private final ModelAction<?> action;
     private final List<ModelType<?>> dependencies;
 
-    public ModelMutatorRegistration(ModelActionRole role, ModelAction<?> action) {
+    public ExtractedModelMutator(ModelActionRole role, ModelAction<?> action) {
         this(role, action, ImmutableList.<ModelType<?>>of());
     }
 
-    public ModelMutatorRegistration(ModelActionRole role, ModelAction<?> action, List<ModelType<?>> dependencies) {
+    public ExtractedModelMutator(ModelActionRole role, ModelAction<?> action, List<ModelType<?>> dependencies) {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;

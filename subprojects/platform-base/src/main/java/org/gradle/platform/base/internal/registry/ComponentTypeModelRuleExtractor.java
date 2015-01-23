@@ -52,14 +52,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return new DependencyOnlyRuleRegistration(dependencies);
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {

@@ -28,7 +28,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -42,10 +42,10 @@ import java.util.concurrent.ExecutionException;
 @ThreadSafe
 public class ModelRuleExtractor {
 
-    final LoadingCache<Class<?>, List<ModelRuleRegistration>> cache = CacheBuilder.newBuilder()
+    final LoadingCache<Class<?>, List<ExtractedModelRule>> cache = CacheBuilder.newBuilder()
             .weakKeys()
-            .build(new CacheLoader<Class<?>, List<ModelRuleRegistration>>() {
-                public List<ModelRuleRegistration> load(Class<?> source) throws Exception {
+            .build(new CacheLoader<Class<?>, List<ExtractedModelRule>>() {
+                public List<ExtractedModelRule> load(Class<?> source) throws Exception {
                     return doExtract(source);
                 }
             });
@@ -94,7 +94,7 @@ public class ModelRuleExtractor {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    public Iterable<ModelRuleRegistration> extract(Class<?> source) {
+    public Iterable<ExtractedModelRule> extract(Class<?> source) {
         try {
             return cache.get(source);
         } catch (ExecutionException e) {
@@ -104,7 +104,7 @@ public class ModelRuleExtractor {
         }
     }
 
-    private List<ModelRuleRegistration> doExtract(Class<?> source) {
+    private List<ExtractedModelRule> doExtract(Class<?> source) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 
@@ -115,7 +115,7 @@ public class ModelRuleExtractor {
             }
         });
 
-        ImmutableList.Builder<ModelRuleRegistration> registrations = ImmutableList.builder();
+        ImmutableList.Builder<ExtractedModelRule> registrations = ImmutableList.builder();
 
         for (Method method : methods) {
             if (method.getTypeParameters().length > 0) {
@@ -126,7 +126,7 @@ public class ModelRuleExtractor {
             MethodModelRuleExtractor handler = getMethodHandler(ruleDefinition);
             if (handler != null) {
                 validateMethod(method);
-                ModelRuleRegistration registration = handler.registration(ruleDefinition);
+                ExtractedModelRule registration = handler.registration(ruleDefinition);
                 if (registration != null) {
                     registrations.add(registration);
                 }

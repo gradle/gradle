@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -48,8 +48,8 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
         ModelRegistry modelRegistry = target.getModelRegistry();
         Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
         for (Class<? extends RuleSource> ruleSource : declaredSources) {
-            Iterable<ModelRuleRegistration> rules = ruleInspector.extract(ruleSource);
-            for (ModelRuleRegistration rule : rules) {
+            Iterable<ExtractedModelRule> rules = ruleInspector.extract(ruleSource);
+            for (ExtractedModelRule rule : rules) {
                 for (Class<?> dependency : rule.getRuleDependencies()) {
                     target.getPluginManager().apply(dependency);
                 }

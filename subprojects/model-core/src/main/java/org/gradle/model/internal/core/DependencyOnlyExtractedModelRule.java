@@ -22,11 +22,11 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class DependencyOnlyRuleRegistration implements ModelRuleRegistration {
+public class DependencyOnlyExtractedModelRule implements ExtractedModelRule {
 
     private final List<ModelType<?>> dependencies;
 
-    public DependencyOnlyRuleRegistration(List<ModelType<?>> dependencyList) {
+    public DependencyOnlyExtractedModelRule(List<ModelType<?>> dependencyList) {
         this.dependencies = dependencyList;
     }
 

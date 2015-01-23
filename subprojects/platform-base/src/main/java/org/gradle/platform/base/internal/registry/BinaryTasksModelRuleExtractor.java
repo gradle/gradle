@@ -31,11 +31,11 @@ import org.gradle.platform.base.InvalidModelException;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
@@ -45,7 +45,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
             BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition);
             ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ModelMutatorRegistration(ModelActionRole.Mutate, binaryTaskRule, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Mutate, binaryTaskRule, dependencies);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }

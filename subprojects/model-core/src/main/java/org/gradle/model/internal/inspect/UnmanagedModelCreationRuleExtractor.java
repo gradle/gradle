@@ -38,7 +38,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         };
     }
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         String modelName = determineModelName(ruleDefinition);
 
         ModelType<R> returnType = ruleDefinition.getReturnType();
@@ -52,7 +52,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
                 .inputs(references)
                 .build();
 
-        return new ModelCreatorRegistration(modelCreator);
+        return new ExtractedModelCreator(modelCreator);
     }
 
     public String getDescription() {

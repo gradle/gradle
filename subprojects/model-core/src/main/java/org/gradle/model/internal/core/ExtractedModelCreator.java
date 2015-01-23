@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public class ModelCreatorRegistration implements ModelRuleRegistration {
+public class ExtractedModelCreator implements ExtractedModelRule {
 
     private final ModelCreator creator;
 
-    public ModelCreatorRegistration(ModelCreator creator) {
+    public ExtractedModelCreator(ModelCreator creator) {
         this.creator = creator;
     }
 

@@ -47,14 +47,14 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends LanguageSourceSet> type, TypeBuilderInternal<LanguageSourceSet> builder) {
         ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return new DependencyOnlyRuleRegistration(dependencies);
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultLanguageTypeBuilder extends AbstractTypeBuilder<LanguageSourceSet> implements LanguageTypeBuilderInternal<LanguageSourceSet> {

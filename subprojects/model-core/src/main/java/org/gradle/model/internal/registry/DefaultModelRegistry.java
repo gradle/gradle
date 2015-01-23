@@ -804,8 +804,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
-            Iterable<ModelRuleRegistration> registrations = ruleExtractor.extract(rules);
-            for (ModelRuleRegistration registration : registrations) {
+            Iterable<ExtractedModelRule> registrations = ruleExtractor.extract(rules);
+            for (ExtractedModelRule registration : registrations) {
                 // TODO - remove this when we remove the 'rule dependencies' mechanism
                 if (!registration.getRuleDependencies().isEmpty()) {
                     throw new IllegalStateException("Rule source class " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");

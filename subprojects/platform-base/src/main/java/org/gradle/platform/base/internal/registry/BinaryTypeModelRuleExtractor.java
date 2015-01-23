@@ -45,14 +45,14 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
         ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return new DependencyOnlyRuleRegistration(dependencies);
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
