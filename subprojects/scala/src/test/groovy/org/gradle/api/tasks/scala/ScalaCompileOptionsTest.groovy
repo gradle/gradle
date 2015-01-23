@@ -15,27 +15,13 @@
  */
 package org.gradle.api.tasks.scala
 
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class ScalaCompileOptionsTest extends Specification {
+class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
 
-    private ScalaCompileOptions compileOptions
-
-    def setup() {
-        compileOptions = new ScalaCompileOptions()
-    }
-
-    def contains(String key) {
-        compileOptions.optionMap().containsKey(key)
-    }
-
-    def doesNotContain(String key) {
-        !contains(key)
-    }
-
-    def value(String key) {
-        compileOptions.optionMap().get(key)
+    @Override
+    ScalaCompileOptions testObject() {
+        return new ScalaCompileOptions()
     }
 
     def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
