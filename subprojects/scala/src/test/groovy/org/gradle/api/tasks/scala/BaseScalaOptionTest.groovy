@@ -20,16 +20,16 @@ import spock.lang.Specification
 
 abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specification {
 
-    protected T compileOptions
+    protected T testObject
 
-    abstract T testObject()
+    abstract T newTestObject()
 
     def setup() {
-        compileOptions = testObject()
+        testObject = newTestObject()
     }
 
     def contains(String key) {
-        compileOptions.optionMap().containsKey(key)
+        testObject.optionMap().containsKey(key)
     }
 
     def doesNotContain(String key) {
@@ -37,8 +37,7 @@ abstract class BaseScalaOptionTest<T extends AbstractOptions> extends Specificat
     }
 
     def value(String key) {
-        compileOptions.optionMap().get(key)
+        testObject.optionMap().get(key)
     }
-
 
 }

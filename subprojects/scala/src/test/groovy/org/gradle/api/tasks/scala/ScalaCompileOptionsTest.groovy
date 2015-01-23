@@ -20,13 +20,13 @@ import spock.lang.Unroll
 class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
 
     @Override
-    ScalaCompileOptions testObject() {
+    ScalaCompileOptions newTestObject() {
         return new ScalaCompileOptions()
     }
 
     def "optionMap never contains useCompileDaemon"(boolean compileDaemonIsEnabled) {
         setup:
-        compileOptions.useCompileDaemon = compileDaemonIsEnabled
+        testObject.useCompileDaemon = compileDaemonIsEnabled
         expect:
         doesNotContain('useCompileDaemon')
         where:
@@ -36,14 +36,14 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
     @Unroll("String #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
     def "simple string values"(Map<String, String> fixture) {
         given:
-        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
         if (fixture.defaultValue == null) {
             assert doesNotContain(fixture.antProperty)
         } else {
             assert value(fixture.antProperty) == fixture.defaultValue
         }
         when:
-        compileOptions."${fixture.fieldName}" = fixture.testValue
+        testObject."${fixture.fieldName}" = fixture.testValue
         then:
         value(fixture.antProperty) == fixture.testValue
         where:
@@ -58,15 +58,15 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
     @Unroll("Boolean #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
     def "boolean values"(Map<String, String> fixture) {
         given:
-        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
 
         when:
-        compileOptions."${fixture.fieldName}" = true
+        testObject."${fixture.fieldName}" = true
         then:
         value(fixture.antProperty) as String == 'true'
 
         when:
-        compileOptions."${fixture.fieldName}" = false
+        testObject."${fixture.fieldName}" = false
         then:
         value(fixture.antProperty) as String == 'false'
 
@@ -80,15 +80,15 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
     @Unroll("OnOff #fixture.fieldName maps to #fixture.antProperty with a default value of #fixture.defaultValue")
     def "onOff values"(Map<String, String> fixture) {
         given:
-        assert compileOptions."${fixture.fieldName}" == fixture.defaultValue
+        assert testObject."${fixture.fieldName}" == fixture.defaultValue
 
         when:
-        compileOptions."${fixture.fieldName}" = true
+        testObject."${fixture.fieldName}" = true
         then:
         value(fixture.antProperty) == 'on'
 
         when:
-        compileOptions."${fixture.fieldName}" = false
+        testObject."${fixture.fieldName}" = false
         then:
         value(fixture.antProperty) == 'off'
 
@@ -100,13 +100,13 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
     }
 
     @Unroll("List #fixture.fieldName with value #fixture.args maps to #fixture.antProperty with value #fixture.expected")
-    def "addParams"(Map<String, Object> fixture) {
+    def "list values"(Map<String, Object> fixture) {
         given:
-        assert compileOptions."${fixture.fieldName}" == null
+        assert testObject."${fixture.fieldName}" == null
         assert value(fixture.antProperty as String) == null
 
         when:
-        compileOptions."${fixture.fieldName}" = fixture.args as List<String>
+        testObject."${fixture.fieldName}" = fixture.args as List<String>
         then:
         value(fixture.antProperty as String) == fixture.expected
 
@@ -125,7 +125,7 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
         given:
         assert doesNotContain('optimise')
         when:
-        compileOptions.optimize = true
+        testObject.optimize = true
         then:
         value('optimise') == 'on'
     }
@@ -137,11 +137,11 @@ class ScalaCompileOptionsTest extends BaseScalaOptionTest<ScalaCompileOptions> {
 
     def "disabling UseAnt enables Fork"() {
         given:
-        assert !compileOptions.fork
+        assert !testObject.fork
         when:
-        compileOptions.useAnt = false
+        testObject.useAnt = false
         then:
-        compileOptions.fork == true
+        testObject.fork == true
     }
 
 

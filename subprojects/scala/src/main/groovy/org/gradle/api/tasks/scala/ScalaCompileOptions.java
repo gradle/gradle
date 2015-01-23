@@ -141,7 +141,7 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
         return flag ? "on" : "off";
     }
 
-    private static final Transformer<String, String> TO_ESCAPED_STRING = new Transformer<String, String>() {
+    protected static final Transformer<String, String> TO_ESCAPED_STRING = new Transformer<String, String>() {
 
         private final Pattern singleQuoted = Pattern.compile("^\".*\"$");
         private final Pattern doubleQuoted = Pattern.compile("^'.*'$");
