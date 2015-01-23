@@ -16,11 +16,8 @@
 
 
 package org.gradle.nativeplatform.test.cunit
-
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -48,14 +45,10 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
     def "cunit"() {
         given:
-        // CUnit prebuilt library only works for VS2010 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2010()) {
-            return
-        }
+        sample cunit
 
         when:
-        sample cunit
-        succeeds "runPassing"
+        succeeds "runPassingOperatorsTestCUnitExe"
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
@@ -73,7 +66,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         when:
         sample cunit
-        fails "runFailing"
+        fails "runFailingOperatorsTestCUnitExe"
 
         then:
         skipped ":operatorsTestCUnitLauncher"
@@ -89,9 +82,4 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failingResults.checkTestCases(2, 1, 1)
         failingResults.checkAssertions(6, 4, 2)
     }
-
-    private static boolean isVisualCpp2010() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
-    }
-
 }
