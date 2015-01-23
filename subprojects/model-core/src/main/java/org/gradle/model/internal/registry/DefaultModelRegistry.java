@@ -28,7 +28,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
@@ -64,10 +64,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newHashMap();
 
-    private final ModelRuleInspector ruleInspector;
+    private final ModelRuleExtractor ruleExtractor;
 
-    public DefaultModelRegistry(ModelRuleInspector ruleInspector) {
-        this.ruleInspector = ruleInspector;
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
+        this.ruleExtractor = ruleExtractor;
         EmptyModelProjection projection = new EmptyModelProjection();
         for (ModelActionRole role : ModelActionRole.values()) {
             mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
@@ -804,7 +804,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
-            List<ModelRuleRegistration> registrations = ruleInspector.inspect(rules);
+            Iterable<ModelRuleRegistration> registrations = ruleExtractor.extract(rules);
             for (ModelRuleRegistration registration : registrations) {
                 // TODO - remove this when we remove the 'rule dependencies' mechanism
                 if (!registration.getRuleDependencies().isEmpty()) {

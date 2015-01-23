@@ -21,21 +21,19 @@ import org.gradle.api.Plugin;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelRuleRegistration;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
-
-import java.util.List;
 
 public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
     private final T target;
     private final PluginApplicator imperativeApplicator;
-    private final ModelRuleInspector ruleInspector;
+    private final ModelRuleExtractor ruleInspector;
     private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginApplicator(T target, ModelRuleInspector ruleInspector, ModelRuleSourceDetector ruleDetector) {
+    public RuleBasedPluginApplicator(T target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
@@ -50,7 +48,7 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
         ModelRegistry modelRegistry = target.getModelRegistry();
         Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
         for (Class<? extends RuleSource> ruleSource : declaredSources) {
-            List<ModelRuleRegistration> rules = ruleInspector.inspect(ruleSource);
+            Iterable<ModelRuleRegistration> rules = ruleInspector.extract(ruleSource);
             for (ModelRuleRegistration rule : rules) {
                 for (Class<?> dependency : rule.getRuleDependencies()) {
                     target.getPluginManager().apply(dependency);

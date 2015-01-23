@@ -36,10 +36,10 @@ import spock.util.concurrent.PollingConditions
 
 import java.beans.Introspector
 
-class ModelRuleInspectorTest extends Specification {
+class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
     def registryMock = Mock(ModelRegistry)
-    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {
         final String name
@@ -53,7 +53,7 @@ class ModelRuleInspectorTest extends Specification {
 
     def "can inspect class with no rules"() {
         expect:
-        inspector.inspect(EmptyClass).empty
+        extractor.extract(EmptyClass).empty
     }
 
     static class SimpleModelCreationRuleInferredName extends RuleSource {
@@ -64,7 +64,7 @@ class ModelRuleInspectorTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source)*.applyTo(registry, ModelPath.ROOT)
+        extractor.extract(source)*.applyTo(registry, ModelPath.ROOT)
     }
 
     def "can inspect class with simple model creation rule"() {
@@ -324,7 +324,7 @@ class ModelRuleInspectorTest extends Specification {
         registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build(), ModelPath.ROOT)
 
         when:
-        inspector.inspect(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
+        extractor.extract(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
 
         then:
         1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") }, ModelPath.ROOT)
@@ -474,8 +474,8 @@ ${ManagedWithNonManageableParents.name}
 
     def "extracted rules are cached"() {
         when:
-        def fromFirstExtraction = inspector.inspect(MutationRules)
-        def fromSecondExtraction = inspector.inspect(MutationRules)
+        def fromFirstExtraction = extractor.extract(MutationRules)
+        def fromSecondExtraction = extractor.extract(MutationRules)
 
         then:
         fromFirstExtraction.is(fromSecondExtraction)
@@ -495,10 +495,10 @@ ${ManagedWithNonManageableParents.name}
         ''')
 
         when:
-        inspector.inspect(source)
+        extractor.extract(source)
 
         then:
-        inspector.cache.size() == 1
+        extractor.cache.size() == 1
 
         when:
         cl.clearCache()
@@ -508,8 +508,8 @@ ${ManagedWithNonManageableParents.name}
         then:
         new PollingConditions(timeout: 10).eventually {
             System.gc()
-            inspector.cache.cleanUp()
-            inspector.cache.size() == 0
+            extractor.cache.cleanUp()
+            extractor.cache.size() == 0
         }
     }
 

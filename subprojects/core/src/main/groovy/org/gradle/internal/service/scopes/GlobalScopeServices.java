@@ -53,7 +53,7 @@ import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
@@ -184,10 +184,10 @@ public class GlobalScopeServices {
         return new ClassLoaderCacheFactory();
     }
 
-    ModelRuleInspector createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
+    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
-        return new ModelRuleInspector(Iterables.concat(coreExtractors, extractors));
+        return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
     }
 
     protected ModelSchemaStore createModelSchemaStore() {

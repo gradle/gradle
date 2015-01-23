@@ -40,19 +40,19 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
-public class ModelRuleInspector {
+public class ModelRuleExtractor {
 
     final LoadingCache<Class<?>, List<ModelRuleRegistration>> cache = CacheBuilder.newBuilder()
             .weakKeys()
             .build(new CacheLoader<Class<?>, List<ModelRuleRegistration>>() {
                 public List<ModelRuleRegistration> load(Class<?> source) throws Exception {
-                    return doInspect(source);
+                    return doExtract(source);
                 }
             });
 
     private final Iterable<MethodModelRuleExtractor> handlers;
 
-    public ModelRuleInspector(Iterable<MethodModelRuleExtractor> handlers) {
+    public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers) {
         this.handlers = handlers;
     }
 
@@ -94,7 +94,7 @@ public class ModelRuleInspector {
         return new InvalidModelRuleDeclarationException(sb.toString());
     }
 
-    public List<ModelRuleRegistration> inspect(Class<?> source) {
+    public Iterable<ModelRuleRegistration> extract(Class<?> source) {
         try {
             return cache.get(source);
         } catch (ExecutionException e) {
@@ -104,7 +104,7 @@ public class ModelRuleInspector {
         }
     }
 
-    private List<ModelRuleRegistration> doInspect(Class<?> source) {
+    private List<ModelRuleRegistration> doExtract(Class<?> source) {
         validate(source);
         final Method[] methods = source.getDeclaredMethods();
 

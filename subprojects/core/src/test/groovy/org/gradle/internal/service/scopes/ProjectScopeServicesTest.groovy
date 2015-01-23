@@ -48,7 +48,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.model.internal.inspect.ModelRuleInspector
+import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -94,7 +94,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
-        parent.get(ModelRuleInspector) >> Stub(ModelRuleInspector)
+        parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
         registry = new ProjectScopeServices(parent, project)
     }
 
