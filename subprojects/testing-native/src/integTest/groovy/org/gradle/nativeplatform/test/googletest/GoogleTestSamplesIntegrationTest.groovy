@@ -17,6 +17,7 @@
 
 package org.gradle.nativeplatform.test.googletest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
@@ -33,6 +34,10 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     def "googleTest"() {
         given:
+        // GoogleTest sample only works out of the box with VS2013 on windows
+        if (OperatingSystem.current().windows && !isVisualCpp2013()) {
+            return
+        }
         sample googleTest
 
         when:
@@ -65,5 +70,9 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         failingResults.suites['OperatorTests'].passingTests == ['test_minus']
         failingResults.suites['OperatorTests'].failingTests == ['test_plus']
         failingResults.checkTestCases(2, 1, 1)
+    }
+
+    private static boolean isVisualCpp2013() {
+        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "12")
     }
 }
