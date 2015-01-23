@@ -24,8 +24,6 @@ import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 
 import java.util.List;
 
@@ -48,8 +46,7 @@ class ClosureBackedModelAction implements ModelAction<Object> {
         return ModelReference.untyped(modelPath);
     }
 
-    public void execute(MutableModelNode modelNode, final Object object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                        PluginClassApplicator pluginClassApplicator) {
+    public void execute(MutableModelNode modelNode, final Object object, Inputs inputs) {
         RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
             public void run() {
                 new ClosureBackedAction<Object>(action).execute(object);

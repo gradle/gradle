@@ -24,7 +24,7 @@ public interface ModelAction<T> {
 
     ModelReference<T> getSubject();
 
-    void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator);
+    void execute(MutableModelNode modelNode, T object, Inputs inputs);
 
     List<ModelReference<?>> getInputs();
 

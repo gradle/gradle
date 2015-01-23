@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class TransformedModelDslBackingTest extends Specification {
 
-    def modelRegistry = new DefaultModelRegistry(null, null)
+    def modelRegistry = new DefaultModelRegistry(null)
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def blockOwner = new Object()

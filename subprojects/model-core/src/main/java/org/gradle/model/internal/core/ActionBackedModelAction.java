@@ -39,8 +39,7 @@ public class ActionBackedModelAction<T> implements ModelAction<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                        PluginClassApplicator pluginClassApplicator) {
+    public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
         configAction.execute(object);
     }
 

@@ -21,14 +21,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.*;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.inspect.DefaultModelRuleSourceApplicator;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleInspector;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -51,25 +50,17 @@ import static org.gradle.model.internal.core.ModelPath.nonNullValidatedPath;
 public class ModelRegistryHelper implements ModelRegistry {
 
     private final ModelRegistry modelRegistry;
-    private final PluginClassApplicator pluginClassApplicator;
-    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
 
     public ModelRegistryHelper() {
-        this(
-                new DefaultModelRegistry(null, null),
-                new DefaultModelRuleSourceApplicator(new ModelRuleSourceDetector(), new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance()))),
-                new NoOpPluginClassApplicator()
-        );
+        this(new DefaultModelRegistry(new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance()))));
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {
-        this(modelRegistryScope.getModelRegistry(), null, null);
+        this(modelRegistryScope.getModelRegistry());
     }
 
-    public ModelRegistryHelper(ModelRegistry modelRegistry, ModelRuleSourceApplicator modelRuleSourceApplicator, PluginClassApplicator pluginClassApplicator) {
+    public ModelRegistryHelper(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.pluginClassApplicator = pluginClassApplicator;
-        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
     }
 
     @Override
@@ -154,6 +145,11 @@ public class ModelRegistryHelper implements ModelRegistry {
         return this;
     }
 
+    @Override
+    public ModelRegistry apply(Class<? extends RuleSource> rules) {
+        return modelRegistry.apply(rules);
+    }
+
     public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
         return apply(role, action, ModelPath.ROOT);
     }
@@ -175,7 +171,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return create(path, new Transformer<ModelCreator, ModelCreatorBuilder>() {
             @Override
             public ModelCreator transform(ModelCreatorBuilder modelCreatorBuilder) {
-                return modelCreatorBuilder.collection(itemType, instantiator, modelRuleSourceApplicator, ModelRegistryHelper.this, pluginClassApplicator);
+                return modelCreatorBuilder.collection(itemType, instantiator);
             }
         });
     }
@@ -350,8 +346,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
 
                 @Override
-                public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                                    PluginClassApplicator pluginClassApplicator) {
+                public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
                     action.execute(modelNode, object, inputs);
                 }
 
@@ -465,8 +460,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelCreator collection(Class<I> itemType, final NamedEntityInstantiator<I> instantiator, final ModelRuleSourceApplicator modelRuleSourceApplicator,
-                                           final ModelRegistrar modelRegistrar, final PluginClassApplicator pluginClassApplicator) {
+        public <I> ModelCreator collection(Class<I> itemType, final NamedEntityInstantiator<I> instantiator) {
             final ModelType<I> itemModelType = ModelType.of(itemType);
             final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
 
@@ -475,7 +469,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 public void execute(MutableModelNode node, Inputs inputs) {
                     node.setPrivateData(
                             collectionBuilderType,
-                            new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator)
+                            new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node)
                     );
                 }
             })

@@ -23,8 +23,6 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -76,8 +74,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, BinaryContainer binaries, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
+        public void execute(MutableModelNode modelNode, BinaryContainer binaries, Inputs inputs) {
             ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
@@ -87,10 +84,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                         namedEntityInstantiator,
                         binaries,
                         getDescriptor(),
-                        modelNode,
-                        modelRuleSourceApplicator,
-                        modelRegistrar,
-                        pluginClassApplicator
+                        modelNode
                 );
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }

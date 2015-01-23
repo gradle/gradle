@@ -43,7 +43,7 @@ class ManagedSetModelProjectionTest extends Specification {
     def collectionType = new ModelType<ManagedSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
     def factory = new DefaultModelCreatorFactory(schemaStore)
-    def registry = new DefaultModelRegistry(null, null)
+    def registry = new DefaultModelRegistry(null)
 
     def setup() {
         registry.create(

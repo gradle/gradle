@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -62,6 +63,10 @@ public interface MutableModelNode extends ModelNode {
      * Applies an action to a linked node.
      */
     <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
+
+    void applyToLink(String name, Class<? extends RuleSource> rules);
+
+    void applyToSelf(Class<? extends RuleSource> rules);
 
     @Nullable
     MutableModelNode getLink(String name);

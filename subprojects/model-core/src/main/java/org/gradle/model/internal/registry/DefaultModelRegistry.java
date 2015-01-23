@@ -24,9 +24,11 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
@@ -62,12 +64,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newHashMap();
 
-    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
-    private final PluginClassApplicator pluginClassApplicator;
+    private final ModelRuleInspector ruleInspector;
 
-    public DefaultModelRegistry(ModelRuleSourceApplicator modelRuleSourceApplicator, PluginClassApplicator pluginClassApplicator) {
-        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
-        this.pluginClassApplicator = pluginClassApplicator;
+    public DefaultModelRegistry(ModelRuleInspector ruleInspector) {
+        this.ruleInspector = ruleInspector;
         EmptyModelProjection projection = new EmptyModelProjection();
         for (ModelActionRole role : ModelActionRole.values()) {
             mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
@@ -142,6 +142,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     @Override
     public <T> DefaultModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
         bind(action.getSubject(), role, action, scope);
+        return this;
+    }
+
+    @Override
+    public ModelRegistry apply(Class<? extends RuleSource> rules) {
+        modelGraph.getRoot().applyToSelf(rules);
         return this;
     }
 
@@ -477,7 +483,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -488,7 +494,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
@@ -522,7 +528,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
         try {
-            mutator.execute(node, view.getInstance(), inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+            mutator.execute(node, view.getInstance(), inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
@@ -555,7 +561,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
             }
@@ -564,7 +570,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
-            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
             }
@@ -621,6 +627,16 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyToLink(String name, Class<? extends RuleSource> rules) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyToSelf(Class<? extends RuleSource> rules) {
             throw new UnsupportedOperationException();
         }
 
@@ -775,6 +791,29 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
             }
             bind(action.getSubject(), type, action, ModelPath.ROOT);
+        }
+
+        @Override
+        public void applyToLink(String name, Class<? extends RuleSource> rules) {
+            apply(rules, getPath().child(name));
+        }
+
+        @Override
+        public void applyToSelf(Class<? extends RuleSource> rules) {
+            apply(rules, getPath());
+        }
+
+        public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
+            List<ModelRuleRegistration> registrations = ruleInspector.inspect(rules);
+            for (ModelRuleRegistration registration : registrations) {
+                // TODO - remove this when we remove the 'rule dependencies' mechanism
+                if (!registration.getRuleDependencies().isEmpty()) {
+                    throw new IllegalStateException("Rule source class " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");
+                }
+
+                // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
+                registration.applyTo(DefaultModelRegistry.this, scope);
+            }
         }
 
         @Override

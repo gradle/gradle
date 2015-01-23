@@ -48,8 +48,8 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -114,7 +114,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginManagerInternal createPluginManager() {
-        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleSourceApplicator.class));
+        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleInspector.class), get(ModelRuleSourceDetector.class));
         return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
@@ -140,7 +140,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ModelRegistry createModelRegistry() {
-        return new DefaultModelRegistry(get(ModelRuleSourceApplicator.class), get(PluginClassApplicator.class));
+        return new DefaultModelRegistry(get(ModelRuleInspector.class));
     }
 
     protected ScriptHandler createScriptHandler() {

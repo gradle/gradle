@@ -67,10 +67,9 @@ public class ChainingModelProjection implements ModelProjection {
     }
 
     @Nullable
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, ModelRuleSourceApplicator modelRuleSourceApplicator,
-                                                 ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor);
             if (view != null) {
                 return view;
             }
@@ -80,10 +79,9 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs,
-                                                 ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs);
             if (view != null) {
                 return view;
             }

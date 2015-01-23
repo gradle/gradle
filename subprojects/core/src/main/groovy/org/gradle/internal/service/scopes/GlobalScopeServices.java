@@ -51,8 +51,10 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.inspect.*;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
+import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 
@@ -195,10 +197,5 @@ public class GlobalScopeServices {
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
         return new ModelRuleSourceDetector();
     }
-
-    protected ModelRuleSourceApplicator createModelRuleSourceApplicator(ModelRuleSourceDetector modelRuleSourceDetector, ModelRuleInspector inspector) {
-        return new DefaultModelRuleSourceApplicator(modelRuleSourceDetector, inspector);
-    }
-
 
 }

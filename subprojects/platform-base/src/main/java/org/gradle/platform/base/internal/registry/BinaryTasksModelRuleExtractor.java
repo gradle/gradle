@@ -23,8 +23,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
@@ -76,8 +74,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, TaskContainer container, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
+        public void execute(MutableModelNode modelNode, TaskContainer container, Inputs inputs) {
             BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);
@@ -86,10 +83,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                         instantiator,
                         container,
                         getDescriptor(),
-                        modelNode,
-                        modelRuleSourceApplicator,
-                        modelRegistrar,
-                        pluginClassApplicator
+                        modelNode
                 );
 
                 invoke(inputs, collectionBuilder, binary, binaries);

@@ -37,7 +37,7 @@ import spock.util.concurrent.PollingConditions
 import java.beans.Introspector
 
 class ModelRuleInspectorTest extends Specification {
-    ModelRegistry registry = new DefaultModelRegistry(null, null)
+    ModelRegistry registry = new DefaultModelRegistry(null)
     def registryMock = Mock(ModelRegistry)
     def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
@@ -153,7 +153,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelType)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -171,7 +171,7 @@ class ModelRuleInspectorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null, null, registry, null).type
+        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -277,7 +277,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null, null, registry, null).instance.sort() == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules extends RuleSource {
@@ -312,7 +312,7 @@ class ModelRuleInspectorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null, null, registry, null).instance == ["1", "2"]
+        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {

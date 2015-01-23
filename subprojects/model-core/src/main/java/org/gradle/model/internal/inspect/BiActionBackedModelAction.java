@@ -17,7 +17,10 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
@@ -51,8 +54,7 @@ class BiActionBackedModelAction<T> implements ModelAction<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                        PluginClassApplicator pluginClassApplicator) {
+    public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
         initializer.execute(object, inputs);
     }
 }

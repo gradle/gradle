@@ -30,8 +30,6 @@ import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
@@ -107,8 +105,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             return descriptor;
         }
 
-        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
+        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, Inputs inputs) {
             ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);

@@ -18,19 +18,27 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
+import org.gradle.model.internal.core.ModelRuleRegistration;
+import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
+
+import java.util.List;
 
 public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
     private final T target;
     private final PluginApplicator imperativeApplicator;
-    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
+    private final ModelRuleInspector ruleInspector;
+    private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginApplicator(T target, ModelRuleSourceApplicator modelRuleSourceApplicator) {
+    public RuleBasedPluginApplicator(T target, ModelRuleInspector ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
-        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
+        this.ruleInspector = ruleInspector;
+        this.ruleDetector = ruleDetector;
         this.imperativeApplicator = new ImperativeOnlyPluginApplicator<T>(target);
     }
 
@@ -39,7 +47,18 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
     }
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        modelRuleSourceApplicator.apply(clazz, ModelPath.ROOT, target.getModelRegistry(), target.getPluginManager());
+        ModelRegistry modelRegistry = target.getModelRegistry();
+        Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
+        for (Class<? extends RuleSource> ruleSource : declaredSources) {
+            List<ModelRuleRegistration> rules = ruleInspector.inspect(ruleSource);
+            for (ModelRuleRegistration rule : rules) {
+                for (Class<?> dependency : rule.getRuleDependencies()) {
+                    target.getPluginManager().apply(dependency);
+                }
+
+                rule.applyTo(modelRegistry, ModelPath.ROOT);
+            }
+        }
     }
 
     public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {

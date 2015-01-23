@@ -47,7 +47,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
-    def registry = new DefaultModelRegistry(null, null)
+    def registry = new DefaultModelRegistry(null)
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {

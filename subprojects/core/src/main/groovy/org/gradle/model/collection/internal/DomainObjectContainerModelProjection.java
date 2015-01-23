@@ -41,20 +41,18 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
 
     protected abstract C getContainer(MutableModelNode node);
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs,
-                                                 ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
         Class<? extends M> itemType = itemType(targetType);
         if (itemType != null) {
-            return toView(ruleDescriptor, node, itemType, getContainer(node), modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+            return toView(ruleDescriptor, node, itemType, getContainer(node));
         }
         return null;
     }
 
-    protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container,
-                                                             ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container.getEntityInstantiator(), container, sourceDescriptor, node, modelRuleSourceApplicator, modelRegistrar,
-                pluginClassApplicator);
+        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container.getEntityInstantiator(), container, sourceDescriptor, node
+        );
 
         CollectionBuilder<S> subBuilder = builder.withType(itemClass);
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
@@ -106,9 +104,8 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
         return canBeViewedAsWritable(type);
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor, ModelRuleSourceApplicator modelRuleSourceApplicator,
-                                                 ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
-        return asWritable(type, modelNode, ruleDescriptor, null, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        return asWritable(type, modelNode, ruleDescriptor, null);
     }
 
     public Iterable<String> getReadableTypeDescriptions() {
