@@ -479,10 +479,4 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
     }
 
-
-    private static class NoOpPluginClassApplicator implements PluginClassApplicator {
-        @Override
-        public void apply(Class<?> type) {
-        }
-    }
 }

@@ -21,10 +21,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.plugin.internal.PluginId;
 
-public interface PluginManagerInternal extends PluginManager, PluginClassApplicator {
+public interface PluginManagerInternal extends PluginManager {
 
     <P extends Plugin> P addImperativePlugin(String id, Class<P> plugin);
 

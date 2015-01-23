@@ -76,7 +76,7 @@ class ModelRuleExtractorTest extends Specification {
         element.name == "foo"
     }
 
-    static class ParameterizedModel extends RuleSource{
+    static class ParameterizedModel extends RuleSource {
         @Model
         List<String> strings() {
             Arrays.asList("foo")
