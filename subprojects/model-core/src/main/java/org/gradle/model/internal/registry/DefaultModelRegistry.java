@@ -455,6 +455,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             return nodeState.ordinal() < desired.ordinal();
         }
 
+        node.setState(to);
+
         //MultiMap.get() returns a live collection and force binding rules might change it
         while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
             forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
@@ -470,8 +472,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             });
             usedActions.put(path, inputPaths);
         }
-
-        node.setState(to);
 
         if (to == desired) {
             LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, originalState.name(), desired.name());

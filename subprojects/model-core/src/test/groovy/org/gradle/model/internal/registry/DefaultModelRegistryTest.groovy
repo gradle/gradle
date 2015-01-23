@@ -380,13 +380,13 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "cannot add action for #targetState mutation when in #fromState mutation"() {
+    def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
         def action = Stub(Action)
 
         given:
         registry.createInstance("thing", "value")
-                .apply(fromState) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.apply(targetState) { it.path("thing").type(String).descriptor("X").action {} } }
+                .apply(fromRole) { it.path("thing").node(action) }
+        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
 
         when:
         registry.realize(ModelPath.path("thing"), ModelType.untyped())
@@ -394,20 +394,131 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause instanceof IllegalStateException
-        e.cause.message.startsWith "Cannot add $targetState rule 'X' for model element 'thing'"
+        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
 
         where:
-        fromState                  | targetState
+        fromRole                   | targetRole
+        ModelActionRole.Defaults   | ModelActionRole.Defaults
+        ModelActionRole.Initialize | ModelActionRole.Initialize
         ModelActionRole.Initialize | ModelActionRole.Defaults
+        ModelActionRole.Mutate     | ModelActionRole.Mutate
         ModelActionRole.Mutate     | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Initialize
+        ModelActionRole.Finalize   | ModelActionRole.Finalize
         ModelActionRole.Finalize   | ModelActionRole.Defaults
         ModelActionRole.Finalize   | ModelActionRole.Initialize
         ModelActionRole.Finalize   | ModelActionRole.Mutate
+        ModelActionRole.Validate   | ModelActionRole.Validate
         ModelActionRole.Validate   | ModelActionRole.Defaults
         ModelActionRole.Validate   | ModelActionRole.Initialize
         ModelActionRole.Validate   | ModelActionRole.Mutate
         ModelActionRole.Validate   | ModelActionRole.Finalize
+    }
+
+    @Unroll
+    def "cannot add action for #targetRole mutation when in #fromState state"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", "value")
+                .createInstance("another", "value")
+                .apply(ModelActionRole.Mutate) {
+            it.path("another").node(action)
+        }
+        action.execute(_) >> {
+            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+        }
+
+        when:
+        registry.atState(ModelPath.path("thing"), fromState)
+        registry.realize(ModelPath.path("another"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+
+        where:
+        fromState                       | targetRole
+        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
+        ModelNode.State.Initialized     | ModelActionRole.Initialize
+        ModelNode.State.Initialized     | ModelActionRole.Defaults
+        ModelNode.State.Mutated         | ModelActionRole.Mutate
+        ModelNode.State.Mutated         | ModelActionRole.Defaults
+        ModelNode.State.Mutated         | ModelActionRole.Initialize
+        ModelNode.State.Finalized       | ModelActionRole.Finalize
+        ModelNode.State.Finalized       | ModelActionRole.Defaults
+        ModelNode.State.Finalized       | ModelActionRole.Initialize
+        ModelNode.State.Finalized       | ModelActionRole.Mutate
+        ModelNode.State.SelfClosed      | ModelActionRole.Validate
+        ModelNode.State.SelfClosed      | ModelActionRole.Defaults
+        ModelNode.State.SelfClosed      | ModelActionRole.Initialize
+        ModelNode.State.SelfClosed      | ModelActionRole.Mutate
+        ModelNode.State.SelfClosed      | ModelActionRole.Finalize
+    }
+
+    @Unroll
+    def "can add action for #targetRole mutation when in #fromRole mutation"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", "value")
+                .apply(fromRole) { it.path("thing").node(action) }
+        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
+
+        when:
+        registry.realize(ModelPath.path("thing"), ModelType.untyped())
+
+        then:
+        noExceptionThrown()
+
+        where:
+        fromRole                   | targetRole
+        ModelActionRole.Defaults   | ModelActionRole.Initialize
+        ModelActionRole.Defaults   | ModelActionRole.Mutate
+        ModelActionRole.Defaults   | ModelActionRole.Finalize
+        ModelActionRole.Defaults   | ModelActionRole.Validate
+        ModelActionRole.Initialize | ModelActionRole.Mutate
+        ModelActionRole.Initialize | ModelActionRole.Finalize
+        ModelActionRole.Initialize | ModelActionRole.Validate
+        ModelActionRole.Mutate     | ModelActionRole.Finalize
+        ModelActionRole.Mutate     | ModelActionRole.Validate
+        ModelActionRole.Finalize   | ModelActionRole.Validate
+    }
+
+    @Unroll
+    def "can add action for #targetRole mutation when in #fromState state"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", "value")
+                .createInstance("another", "value")
+                .apply(ModelActionRole.Mutate) {
+            it.path("another").node(action)
+        }
+        action.execute(_) >> {
+            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+        }
+
+        when:
+        registry.atState(ModelPath.path("thing"), fromState)
+        registry.realize(ModelPath.path("another"), ModelType.untyped())
+
+        then:
+        noExceptionThrown()
+
+        where:
+        fromState                       | targetRole
+        ModelNode.State.DefaultsApplied | ModelActionRole.Initialize
+        ModelNode.State.DefaultsApplied | ModelActionRole.Mutate
+        ModelNode.State.DefaultsApplied | ModelActionRole.Finalize
+        ModelNode.State.DefaultsApplied | ModelActionRole.Validate
+        ModelNode.State.Initialized     | ModelActionRole.Mutate
+        ModelNode.State.Initialized     | ModelActionRole.Finalize
+        ModelNode.State.Initialized     | ModelActionRole.Validate
+        ModelNode.State.Mutated         | ModelActionRole.Finalize
+        ModelNode.State.Mutated         | ModelActionRole.Validate
+        ModelNode.State.Finalized       | ModelActionRole.Validate
     }
 
     @Unroll
