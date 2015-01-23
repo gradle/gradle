@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -25,9 +27,10 @@ class GCEventParserTest extends Specification {
 
     def "parses event"() {
         when:
-        def e = parser.parseLine "17.743: [Full GC (System) [PSYoungGen: 2048K->0K(114688K)] [PSOldGen: 24097K->26017K(262080K)] 26145K->26017K(376768K) [PSPermGen: 41509K->41509K(77696K)], 0.1944213 secs] [Times: user=0.20 sys=0.00, real=0.19 secs] "
+        def e = parser.parseLine "2015-01-22T16:04:50.319+0000: [Full GC (System) [PSYoungGen: 2048K->0K(114688K)] [PSOldGen: 24097K->26017K(262080K)] 26145K->26017K(376768K) [PSPermGen: 41509K->41509K(77696K)], 0.1944213 secs] [Times: user=0.20 sys=0.00, real=0.19 secs] "
 
         then:
+        e.timestamp == new DateTime(2015, 1, 22, 16, 4, 50, 319, DateTimeZone.UTC)
         e.start == 26145
         e.committed == 376768
         e.end == 26017

@@ -19,18 +19,21 @@ package org.gradle.performance.fixture;
 import groovy.lang.Closure;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.joda.time.DateTime;
 
 public class OperationTimer {
     public MeasuredOperation measure(Closure operation) {
         MeasuredOperation result = new MeasuredOperation();
-        long start = System.currentTimeMillis();
+        DateTime start = DateTime.now();
         try {
             operation.call(result);
         } catch (Exception e) {
             result.setException(e);
         }
-        long end = System.currentTimeMillis();
-        result.setExecutionTime(Duration.millis(end - start));
+        DateTime end = DateTime.now();
+        result.setStart(start);
+        result.setEnd(end);
+        result.setExecutionTime(Duration.millis(end.getMillis() - start.getMillis()));
         return result;
     }
 }

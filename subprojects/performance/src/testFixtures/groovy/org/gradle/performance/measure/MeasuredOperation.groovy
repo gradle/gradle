@@ -16,7 +16,11 @@
 
 package org.gradle.performance.measure
 
+import org.joda.time.DateTime
+
 public class MeasuredOperation {
+    DateTime start
+    DateTime end
     Amount<Duration> executionTime
     Exception exception
     /** The non-collectable heap usage at the end of the build. This was the original metric used */

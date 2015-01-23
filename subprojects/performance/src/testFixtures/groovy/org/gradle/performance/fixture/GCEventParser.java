@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture;
 
+import org.joda.time.DateTime;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,7 +27,7 @@ class GCEventParser {
     private final Pattern ignorePattern;
 
     GCEventParser(char decimalSeparator) {
-        pattern = Pattern.compile(String.format("\\d+\\%s\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
+        pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
         ignorePattern = Pattern.compile(String.format("\\s*\\[Times: .+\\]\\s*"));
     }
 
@@ -40,23 +42,26 @@ class GCEventParser {
             }
         }
 
-        long start = Long.parseLong(matcher.group(2));
-        long end = Long.parseLong(matcher.group(3));
-        long committed = Long.parseLong(matcher.group(4));
+        DateTime timestamp = DateTime.parse(matcher.group(1));
+        long start = Long.parseLong(matcher.group(3));
+        long end = Long.parseLong(matcher.group(4));
+        long committed = Long.parseLong(matcher.group(5));
 
-        return new GCEvent(start, end, committed);
+        return new GCEvent(start, end, committed, timestamp);
     }
 
     static class GCEvent {
         final long start;
         final long end;
         final long committed;
-        final static GCEvent IGNORED = new GCEvent(-1, -1, -1);
+        final DateTime timestamp;
+        final static GCEvent IGNORED = new GCEvent(-1, -1, -1, null);
 
-        GCEvent(long start, long end, long committed) {
+        GCEvent(long start, long end, long committed, DateTime timestamp) {
             this.start = start;
             this.end = end;
             this.committed = committed;
+            this.timestamp = timestamp;
         }
     }
 }

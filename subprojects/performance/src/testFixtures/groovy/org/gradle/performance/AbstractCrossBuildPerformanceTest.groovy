@@ -29,8 +29,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     final def runner = new CrossBuildPerformanceTestRunner(
             testDirectoryProvider: tmpDir,
             runs: 5,
-            warmUpRuns: 1,
-            subRuns: 1
+            warmUpRuns: 1
     )
 
     def setup() {

@@ -30,8 +30,6 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
                 BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
-        runner.runs = 2
-        runner.subRuns = 5
 
         when:
         def result = runner.run()
@@ -56,8 +54,6 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(":project1:clean", ":project1:assemble").gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
                 BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
-        runner.runs = 2
-        runner.subRuns = 5
 
         when:
         def result = runner.run()
