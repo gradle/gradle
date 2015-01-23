@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.*
+import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
@@ -157,6 +158,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    @Ignore
     def "lifecycle task creates visual studio solution for buildable static and shared libraries"() {
         when:
         app.library.writeSources(file("src/main"))
@@ -183,6 +185,7 @@ model {
         file("staticOnlyDll.sln").assertDoesNotExist()
     }
 
+    @Ignore
     def "create visual studio solution for defined static library"() {
         when:
         app.library.writeSources(file("src/main"))
