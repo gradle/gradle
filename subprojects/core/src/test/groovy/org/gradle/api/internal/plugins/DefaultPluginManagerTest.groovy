@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
+import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile
@@ -105,14 +107,47 @@ class DefaultPluginManagerTest extends Specification {
 
         and:
         manager.hasPlugin("foo")
-        def called = false
-        manager.withPlugin("foo") {
-            assert it.id == "foo"
-            assert it.namespace == null
-            assert it.name == "foo"
-            called = true
+    }
+
+    def "action is notified when rules plugin with id is applied by class"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", rulesClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply(rulesClass)
+
+        then:
+        1 * action.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "foo"
+            assert p.namespace == null
+            assert p.name == "foo"
         }
-        called
+        0 * action._
+    }
+
+    def "rules plugin is applied at most once"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", rulesClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply(rulesClass)
+        manager.apply("foo")
+        manager.apply(rulesClass)
+
+        then:
+        1 * applicator.applyRules(null, rulesClass)
+        1 * action.execute(_)
+        0 * applicator._
+        0 * action._
+
+        and:
+        manager.hasPlugin("foo")
     }
 
     def "can apply rules plugin by id"() {
@@ -128,14 +163,25 @@ class DefaultPluginManagerTest extends Specification {
         and:
         manager.pluginContainer.isEmpty()
         manager.hasPlugin("foo")
-        def called = false
-        manager.withPlugin("foo") {
-            assert it.id == "foo"
-            assert it.namespace == null
-            assert it.name == "foo"
-            called = true
+    }
+
+    def "action is notified when rules plugin with id is applied by id"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", rulesClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply("foo")
+
+        then:
+        1 * action.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "foo"
+            assert p.namespace == null
+            assert p.name == "foo"
         }
-        called
+        0 * action._
     }
 
     def "rules plugin with id does not appear in plugin container"() {
@@ -210,6 +256,29 @@ class DefaultPluginManagerTest extends Specification {
         called
     }
 
+    def "hybrid plugin is applied at most once"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", hybridClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply(hybridClass)
+        manager.apply("foo")
+        manager.apply(hybridClass)
+
+        then:
+        1 * applicator.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        0 * applicator._
+        1 * action.execute(_)
+        0 * action._
+
+        and:
+        manager.pluginContainer.size() == 1
+        manager.hasPlugin("foo")
+    }
+
     def "hybrid plugin with id appears in plugins container"() {
         given:
         addPluginId("foo", hybridClass)
@@ -282,6 +351,25 @@ class DefaultPluginManagerTest extends Specification {
         called
     }
 
+    def "imperative plugin is applied at most once"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", imperativeClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply(imperativeClass)
+        manager.apply("foo")
+        manager.apply(imperativeClass)
+
+        then:
+        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
+        0 * applicator._
+        1 * action.execute(_)
+        0 * action._
+    }
+
     def "imperative plugin with id appears in plugins container"() {
         given:
         addPluginId("foo", imperativeClass)
@@ -295,6 +383,27 @@ class DefaultPluginManagerTest extends Specification {
         manager.pluginContainer.findPlugin(imperativeClass) != null
         manager.pluginContainer.hasPlugin(imperativeClass)
         manager.pluginContainer.hasPlugin("foo")
+    }
+
+    def "action is notified when imperative plugin with id is applied"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", imperativeClass)
+        manager.withPlugin("foo", action)
+        manager.pluginContainer.withId("foo", action)
+
+        when:
+        manager.apply(imperativeClass)
+
+        then:
+        1 * action.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "foo"
+        }
+        1 * action.execute(_) >> { Plugin p ->
+            assert p.class == imperativeClass
+        }
+        0 * action._
     }
 
     def "with plugin fires for each plugin known by that id"() {
