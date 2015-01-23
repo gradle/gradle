@@ -294,6 +294,23 @@ We should not perform validation on a project that is not required for a build.
 - ~~Model rule with dependency on non task related collection element that does exist, passes validation~~
 - ~~Model rule that does not bind, specified for project that is not used in build, does not fail the build~~
 
+## Methods of rule source classes must be private, or be declared as rules
+
+This story improves the usability of rule source classes by making it less easy to forget to annotate a rule method.
+
+1. All public and package scope methods of a `RuleSource` must be rules, and be annotated accordingly
+2. `private` and `protected` methods cannot be rule methods
+3. `RuleSource` class must have at least one rule
+
+In both cases, exceptions should be thrown similarly to other `RuleSource` constraint violations.
+
+### Test Coverage
+
+1. with no methods is invalid
+1. with no rule methods (i.e. has private/protected) is invalid
+1. private/protected instance/static method with rule annotation fails
+1. public/package instance/static method without rule annotation fails
+
 ## Model is partially reused across daemon builds, ignoring potential configuration changes
 
 This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
