@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.Plugin
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestFile
@@ -31,8 +32,8 @@ class DefaultPluginManagerTest extends Specification {
     def manager = new DefaultPluginManager(registry, new DirectInstantiator(), applicator)
 
     Class<?> rulesClass
-    Class<?> hybridClass
-    Class<?> imperativeClass
+    Class<? extends Plugin> hybridClass
+    Class<? extends Plugin> imperativeClass
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -81,7 +82,6 @@ class DefaultPluginManagerTest extends Specification {
         !manager.hasPlugin("foo")
     }
 
-
     def "can apply rules plugin with no id"() {
         when:
         manager.apply(rulesClass)
@@ -104,7 +104,6 @@ class DefaultPluginManagerTest extends Specification {
         1 * applicator.applyRules(null, rulesClass)
 
         and:
-        manager.pluginContainer.isEmpty()
         manager.hasPlugin("foo")
         def called = false
         manager.withPlugin("foo") {
@@ -137,6 +136,21 @@ class DefaultPluginManagerTest extends Specification {
             called = true
         }
         called
+    }
+
+    def "rules plugin with id does not appear in plugin container"() {
+        given:
+        addPluginId("foo", rulesClass)
+
+        when:
+        manager.apply("foo")
+
+        then:
+        manager.pluginContainer.isEmpty()
+        manager.pluginContainer.findPlugin(rulesClass) == null
+        manager.pluginContainer.findPlugin("foo") == null
+        !manager.pluginContainer.hasPlugin(rulesClass)
+        !manager.pluginContainer.hasPlugin("foo")
     }
 
     def "can apply hybrid plugin with no id"() {
@@ -196,6 +210,21 @@ class DefaultPluginManagerTest extends Specification {
         called
     }
 
+    def "hybrid plugin with id appears in plugins container"() {
+        given:
+        addPluginId("foo", hybridClass)
+
+        when:
+        manager.apply("foo")
+
+        then:
+        manager.pluginContainer.size() == 1
+        manager.pluginContainer.findPlugin(hybridClass) != null
+        manager.pluginContainer.findPlugin("foo") != null
+        manager.pluginContainer.hasPlugin(hybridClass)
+        manager.pluginContainer.hasPlugin("foo")
+    }
+
     def "can apply imperative plugin with no id"() {
         when:
         manager.apply(imperativeClass)
@@ -251,6 +280,21 @@ class DefaultPluginManagerTest extends Specification {
             called = true
         }
         called
+    }
+
+    def "imperative plugin with id appears in plugins container"() {
+        given:
+        addPluginId("foo", imperativeClass)
+
+        when:
+        manager.apply("foo")
+
+        then:
+        manager.pluginContainer.size() == 1
+        manager.pluginContainer.findPlugin("foo") != null
+        manager.pluginContainer.findPlugin(imperativeClass) != null
+        manager.pluginContainer.hasPlugin(imperativeClass)
+        manager.pluginContainer.hasPlugin("foo")
     }
 
     def "with plugin fires for each plugin known by that id"() {

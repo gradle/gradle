@@ -114,15 +114,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     @Nullable
-    private <T> T doApply(PluginImplementation<T> potentialPlugin) {
-        PluginId pluginId = potentialPlugin.getPluginId();
+    private <T> T doApply(PluginImplementation<T> plugin) {
+        PluginId pluginId = plugin.getPluginId();
         String pluginIdStr = pluginId == null ? null : pluginId.toString();
-        Class<? extends T> pluginClass = potentialPlugin.asClass();
+        Class<? extends T> pluginClass = plugin.asClass();
         try {
-            if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+            if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                boolean imperative = potentialPlugin.isImperative();
+                boolean imperative = plugin.isImperative();
                 if (addPluginInternal(pluginClass)) {
                     if (imperative) {
                         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
@@ -135,7 +135,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                         Plugin<?> cast = Cast.uncheckedCast(instance);
                         instances.add(cast);
 
-                        if (potentialPlugin.isHasRules()) {
+                        if (plugin.isHasRules()) {
                             applicator.applyImperativeRulesHybrid(pluginIdStr, cast);
                         } else {
                             applicator.applyImperative(pluginIdStr, cast);
@@ -162,7 +162,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } catch (PluginApplicationException e) {
             throw e;
         } catch (Exception e) {
-            throw new PluginApplicationException(pluginId == null ? "class '" + pluginClass.getName() + "'" : "id '" + pluginId + "'", e);
+            throw new PluginApplicationException(plugin.getDisplayName(), e);
         }
 
         return null;
@@ -194,8 +194,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     private boolean hasId(Class<?> plugin, String id) {
-        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(PluginId.unvalidated(id), plugin.getClassLoader());
-        return pluginImplementation != null && pluginImplementation.getPluginId().toString().equals(id) && pluginImplementation.asClass().equals(plugin);
+        PluginId pluginId = PluginId.unvalidated(id);
+        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(pluginId, plugin.getClassLoader());
+        return pluginImplementation != null && pluginId.equals(pluginImplementation.getPluginId()) && pluginImplementation.asClass().equals(plugin);
     }
 
     public AppliedPlugin findPlugin(final String id) {

@@ -70,11 +70,11 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
 
     private Plugin doFindPlugin(String id) {
         for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
-            Plugin plugin = Iterables.find(DefaultPluginContainer.this, new Predicate<Plugin>() {
+            Plugin plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
                 }
-            });
+            }).orNull();
 
             if (plugin != null) {
                 return plugin;
