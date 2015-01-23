@@ -31,7 +31,6 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.internal.PluginId;
 
 import java.util.Map;
-import java.util.Set;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -43,9 +42,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final Set<Class<?>> plugins = Sets.newHashSet();
-    private final Set<Plugin<?>> instances = Sets.newHashSet();
-    private final Map<String, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
+    private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
+    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.instantiator = instantiator;
@@ -71,25 +70,18 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return doApply(pluginRegistry.inspect(type));
     }
 
-    @Nullable
-    public static String maybeQualify(String id) {
-        if (id.startsWith(CORE_PLUGIN_PREFIX)) {
-            return null;
-        } else {
-            return CORE_PLUGIN_PREFIX + id;
+    private boolean addPluginInternal(PluginImplementation<?> plugin) {
+        Class<?> pluginClass = plugin.asClass();
+        if (plugins.containsKey(pluginClass)) {
+            return false;
         }
-    }
-
-    private boolean addPluginInternal(Class<?> pluginClass) {
-        boolean added = plugins.add(pluginClass);
-        if (added) {
-            for (String id : idMappings.keySet()) {
-                if (hasId(pluginClass, id)) {
-                    idMappings.get(id).add(new PluginWithId(id, pluginClass));
-                }
+        plugins.put(pluginClass, plugin);
+        for (PluginId id : idMappings.keySet()) {
+            if (plugin.isAlsoKnownAs(id)) {
+                idMappings.get(id).add(new PluginWithId(id, pluginClass));
             }
         }
-        return added;
+        return true;
     }
 
     public PluginContainer getPluginContainer() {
@@ -123,7 +115,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
                 boolean imperative = plugin.isImperative();
-                if (addPluginInternal(pluginClass)) {
+                if (addPluginInternal(plugin)) {
                     if (imperative) {
                         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
                         // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
@@ -133,7 +125,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                         }
 
                         Plugin<?> cast = Cast.uncheckedCast(instance);
-                        instances.add(cast);
+                        instances.put(pluginClass, cast);
 
                         if (plugin.isHasRules()) {
                             applicator.applyImperativeRulesHybrid(pluginIdStr, cast);
@@ -150,7 +142,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
                     }
                 } else {
                     if (imperative) {
-                        T instance = findInstance(pluginClass, instances);
+                        T instance = pluginClass.cast(instances.get(pluginClass));
                         if (instance == null) {
                             throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
                         } else {
@@ -179,13 +171,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
-        DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(id);
+        PluginId pluginId = PluginId.unvalidated(id);
+        DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
             pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());
-            idMappings.put(id, pluginsForId);
-            for (Class<?> plugin : plugins) {
-                if (hasId(plugin, id)) {
-                    pluginsForId.add(new PluginWithId(id, plugin));
+            idMappings.put(pluginId, pluginsForId);
+            for (PluginImplementation<?> plugin : plugins.values()) {
+                if (plugin.isAlsoKnownAs(pluginId)) {
+                    pluginsForId.add(new PluginWithId(pluginId, plugin.asClass()));
                 }
             }
         }
@@ -193,26 +186,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginsForId;
     }
 
-    private boolean hasId(Class<?> plugin, String id) {
-        PluginId pluginId = PluginId.unvalidated(id);
-        PluginImplementation<?> pluginImplementation = pluginRegistry.lookup(pluginId, plugin.getClassLoader());
-        return pluginImplementation != null && pluginId.equals(pluginImplementation.getPluginId()) && pluginImplementation.asClass().equals(plugin);
-    }
-
     public AppliedPlugin findPlugin(final String id) {
-        String qualified = maybeQualify(id);
-        if (qualified != null) {
-            DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(qualified);
-            if (!pluginWithIds.isEmpty()) {
-                return pluginWithIds.iterator().next().asAppliedPlugin();
-            }
-        }
-
         DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
         if (!pluginWithIds.isEmpty()) {
             return pluginWithIds.iterator().next().asAppliedPlugin();
         }
-
         return null;
     }
 
@@ -226,12 +204,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 action.execute(pluginWithId.asAppliedPlugin());
             }
         };
-
-        String qualified = maybeQualify(id);
-        if (qualified != null) {
-            pluginsForId(qualified).all(wrappedAction);
-        }
-
         pluginsForId(id).all(wrappedAction);
     }
 

@@ -31,12 +31,6 @@ public interface PluginRegistry {
     @Nullable
     PluginImplementation<?> lookup(PluginId pluginId);
 
-    /**
-     * Locates the plugin with the given id. Note that the id of the result may be different to the requested id.
-     */
-    @Nullable
-    PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader);
-
     PluginRegistry createChild(ClassLoaderScope lookupScope);
 
 }

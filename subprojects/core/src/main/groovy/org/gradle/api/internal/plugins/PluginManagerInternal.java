@@ -35,16 +35,16 @@ public interface PluginManagerInternal extends PluginManager {
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 
     class PluginWithId {
-        final String id;
+        final PluginId id;
         final Class<?> clazz;
 
-        public PluginWithId(String id, Class<?> clazz) {
+        public PluginWithId(PluginId id, Class<?> clazz) {
             this.id = id;
             this.clazz = clazz;
         }
 
         AppliedPlugin asAppliedPlugin() {
-            return new DefaultAppliedPlugin(PluginId.unvalidated(id));
+            return new DefaultAppliedPlugin(id);
         }
 
         @Override

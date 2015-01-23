@@ -85,20 +85,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin findPlugin(String id) {
-        String qualified = DefaultPluginManager.maybeQualify(id);
-        if (qualified != null) {
-            Plugin plugin = doFindPlugin(qualified);
-            if (plugin != null) {
-                return plugin;
-            }
-        }
-
-        Plugin plugin = doFindPlugin(id);
-        if (plugin != null) {
-            return plugin;
-        }
-
-        return null;
+        return doFindPlugin(id);
     }
 
     public <P extends Plugin> P findPlugin(Class<P> type) {
@@ -144,11 +131,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
                 }).all(action);
             }
         };
-
-        String qualified = DefaultPluginManager.maybeQualify(pluginId);
-        if (qualified != null) {
-            pluginManager.pluginsForId(qualified).all(wrappedAction);
-        }
 
         pluginManager.pluginsForId(pluginId).all(wrappedAction);
     }

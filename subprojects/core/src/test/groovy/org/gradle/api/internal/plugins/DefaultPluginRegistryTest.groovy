@@ -188,8 +188,7 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.inspect(TestPlugin1.class)
-        plugin.pluginId == null
+        def plugin = pluginRegistry.lookup(PluginId.of("plugin-1"), classLoader)
         plugin.isAlsoKnownAs(PluginId.of("plugin-1"))
         plugin.isAlsoKnownAs(PluginId.of("plugin-2"))
     }
@@ -202,8 +201,7 @@ class DefaultPluginRegistryTest extends Specification {
         classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
         expect:
-        def plugin = pluginRegistry.inspect(TestPlugin1.class)
-        plugin.pluginId == null
+        def plugin = pluginRegistry.lookup(PluginId.of("org.gradle.somePlugin"), classLoader)
         plugin.isAlsoKnownAs(PluginId.of("somePlugin"))
         plugin.isAlsoKnownAs(PluginId.of("org.gradle.somePlugin"))
     }

@@ -406,6 +406,118 @@ class DefaultPluginManagerTest extends Specification {
         0 * action._
     }
 
+    def "plugin with multiple ids visible with all ids"() {
+        given:
+        addPluginId("foo", imperativeClass)
+        addPluginId("bar", imperativeClass)
+
+        when:
+        manager.apply(imperativeClass)
+
+        then:
+        manager.hasPlugin("foo")
+        manager.hasPlugin("bar")
+        manager.pluginContainer.size() == 1
+        manager.pluginContainer.hasPlugin("foo")
+        manager.pluginContainer.hasPlugin("bar")
+        manager.pluginContainer.hasPlugin(imperativeClass)
+    }
+
+    def "plugin with org.gradle id is visible with unqualified id"() {
+        given:
+        addPluginId("org.gradle.foo", imperativeClass)
+
+        when:
+        manager.apply(imperativeClass)
+
+        then:
+        manager.hasPlugin("foo")
+        manager.hasPlugin("org.gradle.foo")
+
+        manager.findPlugin("foo") != null
+        manager.findPlugin("org.gradle.foo") != null
+
+        manager.pluginContainer.size() == 1
+        manager.pluginContainer.hasPlugin("foo")
+        manager.pluginContainer.hasPlugin("org.gradle.foo")
+        manager.pluginContainer.findPlugin("foo") != null
+        manager.pluginContainer.hasPlugin("org.gradle.foo") != null
+    }
+
+    def "action is notified for plugin with multiple ids"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+
+        given:
+        addPluginId("foo", imperativeClass)
+        addPluginId("bar", imperativeClass)
+
+        when:
+        manager.withPlugin("foo", action1)
+        manager.withPlugin("bar", action2)
+        manager.apply(imperativeClass)
+        manager.withPlugin("foo", action1)
+        manager.withPlugin("bar", action2)
+
+        then:
+        2 * action1.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "foo"
+        }
+        2 * action2.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "bar"
+        }
+        0 * action1._
+        0 * action2._
+    }
+
+    def "action is notified for plugin with org.gradle id"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+
+        given:
+        addPluginId("org.gradle.foo", imperativeClass)
+
+        when:
+        manager.withPlugin("foo", action1)
+        manager.withPlugin("org.gradle.foo", action2)
+        manager.apply(imperativeClass)
+        manager.withPlugin("foo", action1)
+        manager.withPlugin("org.gradle.foo", action2)
+
+        then:
+        2 * action1.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "foo"
+        }
+        2 * action2.execute(_) >> { AppliedPlugin p ->
+            assert p.id == "org.gradle.foo"
+        }
+        0 * action1._
+        0 * action2._
+    }
+
+    def "plugin with multiple ids is applied at most once"() {
+        def action = Mock(Action)
+
+        given:
+        addPluginId("foo", imperativeClass)
+        addPluginId("bar", imperativeClass)
+        manager.withPlugin("foo", action)
+
+        when:
+        manager.apply("bar")
+        manager.apply("foo")
+        manager.apply(imperativeClass)
+
+        then:
+        1 * applicator.applyImperative("bar", { imperativeClass.isInstance(it) })
+        0 * applicator._
+        1 * action.execute(_)
+        0 * action._
+
+        and:
+        manager.pluginContainer.size() == 1
+    }
+
     def "with plugin fires for each plugin known by that id"() {
         given:
         def applied = []

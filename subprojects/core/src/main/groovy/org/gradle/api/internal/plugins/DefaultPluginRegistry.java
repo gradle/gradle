@@ -79,7 +79,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
                 }
 
                 PotentialPlugin<?> potentialPlugin = pluginInspector.inspect(implClass);
-                PluginImplementation<Object> withId = new RegistryAwarePluginImplementation(pluginId, potentialPlugin);
+                PluginImplementation<Object> withId = new RegistryAwarePluginImplementation(classLoader, pluginId, potentialPlugin);
                 return Cast.uncheckedCast(Optional.of(withId));
             }
         });
@@ -110,16 +110,11 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
-        return lookupSelf(pluginId);
-    }
-
-    private PluginImplementation<?> lookupSelf(PluginId pluginId) {
         return lookup(pluginId, classLoaderFactory.create());
     }
 
     @Nullable
-    @Override
-    public PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
+    private PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
         // Don't want to risk classes crossing “scope” boundaries and being non collectible.
 
@@ -194,15 +189,17 @@ public class DefaultPluginRegistry implements PluginRegistry {
 
         @Override
         public PluginImplementation<?> load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
-            return new RegistryAwarePluginImplementation(null, pluginInspector.inspect(key));
+            return new RegistryAwarePluginImplementation(key.getClassLoader(), null, pluginInspector.inspect(key));
         }
     }
 
     private class RegistryAwarePluginImplementation extends DefaultPotentialPluginWithId<Object> {
+        private final ClassLoader classLoader;
         private final PluginId pluginId;
 
-        public RegistryAwarePluginImplementation(PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
+        public RegistryAwarePluginImplementation(ClassLoader classLoader, PluginId pluginId, PotentialPlugin<?> potentialPlugin) {
             super(pluginId, potentialPlugin);
+            this.classLoader = classLoader;
             this.pluginId = pluginId;
         }
 
@@ -211,7 +208,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
             if (id.equals(pluginId)) {
                 return true;
             }
-            PluginImplementation<?> other = lookupSelf(id);
+            PluginImplementation<?> other = lookup(id, classLoader);
             return other != null && other.asClass().equals(asClass());
         }
     }
