@@ -1,3 +1,1 @@
-package uk
-
 class Other

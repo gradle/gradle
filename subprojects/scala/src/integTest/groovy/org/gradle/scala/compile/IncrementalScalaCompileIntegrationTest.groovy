@@ -60,8 +60,8 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         run("compileScala")
 
         when:
-        file("src/main/scala/uk/Person.scala").delete()
-        file("src/main/scala/uk/Person.scala") << "package uk\n\nclass Person"
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala") << "class Person"
         args("-i")
         run("compileScala")
 

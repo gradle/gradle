@@ -105,7 +105,7 @@ compileScala.scalaCompileOptions.with {
 
         when:
         file("src/main/scala/Person.scala").delete()
-        file("src/main/scala/Person.scala") << "package uk\n\nclass Person"
+        file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
         run("compileScala")
 
