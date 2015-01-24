@@ -17,4 +17,6 @@ package org.gradle.api.internal;
 
 public interface DomainObjectContext {
     String absoluteProjectPath(String name);
+
+    void ensureObjectEvaluated(String path);
 }

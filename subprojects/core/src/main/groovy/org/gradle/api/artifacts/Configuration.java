@@ -108,12 +108,20 @@ public interface Configuration extends FileCollection {
     Configuration setVisible(boolean visible);
 
     /**
-     * Returns the names of the configurations which this configuration extends from. The artifacts of the super
+     * Returns the configurations which this configuration extends from. The artifacts of the super
      * configurations are also available in this configuration.
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
      */
     Set<Configuration> getExtendsFrom();
+
+    /**
+     * Returns the configurations which this configuration extends from and which are not part of the same project.
+     * The artifacts of the super configurations are also available in this configuration.
+     *
+     * @return The super configurations. Returns an empty set when this configuration does not extend any other external ones.
+     */
+    Set<Configuration> getExtendsFromExternal();
 
     /**
      * Sets the configurations which this configuration extends from.
@@ -166,11 +174,17 @@ public interface Configuration extends FileCollection {
 
     /**
      * Gets a ordered set including this configuration and all superconfigurations
-     * recursively.
+     * recursively, which are part of the same project as this configuration.
      * @return the list of all configurations
      */
     Set<Configuration> getHierarchy();
 
+    /**
+     * Gets a ordered set including this configuration and all superconfigurations
+     * recursively.
+     * @return the list of all configurations
+     */
+    Set<Configuration> getCompleteHierarchy();
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * the resulting set of files.
