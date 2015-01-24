@@ -30,13 +30,13 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(TestPrecondition.JDK7_OR_EARLIER)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "assemble task constructs all buildable binaries" () {
         buildFile << """
             model {
                 components {
                     myJvmLib1(JvmLibrarySpec) {
-                        targetPlatform "java8"
+                        targetPlatform "java9"
                     }
                     myJvmLib2(JvmLibrarySpec)
                 }
@@ -55,16 +55,16 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         file("build/jars/myJvmLib1Jar/myJvmLib1.jar").assertDoesNotExist()
     }
 
-    @Requires(TestPrecondition.JDK7_OR_EARLIER)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "assemble task produces sensible error when there are no buildable binaries" () {
         buildFile << """
             model {
                 components {
                     myJvmLib1(JvmLibrarySpec) {
-                        targetPlatform "java8"
+                        targetPlatform "java9"
                     }
                     myJvmLib2(JvmLibrarySpec) {
-                        targetPlatform "java8"
+                        targetPlatform "java9"
                     }
                 }
             }
@@ -77,8 +77,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("myJvmLib1Jar: Could not target platform: 'Java SE 8' using tool chain:"),
-                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 8' using tool chain:")
+                Matchers.containsString("myJvmLib1Jar: Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 9' using tool chain:")
         ))
     }
 }
