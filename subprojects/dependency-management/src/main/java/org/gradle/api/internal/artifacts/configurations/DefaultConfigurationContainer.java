@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.Collection;
+import java.util.Set;
+
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -27,24 +30,25 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
 
-import java.util.Collection;
-import java.util.Set;
+public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal,
+        ConfigurationsProvider {
 
-public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration>
-        implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
-    
+
     private final ConfigurationResolver resolver;
+
     private final Instantiator instantiator;
+
     private final DomainObjectContext context;
+
     private final ListenerManager listenerManager;
+
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(ConfigurationResolver resolver,
-                                         Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
-                                         DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultConfigurationContainer(final ConfigurationResolver resolver, final Instantiator instantiator,
+                                         final DomainObjectContext context, final ListenerManager listenerManager, final DependencyMetaDataProvider dependencyMetaDataProvider) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -54,18 +58,18 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     }
 
     @Override
-    protected Configuration doCreate(String name) {
-        return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
-                name, this, resolver, listenerManager,
-                dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class));
+    protected Configuration doCreate(final String name) {
+        return this.instantiator.newInstance(DefaultConfiguration.class, this.context.absoluteProjectPath(name), name, this, this.resolver,
+                this.listenerManager, this.dependencyMetaDataProvider, this.instantiator.newInstance(DefaultResolutionStrategy.class));
     }
 
+    @Override
     public Set<Configuration> getAll() {
         return this;
     }
 
     @Override
-    public ConfigurationInternal getByName(String name) {
+    public ConfigurationInternal getByName(final String name) {
         return (ConfigurationInternal) super.getByName(name);
     }
 
@@ -75,37 +79,42 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     }
 
     @Override
-    protected UnknownDomainObjectException createNotFoundException(String name) {
+    protected UnknownDomainObjectException createNotFoundException(final String name) {
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
-    public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
-        String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
-        DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
-                name, name, detachedConfigurationsProvider, resolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy());
-        DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
-        for (Dependency dependency : dependencies) {
+    @Override
+    public ConfigurationInternal detachedConfiguration(final Dependency... dependencies) {
+        final String name = DETACHED_CONFIGURATION_DEFAULT_NAME + this.detachedConfigurationDefaultNameCounter++;
+        final DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
+        final DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name, detachedConfigurationsProvider, this.resolver,
+                this.listenerManager, this.dependencyMetaDataProvider, new DefaultResolutionStrategy());
+        final DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
+        for (final Dependency dependency: dependencies) {
             detachedDependencies.add(dependency.copy());
         }
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
     }
-    
+
     /**
-     * Build a formatted representation of all Configurations in this ConfigurationContainer.
-     * Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
+     * Build a formatted representation of all Configurations in this
+     * ConfigurationContainer. Configuration(s) being toStringed are likely
+     * derivations of DefaultConfiguration.
      */
     public String dump() {
-        StringBuilder reply = new StringBuilder();
-        
+        final StringBuilder reply = new StringBuilder();
+
         reply.append("Configuration of type: " + getTypeDisplayName());
-        Collection<Configuration> configs = getAll();
-        for (Configuration c : configs) {
+        final Collection<Configuration> configs = getAll();
+        for (final Configuration c: configs) {
             reply.append("\n  " + c.toString());
         }
-        
+
         return reply.toString();
+    }
+
+    public void ensureProjectIsEvaluated(final String projectPath) {
+        this.context.ensureObjectEvaluated(projectPath);
     }
 }

@@ -22,4 +22,8 @@ public class BasicDomainObjectContext implements DomainObjectContext {
     public String absoluteProjectPath(String name) {
         return name;
     }
+
+    public void ensureObjectEvaluated(String path) {
+        throw new IllegalStateException(String.format("Cannot evaluate object '%s', because the context is not evaluated yet.", path));
+    }
 }

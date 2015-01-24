@@ -536,6 +536,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return evaluationDependsOn(projectToEvaluate);
     }
 
+    public void ensureObjectEvaluated(String path) {
+        evaluationDependsOn(path);
+    }
+
     private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
         if (projectToEvaluate.getState().getExecuting()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
