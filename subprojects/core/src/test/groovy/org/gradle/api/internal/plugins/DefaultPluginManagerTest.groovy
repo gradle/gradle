@@ -80,8 +80,9 @@ class DefaultPluginManagerTest extends Specification {
 
     def "empty manager ops"() {
         expect:
-        manager.pluginContainer.isEmpty()
+        manager.pluginContainer.empty
         !manager.hasPlugin("foo")
+        manager.findPlugin("foo") == null
     }
 
     def "can apply rules plugin with no id"() {
@@ -318,14 +319,6 @@ class DefaultPluginManagerTest extends Specification {
         and:
         manager.pluginContainer.size() == 1
         manager.hasPlugin("foo")
-        def called = false
-        manager.withPlugin("foo") {
-            assert it.id == "foo"
-            assert it.namespace == null
-            assert it.name == "foo"
-            called = true
-        }
-        called
     }
 
     def "can apply imperative plugin by id"() {
@@ -349,6 +342,24 @@ class DefaultPluginManagerTest extends Specification {
             called = true
         }
         called
+    }
+
+    def "imperative plugin applied via plugins container is visible via plugins manager"() {
+        given:
+        addPluginId("foo", imperativeClass)
+
+        when:
+        manager.pluginContainer.apply(imperativeClass)
+
+        then:
+        1 * applicator.applyImperative(null, { imperativeClass.isInstance(it) })
+        0 * applicator._
+
+        and:
+        manager.pluginContainer.size() == 1
+        manager.pluginContainer.hasPlugin("foo")
+        manager.pluginContainer.hasPlugin(imperativeClass)
+        manager.hasPlugin("foo")
     }
 
     def "imperative plugin is applied at most once"() {

@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.*;
@@ -63,11 +62,13 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
-        return doApply(plugin);
+        doApply(plugin);
+        Class<? extends P> pluginClass = plugin.asClass();
+        return pluginClass.cast(instances.get(pluginClass));
     }
 
     public <P extends Plugin> P addImperativePlugin(Class<P> type) {
-        return doApply(pluginRegistry.inspect(type));
+        return addImperativePlugin(pluginRegistry.inspect(type));
     }
 
     private boolean addPluginInternal(PluginImplementation<?> plugin) {
@@ -105,11 +106,10 @@ public class DefaultPluginManager implements PluginManagerInternal {
         doApply(pluginRegistry.inspect(type));
     }
 
-    @Nullable
-    private <T> T doApply(PluginImplementation<T> plugin) {
+    private void doApply(PluginImplementation<?> plugin) {
         PluginId pluginId = plugin.getPluginId();
         String pluginIdStr = pluginId == null ? null : pluginId.toString();
-        Class<? extends T> pluginClass = plugin.asClass();
+        Class<?> pluginClass = plugin.asClass();
         try {
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
@@ -119,35 +119,25 @@ public class DefaultPluginManager implements PluginManagerInternal {
                     if (imperative) {
                         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
                         // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
-                        T instance = findInstance(pluginClass, pluginContainer);
+                        Object instance = findInstance(pluginClass, pluginContainer);
                         if (instance == null) {
                             instance = instantiatePlugin(pluginClass);
                         }
 
-                        Plugin<?> cast = Cast.uncheckedCast(instance);
-                        instances.put(pluginClass, cast);
+                        Plugin<?> pluginInstance = Cast.uncheckedCast(instance);
+                        instances.put(pluginClass, pluginInstance);
 
                         if (plugin.isHasRules()) {
-                            applicator.applyImperativeRulesHybrid(pluginIdStr, cast);
+                            applicator.applyImperativeRulesHybrid(pluginIdStr, pluginInstance);
                         } else {
-                            applicator.applyImperative(pluginIdStr, cast);
+                            applicator.applyImperative(pluginIdStr, pluginInstance);
                         }
 
                         // Important not to add until after it has been applied as there can be
                         // plugins.withType() callbacks waiting to build on what the plugin did
-                        pluginContainer.add(cast);
-                        return instance;
+                        pluginContainer.add(pluginInstance);
                     } else {
                         applicator.applyRules(pluginIdStr, pluginClass);
-                    }
-                } else {
-                    if (imperative) {
-                        T instance = pluginClass.cast(instances.get(pluginClass));
-                        if (instance == null) {
-                            throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
-                        } else {
-                            return instance;
-                        }
                     }
                 }
             }
@@ -156,8 +146,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } catch (Exception e) {
             throw new PluginApplicationException(plugin.getDisplayName(), e);
         }
-
-        return null;
     }
 
     private <T> T findInstance(Class<T> clazz, Iterable<?> instances) {
