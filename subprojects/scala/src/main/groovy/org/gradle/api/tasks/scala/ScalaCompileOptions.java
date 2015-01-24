@@ -15,13 +15,8 @@
  */
 package org.gradle.api.tasks.scala;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Transformer;
-import org.gradle.util.CollectionUtils;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
-
-import java.util.regex.Pattern;
 
 /**
  * Options for Scala compilation, including the use of the Ant-backed compiler.
@@ -129,10 +124,10 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             return toOnOffString(isOptimize());
         }
         if (fieldName.equals("loggingPhases")) {
-            return getLoggingPhases().isEmpty() ? " " : Joiner.on(',').join(getLoggingPhases());
+            return AntScalaCommandLineWriter.toCommaSeparatedArg(getLoggingPhases());
         }
         if (fieldName.equals("additionalParameters")) {
-            return getAdditionalParameters().isEmpty() ? " " : Joiner.on(' ').join(CollectionUtils.collect(getAdditionalParameters(), TO_ESCAPED_STRING));
+            return AntScalaCommandLineWriter.toCommandLineArg(getAdditionalParameters());
         }
         return value;
     }
@@ -140,32 +135,6 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
     private String toOnOffString(boolean flag) {
         return flag ? "on" : "off";
     }
-
-    protected static final Transformer<String, String> TO_ESCAPED_STRING = new Transformer<String, String>() {
-
-        private final Pattern singleQuoted = Pattern.compile("^\".*\"$");
-        private final Pattern doubleQuoted = Pattern.compile("^'.*'$");
-        private final Pattern aSingleQuote = Pattern.compile("'");
-
-        @Override
-        public String transform(String input) {
-            if (singleQuoted.matcher(input).matches() || doubleQuoted.matcher(input).matches()) {
-                return input;
-            } else if(input.contains(" ")) {
-                return wrapWithSingleQuotes(input);
-            } else {
-                return input;
-            }
-        }
-
-        private String wrapWithSingleQuotes(String input) {
-            return String.format("'%1$s'", escapeSingleQuotes(input));
-        }
-
-        private String escapeSingleQuotes(String input) {
-            return aSingleQuote.matcher(input).replaceAll("\\\\'");
-        }
-    };
 
 
 }
