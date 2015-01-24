@@ -23,4 +23,11 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
     String getPath();
 
     void includedInResolveResult();
+
+    /**
+     * @return the path to the project this configuration is attached to (or
+     *         null if the configuration is detached)
+     */
+    String getProjectPath();
+
 }

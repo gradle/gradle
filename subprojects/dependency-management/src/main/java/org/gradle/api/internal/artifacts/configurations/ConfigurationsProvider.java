@@ -20,5 +20,9 @@ import org.gradle.api.artifacts.Configuration;
 import java.util.Set;
 
 public interface ConfigurationsProvider {
+
     Set<Configuration> getAll();
+
+    void ensureProjectIsEvaluated(final String projectPath);
+
 }

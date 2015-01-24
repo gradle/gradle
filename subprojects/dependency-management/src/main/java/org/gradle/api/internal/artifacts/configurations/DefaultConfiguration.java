@@ -37,6 +37,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.*;
@@ -51,8 +52,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Visibility visibility = Visibility.PUBLIC;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
+    private Set<Configuration> extendsFromExternal = new LinkedHashSet<Configuration>();
     private String description;
-    private ConfigurationsProvider configurationsProvider;
+    private final ConfigurationsProvider configurationsProvider;
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -72,11 +74,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean includedInResult;
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final String projectPath;
 
-    public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
-                                ConfigurationResolver resolver, ListenerManager listenerManager,
-                                DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy) {
+    public DefaultConfiguration(String path, final String name, final ConfigurationsProvider configurationsProvider,
+                                        final ConfigurationResolver resolver, final ListenerManager listenerManager, final DependencyMetaDataProvider metaDataProvider,
+                                        final ResolutionStrategyInternal resolutionStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -101,6 +103,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
+        Path parentPath = null;
+        if (this.path != null && this.path.startsWith(":")) {
+            parentPath = new Path(this.path).getParent();
+        }
+        this.projectPath = parentPath != null ? parentPath.getPath() : null;
     }
 
     public String getName() {
@@ -131,14 +138,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Collections.unmodifiableSet(extendsFrom);
     }
 
+    public Set<Configuration> getExtendsFromExternal() {
+        return Collections.unmodifiableSet(extendsFromExternal);
+    }
+
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation();
-        for (Configuration configuration : this.extendsFrom) {
+        for (Configuration configuration: this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
         }
+        for (Configuration configuration: extendsFromExternal) {
+            inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
+            inheritedDependencies.removeCollection(configuration.getAllDependencies());
+        }
+        extendsFromExternal = new HashSet<Configuration>();
         this.extendsFrom = new HashSet<Configuration>();
-        for (Configuration configuration : extendsFrom) {
+        for (Configuration configuration: extendsFrom) {
             extendsFrom(configuration);
         }
         return this;
@@ -146,13 +162,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
         validateMutation();
-        for (Configuration configuration : extendsFrom) {
-            if (configuration.getHierarchy().contains(this)) {
+        if (getProjectPath() == null) {
+            throw new IllegalArgumentException("Cannot extend a detached configuration.");
+        }
+        for (Configuration configuration: extendsFrom) {
+            if (configuration.getCompleteHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
                         "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
                         configuration, configuration.getHierarchy()));
             }
-            this.extendsFrom.add(configuration);
+            final ConfigurationInternal internalConfiguration = (ConfigurationInternal) configuration;
+            if (internalConfiguration.getProjectPath() == null) {
+                throw new IllegalArgumentException(String.format("The configuration '%s' is detached, cannot extend from it.", configuration));
+            }
+
+            // Note: projectPath may not be null throughout the configuration is not detached!
+            if (!projectPath.equals(internalConfiguration.getProjectPath())) {
+                // Since this configuration is part of a project different from the one this is attached to,
+                // we need to ensure the project is evaluated first (dependencies, configuration extensions, etc.)
+                configurationsProvider.ensureProjectIsEvaluated(internalConfiguration.getProjectPath());
+                // After this we add the extends to the external set
+                extendsFromExternal.add(configuration);
+            } else {
+                // If this is the configuration, which is part of the same project, add it to the internal extensions
+                this.extendsFrom.add(configuration);
+            }
             inheritedArtifacts.addCollection(configuration.getAllArtifacts());
             inheritedDependencies.addCollection(configuration.getAllDependencies());
         }
@@ -184,8 +218,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return result;
     }
 
-    private void collectSuperConfigs(Configuration configuration, Set<Configuration> result) {
-        for (Configuration superConfig : configuration.getExtendsFrom()) {
+    public Set<Configuration> getCompleteHierarchy() {
+        Set<Configuration> result = getHierarchy();
+        collectSuperExternalConfigs(this, result);
+        return result;
+    }
+
+    private void collectSuperExternalConfigs(Configuration configuration, final Set<Configuration> result) {
+        for (Configuration superConfig: configuration.getExtendsFromExternal()) {
+            if (result.contains(superConfig)) {
+                result.remove(superConfig);
+            }
+            result.add(superConfig);
+            collectSuperExternalConfigs(superConfig, result);
+        }
+    }
+
+    private void collectSuperConfigs(Configuration configuration, final Set<Configuration> result) {
+        for (Configuration superConfig: configuration.getExtendsFrom()) {
             if (result.contains(superConfig)) {
                 result.remove(superConfig);
             }
@@ -210,7 +260,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return fileCollection(dependencies).getFiles();
     }
 
-    public Set<File> files(Closure dependencySpecClosure) {
+    public Set<File> files(@SuppressWarnings("rawtypes") final Closure dependencySpecClosure) {
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
@@ -222,7 +272,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(dependencySpec);
     }
 
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
+    public FileCollection fileCollection(@SuppressWarnings("rawtypes") final Closure dependencySpecClosure) {
         return new ConfigurationFileCollection(dependencySpecClosure);
     }
 
@@ -231,8 +281,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void includedInResolveResult() {
-        includedInResult = true;
-        for (Configuration configuration : extendsFrom) {
+        this.includedInResult = true;
+        for (Configuration configuration: this.extendsFrom) {
             ((ConfigurationInternal) configuration).includedInResolveResult();
         }
     }
@@ -245,14 +295,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveNow() {
         synchronized (lock) {
             if (state == State.UNRESOLVED) {
-                DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
-                ResolvableDependencies incoming = getIncoming();
+                final DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
+                final ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
-                cachedResolverResults = resolver.resolve(this);
-                for (Configuration configuration : extendsFrom) {
+                this.cachedResolverResults = this.resolver.resolve(this);
+                for (Configuration configuration: this.extendsFrom) {
                     ((ConfigurationInternal) configuration).includedInResolveResult();
                 }
-                if (cachedResolverResults.getResolvedConfiguration().hasError()) {
+                for (Configuration configuration: this.extendsFromExternal) {
+                    ((ConfigurationInternal) configuration).includedInResolveResult();
+                }
+                if (this.cachedResolverResults.getResolvedConfiguration().hasError()) {
                     state = State.RESOLVED_WITH_FAILURES;
                 } else {
                     state = State.RESOLVED;
@@ -269,7 +322,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * {@inheritDoc}
      */
-    public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+    public TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, getAllDependencies());
         } else {
@@ -294,7 +347,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<ExcludeRule> getExcludeRules() {
-        return Collections.unmodifiableSet(excludeRules);
+        return Collections.unmodifiableSet(this.excludeRules);
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
@@ -313,7 +366,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getDisplayName() {
-        return String.format("configuration '%s'", path);
+        return String.format("configuration '%s'", getPath());
     }
 
     public ResolvableDependencies getIncoming() {
@@ -336,47 +389,52 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), true);
     }
 
-    private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
-        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
+    private DefaultConfiguration createCopy(Set<Dependency> dependencies, final boolean recursive) {
+        final DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
+        final DefaultConfiguration copiedConfiguration = new DefaultConfiguration(this.path, this.name + "Copy", configurationsProvider,
+                this.resolver, this.listenerManager, this.metaDataProvider, this.resolutionStrategy.copy());
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
-        // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
-        // copying extendsFrom could mess up dependencies when copy was re-resolved
+        // state, cachedResolvedConfiguration, and extendsFrom intentionally not
+        // copied - must re-resolve copy
+        // copying extendsFrom could mess up dependencies when copy was
+        // re-resolved
 
-        copiedConfiguration.visibility = visibility;
-        copiedConfiguration.transitive = transitive;
-        copiedConfiguration.description = description;
+        copiedConfiguration.visibility = this.visibility;
+        copiedConfiguration.transitive = this.transitive;
+        copiedConfiguration.description = this.description;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
-        // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
-        // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
-        // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule.
-        Set<Configuration> excludeRuleSources = new LinkedHashSet<Configuration>();
+        // todo An ExcludeRule is a value object but we don't enforce
+        // immutability for DefaultExcludeRule as strong as we
+        // should (we expose the Map). We should provide a better API for
+        // ExcludeRule (I don't want to use unmodifiable Map).
+        // As soon as DefaultExcludeRule is truly immutable, we don't need to
+        // create a new instance of DefaultExcludeRule.
+        final Set<Configuration> excludeRuleSources = new LinkedHashSet<Configuration>();
         excludeRuleSources.add(this);
         if (recursive) {
-            excludeRuleSources.addAll(getHierarchy());
+            excludeRuleSources.addAll(getCompleteHierarchy());
         }
 
-        for (Configuration excludeRuleSource : excludeRuleSources) {
-            for (ExcludeRule excludeRule : excludeRuleSource.getExcludeRules()) {
+        for (Configuration excludeRuleSource: excludeRuleSources) {
+            for (ExcludeRule excludeRule: excludeRuleSource.getExcludeRules()) {
                 copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
             }
         }
 
-        DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
-        for (Dependency dependency : dependencies) {
+        final DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
+        for (Dependency dependency: dependencies) {
             copiedDependencies.add(dependency.copy());
         }
         return copiedConfiguration;
     }
 
-    public Configuration copy(Closure dependencySpec) {
+    public Configuration copy(@SuppressWarnings("rawtypes") final Closure dependencySpec) {
         return copy(Specs.<Dependency>convertClosureToSpec(dependencySpec));
     }
 
-    public Configuration copyRecursive(Closure dependencySpec) {
+    public Configuration copyRecursive(@SuppressWarnings("rawtypes") final Closure dependencySpec) {
         return copyRecursive(Specs.<Dependency>convertClosureToSpec(dependencySpec));
     }
 
@@ -389,20 +447,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getPath() {
-        return path;
+        return path != null ? this.path : this.name;
     }
 
-    public Configuration resolutionStrategy(Closure closure) {
-        ConfigureUtil.configure(closure, resolutionStrategy);
+    public Configuration resolutionStrategy(@SuppressWarnings("rawtypes") final Closure closure) {
+        ConfigureUtil.configure(closure, this.resolutionStrategy);
         return this;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
     }
 
     private void validateMutation() {
         if (getState() != State.UNRESOLVED) {
             throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
         }
-        if (includedInResult) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
+        if (this.includedInResult) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution",
+                    getDisplayName()));
         }
     }
 
@@ -413,7 +476,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.dependencySpec = dependencySpec;
         }
 
-        public ConfigurationFileCollection(Closure dependencySpecClosure) {
+        public ConfigurationFileCollection(@SuppressWarnings("rawtypes") final Closure dependencySpecClosure) {
             this.dependencySpec = Specs.convertClosureToSpec(dependencySpecClosure);
         }
 
@@ -439,12 +502,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            synchronized (lock) {
-                ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
+            synchronized (DefaultConfiguration.this.lock) {
+                final ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
                 if (getState() == State.RESOLVED_WITH_FAILURES) {
                     resolvedConfiguration.rethrowFailure();
                 }
-                return resolvedConfiguration.getFiles(dependencySpec);
+                return resolvedConfiguration.getFiles(this.dependencySpec);
             }
         }
     }
@@ -453,7 +516,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * Print a formatted representation of a Configuration
      */
     public String dump() {
-        StringBuilder reply = new StringBuilder();
+        final StringBuilder reply = new StringBuilder();
 
         reply.append("\nConfiguration:");
         reply.append("  class='" + this.getClass() + "'");
@@ -462,7 +525,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         reply.append("\nLocal Dependencies:");
         if (getDependencies().size() > 0) {
-            for (Dependency d : getDependencies()) {
+            for (Dependency d: getDependencies()) {
                 reply.append("\n   " + d);
             }
         } else {
@@ -471,26 +534,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         reply.append("\nLocal Artifacts:");
         if (getArtifacts().size() > 0) {
-            for (PublishArtifact a : getArtifacts()) {
+            for (PublishArtifact a: getArtifacts()) {
                 reply.append("\n   " + a);
             }
         } else {
             reply.append("\n   none");
         }
 
+
         reply.append("\nAll Dependencies:");
         if (getAllDependencies().size() > 0) {
-            for (Dependency d : getAllDependencies()) {
+            for (Dependency d: getAllDependencies()) {
                 reply.append("\n   " + d);
             }
         } else {
             reply.append("\n   none");
         }
 
-
         reply.append("\nAll Artifacts:");
         if (getAllArtifacts().size() > 0) {
-            for (PublishArtifact a : getAllArtifacts()) {
+            for (PublishArtifact a: getAllArtifacts()) {
                 reply.append("\n   " + a);
             }
         } else {
@@ -508,16 +571,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class ConfigurationResolvableDependencies implements ResolvableDependencies {
         public String getName() {
-            return name;
+            return DefaultConfiguration.this.name;
         }
 
         public String getPath() {
-            return path;
+            return DefaultConfiguration.this.getPath();
         }
 
         @Override
         public String toString() {
-            return String.format("dependencies '%s'", path);
+            return String.format("dependencies '%s'", DefaultConfiguration.this.getPath());
         }
 
         public FileCollection getFiles() {
@@ -529,19 +592,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            resolutionListenerBroadcast.add("beforeResolve", action);
+            DefaultConfiguration.this.resolutionListenerBroadcast.add("beforeResolve", action);
         }
 
-        public void beforeResolve(Closure action) {
-            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
+        public void beforeResolve(@SuppressWarnings("rawtypes") final Closure action) {
+            DefaultConfiguration.this.resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeResolve", action));
         }
 
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            resolutionListenerBroadcast.add("afterResolve", action);
+            DefaultConfiguration.this.resolutionListenerBroadcast.add("afterResolve", action);
         }
 
-        public void afterResolve(Closure action) {
-            resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
+        public void afterResolve(@SuppressWarnings("rawtypes") final Closure action) {
+            DefaultConfiguration.this.resolutionListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterResolve", action));
         }
 
         public ResolutionResult getResolutionResult() {

@@ -30,4 +30,10 @@ class DetachedConfigurationsProvider implements ConfigurationsProvider {
     public void setTheOnlyConfiguration(Configuration theOnlyConfiguration) {
         this.theOnlyConfiguration = theOnlyConfiguration;
     }
+
+    @Override
+    public void ensureProjectIsEvaluated(final String projectPath) {
+        throw new IllegalArgumentException(String.format("This is a detached configuration, cannot evaluate project '%s'.", projectPath));
+    }
+
 }
