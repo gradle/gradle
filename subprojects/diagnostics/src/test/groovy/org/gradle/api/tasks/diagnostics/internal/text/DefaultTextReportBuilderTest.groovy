@@ -120,4 +120,26 @@ heading
         output.value == """    the title: path/thing
 """
     }
+
+    def "formats multiline item" () {
+        when:
+        builder.item("first line\nsecond line\nthird line")
+
+        then:
+        output.value == """    first line
+    second line
+    third line
+"""
+    }
+
+    def "formats multiline item with title" () {
+        when:
+        builder.item("the title", "first line\nsecond line\nthird line")
+
+        then:
+        output.value == """    the title: first line
+    second line
+    third line
+"""
+    }
 }

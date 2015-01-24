@@ -18,8 +18,10 @@ package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.reporting.ReportRenderer;
 
 // TODO - bust up this hierarchy and compose using interfaces instead
@@ -42,6 +44,13 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         renderDetails(specialized, builder);
 
         renderOutputs(specialized, builder);
+
+        if (!binary.isBuildable()) {
+            BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
+            TreeFormatter formatter = new TreeFormatter();
+            binarySpecInternal.getBuildAbility().explain(formatter);
+            builder.item(formatter.toString());
+        }
     }
 
     public abstract Class<T> getTargetType();

@@ -108,6 +108,8 @@ Binaries
         flavor: default
         tool chain: unavailable
         shared library file: build/binaries/someLibSharedLibrary/someLib.dll
+        No tool chain is available to build for platform 'windows':
+          - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'windows'.
     Static library 'someLib:staticLibrary' (not buildable)
         build using task: :someLibStaticLibrary
         platform: windows
@@ -115,6 +117,8 @@ Binaries
         flavor: default
         tool chain: unavailable
         static library file: build/binaries/someLibStaticLibrary/someLib.lib
+        No tool chain is available to build for platform 'windows':
+          - ${toolChain.instanceDisplayName}: Don't know how to build for platform 'windows'.
 """
     }
 

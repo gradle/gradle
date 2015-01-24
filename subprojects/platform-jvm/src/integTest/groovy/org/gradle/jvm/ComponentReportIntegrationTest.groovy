@@ -159,6 +159,7 @@ Binaries
         platform: java9
         tool chain: $currentJdk
         Jar file: build/jars/java9MyLibJar/myLib.jar
+        Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
 """
     }
 }
