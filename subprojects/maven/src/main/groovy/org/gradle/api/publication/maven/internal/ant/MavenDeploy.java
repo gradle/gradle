@@ -26,6 +26,7 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.tools.ant.BuildException;
+import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLifecycleException;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
@@ -36,8 +37,8 @@ import java.io.File;
 /**
  * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
  */
-public class MavenDeployTask extends BaseMavenPublishTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployTask.class);
+public class MavenDeploy extends AbstractMavenPublish {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeploy.class);
 
     private RemoteRepository remoteRepository;
 
@@ -45,7 +46,7 @@ public class MavenDeployTask extends BaseMavenPublishTask {
 
     private boolean uniqueVersion = true;
 
-    public MavenDeployTask(File pomFile) {
+    public MavenDeploy(File pomFile) {
         super(pomFile);
     }
 
@@ -58,14 +59,14 @@ public class MavenDeployTask extends BaseMavenPublishTask {
         this.uniqueVersion = uniqueVersion;
     }
 
-    protected void doPublish(Artifact artifact, File pomFile, ArtifactRepository localRepo) {
+    protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
         ArtifactDeployer deployer = (ArtifactDeployer) lookup(ArtifactDeployer.ROLE);
         ArtifactRepository deploymentRepository = getRemoteArtifactRepository(artifact);
 
         LOGGER.info("Deploying to " + deploymentRepository.getUrl());
 
         try {
-            deployer.deploy(pomFile, artifact, deploymentRepository, localRepo);
+            deployer.deploy(artifactFile, artifact, deploymentRepository, localRepo);
         } catch (ArtifactDeploymentException e) {
             throw new BuildException("Error deploying artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
         }
@@ -112,6 +113,14 @@ public class MavenDeployTask extends BaseMavenPublishTask {
             getContainer().release(repositoryFactory);
         } catch (ComponentLifecycleException e) {
             // TODO: Warn the user, or not?
+        }
+    }
+
+    public void addWagonJar(File jar) {
+        try {
+            getContainer().addJarResource(jar);
+        } catch (PlexusContainerException e) {
+            throw new RuntimeException(e);
         }
     }
 

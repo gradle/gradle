@@ -23,16 +23,16 @@ import org.apache.tools.ant.BuildException;
 
 import java.io.File;
 
-public class MavenInstallTask extends BaseMavenPublishTask {
-    public MavenInstallTask(File pomFile) {
+public class MavenInstall extends AbstractMavenPublish {
+    public MavenInstall(File pomFile) {
         super(pomFile);
     }
 
     @Override
-    protected void doPublish(Artifact artifact, File pomFile, ArtifactRepository localRepo) {
+    protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
         ArtifactInstaller installer = (ArtifactInstaller) lookup(ArtifactInstaller.ROLE);
         try {
-            installer.install(pomFile, artifact, localRepo);
+            installer.install(artifactFile, artifact, localRepo);
         } catch (ArtifactInstallationException e) {
             throw new BuildException(
                     "Error installing artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);

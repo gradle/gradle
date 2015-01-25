@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.publication.maven.internal.ant.MavenPublishTaskSupport;
+import org.gradle.api.publication.maven.internal.ant.MavenPublishSupport;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublishTaskSupport> implements MavenPublisher {
+abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublishSupport> implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     private static Logger logger = LoggerFactory.getLogger(AbstractAntTaskBackedMavenPublisher.class);
@@ -49,7 +49,7 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublish
 
     abstract protected T createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
-    private void addPomAndArtifacts(MavenPublishTaskSupport installOrDeployTask, MavenNormalizedPublication publication) {
+    private void addPomAndArtifacts(MavenPublishSupport installOrDeployTask, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();
         installOrDeployTask.setMainArtifact(mainArtifact == null ? publication.getPomFile() : mainArtifact.getFile());
 
@@ -61,11 +61,11 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublish
         }
     }
 
-    private void execute(MavenPublishTaskSupport deployTask) {
+    private void execute(MavenPublishSupport deployTask) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
-            deployTask.execute();
+            deployTask.publish();
         } finally {
             loggingManager.stop();
         }

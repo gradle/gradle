@@ -71,7 +71,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return this;
     }
 
-    protected abstract MavenPublishTaskSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetaData moduleVersion) {
         for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
@@ -95,23 +95,23 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
             File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishTaskSupport installDeployTaskSupport = createPreConfiguredTask(pomFile, mavenRepositoryLocator);
+            MavenPublishSupport installDeployTaskSupport = createPreConfiguredTask(pomFile, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(installDeployTaskSupport, mavenDeployment);
             execute(installDeployTaskSupport);
         }
     }
 
-    private void execute(MavenPublishTaskSupport deployTask) {
+    private void execute(MavenPublishSupport deployTask) {
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
-            deployTask.execute();
+            deployTask.publish();
         } finally {
             loggingManager.stop();
         }
     }
 
-    private void addArtifacts(MavenPublishTaskSupport installOrDeployTask, MavenDeployment mavenDeployment) {
+    private void addArtifacts(MavenPublishSupport installOrDeployTask, MavenDeployment mavenDeployment) {
         if (mavenDeployment.getMainArtifact() != null) {
             installOrDeployTask.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }

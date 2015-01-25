@@ -18,20 +18,20 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.publication.maven.internal.ant.MavenInstallTask;
+import org.gradle.api.publication.maven.internal.ant.MavenInstall;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher<MavenInstallTask> {
+public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher<MavenInstall> {
     public AntTaskBackedMavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(loggingManagerFactory, mavenRepositoryLocator);
     }
 
     @Override
-    protected MavenInstallTask createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenInstallTask mavenInstallTask = new MavenInstallTask(pomFile);
+    protected MavenInstall createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        MavenInstall mavenInstallTask = new MavenInstall(pomFile);
         mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         return mavenInstallTask;
     }

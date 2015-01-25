@@ -43,18 +43,17 @@ import org.gradle.api.GradleException;
 import java.io.File;
 import java.util.List;
 
-public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
+abstract class AbstractMavenPublish implements MavenPublishSupport {
     private static ClassLoader plexusClassLoader;
 
     private final File pomFile;
-    private File localMavenRepository;
+    private final List<AdditionalArtifact> additionalArtifacts = Lists.newArrayList();
+    private File mainArtifact;
 
+    private File localMavenRepository;
     private PlexusContainer container;
 
-    protected File mainArtifact;
-    protected List<AdditionalArtifact> additionalArtifacts = Lists.newArrayList();
-
-    protected BaseMavenPublishTask(File pomFile) {
+    protected AbstractMavenPublish(File pomFile) {
         this.pomFile = pomFile;
 
         WagonManager wagonManager = (WagonManager) lookup(WagonManager.ROLE);
@@ -79,20 +78,20 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         additionalArtifacts.add(artifact);
     }
 
-    public void execute() {
+    public void publish() {
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             if (plexusClassLoader != null) {
                 Thread.currentThread().setContextClassLoader(plexusClassLoader);
             }
-            publish();
+            doPublish();
         } finally {
             plexusClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(originalClassLoader);
         }
     }
 
-    public void publish() {
+    private void doPublish() {
         if (mainArtifact == null && (additionalArtifacts.size() == 0)) {
             throw new BuildException("You must specify a file and/or an attached artifact for Maven publishing.");
         }
@@ -104,21 +103,21 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         if (mainArtifact != null) {
             boolean isPomArtifact = "pom".equals(parsedMavenPom.getPackaging());
             if (isPomArtifact) {
-                doPublish(artifact, pomFile, localRepo);
+                publishArtifact(artifact, pomFile, localRepo);
             } else {
                 ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
                 artifact.addMetadata(metadata);
-                doPublish(artifact, mainArtifact, localRepo);
+                publishArtifact(artifact, mainArtifact, localRepo);
             }
         }
 
         for (AdditionalArtifact attachedArtifact : additionalArtifacts) {
             Artifact attach = createAttachedArtifact(artifact, attachedArtifact.getType(), attachedArtifact.getClassifier());
-            doPublish(attach, attachedArtifact.getFile(), localRepo);
+            publishArtifact(attach, attachedArtifact.getFile(), localRepo);
         }
     }
 
-    protected abstract void doPublish(Artifact artifact, File pomFile, ArtifactRepository localRepo);
+    protected abstract void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo);
 
     private ArtifactRepository createLocalArtifactRepository() {
         ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "default");
@@ -142,8 +141,7 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         }
     }
 
-    @Override
-    public synchronized PlexusContainer getContainer() {
+    protected synchronized PlexusContainer getContainer() {
         if (container == null) {
             try {
                 ClassWorld classWorld = new ClassWorld();

@@ -15,17 +15,10 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.codehaus.plexus.PlexusContainer;
-
 import java.io.File;
 
-public interface MavenPublishTaskSupport {
-
-    void setLocalMavenRepositoryLocation(File localMavenRepository);
-
-    void execute();
-
-    PlexusContainer getContainer();
+public interface MavenPublishSupport {
+    void publish();
 
     void setMainArtifact(File file);
 

@@ -16,8 +16,6 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -48,8 +46,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishTaskSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenDeployTask deployTask = new MavenDeployTask(pomFile);
+    protected MavenPublishSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenDeploy deployTask = new MavenDeploy(pomFile);
         deployTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         deployTask.setUniqueVersion(isUniqueVersion());
         addProtocolProvider(deployTask);
@@ -57,14 +55,9 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return deployTask;
     }
 
-    private void addProtocolProvider(MavenDeployTask deployTask) {
-        PlexusContainer plexusContainer = deployTask.getContainer();
+    private void addProtocolProvider(MavenDeploy deployTask) {
         for (File wagonProviderJar : getJars()) {
-            try {
-                plexusContainer.addJarResource(wagonProviderJar);
-            } catch (PlexusContainerException e) {
-                throw new RuntimeException(e);
-            }
+            deployTask.addWagonJar(wagonProviderJar);
         }
     }
 
@@ -72,7 +65,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
     }
 
-    private void addRemoteRepositories(MavenDeployTask deployTask) {
+    private void addRemoteRepositories(MavenDeploy deployTask) {
         deployTask.setRepositories(remoteRepository, remoteSnapshotRepository);
     }
 
