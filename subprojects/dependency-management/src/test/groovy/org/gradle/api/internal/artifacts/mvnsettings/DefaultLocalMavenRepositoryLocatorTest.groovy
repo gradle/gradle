@@ -30,6 +30,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     File repo1 = tmpDir.file("repo1")
     File repo2 = tmpDir.file("repo2")
+    File userHome1 = tmpDir.file("user_home_1")
+    File userHome2 = tmpDir.file("user_home_2")
 
     def setup() {
         locations = new SimpleMavenFileLocations()
@@ -38,13 +40,13 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def "returns default location if no settings file exists"() {
         when:
-        1 * system.getProperty("user.home") >> "/USER/HOME"
+        1 * system.getProperty("user.home") >> userHome1.absolutePath
         then:
-        locator.localMavenRepository == new File("/USER/HOME/.m2/repository")
+        locator.localMavenRepository == new File(userHome1, ".m2/repository")
         when:
-        1 * system.getProperty("user.home") >> "/USER/OTHER"
+        1 * system.getProperty("user.home") >> userHome2.absolutePath
         then:
-        locator.localMavenRepository == new File("/USER/OTHER/.m2/repository")
+        locator.localMavenRepository == new File(userHome2, ".m2/repository")
     }
 
     def "returns value of system property if it is specified"() {
@@ -122,10 +124,10 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locations.globalSettingsFile = null
 
         when:
-        system.getProperty("user.home") >> "/USER/HOME"
+        system.getProperty("user.home") >> userHome1.absolutePath
 
         then:
-        locator.localMavenRepository == new File("/USER/HOME/.m2/repository")
+        locator.localMavenRepository == new File(userHome1, ".m2/repository")
 
         when:
         writeSettingsFile(locations.userSettingsFile, repo1)
