@@ -51,16 +51,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseMavenPublishTask.class);
-
-    private static final String WILDCARD = "*";
-
-    private static final String EXTERNAL_WILDCARD = "external:*";
 
     private static ClassLoader plexusClassLoader;
 
@@ -254,67 +248,6 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
 
     private DefaultArtifactHandler artifactHandler(String type) {
         return new DefaultArtifactHandler(type);
-    }
-
-    /**
-     * This method checks if the pattern matches the originalRepository. Valid patterns: * = everything external:* = everything not on the localhost and not file based. repo,repo1 = repo or repo1
-     * *,!repo1 = everything except repo1
-     *
-     * @param originalRepository to compare for a match.
-     * @param pattern used for match. Currently only '*' is supported.
-     * @return true if the repository is a match to this pattern.
-     */
-    boolean matchPattern(RemoteRepository originalRepository, String pattern) {
-        boolean result = false;
-        String originalId = originalRepository.getId();
-
-        // simple checks first to short circuit processing below.
-        if (WILDCARD.equals(pattern) || pattern.equals(originalId)) {
-            result = true;
-        } else {
-            // process the list
-            String[] repos = pattern.split(",");
-
-            for (String repo : repos) {
-                // see if this is a negative match
-                if (repo.length() > 1 && repo.startsWith("!")) {
-                    if (originalId.equals(repo.substring(1))) {
-                        // explicitly exclude. Set result and stop processing.
-                        result = false;
-                        break;
-                    }
-                }
-                // check for exact match
-                else if (originalId.equals(repo)) {
-                    result = true;
-                    break;
-                }
-                // check for external:*
-                else if (EXTERNAL_WILDCARD.equals(repo) && isExternalRepo(originalRepository)) {
-                    result = true;
-                    // don't stop processing in case a future segment explicitly excludes this repo
-                } else if (WILDCARD.equals(repo)) {
-                    result = true;
-                    // don't stop processing in case a future segment explicitly excludes this repo
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Checks the URL to see if this repository refers to an external repository
-     *
-     * @return true if external.
-     */
-    boolean isExternalRepo(RemoteRepository originalRepository) {
-        try {
-            URL url = new URL(originalRepository.getUrl());
-            return !(url.getHost().equals("localhost") || url.getHost().equals("127.0.0.1") || url.getProtocol().equals("file"));
-        } catch (MalformedURLException e) {
-            // bad url just skip it here. It should have been validated already, but the wagon lookup will deal with it
-            return false;
-        }
     }
 
     protected void log(String message) {

@@ -24,7 +24,6 @@ import org.apache.maven.artifact.deployer.ArtifactDeploymentException;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
-import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.BuildException;
@@ -32,7 +31,6 @@ import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
@@ -116,12 +114,6 @@ public class MavenDeployTask extends BaseMavenPublishTask {
         // manager at the start like m2 does, and then match up by repository id
         // As is, this could potentially cause a problem with 2 remote repositories with different authentication info
 
-        Mirror mirror = getMirror(getSettings().getMirrors(), repository);
-        if (mirror != null) {
-            repository.setUrl(mirror.getUrl());
-            repository.setId(mirror.getId());
-        }
-
         if (repository.getAuthentication() == null) {
             Server server = getSettings().getServer(repository.getId());
             if (server != null) {
@@ -135,34 +127,6 @@ public class MavenDeployTask extends BaseMavenPublishTask {
                 repository.addProxy(new Proxy(proxy));
             }
         }
-    }
-
-    /**
-     * This method finds a matching mirror for the selected repository. If there is an exact match, this will be used. If there is no exact match, then the list of mirrors is examined to see if a
-     * pattern applies.
-     *
-     * @param mirrors The available mirrors.
-     * @param repository See if there is a mirror for this repository.
-     * @return the selected mirror or null if none is found.
-     */
-    private Mirror getMirror(List<Mirror> mirrors, RemoteRepository repository) {
-        String repositoryId = repository.getId();
-
-        if (repositoryId != null) {
-            for (Mirror mirror : mirrors) {
-                if (repositoryId.equals(mirror.getMirrorOf())) {
-                    return mirror;
-                }
-            }
-
-            for (Mirror mirror : mirrors) {
-                if (matchPattern(repository, mirror.getMirrorOf())) {
-                    return mirror;
-                }
-            }
-        }
-
-        return null;
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
