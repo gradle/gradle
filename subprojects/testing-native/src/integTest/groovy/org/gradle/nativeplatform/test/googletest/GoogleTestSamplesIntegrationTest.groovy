@@ -42,7 +42,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         sample googleTest
 
         when:
-        succeeds "runPassingOperatorsTestGoogleTestExe"
+        succeeds "runPassing"
 
         then:
         executedAndNotSkipped ":compilePassingOperatorsTestGoogleTestExeOperatorsTestCpp",
@@ -58,7 +58,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         when:
         sample googleTest
-        fails "runFailingOperatorsTestGoogleTestExe"
+        fails "runFailing"
 
         then:
         executedAndNotSkipped ":compileFailingOperatorsTestGoogleTestExeOperatorsTestCpp",

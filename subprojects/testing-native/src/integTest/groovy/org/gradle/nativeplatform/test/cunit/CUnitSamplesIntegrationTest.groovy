@@ -48,7 +48,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sample cunit
 
         when:
-        succeeds "runPassingOperatorsTestCUnitExe"
+        succeeds "runPassing"
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
@@ -66,7 +66,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         when:
         sample cunit
-        fails "runFailingOperatorsTestCUnitExe"
+        fails "runFailing"
 
         then:
         skipped ":operatorsTestCUnitLauncher"
