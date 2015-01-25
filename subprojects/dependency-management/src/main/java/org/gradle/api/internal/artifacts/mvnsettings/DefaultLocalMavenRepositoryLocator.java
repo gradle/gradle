@@ -32,6 +32,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private final Map<String, String> systemProperties;
     private final Map<String, String> environmentVariables;
     private final MavenSettingsProvider settingsProvider;
+    private File localMavenRepository;
 
     public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, Map<String, String> systemProperties,
                                               Map<String, String> environmentVariables) {
@@ -40,7 +41,15 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         this.settingsProvider = settingsProvider;
     }
 
-    public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException{
+    public synchronized File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
+        if (localMavenRepository != null) {
+            return localMavenRepository;
+        }
+        localMavenRepository = determineLocalMavenRepository();
+        return localMavenRepository;
+    }
+
+    private File determineLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
         if (systemProperties.containsKey("maven.repo.local")) {
             return new File(systemProperties.get("maven.repo.local"));
         }
