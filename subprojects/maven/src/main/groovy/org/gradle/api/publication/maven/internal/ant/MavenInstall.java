@@ -19,7 +19,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.installer.ArtifactInstallationException;
 import org.apache.maven.artifact.installer.ArtifactInstaller;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.tools.ant.BuildException;
+import org.gradle.api.GradleException;
 
 import java.io.File;
 
@@ -30,12 +30,11 @@ public class MavenInstall extends AbstractMavenPublish {
 
     @Override
     protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
-        ArtifactInstaller installer = (ArtifactInstaller) lookup(ArtifactInstaller.ROLE);
+        ArtifactInstaller installer = lookup(ArtifactInstaller.class);
         try {
             installer.install(artifactFile, artifact, localRepo);
         } catch (ArtifactInstallationException e) {
-            throw new BuildException(
-                    "Error installing artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
+            throw new GradleException("Error installing artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
         }
     }
 }

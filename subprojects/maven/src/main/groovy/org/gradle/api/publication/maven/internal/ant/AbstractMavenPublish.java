@@ -24,11 +24,10 @@ import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.metadata.ArtifactMetadata;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
-import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
+import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.artifact.AttachedArtifact;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
-import org.apache.tools.ant.BuildException;
 import org.codehaus.classworlds.ClassWorld;
 import org.codehaus.classworlds.DuplicateRealmException;
 import org.codehaus.plexus.PlexusContainer;
@@ -36,6 +35,7 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.embed.Embedder;
 import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.util.List;
@@ -43,6 +43,7 @@ import java.util.List;
 abstract class AbstractMavenPublish implements MavenPublishSupport {
     private static ClassLoader plexusClassLoader;
 
+    protected final WagonManager wagonManager;
     private final File pomFile;
     private final List<AdditionalArtifact> additionalArtifacts = Lists.newArrayList();
     private File mainArtifact;
@@ -52,8 +53,7 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
 
     protected AbstractMavenPublish(File pomFile) {
         this.pomFile = pomFile;
-
-        WagonManager wagonManager = (WagonManager) lookup(WagonManager.ROLE);
+        this.wagonManager = lookup(WagonManager.class);
         wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());
     }
 
@@ -114,47 +114,47 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
     protected abstract void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo);
 
     private ArtifactRepository createLocalArtifactRepository() {
-        ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "default");
         String localRepositoryLocation = localMavenRepository.toURI().toString();
-        return new DefaultArtifactRepository("local", localRepositoryLocation, repositoryLayout);
+        return new DefaultArtifactRepository("local", localRepositoryLocation, new DefaultRepositoryLayout());
     }
 
-    protected Object lookup(String role) {
+    protected <T> T lookup(Class<T> type) {
+        String role = type.getName();
         try {
-            return getContainer().lookup(role);
+            @SuppressWarnings("unchecked")
+            T lookup1 = (T) getContainer().lookup(role);
+            return lookup1;
         } catch (ComponentLookupException e) {
             throw new GradleException("Unable to find component: " + role, e);
         }
     }
 
-    protected Object lookup(String role, String roleHint) {
-        try {
-            return getContainer().lookup(role, roleHint);
-        } catch (ComponentLookupException e) {
-            throw new GradleException("Unable to find component: " + role + "[" + roleHint + "]", e);
-        }
-    }
-
-    protected synchronized PlexusContainer getContainer() {
+    private synchronized PlexusContainer getContainer() {
         if (container == null) {
             try {
                 ClassWorld classWorld = new ClassWorld();
-
                 classWorld.newRealm("plexus.core", getClass().getClassLoader());
 
                 Embedder embedder = new Embedder();
-
                 embedder.start(classWorld);
 
                 container = embedder.getContainer();
             } catch (PlexusContainerException e) {
-                throw new BuildException("Unable to start embedder", e);
+                throw UncheckedException.throwAsUncheckedException(e);
             } catch (DuplicateRealmException e) {
-                throw new BuildException("Unable to create embedder ClassRealm", e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
         return container;
+    }
+
+    public void addWagonJar(File jar) {
+        try {
+            getContainer().addJarResource(jar);
+        } catch (PlexusContainerException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Artifact createMainArtifact(ParsedMavenPom pom) {

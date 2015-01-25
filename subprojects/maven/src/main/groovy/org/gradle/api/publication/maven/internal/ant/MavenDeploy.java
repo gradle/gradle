@@ -21,13 +21,9 @@ import org.apache.maven.artifact.ant.Proxy;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.deployer.ArtifactDeployer;
 import org.apache.maven.artifact.deployer.ArtifactDeploymentException;
-import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
-import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
-import org.apache.tools.ant.BuildException;
-import org.codehaus.plexus.PlexusContainerException;
-import org.codehaus.plexus.component.repository.exception.ComponentLifecycleException;
+import org.apache.maven.artifact.repository.DefaultArtifactRepository;
+import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +56,7 @@ public class MavenDeploy extends AbstractMavenPublish {
     }
 
     protected void publishArtifact(Artifact artifact, File artifactFile, ArtifactRepository localRepo) {
-        ArtifactDeployer deployer = (ArtifactDeployer) lookup(ArtifactDeployer.ROLE);
+        ArtifactDeployer deployer = lookup(ArtifactDeployer.class);
         ArtifactRepository deploymentRepository = getRemoteArtifactRepository(artifact);
 
         LOGGER.info("Deploying to " + deploymentRepository.getUrl());
@@ -68,84 +64,37 @@ public class MavenDeploy extends AbstractMavenPublish {
         try {
             deployer.deploy(artifactFile, artifact, deploymentRepository, localRepo);
         } catch (ArtifactDeploymentException e) {
-            throw new BuildException("Error deploying artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
+            throw new GradleException("Error deploying artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
         }
     }
 
     private ArtifactRepository getRemoteArtifactRepository(Artifact artifact) {
-
+        RemoteRepository deploymentRepository = remoteRepository;
         if (artifact.isSnapshot() && remoteSnapshotRepository != null) {
-            return createDeploymentArtifactRepository(remoteSnapshotRepository);
+            deploymentRepository = remoteSnapshotRepository;
         }
 
-        if (remoteRepository == null) {
+        if (deploymentRepository == null) {
             throw new GradleException("Must specify a repository for deployment");
         }
 
-        return createDeploymentArtifactRepository(remoteRepository);
+        // The repository id is used for `maven-metadata-${repository.id}.xml`, and to match credentials to repository.
+        initWagonManagerWithRepositorySettings("remote", deploymentRepository);
+        return new DefaultArtifactRepository("remote", deploymentRepository.getUrl(), new DefaultRepositoryLayout(), uniqueVersion);
     }
 
-    /**
-     * Create a core-Maven deployment ArtifactRepository from a Maven Ant Tasks's RemoteRepository definition.
-     *
-     * @param repository the remote repository as defined in Ant
-     * @return the corresponding ArtifactRepository
-     */
-    private ArtifactRepository createDeploymentArtifactRepository(RemoteRepository repository) {
-        if (repository.getId().equals(repository.getUrl())) {
-            // MANTTASKS-103: avoid default id set to the url, since it is used for maven-metadata-<id>.xml
-            repository.setId("remote");
-        }
-
-        ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, repository.getLayout());
-        ArtifactRepositoryFactory repositoryFactory = null;
-
-        try {
-            repositoryFactory = getArtifactRepositoryFactory(repository);
-            return repositoryFactory.createDeploymentArtifactRepository(repository.getId(), repository.getUrl(), repositoryLayout, uniqueVersion);
-        } finally {
-            releaseArtifactRepositoryFactory(repositoryFactory);
-        }
-    }
-
-    private void releaseArtifactRepositoryFactory(ArtifactRepositoryFactory repositoryFactory) {
-        try {
-            getContainer().release(repositoryFactory);
-        } catch (ComponentLifecycleException e) {
-            // TODO: Warn the user, or not?
-        }
-    }
-
-    public void addWagonJar(File jar) {
-        try {
-            getContainer().addJarResource(jar);
-        } catch (PlexusContainerException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Create a core-Maven ArtifactRepositoryFactory from a Maven-Ant RemoteRepository definition, eventually configured with authentication and proxy information.
-     *
-     * @param repository the remote repository as defined in Ant
-     * @return the corresponding ArtifactRepositoryFactory
-     */
-    private ArtifactRepositoryFactory getArtifactRepositoryFactory(RemoteRepository repository) {
-        WagonManager manager = (WagonManager) lookup(WagonManager.ROLE);
-
+    private void initWagonManagerWithRepositorySettings(String repositoryId, RemoteRepository repository) {
         Authentication authentication = repository.getAuthentication();
         if (authentication != null) {
-            manager.addAuthenticationInfo(repository.getId(), authentication.getUserName(),
+            wagonManager.addAuthenticationInfo(repositoryId, authentication.getUserName(),
                     authentication.getPassword(), authentication.getPrivateKey(),
                     authentication.getPassphrase());
         }
 
         Proxy proxy = repository.getProxy();
         if (proxy != null) {
-            manager.addProxy(proxy.getType(), proxy.getHost(), proxy.getPort(), proxy.getUserName(),
+            wagonManager.addProxy(proxy.getType(), proxy.getHost(), proxy.getPort(), proxy.getUserName(),
                     proxy.getPassword(), proxy.getNonProxyHosts());
         }
-
-        return (ArtifactRepositoryFactory) lookup(ArtifactRepositoryFactory.ROLE);
     }
 }
