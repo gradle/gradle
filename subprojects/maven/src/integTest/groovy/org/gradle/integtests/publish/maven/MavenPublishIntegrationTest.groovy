@@ -125,7 +125,8 @@ uploadArchives {
 
         then:
         def module = mavenRepo.module('group', 'root', 1.0)
-        module.assertArtifactsPublished('root-1.0-source.jar')
+        module.assertPublished()
+        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
 
     def "can publish a project with metadata artifacts"() {

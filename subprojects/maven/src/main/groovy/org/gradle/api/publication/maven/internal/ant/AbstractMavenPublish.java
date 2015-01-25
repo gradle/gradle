@@ -92,17 +92,21 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
         ArtifactRepository localRepo = createLocalArtifactRepository();
         ParsedMavenPom parsedMavenPom = new ParsedMavenPom(pomFile);
 
-        Artifact artifact = createMainArtifact(parsedMavenPom);
+        Artifact parentArtifact;
         if (mainArtifact == null) {
-            publishArtifact(artifact, pomFile, localRepo);
+            Artifact pomArtifact = createPomArtifact(parsedMavenPom);
+            publishArtifact(pomArtifact, pomFile, localRepo);
+            parentArtifact = pomArtifact;
         } else {
+            Artifact artifact = createMainArtifact(parsedMavenPom);
             ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
             artifact.addMetadata(metadata);
             publishArtifact(artifact, mainArtifact, localRepo);
+            parentArtifact = artifact;
         }
 
         for (AdditionalArtifact attachedArtifact : additionalArtifacts) {
-            Artifact attach = createAttachedArtifact(artifact, attachedArtifact.getType(), attachedArtifact.getClassifier());
+            Artifact attach = createAttachedArtifact(parentArtifact, attachedArtifact.getType(), attachedArtifact.getClassifier());
             publishArtifact(attach, attachedArtifact.getFile(), localRepo);
         }
     }
@@ -156,6 +160,11 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
     private Artifact createMainArtifact(ParsedMavenPom pom) {
         return new DefaultArtifact(pom.getGroup(), pom.getArtifactId(), VersionRange.createFromVersion(pom.getVersion()),
                 null, pom.getPackaging(), null, artifactHandler(pom.getPackaging()));
+    }
+
+    private Artifact createPomArtifact(ParsedMavenPom pom) {
+        return new DefaultArtifact(pom.getGroup(), pom.getArtifactId(), VersionRange.createFromVersion(pom.getVersion()),
+                null, "pom", null, artifactHandler("pom"));
     }
 
     private Artifact createAttachedArtifact(Artifact mainArtifact, String type, String classifier) {
