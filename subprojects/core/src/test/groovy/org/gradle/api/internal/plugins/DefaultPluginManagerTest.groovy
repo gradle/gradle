@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
@@ -29,7 +30,10 @@ import spock.lang.Specification
 class DefaultPluginManagerTest extends Specification {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoader)
+    def classLoaderScope = Stub(ClassLoaderScope) {
+        getLocalClassLoader() >> classLoader
+    }
+    def registry = new DefaultPluginRegistry(new PluginInspector(new ModelRuleSourceDetector()), classLoaderScope)
     def applicator = Mock(PluginApplicator)
     def manager = new DefaultPluginManager(registry, new DirectInstantiator(), applicator)
 

@@ -53,6 +53,8 @@ public interface ClassLoaderScope {
      * ClassLoader of the parent scope.
      *
      * <p>Can not be called after being locked.
+     *
+     * @return this
      */
     ClassLoaderScope local(ClassPath classPath);
 
@@ -61,6 +63,8 @@ public interface ClassLoaderScope {
      * of the parent scope.
      *
      * <p>Can not be called after being locked.
+     *
+     * @return this
      */
     ClassLoaderScope export(ClassPath classPath);
 
@@ -71,6 +75,8 @@ public interface ClassLoaderScope {
 
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.
+     *
+     * @return this
      */
     ClassLoaderScope lock();
 

@@ -293,8 +293,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
     }
 
-    protected PluginRegistry createPluginRegistry(PluginInspector pluginInspector) {
-        return new DefaultPluginRegistry(pluginInspector, get(ClassLoaderRegistry.class).getPluginsClassLoader());
+    protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
+        return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

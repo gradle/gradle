@@ -26,6 +26,12 @@ public interface PluginRegistry {
     <T> PluginImplementation<T> inspect(Class<T> clazz);
 
     /**
+     * Extracts plugin information for the given class, if known to this registry.
+     */
+    @Nullable
+    <T> PluginImplementation<T> maybeInspect(Class<T> clazz);
+
+    /**
      * Locates the plugin with the given id. Note that the id of the result may be different to the requested id.
      */
     @Nullable

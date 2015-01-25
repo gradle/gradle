@@ -25,8 +25,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.util.GUtil;
@@ -34,27 +32,26 @@ import org.gradle.util.GUtil;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginRegistry implements PluginRegistry {
-
     private final PluginRegistry parent;
     private final PluginInspector pluginInspector;
-    private final Factory<? extends ClassLoader> classLoaderFactory;
+    private final ClassLoaderScope classLoaderScope;
 
     private final LoadingCache<Class<?>, PluginImplementation<?>> classMappings;
     private final LoadingCache<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idMappings;
 
-    public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoader classLoader) {
-        this(null, pluginInspector, Factories.constant(classLoader));
+    public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
+        this(null, pluginInspector, classLoaderScope);
     }
 
-    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, final Factory<? extends ClassLoader> classLoaderFactory) {
+    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
-        this.classLoaderFactory = classLoaderFactory;
+        this.classLoaderScope = classLoaderScope;
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
             public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
-                final PluginId pluginId = key.getId();
+                PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
                 PluginDescriptorLocator locator = new ClassloaderBackedPluginDescriptorLocator(classLoader);
@@ -86,16 +83,38 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     public PluginRegistry createChild(final ClassLoaderScope lookupScope) {
-        return new DefaultPluginRegistry(this, pluginInspector, new Factory<ClassLoader>() {
-            public ClassLoader create() {
-                return lookupScope.getLocalClassLoader();
+        return new DefaultPluginRegistry(this, pluginInspector, lookupScope);
+    }
+
+    @Nullable
+    @Override
+    public <T> PluginImplementation<T> maybeInspect(Class<T> clazz) {
+        if (parent != null) {
+            PluginImplementation<T> implementation = parent.maybeInspect(clazz);
+            if (implementation != null) {
+                return implementation;
             }
-        });
+        }
+
+        try {
+            Class<?> visible = classLoaderScope.getLocalClassLoader().loadClass(clazz.getName());
+            if (visible.equals(clazz)) {
+                return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
+            }
+        } catch (ClassNotFoundException e) {
+            // Don't know about this type - ignore
+        }
+
+        return null;
     }
 
     public <T> PluginImplementation<T> inspect(Class<T> clazz) {
-        // Don't go up the parent chain.
-        // Don't want to risk classes crossing “scope” boundaries and being non collectible.
+        PluginImplementation<T> implementation = maybeInspect(clazz);
+        if (implementation != null) {
+            return implementation;
+        }
+
+        // Unknown type - just inspect ourselves. Should instead share this with all registries
         return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
     }
 
@@ -110,7 +129,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
-        return lookup(pluginId, classLoaderFactory.create());
+        return lookup(pluginId, classLoaderScope.getLocalClassLoader());
     }
 
     @Nullable

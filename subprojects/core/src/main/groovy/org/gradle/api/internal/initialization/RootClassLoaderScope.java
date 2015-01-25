@@ -22,22 +22,24 @@ import org.gradle.internal.id.LongIdGenerator;
 
 public class RootClassLoaderScope implements ClassLoaderScope {
 
-    private final ClassLoader classLoader;
+    private final ClassLoader localClassLoader;
+    private final ClassLoader exportClassLoader;
     private final ClassLoaderCache classLoaderCache;
     private final ScopeNodeIdentifier id;
 
-    public RootClassLoaderScope(ClassLoader classLoader, ClassLoaderCache classLoaderCache) {
-        this.classLoader = classLoader;
+    public RootClassLoaderScope(ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache) {
+        this.localClassLoader = localClassLoader;
+        this.exportClassLoader = exportClassLoader;
         this.classLoaderCache = classLoaderCache;
         this.id = new ScopeNodeIdentifier("root", new LongIdGenerator());
     }
 
     public ClassLoader getLocalClassLoader() {
-        return classLoader;
+        return localClassLoader;
     }
 
     public ClassLoader getExportClassLoader() {
-        return classLoader;
+        return exportClassLoader;
     }
 
     public ClassLoaderScope getParent() {

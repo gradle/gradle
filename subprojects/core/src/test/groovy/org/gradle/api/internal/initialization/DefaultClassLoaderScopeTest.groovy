@@ -42,7 +42,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     def setup() {
         file("root/root") << "root"
         rootClassLoader = new URLClassLoader(classPath("root").asURLArray)
-        root = new RootClassLoaderScope(rootClassLoader, classLoaderCache)
+        root = new RootClassLoaderScope(rootClassLoader, rootClassLoader, classLoaderCache)
         scope = root.createChild()
     }
 

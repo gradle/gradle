@@ -31,9 +31,12 @@ import spock.lang.Specification
 class DefaultPluginRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-    final classLoader = Mock(ClassLoader)
+    def classLoader = Mock(ClassLoader)
+    def classLoaderScope = Stub(ClassLoaderScope) {
+        getLocalClassLoader() >> classLoader
+    }
     def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
-    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
+    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope)
 
     def "can locate imperative plugin implementation given an id"() {
         def url = writePluginProperties(TestPlugin1)
@@ -166,6 +169,8 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "inspects imperative plugin implementation"() {
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
         plugin.type == PotentialPlugin.Type.IMPERATIVE_CLASS
@@ -174,6 +179,8 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "inspects imperative plugin implementation that has no id mapping"() {
+        classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
+
         expect:
         def plugin = pluginRegistry.inspect(TestPlugin1.class)
         !plugin.isAlsoKnownAs(PluginId.of("org.gradle.some-plugin"))
@@ -207,6 +214,8 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     def "inspects class that is not a plugin implementation"() {
+        classLoader.loadClass(String.name) >> String
+
         expect:
         pluginRegistry.inspect(String.class).type == PotentialPlugin.Type.UNKNOWN
     }

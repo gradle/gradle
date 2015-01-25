@@ -50,7 +50,7 @@ public class ClassPathPluginResolution implements PluginResolution {
         ClassLoaderScope loaderScope = parent.createChild();
         loaderScope.local(classPath);
         loaderScope.lock();
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, loaderScope.getLocalClassLoader());
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, loaderScope);
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
