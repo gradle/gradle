@@ -23,8 +23,7 @@ import org.gradle.api.GradleException;
 import java.io.File;
 import java.io.FileReader;
 
-public class ParsedMavenPom
-{
+public class ParsedMavenPom {
     private Model model;
 
     public ParsedMavenPom(File pomFile) {
