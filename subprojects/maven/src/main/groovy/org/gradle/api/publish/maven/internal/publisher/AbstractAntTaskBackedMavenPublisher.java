@@ -51,7 +51,9 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublish
 
     private void addPomAndArtifacts(MavenPublishSupport installOrDeployTask, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();
-        installOrDeployTask.setMainArtifact(mainArtifact == null ? publication.getPomFile() : mainArtifact.getFile());
+        if (mainArtifact != null) {
+            installOrDeployTask.setMainArtifact(mainArtifact.getFile());
+        }
 
         for (MavenArtifact mavenArtifact : publication.getArtifacts()) {
             if (mavenArtifact == mainArtifact) {

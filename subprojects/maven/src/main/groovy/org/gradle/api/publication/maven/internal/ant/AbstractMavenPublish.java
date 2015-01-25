@@ -89,23 +89,16 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
     }
 
     private void doPublish() {
-        if (mainArtifact == null && (additionalArtifacts.size() == 0)) {
-            throw new BuildException("You must specify a file and/or an attached artifact for Maven publishing.");
-        }
-
         ArtifactRepository localRepo = createLocalArtifactRepository();
         ParsedMavenPom parsedMavenPom = new ParsedMavenPom(pomFile);
 
         Artifact artifact = createMainArtifact(parsedMavenPom);
-        if (mainArtifact != null) {
-            boolean isPomArtifact = "pom".equals(parsedMavenPom.getPackaging());
-            if (isPomArtifact) {
-                publishArtifact(artifact, pomFile, localRepo);
-            } else {
-                ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
-                artifact.addMetadata(metadata);
-                publishArtifact(artifact, mainArtifact, localRepo);
-            }
+        if (mainArtifact == null) {
+            publishArtifact(artifact, pomFile, localRepo);
+        } else {
+            ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
+            artifact.addMetadata(metadata);
+            publishArtifact(artifact, mainArtifact, localRepo);
         }
 
         for (AdditionalArtifact attachedArtifact : additionalArtifacts) {
