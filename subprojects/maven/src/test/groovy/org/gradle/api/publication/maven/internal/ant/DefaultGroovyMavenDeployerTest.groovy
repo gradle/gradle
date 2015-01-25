@@ -15,8 +15,9 @@
  */
 
 package org.gradle.api.publication.maven.internal.ant
-
 import org.gradle.api.artifacts.maven.PomFilterContainer
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.util.JUnit4GroovyMockery
@@ -31,7 +32,9 @@ class DefaultGroovyMavenDeployerTest {
     protected ArtifactPomContainer artifactPomContainerMock = context.mock(ArtifactPomContainer)
     protected PomFilterContainer pomFilterContainerMock = context.mock(PomFilterContainer);
     protected LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal);
-    private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock)
+    protected MavenSettingsProvider mavenSettingsProvider = context.mock(MavenSettingsProvider)
+    protected LocalMavenRepositoryLocator mavenRepositoryLocator = context.mock(LocalMavenRepositoryLocator)
+    private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock, mavenSettingsProvider, mavenRepositoryLocator)
 
     protected PomFilterContainer createPomFilterContainerMock() {
         context.mock(PomFilterContainer.class);

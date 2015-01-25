@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenLocalPublisher;
@@ -33,6 +34,11 @@ import org.gradle.api.tasks.TaskAction;
  */
 @Incubating
 public class PublishToMavenLocal extends PublishToMavenRepository {
+    @Override
+    public void setRepository(MavenArtifactRepository repository) {
+        throw new UnsupportedOperationException("Cannot set repository for PublishToMavenLocal");
+    }
+
     @TaskAction
     public void publish() {
         final MavenPublicationInternal publication = getPublicationInternal();

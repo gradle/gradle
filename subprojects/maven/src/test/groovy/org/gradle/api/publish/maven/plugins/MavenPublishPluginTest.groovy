@@ -15,11 +15,8 @@
  */
 
 package org.gradle.api.publish.maven.plugins
-
-import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -85,8 +82,7 @@ class MavenPublishPluginTest extends Specification {
         expect:
         publishLocalTasks.size() == 1
         publishLocalTasks.first().name == "publishTestPublicationToMavenLocal"
-        publishLocalTasks.first().repository.name == ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME
-        publishLocalTasks.first().repository.url == project.getServices().get(BaseRepositoryFactory).createMavenLocalRepository().url
+        publishLocalTasks.first().repository == null
     }
 
     def "can explicitly add mavenLocal as a publishing repository"() {
@@ -102,7 +98,7 @@ class MavenPublishPluginTest extends Specification {
         publishTasks.first().repository.is(mavenLocal)
 
         publishLocalTasks.size() == 1
-        publishTasks.first().repository.url == publishLocalTasks.first().repository.url
+        publishLocalTasks.first().repository == null
     }
 
     def "tasks are created for compatible publication / repo"() {
