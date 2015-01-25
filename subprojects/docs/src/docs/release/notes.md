@@ -143,7 +143,9 @@ We would like to thank the following community members for making contributions 
     - Adding support for AWS S3 backed maven repositories
     - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
-* [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
+* [Victor Bronstein](https://github.com/victorbr) 
+    - Convert NotationParser implementations to NotationConverter
+    - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219) 
 * [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
 * [Michal Bendowski](https://github.com/bendowski-google) - fix webDist userguide example
 
