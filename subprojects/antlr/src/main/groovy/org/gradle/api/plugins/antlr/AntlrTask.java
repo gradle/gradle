@@ -22,10 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Factory;
@@ -97,6 +94,9 @@ public class AntlrTask extends SourceTask {
         this.traceTreeWalker = traceTreeWalker;
     }
 
+    /**
+     * The maximum heap size for the forked antlr process (ex: '1g').
+     */
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -111,6 +111,7 @@ public class AntlrTask extends SourceTask {
         }
     }
 
+    @Input
     public List<String> getArguments() {
         return arguments;
     }
@@ -149,7 +150,7 @@ public class AntlrTask extends SourceTask {
      *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
-    public void setAntlrClasspath(FileCollection antlrClasspath) {
+    protected void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }
 
@@ -162,16 +163,12 @@ public class AntlrTask extends SourceTask {
     public void execute(IncrementalTaskInputs inputs) {
         final List<File> grammarFiles = new ArrayList<File>();
         final Set<File> sourceFiles = getSource().getFiles();
-
         inputs.outOfDate(
                 new Action<InputFileDetails>() {
                     public void execute(InputFileDetails details) {
                         File input = details.getFile();
-                        for (File file : sourceFiles) {
-                            if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
-                                grammarFiles.add(input);
-                                break;
-                            }
+                        if(sourceFiles.contains(input)) {
+                            grammarFiles.add(input);
                         }
                     }
                 }

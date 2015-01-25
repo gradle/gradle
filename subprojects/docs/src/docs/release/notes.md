@@ -49,7 +49,7 @@ These methods should be used when reacting to the presence of another plugin or 
 
 TODO - more detail.
 
-### ANTLR plugin supports ANTLR version 3.X and 4.X
+### Changes to ANTLR plugin supports ANTLR version 3.X and 4.X
 
 Additionally to the existing 2.X support, the [ANTLR Plugin](userguide/antlrPlugin.html) now supports ANTLR version 3 and 4.
 To use ANTLR version 3 or 4 in a build, an according antlr dependency must be declared explicitly:
@@ -169,6 +169,13 @@ The `--no-color` option has been replaced by the more general `--console` option
 The `--no-color` option will be removed in Gradle 3.0.
 
 ## Potential breaking changes
+
+### AntlrTask input files are not processed incrementally
+
+The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) is now processing input files incrementally,
+which means, that if the task was executed before, only changed sourcefiles are processed.
+
+See [Writing Custom Task Classes](userguide/custom_tasks.html) for further details.
 
 ### Major changes to incubating 'native-component' and 'jvm-component' plugins
 
