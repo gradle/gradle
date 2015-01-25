@@ -125,7 +125,7 @@ public class MavenDeploy extends AbstractMavenPublish {
     }
 
     /**
-     * Create a core-Maven ArtifactRepositoryFactory from a Maven Ant Tasks's RemoteRepository definition, eventually configured with authentication and proxy information.
+     * Create a core-Maven ArtifactRepositoryFactory from a Maven-Ant RemoteRepository definition, eventually configured with authentication and proxy information.
      *
      * @param repository the remote repository as defined in Ant
      * @return the corresponding ArtifactRepositoryFactory
