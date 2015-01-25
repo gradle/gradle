@@ -19,7 +19,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.installer.ArtifactInstallationException;
 import org.apache.maven.artifact.installer.ArtifactInstaller;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.BuildException;
 
 import java.io.File;
@@ -39,11 +38,4 @@ public class MavenInstallTask extends BaseMavenPublishTask {
                     "Error installing artifact '" + artifact.getDependencyConflictId() + "': " + e.getMessage(), e);
         }
     }
-
-    @Override
-    public synchronized Settings getSettings() {
-        return super.getSettings();
-    }
-
-
 }

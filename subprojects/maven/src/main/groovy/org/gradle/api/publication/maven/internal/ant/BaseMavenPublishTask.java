@@ -22,55 +22,49 @@ package org.gradle.api.publication.maven.internal.ant;
 import com.beust.jcommander.internal.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.LocalRepository;
-import org.apache.maven.artifact.ant.Proxy;
-import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.metadata.ArtifactMetadata;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.DefaultArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.artifact.AttachedArtifact;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
 import org.apache.maven.settings.Settings;
-import org.apache.maven.wagon.events.TransferEvent;
-import org.apache.maven.wagon.events.TransferListener;
 import org.apache.tools.ant.BuildException;
 import org.codehaus.classworlds.ClassWorld;
 import org.codehaus.classworlds.DuplicateRealmException;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
-import org.codehaus.plexus.component.repository.exception.ComponentLifecycleException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.embed.Embedder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.util.List;
 
 public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseMavenPublishTask.class);
-
     private static ClassLoader plexusClassLoader;
 
     private final File pomFile;
 
     private Settings settings;
-
     private PlexusContainer container;
-
-    private LocalRepository localRepository;
 
     protected File mainArtifact;
     protected List<AdditionalArtifact> additionalArtifacts = Lists.newArrayList();
 
     protected BaseMavenPublishTask(File pomFile) {
         this.pomFile = pomFile;
+    }
+
+    public void initSettings(File settingsFile) {
+        this.settings = new MavenSettingsLoader().loadSettings(settingsFile);
+
+        WagonManager wagonManager = (WagonManager) lookup(WagonManager.ROLE);
+        wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());
     }
 
     public void setMainArtifact(File file) {
@@ -87,81 +81,69 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         additionalArtifacts.add(artifact);
     }
 
-    protected ArtifactRepository createLocalArtifactRepository() {
-        ArtifactRepositoryLayout repositoryLayout =
-                (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
-
-        return new DefaultArtifactRepository("local", "file://" + getLocalRepository().getPath(), repositoryLayout);
+    public Settings getSettings() {
+        return settings;
     }
 
-    /**
-     * Create a core-Maven ArtifactRepositoryFactory from a Maven Ant Tasks's RemoteRepository definition, eventually configured with authentication and proxy information.
-     *
-     * @param repository the remote repository as defined in Ant
-     * @return the corresponding ArtifactRepositoryFactory
-     */
-    protected ArtifactRepositoryFactory getArtifactRepositoryFactory(RemoteRepository repository) {
-        WagonManager manager = (WagonManager) lookup(WagonManager.ROLE);
-
-        Authentication authentication = repository.getAuthentication();
-        if (authentication != null) {
-            manager.addAuthenticationInfo(repository.getId(), authentication.getUserName(),
-                    authentication.getPassword(), authentication.getPrivateKey(),
-                    authentication.getPassphrase());
-        }
-
-        Proxy proxy = repository.getProxy();
-        if (proxy != null) {
-            manager.addProxy(proxy.getType(), proxy.getHost(), proxy.getPort(), proxy.getUserName(),
-                    proxy.getPassword(), proxy.getNonProxyHosts());
-        }
-
-        return (ArtifactRepositoryFactory) lookup(ArtifactRepositoryFactory.ROLE);
-    }
-
-    protected void releaseArtifactRepositoryFactory(ArtifactRepositoryFactory repositoryFactory) {
+    public void execute() {
+        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            getContainer().release(repositoryFactory);
-        } catch (ComponentLifecycleException e) {
-            // TODO: Warn the user, or not?
+            if (plexusClassLoader != null) {
+                Thread.currentThread().setContextClassLoader(plexusClassLoader);
+            }
+            publish();
+        } finally {
+            plexusClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
         }
     }
 
-    protected LocalRepository getDefaultLocalRepository() {
-        Settings settings = getSettings();
-        LocalRepository localRepository = new LocalRepository();
-        localRepository.setId("local");
-        localRepository.setPath(new File(settings.getLocalRepository()));
-        return localRepository;
+    public void publish() {
+        if (mainArtifact == null && (additionalArtifacts.size() == 0)) {
+            throw new BuildException("You must specify a file and/or an attached artifact for Maven publishing.");
+        }
+
+        ArtifactRepository localRepo = createLocalArtifactRepository();
+        ParsedMavenPom parsedMavenPom = new ParsedMavenPom(pomFile);
+
+        Artifact artifact = createMainArtifact(parsedMavenPom);
+        if (mainArtifact != null) {
+            boolean isPomArtifact = "pom".equals(parsedMavenPom.getPackaging());
+            if (isPomArtifact) {
+                doPublish(artifact, pomFile, localRepo);
+            } else {
+                ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
+                artifact.addMetadata(metadata);
+                doPublish(artifact, mainArtifact, localRepo);
+            }
+        }
+
+        for (AdditionalArtifact attachedArtifact : additionalArtifacts) {
+            Artifact attach = createAttachedArtifact(artifact, attachedArtifact.getType(), attachedArtifact.getClassifier());
+            doPublish(attach, attachedArtifact.getFile(), localRepo);
+        }
     }
 
     protected abstract void doPublish(Artifact artifact, File pomFile, ArtifactRepository localRepo);
 
-    public synchronized Settings getSettings() {
-        return settings;
-    }
-
-    public void initSettings(File settingsFile) {
-        this.settings = new MavenSettingsLoader().loadSettings(settingsFile);
-
-        WagonManager wagonManager = (WagonManager) lookup(WagonManager.ROLE);
-        wagonManager.setDownloadMonitor(new LoggingTransferListener());
+    protected ArtifactRepository createLocalArtifactRepository() {
+        ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
+        return new DefaultArtifactRepository("local", "file://" + getLocalRepository().getPath(), repositoryLayout);
     }
 
     protected Object lookup(String role) {
         try {
             return getContainer().lookup(role);
         } catch (ComponentLookupException e) {
-            throw new BuildException("Unable to find component: " + role, e);
+            throw new GradleException("Unable to find component: " + role, e);
         }
     }
 
-    protected Object lookup(String role,
-                            String roleHint) {
+    protected Object lookup(String role, String roleHint) {
         try {
             return getContainer().lookup(role, roleHint);
         } catch (ComponentLookupException e) {
-            throw new BuildException("Unable to find component: " + role + "[" + roleHint + "]", e);
+            throw new GradleException("Unable to find component: " + role + "[" + roleHint + "]", e);
         }
     }
 
@@ -189,115 +171,23 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
     }
 
     public LocalRepository getLocalRepository() {
-        if (localRepository == null) {
-            localRepository = getDefaultLocalRepository();
-        }
+        LocalRepository localRepository = new LocalRepository();
+        localRepository.setId("local");
+        localRepository.setPath(new File(settings.getLocalRepository()));
         return localRepository;
     }
 
-    /**
-     * @noinspection RefusedBequest
-     */
-    public void execute() {
-        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            if (plexusClassLoader != null) {
-                Thread.currentThread().setContextClassLoader(plexusClassLoader);
-            }
-            doExecute();
-        } finally {
-            plexusClassLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(originalClassLoader);
-        }
+    private Artifact createMainArtifact(ParsedMavenPom pom) {
+        return new DefaultArtifact(pom.getGroup(), pom.getArtifactId(), VersionRange.createFromVersion(pom.getVersion()),
+                null, pom.getPackaging(), null, artifactHandler(pom.getPackaging()));
     }
 
-    public void doExecute() {
-        if (mainArtifact == null && (additionalArtifacts.size() == 0)) {
-            throw new BuildException("You must specify a file and/or an attached artifact for Maven publishing.");
-        }
-
-        ArtifactRepository localRepo = createLocalArtifactRepository();
-        ParsedMavenPom parsedMavenPom = new ParsedMavenPom(pomFile);
-
-        Artifact artifact = createMainArtifact(parsedMavenPom);
-        if (mainArtifact != null) {
-            boolean isPomArtifact = "pom".equals(parsedMavenPom.getPackaging());
-            if (isPomArtifact) {
-                doPublish(artifact, pomFile, localRepo);
-            } else {
-                ArtifactMetadata metadata = new ProjectArtifactMetadata(artifact, pomFile);
-                artifact.addMetadata(metadata);
-                doPublish(artifact, mainArtifact, localRepo);
-            }
-        }
-
-        for (AdditionalArtifact attachedArtifact : additionalArtifacts) {
-            Artifact attach = createAttachedArtifact(artifact, attachedArtifact.getType(), attachedArtifact.getClassifier());
-            doPublish(attach, attachedArtifact.getFile(), localRepo);
-        }
-    }
-    public Artifact createMainArtifact(ParsedMavenPom builder)
-    {
-        return new DefaultArtifact(builder.getGroup(), builder.getArtifactId(), VersionRange.createFromVersion(builder.getVersion()),
-                null, builder.getPackaging(), null, artifactHandler(builder.getPackaging()));
-    }
-
-    public Artifact createAttachedArtifact(Artifact mainArtifact, String type, String classifier) {
+    private Artifact createAttachedArtifact(Artifact mainArtifact, String type, String classifier) {
         return new AttachedArtifact(mainArtifact, type, classifier, artifactHandler(type));
     }
 
     private DefaultArtifactHandler artifactHandler(String type) {
         return new DefaultArtifactHandler(type);
-    }
-
-    protected void log(String message) {
-        LOGGER.info(message);
-    }
-
-    protected void log(String message, int level) {
-        LOGGER.info(message);
-    }
-
-    private class LoggingTransferListener implements TransferListener {
-        private static final int KILO = 1024;
-
-        protected void log(String message) {
-            LOGGER.info(message);
-        }
-
-        public void debug(String s) {
-            LOGGER.debug(s);
-        }
-
-        public void transferError(TransferEvent event) {
-            LOGGER.error(event.getException().getMessage());
-        }
-
-        public void transferInitiated(TransferEvent event) {
-            String message = event.getRequestType() == TransferEvent.REQUEST_PUT ? "Uploading" : "Downloading";
-            String dest = event.getRequestType() == TransferEvent.REQUEST_PUT ? " to " : " from ";
-
-            LOGGER.info(message + ": " + event.getResource().getName() + dest + "repository "
-                    + event.getWagon().getRepository().getId() + " at " + event.getWagon().getRepository().getUrl());
-        }
-
-        public void transferStarted(TransferEvent event) {
-            long contentLength = event.getResource().getContentLength();
-            if (contentLength > 0) {
-                LOGGER.info("Transferring " + ((contentLength + KILO / 2) / KILO) + "K from "
-                        + event.getWagon().getRepository().getId());
-            }
-        }
-
-        public void transferProgress(TransferEvent event, byte[] bytes, int i) {
-        }
-
-        public void transferCompleted(TransferEvent event) {
-            long contentLength = event.getResource().getContentLength();
-            if ((contentLength > 0) && (event.getRequestType() == TransferEvent.REQUEST_PUT)) {
-                LOGGER.info("Uploaded " + ((contentLength + KILO / 2) / KILO) + "K");
-            }
-        }
     }
 
     private static class AdditionalArtifact {

@@ -60,10 +60,5 @@ public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPubli
             ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
             return new DefaultArtifactRepository("local", tmpDirFactory.create().toURI().toString(), repositoryLayout);
         }
-
-        @Override
-        protected void updateRepositoryWithSettings(RemoteRepository repository) {
-            // Do nothing
-        }
     }
 }
