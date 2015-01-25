@@ -455,23 +455,30 @@ public class DefaultModelRegistry implements ModelRegistry {
             return nodeState.ordinal() < desired.ordinal();
         }
 
-        node.setState(to);
+        while (true) {
+            //MultiMap.get() returns a live collection and force binding rules might change it
+            while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
+                forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
+            }
 
-        //MultiMap.get() returns a live collection and force binding rules might change it
-        while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
-            forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
+            Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
+            if (mutators.isEmpty()) {
+                break;
+            }
+
+            for (BoundModelMutator<?> mutator : mutators) {
+                fireMutation(node, mutator);
+                List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
+                    @Nullable
+                    public ModelPath apply(ModelBinding<?> input) {
+                        return input.getPath();
+                    }
+                });
+                usedActions.put(path, inputPaths);
+            }
         }
-        Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
-        for (BoundModelMutator<?> mutator : mutators) {
-            fireMutation(node, mutator);
-            List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
-                @Nullable
-                public ModelPath apply(ModelBinding<?> input) {
-                    return input.getPath();
-                }
-            });
-            usedActions.put(path, inputPaths);
-        }
+
+        node.setState(to);
 
         if (to == desired) {
             LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, originalState.name(), desired.name());

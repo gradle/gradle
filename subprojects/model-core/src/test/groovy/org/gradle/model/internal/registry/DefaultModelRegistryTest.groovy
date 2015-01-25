@@ -398,17 +398,12 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         fromRole                   | targetRole
-        ModelActionRole.Defaults   | ModelActionRole.Defaults
-        ModelActionRole.Initialize | ModelActionRole.Initialize
         ModelActionRole.Initialize | ModelActionRole.Defaults
-        ModelActionRole.Mutate     | ModelActionRole.Mutate
         ModelActionRole.Mutate     | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Initialize
-        ModelActionRole.Finalize   | ModelActionRole.Finalize
         ModelActionRole.Finalize   | ModelActionRole.Defaults
         ModelActionRole.Finalize   | ModelActionRole.Initialize
         ModelActionRole.Finalize   | ModelActionRole.Mutate
-        ModelActionRole.Validate   | ModelActionRole.Validate
         ModelActionRole.Validate   | ModelActionRole.Defaults
         ModelActionRole.Validate   | ModelActionRole.Initialize
         ModelActionRole.Validate   | ModelActionRole.Mutate
@@ -462,28 +457,33 @@ class DefaultModelRegistryTest extends Specification {
         def action = Stub(Action)
 
         given:
-        registry.createInstance("thing", "value")
+        registry.createInstance("thing", new MutableValue(value: "initial"))
                 .apply(fromRole) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
+        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(MutableValue).action { it.value = "mutated" } } }
 
         when:
-        registry.realize(ModelPath.path("thing"), ModelType.untyped())
+        def thing = registry.realize(ModelPath.path("thing"), ModelType.of(MutableValue))
 
         then:
-        noExceptionThrown()
+        thing.value == "mutated"
 
         where:
         fromRole                   | targetRole
+        ModelActionRole.Defaults   | ModelActionRole.Defaults
         ModelActionRole.Defaults   | ModelActionRole.Initialize
         ModelActionRole.Defaults   | ModelActionRole.Mutate
         ModelActionRole.Defaults   | ModelActionRole.Finalize
         ModelActionRole.Defaults   | ModelActionRole.Validate
+        ModelActionRole.Initialize | ModelActionRole.Initialize
         ModelActionRole.Initialize | ModelActionRole.Mutate
         ModelActionRole.Initialize | ModelActionRole.Finalize
         ModelActionRole.Initialize | ModelActionRole.Validate
+        ModelActionRole.Mutate     | ModelActionRole.Mutate
         ModelActionRole.Mutate     | ModelActionRole.Finalize
         ModelActionRole.Mutate     | ModelActionRole.Validate
+        ModelActionRole.Finalize   | ModelActionRole.Finalize
         ModelActionRole.Finalize   | ModelActionRole.Validate
+        ModelActionRole.Validate   | ModelActionRole.Validate
     }
 
     @Unroll
