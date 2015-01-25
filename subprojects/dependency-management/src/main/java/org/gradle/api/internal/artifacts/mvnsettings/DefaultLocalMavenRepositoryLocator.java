@@ -31,6 +31,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private final MavenSettingsProvider settingsProvider;
     private File localMavenRepository;
     private final SystemPropertyAccess system;
+    private String localRepoPathFromMavenSettings;
 
     public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider) {
         this(settingsProvider, new CurrentSystemPropertyAccess());
@@ -41,22 +42,13 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         this.system = system;
     }
 
-    public synchronized File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
-        if (localMavenRepository != null) {
-            return localMavenRepository;
-        }
-        localMavenRepository = determineLocalMavenRepository();
-        return localMavenRepository;
-    }
-
-    private File determineLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
+    public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException {
         String localOverride = system.getProperty("maven.repo.local");
         if (localOverride != null) {
             return new File(localOverride);
         }
         try {
-            Settings settings = settingsProvider.buildSettings();
-            String repoPath = settings.getLocalRepository();
+            String repoPath = parseLocalRepoPathFromMavenSettings();
             if (repoPath != null) {
                 return new File(resolvePlaceholders(repoPath.trim()));
             } else {
@@ -67,6 +59,14 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         } catch (SettingsBuildingException e) {
             throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings.", e);
         }
+    }
+
+    private synchronized String parseLocalRepoPathFromMavenSettings() throws SettingsBuildingException {
+        if (localRepoPathFromMavenSettings == null) {
+            Settings settings = settingsProvider.buildSettings();
+            localRepoPathFromMavenSettings = settings.getLocalRepository();
+        }
+        return localRepoPathFromMavenSettings;
     }
 
     private String resolvePlaceholders(String value) {
@@ -81,7 +81,6 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);
-
         return result.toString();
     }
 

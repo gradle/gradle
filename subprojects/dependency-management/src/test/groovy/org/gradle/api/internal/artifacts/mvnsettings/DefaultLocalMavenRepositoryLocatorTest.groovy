@@ -89,6 +89,20 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == repo1
     }
 
+    def "ignores changes to maven settings file after initial load"() {
+        when:
+        writeSettingsFile(locations.userSettingsFile, repo1)
+
+        then:
+        locator.localMavenRepository == repo1
+
+        when:
+        writeSettingsFile(locations.userSettingsFile, repo2)
+
+        then:
+        locator.localMavenRepository == repo1
+    }
+
     def "honors location specified in global settings file"() {
         writeSettingsFile(locations.globalSettingsFile, repo1)
 
@@ -147,14 +161,12 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         'env.unknown.ENV_VAR' |   "environment variable"
     }
 
-
-
     private void writeSettingsFile(File settings, File repo) {
         writeSettingsFile(settings, repo.absolutePath)
     }
 
     private void writeSettingsFile(File settings, String repo) {
-        settings << """
+        settings.text = """
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <localRepository>$repo</localRepository>
