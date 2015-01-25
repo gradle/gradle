@@ -49,6 +49,12 @@ public interface ClassLoaderScope {
     ClassLoaderScope getParent();
 
     /**
+     * Returns true if this scope defines the given Class. That is, the class is local and/or exported by this scope and not inherited from
+     * some parent.
+     */
+    boolean defines(Class<?> clazz);
+
+    /**
      * Makes the provided classes visible to this scope, but not to children. The classes are loaded in their own ClassLoader whose parent is the export
      * ClassLoader of the parent scope.
      *

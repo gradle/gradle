@@ -46,6 +46,11 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         return this; // should this be null?
     }
 
+    @Override
+    public boolean defines(Class<?> clazz) {
+        return localClassLoader.equals(clazz.getClassLoader()) || exportClassLoader.equals(clazz.getClassLoader());
+    }
+
     public ClassLoaderScope local(ClassPath classPath) {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }

@@ -89,20 +89,15 @@ public class DefaultPluginRegistry implements PluginRegistry {
     @Nullable
     @Override
     public <T> PluginImplementation<T> maybeInspect(Class<T> clazz) {
+        if (classLoaderScope.defines(clazz)) {
+            return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
+        }
+
         if (parent != null) {
             PluginImplementation<T> implementation = parent.maybeInspect(clazz);
             if (implementation != null) {
                 return implementation;
             }
-        }
-
-        try {
-            Class<?> visible = classLoaderScope.getLocalClassLoader().loadClass(clazz.getName());
-            if (visible.equals(clazz)) {
-                return Cast.uncheckedCast(uncheckedGet(classMappings, clazz));
-            }
-        } catch (ClassNotFoundException e) {
-            // Don't know about this type - ignore
         }
 
         return null;
