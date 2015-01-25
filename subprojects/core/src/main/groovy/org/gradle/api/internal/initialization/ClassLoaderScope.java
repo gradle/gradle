@@ -49,10 +49,18 @@ public interface ClassLoaderScope {
     ClassLoaderScope getParent();
 
     /**
+     * Returns true if this scope defines the given Class. That is, the class is local and/or exported by this scope and not inherited from
+     * some parent.
+     */
+    boolean defines(Class<?> clazz);
+
+    /**
      * Makes the provided classes visible to this scope, but not to children. The classes are loaded in their own ClassLoader whose parent is the export
      * ClassLoader of the parent scope.
      *
      * <p>Can not be called after being locked.
+     *
+     * @return this
      */
     ClassLoaderScope local(ClassPath classPath);
 
@@ -61,6 +69,8 @@ public interface ClassLoaderScope {
      * of the parent scope.
      *
      * <p>Can not be called after being locked.
+     *
+     * @return this
      */
     ClassLoaderScope export(ClassPath classPath);
 
@@ -71,6 +81,8 @@ public interface ClassLoaderScope {
 
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.
+     *
+     * @return this
      */
     ClassLoaderScope lock();
 

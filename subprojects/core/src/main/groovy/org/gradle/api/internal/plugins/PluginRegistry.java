@@ -19,20 +19,23 @@ package org.gradle.api.internal.plugins;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.internal.PluginId;
 
 @ThreadSafe
 public interface PluginRegistry {
+    <T> PluginImplementation<T> inspect(Class<T> clazz);
 
-    // Note: the methods taking a String 'idOrName' may implicitly resolve the name to an ID
-    //       in such cases, the return value will convey the fully qualified ID
-
-    <T> PotentialPlugin<T> inspect(Class<T> clazz);
-
+    /**
+     * Extracts plugin information for the given class, if known to this registry.
+     */
     @Nullable
-    PotentialPluginWithId lookup(String idOrName);
+    <T> PluginImplementation<T> maybeInspect(Class<T> clazz);
 
+    /**
+     * Locates the plugin with the given id. Note that the id of the result may be different to the requested id.
+     */
     @Nullable
-    PotentialPluginWithId lookup(String idOrName, ClassLoader classLoader);
+    PluginImplementation<?> lookup(PluginId pluginId);
 
     PluginRegistry createChild(ClassLoaderScope lookupScope);
 

@@ -19,7 +19,7 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.PotentialPluginWithId;
+import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -38,18 +38,17 @@ public class CorePluginResolver implements PluginResolver {
         PluginId id = pluginRequest.getId();
 
         if (!id.isQualified() || id.inNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE)) {
-            PotentialPluginWithId lookup = pluginRegistry.lookup(id.getName());
-            if (lookup == null) {
+            PluginImplementation<?> plugin = pluginRegistry.lookup(id);
+            if (plugin == null) {
                 result.notFound(getDescription(), String.format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
             } else {
-                Class<?> typeForId = lookup.asClass();
                 if (pluginRequest.getVersion() != null) {
                     throw new InvalidPluginRequestException(pluginRequest,
                             "Plugin '" + id + "' is a core Gradle plugin, which cannot be specified with a version number. "
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
-                result.found(getDescription(), new SimplePluginResolution(id, typeForId));
+                result.found(getDescription(), new SimplePluginResolution(plugin));
             }
         } else {
             result.notFound(getDescription(), String.format("plugin is not in '%s' namespace", DefaultPluginManager.CORE_PLUGIN_NAMESPACE));

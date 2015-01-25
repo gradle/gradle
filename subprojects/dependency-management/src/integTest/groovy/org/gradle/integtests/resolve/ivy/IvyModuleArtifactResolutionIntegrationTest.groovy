@@ -63,7 +63,8 @@ repositories {
 
         when:
         fixture.requestComponent(component).requestArtifact(artifactType)
-               .expectUnresolvedComponentResult(exception).expectMetadataFiles()
+               .expectUnresolvedComponentResult(exception)
+               .expectNoMetadataFiles()
                .createVerifyTaskModuleComponentIdentifier()
         module.ivy.expectGet()
 
@@ -83,7 +84,7 @@ repositories {
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
                .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)"))
-               .expectMetadataFiles()
+               .expectNoMetadataFiles()
                .createVerifyTaskForProjectComponentIdentifier()
 
         module.ivy.expectGet()
@@ -98,7 +99,9 @@ repositories {
 
         when:
         fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
-               .expectResolvedComponentResult().expectMetadataFiles()
+               .expectResolvedComponentResult()
+               .expectNoMetadataFiles()
+               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy.xml (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
         module.ivy.expectGetMissing()

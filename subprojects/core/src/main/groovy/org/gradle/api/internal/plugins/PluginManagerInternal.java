@@ -24,24 +24,27 @@ import org.gradle.api.plugins.PluginManager;
 import org.gradle.plugin.internal.PluginId;
 
 public interface PluginManagerInternal extends PluginManager {
+    void apply(PluginImplementation<?> plugin);
 
-    <P extends Plugin> P addImperativePlugin(String id, Class<P> plugin);
+    <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin);
+
+    <P extends Plugin> P addImperativePlugin(Class<P> plugin);
 
     PluginContainer getPluginContainer();
 
     DomainObjectSet<PluginWithId> pluginsForId(String id);
 
     class PluginWithId {
-        final String id;
+        final PluginId id;
         final Class<?> clazz;
 
-        public PluginWithId(String id, Class<?> clazz) {
+        public PluginWithId(PluginId id, Class<?> clazz) {
             this.id = id;
             this.clazz = clazz;
         }
 
         AppliedPlugin asAppliedPlugin() {
-            return new DefaultAppliedPlugin(PluginId.unvalidated(id));
+            return new DefaultAppliedPlugin(id);
         }
 
         @Override

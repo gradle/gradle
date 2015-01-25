@@ -18,25 +18,33 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.plugin.internal.PluginId;
 
-public class PotentialPluginWithId<T> implements PotentialPlugin<T> {
+public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> {
 
     private final PluginId pluginId;
-    private final PotentialPlugin<T> potentialPlugin;
+    private final PotentialPlugin<? extends T> potentialPlugin;
 
-    public static <T> PotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
-        return new PotentialPluginWithId<T>(pluginId, potentialPlugin);
+    public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+        return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
     }
 
-    private PotentialPluginWithId(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+    protected DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {
         this.pluginId = pluginId;
         this.potentialPlugin = potentialPlugin;
+    }
+
+    @Override
+    public String getDisplayName() {
+        if (pluginId == null) {
+            return String.format("class '%s'", asClass().getName());
+        }
+        return String.format("id '%s'", pluginId);
     }
 
     public PluginId getPluginId() {
         return pluginId;
     }
 
-    public Class<T> asClass() {
+    public Class<? extends T> asClass() {
         return potentialPlugin.asClass();
     }
 
@@ -50,5 +58,10 @@ public class PotentialPluginWithId<T> implements PotentialPlugin<T> {
 
     public Type getType() {
         return potentialPlugin.getType();
+    }
+
+    @Override
+    public boolean isAlsoKnownAs(PluginId id) {
+        return false;
     }
 }

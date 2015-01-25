@@ -43,9 +43,7 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
             assert plugins["$detectedBy"]
             assert plugins.getPlugin("$detectedBy")
             assert pluginManager.hasPlugin("$detectedBy")
-            assert pluginManager.findPlugin("$detectedBy").id == "org.gradle.java"
-            assert pluginManager.findPlugin("$detectedBy").namespace == "org.gradle"
-            assert pluginManager.findPlugin("$detectedBy").name == "java"
+            assert pluginManager.findPlugin("$detectedBy").id == "$detectedBy"
 
             task verify << { assert operations == ['applying', 'withPlugin', 'withId for JavaPlugin', 'applied'] }
         """

@@ -50,7 +50,7 @@ public class NotNonCorePluginOnClasspathCheckPluginResolver implements PluginRes
     }
 
     private boolean isCorePlugin(PluginId pluginId) {
-        return corePluginRegistry.lookup(pluginId.toString()) != null;
+        return corePluginRegistry.lookup(pluginId) != null;
     }
 
 }
