@@ -51,7 +51,7 @@ public class AntlrTask extends SourceTask {
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
-    private String maxHeapSize = "1g";
+    private String maxHeapSize;
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
