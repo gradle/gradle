@@ -24,7 +24,7 @@ import org.apache.tools.ant.BuildException;
 import java.io.File;
 
 public class MavenInstallTask extends BaseMavenPublishTask {
-    protected MavenInstallTask(File pomFile) {
+    public MavenInstallTask(File pomFile) {
         super(pomFile);
     }
 

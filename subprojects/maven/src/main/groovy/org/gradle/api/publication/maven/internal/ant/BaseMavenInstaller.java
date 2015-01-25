@@ -16,18 +16,22 @@
 package org.gradle.api.publication.maven.internal.ant;
 
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
 public class BaseMavenInstaller extends AbstractMavenResolver {
-    public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
-        super(pomFilterContainer, artifactPomContainer, loggingManager);
-        mavenSettingsSupplier = new MaybeUserMavenSettingsSupplier();
+    public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager,
+                              MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishTaskSupport createPreConfiguredTask(File pomFile) {
-        return new MavenInstallTask(pomFile);
+    protected MavenPublishTaskSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenInstallTask mavenInstallTask = new MavenInstallTask(pomFile);
+        mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
+        return mavenInstallTask;
     }
 }

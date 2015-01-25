@@ -17,10 +17,9 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.publication.maven.internal.ant.EmptyMavenSettingsSupplier;
 import org.gradle.api.publication.maven.internal.ant.MavenPublishTaskSupport;
-import org.gradle.api.publication.maven.internal.ant.MavenSettingsSupplier;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -34,30 +33,21 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublish
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     private static Logger logger = LoggerFactory.getLogger(AbstractAntTaskBackedMavenPublisher.class);
-    protected final Factory<File> temporaryDirFactory;
+    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public AbstractAntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
+    public AbstractAntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
-        this.temporaryDirFactory = temporaryDirFactory;
+        this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         logger.info("Publishing to repository {}", artifactRepository);
-        T deployTask = createDeployTask(publication.getPomFile());
-
-        MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
-        mavenSettingsSupplier.supply(deployTask);
-
-        postConfigure(deployTask, artifactRepository);
+        T deployTask = createDeployTask(publication.getPomFile(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
-
-        mavenSettingsSupplier.done();
     }
 
-    abstract protected void postConfigure(T task, MavenArtifactRepository artifactRepository);
-
-    abstract protected T createDeployTask(File pomFile);
+    abstract protected T createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishTaskSupport installOrDeployTask, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 public interface MavenResolver extends ArtifactRepository, PomFilterContainer {
     /**
      * Returns a Maven settings object. This can be used for example to figure out where the local repository is
-     * located. This property is filled after publishing. Before this property is null.
+     * located. This property is populated on demand.
      */
     Object getSettings();
 

@@ -15,15 +15,13 @@
  */
 package org.gradle.api.publication.maven.internal.ant;
 
-import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.PlexusContainer;
 
 import java.io.File;
 
 public interface MavenPublishTaskSupport {
-    Settings getSettings();
 
-    void initSettings(File userSettings);
+    void setLocalMavenRepositoryLocation(File localMavenRepository);
 
     void execute();
 

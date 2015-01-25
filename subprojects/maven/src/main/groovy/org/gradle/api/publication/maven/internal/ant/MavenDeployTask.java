@@ -45,7 +45,7 @@ public class MavenDeployTask extends BaseMavenPublishTask {
 
     private boolean uniqueVersion = true;
 
-    protected MavenDeployTask(File pomFile) {
+    public MavenDeployTask(File pomFile) {
         super(pomFile);
     }
 

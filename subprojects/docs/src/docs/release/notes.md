@@ -119,6 +119,22 @@ Generally, the DSL should be the same, except:
 
 The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
+### MavenDeployer no longer uses global Maven settings.xml
+
+- User settings file was never used, but global settings.xml was considered
+- Mirror settings no longer cause GRADLE-2681
+- Authentication and Proxy settings are not used
+
+- Local repository location in user settings.xml _is_ honoured when deploying (it was always honoured when installing)
+
+### PublishToMavenLocal task ignores repository setting
+
+Previously, the `PublishToMavenLocal` task could be configured with an `ArtifactRepository` instance, which would specify the
+location to `install` to. The default repository was `mavenLocal()`.
+
+It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
+will be ignored.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

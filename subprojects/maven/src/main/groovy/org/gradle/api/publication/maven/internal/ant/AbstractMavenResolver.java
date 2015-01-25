@@ -17,13 +17,15 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import groovy.lang.Closure;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.maven.settings.Settings;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -34,28 +36,31 @@ import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMeta
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.mvn3.org.apache.maven.settings.building.SettingsBuildingException;
 
 import java.io.File;
 import java.util.Set;
 
 public abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, ModuleVersionPublisher, ResolutionAwareRepository, PublicationAwareRepository {
-    
+
     private ArtifactPomContainer artifactPomContainer;
 
     private PomFilterContainer pomFilterContainer;
-
-    private Settings settings;
 
     private LoggingManagerInternal loggingManager;
 
     private final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
 
-    protected MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
+    private final MavenSettingsProvider mavenSettingsProvider;
+    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+    public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
+                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
+        this.mavenSettingsProvider = mavenSettingsProvider;
+        this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public ConfiguredModuleComponentRepository createResolver() {
@@ -66,7 +71,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return this;
     }
 
-    protected abstract MavenPublishTaskSupport createPreConfiguredTask(File pomFile);
+    protected abstract MavenPublishTaskSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetaData moduleVersion) {
         for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
@@ -90,14 +95,11 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
             File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishTaskSupport installDeployTaskSupport = createPreConfiguredTask(pomFile);
-            mavenSettingsSupplier.supply(installDeployTaskSupport);
+            MavenPublishTaskSupport installDeployTaskSupport = createPreConfiguredTask(pomFile, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(installDeployTaskSupport, mavenDeployment);
             execute(installDeployTaskSupport);
-            settings = installDeployTaskSupport.getSettings();
         }
-        mavenSettingsSupplier.done();
     }
 
     private void execute(MavenPublishTaskSupport deployTask) {
@@ -122,8 +124,12 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return artifactPomContainer;
     }
 
-    public Settings getSettings() {
-        return settings;
+    public Object getSettings() {
+        try {
+            return mavenSettingsProvider.buildSettings();
+        } catch (SettingsBuildingException e) {
+            throw new GradleException("Could not load Maven Settings", e);
+        }
     }
 
     public PublishFilter getFilter() {

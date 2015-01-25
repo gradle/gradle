@@ -22,7 +22,6 @@ package org.gradle.api.publication.maven.internal.ant;
 import com.beust.jcommander.internal.Lists;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.ant.LocalRepository;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.metadata.ArtifactMetadata;
@@ -32,7 +31,6 @@ import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.artifact.AttachedArtifact;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
-import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.BuildException;
 import org.codehaus.classworlds.ClassWorld;
 import org.codehaus.classworlds.DuplicateRealmException;
@@ -49,8 +47,8 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
     private static ClassLoader plexusClassLoader;
 
     private final File pomFile;
+    private File localMavenRepository;
 
-    private Settings settings;
     private PlexusContainer container;
 
     protected File mainArtifact;
@@ -58,13 +56,13 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
 
     protected BaseMavenPublishTask(File pomFile) {
         this.pomFile = pomFile;
-    }
-
-    public void initSettings(File settingsFile) {
-        this.settings = new MavenSettingsLoader().loadSettings(settingsFile);
 
         WagonManager wagonManager = (WagonManager) lookup(WagonManager.ROLE);
         wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());
+    }
+
+    public void setLocalMavenRepositoryLocation(File localMavenRepository) {
+        this.localMavenRepository = localMavenRepository;
     }
 
     public void setMainArtifact(File file) {
@@ -79,10 +77,6 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         artifact.setClassifier(classifier);
 
         additionalArtifacts.add(artifact);
-    }
-
-    public Settings getSettings() {
-        return settings;
     }
 
     public void execute() {
@@ -126,9 +120,10 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
 
     protected abstract void doPublish(Artifact artifact, File pomFile, ArtifactRepository localRepo);
 
-    protected ArtifactRepository createLocalArtifactRepository() {
-        ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
-        return new DefaultArtifactRepository("local", "file://" + getLocalRepository().getPath(), repositoryLayout);
+    private ArtifactRepository createLocalArtifactRepository() {
+        ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "default");
+        String localRepositoryLocation = localMavenRepository.toURI().toString();
+        return new DefaultArtifactRepository("local", localRepositoryLocation, repositoryLayout);
     }
 
     protected Object lookup(String role) {
@@ -168,13 +163,6 @@ public abstract class BaseMavenPublishTask implements MavenPublishTaskSupport {
         }
 
         return container;
-    }
-
-    public LocalRepository getLocalRepository() {
-        LocalRepository localRepository = new LocalRepository();
-        localRepository.setId("local");
-        localRepository.setPath(new File(settings.getLocalRepository()));
-        return localRepository;
     }
 
     private Artifact createMainArtifact(ParsedMavenPom pom) {
