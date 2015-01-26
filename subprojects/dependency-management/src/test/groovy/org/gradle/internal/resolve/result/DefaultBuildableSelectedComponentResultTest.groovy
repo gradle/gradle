@@ -20,10 +20,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
-import static org.gradle.internal.resolve.result.ChosenComponentResult.Reason.*
+import static org.gradle.internal.resolve.result.BuildableSelectedComponentResult.Reason.*
 
-class DefaultChosenComponentResultTest extends Specification {
-    DefaultChosenComponentResult result = new DefaultChosenComponentResult()
+class DefaultBuildableSelectedComponentResultTest extends Specification {
+    DefaultBuildableSelectedComponentResult result = new DefaultBuildableSelectedComponentResult()
 
     def "has no matching state by default"() {
         expect:

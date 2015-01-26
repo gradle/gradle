@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public interface ChosenComponentResult {
+public interface BuildableSelectedComponentResult extends SelectedComponentResult {
     static enum Reason {
         MATCH, NO_MATCH, CANNOT_DETERMINE
     }
@@ -58,11 +58,4 @@ public interface ChosenComponentResult {
      * Returns the reason for choosing the component.
      */
     Reason getReason();
-
-    /**
-     * Returns the chosen module component identifier. The component identifier may be null.
-     *
-     * @return Chosen module component identifier
-     */
-    ModuleComponentIdentifier getModuleComponentIdentifier();
 }
