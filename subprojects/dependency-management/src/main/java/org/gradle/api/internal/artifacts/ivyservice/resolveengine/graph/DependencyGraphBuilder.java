@@ -629,8 +629,8 @@ public class DependencyGraphBuilder {
 
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
-        private Set<ResolvedArtifact> artifacts;
-        private boolean requiresArtifactResolution = true;
+        private Set<ComponentArtifactMetaData> artifacts;
+        private Map<IvyArtifactName, ResolvedArtifact> resolvedArtifacts = new HashMap<IvyArtifactName, ResolvedArtifact>();
 
         private ConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
@@ -650,28 +650,28 @@ public class DependencyGraphBuilder {
         }
 
         public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleResolutionFilter moduleResolutionFilter) {
-            if (requiresArtifactResolution) {
-                artifacts = new LinkedHashSet<ResolvedArtifact>();
-
+            if (artifacts == null) {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
                 resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
-
-                boolean unsatisfiedArtifactSpec = false;
-
-                for (ComponentArtifactMetaData artifact : result.getArtifacts()) {
-                    ModuleIdentifier moduleId = id.getId().getModule();
-                    IvyArtifactName artifactName = artifact.getName();
-
-                    if (moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
-                        artifacts.add(builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver));
-                    } else {
-                        unsatisfiedArtifactSpec = true;
-                    }
-                }
-
-                requiresArtifactResolution = unsatisfiedArtifactSpec;
+                artifacts = result.getArtifacts();
             }
-            return artifacts;
+
+            Set<ResolvedArtifact> result = new LinkedHashSet<ResolvedArtifact>();
+            ModuleIdentifier moduleId = id.getId().getModule();
+            for (ComponentArtifactMetaData artifact : artifacts) {
+                IvyArtifactName artifactName = artifact.getName();
+                if (!moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
+                    continue;
+                }
+                ResolvedArtifact resolvedArtifact = resolvedArtifacts.get(artifactName);
+                if (resolvedArtifact == null) {
+                    resolvedArtifact = builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver);
+                    resolvedArtifacts.put(artifactName, resolvedArtifact);
+                }
+                result.add(resolvedArtifact);
+            }
+
+            return result;
         }
 
         public boolean isTransitive() {

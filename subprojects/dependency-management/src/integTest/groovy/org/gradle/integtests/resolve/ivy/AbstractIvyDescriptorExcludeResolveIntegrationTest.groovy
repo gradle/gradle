@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class AbstractIvyDescriptorExcludeResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class AbstractIvyDescriptorExcludeResolveIntegrationTest extends AbstractDependencyResolutionTest {
     protected static final EXCLUDE_ATTRIBUTE = 'exclude'
 
     def setup() {
