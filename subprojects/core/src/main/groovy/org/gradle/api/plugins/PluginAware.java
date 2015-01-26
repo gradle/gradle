@@ -38,9 +38,9 @@ public interface PluginAware {
      * <p>
      * While not deprecated, it is preferred to use the methods of this interface or the {@link #getPluginManager() plugin manager} than use the plugin container.
      * <p>
-     * Use {@link #apply(java.util.Map)} or {@link PluginManager#apply(String) getPluginManager().apply(String)} to apply plugins instead of applying via the plugin container.
+     * Use one of the 'apply' methods on this interface or on the {@link #getPluginManager() plugin manager} to apply plugins instead of applying via the plugin container.
      * <p>
-     * Use {@link PluginManager#hasPlugin(String) getPluginManager().hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
+     * Use {@link PluginManager#hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
      *
      * @return the plugin container
      * @see #apply
