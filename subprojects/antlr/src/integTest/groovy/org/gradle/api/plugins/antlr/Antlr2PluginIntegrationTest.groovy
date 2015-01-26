@@ -38,8 +38,6 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     def "analyze bad grammar"() {
         when:
         badGrammar()
-        and:
-        executer.withStackTraceChecksDisabled()
         then:
         fails("generateGrammarSource")
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
