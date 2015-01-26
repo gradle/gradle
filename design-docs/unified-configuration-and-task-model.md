@@ -169,7 +169,7 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 1. ~~Add get(ModelPath, ModelNode.State) to ModelRegistry~~
 1. ~~Support modelRegistry.get(“tasks”, SelfClosed)~~
 1. ~~Realize the task container as tasks are needed instead of at the end of evaluation (TaskNameResolver, DefaultProjectAccessListener, DefaultProjectLocator) - _interim step_~~
-1. Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism
+1. ~~Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism~~
 1. Change task selection to avoid realising all tasks (i.e. self close the task container, realise just the tasks needed)
 1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
 
