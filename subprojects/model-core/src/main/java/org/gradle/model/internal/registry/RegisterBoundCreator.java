@@ -22,12 +22,12 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Map;
 
-class CreatorBinder implements Action<RuleBinder<Void>> {
+class RegisterBoundCreator implements Action<RuleBinder<Void>> {
     private final ModelCreator creator;
     private final Map<ModelPath, BoundModelCreator> creators;
     private final Map<ModelPath, RuleBinder<?>> creatorBinders;
 
-    public CreatorBinder(ModelCreator creator, Map<ModelPath, BoundModelCreator> creators, Map<ModelPath, RuleBinder<?>> creatorBinders) {
+    public RegisterBoundCreator(ModelCreator creator, Map<ModelPath, BoundModelCreator> creators, Map<ModelPath, RuleBinder<?>> creatorBinders) {
         this.creator = creator;
         this.creators = creators;
         this.creatorBinders = creatorBinders;

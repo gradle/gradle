@@ -31,6 +31,10 @@ import java.util.List;
 /**
  * The progressive binding of the subject/inputs of the references of a model rule.
  *
+ * The binder is not responsible for finding out what the references should be bound to.
+ * It merely manages the state of the rule binding.
+ * The {@link #bindSubject} and {@link #bindInput} methods are called by the model registry/graph.
+ *
  * This type is mutable.
  */
 @NotThreadSafe

@@ -22,13 +22,13 @@ import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
 
-class BindModelAction<T> implements Action<RuleBinder<T>> {
+class RegisterBoundModelAction<T> implements Action<RuleBinder<T>> {
     private final ModelAction<T> mutator;
     private final ModelActionRole type;
     private final Multimap<MutationKey, BoundModelMutator<?>> actions;
     private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
 
-    public BindModelAction(ModelAction<T> mutator, ModelActionRole type, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
+    public RegisterBoundModelAction(ModelAction<T> mutator, ModelActionRole type, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.mutator = mutator;
         this.type = type;
         this.actions = actions;

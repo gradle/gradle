@@ -150,13 +150,13 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(ModelCreator creator) {
-        RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators, creatorBinders));
+        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, creators, creatorBinders));
         creatorBinders.put(creator.getPath(), binder);
         bindInputs(binder, ModelPath.ROOT);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
+    private <T> RuleBinder<T> createAndRegisterBinder(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
         RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
         binders.add(binder);
         return binder;
@@ -164,7 +164,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
         Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
-        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, actions, mutationBinders));
+        RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, actions, mutationBinders));
         ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, modelGraph, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
