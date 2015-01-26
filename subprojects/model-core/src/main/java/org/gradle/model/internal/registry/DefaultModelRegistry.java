@@ -149,20 +149,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private void bind(final ModelCreator creator) {
-        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators, creatorBinders));
-
+    private void bind(ModelCreator creator) {
+        RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators, creatorBinders));
         creatorBinders.put(creator.getPath(), binder);
-
         bindInputs(binder, ModelPath.ROOT);
     }
 
     @SuppressWarnings("unchecked")
     private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
         RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
-
         binders.add(binder);
-
         return binder;
     }
 
