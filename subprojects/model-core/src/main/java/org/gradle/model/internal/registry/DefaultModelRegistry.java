@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -68,11 +67,10 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        EmptyModelProjection projection = new EmptyModelProjection();
         for (ModelActionRole role : ModelActionRole.values()) {
             mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
         }
-        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
+        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), EmptyModelProjection.INSTANCE, EmptyModelProjection.INSTANCE));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -289,13 +287,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     // TODO - this needs to consider partially bound rules
     private boolean isDependedOn(ModelPath candidate) {
         Transformer<Iterable<ModelPath>, BoundModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, BoundModelMutator<?>>() {
-            public Iterable<ModelPath> transform(BoundModelMutator<?> original) {
-                return Iterables.transform(original.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
-                    @Nullable
-                    public ModelPath apply(ModelBinding<?> input) {
-                        return input.getPath();
-                    }
-                });
+            public Iterable<ModelPath> transform(BoundModelMutator<?> boundModelMutator) {
+                return Iterables.transform(boundModelMutator.getInputs(), ModelBinding.GetPath.INSTANCE);
             }
         };
 
@@ -423,22 +416,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             return true;
         }
 
-        boolean newInputsBound = false;
+        boolean boundSomething = false;
         ModelPath scope = binder.getScope();
 
         if (binder.getSubjectReference() != null && binder.getSubjectBinding() == null) {
             if (forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope)) {
-                newInputsBound = binder.getSubjectBinding() != null;
+                boundSomething = binder.getSubjectBinding() != null;
             }
         }
 
         for (int i = 0; i < binder.getInputReferences().size(); i++) {
             if (forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope)) {
-                newInputsBound = newInputsBound || binder.getInputBindings().get(i) != null;
+                boundSomething = boundSomething || binder.getInputBindings().get(i) != null;
             }
         }
         binder.maybeFire();
-        return newInputsBound;
+        return boundSomething;
     }
 
     private void forceBind(RuleBinder<?> binder) {
@@ -468,12 +461,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             for (BoundModelMutator<?> mutator : mutators) {
                 fireMutation(node, mutator);
-                List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
-                    @Nullable
-                    public ModelPath apply(ModelBinding<?> input) {
-                        return input.getPath();
-                    }
-                });
+                List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), ModelBinding.GetPath.INSTANCE);
                 usedActions.put(path, inputPaths);
             }
         }

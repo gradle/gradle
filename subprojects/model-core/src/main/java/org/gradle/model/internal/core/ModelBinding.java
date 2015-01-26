@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 
 /**
  * A binding of a reference to an actual model element.
@@ -61,5 +63,18 @@ public class ModelBinding<T> {
     @Override
     public String toString() {
         return "ModelBinding{reference=" + reference + ", path=" + path + '}';
+    }
+
+    public static class GetPath implements Function<ModelBinding<?>, ModelPath> {
+
+        public static final GetPath INSTANCE = new GetPath();
+
+        private GetPath() {
+        }
+
+        @Nullable
+        public ModelPath apply(ModelBinding<?> input) {
+            return input.getPath();
+        }
     }
 }

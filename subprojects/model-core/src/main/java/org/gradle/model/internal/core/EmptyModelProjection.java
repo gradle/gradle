@@ -24,6 +24,11 @@ import java.util.Collections;
 
 public class EmptyModelProjection implements ModelProjection {
 
+    public static final ModelProjection INSTANCE = new EmptyModelProjection();
+
+    private EmptyModelProjection() {
+    }
+
     @Nullable
     @Override
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
