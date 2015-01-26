@@ -25,6 +25,6 @@ import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 public interface ComponentChooser {
     ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two);
-    ChosenComponentResult choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
+    void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, ChosenComponentResult result);
     boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier);
 }
