@@ -27,7 +27,7 @@ class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
     def fileResolver = Stub(FileResolver)
     def builder = new DefaultTextReportBuilder(output, fileResolver)
-    def SEP = SystemProperties.getLineSeparator()
+    def eol = SystemProperties.getLineSeparator()
 
     def "formats heading"() {
         given:
@@ -126,7 +126,7 @@ heading
 
     def "formats multiline item" () {
         when:
-        builder.item("first line${SEP}  second line${SEP}  third line")
+        builder.item("first line${eol}  second line${eol}  third line")
 
         then:
         outputMatches """    first line
@@ -137,7 +137,7 @@ heading
 
     def "formats multiline item with title" () {
         when:
-        builder.item("the title", "first line${SEP}  second line${SEP}  third line")
+        builder.item("the title", "first line${eol}  second line${eol}  third line")
 
         then:
         outputMatches """    the title: first line
