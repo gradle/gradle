@@ -239,10 +239,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.remove(path);
     }
 
-    private ModelNode selfCloseAllComponents(ModelPath path) {
+    private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
         ModelPath parent = path.getParent();
         if (parent != null) {
-            if (selfCloseAllComponents(parent) == null) {
+            if (selfCloseAncestryAndSelf(parent) == null) {
                 return null;
             }
         }
@@ -398,9 +398,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     private boolean forceBindReference(ModelReference<?> reference, ModelBinding<?> binding, ModelPath scope) {
         if (binding == null) {
             if (reference.getPath() == null) {
-                selfCloseAllComponents(scope);
+                selfCloseAncestryAndSelf(scope);
             } else {
-                selfCloseAllComponents(reference.getPath().getParent());
+                selfCloseAncestryAndSelf(reference.getPath().getParent());
             }
             return true;
         }
