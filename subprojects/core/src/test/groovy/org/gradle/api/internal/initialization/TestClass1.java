@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.api.internal.initialization;
 
-import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.PluginManagerInternal;
-
-import java.util.Collection;
-
-// Implementation is provided by 'plugin-use' module
-public interface PluginRequestApplicator {
-    void applyPlugins(Collection<? extends PluginRequest> requests, ScriptHandler scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope);
+public class TestClass1 {
 }

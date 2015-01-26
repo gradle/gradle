@@ -16,24 +16,22 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.plugin.internal.PluginId;
 
 public class SimplePluginResolution implements PluginResolution {
+    private final PluginImplementation<?> plugin;
 
-    private final PluginId pluginId;
-    private final Class<?> pluginClass;
-
-    public SimplePluginResolution(PluginId pluginId, Class<?> pluginClass) {
-        this.pluginId = pluginId;
-        this.pluginClass = pluginClass;
+    public SimplePluginResolution(PluginImplementation<?> plugin) {
+        this.plugin = plugin;
     }
 
     public PluginId getPluginId() {
-        return pluginId;
+        return plugin.getPluginId();
     }
 
-    public Class<?> resolve() {
-        return pluginClass;
+    @Override
+    public void execute(PluginResolveContext pluginResolveContext) {
+        pluginResolveContext.add(plugin);
     }
-
 }

@@ -41,8 +41,8 @@ class DefaultClassLoaderScopeTest extends Specification {
 
     def setup() {
         file("root/root") << "root"
-        rootClassLoader = new URLClassLoader(classPath("root").asURLArray)
-        root = new RootClassLoaderScope(rootClassLoader, classLoaderCache)
+        rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
+        root = new RootClassLoaderScope(rootClassLoader, rootClassLoader, classLoaderCache)
         scope = root.createChild()
     }
 
@@ -61,6 +61,14 @@ class DefaultClassLoaderScopeTest extends Specification {
         then:
         scope.localClassLoader.is rootClassLoader
         scope.exportClassLoader.is rootClassLoader
+    }
+
+    def "locked empty scope does not define any classes"() {
+        when:
+        scope.lock()
+
+        then:
+        !scope.defines(String)
     }
 
     def "ignores empty classpaths"() {
@@ -133,7 +141,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.exportClassLoader.is rootClassLoader
     }
 
-    def "locked scope with local and exports exports custom classloader to children"() {
+    def "locked scope with local and exports exports custom ClassLoader to children"() {
         when:
         file("local/local") << "bar"
         file("export/export") << "bar"
@@ -151,6 +159,24 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader instanceof CachingClassLoader
         scope.localClassLoader.getResource("export").text == "bar"
         scope.localClassLoader.getResource("local").text == "bar"
+    }
+
+    def "locked scope with local and exports defines local and exported classes"() {
+        when:
+        copyTo(TestClass1, file("local"))
+        copyTo(TestClass2, file("export"))
+        scope.
+                local(classPath("local")).
+                export(classPath("export")).
+                lock()
+
+        then:
+        def local = scope.localClassLoader.loadClass(TestClass1.name)
+        def exported = scope.exportClassLoader.loadClass(TestClass2.name)
+        scope.defines(local)
+        scope.defines(exported)
+        !scope.defines(TestClass1)
+        !scope.defines(TestClass2)
     }
 
     def "requesting loaders before locking creates pessimistic setup"() {
@@ -174,6 +200,26 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader.getResource("root").text == "root"
         scope.localClassLoader.getResource("export").text == "bar"
         scope.localClassLoader.getResource("local").text == "bar"
+    }
+
+    def "pessimistic scope with local and exports defines local and exported classes"() {
+        given:
+        scope.localClassLoader // trigger
+
+        when:
+        copyTo(TestClass1, file("local"))
+        copyTo(TestClass2, file("export"))
+        scope.
+                local(classPath("local")).
+                export(classPath("export"))
+
+        then:
+        def local = scope.localClassLoader.loadClass(TestClass1.name)
+        def exported = scope.exportClassLoader.loadClass(TestClass2.name)
+        scope.defines(local)
+        scope.defines(exported)
+        !scope.defines(TestClass1)
+        !scope.defines(TestClass2)
     }
 
     def "cannot modify after locking"() {
@@ -251,5 +297,12 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.id.exportId().toString() == "scope:root:c1-export"
         ((DefaultClassLoaderScope) scope.createChild()).id.localId().toString() == "scope:root:c1:c1-local"
         ((DefaultClassLoaderScope) scope.createChild()).id.exportId().toString() == "scope:root:c1:c2-export"
+    }
+
+    void copyTo(Class<?> clazz, TestFile destDir) {
+        def fileName = clazz.name.replace('.', '/') + ".class"
+        def dest = destDir.file(fileName)
+        def classFile = clazz.classLoader.getResource(fileName)
+        dest.copyFrom(classFile)
     }
 }

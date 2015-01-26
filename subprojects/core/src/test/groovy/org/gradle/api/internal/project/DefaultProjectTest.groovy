@@ -107,7 +107,7 @@ class DefaultProjectTest {
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
 
-    ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache())
+    ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild()
 
     @Before

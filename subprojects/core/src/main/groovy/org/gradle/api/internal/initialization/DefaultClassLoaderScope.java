@@ -23,6 +23,9 @@ import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
@@ -35,6 +38,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private ClassPath export = new DefaultClassPath();
     private ClassPath local = new DefaultClassPath();
+    private List<ClassLoader> ownLoaders = new ArrayList<ClassLoader>();
 
     // If these are not null, we are pessimistic (loaders asked for before locking)
     private MultiParentClassLoader exportingClassLoader;
@@ -111,8 +115,20 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return parent;
     }
 
+    @Override
+    public boolean defines(Class<?> clazz) {
+        for (ClassLoader ownLoader : ownLoaders) {
+            if (ownLoader.equals(clazz.getClassLoader())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ClassLoader loader(ClassLoaderId id, ClassPath classPath) {
-        return classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
+        ClassLoader classLoader = classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
+        ownLoaders.add(classLoader);
+        return classLoader;
     }
 
     public ClassLoaderScope local(ClassPath classPath) {

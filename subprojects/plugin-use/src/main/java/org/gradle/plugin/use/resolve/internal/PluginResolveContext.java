@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.PluginImplementation;
+import org.gradle.plugin.internal.PluginId;
 
-import java.util.Collection;
+public interface PluginResolveContext {
+    void addLegacy(PluginId pluginId, String m2RepoUrl, Object dependencyNotation);
 
-// Implementation is provided by 'plugin-use' module
-public interface PluginRequestApplicator {
-    void applyPlugins(Collection<? extends PluginRequest> requests, ScriptHandler scriptHandler, PluginManagerInternal target, ClassLoaderScope classLoaderScope);
+    void add(PluginImplementation<?> plugin);
 }

@@ -35,6 +35,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.resolve.internal.*;
@@ -103,9 +104,15 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private void handleLegacy(final PluginUseMetaData metadata, PluginResolutionResult result) {
-        result.foundLegacy(getDescription(), new Action<LegacyPluginResolveContext>() {
-            public void execute(LegacyPluginResolveContext context) {
-                context.add(metadata.id, metadata.implementation.get("repo"), metadata.implementation.get("gav"));
+        final PluginId pluginId = PluginId.of(metadata.id);
+        result.found(getDescription(), new PluginResolution() {
+            @Override
+            public PluginId getPluginId() {
+                return pluginId;
+            }
+
+            public void execute(PluginResolveContext context) {
+                context.addLegacy(pluginId, metadata.implementation.get("repo"), metadata.implementation.get("gav"));
             }
         });
     }

@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.internal;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.Nullable;
+import org.gradle.plugin.internal.PluginId;
 
-public interface LegacyPluginResolveContext {
+public interface PluginImplementation<T> extends PotentialPlugin<T> {
+    String getDisplayName();
 
-    Dependency add(String pluginId, String m2RepoUrl, Object dependencyNotation);
+    /**
+     * An id for the plugin implementation, if known.
+     */
+    @Nullable
+    PluginId getPluginId();
 
+    boolean isAlsoKnownAs(PluginId id);
 }
