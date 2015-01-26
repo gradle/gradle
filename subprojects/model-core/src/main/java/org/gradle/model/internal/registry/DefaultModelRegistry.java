@@ -61,7 +61,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
     private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
-    private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newHashMap();
+    private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
 
     private final ModelRuleExtractor ruleExtractor;
 
