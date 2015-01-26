@@ -126,6 +126,10 @@ Binaries
                 targetPlatform "java6"
                 targetPlatform "java9"
             }
+            myLib2(JvmLibrarySpec) {
+                targetPlatform "java6"
+                binaries.all { buildable = false }
+            }
         }
     }
 """
@@ -160,6 +164,23 @@ Binaries
         tool chain: $currentJdk
         Jar file: build/jars/java9MyLibJar/myLib.jar
         Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
+
+JVM library 'myLib2'
+--------------------
+
+Source sets
+    Java source 'myLib2:java'
+        src/myLib2/java
+    JVM resources 'myLib2:resources'
+        src/myLib2/resources
+
+Binaries
+    Jar 'myLib2Jar' (not buildable)
+        build using task: :myLib2Jar
+        platform: java6
+        tool chain: $currentJdk
+        Jar file: build/jars/myLib2Jar/myLib2.jar
+        Disabled by user
 """
     }
 }

@@ -31,7 +31,8 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
+import org.gradle.platform.base.internal.CompositeBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -154,7 +155,10 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     public BinaryBuildAbility getBuildAbility() {
         NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) getToolChain();
         NativePlatformInternal platformInternal = (NativePlatformInternal) getTargetPlatform();
-        return new DefaultBinaryBuildAbility(toolChainInternal.select(platformInternal));
+        return new CompositeBuildAbility(
+                super.getBuildAbility(),
+                new ToolSearchBuildAbility(toolChainInternal.select(platformInternal))
+        );
     }
 
     public void binaryInputs(FileCollection files) {

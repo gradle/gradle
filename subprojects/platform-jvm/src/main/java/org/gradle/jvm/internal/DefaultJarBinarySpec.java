@@ -22,7 +22,8 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.DefaultBinaryBuildAbility;
+import org.gradle.platform.base.internal.CompositeBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
 
@@ -94,6 +95,9 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public BinaryBuildAbility getBuildAbility() {
-        return new DefaultBinaryBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()));
+        return new CompositeBuildAbility(
+                super.getBuildAbility(),
+                new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
+        );
     }
 }

@@ -104,6 +104,9 @@ model {
         hello(NativeLibrarySpec) {
             targetPlatform "unknown"
         }
+        another(NativeLibrarySpec) {
+            binaries.all { buildable = false }
+        }
     }
 }
 """
@@ -116,7 +119,9 @@ model {
                 Matchers.startsWith("No buildable binaries found:"),
                 Matchers.containsString("helloSharedLibrary: No tool chain is available to build for platform 'unknown'"),
                 Matchers.containsString("helloStaticLibrary: No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'")
+                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("anotherStaticLibrary: Disabled by user"),
+                Matchers.containsString("anotherSharedLibrary: Disabled by user")
         ))
     }
 

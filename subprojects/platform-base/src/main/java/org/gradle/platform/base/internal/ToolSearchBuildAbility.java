@@ -19,10 +19,10 @@ package org.gradle.platform.base.internal;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
-public class DefaultBinaryBuildAbility implements BinaryBuildAbility {
+public class ToolSearchBuildAbility implements BinaryBuildAbility {
     final ToolSearchResult result;
 
-    public DefaultBinaryBuildAbility(ToolSearchResult result) {
+    public ToolSearchBuildAbility(ToolSearchResult result) {
         this.result = result;
     }
 

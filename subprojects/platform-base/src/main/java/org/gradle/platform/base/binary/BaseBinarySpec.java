@@ -30,8 +30,8 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.ConfigurableBuildAbility;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.util.TreeVisitor;
 
 /**
  * Base class for custom binary implementations.
@@ -51,7 +51,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private final String name;
     private final String typeName;
 
-    private BinaryBuildAbility availability;
+    private boolean buildable = true;
 
     public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
         if (type.equals(BaseBinarySpec.class)) {
@@ -91,6 +91,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
     }
 
     public boolean isBuildable() {
@@ -145,15 +150,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     public BinaryBuildAbility getBuildAbility() {
         // Default behavior is to always be buildable.  Binary implementations should define what
         // criteria make them buildable or not.
-        return new BinaryBuildAbility() {
-            @Override
-            public boolean isBuildable() {
-                return true;
-            }
-
-            @Override
-            public void explain(TreeVisitor<? super String> visitor) {
-            }
-        };
+        return new ConfigurableBuildAbility(buildable);
     }
 }

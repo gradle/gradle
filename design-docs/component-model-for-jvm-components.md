@@ -825,7 +825,7 @@ In this story, we will change this behaviour so that if _no_ binaries can be bui
         void explain(TreeVisitor<? super String> visitor);
     }
 - Add getBuildAbility() to BinarySpecInternal
-- Remove setBuildable from BinarySpecInternal
+- Make setBuildable from BinarySpecInternal configure something of type BinaryBuildAbility
 - Change BaseBinarySpec to determine isBuildable() using BinaryBuildAbility
 - Create an AssembleBinariesTask class to replace the default assembly task.  This task should contain:
     - A list of binaries that are not buildable

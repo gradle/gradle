@@ -85,6 +85,9 @@ model {
         someLib(NativeLibrarySpec) {
             targetPlatform "windows"
         }
+        anotherLib(NativeLibrarySpec) {
+            binaries.withType(StaticLibraryBinarySpec) { buildable = false }
+        }
     }
 }
 """
@@ -93,6 +96,30 @@ model {
 
         then:
         outputMatches output, """
+Native library 'anotherLib'
+---------------------------
+
+Source sets
+    C++ source 'anotherLib:cpp'
+        src/anotherLib/cpp
+
+Binaries
+    Shared library 'anotherLib:sharedLibrary'
+        build using task: :anotherLibSharedLibrary
+        platform: $currentNative
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        shared library file: build/binaries/anotherLibSharedLibrary/libanotherLib.dylib
+    Static library 'anotherLib:staticLibrary' (not buildable)
+        build using task: :anotherLibStaticLibrary
+        platform: $currentNative
+        build type: debug
+        flavor: default
+        tool chain: Tool chain 'clang' (Clang)
+        static library file: build/binaries/anotherLibStaticLibrary/libanotherLib.a
+        Disabled by user
+
 Native library 'someLib'
 ------------------------
 

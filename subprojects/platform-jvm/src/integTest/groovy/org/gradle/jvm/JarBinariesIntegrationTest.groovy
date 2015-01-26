@@ -66,6 +66,9 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                     myJvmLib2(JvmLibrarySpec) {
                         targetPlatform "java9"
                     }
+                    myJvmLib3(JvmLibrarySpec) {
+                        binaries.all { buildable = false }
+                    }
                 }
             }
         """
@@ -78,7 +81,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
                 Matchers.containsString("myJvmLib1Jar: Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 9' using tool chain:")
+                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 9' using tool chain:"),
+                Matchers.containsString("myJvmLib3Jar: Disabled by user")
         ))
     }
 }
