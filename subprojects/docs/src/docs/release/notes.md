@@ -137,6 +137,15 @@ Given that the dependency is resolved from a Maven repository, the Maven POM art
         }
     }
 
+### Application Plugin uses Distribution Plugin
+
+The application plugin now uses the distribution plugin for doing the packaging. It configures the 'main' distribution,
+which means a packaged application is treated as any other distribution. Also, as distributions are built by 'assemble'
+and added as publications, applications behave the same as they have a distribution associated with them.
+
+This feature was contributed by [Sébastien Cogneau](https://github.com/scogneau).
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -167,6 +176,10 @@ As this is an incubating feature, the deprecated method will be removed in Gradl
 The `--no-color` option has been replaced by the more general `--console` option. You can use `gradle --console plain ...` instead of `gradle --no-color ...`.
 
 The `--no-color` option will be removed in Gradle 3.0.
+
+### Deprecated 'installApp' task in Application Plugin
+
+The 'installApp' introduced by the application plugin is deprecated. You can use the `installDist` task instead.
 
 ## Potential breaking changes
 
