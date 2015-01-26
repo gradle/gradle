@@ -25,7 +25,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultModuleResolutionFilterTest extends Specification {
-    def "accepts all modules and artifacts by default"() {
+    def "accepts all modules default"() {
         def spec = DefaultModuleResolutionFilter.forExcludes()
 
         expect:
@@ -75,6 +75,46 @@ class DefaultModuleResolutionFilterTest extends Specification {
                  excludeRule('org2', 'module2'),
                  regexpExcludeRule('or.*2', "module"),
                  regexpExcludeRule('org', "mod.*2")]
+    }
+
+    @Unroll
+    def "module exclude rule selects the same modules as itself (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+        def same = DefaultModuleResolutionFilter.forExcludes(rule)
+        def all = DefaultModuleResolutionFilter.forExcludes()
+        def otherRule = DefaultModuleResolutionFilter.forExcludes(excludeRule('*', 'other'))
+        def artifactRule = DefaultModuleResolutionFilter.forExcludes(excludeRule('*', 'other', 'thing', '*', '*'))
+
+        then:
+        spec.acceptsSameModulesAs(spec)
+        spec.acceptsSameModulesAs(same)
+        !spec.acceptsSameModulesAs(all)
+        !spec.acceptsSameModulesAs(otherRule)
+        !spec.acceptsSameModulesAs(artifactRule)
+
+        where:
+        rule << [excludeRule('*', '*'),
+                 excludeRule('*', 'module'),
+                 excludeRule('org', '*'),
+                 excludeRule('org', 'module'),
+                 regexpExcludeRule('or.*', "module"),
+                 regexpExcludeRule('org', "mod.*")]
+    }
+
+    @Unroll
+    def "accepts module for every artifact exclude rule (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+
+        then:
+        spec.acceptModule(moduleId('org', 'module'))
+
+        where:
+        rule << [excludeRule('*', '*', 'artifact'),
+                 excludeRule('org', '*', 'artifact'),
+                 excludeRule('org', 'module', 'artifact'),
+                 regexpExcludeRule('.*', "m.*", 'artifact')]
     }
 
     @Unroll
@@ -135,6 +175,40 @@ class DefaultModuleResolutionFilterTest extends Specification {
                  regexpExcludeArtifactRule('my.*2', '*', '*'),
                  regexpExcludeArtifactRule('mylib', 'j.*2', '*'),
                  regexpExcludeArtifactRule('mylib', 'jar', 'j.*2')]
+    }
+
+    @Unroll
+    def "artifact exclude rule accepts the same modules as other rules that accept all modules (#rule)"() {
+        when:
+        def spec = DefaultModuleResolutionFilter.forExcludes(rule)
+        def sameRule = DefaultModuleResolutionFilter.forExcludes(rule)
+        def otherRule = DefaultModuleResolutionFilter.forExcludes(excludeRule('*', '*', 'thing', '*', '*'))
+        def all = DefaultModuleResolutionFilter.all()
+        def moduleRule = DefaultModuleResolutionFilter.forExcludes(excludeRule('*', 'module'))
+
+        then:
+        spec.acceptsSameModulesAs(spec)
+        spec.acceptsSameModulesAs(sameRule)
+        spec.acceptsSameModulesAs(otherRule)
+        spec.acceptsSameModulesAs(all)
+        all.acceptsSameModulesAs(spec)
+
+        !spec.acceptsSameModulesAs(moduleRule)
+        !moduleRule.acceptsSameModulesAs(spec)
+
+        spec.acceptsSameModulesAs(spec.union(otherRule))
+        spec.acceptsSameModulesAs(spec.union(moduleRule))
+        spec.acceptsSameModulesAs(spec.intersect(otherRule.union(sameRule)))
+
+        where:
+        rule << [excludeRule('*', '*', '*', 'jar', 'jar'),
+                 excludeRule('org', 'module', 'mylib', 'jar', 'jar'),
+                 excludeRule('org', 'module', '*', 'jar', 'jar'),
+                 excludeRule('org', 'module', 'mylib', '*', 'jar'),
+                 excludeRule('org', 'module', 'mylib', 'jar', '*'),
+                 regexpExcludeRule('org', "module", 'my.*', 'jar', 'jar'),
+                 regexpExcludeRule('org', "module", 'mylib', 'j.*', 'jar'),
+                 regexpExcludeRule('org', "module", 'mylib', 'jar', 'j.*')]
     }
 
     def "does not accept module version that matches any exclude rule"() {

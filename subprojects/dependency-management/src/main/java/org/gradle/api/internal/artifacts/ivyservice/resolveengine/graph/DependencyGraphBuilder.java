@@ -714,6 +714,8 @@ public class DependencyGraphBuilder {
             if (previousTraversal != null) {
                 if (previousTraversal.acceptsSameModulesAs(resolutionFilter)) {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
+                    // Don't need to traverse again, but hang on to the new filter as the set of artifact may have changed
+                    previousTraversal = resolutionFilter;
                     return;
                 }
                 removeOutgoingEdges();
@@ -763,7 +765,7 @@ public class DependencyGraphBuilder {
         private ModuleResolutionFilter getSelector(List<DependencyEdge> transitiveEdges) {
             ModuleResolutionFilter resolutionFilter;
             if (transitiveEdges.isEmpty()) {
-                resolutionFilter = DefaultModuleResolutionFilter.forExcludes(); //includes all
+                resolutionFilter = DefaultModuleResolutionFilter.all();
             } else {
                 resolutionFilter = transitiveEdges.get(0).getSelector();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
