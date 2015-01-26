@@ -15,6 +15,19 @@ distributions {
         }
     }
 }
+
+// START SNIPPET publish-distribution
+apply plugin:'maven'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://some/repo")
+        }
+    }
+}
+// END SNIPPET publish-distribution
+
 // END SNIPPET configure-distribution
 
 // START SNIPPET custom-distribution
