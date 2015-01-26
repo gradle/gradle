@@ -18,7 +18,7 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
+class ScopedRuleSourceIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule source can be applied in scope of a collection builder element"() {
         when:
@@ -65,7 +65,7 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         output.contains "message: foo"
     }
 
-    def "inner rule execution failure yields useful error message"() {
+    def "scoped rule execution failure yields useful error message"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -97,7 +97,7 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("I'm broken")
     }
 
-    def "invalid rule definitions of inner rules are reported with a message helping to identify the faulty rule"() {
+    def "invalid rule definitions of scoped rules are reported with a message helping to identify the faulty rule"() {
         when:
         buildScript '''
             import org.gradle.model.*
@@ -128,7 +128,7 @@ class InnerRuleSourceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("InvalidRuleSource#invalidRule(org.gradle.api.Task) is not a valid model rule method")
     }
 
-    def "unbound inputs of inner rules are reported and their scope is shown"() {
+    def "unbound inputs of scoped rules are reported and their scope is shown"() {
         when:
         buildScript '''
             import org.gradle.model.*

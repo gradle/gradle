@@ -809,7 +809,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             for (ExtractedModelRule registration : registrations) {
                 // TODO - remove this when we remove the 'rule dependencies' mechanism
                 if (!registration.getRuleDependencies().isEmpty()) {
-                    throw new IllegalStateException("Rule source class " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");
+                    throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");
                 }
 
                 // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes

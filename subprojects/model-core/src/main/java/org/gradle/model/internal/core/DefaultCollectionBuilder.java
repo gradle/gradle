@@ -194,6 +194,10 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
+        //manually ensure that a valid class is passed because Groovy won't enforce type safety
+        if (!RuleSource.class.isAssignableFrom(ruleSource)) {
+            throw new IllegalArgumentException(String.format("Expected a class that extends %s to be passed as a rule source but it was %s", RuleSource.class, ruleSource));
+        }
         modelNode.applyToLink(name, ruleSource);
     }
 
