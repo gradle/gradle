@@ -92,10 +92,10 @@ public interface PluginManager {
     boolean hasPlugin(String id);
 
     /**
-     * Executes the given action, potentially in the future, if/when the plugin has been applied.
+     * Executes the given action when the specified plugin is applied.
      * <p>
-     * If a plugin with the given ID has already been applied, the given action will be executed immediately.
-     * Otherwise, the action will be executed sometime in the future if a plugin with the given ID is applied.
+     * If a plugin with the specified ID has already been applied, the supplied action will be executed immediately.
+     * Otherwise, the action will executed if and when a plugin with the specified ID is applied.
      * <p>
      *
      * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.

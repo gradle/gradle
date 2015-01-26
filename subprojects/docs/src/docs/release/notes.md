@@ -152,14 +152,14 @@ In the past, the [`PluginContainer`](javadoc/org/gradle/api/plugins/PluginContai
 including only supporting instances of `Plugin`, providing mutation methods that are not properly supported, and requiring that plugin instances
 be instantiated immediately on applying.
 
-Gradle 2.3 introduces a new [`PluginManager`](javadoc/org/gradle/api/plugins/PluginManager.html) API which addresses these issues, fully supporting `RuleSource` plugins and dealing better with
+Gradle 2.3 introduces a new [`PluginManager`](dsl/org.gradle.api.plugins.PluginManager.html) API which addresses these issues, fully supporting `RuleSource` plugins and dealing better with
 plugin identification. While `PluginContainer` is not deprecated, build authors should prefer to use `PluginManager` methods where possible.
 
 Useful methods include:
 
-- [`PluginManager.hasPlugin(String id)`](javadoc/org/gradle/api/plugins/PluginManager.html#hasPlugin-java.lang.String-)
-- [`PluginManager.findPlugin(String id)`](javadoc/org/gradle/api/plugins/PluginManager.html#findPlugin-java.lang.String-)
-- [`PluginManager.withPlugin(String id, Action action)`](javadoc/org/gradle/api/plugins/PluginManager.html#withPlugin-java.lang.String-org.gradle.api.Action-)
+- [`PluginManager.hasPlugin(String id)`](dsl/org.gradle.api.plugins.PluginManager.html#hasPlugin-java.lang.String-)
+- [`PluginManager.findPlugin(String id)`](dsl/org.gradle.api.plugins.PluginManager.html#findPlugin-java.lang.String-)
+- [`PluginManager.withPlugin(String id, Action action)`](dsl/org.gradle.api.plugins.PluginManager.html#withPlugin-java.lang.String-org.gradle.api.Action-)
 
 These methods should be used when reacting to the presence of another plugin or for ad-hoc reporting.
 
