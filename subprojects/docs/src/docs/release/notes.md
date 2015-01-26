@@ -145,6 +145,12 @@ and added as publications, applications behave the same as they have a distribut
 
 This feature was contributed by [Sébastien Cogneau](https://github.com/scogneau).
 
+### Groovy version upgraded to 2.3.9
+
+Gradle 2.3 includes Groovy 2.3.9 (upgraded from Groovy 2.3.6 in Gradle 2.2.1).
+
+This is a non breaking change.
+All build scripts and plugins that work with Gradle 2.2.1 will continue to work without change.
 
 ## Promoted features
 
