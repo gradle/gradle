@@ -53,7 +53,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
      * Returns a spec that accepts only those module versions that do not match any of the given exclude rules.
      */
     public static ModuleResolutionFilter forExcludes(ExcludeRule... excludeRules) {
-        return forExcludes(Arrays.asList(excludeRules));
+        if (excludeRules.length == 0) {
+            return ALL_SPEC;
+        }
+        return new ExcludeRuleBackedSpec(Arrays.asList(excludeRules));
     }
 
     /**
@@ -151,11 +154,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         if (this == ALL_SPEC) {
             return other;
         }
-        return doIntersection((DefaultModuleResolutionFilter) other);
+
+        List<DefaultModuleResolutionFilter> specs = new ArrayList<DefaultModuleResolutionFilter>();
+        unpackIntersection(specs);
+        ((DefaultModuleResolutionFilter) other).unpackIntersection(specs);
+
+        return new ExcludeRuleBackedSpec(specs);
     }
 
-    protected DefaultModuleResolutionFilter doIntersection(DefaultModuleResolutionFilter other) {
-        return new IntersectSpec(this, other);
+    protected void unpackIntersection(Collection<DefaultModuleResolutionFilter> specs) {
+        specs.add(this);
     }
 
     private static class AcceptAllSpec extends DefaultModuleResolutionFilter {
@@ -258,6 +266,11 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         @Override
         Collection<DefaultModuleResolutionFilter> getSpecs() {
             return excludeSpecs;
+        }
+
+        @Override
+        protected void unpackIntersection(Collection<DefaultModuleResolutionFilter> specs) {
+            specs.addAll(excludeSpecs);
         }
 
         @Override
@@ -378,19 +391,6 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 throw new UnsupportedOperationException();
             }
         }
-
-        @Override
-        protected DefaultModuleResolutionFilter doIntersection(DefaultModuleResolutionFilter other) {
-            if (!(other instanceof ExcludeRuleBackedSpec)) {
-                return super.doIntersection(other);
-            }
-
-            ExcludeRuleBackedSpec otherExcludeRuleSpec = (ExcludeRuleBackedSpec) other;
-            Set<DefaultModuleResolutionFilter> allSpecs = new HashSet<DefaultModuleResolutionFilter>();
-            allSpecs.addAll(excludeSpecs);
-            allSpecs.addAll(otherExcludeRuleSpec.excludeSpecs);
-            return new ExcludeRuleBackedSpec(allSpecs);
-        }
     }
 
     private static class UnionSpec extends CompositeSpec {
@@ -438,46 +438,6 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             }
 
             return false;
-        }
-    }
-
-    private static class IntersectSpec extends CompositeSpec {
-        private final List<DefaultModuleResolutionFilter> specs;
-
-        private IntersectSpec(DefaultModuleResolutionFilter... specs) {
-            this.specs = Arrays.asList(specs);
-        }
-
-        @Override
-        Collection<DefaultModuleResolutionFilter> getSpecs() {
-            return specs;
-        }
-        @Override
-        protected boolean acceptsAllModules() {
-            for (DefaultModuleResolutionFilter excludeSpec : specs) {
-                if (!excludeSpec.acceptsAllModules()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean acceptModule(ModuleIdentifier element) {
-            for (DefaultModuleResolutionFilter spec : specs) {
-                if (!spec.acceptModule(element)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-            for (DefaultModuleResolutionFilter spec : specs) {
-                if (!spec.acceptArtifact(module, artifact)) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 
