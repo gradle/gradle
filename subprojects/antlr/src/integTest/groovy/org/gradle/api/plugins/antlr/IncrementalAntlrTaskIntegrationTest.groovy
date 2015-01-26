@@ -86,8 +86,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
-    //Somehow the exposed issues seems related to:
-    @Issue("https://issues.gradle.org/browse/GRADLE-2440")
     def "output for removed grammar file is not handled correctly"() {
         when:
         grammar("Test1", "Test2")
