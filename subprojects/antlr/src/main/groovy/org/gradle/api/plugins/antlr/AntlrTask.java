@@ -17,9 +17,9 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
+import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.*;
@@ -202,11 +202,11 @@ public class AntlrTask extends SourceTask {
     public void evaluateAntlrResult(AntlrResult result) {
         int errorCount = result.getErrorCount();
         if (errorCount == 1) {
-            throw new GradleException("There was 1 error during grammar generation");
+            throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());
         } else if (errorCount > 1) {
-            throw new GradleException("There were "
+            throw new AntlrSourceGenerationException("There were "
                     + errorCount
-                    + " errors during grammar generation");
+                    + " errors during grammar generation", result.getException());
         }
     }
 
