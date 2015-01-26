@@ -1,6 +1,62 @@
+Gradle 2.3 brings some nice new capabilities to dependency management, as well as improvements to a couple of core plugins.
+
+A much requested feature is the ability to access the Ivy and Maven metadata artifacts that Gradle uses to perform dependency resolution.
+Using the Artifact Query API, you now have direct access to these raw metadata artifacts. This could be useful for generating an offline
+repository, inspecting the files for custom metadata, and much more.
+
+As always, this Gradle release benefits from a large number of community contributions. These include substantial improvements to the
+ANTLR and Build Comparison plugins, as well as many of the issues that have been fixed in this release.
+
+Under the covers, a lot of progress has been made on the new configuration and component models. While this progress may not
+be visible to your builds, it is evidenced in some of the changes made to the native component plugins. Expect to see more about
+this exciting progress in an upcoming release announcement.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
+
+### Access Ivy and Maven metadata artifacts via the Artifact Query API (i)
+
+Gradle 2.0 introduced an incubating [query API for resolving component artifacts](http://www.gradle.org/docs/2.0/release-notes#new-api-for-resolving-source-and-javadoc-artifacts).
+
+In this release this API has been extended to allow for retrieving the metadata artifacts for Ivy and Maven modules. 
+This means that a build can access the raw `ivy.xml` or `module.pom` file that Gradle used when resolving a dependency.
+
+Given that the dependency is resolved from an Ivy repository, the Ivy descriptor artifact can be retrieved as follows:
+
+    task resolveIvyDescriptorFiles {
+        doLast {
+            def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+
+            def result = dependencies.createArtifactResolutionQuery()
+                .forComponents(componentIds)
+                .withArtifacts(IvyModule, IvyDescriptorArtifact)
+                .execute()
+
+            for (component in result.resolvedComponents) {
+                component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
+            }
+        }
+    }
+
+For a dependency that is resolved from a Maven repository, the Maven POM artifact can be retrieved as follows:
+
+    task resolveMavenPomFiles {
+        doLast {
+            def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+
+            def result = dependencies.createArtifactResolutionQuery()
+                .forComponents(componentIds)
+                .withArtifacts(MavenModule, MavenPomArtifact)
+                .execute()
+
+            for(component in result.resolvedComponents) {
+                component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
+            }
+        }
+    }
+
+See the [ArtifactResolutionQuery API reference](dsl/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html) for more details.
 
 ### Component metadata rule enhancements (i)
 
@@ -52,49 +108,6 @@ Furthermore, rules can now also be specified as `rule source` objects, allowing 
     }
 
 See the [userguide section](userguide/dependency_management.html#component_metadata_rules) on component metadata rules for further information.
-
-### Access Ivy and Maven metadata artifacts via the Artifact Query API (i)
-
-Gradle 2.0 introduced an incubating [query API for resolving component artifacts](http://www.gradle.org/docs/2.0/release-notes#new-api-for-resolving-source-and-javadoc-artifacts).
-
-In this release this API has been extended to allow for retrieving the metadata artifacts for Ivy and Maven modules. 
-This means that a build can access the raw `ivy.xml` or `module.pom` file that Gradle used when resolving a dependency.
-
-Given that the dependency is resolved from an Ivy repository, the Ivy descriptor artifact can be retrieved as follows:
-
-    task resolveIvyDescriptorFiles {
-        doLast {
-            def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
-
-            def result = dependencies.createArtifactResolutionQuery()
-                .forComponents(componentIds)
-                .withArtifacts(IvyModule, IvyDescriptorArtifact)
-                .execute()
-
-            for (component in result.resolvedComponents) {
-                component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
-            }
-        }
-    }
-
-For a dependency that is resolved from a Maven repository, the Maven POM artifact can be retrieved as follows:
-
-    task resolveMavenPomFiles {
-        doLast {
-            def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
-
-            def result = dependencies.createArtifactResolutionQuery()
-                .forComponents(componentIds)
-                .withArtifacts(MavenModule, MavenPomArtifact)
-                .execute()
-
-            for(component in result.resolvedComponents) {
-                component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
-            }
-        }
-    }
-
-See the [ArtifactResolutionQuery API reference](dsl/org.gradle.api.artifacts.query.ArtifactResolutionQuery.html) for more details.
 
 ### Improvements to the ANTLR plugin
 
