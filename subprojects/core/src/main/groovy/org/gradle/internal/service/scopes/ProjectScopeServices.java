@@ -118,15 +118,15 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManagerInternal createPluginManager() {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator) {
         List<MethodRuleDefinitionHandler> handlers = getAll(MethodRuleDefinitionHandler.class);
         List<MethodRuleDefinitionHandler> coreHandlers = MethodRuleDefinitionHandlers.coreHandlers(
-                get(Instantiator.class),
+                instantiator,
                 get(ModelSchemaStore.class)
         );
         ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
         PluginApplicator applicator = new RulesCapablePluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
-        return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {

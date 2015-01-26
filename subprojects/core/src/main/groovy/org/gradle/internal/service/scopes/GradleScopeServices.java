@@ -29,6 +29,7 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
@@ -104,9 +105,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager() {
-        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(get(GradleInternal.class));
-        return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry) {
+        PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this), applicator);
     }
 
     @Override
