@@ -264,6 +264,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         boolean newInputsBound = true;
         while (!binders.isEmpty() && newInputsBound) {
             newInputsBound = false;
+            //`binders` is mutated during tryForceBind (removal and insert), can't use foreach
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < binders.size(); i++) {
                 newInputsBound = newInputsBound || tryForceBind(binders.get(i));
             }
