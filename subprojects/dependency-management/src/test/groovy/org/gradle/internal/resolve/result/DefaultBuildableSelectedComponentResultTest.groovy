@@ -28,9 +28,10 @@ class DefaultBuildableSelectedComponentResultTest extends Specification {
     def "has no matching state by default"() {
         expect:
         !result.hasMatch()
-        result.hasNoMatch()
-        result.reason == NO_MATCH
-        result.moduleComponentIdentifier == null
+        !result.hasNoMatch()
+        result.reason == CANNOT_DETERMINE
+        !result.moduleComponentIdentifier
+        !result.hasResult()
     }
 
     def "can mark matching"() {
@@ -45,6 +46,7 @@ class DefaultBuildableSelectedComponentResultTest extends Specification {
         !result.hasNoMatch()
         result.reason == MATCH
         result.moduleComponentIdentifier == moduleComponentIdentifier
+        result.hasResult()
     }
 
     def "can mark no match"() {
@@ -55,7 +57,8 @@ class DefaultBuildableSelectedComponentResultTest extends Specification {
         !result.hasMatch()
         result.hasNoMatch()
         result.reason == NO_MATCH
-        result.moduleComponentIdentifier == null
+        !result.moduleComponentIdentifier
+        !result.hasResult()
     }
 
     def "cannot determine match"() {
@@ -66,6 +69,7 @@ class DefaultBuildableSelectedComponentResultTest extends Specification {
         !result.hasMatch()
         !result.hasNoMatch()
         result.reason == CANNOT_DETERMINE
-        result.moduleComponentIdentifier == null
+        !result.moduleComponentIdentifier
+        !result.hasResult()
     }
 }

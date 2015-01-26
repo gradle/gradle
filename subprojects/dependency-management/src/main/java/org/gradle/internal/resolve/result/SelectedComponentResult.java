@@ -25,4 +25,11 @@ public interface SelectedComponentResult {
      * @return Chosen module component identifier
      */
     ModuleComponentIdentifier getModuleComponentIdentifier();
+
+    /**
+     * Returns if module component identifier is not null.
+     *
+     * @return Result indicator
+     */
+    boolean hasResult();
 }

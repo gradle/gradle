@@ -97,6 +97,8 @@ class NewestVersionComponentChooser implements ComponentChooser {
                 }
             }
         }
+
+        result.noMatch();
     }
 
     private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {

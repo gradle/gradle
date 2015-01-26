@@ -19,7 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultBuildableSelectedComponentResult implements BuildableSelectedComponentResult {
-    private Reason reason = Reason.NO_MATCH;
+    private Reason reason = Reason.CANNOT_DETERMINE;
     private ModuleComponentIdentifier moduleComponentIdentifier;
 
     public boolean hasMatch() {
@@ -53,5 +53,10 @@ public class DefaultBuildableSelectedComponentResult implements BuildableSelecte
 
     public ModuleComponentIdentifier getModuleComponentIdentifier() {
         return moduleComponentIdentifier;
+    }
+
+    @Override
+    public boolean hasResult() {
+        return moduleComponentIdentifier != null;
     }
 }
