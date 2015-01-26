@@ -19,6 +19,11 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
+/**
+ * Tests the information provided when a model rule fails to bind.
+ *
+ * @see ModelRuleBindingValidationIntegrationTest
+ */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -224,26 +229,4 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
       - bar (java.lang.Integer) parameter 1""")
     }
 
-    def "model rule that does not bind specified for project not used in the build does not fail the build"() {
-        when:
-        settingsFile << """
-            include ":used", ":unused"
-        """
-
-        file("unused/build.gradle") << """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
-            class Rules extends RuleSource {
-                @Mutate
-                void unbound(CollectionBuilder<Task> tasks, String unbound) {
-                }
-            }
-
-            apply type: Rules
-        """
-
-        then:
-        succeeds ":used:tasks"
-    }
 }
