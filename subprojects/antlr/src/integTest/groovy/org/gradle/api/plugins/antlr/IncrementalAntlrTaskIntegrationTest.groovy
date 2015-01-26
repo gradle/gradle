@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr
 
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
@@ -87,7 +86,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
-    @Ignore
     //Somehow the exposed issues seems related to:
     @Issue("https://issues.gradle.org/browse/GRADLE-2440")
     def "output for removed grammar file is not handled correctly"() {
@@ -104,6 +102,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         test2LexerFile.exists()
         test2ParserFile.exists()
 
+        when:
         removedGrammar("Test1")
 
         then:

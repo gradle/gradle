@@ -134,7 +134,7 @@ class AntlrTaskTest extends Specification {
         File s2 = Mock()
         s1.getAbsolutePath() >> "/input/1"
         s2.getAbsolutePath() >> "/input/2"
-        [s1, s2]
+        [s1, s2] as Set
     }
 
 }
