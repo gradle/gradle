@@ -157,7 +157,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     @SuppressWarnings("unchecked")
     private <T> RuleBinder<T> createAndRegisterBinder(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
-        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
+        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, onBind);
         binders.add(binder);
         return binder;
     }
@@ -408,7 +408,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private boolean tryForceBind(RuleBinder<?> binder) {
-        if (binder.maybeFire()) {
+        if (maybeFireThenUnregister(binder)) {
             return true;
         }
 
@@ -426,8 +426,16 @@ public class DefaultModelRegistry implements ModelRegistry {
                 boundSomething = boundSomething || binder.getInputBindings().get(i) != null;
             }
         }
-        binder.maybeFire();
+        maybeFireThenUnregister(binder);
         return boundSomething;
+    }
+
+    private boolean maybeFireThenUnregister(RuleBinder<?> binder) {
+        boolean fired = binder.maybeFire();
+        if (fired) {
+            binders.remove(binder);
+        }
+        return fired;
     }
 
     private void forceBind(RuleBinder<?> binder) {
