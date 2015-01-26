@@ -16,22 +16,33 @@
 
 package org.gradle.api.publication.maven.internal.ant;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 
 public class ParsedMavenPom {
-    private Model model;
+    private final Model model;
 
     public ParsedMavenPom(File pomFile) {
         try {
-            FileReader reader = new FileReader(pomFile);
-            model = new MavenXpp3Reader().read(reader, false);
+            model = parsePom(pomFile);
         } catch (Exception e) {
             throw new GradleException("Cannot read generated POM!", e);
+        }
+    }
+
+    private Model parsePom(File pomFile) throws IOException, XmlPullParserException {
+        FileReader reader = new FileReader(pomFile);
+        try {
+            return new MavenXpp3Reader().read(reader, false);
+        } finally {
+            IOUtils.closeQuietly(reader);
         }
     }
 
