@@ -48,4 +48,25 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
         succeeds ":used:tasks"
     }
 
+    def "entire model is validated, not just what is 'needed'"() {
+        when:
+        buildScript """
+            class Rules extends RuleSource {
+              @Model
+              String s1(Integer iDontExist) {
+                "foo"
+              }
+            }
+
+            pluginManager.apply Rules
+        """
+
+        then:
+        fails "help"
+        failure.assertHasCause("""The following model rules are unbound:
+  Rules#s1(java.lang.Integer)
+    Immutable:
+      - <unspecified> (java.lang.Integer) parameter 1""")
+    }
+
 }
