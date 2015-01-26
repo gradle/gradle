@@ -17,14 +17,17 @@
 package org.gradle.api.tasks.diagnostics.internal.text
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.SystemProperties
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.reporting.ReportRenderer
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
     def fileResolver = Stub(FileResolver)
     def builder = new DefaultTextReportBuilder(output, fileResolver)
+    def SEP = SystemProperties.getLineSeparator()
 
     def "formats heading"() {
         given:
@@ -123,23 +126,27 @@ heading
 
     def "formats multiline item" () {
         when:
-        builder.item("first line\nsecond line\nthird line")
+        builder.item("first line${SEP}  second line${SEP}  third line")
 
         then:
-        output.value == """    first line
-    second line
-    third line
+        outputMatches """    first line
+      second line
+      third line
 """
     }
 
     def "formats multiline item with title" () {
         when:
-        builder.item("the title", "first line\nsecond line\nthird line")
+        builder.item("the title", "first line${SEP}  second line${SEP}  third line")
 
         then:
-        output.value == """    the title: first line
-    second line
-    third line
+        outputMatches """    the title: first line
+      second line
+      third line
 """
+    }
+
+    void outputMatches(String text) {
+        assert TextUtil.normaliseLineSeparators(output.value) == TextUtil.normaliseLineSeparators(text)
     }
 }
