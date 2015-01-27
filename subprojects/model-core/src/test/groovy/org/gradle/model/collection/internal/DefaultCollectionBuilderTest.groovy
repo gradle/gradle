@@ -54,8 +54,6 @@ class DefaultCollectionBuilderTest extends Specification {
         String other
     }
 
-    interface Special { }
-
     class SpecialNamedThing extends NamedThing implements Special {
     }
 
