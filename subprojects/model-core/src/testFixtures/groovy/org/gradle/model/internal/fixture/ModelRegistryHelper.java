@@ -209,6 +209,24 @@ public class ModelRegistryHelper implements ModelRegistry {
         return apply(Mutate, type, action);
     }
 
+    public ModelRegistryHelper mutate(final String path, final Action<? super MutableModelNode> action) {
+        return apply(Mutate, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+            @Override
+            public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
+                return objectModelActionBuilder.path(path).node(action);
+            }
+        });
+    }
+
+    public ModelRegistryHelper apply(String path, final Class<? extends RuleSource> rules) {
+        return mutate(path, new Action<MutableModelNode>() {
+            @Override
+            public void execute(MutableModelNode mutableModelNode) {
+                mutableModelNode.applyToSelf(rules);
+            }
+        });
+    }
+
     private <T> ModelRegistryHelper apply(ModelActionRole role, final Class<T> type, final Action<? super T> action) {
         return apply(role, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override

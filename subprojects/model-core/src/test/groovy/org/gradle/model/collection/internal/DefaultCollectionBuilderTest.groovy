@@ -16,28 +16,15 @@
 
 package org.gradle.model.collection.internal
 
-import org.gradle.api.Plugin
 import org.gradle.api.PolymorphicDomainObjectContainer
-import org.gradle.api.Project
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.InvalidModelRuleException
-import org.gradle.model.Model
-import org.gradle.model.ModelRuleBindingException
-import org.gradle.model.Mutate
-import org.gradle.model.Path
-import org.gradle.model.RuleSource
+import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors
-import org.gradle.model.internal.inspect.MethodRuleDefinition
-import org.gradle.model.internal.inspect.ModelRuleExtractor
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
@@ -57,26 +44,11 @@ class DefaultCollectionBuilderTest extends Specification {
     class SpecialNamedThing extends NamedThing implements Special {
     }
 
-    class ImperativePlugin implements Plugin<Project> {
-        void apply(Project target) {
-        }
-    }
-
-    class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
-
-        @Override
-        def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-            new DependencyOnlyExtractedModelRule([ModelType.of(ImperativePlugin)])
-        }
-    }
-
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
-    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance())
-    def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
+    def registry = new ModelRegistryHelper()
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
-
 
     def setup() {
         registry.create(
@@ -530,11 +502,6 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("bar") instanceof SpecialNamedThing
     }
 
-    static class RuleSourceUsingRuleWithDependencies extends RuleSource {
-        @HasDependencies
-        void rule() {}
-    }
-
     class MutableValue {
         String value
     }
@@ -542,26 +509,6 @@ class DefaultCollectionBuilderTest extends Specification {
     class Bean {
         String name
         String value
-    }
-
-    def "cannot apply a scoped rule that has dependencies"() {
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(MutableValue))
-        registry
-                .collection("values", MutableValue) { name, type -> new MutableValue() }
-                .mutate {
-            it.descriptor("mutating elements").path "values" type cbType action { c ->
-                c.create("element")
-                c.named("element", RuleSourceUsingRuleWithDependencies)
-            }
-        }
-
-        when:
-        registry.realize(ModelPath.path("values"), ModelType.UNTYPED)
-
-        then:
-        ModelRuleExecutionException e = thrown()
-        e.cause.class == IllegalStateException
-        e.cause.message.startsWith "Rule source $RuleSourceUsingRuleWithDependencies cannot have plugin dependencies"
     }
 
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
