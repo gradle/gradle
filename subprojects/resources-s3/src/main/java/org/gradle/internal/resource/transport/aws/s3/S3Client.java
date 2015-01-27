@@ -50,6 +50,7 @@ public class S3Client {
     public static final String HTTPCLIENT_PROXY_PORT = "httpclient.proxy-port";
     public static final String HTTPCLIENT_PROXY_USER = "httpclient.proxy-user";
     public static final String HTTPCLIENT_PROXY_PASSWORD = "httpclient.proxy-password";
+    public static final String STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX = "storage-service.internal-error-retry-max";
 
     private RestS3Service s3Service;
     private final S3ConnectionProperties s3ConnectionProperties;
@@ -71,7 +72,6 @@ public class S3Client {
 
     private Jets3tProperties createConnectionProperties() {
         Jets3tProperties properties = Jets3tProperties.getInstance(Constants.JETS3T_PROPERTIES_FILENAME);
-        properties.setProperty("storage-service.internal-error-retry-max", "0");
 
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
@@ -80,6 +80,7 @@ public class S3Client {
             properties.setProperty(S3SERVICE_S3_ENDPOINT_HTTP_PORT, Integer.toString(uri.getPort()));
             properties.setProperty(S3SERVICE_HTTPS_ONLY, Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
             properties.setProperty(S3SERVICE_DISABLE_DNS_BUCKETS, "true");
+            properties.setProperty(STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX, "0");
         }
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
