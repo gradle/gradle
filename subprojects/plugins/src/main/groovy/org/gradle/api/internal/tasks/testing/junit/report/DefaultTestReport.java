@@ -68,15 +68,15 @@ public class DefaultTestReport implements TestReporter {
         return model;
     }
 
-    private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, File reportDir) {
+    private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
                     PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
-                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider);
-
+                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider, new File(reportDir,"classes"));
+                    addAdditionalResourceListeners(classPageRenderer);
                     output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
                         output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, packagePageRenderer);
@@ -90,4 +90,6 @@ public class DefaultTestReport implements TestReporter {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportDir), e);
         }
     }
+
+    protected void addAdditionalResourceListeners(ClassPageRenderer classPageRenderer) {}
 }
