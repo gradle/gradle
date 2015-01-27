@@ -155,7 +155,6 @@ public class ModelRuleExtractor {
      * @param source the class the validate
      */
     public void validate(Class<?> source) throws InvalidModelRuleDeclarationException {
-
         // TODO - exceptions thrown here should point to some extensive documentation on the concept of class rule sources
 
         int modifiers = source.getModifiers();
@@ -163,6 +162,11 @@ public class ModelRuleExtractor {
         if (Modifier.isInterface(modifiers)) {
             throw invalid(source, "must be a class, not an interface");
         }
+
+        if (!RuleSource.class.isAssignableFrom(source) || !source.getSuperclass().equals(RuleSource.class)) {
+            throw invalid(source, "rule source classes must directly extend " + RuleSource.class.getName());
+        }
+
         if (Modifier.isAbstract(modifiers)) {
             throw invalid(source, "class cannot be abstract");
         }
@@ -175,10 +179,6 @@ public class ModelRuleExtractor {
             } else {
                 throw invalid(source, "enclosed classes must be static and non private");
             }
-        }
-
-        if (!source.getSuperclass().equals(RuleSource.class)) {
-            throw invalid(source, String.format("rule source classes have to directly extend %s", RuleSource.class.getName()));
         }
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();

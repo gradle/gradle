@@ -527,8 +527,8 @@ class DefaultCollectionBuilderTest extends Specification {
 
         then:
         ModelRuleExecutionException e = thrown()
-        e.cause.class == IllegalArgumentException
-        e.cause.message == "Expected a class that extends $RuleSource to be passed as a rule source but it was $Object"
+        e.cause.class == InvalidModelRuleDeclarationException
+        e.cause.message == "Type java.lang.Object is not a valid model rule source: rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     static class ElementRules extends RuleSource {
