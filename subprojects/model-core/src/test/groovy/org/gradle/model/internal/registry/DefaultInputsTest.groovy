@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry
 import org.gradle.model.internal.core.InstanceModelView
 import org.gradle.model.internal.core.ModelBinding
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleInput
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
@@ -32,19 +31,11 @@ class DefaultInputsTest extends Specification {
     def barRef = ModelReference.of("bar", Integer)
     def barBinding = ModelBinding.of(barRef)
 
-    def inputs = new DefaultInputs([
-            ModelRuleInput.of(fooBinding, InstanceModelView.of(fooRef.type, foo)),
-            ModelRuleInput.of(barBinding, InstanceModelView.of(barRef.type, bar))
-    ])
+    def inputs = new DefaultInputs([fooBinding, barBinding], [InstanceModelView.of(fooRef.type, foo), InstanceModelView.of(barRef.type, bar)])
 
     def "size"() {
         expect:
         inputs.size() == 2
-    }
-
-    def "as references"() {
-        expect:
-        inputs.references == [fooRef, barRef]
     }
 
     def "retrieve view"() {

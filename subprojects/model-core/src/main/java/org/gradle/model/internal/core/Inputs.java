@@ -26,9 +26,8 @@ public interface Inputs {
 
     int size();
 
-    List<ModelReference<?>> getReferences();
+    List<ModelView<?>> getViews();
 
     List<ModelBinding<?>> getBindings();
 
-    List<ModelRuleInput<?>> getRuleInputs();
 }

@@ -16,10 +16,10 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.Inputs;
+import org.gradle.model.internal.core.ModelBinding;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -27,45 +27,39 @@ import java.util.List;
 @ThreadSafe
 public class DefaultInputs implements Inputs {
 
-    private final List<ModelRuleInput<?>> inputs;
+    private final List<ModelBinding<?>> bindings;
+    private final List<ModelView<?>> views;
 
-    public DefaultInputs(List<ModelRuleInput<?>> inputs) {
-        this.inputs = inputs;
+    public DefaultInputs(List<ModelBinding<?>> bindings, List<ModelView<?>> views) {
+        if (bindings.size() != views.size()) {
+            throw new IllegalArgumentException("lists must be of same size");
+        }
+
+        this.bindings = bindings;
+        this.views = views;
     }
 
     public <T> ModelView<? extends T> get(int i, ModelType<T> type) {
-        ModelRuleInput<?> input = inputs.get(i);
-        ModelView<?> untypedView = input.getView();
+        ModelView<?> untypedView = views.get(i);
         if (type.isAssignableFrom(untypedView.getType())) {
             @SuppressWarnings("unchecked") ModelView<? extends T> view = (ModelView<? extends T>) untypedView;
             return view;
         } else {
             // TODO better exception type
-            throw new IllegalArgumentException("Can't view input '" + i + "' (" + input.getView().getType() + ") as type '" + type + "'");
+            throw new IllegalArgumentException("Can't view input '" + i + "' (" + untypedView.getType() + ") as type '" + type + "'");
         }
     }
 
-    public int size() {
-        return inputs.size();
+    @Override
+    public List<ModelView<?>> getViews() {
+        return views;
     }
 
-    public List<ModelReference<?>> getReferences() {
-        return Lists.transform(inputs, new Function<ModelRuleInput<?>, ModelReference<?>>() {
-            public ModelReference<?> apply(ModelRuleInput<?> input) {
-                return input.getBinding().getReference();
-            }
-        });
+    public int size() {
+        return bindings.size();
     }
 
     public List<ModelBinding<?>> getBindings() {
-        return Lists.transform(inputs, new Function<ModelRuleInput<?>, ModelBinding<?>>() {
-            public ModelBinding<?> apply(ModelRuleInput<?> input) {
-                return input.getBinding();
-            }
-        });
-    }
-
-    public List<ModelRuleInput<?>> getRuleInputs() {
-        return inputs;
+        return bindings;
     }
 }

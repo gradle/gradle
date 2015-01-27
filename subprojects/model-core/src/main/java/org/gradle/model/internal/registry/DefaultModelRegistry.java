@@ -64,6 +64,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
 
     private final ModelRuleExtractor ruleExtractor;
+    private Transformer<ModelView<?>, ModelBinding<?>> bindingToView;
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
@@ -538,20 +539,18 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private Inputs toInputs(Iterable<? extends ModelBinding<?>> bindings, ModelRuleDescriptor ruleDescriptor) {
-        ImmutableList.Builder<ModelRuleInput<?>> builder = ImmutableList.builder();
+    private Inputs toInputs(List<ModelBinding<?>> bindings, final ModelRuleDescriptor ruleDescriptor) {
+        // hot path; create as little as possible…
+        @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
+        int i = 0;
         for (ModelBinding<?> binding : bindings) {
-            ModelRuleInput<?> input = toInput(binding, ruleDescriptor);
-            builder.add(input);
+            ModelPath path = binding.getPath();
+            ModelNodeInternal element = require(path);
+            ModelView<?> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
+            array[i++] = view;
         }
-        return new DefaultInputs(builder.build());
-    }
-
-    private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding, ModelRuleDescriptor ruleDescriptor) {
-        ModelPath path = binding.getPath();
-        ModelNodeInternal element = require(path);
-        ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
-        return ModelRuleInput.of(binding, view);
+        @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
+        return new DefaultInputs(bindings, views);
     }
 
     // Bust this out to top level

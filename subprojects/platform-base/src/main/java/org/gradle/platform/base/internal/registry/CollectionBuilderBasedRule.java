@@ -22,7 +22,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelRuleInput;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
@@ -81,8 +81,8 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
         args[0] = collectionBuilder;
         args[baseTypeParameterIndex] = baseTypeParameter;
 
-        for (ModelRuleInput<?> modelRuleInput : inputs.getRuleInputs()) {
-            Object instance = modelRuleInput.getView().getInstance();
+        for (ModelView<?> view : inputs.getViews()) {
+            Object instance = view .getInstance();
             if (instance == ignoredInput) {
                 continue;
             }
