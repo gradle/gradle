@@ -18,25 +18,58 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
-import org.gradle.internal.Factory
 
 class MetadataProviderTest extends Specification {
     Factory metadataSupplier = Mock(Factory)
     MetadataProvider metadataProvider = new MetadataProvider(metadataSupplier)
 
-    def "caches metadata" () {
+    def "caches metadata supplier result"() {
         when:
         metadataProvider.getMetaData()
         metadataProvider.getMetaData()
 
         then:
-        1 * metadataSupplier.create() >> new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor))
+        1 * metadataSupplier.create() >> new DefaultBuildableModuleComponentMetaDataResolveResult()
+    }
+
+    def "verifies that metadata was provided"() {
+        given:
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        result.resolved(new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor)))
+
+        when:
+        boolean metaData = metadataProvider.canProvideMetaData()
+
+        then:
+        1 * metadataSupplier.create() >> result
+        metaData
+    }
+
+    def "verifies that metadata was not provided"() {
+        given:
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+
+        when:
+        boolean metaData = metadataProvider.getMetaData()
+
+        then:
+        1 * metadataSupplier.create() >> result
+        !metaData
     }
 
     def "can provide component metadata" () {
+        given:
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
+            getModuleRevisionId() >> ModuleRevisionId.newInstance("group", "name", "1.0")
+        })
+        result.resolved(metaData)
+
         when:
         def componentMetadata = metadataProvider.getComponentMetadata()
 
@@ -46,14 +79,17 @@ class MetadataProviderTest extends Specification {
         componentMetadata.id.version == "1.0"
 
         and:
-        1 * metadataSupplier.create() >> {
-            return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
-                getModuleRevisionId() >> ModuleRevisionId.newInstance("group", "name", "1.0")
-            })
-        }
+        1 * metadataSupplier.create() >> result
     }
 
     def "can provide Ivy descriptor" () {
+        given:
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
+            getStatus() >> "test"
+        })
+        result.resolved(metaData)
+
         when:
         def returned = metadataProvider.getIvyModuleDescriptor()
 
@@ -61,14 +97,15 @@ class MetadataProviderTest extends Specification {
         returned.ivyStatus == "test"
 
         and:
-        1 * metadataSupplier.create() >> {
-            return new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
-                getStatus() >> "test"
-            })
-        }
+        1 * metadataSupplier.create() >> result
     }
 
     def "returns null when not Ivy descriptor" () {
+        given:
+        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        def metaData = new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
+        result.resolved(metaData)
+
         when:
         def returned = metadataProvider.getIvyModuleDescriptor()
 
@@ -76,8 +113,6 @@ class MetadataProviderTest extends Specification {
         returned == null
 
         and:
-        1 * metadataSupplier.create() >> {
-            return new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
-        }
+        1 * metadataSupplier.create() >> result
     }
 }

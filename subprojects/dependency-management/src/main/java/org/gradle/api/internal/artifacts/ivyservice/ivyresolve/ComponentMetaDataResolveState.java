@@ -72,7 +72,7 @@ class ComponentMetaDataResolveState {
             throw resolveResult.getFailure();
         }
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            if (componentChooser.isRejectedByRules(componentIdentifier, Factories.constant(resolveResult.getMetaData()))) {
+            if (componentChooser.isRejectedByRules(componentIdentifier, Factories.constant(resolveResult))) {
                 resolveResult.missing();
             }
         }
