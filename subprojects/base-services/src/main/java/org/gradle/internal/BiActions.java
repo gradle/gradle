@@ -18,15 +18,17 @@ package org.gradle.internal;
 
 public abstract class BiActions {
 
+    private static final BiAction<Object, Object> NOOP = new BiAction<Object, Object>() {
+        public void execute(Object o, Object o2) {
+
+        }
+    };
+
     private BiActions() {
     }
 
     public static BiAction<Object, Object> doNothing() {
-        return new BiAction<Object, Object>() {
-            public void execute(Object o, Object o2) {
-
-            }
-        };
+        return NOOP;
     }
 
 }

@@ -45,7 +45,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
+        BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor);
         ModelCreator modelCreator = ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
                 .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
                 .descriptor(descriptor)
@@ -59,28 +59,26 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         return String.format("%s and returning a model element", super.getDescription());
     }
 
-    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, Inputs> {
+    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
 
         private final ModelType<T> type;
         private final ModelRuleDescriptor descriptor;
         private final ModelRuleInvoker<T> ruleInvoker;
-        private final List<ModelReference<?>> inputReferences;
 
-        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
+        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor) {
             this.type = type;
             this.descriptor = descriptor;
             this.ruleInvoker = ruleInvoker;
-            this.inputReferences = inputReferences;
         }
 
-        public void execute(MutableModelNode modelNode, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
             T instance;
             if (inputs.size() == 0) {
                 instance = ruleInvoker.invoke();
             } else {
                 Object[] args = new Object[inputs.size()];
                 for (int i = 0; i < inputs.size(); i++) {
-                    args[i] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+                    args[i] = inputs.get(i).getInstance();
                 }
 
                 instance = ruleInvoker.invoke(args);

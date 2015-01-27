@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+public abstract class ModelViews {
 
-public interface Inputs {
-
-    <T> ModelView<? extends T> get(int i, ModelType<T> type);
-
-    int size();
-
-    List<ModelView<?>> getViews();
-
-    List<ModelBinding<?>> getBindings();
+    public static <T> ModelView<T> assertType(ModelView<?> untypedView, ModelType<T> type) {
+        if (type.isAssignableFrom(untypedView.getType())) {
+            @SuppressWarnings("unchecked") ModelView<T> view = (ModelView<T>) untypedView;
+            return view;
+        } else {
+            // TODO better exception type
+            throw new IllegalArgumentException("Model view of type " + untypedView.getType() + " requested as " + type);
+        }
+    }
 
 }

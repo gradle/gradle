@@ -19,7 +19,6 @@ package org.gradle.model.internal.registry;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -90,14 +89,14 @@ public class RuleBinder<T> {
         return scope;
     }
 
-    public void bindSubject(ModelPath path) {
+    public void bindSubject(ModelNodeInternal modelNode) {
         assert this.subjectBinding == null;
-        this.subjectBinding = bind(subjectReference, path);
+        this.subjectBinding = bind(subjectReference, modelNode);
     }
 
-    public void bindInput(int i, ModelPath path) {
+    public void bindInput(int i, ModelNodeInternal modelNode) {
         assert this.inputBindings.get(i) == null;
-        this.inputBindings.set(i, bind(inputReferences.get(i), path));
+        this.inputBindings.set(i, bind(inputReferences.get(i), modelNode));
         inputsBound += 1;
     }
 
@@ -119,7 +118,7 @@ public class RuleBinder<T> {
         onBind = null; // let go for gc
     }
 
-    private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelPath path) {
-        return ModelBinding.of(reference, path);
+    private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelNodeInternal modelNode) {
+        return ModelBinding.of(reference, modelNode);
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.List;
 
 public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
@@ -41,7 +42,7 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
 
     protected abstract C getContainer(MutableModelNode node);
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         Class<? extends M> itemType = itemType(targetType);
         if (itemType != null) {
             return toView(ruleDescriptor, node, itemType, getContainer(node));
@@ -55,7 +56,7 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
         );
 
         CollectionBuilder<S> subBuilder = builder.withType(itemClass);
-        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
+        CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(node.getPath(), DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);
         @SuppressWarnings("unchecked") ModelView<T> cast = (ModelView<T>) view;
         return cast;
     }

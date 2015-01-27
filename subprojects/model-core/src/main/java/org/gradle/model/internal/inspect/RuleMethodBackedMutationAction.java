@@ -17,25 +17,22 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
 
 import java.util.List;
 
-public class RuleMethodBackedMutationAction<T> implements BiAction<T, Inputs> {
+public class RuleMethodBackedMutationAction<T> implements BiAction<T, List<ModelView<?>>> {
     private final ModelRuleInvoker<?> ruleInvoker;
-    private final List<ModelReference<?>> inputReferences;
 
-    public RuleMethodBackedMutationAction(ModelRuleInvoker<?> ruleInvoker, List<ModelReference<?>> inputReferences) {
+    public RuleMethodBackedMutationAction(ModelRuleInvoker<?> ruleInvoker) {
         this.ruleInvoker = ruleInvoker;
-        this.inputReferences = inputReferences;
     }
 
-    public void execute(T subject, Inputs inputs) {
+    public void execute(T subject, List<ModelView<?>> inputs) {
         Object[] args = new Object[inputs.size() + 1];
         args[0] = subject;
         for (int i = 0; i < inputs.size(); i++) {
-            args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+            args[i + 1] = inputs.get(i).getInstance();
         }
         ruleInvoker.invoke(args);
     }

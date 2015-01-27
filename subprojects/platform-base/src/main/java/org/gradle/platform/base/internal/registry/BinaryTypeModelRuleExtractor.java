@@ -94,7 +94,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, List<ModelView<?>> inputs) {
             @SuppressWarnings("unchecked")
             Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
             binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {

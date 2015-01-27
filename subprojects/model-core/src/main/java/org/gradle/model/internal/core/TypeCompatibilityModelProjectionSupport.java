@@ -22,6 +22,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
+import java.util.List;
 
 @ThreadSafe
 public abstract class TypeCompatibilityModelProjectionSupport<M> implements ModelProjection {
@@ -48,7 +49,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         return canBeViewedAsReadOnly && targetType.isAssignableFrom(type);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, Inputs inputs) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         if (canBeViewedAsWritable(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
         } else {

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 
 /**
  * A binding of a reference to an actual model element.
@@ -27,54 +29,43 @@ import org.gradle.api.Nullable;
  * Like the reference, whether the view is read or write is not inherent in the binding and is contextual.
  */
 @ThreadSafe
-public class ModelBinding<T> {
+class ModelBinding<T> {
 
+    private final ModelNodeInternal node;
     private final ModelReference<T> reference;
-    private final ModelPath path;
 
-    private ModelBinding(ModelReference<T> reference, ModelPath path) {
-        if (path == null) {
-            throw new IllegalArgumentException("path cannot be null");
-        }
+    private ModelBinding(ModelReference<T> reference, ModelNodeInternal node) {
+        this.node = node;
         this.reference = reference;
-        this.path = path;
     }
 
-    public static <T> ModelBinding<T> of(ModelReference<T> reference) {
-        if (reference.getPath() == null) {
-            throw new IllegalArgumentException("reference has no path: " + reference);
-        }
-
-        return new ModelBinding<T>(reference, reference.getPath());
-    }
-
-    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelPath path) {
-        return new ModelBinding<T>(reference, path);
+    public static <T> ModelBinding<T> of(ModelReference<T> reference, ModelNodeInternal modelNode) {
+        return new ModelBinding<T>(reference, modelNode);
     }
 
     public ModelReference<T> getReference() {
         return reference;
     }
 
-    public ModelPath getPath() {
-        return path;
+    public ModelNodeInternal getNode() {
+        return node;
     }
 
     @Override
     public String toString() {
-        return "ModelBinding{reference=" + reference + ", path=" + path + '}';
+        return "ModelBinding{reference=" + reference + ", node=" + node + '}';
     }
 
     public static class GetPath implements Function<ModelBinding<?>, ModelPath> {
 
-        public static final GetPath INSTANCE = new GetPath();
+        public static final Function<ModelBinding<?>, ModelPath> INSTANCE = new GetPath();
 
         private GetPath() {
         }
 
         @Nullable
         public ModelPath apply(ModelBinding<?> input) {
-            return input.getPath();
+            return input.getNode().getPath();
         }
     }
 }

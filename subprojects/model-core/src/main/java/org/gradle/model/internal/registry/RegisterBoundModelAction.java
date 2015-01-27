@@ -36,7 +36,7 @@ class RegisterBoundModelAction<T> implements Action<RuleBinder<T>> {
     }
 
     public void execute(RuleBinder<T> ruleBinder) {
-        BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding(), ruleBinder.getInputBindings());
+        BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding().getNode(), ruleBinder.getSubjectReference(), ruleBinder.getInputBindings());
         ModelPath path = boundMutator.getSubject().getPath();
         mutationBinders.remove(path, ruleBinder);
         actions.put(new MutationKey(path, type), boundMutator);

@@ -46,7 +46,7 @@ class ClosureBackedModelAction implements ModelAction<Object> {
         return ModelReference.untyped(modelPath);
     }
 
-    public void execute(MutableModelNode modelNode, final Object object, Inputs inputs) {
+    public void execute(MutableModelNode modelNode, final Object object, List<ModelView<?>> inputs) {
         RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
             public void run() {
                 new ClosureBackedAction<Object>(action).execute(object);

@@ -64,7 +64,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
 
     private final ModelRuleExtractor ruleExtractor;
-    private Transformer<ModelView<?>, ModelBinding<?>> bindingToView;
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
@@ -166,7 +165,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
         Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
         RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, actions, mutationBinders));
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, modelGraph, mutationBinders));
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
     }
@@ -180,7 +179,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelPath> bindAction) {
+    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
         if (reference.getPath() != null) {
             return new PathBinderCreationListener(descriptor, reference, scope, writable, bindAction);
         }
@@ -467,7 +466,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
 
             for (BoundModelMutator<?> mutator : mutators) {
-                fireMutation(node, mutator);
+                fireMutation(mutator);
                 List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), ModelBinding.GetPath.INSTANCE);
                 usedActions.put(path, inputPaths);
             }
@@ -494,12 +493,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
+    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelView<?>> inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs);
+        ModelView<? extends T> view = adapter.asWritable(reference.getType(), node, sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
-            throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
+            throw new IllegalArgumentException("Cannot project model element " + node.getPath() + " to writable type '" + reference.getType() + "' for rule " + sourceDescriptor);
         } else {
             return view;
         }
@@ -507,12 +506,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNodeInternal doCreate(ModelNodeInternal node, BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
-        Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
+        List<ModelView<?>> views = toViews(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
         try {
-            creator.create(node, inputs);
+            creator.create(node, views);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
@@ -521,14 +520,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(ModelNodeInternal node, BoundModelMutator<T> boundMutator) {
-        Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
+    private <T> void fireMutation(BoundModelMutator<T> boundMutator) {
+        List<ModelView<?>> inputs = toViews(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
+
+        ModelNodeInternal node = boundMutator.getSubject();
         ModelAction<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
 
-        ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
+        ModelView<? extends T> view = assertView(node, boundMutator.getSubjectReference(), descriptor, inputs);
         try {
             mutator.execute(node, view.getInstance(), inputs);
         } catch (Exception e) {
@@ -539,18 +540,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private Inputs toInputs(List<ModelBinding<?>> bindings, final ModelRuleDescriptor ruleDescriptor) {
+    private List<ModelView<?>> toViews(List<ModelBinding<?>> bindings, final ModelRuleDescriptor ruleDescriptor) {
         // hot path; create as little as possible…
         @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
         int i = 0;
         for (ModelBinding<?> binding : bindings) {
-            ModelPath path = binding.getPath();
+            close(binding.getNode());
+            ModelPath path = binding.getNode().getPath();
             ModelNodeInternal element = require(path);
-            ModelView<?> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
+            ModelView<?> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toViews");
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
-        return new DefaultInputs(bindings, views);
+        return views;
     }
 
     // Bust this out to top level
@@ -569,7 +571,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
+        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
             ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);

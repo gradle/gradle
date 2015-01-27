@@ -19,7 +19,6 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.specs.Spec;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
@@ -76,13 +75,13 @@ public abstract class CollectionBuilderBasedRule<R, S, T, C> implements ModelAct
         return allInputs.build();
     }
 
-    protected void invoke(Inputs inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object ignoredInput) {
+    protected void invoke(List<ModelView<?>> inputs, CollectionBuilder<S> collectionBuilder, T baseTypeParameter, Object ignoredInput) {
         Object[] args = new Object[inputs.size() + 1];
         args[0] = collectionBuilder;
         args[baseTypeParameterIndex] = baseTypeParameter;
 
-        for (ModelView<?> view : inputs.getViews()) {
-            Object instance = view .getInstance();
+        for (ModelView<?> view : inputs) {
+            Object instance = view.getInstance();
             if (instance == ignoredInput) {
                 continue;
             }

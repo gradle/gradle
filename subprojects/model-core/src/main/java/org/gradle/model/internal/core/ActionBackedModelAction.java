@@ -39,7 +39,7 @@ public class ActionBackedModelAction<T> implements ModelAction<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
+    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         configAction.execute(object);
     }
 

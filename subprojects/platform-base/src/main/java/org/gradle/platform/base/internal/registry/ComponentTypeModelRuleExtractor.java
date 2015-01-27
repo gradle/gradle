@@ -82,7 +82,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             this.descriptor = descriptor;
             this.instantiator = instantiator;
             this.subject = ModelReference.of(DefaultComponentSpecContainer.class);
-            inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
+            this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
         }
 
         @Override
@@ -101,9 +101,9 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, Inputs inputs) {
-            final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
-            final ProjectSourceSet projectSourceSet = inputs.get(1, ModelType.of(ProjectSourceSet.class)).getInstance();
+        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, List<ModelView<?>> inputs) {
+            final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(0), ModelType.of(ProjectIdentifier.class)).getInstance();
+            final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectSourceSet.class)).getInstance();
             @SuppressWarnings("unchecked")
             Class<ComponentSpec> publicClass = (Class<ComponentSpec>) publicType.getConcreteClass();
             components.registerFactory(publicClass, new NamedDomainObjectFactory<BaseComponentSpec>() {

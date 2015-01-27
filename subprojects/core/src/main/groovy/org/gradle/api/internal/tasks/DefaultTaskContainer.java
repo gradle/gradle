@@ -228,9 +228,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             ModelPath path = MODEL_PATH.child(placeholderName);
             modelNode.addLink(
                     ModelCreators
-                            .of(ModelReference.of(path), new BiAction<MutableModelNode, Inputs>() {
+                            .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                                 @Override
-                                public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+                                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                                     final T task = instantiator.create(placeholderName, taskType);
                                     configure.execute(task);
                                     DeprecationLogger.whileDisabled(new Runnable() {

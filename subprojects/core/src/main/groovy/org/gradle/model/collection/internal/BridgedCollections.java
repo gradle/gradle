@@ -27,6 +27,8 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public abstract class BridgedCollections {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BridgedCollections.class);
@@ -37,8 +39,8 @@ public abstract class BridgedCollections {
     private static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P> ModelCreators.Builder creator(final ModelType<C> containerType, ModelType<P> publicType, ModelType<I> itemType, final ModelPath modelPath, final Transformer<? extends C, ? super MutableModelNode> containerFactory, final Namer<? super I> namer, String descriptor, final Transformer<String, String> itemDescriptorGenerator) {
         return ModelCreators.of(
                 ModelReference.of(modelPath, containerType),
-                new BiAction<MutableModelNode, Inputs>() {
-                    public void execute(final MutableModelNode modelNode, Inputs inputs) {
+                new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    public void execute(final MutableModelNode modelNode, List<ModelView<?>> inputs) {
                         C container = containerFactory.transform(modelNode);
                         modelNode.setPrivateData(containerType, container);
                         container.all(new Action<I>() {

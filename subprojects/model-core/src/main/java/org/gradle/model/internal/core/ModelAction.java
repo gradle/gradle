@@ -24,7 +24,7 @@ public interface ModelAction<T> {
 
     ModelReference<T> getSubject();
 
-    void execute(MutableModelNode modelNode, T object, Inputs inputs);
+    void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs);
 
     List<ModelReference<?>> getInputs();
 

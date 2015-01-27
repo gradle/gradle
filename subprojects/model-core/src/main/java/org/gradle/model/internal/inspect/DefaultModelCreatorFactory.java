@@ -52,7 +52,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     }
 
     @Override
-    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super Inputs> initializer) {
+    public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, List<ModelReference<?>> initializerInputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
         ModelAction<T> modelAction = new BiActionBackedModelAction<T>(modelReference, descriptor, initializerInputs, initializer);
         return creator(descriptor, modelReference, schema, modelAction);

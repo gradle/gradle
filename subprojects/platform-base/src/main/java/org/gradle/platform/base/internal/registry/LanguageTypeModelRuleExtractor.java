@@ -105,8 +105,8 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
             return descriptor;
         }
 
-        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, Inputs inputs) {
-            ServiceRegistry serviceRegistry = inputs.get(0, ModelType.of(ServiceRegistry.class)).getInstance();
+        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
+            ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             @SuppressWarnings("unchecked")

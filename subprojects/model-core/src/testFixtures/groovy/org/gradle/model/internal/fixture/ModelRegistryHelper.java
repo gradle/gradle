@@ -257,10 +257,10 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public static <C> ModelCreator creator(String path, final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-        return ModelCreators.of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, Inputs>() {
+        return ModelCreators.of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
-            public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
-                mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0, ModelType.untyped()).getInstance()));
+            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
             }
         }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                 .inputs(refs(ModelReference.of(inputPath)))
@@ -322,28 +322,28 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public ModelAction<T> action(final Action<? super T> action) {
-            return build(NO_REFS, new TriAction<MutableModelNode, T, Inputs>() {
+            return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, T t, Inputs inputs) {
+                public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
                     action.execute(t);
                 }
             });
         }
 
         public ModelAction<T> node(final Action<? super MutableModelNode> action) {
-            return build(NO_REFS, new TriAction<MutableModelNode, T, Inputs>() {
+            return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, T t, Inputs inputs) {
+                public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
                     action.execute(mutableModelNode);
                 }
             });
         }
 
         public <I> ModelAction<T> action(final String modelPath, final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
-            return build(refs(ModelReference.of(modelPath, inputType)), new TriAction<MutableModelNode, T, Inputs>() {
+            return build(refs(ModelReference.of(modelPath, inputType)), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, T t, Inputs inputs) {
-                    action.execute(t, inputs.get(0, inputType).getInstance());
+                public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
+                    action.execute(t, ModelViews.assertType(inputs.get(0), inputType).getInstance());
                 }
             });
         }
@@ -356,11 +356,11 @@ public class ModelRegistryHelper implements ModelRegistry {
             return action(ModelType.of(inputType), action);
         }
 
-        private ModelAction<T> build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super Inputs> action) {
+        private ModelAction<T> build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
             return toAction(references, action, path, type, descriptor);
         }
 
-        private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super Inputs> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+        private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
             return new ModelAction<T>() {
                 @Override
                 public ModelReference<T> getSubject() {
@@ -368,7 +368,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
 
                 @Override
-                public void execute(MutableModelNode modelNode, T object, Inputs inputs) {
+                public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
                     action.execute(modelNode, object, inputs);
                 }
 
@@ -407,10 +407,10 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C> ModelCreator unmanaged(final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, Inputs>() {
+            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0, ModelType.untyped()).getInstance()));
+                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                    mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .inputs(ModelReference.of(inputPath))
@@ -423,10 +423,10 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C, I> ModelCreator unmanaged(final ModelType<C> modelType, final ModelType<I> inputModelType, final Transformer<? extends C, ? super I> action) {
-            return ModelCreators.of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, Inputs>() {
+            return ModelCreators.of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0, inputModelType).getInstance()));
+                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                    mutableModelNode.setPrivateData(modelType, action.transform(ModelViews.assertType(inputs.get(0), inputModelType).getInstance()));
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .inputs(ModelReference.of(inputModelType))
@@ -443,9 +443,9 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         private <C> ModelCreator unmanaged(final ModelType<C> modelType, final Factory<? extends C> initializer) {
-            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, Inputs>() {
+            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                     mutableModelNode.setPrivateData(modelType, initializer.create());
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
@@ -458,9 +458,9 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C> ModelCreator unmanagedNode(ModelType<C> modelType, final Action<? super MutableModelNode> action) {
-            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, Inputs>() {
+            return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
+                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                     action.execute(mutableModelNode);
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
@@ -486,9 +486,9 @@ public class ModelRegistryHelper implements ModelRegistry {
             final ModelType<I> itemModelType = ModelType.of(itemType);
             final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
 
-            return ModelCreators.of(ModelReference.of(path, collectionBuilderType), new BiAction<MutableModelNode, Inputs>() {
+            return ModelCreators.of(ModelReference.of(path, collectionBuilderType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
-                public void execute(MutableModelNode node, Inputs inputs) {
+                public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
                     node.setPrivateData(
                             collectionBuilderType,
                             new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node)

@@ -29,6 +29,8 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
+import java.util.List;
+
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
     @Override
@@ -74,8 +76,8 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, BinaryContainer binaries, Inputs inputs) {
-            ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
+        public void execute(MutableModelNode modelNode, BinaryContainer binaries, List<ModelView<?>> inputs) {
+            ComponentSpecContainer componentSpecs = ModelViews.assertType(inputs.get(0), ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(componentSpec, binaries);

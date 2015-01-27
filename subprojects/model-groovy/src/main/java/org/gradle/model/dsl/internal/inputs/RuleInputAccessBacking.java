@@ -18,8 +18,6 @@ package org.gradle.model.dsl.internal.inputs;
 
 import com.google.common.collect.ImmutableMap;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelView;
 
 import java.util.List;
@@ -32,13 +30,11 @@ public abstract class RuleInputAccessBacking {
 
     private static final ThreadLocal<ImmutableMap<String, Object>> INPUT = new ThreadLocal<ImmutableMap<String, Object>>();
 
-    public static void runWithContext(Inputs inputs, Runnable runnable) {
-        List<ModelView<?>> views = inputs.getViews();
+    public static void runWithContext(List<ModelView<?>> views, Runnable runnable) {
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
         int i = 0;
-        for (ModelBinding<?> binding : inputs.getBindings()) {
-            assert binding.getReference().isUntyped(); // We are relying on inputs being untyped
-            builder.put(binding.getPath().toString(), views.get(i++).getInstance());
+        for (ModelView<?> view : views) {
+            builder.put(view.getPath().toString(), views.get(i++).getInstance());
         }
 
         ImmutableMap<String, Object> inputsMap = builder.build();
