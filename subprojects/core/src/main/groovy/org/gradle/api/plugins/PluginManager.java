@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -29,6 +30,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
+@NonExtensible
 public interface PluginManager {
 
     /**

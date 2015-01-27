@@ -15,6 +15,7 @@
  */
 package org.gradle.api.dsl
 
+import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
@@ -22,7 +23,7 @@ import spock.lang.Unroll
 /**
  * Tests various aspects of detecting the existence of plugins by their ID.
  */
-class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
+class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
     public static final List<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
 
@@ -34,6 +35,8 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
                 operations << 'withId for ' + it.class.simpleName
             }
             pluginManager.withPlugin("$detectedBy") {
+                // assert we are using our closure decoration and not closure coercion
+                assert delegate instanceof $AppliedPlugin.name
                 operations << 'withPlugin'
             }
             operations << "applying"
@@ -78,6 +81,8 @@ class PluginDetectionByIdIntegrationTest extends AbstractIntegrationSpec {
             }
 
             pluginManager.withPlugin("test-rule-source") {
+                // assert we are using our closure decoration and not closure coercion
+                assert delegate instanceof $AppliedPlugin.name
                 operations << 'withPlugin'
             }
 
