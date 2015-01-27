@@ -43,6 +43,14 @@ public interface ExternalResourceRepository {
     void put(File source, URI destination) throws IOException;
 
     /**
+     * Transfer a resource to the repository without also generating and transferring checksums
+     * @param source The local file to be transferred.
+     * @param destination Where to transfer the resource.
+     * @throws IOException On publication failure.
+     */
+    void putWithoutChecksum(File source, URI destination) throws IOException;
+
+    /**
      * Fetches only the metadata for the result.
      *
      * @param source The location of the resource to obtain the metadata for
