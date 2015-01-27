@@ -1,15 +1,14 @@
-Gradle 2.3 brings some nice new capabilities to dependency management, as well as improvements to a couple of core plugins.
+Gradle 2.3 brings some nice new capabilities to dependency management and IDE support, as well as improvements to some core plugins.
 
-A much requested feature is the ability to access the Ivy and Maven metadata artifacts that Gradle uses to perform dependency resolution.
+A long requested feature has been the ability to access metadata artifacts like `ivy.xml` and `pom.xml`, that Gradle uses to perform dependency resolution.
 Using the Artifact Query API, you now have direct access to these raw metadata artifacts. This could be useful for generating an offline
 repository, inspecting the files for custom metadata, and much more.
 
-As always, this Gradle release benefits from a large number of community contributions. These include substantial improvements to the
-ANTLR and Build Comparison plugins, as well as many of the issues that have been fixed in this release.
+IDE support in Gradle continues to improve, and Gradle 2.3 brings enhancements to the Gradle tooling API together with numerous bug fixes in our IDE plugins.
+Of note, this release brings much better integration with the Eclipse Web Tools Platform via the `eclipse-wtp` plugin.
 
-Under the covers, a lot of progress has been made on the new configuration and component models. While this progress may not
-be visible to your builds, it is evidenced in some of the changes made to the native component plugins. Expect to see more about
-this exciting progress in an upcoming release announcement.
+As always, this Gradle release benefits from a large number of community contributions. These include substantial enhancements to the
+`antlr`, `compare-gradle-builds` and `application` plugins, as well as many bug fixes and improvements.
 
 ## New and noteworthy
 
@@ -20,7 +19,7 @@ Here are the new features introduced in this Gradle release.
 Gradle 2.0 introduced an incubating 
 [query API for resolving component artifacts](http://www.gradle.org/docs/2.0/release-notes#new-api-for-resolving-source-and-javadoc-artifacts).
 
-In this release this API has been extended to allow for retrieving the metadata artifacts for Ivy and Maven modules. 
+Gradle 2.3 extends this API to allow for retrieving the metadata artifacts for Ivy and Maven modules. 
 This means that a build can access the raw `ivy.xml` or `module.pom` file that Gradle used when resolving a dependency.
 
 Given that the dependency is resolved from an Ivy repository, the Ivy descriptor artifact can be retrieved as follows:
@@ -61,12 +60,12 @@ See the [ArtifactResolutionQuery API reference](dsl/org.gradle.api.artifacts.que
 
 ### Component metadata rule enhancements (i)
 
-Using a component metadata rule, some details of the metadata for a component can be modified based on custom build logic.
-This can be used to specify that components produced by a particular organisation have a custom 'status scheme', or that
-all components for a particular module should be considered 'changing'.
+Gradle 2.0 introduced 'component metadata rules', allowing certain aspects of dependency metadata to be modified based on custom build logic.
+For example, these rules can be used to specify that all components produced by a particular organisation have a custom 'status scheme', 
+or that all components for a particular Ivy module with a custom 'status' attribute should be considered 'changing'.
 
-The interface for defining component metadata rules has been enhanced. It is now possible to define rules that apply to a
-particular module, as well as rules that apply to all components.
+In this release, the interface for defining component metadata rules has been enhanced. 
+It is now possible to define rules that only apply to a particular module, as well as rules that apply to all components.
 
 - Use <a href="dsl/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html#org.gradle.api.artifacts.dsl.ComponentMetadataHandler:all(groovy.lang.Closure)">`components.all`</a> 
   to define a rule that applies to all components.
@@ -139,7 +138,7 @@ See the [user guide chapter on the Antlr Plugin](userguide/antlr_plugin.html) fo
 
 These improvements were contributed by [Rob Upcraft](https://github.com/upcrob).
 
-### Build Comparison plugin now compares nested archives
+### Build Comparison plugin now compares nested archives (i)
 
 The [Gradle Build Comparison plugin](userguide/comparing_builds.html) provides support for comparing the outcomes (e.g. the produced binary archives) of two builds.
 This support is greatly improved in Gradle 2.3, with the ability to compare entries of nested archives.
@@ -152,6 +151,20 @@ This means that archive entries that are themselves archives are compared entry 
 
 This feature was contributed by [Björn Kautler](https://github.com/Vampire).
 
+### Better integration with Eclipse Web Tools Platform
+
+In this release, support for the Eclipse Web Tools Platform via the `eclipse-wtp` plugin has been vastly improved.
+
+Previous versions of this plugin were highly dependent on having the `ear` or `war` plugin applied. 
+By removing this dependency, Gradle 2.3 enables users to leverage the Eclipse WTP support in more circumstances.
+Examples where this may be useful include projects producing a plain EJB module, or projects that prefer to configure
+facets directly on the Eclipse project.
+
+A further improvement in this release is that generated Eclipse `.classpath` files now include correct dependency attributes (GRADLE-1422),
+fixing the case where certain Gradle builds could not be easily exported to Eclipse.
+
+Thanks to [Andreas Schmid](https://github.com/aaschmid), who contributed many of these improvements.
+
 ### Tooling API improvements
 
 The Gradle tooling API provides a stable API that tools such as IDEs can use to embed Gradle. 
@@ -163,7 +176,7 @@ When using the `GradleConnector` to create a tooling API connection,
 the method [`GradleConnector.useBuildDistribution()`](javadoc/org/gradle/tooling/GradleConnector.html#useBuildDistribution--) can now be used 
 to explicitly declare that the distribution defined by the target Gradle build should be used.
 
-### New `PluginManager` interface for applying and managing plugins by id
+### New `PluginManager` interface for applying and managing plugins by id (i)
 
 In the past, the [`PluginContainer`](javadoc/org/gradle/api/plugins/PluginContainer.html) API has been used for applying and querying plugins. This interface has a number of problems,
 including only supporting instances of `Plugin`, providing mutation methods that are not properly supported, and requiring that plugin instances
@@ -223,14 +236,6 @@ The `--no-color` option will be removed in Gradle 3.0.
 The `installApp` task of the application plugin is deprecated and will be removed in Gradle 3.0. You can use the `installDist` task instead.
 
 ## Potential breaking changes
-
-### AntlrTask has incremental task action
-
-The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) now processes input files incrementally.
-To do so, the [`execute`](dsl/org.gradle.api.plugins.AntlrTask.html#execute) has been changed to accept an
-`IncrementalTaskInputs` parameter.
-
-This will break any code that calls the `execute` method of this task directly.
 
 ### Major changes to incubating 'native-component' and 'jvm-component' plugins
 
@@ -299,6 +304,14 @@ you may migrate your Gradle build to the new syntax.
 
 Note that this functionality is a work-in-progress, and in some cases it may be preferable to remain on an earlier version of Gradle until
 it has stabilised.
+
+### AntlrTask has incremental task action
+
+The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) now processes input files incrementally.
+To do so, the [`execute`](dsl/org.gradle.api.plugins.AntlrTask.html#execute) has been changed to accept an
+`IncrementalTaskInputs` parameter.
+
+This will break any code that calls the `execute` method of this task directly.
 
 ### Mapping of Maven version range selectors
 
