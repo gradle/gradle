@@ -43,6 +43,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         1 * system.getProperty("user.home") >> userHome1.absolutePath
         then:
         locator.localMavenRepository == new File(userHome1, ".m2/repository")
+
+        // Ensure that modified user.home is honoured (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo)
         when:
         1 * system.getProperty("user.home") >> userHome2.absolutePath
         then:
@@ -54,6 +56,8 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         1 * system.getProperty("maven.repo.local") >> repo1.absolutePath
         then:
         locator.localMavenRepository == repo1
+
+        // Ensure that modified system property is honoured
         when:
         1 * system.getProperty("maven.repo.local") >> repo2.absolutePath
         then:

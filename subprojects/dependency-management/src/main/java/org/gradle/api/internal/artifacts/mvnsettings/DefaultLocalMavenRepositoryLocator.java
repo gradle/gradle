@@ -61,6 +61,9 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         }
     }
 
+    // We only cache the result of parsing the Maven settings files, but allow this value to be updated in-flight
+    // via system properties. This allows the local maven repo to be overridden when publishing to maven
+    // (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo).
     private synchronized String parseLocalRepoPathFromMavenSettings() throws SettingsBuildingException {
         if (localRepoPathFromMavenSettings == null) {
             Settings settings = settingsProvider.buildSettings();
