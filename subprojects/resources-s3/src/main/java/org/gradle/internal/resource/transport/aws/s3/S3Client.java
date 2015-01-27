@@ -126,7 +126,7 @@ public class S3Client {
             if(e.getResponseCode() == 404) {
                 return null;
             }
-            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
+            throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
         }
     }
 

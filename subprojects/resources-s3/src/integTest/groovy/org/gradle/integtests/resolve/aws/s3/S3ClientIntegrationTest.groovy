@@ -64,7 +64,7 @@ class S3ClientIntegrationTest extends Specification {
             stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
             stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
             stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
-            stubListFile(file, bucketName)
+            stubListFile(temporaryFolder.testDirectory, bucketName)
         }
 
         S3ConnectionProperties s3SystemProperties = Mock {
