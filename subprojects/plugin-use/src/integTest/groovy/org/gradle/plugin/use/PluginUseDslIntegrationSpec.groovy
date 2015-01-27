@@ -235,29 +235,4 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('noop').version('bar')\nid('java')",
         ]
     }
-
-    def "can register withPlugin action"() {
-        when:
-        buildScript """
-            pluginManager.withPlugin("org.gradle.java") {
-                println "Plugin with name '\${it.getName()}' applied!"
-            }
-
-            pluginManager.withPlugin("org.gradle.java", new Action<AppliedPlugin>() {
-                void execute(AppliedPlugin appliedPlugin) {
-                    println "Plugin with ID '\${appliedPlugin.getId()}' applied!"
-                }
-
-            })
-
-
-            apply plugin: "java"
-        """
-
-        then:
-        succeeds "tasks"
-        and:
-        output.contains("Plugin with name 'java' applied!")
-        output.contains("Plugin with ID 'org.gradle.java' applied!")
-    }
 }
