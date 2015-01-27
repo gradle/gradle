@@ -46,14 +46,11 @@ task retrieve(type: Sync) {
         s3StubSupport.stubGetFileAuthFailure("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
         then:
         fails 'retrieve'
-
-
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
                 "The AWS Access Key Id you provided does not exist in our records.")
-
     }
 
     def "should include resource uri when file not found"() {
@@ -82,10 +79,7 @@ task retrieve(type: Sync) {
                 .assertThatCause(Matchers.containsText(
 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
-    s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom
-    s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.jar"""))
-// Searched in the following locations:"""
-//      s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom
-//      s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.jar"""))
+    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.pom
+    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar"""))
     }
 }

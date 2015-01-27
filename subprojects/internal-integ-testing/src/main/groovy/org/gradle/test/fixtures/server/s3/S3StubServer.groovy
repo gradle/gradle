@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse
 
 class S3StubServer extends HttpServer implements RepositoryServer {
 
+    public static final String BUCKET_NAME = "tests3bucket"
     TestDirectoryProvider testDirectoryProvider
 
     S3StubServer(TestDirectoryProvider testDirectoryProvider) {
@@ -81,7 +82,9 @@ class S3StubServer extends HttpServer implements RepositoryServer {
         if (stubRequest.body) {
             assert stubRequest.body == request.getInputStream().bytes
         }
-        assert stubRequest.params.every { request.getParameterMap()[it.key] == it.value }
+        assert stubRequest.params.every {
+            request.getParameterMap()[it.key] == it.value
+        }
     }
 
     boolean requestMatches(HttpStub httpStub, HttpServletRequest request) {
@@ -93,22 +96,22 @@ class S3StubServer extends HttpServer implements RepositoryServer {
 
     @Override
     RemoteIvyRepository getRemoteIvyRepo() {
-        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("testbucket/ivy/release"), "/ivy/release", "testbucket")
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME)
     }
 
     @Override
     RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern) {
-        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("testbucket/ivy/release"), "/ivy/release", "testbucket", m2Compatible, dirPattern)
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern)
     }
 
     @Override
     RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern) {
-        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("testbucket/ivy/release"), "/ivy/release", "testbucket", m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
     }
 
     @Override
     RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
-        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("testbucket/ivy/release/$contextPath"), "/ivy/release$contextPath", "testbucket")
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME$contextPath"), "$contextPath", BUCKET_NAME)
     }
 
     @Override

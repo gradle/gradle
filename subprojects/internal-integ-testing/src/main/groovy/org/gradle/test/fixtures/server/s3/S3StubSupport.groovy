@@ -179,6 +179,22 @@ class S3StubSupport {
                     }
                     StorageClass('STANDARD')
                 }
+                file.listFiles().each { currentFile ->
+                    Contents {
+                        Key(prefix + currentFile.name)
+                        LastModified('2014-10-01T13:03:29.000Z')
+                        ETag(ETAG)
+                        Size(currentFile.length())
+                        Owner {
+                            ID("${(1..57).collect { 'a' }.join()}")
+                            DisplayName('me')
+                        }
+                        StorageClass('STANDARD')
+                    }
+                    CommonPrefixes {
+                        Prefix("${prefix}com/")
+                    }
+                }
                 Contents {
                     Key(prefix + file.name)
                     LastModified('2014-10-01T13:03:29.000Z')
@@ -205,8 +221,9 @@ class S3StubSupport {
                         'Connection'  : 'Keep-Alive'
                 ]
                 params = [
-                        'prefix'   : ["${prefix}"],
-                        'delimiter': ["${delimiter}"]
+                        'prefix'   : [prefix],
+                        'delimiter': [delimiter],
+                        'max-keys': ["1000"]
                 ]
             }
             response {
