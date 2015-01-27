@@ -153,7 +153,7 @@ This feature was contributed by [Björn Kautler](https://github.com/Vampire).
 
 ### Better integration with Eclipse Web Tools Platform
 
-In this release, support for the Eclipse Web Tools Platform via the `eclipse-wtp` plugin has been vastly improved.
+In this release, support for the Eclipse Web Tools Platform via the [`eclipse-wtp`](userguide/eclipse_plugin.html) plugin has been vastly improved.
 
 Previous versions of this plugin were highly dependent on having the `ear` or `war` plugin applied. 
 By removing this dependency, Gradle 2.3 enables users to leverage the Eclipse WTP support in more circumstances.
@@ -187,9 +187,9 @@ plugin identification. While `PluginContainer` is not deprecated, build authors 
 
 Useful methods include:
 
-- [`PluginManager.hasPlugin(String id)`](dsl/org.gradle.api.plugins.PluginManager.html#hasPlugin-java.lang.String-)
-- [`PluginManager.findPlugin(String id)`](dsl/org.gradle.api.plugins.PluginManager.html#findPlugin-java.lang.String-)
-- [`PluginManager.withPlugin(String id, Action action)`](dsl/org.gradle.api.plugins.PluginManager.html#withPlugin-java.lang.String-org.gradle.api.Action-)
+- <a href="dsl/org.gradle.api.plugins.PluginManager.html#org.gradle.api.plugins.PluginManager:hasPlugin(java.lang.String)">`PluginManager.hasPlugin(String id)`</a>
+- <a href="dsl/org.gradle.api.plugins.PluginManager.html#org.gradle.api.plugins.PluginManager:findPlugin(java.lang.String)">`PluginManager.findPlugin(String id)`</a>
+- <a href="dsl/org.gradle.api.plugins.PluginManager.html#org.gradle.api.plugins.PluginManager:withPlugin(java.lang.String, org.gradle.api.Action)">`PluginManager.withPlugin(String id, Action action)`</a>
 
 These methods should be used when reacting to the presence of another plugin or for ad-hoc reporting.
 
@@ -307,8 +307,8 @@ it has stabilised.
 
 ### AntlrTask has incremental task action
 
-The [`AntlrTask`](dsl/org.gradle.api.plugins.AntlrTask.html) now processes input files incrementally.
-To do so, the [`execute`](dsl/org.gradle.api.plugins.AntlrTask.html#execute) has been changed to accept an
+The [`AntlrTask`](dsl/org.gradle.api.plugins.antlr.AntlrTask.html) now processes input files incrementally.
+To do so, the [`execute`](javadoc/org/gradle/api/plugins/antlr/AntlrTask.html#execute-org.gradle.api.tasks.incremental.IncrementalTaskInputs-) has been changed to accept an
 `IncrementalTaskInputs` parameter.
 
 This will break any code that calls the `execute` method of this task directly.
