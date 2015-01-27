@@ -27,7 +27,6 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -74,19 +73,22 @@ class DefaultCollectionBuilderTest extends Specification {
         mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
         registry.apply(ModelActionRole.Mutate, mutator, ModelPath.ROOT)
+    }
+
+    void realize() {
         registry.realizeNode(containerPath)
     }
 
     def "can define an item with name"() {
         when:
         mutate { create("foo") }
+        realize()
 
         then:
         container.getByName("foo") != null
         registry.realize(containerPath.child("foo"), ModelType.of(NamedThing)) == container.getByName("foo")
     }
 
-    @Ignore
     def "does not eagerly create item"() {
         when:
         mutate {
@@ -98,7 +100,7 @@ class DefaultCollectionBuilderTest extends Specification {
         container.isEmpty()
 
         when:
-        registry.realizeNode(containerPath.child("bar"))
+        realize()
 
         then:
         container.getByName("bar")
@@ -107,7 +109,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can define item with custom type"() {
         when:
         mutate { create("foo", SpecialNamedThing) }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo") instanceof SpecialNamedThing
@@ -119,8 +121,7 @@ class DefaultCollectionBuilderTest extends Specification {
             withType(SpecialNamedThing).create("foo")
             withType(NamedThing).create("bar")
         }
-        registry.realizeNode(containerPath.child("foo"))
-        registry.realizeNode(containerPath.child("bar"))
+        realize()
 
         then:
         container.getByName("foo") instanceof SpecialNamedThing
@@ -132,7 +133,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutate {
             withType(String).create("foo")
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         ModelRuleExecutionException e = thrown()
@@ -147,7 +148,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "changed"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "changed"
@@ -160,7 +161,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "changed"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "changed"
@@ -292,7 +293,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "original"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "changed"
@@ -314,7 +315,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "types:"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "types: Object Special SpecialNamedThing"
@@ -327,7 +328,7 @@ class DefaultCollectionBuilderTest extends Specification {
             }
             create("foo")
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         ModelRuleExecutionException e = thrown()
@@ -354,6 +355,7 @@ class DefaultCollectionBuilderTest extends Specification {
             withType(String).named("foo", SetOtherToName)
             create("foo")
         }
+        realize()
 
         then:
         registry.get(containerPath.child("foo")).other == "foo"
@@ -384,8 +386,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "types:"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
-        registry.realizeNode(containerPath.child("bar"))
+        realize()
 
         then:
         container.getByName("foo").other == "types: Object NamedThing"
@@ -403,7 +404,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "original"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "changed"
@@ -431,7 +432,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "bar:"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "foo: Object"
@@ -451,7 +452,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "beforeEach{}"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "beforeEach{} create() all{}"
@@ -479,8 +480,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other += " create(bar)"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
-        registry.realizeNode(containerPath.child("bar"))
+        realize()
 
         then:
         container.getByName("foo").other == "Object create(foo)"
@@ -500,7 +500,7 @@ class DefaultCollectionBuilderTest extends Specification {
                 other = "create()"
             }
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "create() all{} afterEach{}"
@@ -518,7 +518,7 @@ class DefaultCollectionBuilderTest extends Specification {
             }
             bar(SpecialNamedThing)
         }
-        registry.realizeNode(containerPath.child("foo"))
+        realize()
 
         then:
         container.getByName("foo").other == "changed"
