@@ -244,6 +244,10 @@ public class ModelRegistryHelper implements ModelRegistry {
         return get(path, Object.class);
     }
 
+    public Object get(ModelPath path) {
+        return get(path.toString());
+    }
+
     public void realize(String path) {
         modelRegistry.realize(nonNullValidatedPath(path), ModelType.UNTYPED);
     }

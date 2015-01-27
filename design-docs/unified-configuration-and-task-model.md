@@ -437,6 +437,7 @@ These should be rationalised and ideally replaced with model rules.
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
 - Semantics of model element removal are not well defined
+- `tasks.withType(Test).named("compileJava", SomeRules)` - withType() aspect is ignored and does not influence bindings
 
 ## Testing
 

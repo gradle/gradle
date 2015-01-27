@@ -336,6 +336,29 @@ class DefaultCollectionBuilderTest extends Specification {
         e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
     }
 
+    static class SetOtherToName extends RuleSource {
+        @Mutate
+        void set(NamedThing thing) {
+            thing.other = thing.name
+        }
+    }
+
+    /**
+     * This test documents the current behaviour, not necessarily the desired.
+     *
+     * Ideally, we'd get a failure here indicating that container item 'foo' is not String & NamedThing
+     */
+    def "rules targeting item of mismatched type are allowed"() {
+        when:
+        mutate {
+            withType(String).named("foo", SetOtherToName)
+            create("foo")
+        }
+
+        then:
+        registry.get(containerPath.child("foo")).other == "foo"
+    }
+
     def "can register mutate rule for all items using filtered container"() {
         when:
         mutate {
