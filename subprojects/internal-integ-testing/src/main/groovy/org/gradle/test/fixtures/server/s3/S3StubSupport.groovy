@@ -276,6 +276,42 @@ class S3StubSupport {
         server.expect(httpStub)
     }
 
+
+    def stubPutFileAuthFailure(String url) {
+        def xml = new StreamingMarkupBuilder().bind {
+            Error() {
+                Code("InvalidAccessKeyId")
+                Message("The AWS Access Key Id you provided does not exist in our records.")
+                AWSAccessKeyId("notRelevant")
+                RequestId("stubbedAuthFailureRequestId")
+                HostId("stubbedAuthFailureHostId")
+            }
+        }
+
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'PUT'
+                path = url
+                headers = [
+                        'Content-Type': 'application/octet-stream',
+                        'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = 403
+                headers = [
+                        'x-amz-id-2'      : X_AMZ_ID_2,
+                        'x-amz-request-id': X_AMZ_REQUEST_ID,
+                        'Date'            : DATE_HEADER,
+                        'Server'          : SERVER_AMAZON_S3,
+                        'Content-Type'    : 'application/xml',
+                ]
+                body = xml.toString()
+            }
+        }
+        server.expect(httpStub)
+    }
+
     def stubFileNotFound(String url) {
         def xml = new StreamingMarkupBuilder().bind {
             Error() {

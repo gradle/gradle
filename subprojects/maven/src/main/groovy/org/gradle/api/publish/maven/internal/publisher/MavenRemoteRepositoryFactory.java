@@ -20,6 +20,7 @@ import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.Factory;
 
 class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
@@ -34,15 +35,18 @@ class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
         RemoteRepository remoteRepository = new RemoteRepository();
         remoteRepository.setUrl(artifactRepository.getUrl().toString());
 
-        PasswordCredentials credentials = artifactRepository.getCredentials();
-        if(credentials != null) {
-            String username = credentials.getUsername();
-            String password = credentials.getPassword();
-            if (username != null || password != null) {
-                Authentication authentication = new Authentication();
-                authentication.setUserName(username);
-                authentication.setPassword(password);
-                remoteRepository.addAuthentication(authentication);
+        Credentials alternativeCredentials = artifactRepository.getAlternativeCredentials();
+        if(alternativeCredentials instanceof PasswordCredentials){
+            PasswordCredentials credentials = (PasswordCredentials) alternativeCredentials;
+            if(credentials != null) {
+                String username = credentials.getUsername();
+                String password = credentials.getPassword();
+                if (username != null || password != null) {
+                    Authentication authentication = new Authentication();
+                    authentication.setUserName(username);
+                    authentication.setPassword(password);
+                    remoteRepository.addAuthentication(authentication);
+                }
             }
         }
         return remoteRepository;

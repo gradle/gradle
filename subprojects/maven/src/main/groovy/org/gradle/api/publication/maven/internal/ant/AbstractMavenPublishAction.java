@@ -129,7 +129,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         }
     }
 
-    private synchronized PlexusContainer getContainer() {
+    synchronized PlexusContainer getContainer() {
         if (container == null) {
             try {
                 ClassWorld classWorld = new ClassWorld();
