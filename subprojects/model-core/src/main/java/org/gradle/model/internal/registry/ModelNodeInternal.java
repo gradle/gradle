@@ -20,6 +20,9 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 abstract class ModelNodeInternal implements MutableModelNode {
+
+    private BoundModelCreator creator;
+
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
     private final ModelPromise promise;
@@ -31,6 +34,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         this.descriptor = descriptor;
         this.promise = promise;
         this.adapter = adapter;
+    }
+
+    public BoundModelCreator getCreator() {
+        return creator;
+    }
+
+    public void setCreator(BoundModelCreator creator) {
+        this.creator = creator;
     }
 
     public ModelPath getPath() {

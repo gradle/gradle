@@ -54,7 +54,6 @@ public class DefaultModelRegistry implements ModelRegistry {
              */
     private final ModelGraph modelGraph;
 
-    private final Map<ModelPath, BoundModelCreator> creators = Maps.newHashMap();
     private final Multimap<MutationKey, BoundModelMutator<?>> actions = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
 
@@ -133,7 +132,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         node = parent.addLink(child);
         modelGraph.add(node);
-        bind(creator);
+        bind(creator, node);
         return node;
     }
 
@@ -149,8 +148,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private void bind(ModelCreator creator) {
-        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, creators, creatorBinders));
+    private void bind(ModelCreator creator, ModelNodeInternal node) {
+        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, node, creatorBinders));
         creatorBinders.put(creator.getPath(), binder);
         bindInputs(binder, ModelPath.ROOT);
     }
@@ -235,7 +234,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
         }
 
-        creators.remove(path);
         modelGraph.remove(path);
     }
 
@@ -277,7 +275,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private UnboundModelRulesException unbound(Iterable<RuleBinder<?>> binders) {
-        ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
+        ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
         return new UnboundModelRulesException(unboundRules);
     }
@@ -358,7 +356,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (creatorBinder != null) {
                 forceBind(creatorBinder);
             }
-            BoundModelCreator creator = creators.remove(path);
+            BoundModelCreator creator = node.getCreator();
             if (creator == null) {
                 // Unbound creator - should give better error message here
                 throw new IllegalStateException("Don't know how to create model element at '" + path + "'");

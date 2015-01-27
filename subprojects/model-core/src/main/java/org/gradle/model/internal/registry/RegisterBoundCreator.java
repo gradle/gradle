@@ -24,18 +24,18 @@ import java.util.Map;
 
 class RegisterBoundCreator implements Action<RuleBinder<Void>> {
     private final ModelCreator creator;
-    private final Map<ModelPath, BoundModelCreator> creators;
+    private final ModelNodeInternal node;
     private final Map<ModelPath, RuleBinder<?>> creatorBinders;
 
-    public RegisterBoundCreator(ModelCreator creator, Map<ModelPath, BoundModelCreator> creators, Map<ModelPath, RuleBinder<?>> creatorBinders) {
+    public RegisterBoundCreator(ModelCreator creator, ModelNodeInternal node, Map<ModelPath, RuleBinder<?>> creatorBinders) {
         this.creator = creator;
-        this.creators = creators;
+        this.node = node;
         this.creatorBinders = creatorBinders;
     }
 
     public void execute(RuleBinder<Void> ruleBinding) {
         creatorBinders.remove(creator.getPath());
         BoundModelCreator boundCreator = new BoundModelCreator(creator, ruleBinding.getInputBindings());
-        creators.put(creator.getPath(), boundCreator);
+        node.setCreator(boundCreator);
     }
 }
