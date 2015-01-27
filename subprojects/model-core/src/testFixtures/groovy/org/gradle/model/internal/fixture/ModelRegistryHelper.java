@@ -106,8 +106,8 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public void validate() throws UnboundModelRulesException {
-        modelRegistry.validate();
+    public void bindAllReferences() throws UnboundModelRulesException {
+        modelRegistry.bindAllReferences();
     }
 
     public ModelRegistry getModelRegistry() {

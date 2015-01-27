@@ -735,7 +735,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         when:
-        registry.validate()
+        registry.bindAllReferences()
 
         then:
         noExceptionThrown()
@@ -759,7 +759,7 @@ class DefaultCollectionBuilderTest extends Specification {
         }
 
         when:
-        registry.validate()
+        registry.bindAllReferences()
 
         then:
         noExceptionThrown()
@@ -778,7 +778,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
         when:
         registry.atState(ModelPath.path("beans"), ModelNode.State.SelfClosed)
-        registry.validate()
+        registry.bindAllReferences()
 
         then:
         UnboundModelRulesException e = thrown()

@@ -716,7 +716,7 @@ class DefaultModelRegistryTest extends Specification {
         .collection("emptyBeans", Bean) { name, type -> new Bean(name: name) }
 
         when:
-        registry.validate()
+        registry.bindAllReferences()
 
         then:
         UnboundModelRulesException e = thrown()

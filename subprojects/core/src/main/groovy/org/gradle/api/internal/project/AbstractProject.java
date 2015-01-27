@@ -481,7 +481,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         evaluate();
         try {
             getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
-            getModelRegistry().validate();
+            getModelRegistry().bindAllReferences();
         } catch (Exception e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
         }

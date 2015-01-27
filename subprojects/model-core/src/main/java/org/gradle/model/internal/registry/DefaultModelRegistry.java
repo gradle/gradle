@@ -249,7 +249,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return atStateOrLater(path, SelfClosed);
     }
 
-    public void validate() throws UnboundModelRulesException {
+    public void bindAllReferences() throws UnboundModelRulesException {
         if (binders.isEmpty()) {
             return;
         }
