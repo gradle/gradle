@@ -15,14 +15,14 @@
  */
 
 package org.gradle.integtests.tooling.r14
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.junit.Rule
 import spock.lang.Issue
-
 /**
  * Tests that init scripts are used from the _clients_ GRADLE_HOME, not the daemon server's.
  */
@@ -30,8 +30,12 @@ import spock.lang.Issue
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
 class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecification {
 
+    @Rule TestDistributionDirectoryProvider temporaryDistributionFolder =
+            new TestDistributionDirectoryProvider();
+
     TestFile createDistribution(int i) {
-        def distro = file("distro$i")
+        def distro = temporaryDistributionFolder.file("distro$i")
+
         distro.copyFrom(getTargetDist().getGradleHomeDir())
         distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
