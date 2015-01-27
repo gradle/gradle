@@ -23,6 +23,7 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
+import org.gradle.plugin.internal.PluginId;
 
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
@@ -37,26 +38,26 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
         // Need this to make withId() work when someone does project.plugins.add(new SomePlugin());
         whenObjectAdded(new Action<Plugin>() {
             public void execute(Plugin plugin) {
-                pluginManager.addImperativePlugin(null, plugin.getClass());
+                pluginManager.addImperativePlugin(plugin.getClass());
             }
         });
     }
 
     public Plugin apply(String id) {
-        PotentialPluginWithId potentialPlugin = pluginRegistry.lookup(id);
-        if (potentialPlugin == null) {
+        PluginImplementation plugin = pluginRegistry.lookup(PluginId.unvalidated(id));
+        if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
 
-        if (!potentialPlugin.isImperative()) {
-            throw new IllegalArgumentException("Plugin implementation '" + potentialPlugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
+        if (!Plugin.class.isAssignableFrom(plugin.asClass())) {
+            throw new IllegalArgumentException("Plugin implementation '" + plugin.asClass().getName() + "' does not implement the Plugin interface. This plugin cannot be applied directly via the PluginContainer.");
         } else {
-            return pluginManager.addImperativePlugin(potentialPlugin.getPluginId().toString(), potentialPlugin.asClass());
+            return pluginManager.addImperativePlugin(plugin);
         }
     }
 
     public <P extends Plugin> P apply(Class<P> type) {
-        return pluginManager.addImperativePlugin(null, type);
+        return pluginManager.addImperativePlugin(type);
     }
 
     public boolean hasPlugin(String id) {
@@ -68,12 +69,12 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     private Plugin doFindPlugin(String id) {
-        for (final DefaultPluginManager.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
-            Plugin plugin = Iterables.find(DefaultPluginContainer.this, new Predicate<Plugin>() {
+        for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
+            Plugin plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
                 }
-            });
+            }).orNull();
 
             if (plugin != null) {
                 return plugin;
@@ -84,20 +85,7 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     public Plugin findPlugin(String id) {
-        String qualified = DefaultPluginManager.maybeQualify(id);
-        if (qualified != null) {
-            Plugin plugin = doFindPlugin(qualified);
-            if (plugin != null) {
-                return plugin;
-            }
-        }
-
-        Plugin plugin = doFindPlugin(id);
-        if (plugin != null) {
-            return plugin;
-        }
-
-        return null;
+        return doFindPlugin(id);
     }
 
     public <P extends Plugin> P findPlugin(Class<P> type) {
@@ -143,11 +131,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
                 }).all(action);
             }
         };
-
-        String qualified = DefaultPluginManager.maybeQualify(pluginId);
-        if (qualified != null) {
-            pluginManager.pluginsForId(qualified).all(wrappedAction);
-        }
 
         pluginManager.pluginsForId(pluginId).all(wrappedAction);
     }

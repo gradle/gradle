@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.Matchers
 
 class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -29,25 +30,31 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces sensible error when no binaries are buildable" () {
-        withNotBuildableBinary()
+        withBinaries("notBuildableBinary1", "notBuildableBinary2")
 
         when:
         fails "assemble"
 
         then:
         failureDescriptionContains("Execution failed for task ':assemble'.")
-        failureHasCause("No buildable binaries found.")
+        failure.assertThatCause(Matchers.<String>allOf(
+            Matchers.startsWith("No buildable binaries found:"),
+            Matchers.containsString("notBuildableBinary1: Binary notBuildableBinary1 has 'notBuildable' in the name"),
+            Matchers.containsString("notBuildableBinary2: Binary notBuildableBinary2 has 'notBuildable' in the name")
+        ))
     }
 
     def "does not produce error when binaries are buildable" () {
-        withBuildableBinary()
+        withBinaries("buildableBinary1", "notBuildableBinary", "buildableBinary2")
 
         expect:
         succeeds "assemble"
+        skipped ":buildableBinary1", ":buildableBinary2"
+        notExecuted ":notBuildableBinary"
     }
 
     def "does not produce error when assemble task has other dependencies" () {
-        withNotBuildableBinary()
+        withBinaries("notBuildableBinary")
         buildFile << """
             task someOtherTask
             assemble.dependsOn someOtherTask
@@ -66,15 +73,14 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import org.gradle.model.*
             import org.gradle.model.collection.*
+            import org.gradle.platform.base.internal.BinaryBuildAbility
 
             interface SampleBinary extends BinarySpec {
-                String getVersion()
-                void setVersion(String version)
             }
         """
     }
 
-    def withSampleBinaryPlugin() {
+    def withSampleBinaryPlugin(String... binaries) {
         buildFile << """
             class MySamplePlugin implements Plugin<Project> {
                 void apply(final Project project) {}
@@ -87,8 +93,7 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
 
                     @Mutate
                     void createSampleBinary(CollectionBuilder<SampleBinary> binarySpecs) {
-                        println "creating binary"
-                        binarySpecs.create("sampleBinary")
+                        ${generateBinaries(binaries)}
                     }
                 }
             }
@@ -97,29 +102,30 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def withBuildableBinary() {
-        withSampleBinary()
-        buildFile << """
-            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-                String version
-                boolean isBuildable() {
-                    return true
-                }
-            }
-        """
-        withSampleBinaryPlugin()
+    def generateBinaries(binaries) {
+        return binaries.collect { "binarySpecs.create(\"${it}\")" }.join("\n")
     }
 
-    def withNotBuildableBinary() {
+    def withBinaries(String... binaries) {
         withSampleBinary()
         buildFile << """
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
-                String version
-                boolean isBuildable() {
-                    return false
+                @Override
+                public BinaryBuildAbility getBuildAbility() {
+                    return new BinaryBuildAbility() {
+                        @Override
+                        public boolean isBuildable() {
+                            return ! getName().contains("notBuildable");
+                        }
+
+                        @Override
+                        public void explain(TreeVisitor<? super String> visitor) {
+                            visitor.node("Binary \${getName()} has 'notBuildable' in the name")
+                        }
+                    };
                 }
             }
         """
-        withSampleBinaryPlugin()
+        withSampleBinaryPlugin(binaries)
     }
 }

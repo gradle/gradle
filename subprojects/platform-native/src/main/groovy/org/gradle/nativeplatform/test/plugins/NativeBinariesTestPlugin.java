@@ -46,11 +46,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
         @Model
         TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);

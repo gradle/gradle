@@ -20,7 +20,7 @@ package org.gradle.performance
 import org.gradle.performance.fixture.BuildSpecification
 import spock.lang.Unroll
 
-class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "#size project using variants #scenario build"() {
@@ -31,8 +31,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
                 BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
-        runner.runs = 2
-        runner.subRuns = 5
 
         when:
         def result = runner.run()
@@ -57,8 +55,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
                 BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
-        runner.runs = 2
-        runner.subRuns = 5
 
         when:
         def result = runner.run()
@@ -79,8 +75,6 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 BuildSpecification.forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
                 BuildSpecification.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
         ]
-        runner.runs = 2
-        runner.subRuns = 5
 
         when:
         def result = runner.run()

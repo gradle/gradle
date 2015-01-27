@@ -33,7 +33,7 @@ public interface ModelCreatorFactory {
                              ModelPath path,
                              ModelSchema<T> schema,
                              List<ModelReference<?>> initializerInputs,
-                             BiAction<? super T, ? super Inputs> initializer);
+                             BiAction<? super T, ? super List<ModelView<?>>> initializer);
 
     <T> ModelCreator creator(ModelRuleDescriptor descriptor,
                              ModelPath path,

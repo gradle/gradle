@@ -40,9 +40,7 @@ import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
@@ -72,11 +70,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().create("toolChains", DefaultNativeToolChainRegistry.class, instantiator);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
 
         @ComponentType
         void nativeExecutable(ComponentTypeBuilder<NativeExecutableSpec> builder) {
@@ -146,7 +141,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
             Action<NativeBinarySpec> configureBinaryAction = new NativeBinarySpecInitializer(buildDir);
             Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
-            @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction, new MarkBinariesBuildable());
+            @SuppressWarnings("unchecked") Action<NativeBinarySpec> initAction = Actions.composite(configureBinaryAction, setToolsAction);
             NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, initAction, resolver);
             BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
             Action<NativeComponentSpec> createBinariesAction =
@@ -222,14 +217,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             if (value != null) {
                 sourceSet.srcDir(value);
             }
-        }
-    }
-
-    private static class MarkBinariesBuildable implements Action<NativeBinarySpec> {
-        public void execute(NativeBinarySpec nativeBinarySpec) {
-            NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) nativeBinarySpec.getToolChain();
-            boolean canBuild = toolChainInternal.select((NativePlatformInternal) nativeBinarySpec.getTargetPlatform()).isAvailable();
-            ((NativeBinarySpecInternal) nativeBinarySpec).setBuildable(canBuild);
         }
     }
 

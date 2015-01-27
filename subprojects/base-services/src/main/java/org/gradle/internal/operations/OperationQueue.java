@@ -16,12 +16,32 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.GradleException;
-
 /**
+ * Queue for holding build operations and submitting them to an underlying executor.
  *
+ * <p>
+ * Once an OperationQueue has started to wait for the completion of previously added operations,
+ * no new operations may be added to the queue. OperationQueues are not thread safe, so you
+ * cannot add operations from multiple threads.
+ * </p>
+ *
+ * @param <T> Type of build operations to hold.
  */
 public interface OperationQueue<T> {
+    /**
+     * Adds an operation to be executed.
+     *
+     * @param operation operation to execute.
+     */
     public void add(T operation);
-    public void waitForCompletion() throws GradleException;
+
+    /**
+     * Waits for all previously added operations to complete.
+     * <p>
+     * On failure, some effort is made to cancel any operations
+     * that have not started.
+     * </p>
+     * @throws MultipleBuildOperationFailures if <em>any</em> operation failed.
+     */
+    public void waitForCompletion() throws MultipleBuildOperationFailures;
 }

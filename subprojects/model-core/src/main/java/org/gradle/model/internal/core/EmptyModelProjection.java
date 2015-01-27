@@ -21,20 +21,24 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
+import java.util.List;
 
 public class EmptyModelProjection implements ModelProjection {
 
+    public static final ModelProjection INSTANCE = new EmptyModelProjection();
+
+    private EmptyModelProjection() {
+    }
+
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor, ModelRuleSourceApplicator modelRuleSourceApplicator,
-                                                 ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
         return null;
     }
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs,
-                                                 ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         return null;
     }
 

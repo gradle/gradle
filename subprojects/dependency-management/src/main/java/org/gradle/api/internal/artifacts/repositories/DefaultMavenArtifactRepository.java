@@ -18,15 +18,14 @@ package org.gradle.api.internal.artifacts.repositories;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -46,11 +45,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
     private final MetaDataParser pomParser;
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
+    public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                           Instantiator instantiator,
                                           FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
-        super(credentials, instantiator);
+        super(instantiator);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

@@ -17,17 +17,23 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
 import java.util.Set;
 
 public interface MutableModelNode extends ModelNode {
+
     /**
      * Creates a mutable view over this node's value.
+     *
+     * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
+     *
+     * Throws if this node can't be expressed as a mutable view of the requested type.
      */
-    @Nullable
-    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs);
+    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
 
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
@@ -58,6 +64,10 @@ public interface MutableModelNode extends ModelNode {
      * Applies an action to a linked node.
      */
     <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
+
+    void applyToLink(String name, Class<? extends RuleSource> rules);
+
+    void applyToSelf(Class<? extends RuleSource> rules);
 
     @Nullable
     MutableModelNode getLink(String name);

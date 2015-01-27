@@ -20,15 +20,17 @@ import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.InvalidModelRuleException
-import org.gradle.model.ModelRuleBindingException
+import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
+
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultCollectionBuilderTest extends Specification {
 
@@ -39,15 +41,13 @@ class DefaultCollectionBuilderTest extends Specification {
         String other
     }
 
-    interface Special { }
-
     class SpecialNamedThing extends NamedThing implements Special {
     }
 
     def containerPath = ModelPath.path("container")
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
-    def registry = new DefaultModelRegistry(null, null)
+    def registry = new ModelRegistryHelper()
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {
@@ -56,7 +56,7 @@ class DefaultCollectionBuilderTest extends Specification {
                         ModelReference.of(containerPath, containerType),
                         container
                 )
-                        .withProjection(new PolymorphicDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
+                        .withProjection(new DynamicTypesDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
                         .simpleDescriptor("foo")
                         .build(),
                 ModelPath.ROOT
@@ -336,6 +336,29 @@ class DefaultCollectionBuilderTest extends Specification {
         e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
     }
 
+    static class SetOtherToName extends RuleSource {
+        @Mutate
+        void set(NamedThing thing) {
+            thing.other = thing.name
+        }
+    }
+
+    /**
+     * This test documents the current behaviour, not necessarily the desired.
+     *
+     * Ideally, we'd get a failure here indicating that container item 'foo' is not String & NamedThing
+     */
+    def "rules targeting item of mismatched type are allowed"() {
+        when:
+        mutate {
+            withType(String).named("foo", SetOtherToName)
+            create("foo")
+        }
+
+        then:
+        registry.get(containerPath.child("foo")).other == "foo"
+    }
+
     def "can register mutate rule for all items using filtered container"() {
         when:
         mutate {
@@ -501,4 +524,298 @@ class DefaultCollectionBuilderTest extends Specification {
         container.getByName("foo").other == "changed"
         container.getByName("bar") instanceof SpecialNamedThing
     }
+
+    class MutableValue {
+        String value
+    }
+
+    class Bean {
+        String name
+        String value
+    }
+
+    def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(MutableValue))
+        registry
+                .collection("values", MutableValue) { name, type -> new MutableValue() }
+                .mutate {
+            it.descriptor("mutating elements").path "values" type cbType action { c ->
+                c.create("element")
+                c.named("element", Object)
+            }
+        }
+
+        when:
+        registry.realize(ModelPath.path("values"), ModelType.UNTYPED)
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause.class == InvalidModelRuleDeclarationException
+        e.cause.message == "Type java.lang.Object is not a valid model rule source: rule source classes must directly extend org.gradle.model.RuleSource"
+    }
+
+    static class ElementRules extends RuleSource {
+        @Mutate
+        void connectElementToInput(Bean element, String input) {
+            element.value = input
+        }
+    }
+
+    def "inputs of a rule from an inner source are not realised if the rule is not required"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def events = []
+        registry
+                .create("input", "input") { events << "input created" }
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                events << "collection mutated"
+                c.create("element") { events << "$it.name created" }
+                c.named("element", ElementRules)
+            }
+
+        }
+
+        when:
+        registry.atState(ModelPath.path("beans"), ModelNode.State.SelfClosed)
+
+        then:
+        events == ["collection mutated"]
+
+        when:
+        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
+
+        then:
+        events == ["collection mutated", "element created", "input created"]
+    }
+
+    def "by-type subject bindings are scoped to the scope of an inner rule"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("element", new Bean())
+                .createInstance("input", "message")
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ElementRules)
+            }
+        }
+
+        when:
+        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
+
+        then:
+        registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "message"
+        registry.realize(ModelPath.path("element"), ModelType.of(Bean)).value == null
+    }
+
+    static class ByTypeBindingInputRule extends RuleSource {
+        @Mutate
+        void byTypeInputBindingRule(Bean inner, Bean outer) {
+            inner.value = "from outer: $outer.value"
+        }
+    }
+
+    def "by-type input bindings are scoped to the outer scope"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("element", new Bean(value: "outer"))
+                .createInstance("input", "message")
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ByTypeBindingInputRule)
+            }
+        }
+
+        when:
+        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
+
+        then:
+        registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "from outer: outer"
+    }
+
+    static class ByTypeSubjectBoundToScopeChildRule extends RuleSource {
+        @Mutate
+        void mutateScopeChild(MutableValue value) {
+            value.value = "foo"
+        }
+    }
+
+    def "can bind subject by type to a child of rule scope"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ByTypeSubjectBoundToScopeChildRule)
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+            }
+        }
+
+        when:
+        registry.realize(ModelPath.path("beans"), ModelType.UNTYPED)
+
+        then:
+        registry.realize(ModelPath.path("beans.element.mutable"), ModelType.of(MutableValue)).value == "foo"
+    }
+
+    static class ByPathBoundInputsChildRule extends RuleSource {
+        @Mutate
+        void mutateFirst(@Path("first") MutableValue first) {
+            first.value = "first"
+        }
+
+        @Mutate
+        void mutateSecond(@Path("second") MutableValue second, @Path("first") MutableValue first) {
+            second.value = "from first: $first.value"
+        }
+    }
+
+    def "by-path bindings of scoped rules are bound to inner scope"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("first", new MutableValue())
+                .createInstance("second", new MutableValue())
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ByPathBoundInputsChildRule)
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.first", new MutableValue()))
+                it.addLink(registry.instanceCreator("beans.element.second", new MutableValue()))
+            }
+        }
+
+        when:
+        registry.realize(ModelPath.path("beans"), ModelType.UNTYPED)
+
+        then:
+        registry.realize(ModelPath.path("first"), ModelType.of(MutableValue)).value == null
+        registry.realize(ModelPath.path("second"), ModelType.of(MutableValue)).value == null
+        registry.realize(ModelPath.path("beans.element.first"), ModelType.of(MutableValue)).value == "first"
+        registry.realize(ModelPath.path("beans.element.second"), ModelType.of(MutableValue)).value == "from first: first"
+    }
+
+    def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("foo", new Bean())
+                .mutate {
+            it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
+                subject.value = input.value
+            }
+        }
+        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue(value: "bar")))
+            }
+        }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", ByTypeSubjectBoundToScopeChildRule)
+            }
+        }
+        .mutate {
+            it.path "beans.element" node {
+                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
+            }
+        }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "adding an unbound scoped rule for an element that is never created results in an error upon validation if the scope parent has been self closed"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.named("element", ElementRules)
+            }
+        }
+
+        when:
+        registry.atState(ModelPath.path("beans"), ModelNode.State.SelfClosed)
+        registry.bindAllReferences()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+  $ElementRules.name#connectElementToInput($Bean.name, $String.name)
+    Mutable:
+      - <unspecified> ($Bean.name) parameter 1 in scope of 'beans.element\'
+    Immutable:
+      - <unspecified> ($String.name) parameter 2"""
+    }
+
+    static class CreatorRule extends RuleSource {
+        @Model
+        String string() {
+            "foo"
+        }
+    }
+
+    def "cannot apply creator rules in scope other than root"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+                c.named("element", CreatorRule)
+            }
+        }
+
+        when:
+        registry.realizeNode("beans")
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause.class == IllegalStateException
+        e.cause.message == "Creator in scope beans.element not supported, must be root"
+    }
+
 }

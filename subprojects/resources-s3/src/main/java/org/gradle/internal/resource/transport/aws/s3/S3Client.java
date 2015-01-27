@@ -50,6 +50,7 @@ public class S3Client {
     public static final String HTTPCLIENT_PROXY_PORT = "httpclient.proxy-port";
     public static final String HTTPCLIENT_PROXY_USER = "httpclient.proxy-user";
     public static final String HTTPCLIENT_PROXY_PASSWORD = "httpclient.proxy-password";
+    public static final String STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX = "storage-service.internal-error-retry-max";
 
     private RestS3Service s3Service;
     private final S3ConnectionProperties s3ConnectionProperties;
@@ -61,7 +62,7 @@ public class S3Client {
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        AWSCredentials credentials = awsCredentials == null ? null : new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
         try {
             s3Service = new RestS3Service(credentials, null, null, createConnectionProperties());
         } catch (S3ServiceException e) {
@@ -78,8 +79,8 @@ public class S3Client {
             properties.setProperty(S3SERVICE_S3_ENDPOINT, uri.getHost());
             properties.setProperty(S3SERVICE_S3_ENDPOINT_HTTP_PORT, Integer.toString(uri.getPort()));
             properties.setProperty(S3SERVICE_HTTPS_ONLY, Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
-
             properties.setProperty(S3SERVICE_DISABLE_DNS_BUCKETS, "true");
+            properties.setProperty(STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX, "0");
         }
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
@@ -122,7 +123,10 @@ public class S3Client {
         try {
             return s3Service.getObjectDetails(bucketName, s3Key);
         } catch (ServiceException e) {
-            throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s", uri.toString(), e.getMessage()), e);
+            if(e.getResponseCode() == 404) {
+                return null;
+            }
+            throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
         }
     }
 
@@ -131,7 +135,10 @@ public class S3Client {
         try {
             String bucketName = getBucketName(uri);
             return s3Service.getObject(bucketName, getS3BucketKey(uri));
-        } catch (ServiceException e) {
+        } catch (S3ServiceException e) {
+            if(e.getResponseCode() == 404) {
+                return null;
+            }
             throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
         }
     }
@@ -153,7 +160,9 @@ public class S3Client {
             S3Object[] s3Objects = s3Service.listObjects(bucketName, s3Key, "/");
             results.addAll(resolveResourceNames(s3Objects));
         } catch (S3ServiceException e) {
-            throw new S3Exception(String.format("Could not list s3 resources for '%s'.", parent.toString()), e);
+            if(e.getResponseCode() != 404) {
+                throw new S3Exception(String.format("Could not list s3 resources for '%s'.", parent.toString()), e);
+            }
         }
         return results;
     }

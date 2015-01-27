@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
 
 /**
@@ -32,13 +33,13 @@ public interface AuthenticationSupported {
 
     /**
      * Returns the alternative credentials used to authenticate with this repository.
-     * Alternative credentials are used for non username/password credentials.
      * @return The Credentials
      */
+    @Incubating
     Credentials getAlternativeCredentials();
 
     /**
-     * Configure the credentials for this repository using the supplied Closure.
+     * Configures the {@link PasswordCredentials} for this repository using the supplied Closure.
      *
      * <pre autoTested=''>
      * repositories {
@@ -84,6 +85,7 @@ public interface AuthenticationSupported {
      *    }
      *  }
      *
+     *  @throws IllegalStateException if explicit credentials have been already set.
      */
-    <T extends Credentials> void credentials(Class<T> clazz, Action<? super Credentials> action);
+    <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException;
 }

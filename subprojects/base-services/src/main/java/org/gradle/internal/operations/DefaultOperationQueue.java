@@ -17,62 +17,125 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.internal.UncheckedException;
 
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  */
-public class DefaultOperationQueue<T> implements OperationQueue<T> {
+class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
     private final Action<? super T> worker;
-    private final List<ListenableFuture<Void>> workFutures;
 
-    private boolean completed;
+    private final List<ListenableFuture> operations;
+    private final Set<Throwable> failures;
+    private final AtomicBoolean cancelled;
 
-    public DefaultOperationQueue(ListeningExecutorService executor, Action<? super T> worker) {
+    private boolean waitingForCompletion;
+
+    DefaultOperationQueue(ListeningExecutorService executor, Action<? super T> worker) {
         this.executor = executor;
         this.worker = worker;
-        this.workFutures = Lists.newLinkedList();
+        this.operations = Lists.newLinkedList();
+        this.failures = Sets.newConcurrentHashSet();
+        this.cancelled = new AtomicBoolean(false);
     }
 
     public void add(final T operation) {
-        if (completed) {
-            throw new IllegalStateException("OperationQueues cannot be reused once they have started completion");
+        if (waitingForCompletion) {
+            throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
         }
-        workFutures.add(executor.submit(new Operation(operation)));
+        ListenableFuture<?> future = executor.submit(new Operation(operation));
+        Futures.addCallback(future, new FailuresCallback());
+        operations.add(future);
     }
 
-    public void waitForCompletion() throws GradleException {
-        completed = true;
+    public void waitForCompletion() throws MultipleBuildOperationFailures {
+        waitingForCompletion = true;
+
+        CountDownLatch finished = new CountDownLatch(operations.size());
+        for (ListenableFuture operation : operations) {
+            Futures.addCallback(operation, new CompletionCallback(finished));
+        }
 
         try {
-            Futures.allAsList(workFutures).get();
+            finished.await();
         } catch (InterruptedException e) {
-            throw new UncheckedException(e);
-        } catch (ExecutionException e) {
-            throw new GradleException(String.format("Build operations for worker %s", worker), e.getCause());
+            Thread.currentThread().interrupt();
+        }
+
+        // all operations are complete, check for errors
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(getFailureMessage(), failures);
         }
     }
 
-    class Operation implements Callable<Void> {
+    private String getFailureMessage() {
+        if (failures.size()==1) {
+            return "A build operation failed; see the error output for details.";
+        }
+        return "Multiple build operations failed; see the error output for details.";
+    }
+
+    private class FailuresCallback implements FutureCallback {
+        public void onSuccess(Object result) {
+            // don't care
+        }
+
+        public void onFailure(Throwable t) {
+            if (!ignoredException(t)) {
+                failures.add(t);
+            }
+            // TODO: Provide eager cancellation version of this too
+            // For now, we'll keep continuing when we encounter a failure
+            // cancel other operations ASAP
+            // cancelled.set(true);
+        }
+
+        private boolean ignoredException(Throwable t) {
+            return t instanceof CancellationException;
+        }
+    }
+
+    private static class CompletionCallback implements FutureCallback {
+        private final CountDownLatch finished;
+
+        private CompletionCallback(CountDownLatch finished) {
+            this.finished = finished;
+        }
+
+        public void onSuccess(Object result) {
+            finished.countDown();
+        }
+
+        public void onFailure(Throwable t) {
+            finished.countDown();
+        }
+    }
+
+    class Operation implements Runnable {
         private final T operation;
 
         Operation(T operation) {
             this.operation = operation;
         }
 
-        public Void call() {
-            worker.execute(operation);
-            return null;
+        public void run() {
+            if (!cancelled.get()) {
+                worker.execute(operation);
+            } else {
+                throw new CancellationException("Cancelled by some other operation failure");
+            }
         }
 
         public String toString() {

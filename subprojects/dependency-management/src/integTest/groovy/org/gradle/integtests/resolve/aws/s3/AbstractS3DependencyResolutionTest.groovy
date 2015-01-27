@@ -18,10 +18,7 @@ package org.gradle.integtests.resolve.aws.s3
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
-import org.gradle.test.fixtures.server.s3.MavenS3Repository
-import org.gradle.test.fixtures.server.s3.S3Resource
-import org.gradle.test.fixtures.server.s3.S3StubServer
-import org.gradle.test.fixtures.server.s3.S3StubSupport
+import org.gradle.test.fixtures.server.s3.*
 import org.junit.Rule
 
 abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyResolutionTest {
@@ -44,6 +41,10 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
 
     MavenS3Repository getMavenS3Repo() {
         new MavenS3Repository(server, file(getTestDirectory()), getRepositoryPath(), getBucket())
+    }
+
+    IvyS3Repository getIvyS3Repo() {
+        new IvyS3Repository(server, file(getTestDirectory()), getRepositoryPath(), getBucket())
     }
 
     def assertLocallyAvailableLogged(S3Resource... resources) {

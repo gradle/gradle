@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -93,11 +94,29 @@ public interface ModelRegistry extends ModelRegistrar {
 
     void remove(ModelPath path);
 
-    void validate() throws UnboundModelRulesException;
+    /**
+     * Attempts to bind the references of all model rules known at this point in time.
+     * <p>
+     * This method effectively validates that all references bind (i.e. all rules are executable).
+     * It should be called when the model registry is at some kind of logical checkpoint, in that it is reasonable
+     * to expect that all rules have been discovered.
+     * <p>
+     * However, it does not prevent rules from being added after being called.
+     * This is necessary as mutation rules can add rules etc.
+     * As such, this method can be called multiple times.
+     * Subsequent invocations will bind the references of rules added since the previous invocation.
+     * <p>
+     * If any reference cannot successfully bind, an exception will be thrown.
+     *
+     * @throws UnboundModelRulesException if there are unbindable references
+     */
+    void bindAllReferences() throws UnboundModelRulesException;
 
     @Override
     ModelRegistry create(ModelCreator creator, ModelPath scope);
 
     @Override
     <T> ModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
+
+    ModelRegistry apply(Class<? extends RuleSource> rules);
 }

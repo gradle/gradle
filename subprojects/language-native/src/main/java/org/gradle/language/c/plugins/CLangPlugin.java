@@ -46,9 +46,6 @@ public class CLangPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @LanguageType

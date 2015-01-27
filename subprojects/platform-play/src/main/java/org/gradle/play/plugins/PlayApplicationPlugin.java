@@ -68,11 +68,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
         @Model
         PlayPluginConfigurations configurations(ExtensionContainer extensions) {
             return extensions.getByType(PlayPluginConfigurations.class);

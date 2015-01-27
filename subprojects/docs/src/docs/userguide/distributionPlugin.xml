@@ -40,7 +40,7 @@
         </para>
         <para>
             You can run “<userinput>gradle distZip</userinput>” to package the main distribution as a ZIP, or “<userinput>gradle distTar</userinput>” to create
-            a TAR file.
+            a TAR file. To build both types of archives just run <userinput>gradle assembleDist</userinput>.
             The files will be created at “<literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>”.
         </para>
         <para>
@@ -87,6 +87,20 @@
                 </td>
                 <td>
                     Creates a TAR archive of the distribution contents
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>assembleDist</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.Task"/>
+                </td>
+                <td>
+                    Creates ZIP and TAR archives with the distribution contents
                 </td>
             </tr>
             <tr>
@@ -193,5 +207,16 @@
         <para>
             The “<literal>baseName</literal>” property has also been changed. This will cause the distribution archives to be created with a different name.
         </para>
+    </section>
+    <section>
+        <title>Publishing distributions</title>
+        <para>
+            The distribution plugin adds the distribution archives as candidate for default publishing artifacts.
+            With the <literal>maven</literal> plugin applied the distribution zip file will be published when running uploadArchives
+            if no other default artifact is configured
+        </para>
+        <sample id="publishDistribution" dir="userguide/distribution" title="publish main distribution">
+            <sourcefile file="build.gradle" snippet="publish-distribution"/>
+        </sample>
     </section>
 </chapter>

@@ -34,22 +34,22 @@ import java.util.Map;
 public interface PluginAware {
 
     /**
-     * The container of plugins.
+     * The container of plugins that have been applied to this object.
      * <p>
-     * While not deprecated, it is preferred to use the methods of this interface than use the plugin container directly.
+     * While not deprecated, it is preferred to use the methods of this interface or the {@link #getPluginManager() plugin manager} than use the plugin container.
      * <p>
-     * Use {@link #apply(java.util.Map)} to apply plugins instead of applying via the plugin container.
+     * Use one of the 'apply' methods on this interface or on the {@link #getPluginManager() plugin manager} to apply plugins instead of applying via the plugin container.
      * <p>
-     * Use {@link AppliedPlugins#hasPlugin(String) getAppliedPlugins().hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
+     * Use {@link PluginManager#hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
      *
      * @return the plugin container
      * @see #apply
-     * @see AppliedPlugins#hasPlugin(String)
+     * @see PluginManager#hasPlugin(String)
      */
     PluginContainer getPlugins();
 
     /**
-     * Applies one or more plugins.
+     * Applies zero or more plugins or scripts.
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
      * <p>
@@ -61,7 +61,7 @@ public interface PluginAware {
     void apply(Closure closure);
 
     /**
-     * Applies one or more plugins.
+     * Applies zero or more plugins or scripts.
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
      * <p>
@@ -73,10 +73,18 @@ public interface PluginAware {
     void apply(Action<? super ObjectConfigurationAction> action);
 
     /**
-     * Applies one or more plugins.
+     * Applies a plugin or script, using the given options provided as a map. Does nothing if the plugin has already been applied.
      * <p>
      * The given map is applied as a series of method calls to a newly created {@link ObjectConfigurationAction}.
      * That is, each key in the map is expected to be the name of a method {@link ObjectConfigurationAction} and the value to be compatible arguments to that method.
+     *
+     * <p>The following options are available:</p>
+     *
+     * <ul><li>{@code from}: A script to apply. Accepts any path supported by {@link org.gradle.api.Project#uri(Object)}.</li>
+     *
+     * <li>{@code plugin}: The id or implementation class of the plugin to apply.</li>
+     *
+     * <li>{@code to}: The target delegate object or objects. The default is this plugin aware object. Use this to configure objects other than this object.</li></ul>
      *
      * @param options the options to use to configure and {@link ObjectConfigurationAction} before “executing” it
      */

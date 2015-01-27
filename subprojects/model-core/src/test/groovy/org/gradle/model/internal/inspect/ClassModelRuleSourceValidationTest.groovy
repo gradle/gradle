@@ -26,7 +26,7 @@ class ClassModelRuleSourceValidationTest extends Specification {
     @Unroll
     def "invalid #type - #reason"() {
         when:
-        new ModelRuleInspector([]).validate(type)
+        new ModelRuleExtractor([]).validate(type)
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
@@ -39,19 +39,19 @@ class ClassModelRuleSourceValidationTest extends Specification {
         OuterClass.AbstractClass           | "class cannot be abstract"
         OuterClass.AnInterface             | "must be a class, not an interface"
         OuterClass.InnerInstanceClass      | "enclosed classes must be static and non private"
-        new Object() {}.getClass()         | "enclosed classes must be static and non private"
+        new RuleSource() {}.getClass()     | "enclosed classes must be static and non private"
         OuterClass.HasTwoConstructors      | "cannot declare a constructor that takes arguments"
         OuterClass.HasInstanceVar          | "field foo is not static final"
         OuterClass.HasFinalInstanceVar     | "field foo is not static final"
         OuterClass.HasNonFinalStaticVar    | "field foo is not static final"
-        OuterClass.DoesNotExtendRuleSource | "rule source classes have to directly extend ${RuleSource.name}"
-        OuterClass.HasSuperclass           | "rule source classes have to directly extend ${RuleSource.name}"
+        OuterClass.DoesNotExtendRuleSource | "rule source classes must directly extend org.gradle.model.RuleSource"
+        OuterClass.HasSuperclass           | "rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
     @Unroll
     def "valid #type"() {
         when:
-        new ModelRuleInspector([]).validate(type)
+        new ModelRuleExtractor([]).validate(type)
 
         then:
         noExceptionThrown()

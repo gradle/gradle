@@ -42,7 +42,7 @@ public interface MavenDeployer extends MavenResolver {
     Object getRepository();
 
     /**
-     * Sets the repository to be used for uploading artifacts. If {@link #getRepository()} is not set, this repository
+     * Sets the repository to be used for uploading artifacts. If {@link #getSnapshotRepository()} is not set, this repository
      * is also used for uploading snapshot artifacts.
      *
      * @param repository The repository to be used

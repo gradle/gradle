@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.repositories
-
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -30,23 +28,21 @@ import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
-    final PasswordCredentials passwordCredentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Stub()
 
-
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, passwordCredentials, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
+            resolver, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', passwordCredentials) >> transport()
+        transportFactory.createTransport('file', 'repo', null) >> transport()
 
         and:
         repository.name = 'repo'
@@ -64,7 +60,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('http', 'repo', passwordCredentials) >> transport()
+        transportFactory.createTransport('http', 'repo', null) >> transport()
 
         and:
         repository.name = 'repo'
@@ -86,7 +82,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', passwordCredentials) >> transport()
+        transportFactory.createTransport('http', 'repo', null) >> transport()
 
         and:
         repository.name = 'repo'

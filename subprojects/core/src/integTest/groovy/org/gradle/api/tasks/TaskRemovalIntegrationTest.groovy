@@ -61,7 +61,6 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.model.*
 
             task foo {}
-            task bar {}
 
             afterEvaluate {
                 tasks.remove(foo)
@@ -69,7 +68,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
             class Rules extends RuleSource {
                 @$annotationClass
-                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                void linkFooToBar(String bar, @Path("tasks.foo") Task foo) {
                    // do nothing
                 }
             }
@@ -106,7 +105,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "bar"
+        fails ":bar"
         failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
 
     }

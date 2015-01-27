@@ -29,7 +29,7 @@ public interface ModelCreator {
 
     ModelAdapter getAdapter();
 
-    void create(MutableModelNode node, Inputs inputs);
+    void create(MutableModelNode node, List<ModelView<?>> inputs);
 
     List<? extends ModelReference<?>> getInputs();
 }

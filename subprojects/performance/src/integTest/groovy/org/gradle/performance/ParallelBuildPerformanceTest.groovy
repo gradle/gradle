@@ -28,6 +28,7 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
                 BuildSpecification.forProject("multi").displayName("serial").tasksToRun("clean", "build").build(),
                 BuildSpecification.forProject("multi").displayName("parallel").tasksToRun("clean", "build").args("--parallel-threads=2").build()
         ]
+        runner.warmUpRuns = 1
 
         when:
         def result = runner.run()

@@ -16,7 +16,6 @@
 
 
 package org.gradle.nativeplatform.test.cunit
-
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -93,5 +92,4 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     private static boolean isVisualCpp2010() {
         return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "10")
     }
-
 }

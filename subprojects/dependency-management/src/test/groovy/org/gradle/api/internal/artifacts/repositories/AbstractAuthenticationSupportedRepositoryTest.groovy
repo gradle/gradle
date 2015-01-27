@@ -29,7 +29,6 @@ import spock.lang.Unroll
 
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
-    final AbstractAuthenticationSupportedRepository repository = new AuthSupportedRepository(null, new DirectInstantiator())
 
     def "should configure default password credentials using a closure only"() {
         setup:
@@ -39,7 +38,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         Instantiator instantiator = Mock()
         instantiator.newInstance(DefaultPasswordCredentials) >> passwordCredentials
 
-        AuthSupportedRepository repo = new AuthSupportedRepository(passwordCredentials, instantiator)
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
 
         Closure cls = {
             username "myUsername"
@@ -63,7 +62,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         Instantiator instantiator = Mock()
         instantiator.newInstance(DefaultAwsCredentials) >> enhancedCredentials
 
-        AuthSupportedRepository repo = new AuthSupportedRepository(null, instantiator)
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
 
         def action = new ClosureBackedAction<DefaultAwsCredentials>({
             accessKey = 'key'
@@ -77,14 +76,13 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         then:
         credentials.accessKey == 'key'
         credentials.secretKey == 'secret'
-
     }
 
     @Unroll
     def "should instantiate the correct default credential types "() {
         Instantiator instantiator = Mock()
         Action action = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(null, instantiator)
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
 
         when:
         repo.credentials(credentialType, action) == credentials
@@ -99,30 +97,30 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         PasswordCredentials | Mock(PasswordCredentials)
     }
 
-    def "should throw when credentials have been pre-configured with a specific type"() {
+    def "getCredentials() throws IllegalStateException when credentials not of type PasswordCredentials"() {
         Instantiator instantiator = Mock()
         Action action = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(null, instantiator)
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
         1 * instantiator.newInstance(_) >> credentials
         1 * action.execute(credentials)
 
         when:
-        repo.credentials(credentialType, action)
+        repo.credentials(AwsCredentials, action)
+        and:
         repo.getCredentials()
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message.startsWith("Password credentials has been overridden by a specific credentials of type [")
+        ex.message == String.format("Requested credentials must be of type 'org.gradle.api.artifacts.repositories.PasswordCredentials'.", PasswordCredentials.class.name)
 
         where:
         credentialType      | credentials
         AwsCredentials      | Mock(AwsCredentials)
-        PasswordCredentials | Mock(PasswordCredentials)
     }
 
     def "should configure aws credentials"() {
         Instantiator instantiator = Mock()
-        AuthSupportedRepository repo = new AuthSupportedRepository(null, instantiator)
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
         def alternative = Mock(AwsCredentials)
         Action action = Mock()
         1 * instantiator.newInstance(DefaultAwsCredentials) >> alternative
@@ -135,29 +133,21 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         credentials == alternative
     }
 
-    def "should default both credentials to PasswordCredentials"() {
+    def "should throw IllegalStateException setting explicit authentication type multiple times"() {
         setup:
-        PasswordCredentials pCredentials = Mock()
-        when:
-        def repo = new AuthSupportedRepository(pCredentials, null)
-        then:
-        repo.getCredentials() == pCredentials
-        repo.getAlternativeCredentials() == pCredentials
-    }
-
-    def "Should throw on configuring and password credentials is null"() {
-        setup:
-        def repo = new AuthSupportedRepository(null, new DirectInstantiator())
+        def repo = new AuthSupportedRepository(new DirectInstantiator())
         def action = new ClosureBackedAction<DefaultPasswordCredentials>({
-            username = 'key'
-            password = 'secret'
+            accessKey = 'key'
+            secretKey = 'secret'
         })
-
         when:
-        repo.credentials(action)
+        repo.credentials(AwsCredentials, action)
+        and:
+        repo.credentials(AwsCredentials, action)
+
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "Password credentials is null, most likely an alternative credentials type has been configured for this repository"
+        ex.message == "Cannot overwrite already configured credentials."
     }
 
     private void enhanceCredentials(Credentials credentials, String... props) {
@@ -169,8 +159,8 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
-        AuthSupportedRepository(Credentials credentials, Instantiator instantiator) {
-            super(credentials, instantiator)
+        AuthSupportedRepository(Instantiator instantiator) {
+            super(instantiator)
         }
     }
 }

@@ -29,15 +29,22 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor {
     private final ListeningExecutorService fixedSizePool;
 
     public DefaultBuildOperationProcessor(int maxThreads) {
-        final ExecutorService underlyingExecutor;
+        final int actualThreads = actualThreadCount(maxThreads);
+        // TODO: Who's responsible for shutting down this executor?
+        final ExecutorService underlyingExecutor = Executors.newFixedThreadPool(actualThreads, new ThreadFactoryImpl("build operations"));
+        this.fixedSizePool = MoreExecutors.listeningDecorator(underlyingExecutor);
+    }
+
+    int actualThreadCount(int maxThreads) {
+        final int actualThreads;
         if (maxThreads < 0) {
-            underlyingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryImpl("build operations"));
+            actualThreads = Runtime.getRuntime().availableProcessors();
         } else if (maxThreads == 0) {
-            underlyingExecutor = MoreExecutors.sameThreadExecutor();
+            actualThreads = 1;
         } else {
-            underlyingExecutor = Executors.newFixedThreadPool(maxThreads, new ThreadFactoryImpl("build operations"));
+            actualThreads = maxThreads;
         }
-        fixedSizePool = MoreExecutors.listeningDecorator(underlyingExecutor);
+        return actualThreads;
     }
 
     public <T> OperationQueue<T> newQueue(Action<? super T> worker) {

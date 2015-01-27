@@ -20,11 +20,11 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.ChosenComponentResult;
+import org.gradle.internal.resolve.result.BuildableSelectedComponentResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 public interface ComponentChooser {
     ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two);
-    ChosenComponentResult choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess);
+    void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableSelectedComponentResult result);
     boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends MutableModuleComponentResolveMetaData> metaDataSupplier);
 }

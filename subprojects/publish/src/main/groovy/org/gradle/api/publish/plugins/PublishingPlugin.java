@@ -73,9 +73,6 @@ public class PublishingPlugin implements Plugin<Project> {
         publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
     }
 
-    /**
-     * Model rules.
-     */
     static class Rules extends RuleSource {
         @Model
         PublishingExtension publishing(ExtensionContainer extensions) {

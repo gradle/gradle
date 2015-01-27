@@ -20,15 +20,14 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -68,7 +67,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
-        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory,
                 locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
@@ -88,16 +87,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     public IvyArtifactRepository createIvyRepository() {
-        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+        return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
                 locallyAvailableResourceFinder, instantiator, resolverStrategy, artifactFileStore);
     }
 
     public MavenArtifactRepository createMavenRepository() {
-        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
+        return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, transportFactory,
                 locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser);
-    }
-
-    private PasswordCredentials createPasswordCredentials() {
-        return instantiator.newInstance(DefaultPasswordCredentials.class);
     }
 }

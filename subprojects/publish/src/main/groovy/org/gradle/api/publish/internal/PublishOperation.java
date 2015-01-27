@@ -17,15 +17,14 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.artifacts.PublishException;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.publish.Publication;
 
 public abstract class PublishOperation implements Runnable {
 
     private final Publication publication;
-    private final ArtifactRepository repository;
+    private final String repository;
 
-    protected PublishOperation(Publication publication, ArtifactRepository repository) {
+    protected PublishOperation(Publication publication, String repository) {
         this.publication = publication;
         this.repository = repository;
     }
@@ -36,7 +35,7 @@ public abstract class PublishOperation implements Runnable {
         try {
             publish();
         } catch (Exception e) {
-            throw new PublishException(String.format("Failed to publish publication '%s' to repository '%s'", publication.getName(), repository.getName()), e);
+            throw new PublishException(String.format("Failed to publish publication '%s' to repository '%s'", publication.getName(), repository), e);
         }
     }
 }

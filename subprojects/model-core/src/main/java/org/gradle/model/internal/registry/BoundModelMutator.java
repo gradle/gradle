@@ -17,8 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.core.ModelBinding;
 import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
 
 import java.util.List;
 
@@ -26,12 +26,14 @@ import java.util.List;
 class BoundModelMutator<T> {
 
     private final ModelAction<T> mutator;
-    private final ModelBinding<T> subject;
+    private final ModelNodeInternal subject;
+    private final ModelReference<T> subjectReference;
     private final List<ModelBinding<?>> inputs;
 
-    BoundModelMutator(ModelAction<T> mutator, ModelBinding<T> subject, List<ModelBinding<?>> inputs) {
+    BoundModelMutator(ModelAction<T> mutator, ModelNodeInternal subject, ModelReference<T> subjectReference, List<ModelBinding<?>> inputs) {
         this.mutator = mutator;
         this.subject = subject;
+        this.subjectReference = subjectReference;
         this.inputs = inputs;
     }
 
@@ -39,11 +41,15 @@ class BoundModelMutator<T> {
         return mutator;
     }
 
-    public ModelBinding<T> getSubject() {
+    public ModelNodeInternal getSubject() {
         return subject;
     }
 
     public List<ModelBinding<?>> getInputs() {
         return inputs;
+    }
+
+    public ModelReference<T> getSubjectReference() {
+        return subjectReference;
     }
 }

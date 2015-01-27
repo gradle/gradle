@@ -61,6 +61,11 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
             private Set<I> elementViews;
 
             @Override
+            public ModelPath getPath() {
+                return modelNode.getPath();
+            }
+
+            @Override
             public ModelType<ManagedSet<I>> getType() {
                 return ManagedSetModelProjection.this.getType();
             }

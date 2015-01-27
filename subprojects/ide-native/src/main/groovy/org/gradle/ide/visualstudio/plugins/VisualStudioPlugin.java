@@ -52,10 +52,7 @@ public class VisualStudioPlugin implements Plugin<Project> {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
-    public static class Rules extends RuleSource {
+    static class Rules extends RuleSource {
         @Model
         public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);

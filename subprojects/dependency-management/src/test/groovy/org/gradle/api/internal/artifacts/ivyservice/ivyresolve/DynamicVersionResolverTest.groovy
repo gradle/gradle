@@ -28,7 +28,9 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.result.*
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
+import org.gradle.internal.resolve.result.DefaultModuleVersionListing
+import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
 class DynamicVersionResolverTest extends Specification {
@@ -84,8 +86,6 @@ class DynamicVersionResolverTest extends Specification {
         def dynamicSelector = Mock(ModuleVersionSelector)
         final versionListing = new DefaultModuleVersionListing("1.1")
         final selectedId = DefaultModuleComponentIdentifier.newId("group", "name", "1.1")
-        final ChosenComponentResult chosenComponent = new DefaultChosenComponentResult()
-        chosenComponent.matches(selectedId)
 
         when:
         resolver.resolve(dynamicDependency, result)
@@ -95,7 +95,9 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing)
         }
-        _ * componentSelectionStrategy.choose(versionListing, dynamicDependency, localAccess) >> chosenComponent
+        _ * componentSelectionStrategy.choose(versionListing, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+            res.matches(selectedId)
+        }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
         1 * localAccess.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -126,8 +128,6 @@ class DynamicVersionResolverTest extends Specification {
         final versionListing1 = Mock(ModuleVersionListing)
         final versionListing2 = new DefaultModuleVersionListing("1.1")
         final selectedId = DefaultModuleComponentIdentifier.newId("group", "name", "1.1")
-        final ChosenComponentResult chosenComponent = new DefaultChosenComponentResult()
-        chosenComponent.matches(selectedId)
 
         when:
         resolver.resolve(dynamicDependency, result)
@@ -137,12 +137,16 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing1)
         }
-        1 * componentSelectionStrategy.choose(versionListing1, dynamicDependency, localAccess) >> null
+        1 * componentSelectionStrategy.choose(versionListing1, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+            res.noMatch()
+        }
 
         1 * localAccess2.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing2)
         }
-        1 * componentSelectionStrategy.choose(versionListing2, dynamicDependency, localAccess2) >> chosenComponent
+        1 * componentSelectionStrategy.choose(versionListing2, dynamicDependency, localAccess2, _) >> { ver, dep, acc, res ->
+            res.matches(selectedId)
+        }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
         1 * localAccess2.resolveComponentMetaData(dependency, selectedId, _) >> { dep, id, result ->
             result.resolved(metaData)
@@ -166,8 +170,6 @@ class DynamicVersionResolverTest extends Specification {
         given:
         addRepo1()
         final versionListing = new DefaultModuleVersionListing()
-        final ChosenComponentResult chosenComponent = new DefaultChosenComponentResult()
-        chosenComponent.noMatch()
 
         when:
         resolver.resolve(dependency, result)
@@ -177,7 +179,9 @@ class DynamicVersionResolverTest extends Specification {
             result.attempted('somewhere')
             result.listed(versionListing)
         }
-        1 * componentSelectionStrategy.choose(versionListing, dependency, localAccess) >> chosenComponent
+        1 * componentSelectionStrategy.choose(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
+            res.noMatch()
+        }
         1 * result.attempted('somewhere')
         1 * result.notFound(selector)
 

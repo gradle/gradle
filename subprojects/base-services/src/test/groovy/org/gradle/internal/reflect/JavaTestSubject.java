@@ -22,6 +22,9 @@ public class JavaTestSubject {
     final IllegalStateException failure = new IllegalStateException();
     private String myProp = "myValue";
     private boolean myBooleanProp = true;
+    public String myField = "myFieldValue";
+    public boolean myBooleanField = true;
+    private static String myStaticProperty;
 
     public int publicField;
 
@@ -54,10 +57,11 @@ public class JavaTestSubject {
     }
 
     public static String getStaticProperty() {
-        return null;
+        return myStaticProperty;
     }
 
     public static void setStaticProperty(String value) {
+        myStaticProperty = value;
     }
 
     public void getVoidProperty() {

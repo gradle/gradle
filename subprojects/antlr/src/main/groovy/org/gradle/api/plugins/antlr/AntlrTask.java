@@ -17,25 +17,25 @@
 package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
+import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Factory;
 import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -51,7 +51,7 @@ public class AntlrTask extends SourceTask {
     private FileCollection antlrClasspath;
 
     private File outputDirectory;
-    private String maxHeapSize = "1g";
+    private String maxHeapSize;
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -97,6 +97,9 @@ public class AntlrTask extends SourceTask {
         this.traceTreeWalker = traceTreeWalker;
     }
 
+    /**
+     * The maximum heap size for the forked antlr process (ex: '1g').
+     */
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -111,6 +114,7 @@ public class AntlrTask extends SourceTask {
         }
     }
 
+    @Input
     public List<String> getArguments() {
         return arguments;
     }
@@ -146,10 +150,10 @@ public class AntlrTask extends SourceTask {
 
     /**
      * Specifies the classpath containing the Ant ANTLR task implementation.
-     *
+     *
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
-    public void setAntlrClasspath(FileCollection antlrClasspath) {
+    protected void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }
 
@@ -160,23 +164,34 @@ public class AntlrTask extends SourceTask {
 
     @TaskAction
     public void execute(IncrementalTaskInputs inputs) {
-        final List<File> grammarFiles = new ArrayList<File>();
+        final Set<File> grammarFiles = new HashSet<File>();
         final Set<File> sourceFiles = getSource().getFiles();
-
+        final AtomicBoolean cleanRebuild = new AtomicBoolean();
         inputs.outOfDate(
                 new Action<InputFileDetails>() {
                     public void execute(InputFileDetails details) {
                         File input = details.getFile();
-                        for (File file : sourceFiles) {
-                            if (file.getAbsolutePath().equals(input.getAbsolutePath())) {
-                                grammarFiles.add(input);
-                                break;
-                            }
+                        if (sourceFiles.contains(input)) {
+                            grammarFiles.add(input);
+                        }else {
+                            // classpath change?
+                            cleanRebuild.set(true);
                         }
                     }
                 }
         );
-
+        inputs.removed(new Action<InputFileDetails>() {
+            @Override
+            public void execute(InputFileDetails details) {
+                if (details.isRemoved()) {
+                    cleanRebuild.set(true);
+                }
+            }
+        });
+        if (cleanRebuild.get()) {
+            GFileUtils.cleanDirectory(outputDirectory);
+            grammarFiles.addAll(sourceFiles);
+        }
         List<String> args = buildArguments(grammarFiles);
         AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
@@ -187,24 +202,24 @@ public class AntlrTask extends SourceTask {
     public void evaluateAntlrResult(AntlrResult result) {
         int errorCount = result.getErrorCount();
         if (errorCount == 1) {
-            throw new GradleException("There was 1 error during grammar generation");
+            throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());
         } else if (errorCount > 1) {
-            throw new GradleException("There were "
-                + errorCount
-                + " errors during grammar generation");
+            throw new AntlrSourceGenerationException("There were "
+                    + errorCount
+                    + " errors during grammar generation", result.getException());
         }
     }
 
     /**
      * Finalizes the list of arguments that will be sent to the ANTLR tool.
      */
-    List<String> buildArguments(List<File> grammarFiles) {
+    List<String> buildArguments(Set<File> grammarFiles) {
         List<String> args = new ArrayList<String>();    // List for finalized arguments
-        
+
         // Output file
         args.add("-o");
         args.add(outputDirectory.getAbsolutePath());
-        
+
         // Custom arguments
         for (String argument : arguments) {
             args.add(argument);

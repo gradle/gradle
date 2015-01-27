@@ -19,6 +19,11 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
+/**
+ * Tests the information provided when a model rule fails to bind.
+ *
+ * @see ModelRuleBindingValidationIntegrationTest
+ */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -223,4 +228,5 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
     Immutable:
       - bar (java.lang.Integer) parameter 1""")
     }
+
 }

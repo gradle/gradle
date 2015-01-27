@@ -119,6 +119,22 @@ Generally, the DSL should be the same, except:
 
 The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
+### MavenDeployer no longer uses global Maven settings.xml
+
+- User settings file was never used, but global settings.xml was considered
+- Mirror settings no longer cause GRADLE-2681
+- Authentication and Proxy settings are not used
+
+- Local repository location in user settings.xml _is_ honoured when deploying (it was always honoured when installing)
+
+### PublishToMavenLocal task ignores repository setting
+
+Previously, the `PublishToMavenLocal` task could be configured with an `ArtifactRepository` instance, which would specify the
+location to `install` to. The default repository was `mavenLocal()`.
+
+It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
+will be ignored.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -127,8 +143,11 @@ We would like to thank the following community members for making contributions 
     - Adding support for AWS S3 backed maven repositories
     - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
-* [Victor Bronstein](https://github.com/victorbr) - Convert NotationParser implementations to NotationConverter
+* [Victor Bronstein](https://github.com/victorbr) 
+    - Convert NotationParser implementations to NotationConverter
+    - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219) 
 * [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
+* [Michal Bendowski](https://github.com/bendowski-google) - fix webDist userguide example
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

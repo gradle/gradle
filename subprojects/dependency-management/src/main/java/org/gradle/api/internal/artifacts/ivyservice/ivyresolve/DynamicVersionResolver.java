@@ -179,15 +179,16 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
         }
 
-        private ChosenComponentResult resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-            ChosenComponentResult chosenComponent = componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess);
-            if (chosenComponent.hasMatch()) {
-                dependency = dependency.withRequestedVersion(chosenComponent.getModuleComponentIdentifier().getVersion());
+        private BuildableSelectedComponentResult resolveDependency(DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
+            BuildableSelectedComponentResult result = new DefaultBuildableSelectedComponentResult();
+            componentChooser.choose(selectionResult.getVersions(), dependency, moduleAccess, result);
+            if (result.hasMatch()) {
+                dependency = dependency.withRequestedVersion(result.getModuleComponentIdentifier().getVersion());
                 // TODO - reuse meta data if it was fetched to select candidate
-                moduleAccess.resolveComponentMetaData(dependency, chosenComponent.getModuleComponentIdentifier(), resolveResult);
+                moduleAccess.resolveComponentMetaData(dependency, result.getModuleComponentIdentifier(), resolveResult);
             }
 
-            return chosenComponent;
+            return result;
         }
 
         protected void applyTo(ResourceAwareResolveResult result) {

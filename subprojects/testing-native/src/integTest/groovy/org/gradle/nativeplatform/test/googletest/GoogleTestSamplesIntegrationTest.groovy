@@ -39,9 +39,9 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         if (OperatingSystem.current().windows && !isVisualCpp2013()) {
             return
         }
+        sample googleTest
 
         when:
-        sample googleTest
         succeeds "runPassing"
 
         then:
@@ -76,5 +76,4 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
     private static boolean isVisualCpp2013() {
         return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "12")
     }
-
 }

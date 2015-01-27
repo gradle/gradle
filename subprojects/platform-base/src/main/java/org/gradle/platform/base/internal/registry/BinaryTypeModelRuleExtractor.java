@@ -25,8 +25,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
@@ -47,14 +45,14 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
         ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return new DependencyOnlyRuleRegistration(dependencies);
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
@@ -96,8 +94,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
+        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, List<ModelView<?>> inputs) {
             @SuppressWarnings("unchecked")
             Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
             binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {

@@ -40,13 +40,20 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
     private final ModelType<CollectionBuilder<T>> type;
     private final CollectionBuilder<T> instance;
     private final ModelRuleDescriptor ruleDescriptor;
+    private final ModelPath path;
 
     private boolean closed;
 
-    public CollectionBuilderModelView(ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+    public CollectionBuilderModelView(ModelPath path, ModelType<CollectionBuilder<T>> type, CollectionBuilder<T> rawInstance, ModelRuleDescriptor ruleDescriptor) {
+        this.path = path;
         this.type = type;
         this.ruleDescriptor = ruleDescriptor;
         this.instance = new Decorator<T>(rawInstance);
+    }
+
+    @Override
+    public ModelPath getPath() {
+        return path;
     }
 
     public ModelType<CollectionBuilder<T>> getType() {

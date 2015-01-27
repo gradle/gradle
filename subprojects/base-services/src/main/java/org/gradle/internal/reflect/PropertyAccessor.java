@@ -16,10 +16,10 @@
 
 package org.gradle.internal.reflect;
 
-public interface PropertyAccessor {
+public interface PropertyAccessor<T, F> {
     String getName();
 
-    Class<?> getType();
+    Class<F> getType();
 
-    Object getValue(Object target);
+    F getValue(T target);
 }

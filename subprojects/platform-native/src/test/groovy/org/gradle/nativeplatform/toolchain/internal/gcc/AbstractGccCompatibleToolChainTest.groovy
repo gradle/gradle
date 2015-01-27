@@ -57,7 +57,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def buildOperationProcessor = Stub(BuildOperationProcessor)
 
     def instantiator = new DirectInstantiator()
-    def toolChain = new TestNativeToolChain("test", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, startParameter, toolSearchPath, metaDataProvider, instantiator)
+    def toolChain = new TestNativeToolChain("test", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, toolSearchPath, metaDataProvider, instantiator)
     def platform = Stub(NativePlatformInternal)
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())

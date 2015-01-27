@@ -29,9 +29,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.result.ChosenComponentResult;
+import org.gradle.internal.resolve.result.BuildableSelectedComponentResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.DefaultChosenComponentResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -73,25 +72,24 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public ChosenComponentResult choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess) {
+    public void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableSelectedComponentResult result) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
-        ChosenComponentResult chosenComponent = new DefaultChosenComponentResult();
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
             MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
             if(requestedVersion.requiresMetadata() && metadataProvider.getMetaData() == null) {
-                chosenComponent.cannotDetermine();
-                return chosenComponent;
+                result.cannotDetermine();
+                return;
             }
 
             if (versionMatches(requestedVersion, candidateIdentifier, metadataProvider)) {
                 if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
-                    chosenComponent.matches(candidateIdentifier);
-                    return chosenComponent;
+                    result.matches(candidateIdentifier);
+                    return;
                 }
 
                 if (requestedVersion.matchesUniqueVersion()) {
@@ -99,7 +97,8 @@ class NewestVersionComponentChooser implements ComponentChooser {
                 }
             }
         }
-        return chosenComponent;
+
+        result.noMatch();
     }
 
     private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {

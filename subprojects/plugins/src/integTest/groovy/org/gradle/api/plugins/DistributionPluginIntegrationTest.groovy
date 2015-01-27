@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.test.fixtures.maven.MavenPom
 
 import static org.hamcrest.Matchers.containsString
 
@@ -50,6 +51,42 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         and:
         file('build/distributions/TestProject-custom.zip').usingNativeTools().unzipTo(file("unzip"))
         file("unzip/TestProject-custom/someFile").assertIsFile()
+    }
+
+    def "can publish distribution"() {
+        when:
+        buildFile << """
+            apply plugin:'distribution'
+            apply plugin:'maven'
+            group = "org.acme"
+            version = "1.0"
+
+            distributions {
+                main {
+                    contents {
+                        from { "someFile" }
+                    }
+                }
+            }
+
+            uploadArchives {
+                repositories {
+                    mavenDeployer {
+                        repository(url: "${file("repo").toURI()}")
+                    }
+                }
+            }
+            """
+        then:
+        succeeds("uploadArchives")
+        file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
+
+        and:
+        def pom = new MavenPom(file("repo/org/acme/TestProject/1.0/TestProject-1.0.pom"))
+        pom.groupId == "org.acme"
+        pom.artifactId == "TestProject"
+        pom.version == "1.0"
+        pom.packaging == "zip"
     }
 
     def createTaskForCustomDistributionWithCustomName() {
@@ -93,8 +130,6 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         runAndFail('customDistZip')
         failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
-
-
 
     def createDistributionWithoutVersion() {
         given:

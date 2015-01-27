@@ -84,9 +84,6 @@ public class IvyPublishPlugin implements Plugin<Project> {
         });
     }
 
-    /**
-     * Model rules.
-     */
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")

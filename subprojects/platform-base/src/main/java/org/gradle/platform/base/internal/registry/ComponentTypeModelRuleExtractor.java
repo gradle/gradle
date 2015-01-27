@@ -29,8 +29,6 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
@@ -54,14 +52,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     @Override
-    protected <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
         }
-        return new DependencyOnlyRuleRegistration(dependencies);
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
@@ -84,7 +82,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             this.descriptor = descriptor;
             this.instantiator = instantiator;
             this.subject = ModelReference.of(DefaultComponentSpecContainer.class);
-            inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
+            this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
         }
 
         @Override
@@ -103,10 +101,9 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
-            final ProjectIdentifier projectIdentifier = inputs.get(0, ModelType.of(ProjectIdentifier.class)).getInstance();
-            final ProjectSourceSet projectSourceSet = inputs.get(1, ModelType.of(ProjectSourceSet.class)).getInstance();
+        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, List<ModelView<?>> inputs) {
+            final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(0), ModelType.of(ProjectIdentifier.class)).getInstance();
+            final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectSourceSet.class)).getInstance();
             @SuppressWarnings("unchecked")
             Class<ComponentSpec> publicClass = (Class<ComponentSpec>) publicType.getConcreteClass();
             components.registerFactory(publicClass, new NamedDomainObjectFactory<BaseComponentSpec>() {

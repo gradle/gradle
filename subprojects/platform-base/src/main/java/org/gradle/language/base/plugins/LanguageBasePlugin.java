@@ -26,7 +26,7 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
+import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -61,21 +61,22 @@ public class LanguageBasePlugin implements Plugin<Project> {
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
+        String descriptor = getClass().getName() + ".apply()";
         modelRegistry.create(
-                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                BridgedCollections.dynamicTypes(
                         ModelType.of(DefaultBinaryContainer.class),
                         ModelType.of(DefaultBinaryContainer.class),
                         ModelType.of(BinarySpec.class),
                         ModelPath.path("binaries"),
                         binaries,
-                        getClass().getName() + ".apply()"),
+                        Named.Namer.INSTANCE,
+                        descriptor,
+                        BridgedCollections.itemDescriptor(descriptor)
+                ),
                 ModelPath.ROOT
         );
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Model
@@ -95,22 +96,27 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }
 
-        @Mutate
-        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
-            tasks.named("assemble", new Action<Task>() {
-                @Override
-                public void execute(Task assemble) {
-                    for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                        if (!binary.isLegacyBinary()) {
-                            if (binary.isBuildable()) {
-                                assemble.dependsOn(binary);
-                            } else {
-                                ((AssembleBinariesTask)assemble).notBuildable(binary);
-                            }
+        /**
+         * Rules.
+         */
+        static class AssembleRule extends RuleSource {
+            @Mutate
+            void addDependency(Task assemble, BinaryContainer binaries) {
+                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                    if (!binary.isLegacyBinary()) {
+                        if (binary.isBuildable()) {
+                            assemble.dependsOn(binary);
+                        } else {
+                            ((AssembleBinariesTask) assemble).notBuildable(binary);
                         }
                     }
                 }
-            });
+            }
+        }
+
+        @Mutate
+        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks, final BinaryContainer binaries) {
+            tasks.named("assemble", AssembleRule.class);
         }
     }
 }

@@ -17,6 +17,10 @@
 
 package org.gradle.integtests.resolve.aws.s3
 
+import org.gradle.util.TextUtil
+
+import static org.gradle.util.Matchers.containsText
+
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
 
@@ -42,17 +46,13 @@ task retrieve(type: Sync) {
 """
         when:
         s3StubSupport.stubGetFileAuthFailure("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
-
         then:
         fails 'retrieve'
-
-
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
                 "The AWS Access Key Id you provided does not exist in our records.")
-
     }
 
     def "should include resource uri when file not found"() {
@@ -72,15 +72,16 @@ task retrieve(type: Sync) {
 """
         when:
         s3StubSupport.stubFileNotFound("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
-
+        s3StubSupport.stubMetaDataMissing("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.jar")
         then:
         fails 'retrieve'
 
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
-                "The specified key does not exist.")
-
+                .assertThatCause(containsText(TextUtil.toPlatformLineSeparators(
+"""Could not find org.gradle:test:1.85.
+Searched in the following locations:
+    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.pom
+    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar""")))
     }
 }

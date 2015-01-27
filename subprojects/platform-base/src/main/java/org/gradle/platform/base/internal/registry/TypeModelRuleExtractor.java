@@ -21,7 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
@@ -45,7 +45,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
         this.builderInterface = ModelType.of(builderInterface);
     }
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
             TypeBuilderInternal<T> builder = typeBuilderFactory.create();
@@ -57,7 +57,7 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     }
 
     @Nullable
-    protected abstract <R, S> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
+    protected abstract <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends T> type, TypeBuilderInternal<T> builder);
 
     protected ModelType<? extends T> readType(MethodRuleDefinition<?, ?> ruleDefinition) {
         assertIsVoidMethod(ruleDefinition);

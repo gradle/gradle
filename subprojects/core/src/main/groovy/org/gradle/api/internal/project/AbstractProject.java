@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
@@ -45,7 +46,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -59,14 +59,12 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -111,7 +109,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private Object status;
 
-    private final Map<String, Project> childProjects = new HashMap<String, Project>();
+    private final Map<String, Project> childProjects = Maps.newTreeMap();
 
     private List<String> defaultTasks = new ArrayList<String>();
 
@@ -174,8 +172,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
-        final ModelRegistry modelRegistry = services.get(ModelRegistry.class);
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
+        if (parent != null) {
+            extensibleDynamicObject.setParent(parent.getInheritedScope());
+        }
+        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
+        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+
+        populateModelRegistry(services.get(ModelRegistry.class));
+    }
+
+    private void populateModelRegistry(ModelRegistry modelRegistry) {
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
@@ -200,32 +208,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build(),
                 ModelPath.ROOT
         );
-
-        modelRegistry.create(
-                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
-                        ModelType.of(TaskContainerInternal.class),
-                        ModelType.of(TaskContainer.class),
-                        ModelType.of(Task.class),
-                        TaskContainerInternal.MODEL_PATH,
-                        taskContainer,
-                        new Task.Namer(),
-                        "Project.<init>.tasks()",
-                        new Transformer<String, String>() {
-                            public String transform(String s) {
-                                return "Project.<init>.tasks." + s + "()";
-                            }
-                        }
-                ),
-                ModelPath.ROOT
-        );
-
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
-        if (parent != null) {
-            extensibleDynamicObject.setParent(parent.getInheritedScope());
-        }
-        extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
-
-        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
@@ -498,9 +480,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public ProjectInternal realizeTasksAndValidateModel() {
         evaluate();
         try {
-            getModelRegistry().validate();
             getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
-            getModelRegistry().validate();
+            getModelRegistry().bindAllReferences();
         } catch (Exception e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
         }

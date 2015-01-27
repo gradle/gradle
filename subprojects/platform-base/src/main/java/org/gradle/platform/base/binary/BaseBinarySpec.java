@@ -28,7 +28,9 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.ConfigurableBuildAbility;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 /**
@@ -91,12 +93,13 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return name;
     }
 
-    public boolean isBuildable() {
-        return buildable;
-    }
-
+    @Override
     public void setBuildable(boolean buildable) {
         this.buildable = buildable;
+    }
+
+    public boolean isBuildable() {
+        return getBuildAbility().isBuildable();
     }
 
     public FunctionalSourceSet getBinarySources() {
@@ -141,5 +144,12 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        // Default behavior is to always be buildable.  Binary implementations should define what
+        // criteria make them buildable or not.
+        return new ConfigurableBuildAbility(buildable);
     }
 }

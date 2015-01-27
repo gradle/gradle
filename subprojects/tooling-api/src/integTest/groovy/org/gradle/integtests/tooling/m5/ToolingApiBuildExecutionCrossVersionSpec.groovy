@@ -35,7 +35,7 @@ task c
         GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        project.tasks.count { it.name != 'setupBuild' } == 3
+        project.tasks.count { it.name.length() == 1 } == 3
         def taskA = project.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'

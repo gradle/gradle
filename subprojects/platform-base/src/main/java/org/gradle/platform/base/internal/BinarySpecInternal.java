@@ -26,5 +26,7 @@ public interface BinarySpecInternal extends BinarySpec {
 
     void setBuildable(boolean buildable);
 
+    BinaryBuildAbility getBuildAbility();
+
     boolean isLegacyBinary();
 }

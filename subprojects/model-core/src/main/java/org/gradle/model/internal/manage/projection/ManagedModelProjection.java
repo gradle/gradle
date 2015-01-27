@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.projection;
 
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
@@ -52,6 +53,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
             private boolean closed;
             private final Map<String, Object> propertyViews = new HashMap<String, Object>();
+
+            @Override
+            public ModelPath getPath() {
+                return modelNode.getPath();
+            }
 
             public ModelType<M> getType() {
                 return ManagedModelProjection.this.getType();
@@ -107,13 +113,10 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     if (writable) {
                         ModelView<? extends T> modelView = targetNode.asWritable(propertyType, ruleDescriptor, null);
                         if (closed) {
-                            //noinspection ConstantConditions
                             modelView.close();
                         }
-                        //noinspection ConstantConditions
                         return modelView.getInstance();
                     } else {
-                        //noinspection ConstantConditions
                         return targetNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                     }
                 }

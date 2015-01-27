@@ -40,7 +40,9 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String title, String value) {
-        textOutput.append("    ").append(title).append(": ").append(value).println();
+        textOutput.append("    ").append(title).append(": ");
+        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ");
+        itemOutput.append(value).println();
     }
 
     public void item(String title, File value) {
@@ -48,7 +50,9 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String value) {
-        textOutput.append("    ").append(value).println();
+        textOutput.append("    ");
+        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ");
+        itemOutput.append(value).println();
     }
 
     public void item(File value) {

@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -35,7 +35,7 @@ class GccToolChainTest extends Specification {
     final FileResolver fileResolver = Mock(FileResolver)
     Instantiator instantiator = new DirectInstantiator()
 
-    final toolChain = new GccToolChain(instantiator , "gcc", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(StartParameter), Stub(CompilerMetaDataProviderFactory))
+    final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationProcessor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory))
 
     def "provides default tools"() {
         def action = Mock(Action)

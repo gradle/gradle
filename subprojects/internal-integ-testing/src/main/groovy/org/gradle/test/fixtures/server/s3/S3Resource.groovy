@@ -36,7 +36,7 @@ class S3Resource implements RemoteResource {
 
     @Override
     URI getUri() {
-        return new URI(relativeFilePath())
+        return new URI("s3:/${relativeFilePath()}")
     }
 
     @Override
@@ -46,7 +46,8 @@ class S3Resource implements RemoteResource {
 
     @Override
     void expectDownloadMissing() {
-
+        def path = relativeFilePath()
+        s3StubSupport.stubFileNotFound(path)
     }
 
     @Override
@@ -56,17 +57,17 @@ class S3Resource implements RemoteResource {
 
     @Override
     void expectMetadataRetrieveMissing() {
-
+        s3StubSupport.stubMetaDataMissing(relativeFilePath())
     }
 
     @Override
     void expectDownloadBroken() {
-
+        s3StubSupport.stubGetFileBroken(relativeFilePath())
     }
 
     @Override
     void expectMetadataRetrieveBroken() {
-
+        s3StubSupport.stubMetaDataBroken(relativeFilePath())
     }
 
     def relativeFilePath() {

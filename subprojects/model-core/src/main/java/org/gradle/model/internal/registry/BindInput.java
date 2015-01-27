@@ -17,9 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.ModelPath;
 
-class BindInput implements Action<ModelPath> {
+class BindInput implements Action<ModelNodeInternal> {
     private final RuleBinder<?> binder;
     private final int index;
 
@@ -28,7 +27,7 @@ class BindInput implements Action<ModelPath> {
         this.index = index;
     }
 
-    public void execute(ModelPath modelPath) {
-        binder.bindInput(index, modelPath);
+    public void execute(ModelNodeInternal modelNode) {
+        binder.bindInput(index, modelNode);
     }
 }

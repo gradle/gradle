@@ -56,9 +56,6 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 

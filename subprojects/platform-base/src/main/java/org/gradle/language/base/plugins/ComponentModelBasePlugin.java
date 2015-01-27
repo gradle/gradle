@@ -32,7 +32,7 @@ import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.PolymorphicDomainObjectContainerModelProjection;
+import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -70,22 +70,22 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
+        String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
         modelRegistry.create(
-                PolymorphicDomainObjectContainerModelProjection.bridgeNamedDomainObjectCollection(
+                BridgedCollections.dynamicTypes(
                         ModelType.of(DefaultComponentSpecContainer.class),
                         ModelType.of(DefaultComponentSpecContainer.class),
                         ModelType.of(ComponentSpec.class),
                         ModelPath.path("components"),
                         components,
-                        ComponentModelBasePlugin.class.getName() + ".apply()"
+                        Named.Namer.INSTANCE,
+                        descriptor,
+                        BridgedCollections.itemDescriptor(descriptor)
                 ),
                 ModelPath.ROOT
         );
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @Model

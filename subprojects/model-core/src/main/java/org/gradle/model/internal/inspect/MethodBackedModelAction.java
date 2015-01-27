@@ -16,7 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
@@ -51,12 +54,11 @@ class MethodBackedModelAction<T> implements ModelAction<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                        PluginClassApplicator pluginClassApplicator) {
+    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
         args[0] = object;
-        for (int i = 0; i < inputs.size(); ++i) {
-            args[i + 1] = inputs.get(i, this.inputs.get(i).getType()).getInstance();
+        for (int i = 0; i < this.inputs.size(); ++i) {
+            args[i + 1] = inputs.get(i).getInstance();
         }
         ruleInvoker.invoke(args);
     }

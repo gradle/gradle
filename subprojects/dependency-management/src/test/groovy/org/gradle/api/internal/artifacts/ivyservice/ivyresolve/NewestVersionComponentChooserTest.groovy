@@ -28,7 +28,9 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.resolve.result.BuildableSelectedComponentResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableSelectedComponentResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
@@ -96,6 +98,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -111,7 +114,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
     def "chooses newest matching version requiring metadata"() {
@@ -121,6 +125,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -142,7 +147,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
     def "rejects dynamic version by rule without metadata" () {
@@ -152,6 +158,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -179,7 +186,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
     }
 
     def "rejects dynamic version by rule with metadata" () {
@@ -189,6 +197,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -223,7 +232,8 @@ class NewestVersionComponentChooserTest extends Specification {
 
         then:
         // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == null
 
     }
 
@@ -234,6 +244,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -252,7 +263,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == null
     }
 
     def "returns null when no versions match without metadata"() {
@@ -262,6 +274,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -276,7 +289,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == null
     }
 
     def "returns null when no versions are chosen with metadata"() {
@@ -286,6 +300,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -306,7 +321,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == null
     }
 
     def "returns null when all matching versions match are rejected by rule"() {
@@ -316,6 +332,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
+        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -333,7 +350,8 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo).moduleComponentIdentifier == null
+        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        selectedComponentResult.moduleComponentIdentifier == null
     }
 
     def rules(Closure closure) {

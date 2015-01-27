@@ -17,12 +17,14 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.Inputs;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
 
-class ManagedSetInitializer<T> implements BiAction<MutableModelNode, Inputs> {
+import java.util.List;
+
+class ManagedSetInitializer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
     private final ModelAction<T> modelAction;
 
     public ManagedSetInitializer(ModelAction<T> modelAction) {
@@ -30,7 +32,7 @@ class ManagedSetInitializer<T> implements BiAction<MutableModelNode, Inputs> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, Inputs inputs) {
+    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         if (modelAction != null) {
             modelNode.applyToSelf(ModelActionRole.Initialize, modelAction);
         }

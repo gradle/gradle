@@ -190,7 +190,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
-        buildScript """
+        buildScript '''
             import org.gradle.model.*
             import org.gradle.model.collection.*
 
@@ -207,21 +207,21 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             apply type: MyPlugin
 
             model {
-                tasks {
-                    \$('tasks.foonar')
-                    \$('tasks.fooar')
-                    \$('tasks.foonar')
+                foo {
+                    $('tasks.foonar')
+                    $('tasks.fooar')
+                    $('tasks.foonar')
                 }
             }
-        """
+        '''
 
         when:
         fails "tasks"
 
         then:
         failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks", buildFile, 18, 17)
-                        .mutableInput(UnboundRuleInput.type(Object).path("tasks").bound())
+                UnboundRule.descriptor("model.foo", buildFile, 18, 17)
+                        .mutableInput(UnboundRuleInput.type(Object).path("foo"))
                         .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 19"))
                         .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 20"))
         ))

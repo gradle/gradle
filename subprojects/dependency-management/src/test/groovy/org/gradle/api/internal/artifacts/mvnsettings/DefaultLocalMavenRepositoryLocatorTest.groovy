@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.mvnsettings
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,29 +26,42 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     SimpleMavenFileLocations locations
     DefaultLocalMavenRepositoryLocator locator
 
-    Map systemProperties = ["sys.prop": "sys/prop/value"]
-    Map environmentVariables = [ENV_VAR: "env/var/value"]
+    def system = Mock(DefaultLocalMavenRepositoryLocator.SystemPropertyAccess)
 
     File repo1 = tmpDir.file("repo1")
     File repo2 = tmpDir.file("repo2")
+    File userHome1 = tmpDir.file("user_home_1")
+    File userHome2 = tmpDir.file("user_home_2")
 
     def setup() {
-        systemProperties = ["sys.prop": "sys/prop/value"]
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), systemProperties, environmentVariables)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), system)
     }
 
     def "returns default location if no settings file exists"() {
-        expect:
-        // this default comes from DefaultMavenSettingsBuilder which uses System.getProperty() directly
-        locator.localMavenRepository == new File("${System.getProperty("user.home")}/.m2/repository")
+        when:
+        1 * system.getProperty("user.home") >> userHome1.absolutePath
+        then:
+        locator.localMavenRepository == new File(userHome1, ".m2/repository")
+
+        // Ensure that modified user.home is honoured (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo)
+        when:
+        1 * system.getProperty("user.home") >> userHome2.absolutePath
+        then:
+        locator.localMavenRepository == new File(userHome2, ".m2/repository")
     }
 
     def "returns value of system property if it is specified"() {
-        given:
-        systemProperties.put("maven.repo.local", repo1.absolutePath)
-        expect:
+        when:
+        1 * system.getProperty("maven.repo.local") >> repo1.absolutePath
+        then:
         locator.localMavenRepository == repo1
+
+        // Ensure that modified system property is honoured
+        when:
+        1 * system.getProperty("maven.repo.local") >> repo2.absolutePath
+        then:
+        locator.localMavenRepository == repo2
     }
 
     def "throws exception on broken global settings file with decent error message"() {
@@ -83,6 +95,20 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == repo1
     }
 
+    def "ignores changes to maven settings file after initial load"() {
+        when:
+        writeSettingsFile(locations.userSettingsFile, repo1)
+
+        then:
+        locator.localMavenRepository == repo1
+
+        when:
+        writeSettingsFile(locations.userSettingsFile, repo2)
+
+        then:
+        locator.localMavenRepository == repo1
+    }
+
     def "honors location specified in global settings file"() {
         writeSettingsFile(locations.globalSettingsFile, repo1)
 
@@ -101,8 +127,11 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     def "handles the case where (potential) location of global settings file cannot be determined"() {
         locations.globalSettingsFile = null
 
-        expect:
-        locator.localMavenRepository == new File("${System.getProperty("user.home")}/.m2/repository")
+        when:
+        system.getProperty("user.home") >> userHome1.absolutePath
+
+        then:
+        locator.localMavenRepository == new File(userHome1, ".m2/repository")
 
         when:
         writeSettingsFile(locations.userSettingsFile, repo1)
@@ -112,9 +141,14 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     }
 
     def "replaces placeholders for system properties and environment variables"() {
+        when:
         writeSettingsFile(locations.userSettingsFile, tmpDir.file('${sys.prop}/${env.ENV_VAR}'))
 
-        expect:
+        and:
+        system.getProperty("sys.prop") >> "sys/prop/value"
+        system.getEnv("ENV_VAR") >> "env/var/value"
+
+        then:
         locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
 
@@ -133,14 +167,12 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         'env.unknown.ENV_VAR' |   "environment variable"
     }
 
-
-
     private void writeSettingsFile(File settings, File repo) {
         writeSettingsFile(settings, repo.absolutePath)
     }
 
     private void writeSettingsFile(File settings, String repo) {
-        settings << """
+        settings.text = """
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <localRepository>$repo</localRepository>

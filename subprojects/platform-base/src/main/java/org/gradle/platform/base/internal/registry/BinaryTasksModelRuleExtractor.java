@@ -23,21 +23,21 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
 
+import java.util.List;
+
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
 
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             verifyMethodSignature(dataCollector, ruleDefinition);
@@ -47,7 +47,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
             BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(tasks, binaryType, ruleDefinition);
             ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ModelMutatorRegistration(ModelActionRole.Mutate, binaryTaskRule, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Mutate, binaryTaskRule, dependencies);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }
@@ -76,9 +76,8 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, TaskContainer container, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
-            BinaryContainer binaries = inputs.get(0, ModelType.of(BinaryContainer.class)).getInstance();
+        public void execute(MutableModelNode modelNode, TaskContainer container, List<ModelView<?>> inputs) {
+            BinaryContainer binaries = ModelViews.assertType(inputs.get(0), ModelType.of(BinaryContainer.class)).getInstance();
             for (T binary : binaries.withType(binaryType)) {
                 NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, container);
                 DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
@@ -86,10 +85,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                         instantiator,
                         container,
                         getDescriptor(),
-                        modelNode,
-                        modelRuleSourceApplicator,
-                        modelRegistrar,
-                        pluginClassApplicator
+                        modelNode
                 );
 
                 invoke(inputs, collectionBuilder, binary, binaries);

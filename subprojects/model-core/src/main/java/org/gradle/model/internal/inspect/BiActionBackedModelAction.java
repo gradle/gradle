@@ -17,7 +17,10 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
@@ -26,9 +29,9 @@ class BiActionBackedModelAction<T> implements ModelAction<T> {
     private final ModelReference<T> modelReference;
     private final ModelRuleDescriptor descriptor;
     private final List<ModelReference<?>> inputs;
-    private final BiAction<? super T, ? super Inputs> initializer;
+    private final BiAction<? super T, ? super List<ModelView<?>>> initializer;
 
-    public BiActionBackedModelAction(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super Inputs> initializer) {
+    public BiActionBackedModelAction(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
         this.modelReference = modelReference;
         this.descriptor = descriptor;
         this.inputs = inputs;
@@ -51,8 +54,7 @@ class BiActionBackedModelAction<T> implements ModelAction<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                        PluginClassApplicator pluginClassApplicator) {
+    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         initializer.execute(object, inputs);
     }
 }

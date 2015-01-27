@@ -16,6 +16,9 @@
 
 package org.gradle.test.fixtures.server.s3
 
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
+import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.stub.HttpStub
 import org.gradle.test.fixtures.server.stub.StubRequest
@@ -24,16 +27,19 @@ import org.mortbay.jetty.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class S3StubServer extends HttpServer {
+class S3StubServer extends HttpServer implements RepositoryServer {
 
-    S3StubServer() {
+    public static final String BUCKET_NAME = "tests3bucket"
+    TestDirectoryProvider testDirectoryProvider
+
+    S3StubServer(TestDirectoryProvider testDirectoryProvider) {
         super()
+        this.testDirectoryProvider = testDirectoryProvider;
     }
 
     def expect(HttpStub httpStub) {
         add(httpStub, stubAction(httpStub))
     }
-
 
     HttpServer.ActionSupport stubAction(HttpStub httpStub) {
         new HttpServer.ActionSupport("Generic stub handler") {
@@ -76,7 +82,9 @@ class S3StubServer extends HttpServer {
         if (stubRequest.body) {
             assert stubRequest.body == request.getInputStream().bytes
         }
-        assert stubRequest.params.every { request.getParameterMap()[it.key] == it.value }
+        assert stubRequest.params.every {
+            request.getParameterMap()[it.key] == it.value
+        }
     }
 
     boolean requestMatches(HttpStub httpStub, HttpServletRequest request) {
@@ -84,5 +92,34 @@ class S3StubServer extends HttpServer {
         String path = stubRequest.path
         assert path.startsWith('/')
         path == request.pathInfo && stubRequest.method == request.method
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo() {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME$contextPath"), "$contextPath", BUCKET_NAME)
+    }
+
+    @Override
+    String getValidCredentials() {
+        return """
+        credentials(AwsCredentials) {
+            accessKey "someKey"
+            secretKey "someSecret"
+        }"""
     }
 }

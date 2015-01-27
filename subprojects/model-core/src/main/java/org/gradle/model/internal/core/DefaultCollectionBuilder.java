@@ -32,6 +32,8 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final ModelType<T> elementType;
@@ -39,20 +41,14 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
-    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
-    private final ModelRegistrar modelRegistrar;
-    private final PluginClassApplicator pluginClassApplicator;
 
     public DefaultCollectionBuilder(ModelType<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor,
-                                    MutableModelNode modelNode, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar, PluginClassApplicator pluginClassApplicator) {
+                                    MutableModelNode modelNode) {
         this.elementType = elementType;
         this.instantiator = instantiator;
         this.target = target;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
-        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
-        this.modelRegistrar = modelRegistrar;
-        this.pluginClassApplicator = pluginClassApplicator;
     }
 
     @Override
@@ -73,22 +69,20 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public <S> CollectionBuilder<S> withType(Class<S> type) {
         if (type.equals(elementType.getConcreteClass())) {
-            @SuppressWarnings("unchecked")
-            CollectionBuilder<S> result = (CollectionBuilder<S>) this;
-            return result;
+            return uncheckedCast(this);
+
         }
         if (elementType.getConcreteClass().isAssignableFrom(type)) {
-            @SuppressWarnings("unchecked")
-            CollectionBuilder<S> result = new DefaultCollectionBuilder<S>(ModelType.of(type), (NamedEntityInstantiator<? super S>) instantiator, (Collection<? super S>) target, sourceDescriptor,
-                    modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
-            return result;
+            NamedEntityInstantiator<? super S> castInstantiator = uncheckedCast(instantiator);
+            Collection<? super S> castTarget = uncheckedCast(target);
+            return new DefaultCollectionBuilder<S>(ModelType.of(type), castInstantiator, castTarget, sourceDescriptor, modelNode);
         }
         return new DefaultCollectionBuilder<S>(ModelType.of(type), new NamedEntityInstantiator<S>() {
             @Override
             public <U extends S> U create(String name, Class<U> type) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type.getName(), elementType.toString()));
             }
-        }, ImmutableList.<S>builder().build(), sourceDescriptor, modelNode, modelRuleSourceApplicator, modelRegistrar, pluginClassApplicator);
+        }, ImmutableList.<S>of(), sourceDescriptor, modelNode);
     }
 
     @Nullable
@@ -111,10 +105,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public boolean containsKey(Object name) {
-        if (!(name instanceof String)) {
-            return false;
-        }
-        return modelNode.hasLink((String) name, elementType);
+        return name instanceof String && modelNode.hasLink((String) name, elementType);
     }
 
     @Override
@@ -203,7 +194,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
-        modelRuleSourceApplicator.apply(ruleSource, modelNode.getPath().child(name), modelRegistrar, pluginClassApplicator);
+        modelNode.applyToLink(name, ruleSource);
     }
 
     @Override

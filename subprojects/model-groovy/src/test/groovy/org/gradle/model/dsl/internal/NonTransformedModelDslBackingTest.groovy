@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
 
-    def modelRegistry = new DefaultModelRegistry(null, null)
+    def modelRegistry = new DefaultModelRegistry(null)
     def modelDsl = new NonTransformedModelDslBacking(getModelRegistry())
 
     void register(String pathString, Object element) {

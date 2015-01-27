@@ -19,14 +19,13 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
-import org.gradle.model.Mutate
-import org.gradle.model.Path
-import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class DefaultModelRegistryTest extends Specification {
 
@@ -64,13 +63,17 @@ class DefaultModelRegistryTest extends Specification {
 
     def "cannot get element for which creator inputs are not bound"() {
         given:
-        registry.create("foo") { it.unmanaged(String, "other", Stub(Transformer)) }
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, "other", Stub(Transformer)) }
 
         when:
         registry.realize(ModelPath.path("foo"), ModelType.untyped())
 
         then:
-        thrown IllegalStateException // TODO - reports 'unknown element', should instead complain about unknown inputs
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == """The following model rules are unbound:
+  foo creator
+    Immutable:
+      - other (java.lang.Object)"""
     }
 
     def "cannot register creator when element already known"() {
@@ -374,13 +377,13 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "cannot add action for #targetState mutation when in #fromState mutation"() {
+    def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
         def action = Stub(Action)
 
         given:
         registry.createInstance("thing", "value")
-                .apply(fromState) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.apply(targetState) { it.path("thing").type(String).descriptor("X").action {} } }
+                .apply(fromRole) { it.path("thing").node(action) }
+        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
 
         when:
         registry.realize(ModelPath.path("thing"), ModelType.untyped())
@@ -388,10 +391,10 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause instanceof IllegalStateException
-        e.cause.message.startsWith "Cannot add $targetState rule 'X' for model element 'thing'"
+        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
 
         where:
-        fromState                  | targetState
+        fromRole                   | targetRole
         ModelActionRole.Initialize | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Initialize
@@ -402,6 +405,117 @@ class DefaultModelRegistryTest extends Specification {
         ModelActionRole.Validate   | ModelActionRole.Initialize
         ModelActionRole.Validate   | ModelActionRole.Mutate
         ModelActionRole.Validate   | ModelActionRole.Finalize
+    }
+
+    @Unroll
+    def "cannot add action for #targetRole mutation when in #fromState state"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", "value")
+                .createInstance("another", "value")
+                .apply(ModelActionRole.Mutate) {
+            it.path("another").node(action)
+        }
+        action.execute(_) >> {
+            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+        }
+
+        when:
+        registry.atState(ModelPath.path("thing"), fromState)
+        registry.realize(ModelPath.path("another"), ModelType.untyped())
+
+        then:
+        ModelRuleExecutionException e = thrown()
+        e.cause instanceof IllegalStateException
+        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+
+        where:
+        fromState                       | targetRole
+        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
+        ModelNode.State.Initialized     | ModelActionRole.Initialize
+        ModelNode.State.Initialized     | ModelActionRole.Defaults
+        ModelNode.State.Mutated         | ModelActionRole.Mutate
+        ModelNode.State.Mutated         | ModelActionRole.Defaults
+        ModelNode.State.Mutated         | ModelActionRole.Initialize
+        ModelNode.State.Finalized       | ModelActionRole.Finalize
+        ModelNode.State.Finalized       | ModelActionRole.Defaults
+        ModelNode.State.Finalized       | ModelActionRole.Initialize
+        ModelNode.State.Finalized       | ModelActionRole.Mutate
+        ModelNode.State.SelfClosed      | ModelActionRole.Validate
+        ModelNode.State.SelfClosed      | ModelActionRole.Defaults
+        ModelNode.State.SelfClosed      | ModelActionRole.Initialize
+        ModelNode.State.SelfClosed      | ModelActionRole.Mutate
+        ModelNode.State.SelfClosed      | ModelActionRole.Finalize
+    }
+
+    @Unroll
+    def "can add action for #targetRole mutation when in #fromRole mutation"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", new MutableValue(value: "initial"))
+                .apply(fromRole) { it.path("thing").node(action) }
+        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(MutableValue).action { it.value = "mutated" } } }
+
+        when:
+        def thing = registry.realize(ModelPath.path("thing"), ModelType.of(MutableValue))
+
+        then:
+        thing.value == "mutated"
+
+        where:
+        fromRole                   | targetRole
+        ModelActionRole.Defaults   | ModelActionRole.Defaults
+        ModelActionRole.Defaults   | ModelActionRole.Initialize
+        ModelActionRole.Defaults   | ModelActionRole.Mutate
+        ModelActionRole.Defaults   | ModelActionRole.Finalize
+        ModelActionRole.Defaults   | ModelActionRole.Validate
+        ModelActionRole.Initialize | ModelActionRole.Initialize
+        ModelActionRole.Initialize | ModelActionRole.Mutate
+        ModelActionRole.Initialize | ModelActionRole.Finalize
+        ModelActionRole.Initialize | ModelActionRole.Validate
+        ModelActionRole.Mutate     | ModelActionRole.Mutate
+        ModelActionRole.Mutate     | ModelActionRole.Finalize
+        ModelActionRole.Mutate     | ModelActionRole.Validate
+        ModelActionRole.Finalize   | ModelActionRole.Finalize
+        ModelActionRole.Finalize   | ModelActionRole.Validate
+        ModelActionRole.Validate   | ModelActionRole.Validate
+    }
+
+    @Unroll
+    def "can add action for #targetRole mutation when in #fromState state"() {
+        def action = Stub(Action)
+
+        given:
+        registry.createInstance("thing", "value")
+                .createInstance("another", "value")
+                .apply(ModelActionRole.Mutate) {
+            it.path("another").node(action)
+        }
+        action.execute(_) >> {
+            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+        }
+
+        when:
+        registry.atState(ModelPath.path("thing"), fromState)
+        registry.realize(ModelPath.path("another"), ModelType.untyped())
+
+        then:
+        noExceptionThrown()
+
+        where:
+        fromState                       | targetRole
+        ModelNode.State.DefaultsApplied | ModelActionRole.Initialize
+        ModelNode.State.DefaultsApplied | ModelActionRole.Mutate
+        ModelNode.State.DefaultsApplied | ModelActionRole.Finalize
+        ModelNode.State.DefaultsApplied | ModelActionRole.Validate
+        ModelNode.State.Initialized     | ModelActionRole.Mutate
+        ModelNode.State.Initialized     | ModelActionRole.Finalize
+        ModelNode.State.Initialized     | ModelActionRole.Validate
+        ModelNode.State.Mutated         | ModelActionRole.Finalize
+        ModelNode.State.Mutated         | ModelActionRole.Validate
+        ModelNode.State.Finalized       | ModelActionRole.Validate
     }
 
     @Unroll
@@ -485,165 +599,6 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         events == ["collection mutated", "c1 created"]
-    }
-
-    static class ElementRules extends RuleSource {
-        @Mutate
-        void connectElementToInput(Bean element, String input) {
-            element.value = input
-        }
-    }
-
-    def "inputs of a rule from an inner source are not realised if the rule is not required"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        def events = []
-        registry
-                .create("input", "input") { events << "input created" }
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                events << "collection mutated"
-                c.create("element") { events << "$it.name created" }
-                c.named("element", ElementRules)
-            }
-
-        }
-
-        when:
-        registry.atState(ModelPath.path("beans"), ModelNode.State.SelfClosed)
-
-        then:
-        events == ["collection mutated"]
-
-        when:
-        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
-
-        then:
-        events == ["collection mutated", "element created", "input created"]
-    }
-
-    def "by-type subject bindings are scoped to the scope of an inner rule"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        registry
-                .createInstance("element", new Bean())
-                .createInstance("input", "message")
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                c.create("element")
-                c.named("element", ElementRules)
-            }
-        }
-
-        when:
-        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
-
-        then:
-        registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "message"
-        registry.realize(ModelPath.path("element"), ModelType.of(Bean)).value == null
-    }
-
-    static class ByTypeBindingInputRule extends RuleSource {
-        @Mutate
-        void byTypeInputBindingRule(Bean inner, Bean outer) {
-            inner.value = "from outer: $outer.value"
-        }
-    }
-
-    def "by-type input bindings are scoped to the outer scope"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        registry
-                .createInstance("element", new Bean(value: "outer"))
-                .createInstance("input", "message")
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                c.create("element")
-                c.named("element", ByTypeBindingInputRule)
-            }
-        }
-
-        when:
-        registry.atState(ModelPath.path("beans"), ModelNode.State.GraphClosed)
-
-        then:
-        registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "from outer: outer"
-    }
-
-    static class ByTypeSubjectBoundToScopeChildRule extends RuleSource {
-        @Mutate
-        void mutateScopeChild(MutableValue value) {
-            value.value = "foo"
-        }
-    }
-
-    def "can bind subject by type to a child of rule scope"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        registry
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                c.create("element")
-                c.named("element", ByTypeSubjectBoundToScopeChildRule)
-            }
-        }
-        .mutate {
-            it.path "beans.element" node {
-                it.addLink(registry.instanceCreator("beans.element.mutable", new MutableValue()))
-            }
-        }
-
-        when:
-        registry.realize(ModelPath.path("beans"), ModelType.UNTYPED)
-
-        then:
-        registry.realize(ModelPath.path("beans.element.mutable"), ModelType.of(MutableValue)).value == "foo"
-    }
-
-    static class ByPathBoundInputsChildRule extends RuleSource {
-        @Mutate
-        void mutateFirst(@Path("first") MutableValue first) {
-            first.value = "first"
-        }
-
-        @Mutate
-        void mutateSecond(@Path("second") MutableValue second, @Path("first") MutableValue first) {
-            second.value = "from first: $first.value"
-        }
-    }
-
-    def "by-path bindings of scoped rules are bound to inner scope"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        registry
-                .createInstance("first", new MutableValue())
-                .createInstance("second", new MutableValue())
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                c.create("element")
-                c.named("element", ByPathBoundInputsChildRule)
-            }
-        }
-        .mutate {
-            it.path "beans.element" node {
-                it.addLink(registry.instanceCreator("beans.element.first", new MutableValue()))
-                it.addLink(registry.instanceCreator("beans.element.second", new MutableValue()))
-            }
-        }
-
-        when:
-        registry.realize(ModelPath.path("beans"), ModelType.UNTYPED)
-
-        then:
-        registry.realize(ModelPath.path("first"), ModelType.of(MutableValue)).value == null
-        registry.realize(ModelPath.path("second"), ModelType.of(MutableValue)).value == null
-        registry.realize(ModelPath.path("beans.element.first"), ModelType.of(MutableValue)).value == "first"
-        registry.realize(ModelPath.path("beans.element.second"), ModelType.of(MutableValue)).value == "from first: first"
     }
 
     @Unroll
@@ -738,6 +693,39 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.Finalized       | ModelActionRole.Finalize
         ModelNode.State.SelfClosed      | ModelActionRole.Validate
         ModelNode.State.GraphClosed     | ModelActionRole.Validate
+    }
+
+    def "only rules that actually have unbound inputs are reported as unbound"() {
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        registry
+                .createInstance("foo", new Bean())
+                .mutate {
+            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean)) {
+            }
+        }
+        .mutate {
+            it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
+            }
+        }
+        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .mutate {
+            it.path "beans" type cbType action { c ->
+                c.create("element")
+            }
+        }
+        .collection("emptyBeans", Bean) { name, type -> new Bean(name: name) }
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        normaliseLineSeparators(e.message) == '''The following model rules are unbound:
+  non-bindable
+    Mutable:
+      + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
+    Immutable:
+      - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
     }
 
     class Bean {

@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -48,6 +49,7 @@ class DefaultOperationQueueTest extends Specification {
         }
     }
 
+    // Tests assume a single worker thread
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(1))
     OperationQueue operationQueue = new DefaultOperationQueue(executor, new SimpleWorker())
 
@@ -72,6 +74,26 @@ class DefaultOperationQueueTest extends Specification {
         5    | _
     }
 
+    @Ignore("We want to keep going for now, but in the future we'll want to cancel early")
+    def "execution stops once failure occurs"() {
+        given:
+        def operationBefore = Mock(Runnable)
+        def failure = new Failure()
+        def operationAfter = Mock(Runnable)
+
+        when:
+        operationQueue.add(operationBefore)
+        operationQueue.add(failure)
+        operationQueue.add(operationAfter)
+
+        and:
+        operationQueue.waitForCompletion()
+
+        then:
+        1 * operationBefore.run()
+        thrown GradleException
+        0 * operationAfter.run()
+    }
 
     def "cannot use operation queue once it has completed"() {
         given:
@@ -85,7 +107,7 @@ class DefaultOperationQueueTest extends Specification {
     }
 
     @Unroll
-    def "failures propagate to caller regardless of failed operation (#firstOperation, #secondOperation, #thirdOperation)"() {
+    def "failures propagate to caller regardless of when it failed (#firstOperation, #secondOperation, #thirdOperation)"() {
         given:
         operationQueue.add(firstOperation)
         operationQueue.add(secondOperation)
@@ -95,7 +117,7 @@ class DefaultOperationQueueTest extends Specification {
         operationQueue.waitForCompletion()
 
         then:
-        thrown GradleException
+        thrown MultipleBuildOperationFailures
 
         where:
         firstOperation | secondOperation | thirdOperation

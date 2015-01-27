@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
@@ -24,24 +25,30 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
 
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
+    private final MutableModelNode modelNode;
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
-    private final Map<String, Runnable> placeholders = new HashMap<String, Runnable>();
+    private final Set<String> placeholders = Sets.newHashSet();
     private final NamedEntityInstantiator<Task> instantiator;
 
-    public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
+    public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
+        this.modelNode = modelNode;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.instantiator = new TaskInstantiator(taskFactory);
@@ -55,6 +62,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         Task task = taskFactory.createTask(mutableOptions);
         String name = task.getName();
+
+        if (placeholders.remove(name)) {
+            modelNode.removeLink(name);
+        }
 
         Task existing = findByNameWithoutRules(name);
         if (existing != null) {
@@ -171,14 +182,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public SortedSet<String> getNames() {
-        SortedSet<String> set = new TreeSet<String>();
-        for (Task o : getStore()) {
-            set.add(o.getName());
-        }
-        for (String placeHolderName : placeholders.keySet()) {
-            set.add(placeHolderName);
-        }
-        return set;
+        return Sets.newTreeSet(modelNode.getLinkNames(ModelType.of(Task.class)));
     }
 
     public void actualize() {
@@ -189,11 +193,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }).add(this).findValues();
 
 
-        final HashSet<String> placeholderNames = new HashSet<String>(placeholders.keySet());
-        for (String placeholder : placeholderNames) {
-            maybeMaterializePlaceholder(placeholder);
-        }
-
+        project.getModelRegistry().realizeNode(modelNode.getPath());
     }
 
     public Task findByName(String name) {
@@ -206,24 +206,48 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private void maybeMaterializePlaceholder(String name) {
-        if (placeholders.containsKey(name)) {
-            if (super.findByName(name) == null) {
-                final Runnable placeholderAction = placeholders.remove(name);
-                placeholderAction.run();
+        if (placeholders.remove(name)) {
+            if (super.findByName(name) == null && modelNode.hasLink(name)) {
+                realizeTask(MODEL_PATH.child(name));
             }
         }
     }
 
-    @Override
-    public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> type, final Action<? super T> configure) {
-        placeholders.put(placeholderName, new Runnable() {
-            @Override
-            public void run() {
-                create(placeholderName, type, configure);
-            }
-        });
+    private Task realizeTask(ModelPath taskPath) {
+        return project.getModelRegistry().realize(taskPath, ModelType.of(Task.class));
     }
 
+    private boolean hasTaskNode(String name) {
+        return modelNode.hasLink(name);
+    }
+
+    public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
+        if (!hasTaskNode(placeholderName)) {
+            placeholders.add(placeholderName);
+            final ModelType<T> taskModelType = ModelType.of(taskType);
+            ModelPath path = MODEL_PATH.child(placeholderName);
+            modelNode.addLink(
+                    ModelCreators
+                            .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                                @Override
+                                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                                    final T task = instantiator.create(placeholderName, taskType);
+                                    configure.execute(task);
+                                    DeprecationLogger.whileDisabled(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            add(task);
+                                        }
+                                    });
+                                    mutableModelNode.setPrivateData(taskModelType, task);
+                                }
+                            })
+                            .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
+                            .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
+                            .build()
+            );
+        }
+    }
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();

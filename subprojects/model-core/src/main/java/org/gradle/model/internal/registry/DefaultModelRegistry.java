@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
@@ -25,9 +23,11 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
@@ -60,14 +60,17 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
 
-    private final ModelRuleSourceApplicator modelRuleSourceApplicator;
-    private final PluginClassApplicator pluginClassApplicator;
+    private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
+    private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
 
-    public DefaultModelRegistry(ModelRuleSourceApplicator modelRuleSourceApplicator, PluginClassApplicator pluginClassApplicator) {
-        this.modelRuleSourceApplicator = modelRuleSourceApplicator;
-        this.pluginClassApplicator = pluginClassApplicator;
-        EmptyModelProjection projection = new EmptyModelProjection();
-        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), projection, projection));
+    private final ModelRuleExtractor ruleExtractor;
+
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
+        this.ruleExtractor = ruleExtractor;
+        for (ModelActionRole role : ModelActionRole.values()) {
+            mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
+        }
+        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), EmptyModelProjection.INSTANCE, EmptyModelProjection.INSTANCE));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -86,11 +89,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        doCreate(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+        registerNode(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         return this;
     }
 
-    private ModelNodeInternal doCreate(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
+    private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
         ModelPath path = child.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
@@ -140,25 +143,29 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private void bind(final ModelCreator creator) {
-        final RuleBinder<Void> binder = bind(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new CreatorBinder(creator, creators));
+    @Override
+    public ModelRegistry apply(Class<? extends RuleSource> rules) {
+        modelGraph.getRoot().applyToSelf(rules);
+        return this;
+    }
+
+    private void bind(ModelCreator creator) {
+        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, creators, creatorBinders));
+        creatorBinders.put(creator.getPath(), binder);
         bindInputs(binder, ModelPath.ROOT);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> RuleBinder<T> bind(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
-        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, new RemoveFromBindersThenFire<T>(binders, onBind));
-
-        if (!binder.isBound()) {
-            binders.add(binder);
-        }
-
+    private <T> RuleBinder<T> createAndRegisterBinder(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
+        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, onBind);
+        binders.add(binder);
         return binder;
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
-        RuleBinder<T> binder = bind(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new BindModelAction<T>(mutator, type, modelGraph, actions));
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder));
+        Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
+        RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, actions, mutationBinders));
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
     }
@@ -172,7 +179,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelPath> bindAction) {
+    private ModelCreationListener listener(ModelRuleDescriptor descriptor, ModelReference<?> reference, ModelPath scope, boolean writable, Action<? super ModelNodeInternal> bindAction) {
         if (reference.getPath() != null) {
             return new PathBinderCreationListener(descriptor, reference, scope, writable, bindAction);
         }
@@ -232,7 +239,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelGraph.remove(path);
     }
 
-    public void validate() throws UnboundModelRulesException {
+    private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
+        ModelPath parent = path.getParent();
+        if (parent != null) {
+            if (selfCloseAncestryAndSelf(parent) == null) {
+                return null;
+            }
+        }
+        return atStateOrLater(path, SelfClosed);
+    }
+
+    public void bindAllReferences() throws UnboundModelRulesException {
         if (binders.isEmpty()) {
             return;
         }
@@ -244,48 +261,32 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         // TODO if we push more knowledge of nested properties up out of constructors, we can potentially bind such references without creating the parent chain.
 
-        while (!binders.isEmpty()) {
-            Iterable<ModelPath> unboundPaths = Iterables.concat(Iterables.transform(binders, new Function<RuleBinder<?>, Iterable<ModelPath>>() {
-                public Iterable<ModelPath> apply(RuleBinder<?> input) {
-                    return input.getUnboundPaths();
-                }
-            }));
-
-            ModelPath unboundTopLevelModelPath = Iterables.find(unboundPaths, new Predicate<ModelPath>() {
-                public boolean apply(ModelPath input) {
-                    return input.getRootParent() != null;
-                }
-            }, null);
-
-            if (unboundTopLevelModelPath != null) {
-                ModelPath rootParent = unboundTopLevelModelPath.getRootParent();
-                if (creators.containsKey(rootParent)) {
-                    get(rootParent);
-                } else {
-                    break;
-                }
-            } else {
-                break;
+        boolean newInputsBound = true;
+        while (!binders.isEmpty() && newInputsBound) {
+            newInputsBound = false;
+            //`binders` is mutated during tryForceBind (removal and insert), can't use foreach
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < binders.size(); i++) {
+                newInputsBound = newInputsBound || tryForceBind(binders.get(i));
             }
         }
 
         if (!binders.isEmpty()) {
-            ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
-            List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
-            throw new UnboundModelRulesException(unboundRules);
+            throw unbound(binders);
         }
+    }
+
+    private UnboundModelRulesException unbound(Iterable<RuleBinder<?>> binders) {
+        ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(Iterables.concat(modelGraph.getFlattened().keySet(), creators.keySet()));
+        List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
+        return new UnboundModelRulesException(unboundRules);
     }
 
     // TODO - this needs to consider partially bound rules
     private boolean isDependedOn(ModelPath candidate) {
         Transformer<Iterable<ModelPath>, BoundModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, BoundModelMutator<?>>() {
-            public Iterable<ModelPath> transform(BoundModelMutator<?> original) {
-                return Iterables.transform(original.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
-                    @Nullable
-                    public ModelPath apply(ModelBinding<?> input) {
-                        return input.getPath();
-                    }
-                });
+            public Iterable<ModelPath> transform(BoundModelMutator<?> boundModelMutator) {
+                return Iterables.transform(boundModelMutator.getInputs(), ModelBinding.GetPath.INSTANCE);
             }
         };
 
@@ -353,6 +354,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (state == Known && desired.ordinal() >= Created.ordinal()) {
+            RuleBinder<?> creatorBinder = creatorBinders.get(path);
+            if (creatorBinder != null) {
+                forceBind(creatorBinder);
+            }
             BoundModelCreator creator = creators.remove(path);
             if (creator == null) {
                 // Unbound creator - should give better error message here
@@ -392,6 +397,56 @@ public class DefaultModelRegistry implements ModelRegistry {
         LOGGER.debug("Finished transitioning model element {} from state {} to {}", path, state.name(), desired.name());
     }
 
+    private boolean forceBindReference(ModelReference<?> reference, ModelBinding<?> binding, ModelPath scope) {
+        if (binding == null) {
+            if (reference.getPath() == null) {
+                selfCloseAncestryAndSelf(scope);
+            } else {
+                selfCloseAncestryAndSelf(reference.getPath().getParent());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryForceBind(RuleBinder<?> binder) {
+        if (maybeFireThenUnregister(binder)) {
+            return true;
+        }
+
+        boolean boundSomething = false;
+        ModelPath scope = binder.getScope();
+
+        if (binder.getSubjectReference() != null && binder.getSubjectBinding() == null) {
+            if (forceBindReference(binder.getSubjectReference(), binder.getSubjectBinding(), scope)) {
+                boundSomething = binder.getSubjectBinding() != null;
+            }
+        }
+
+        for (int i = 0; i < binder.getInputReferences().size(); i++) {
+            if (forceBindReference(binder.getInputReferences().get(i), binder.getInputBindings().get(i), scope)) {
+                boundSomething = boundSomething || binder.getInputBindings().get(i) != null;
+            }
+        }
+        maybeFireThenUnregister(binder);
+        return boundSomething;
+    }
+
+    private boolean maybeFireThenUnregister(RuleBinder<?> binder) {
+        boolean fired = binder.maybeFire();
+        if (fired) {
+            binders.remove(binder);
+        }
+        return fired;
+    }
+
+    private void forceBind(RuleBinder<?> binder) {
+        tryForceBind(binder);
+        if (!binder.isBound()) {
+            throw unbound(Collections.<RuleBinder<?>>singleton(binder));
+        }
+    }
+
     // NOTE: this should only be called from transition() as implicit logic is shared
     private boolean fireMutations(ModelNodeInternal node, ModelPath path, ModelNode.State originalState, ModelActionRole type, ModelNode.State to, ModelNode.State desired) {
         ModelNode.State nodeState = node.getState();
@@ -399,16 +454,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             return nodeState.ordinal() < desired.ordinal();
         }
 
-        Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
-        for (BoundModelMutator<?> mutator : mutators) {
-            fireMutation(node, mutator);
-            List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), new Function<ModelBinding<?>, ModelPath>() {
-                @Nullable
-                public ModelPath apply(ModelBinding<?> input) {
-                    return input.getPath();
-                }
-            });
-            usedActions.put(path, inputPaths);
+        while (true) {
+            //MultiMap.get() returns a live collection and force binding rules might change it
+            while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
+                forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
+            }
+
+            Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
+            if (mutators.isEmpty()) {
+                break;
+            }
+
+            for (BoundModelMutator<?> mutator : mutators) {
+                fireMutation(mutator);
+                List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), ModelBinding.GetPath.INSTANCE);
+                usedActions.put(path, inputPaths);
+            }
         }
 
         node.setState(to);
@@ -423,7 +484,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -432,12 +493,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelBinding<T> binding, ModelRuleDescriptor sourceDescriptor, Inputs inputs) {
+    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelView<?>> inputs) {
         ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(binding.getReference().getType(), node, sourceDescriptor, inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+        ModelView<? extends T> view = adapter.asWritable(reference.getType(), node, sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
-            throw new IllegalArgumentException("Cannot project model element " + binding.getPath() + " to writable type '" + binding.getReference().getType() + "' for rule " + sourceDescriptor);
+            throw new IllegalArgumentException("Cannot project model element " + node.getPath() + " to writable type '" + reference.getType() + "' for rule " + sourceDescriptor);
         } else {
             return view;
         }
@@ -445,12 +506,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNodeInternal doCreate(ModelNodeInternal node, BoundModelCreator boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
-        Inputs inputs = toInputs(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
+        List<ModelView<?>> views = toViews(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
 
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
         try {
-            creator.create(node, inputs);
+            creator.create(node, views);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(creator.getDescriptor(), e);
@@ -459,16 +520,18 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(ModelNodeInternal node, BoundModelMutator<T> boundMutator) {
-        Inputs inputs = toInputs(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
+    private <T> void fireMutation(BoundModelMutator<T> boundMutator) {
+        List<ModelView<?>> inputs = toViews(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
+
+        ModelNodeInternal node = boundMutator.getSubject();
         ModelAction<T> mutator = boundMutator.getMutator();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
 
-        ModelView<? extends T> view = assertView(node, boundMutator.getSubject(), descriptor, inputs);
+        ModelView<? extends T> view = assertView(node, boundMutator.getSubjectReference(), descriptor, inputs);
         try {
-            mutator.execute(node, view.getInstance(), inputs, modelRuleSourceApplicator, this, pluginClassApplicator);
+            mutator.execute(node, view.getInstance(), inputs);
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
@@ -477,20 +540,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private Inputs toInputs(Iterable<? extends ModelBinding<?>> bindings, ModelRuleDescriptor ruleDescriptor) {
-        ImmutableList.Builder<ModelRuleInput<?>> builder = ImmutableList.builder();
+    private List<ModelView<?>> toViews(List<ModelBinding<?>> bindings, final ModelRuleDescriptor ruleDescriptor) {
+        // hot path; create as little as possible…
+        @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
+        int i = 0;
         for (ModelBinding<?> binding : bindings) {
-            ModelRuleInput<?> input = toInput(binding, ruleDescriptor);
-            builder.add(input);
+            close(binding.getNode());
+            ModelPath path = binding.getNode().getPath();
+            ModelNodeInternal element = require(path);
+            ModelView<?> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toViews");
+            array[i++] = view;
         }
-        return new DefaultInputs(builder.build());
-    }
-
-    private <T> ModelRuleInput<T> toInput(ModelBinding<T> binding, ModelRuleDescriptor ruleDescriptor) {
-        ModelPath path = binding.getPath();
-        ModelNodeInternal element = require(path);
-        ModelView<? extends T> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toInputs");
-        return ModelRuleInput.of(binding, view);
+        @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
+        return views;
     }
 
     // Bust this out to top level
@@ -499,16 +561,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             super(creationPath, descriptor, promise, adapter);
         }
 
-        @Nullable
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            return getAdapter().asReadOnly(type, this, ruleDescriptor, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
+            }
+            return modelView;
         }
 
-        @Nullable
         @Override
-        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, @Nullable Inputs inputs) {
-            return getAdapter().asWritable(type, this, ruleDescriptor, inputs, modelRuleSourceApplicator, DefaultModelRegistry.this, pluginClassApplicator);
+        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
+            }
+            return modelView;
         }
     }
 
@@ -561,6 +629,16 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyToLink(String name, Class<? extends RuleSource> rules) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void applyToSelf(Class<? extends RuleSource> rules) {
             throw new UnsupportedOperationException();
         }
 
@@ -718,6 +796,29 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public void applyToLink(String name, Class<? extends RuleSource> rules) {
+            apply(rules, getPath().child(name));
+        }
+
+        @Override
+        public void applyToSelf(Class<? extends RuleSource> rules) {
+            apply(rules, getPath());
+        }
+
+        public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
+            Iterable<ExtractedModelRule> registrations = ruleExtractor.extract(rules);
+            for (ExtractedModelRule registration : registrations) {
+                // TODO - remove this when we remove the 'rule dependencies' mechanism
+                if (!registration.getRuleDependencies().isEmpty()) {
+                    throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");
+                }
+
+                // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
+                registration.applyTo(DefaultModelRegistry.this, scope);
+            }
+        }
+
+        @Override
         public <T> void applyToAllLinks(final ModelActionRole type, final ModelAction<T> action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
@@ -749,7 +850,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
@@ -757,13 +858,14 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            doCreate(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
         }
 
         @Override
         public void removeLink(String name) {
-            links.remove(name);
-            remove(getPath().child(name));
+            if (links.remove(name) != null) {
+                remove(getPath().child(name));
+            }
         }
 
         @Override

@@ -14,14 +14,9 @@ subprojects {
     }
 }
 
-task explodedDist(dependsOn: assemble) << {
-    File explodedDist = mkdir("$buildDir/explodedDist")
-    subprojects.each {project ->
-        project.tasks.withType(Jar).each {archiveTask ->
-            copy {
-                from archiveTask.archivePath
-                into explodedDist
-            }
-        }
+task explodedDist(type: Copy) {
+    into "$buildDir/explodedDist"
+    subprojects {
+        from tasks.withType(War)
     }
 }

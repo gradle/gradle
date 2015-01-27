@@ -18,6 +18,7 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.model.internal.inspect.ModelRuleExtractor
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ !GradleContextualExecuter.longLivingProcess })
@@ -25,11 +26,11 @@ class ModelRuleCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
-        buildFile << '''
-            def ruleCache = project.services.get(org.gradle.model.internal.inspect.ModelRuleInspector).cache
+        buildFile << """
+            def ruleCache = project.services.get($ModelRuleExtractor.name).cache
             def initialSize = ruleCache.size()
-            gradle.buildFinished { println "### extracted new rules: ${ruleCache.size() > initialSize}" }
-        '''
+            gradle.buildFinished { println "### extracted new rules: \${ruleCache.size() > initialSize}" }
+        """
     }
 
     boolean getNewRulesExtracted() {

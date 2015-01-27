@@ -22,11 +22,16 @@ import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.CompositeBuildAbility;
+import org.gradle.platform.base.internal.ConfigurableBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
 
@@ -76,7 +81,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public boolean isBuildable() {
-        return buildable;
+        return getBuildAbility().isBuildable();
     }
 
     public void setBuildable(boolean buildable) {
@@ -139,4 +144,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
         return getDisplayName();
     }
 
+    @Override
+    public BinaryBuildAbility getBuildAbility() {
+        return new CompositeBuildAbility(
+                new ConfigurableBuildAbility(buildable),
+                new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
+        );
+    }
 }

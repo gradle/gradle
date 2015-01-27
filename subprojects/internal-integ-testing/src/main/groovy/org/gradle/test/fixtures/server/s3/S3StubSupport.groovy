@@ -98,6 +98,38 @@ class S3StubSupport {
         server.expect(httpStub)
     }
 
+    def stubMetaDataBroken(String url) {
+        stubMetaDataHead(url, 500)
+    }
+
+    def stubMetaDataMissing(String url) {
+        stubMetaDataHead(url, 404);
+    }
+
+    private stubMetaDataHead(String url, int statusCode) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'HEAD'
+                path = url
+                headers = [
+                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                        'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = statusCode
+                headers = [
+                        'x-amz-id-2'      : X_AMZ_ID_2,
+                        'x-amz-request-id': X_AMZ_REQUEST_ID,
+                        'Date'            : DATE_HEADER,
+                        'Server'          : SERVER_AMAZON_S3,
+                        'Content-Type'    : 'application/xml',
+                ]
+            }
+        }
+        server.expect(httpStub)
+    }
+
     def stubGetFile(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
@@ -147,6 +179,22 @@ class S3StubSupport {
                     }
                     StorageClass('STANDARD')
                 }
+                file.listFiles().each { currentFile ->
+                    Contents {
+                        Key(prefix + currentFile.name)
+                        LastModified('2014-10-01T13:03:29.000Z')
+                        ETag(ETAG)
+                        Size(currentFile.length())
+                        Owner {
+                            ID("${(1..57).collect { 'a' }.join()}")
+                            DisplayName('me')
+                        }
+                        StorageClass('STANDARD')
+                    }
+                    CommonPrefixes {
+                        Prefix("${prefix}com/")
+                    }
+                }
                 Contents {
                     Key(prefix + file.name)
                     LastModified('2014-10-01T13:03:29.000Z')
@@ -173,8 +221,9 @@ class S3StubSupport {
                         'Connection'  : 'Keep-Alive'
                 ]
                 params = [
-                        'prefix'   : ["${prefix}"],
-                        'delimiter': ["${delimiter}"]
+                        'prefix'   : [prefix],
+                        'delimiter': [delimiter],
+                        'max-keys': ["1000"]
                 ]
             }
             response {
@@ -201,7 +250,6 @@ class S3StubSupport {
                 RequestId("stubbedAuthFailureRequestId")
                 HostId("stubbedAuthFailureHostId")
             }
-
         }
 
         HttpStub httpStub = HttpStub.stubInteraction {
@@ -237,7 +285,6 @@ class S3StubSupport {
                 RequestId("stubbedRequestId")
                 HostId("stubbedHostId")
             }
-
         }
 
         HttpStub httpStub = HttpStub.stubInteraction {
@@ -260,6 +307,41 @@ class S3StubSupport {
                 ]
                 body = xml.toString()
             }
+        }
+        server.expect(httpStub)
+    }
+
+    def stubGetFileBroken(String url) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            def xml = new StreamingMarkupBuilder().bind {
+                Error() {
+                    Code("Internal Server Error")
+                    Message("Something went seriously wrong")
+                    Key(url)
+                    RequestId("stubbedRequestId")
+                    HostId("stubbedHostId")
+                }
+            }
+            request {
+                method = 'GET'
+                path = url
+                headers = [
+                        'Content-Type': 'application/octet-stream',
+                        'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response {
+                status = 500
+                headers = [
+                        'x-amz-id-2'      : X_AMZ_ID_2,
+                        'x-amz-request-id': X_AMZ_REQUEST_ID,
+                        'Date'            : DATE_HEADER,
+                        'Server'          : SERVER_AMAZON_S3,
+                        'Content-Type'    : 'application/xml',
+                ]
+                body = xml.toString()
+            }
+
         }
         server.expect(httpStub)
     }

@@ -22,16 +22,23 @@ import org.gradle.model.internal.type.ModelType;
 @ThreadSafe
 public class InstanceModelView<T> implements ModelView<T> {
 
+    private final ModelPath path;
     private final ModelType<T> type;
     private final T instance;
 
-    public InstanceModelView(ModelType<T> type, T instance) {
+    public InstanceModelView(ModelPath path, ModelType<T> type, T instance) {
+        this.path = path;
         this.type = type;
         this.instance = instance;
     }
 
-    public static <T> ModelView<T> of(ModelType<T> type, T instance) {
-        return new InstanceModelView<T>(type, instance);
+    public static <T> ModelView<T> of(ModelPath path, ModelType<T> type, T instance) {
+        return new InstanceModelView<T>(path, type, instance);
+    }
+
+    @Override
+    public ModelPath getPath() {
+        return path;
     }
 
     public ModelType<T> getType() {

@@ -55,12 +55,14 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials) {
-        String username = credentials.getUsername();
-        if (username != null && username.length() > 0) {
-            useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+        if(credentials != null) {
+            String username = credentials.getUsername();
+            if (username != null && username.length() > 0) {
+                useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
 
-            // Use preemptive authorisation if no other authorisation has been established
-            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), credentials.isPreemptive()), 0);
+                // Use preemptive authorisation if no other authorisation has been established
+                httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), credentials.isPreemptive()), 0);
+            }
         }
     }
 

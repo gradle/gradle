@@ -58,7 +58,7 @@ class ModelRuleSourceDetectorTest extends Specification {
     @Unroll
     def "has model sources - #clazz"() {
         expect:
-        detector.hasModelSources(clazz) == expected
+        detector.hasRules(clazz) == expected
 
         where:
         clazz        | expected

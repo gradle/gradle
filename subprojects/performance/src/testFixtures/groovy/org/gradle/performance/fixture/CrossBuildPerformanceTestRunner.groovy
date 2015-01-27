@@ -35,8 +35,7 @@ class CrossBuildPerformanceTestRunner {
     String testGroup
     String testId
     int runs = 5
-    int warmUpRuns = 1
-    int subRuns = 1
+    int warmUpRuns = 3
     List<BuildSpecification> buildSpecifications = []
 
     private GCLoggingCollector gcCollector = new GCLoggingCollector()
@@ -62,39 +61,37 @@ class CrossBuildPerformanceTestRunner {
                 testTime: System.currentTimeMillis()
         )
 
-        warmUpRuns.times {
-            runNow(1) //warm-up will not do any sub-runs
-        }
-        results.clear()
-        runs.times {
-            runNow(subRuns)
-        }
+        runAllSpecifications()
+
         reporter.report(results)
         results
     }
 
-    void runNow(int subRuns) {
-        buildSpecifications.each {
-            File projectDir = testProjectLocator.findProjectDir(it.projectName)
-            runNow(it, projectDir, results.buildResult(it), subRuns)
+    void runAllSpecifications() {
+        buildSpecifications.each { buildSpecification ->
+            gcCollector.useDaemon(buildSpecification.useDaemon);
+            File projectDir = testProjectLocator.findProjectDir(buildSpecification.projectName)
+            warmUpRuns.times {
+                executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).run()
+            }
+            def operations = results.buildResult(buildSpecification)
+            runs.times {
+                runNow(buildSpecification, projectDir, operations)
+            }
+            if (buildSpecification.useDaemon) {
+                executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).withTasks().withArgument('--stop').run()
+            }
         }
     }
 
-    void runNow(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results, int subRuns) {
-        gcCollector.useDaemon(buildSpecification.useDaemon);
+    void runNow(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results) {
+        def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider)
+        dataCollector.beforeExecute(projectDir, executer)
+
         def operation = timer.measure { MeasuredOperation operation ->
-            subRuns.times {
-                //creation of executer is included in measuer operation
-                //this is not ideal but it does not prevent us from finding performance regressions
-                //because extra time is equally added to all executions
-                def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider)
-                dataCollector.beforeExecute(projectDir, executer)
-                executer.run()
-            }
+            executer.run()
         }
-        if (buildSpecification.useDaemon) {
-            executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).withTasks().withArgument('--stop').run()
-        }
+
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }

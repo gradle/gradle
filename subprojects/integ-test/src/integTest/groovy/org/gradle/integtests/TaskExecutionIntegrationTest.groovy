@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
@@ -260,6 +261,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
 (*) - details omitted (listed previously)"""
     }
 
+    @Ignore("Re-enable when work on realising only the required tasks instead of the whole task container is finished")
     def "placeholder actions not triggered when not requested"() {
         when:
         buildFile << """

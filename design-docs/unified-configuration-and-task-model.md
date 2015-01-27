@@ -166,17 +166,24 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 
 ## Task selection/listing realises only required tasks from model registry instead of using task container
 
-1. Add get(ModelPath, ModelNode.State) to ModelRegistry
-1. Support modelRegistry.get(“tasks”, SelfClosed)
-1. Change task selection (i.e. resolving command line tasks into tasks to add to TaskGraphExecuter - see TaskSelector) to use modelRegistry.get(“tasks”, SelfClosed).linkNames
+1. ~~Add get(ModelPath, ModelNode.State) to ModelRegistry~~
+1. ~~Support modelRegistry.get(“tasks”, SelfClosed)~~
+1. ~~Realize the task container as tasks are needed instead of at the end of evaluation (TaskNameResolver, DefaultProjectAccessListener, DefaultProjectLocator) - _interim step_~~
+1. ~~Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism~~
+1. Change task selection to avoid realising all tasks (i.e. self close the task container, realise just the tasks needed)
 1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
+
+Note: Having `DefaultProjectAccessListener` and `DefaultProjectLocator` require the full closing of the task container is ok for this story.
 
 ### Test coverage
 
+1. ~~No error when model node is requested at state it is already at~~
+1. ~~Error when model node is requested at “previous” state~~
 1. Simple task defined via `tasks.named()` is not realised if not requested on command line
 1. Task container can be self-closed by task selector/lister and then later graph-closed
-1. No error when model node is requested at state it is already at
-1. Error when model node is requested at “previous” state
+1. Tasks defined via rules are present in `gradle tasks` report
+1. Tasks defined via rules are present in relevant Tooling API models that request task list, and can be executed by Tooling API
+1. Tasks defined via rules are present in Gradle UI and can be executed by Gradle UI
 1. Existing coverage for command line tasks selection and Tooling API models continues to function without change
 
 ## Rule source plugins are instantiated eagerly
@@ -264,7 +271,7 @@ Each benchmark should be executed for the following scenarios:
 - single project
 - for small, medium and large model sets (number of flavours and types)
 
-## Improved model rule validation 
+## Model rule bindings are exhaustively validated
 
 Our current model rule validation hinges on detecting rules with “unbound references”.
 That is, we look for rules where at that point in time the rule could not be executed because we are unable to satisfy its dependencies.
@@ -283,9 +290,97 @@ We should not perform validation on a project that is not required for a build.
 
 ### Test Coverage
 
-- Existing validation coverage
-- Model rule with dependency on non task related collection element that does exist, passes validation
-- Model rule that does not bind, specified for project that is not used in build, does not fail the build
+- ~~Existing validation coverage~~
+- ~~Model rule with dependency on non task related collection element that does exist, passes validation~~
+- ~~Model rule that does not bind, specified for project that is not used in build, does not fail the build~~
+
+## Methods of rule source classes must be private, or be declared as rules
+
+This story improves the usability of rule source classes by making it less easy to forget to annotate a rule method.
+
+1. All public and package scope methods of a `RuleSource` must be rules, and be annotated accordingly
+2. `private` and `protected` methods cannot be rule methods
+3. `RuleSource` class must have at least one rule
+
+In both cases, exceptions should be thrown similarly to other `RuleSource` constraint violations.
+
+### Test Coverage
+
+1. with no methods is invalid
+1. with no rule methods (i.e. has private/protected) is invalid
+1. private/protected instance/static method with rule annotation fails
+1. public/package instance/static method without rule annotation fails
+
+## Model is partially reused across daemon builds, ignoring potential configuration changes
+
+This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
+As this is a large chunk of work, this story covers initial work and does not take the feature to production readiness.
+The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
+It will be wrapped in a feature toggle.
+
+Task instances attached to the model cannot be reused, as they retain references to the `Project` object and other state.
+When “reusing the model”, tasks must be rebuilt.
+By extension any model element that depends on the task container or individual task is also implicitly volatile.
+
+> Note: In the component model BinaryContainer has an unexpressed dependency on TaskContainer due to the implementation of @BinaryTasks and other rules that mutate BinaryContainer as an input
+
+Steps/stages:
+
+1. Add ability to reconstitute/restore a model registry (and backing graph) from another registry (just assumes state at this stage)
+1. Add ability to declare model elements as volatile
+1. When restoring a registry, realised volatile elements are discarded (i.e. reverted to `known` state)
+1. All dependants of volatile elements (elements whose creators/mutators take volatile elements as inputs) are discarded
+1. Mark `tasks` model element as volatile
+1. Add global scope service that retains/provides model registries across builds in some format (store registries by project path)
+1. When feature toggle is active, save/restore registries in between builds
+1. If a build fails, completely purge the registry store, forcing rebuild on next build
+
+Constraints/assumptions:
+
+1. Daemon builds one logical project for its life (i.e. registry store doesn't consider changes)
+1. Build logic does not change for the life of the daemon (incl. used plugins are not “changing”)
+1. Any failure may leave the registry in a non reusable state, and therefore must be purged
+
+The feature will depend on the classloader caching feature.
+
+### Test Coverage
+
+1. Volatile model element is rebuilt when requested from a restored model registry
+1. Dependants of volatile model element are rebuilt …
+    1. Model element where creator depends on a volatile
+    1. Model element where “mutator” of all types depends on a volatile
+1. Descendants of volatile model element are rebuilt …
+    1. Model element where creator depends on descendant of a volatile
+    1. Model element where “mutator” of all types depends on a descendant of a volatile
+1. Model registry is not reused when feature toggle is not active (sanity check)
+1. Correct project specific registries are assigned to each project in multi project build
+1. Model is completely rebuilt following a build failure
+1. Build using Java component plugin can be reused
+1. Tasks are rebuilt each time when reusing model registry
+1. Error when model reuse enabled but not classloader caching
+1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
+
+## Plugin developer declares “volatile” model element
+
+A volatile model element derives its state from inputs unknown to Gradle.
+The distinction between volatile/non-volatile is important when considering reusing model elements across builds.
+Volatile elements cannot be reused and must be recreated each time.
+External inputs to the build will be modeled as volatile model elements.
+
+## Model is implicitly not reused when build logic has changed
+
+This story improves the accuracy of the model reuse feature by _effectively_ considering all build logic to be an explicit volatile dependency of all model elements.
+
+If any build script, plugin etc. changes then any stored model is discarded and rebuilt.
+
+> Note: this will allow model reuse to “work” when a daemon is hopping between projects, but reuse will be defeated.
+
+## Non configuration related build failure does not cause configuration to be fully rebuilt on subsequent build
+
+This story increases the usability of model reuse by not performing a complete invalidation/rebuild when errors such as compilation errors occur.
+
+Errors that occur during the building of configuration have the potential (with the current implementation) to leave the model registry in an incoherent state, preventing it from being reused.
+Actual “build failures” (e.g. test/compilation failures, i.e. execution time failures) should not leave the model in an incoherent state, and should not prevent reuse.
 
 # Open Questions
 
@@ -305,16 +400,15 @@ Unordered and not all appropriately story sized.
 - Progress logging should show something about rule execution, eg when closing the task container for a project.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
-  This essentially means more context in the 'thing has been closed' error message.
-- Some kind of explorable/browsable representation of the model elements for a build
 - Profile report contains information about execution time of model rules
-- Rule source types are instantiated early to fail fast (i.e. constructor may throw exception)
 - Cyclic dependencies between configuration rules are reported
 - Build user is alerted when a required model rule from a plugin does not bind (i.e. plugin was expecting user to create some element)
 - Build user is alerted when a build script model rule does not bind (i.e. some kind of configuration error)
 - Bind by path failures understand model space structure and indicate the failed path “link” (e.g. failure to bind `tasks.foo` informs that `tasks` exists and what it is)
 - Collapse rule descriptors to “plugin” granularity where appropriate in error message (i.e. plugin users typically don't need information about plugin internals, but need to know which plugin failed).
 - Error message when no collection builder of requested type should provide more help about what is available
+- Force binding induced cycles for rules that use descendants of subject as inputs which won't bind result in a stack overflow
+- When validation of rule reference binding should occur (?)
 
 ## Cleanup
 
@@ -344,6 +438,7 @@ These should be rationalised and ideally replaced with model rules.
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
 - Semantics of model element removal are not well defined
+- `tasks.withType(Test).named("compileJava", SomeRules)` - withType() aspect is ignored and does not influence bindings
 
 ## Testing
 
@@ -353,12 +448,11 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Performance
 
-- Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
-- Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
-- Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
-- Rule source plugins are instantiated once per JVM
 - Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
+- `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
+- DefaultModelRegistry stores RuleBinder implementations twice
+- Rule references are bound eagerly (should be deferred until the rule is needed)
 
 ## DSL
 
@@ -366,6 +460,14 @@ These should be rationalised and ideally replaced with model rules.
 - Specify type of rule subject
 - Plugin author specifies model type to use in DSL when type is unspecified
 - Mechanism for declaring new top level (adhoc?) model elements in build script
+
+## Reuse
+
+- Fine grained reuse on build logic changes (e.g. connect rules to source that changed, and invalidate)
+- Mechanism for force purging the “cached” model (?)
+- Sugar for common types of external (volatile) inputs
+- Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
+- Model is reused when changing between different logical projects
 
 ## Productization
 

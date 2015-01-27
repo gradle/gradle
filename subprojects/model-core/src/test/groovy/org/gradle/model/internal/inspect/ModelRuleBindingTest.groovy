@@ -32,8 +32,8 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
-    def modelRegistry = new DefaultModelRegistry(null, null)
-    def inspector = new ModelRuleInspector(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def modelRegistry = new DefaultModelRegistry(null)
+    def inspector = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate
@@ -53,7 +53,7 @@ class ModelRuleBindingTest extends Specification {
     }
 
     void registerRules(Class<?> source) {
-        inspector.inspect(source)*.applyTo(modelRegistry, ModelPath.ROOT)
+        inspector.extract(source)*.applyTo(modelRegistry, ModelPath.ROOT)
     }
 
     def "error message produced when unpathed reference matches more than one item"() {

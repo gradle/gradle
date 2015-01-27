@@ -20,13 +20,13 @@ import org.gradle.model.RuleSource;
 
 @SuppressWarnings("UnusedDeclaration")
 public class OuterClass {
-    public static abstract class AbstractClass {
+    public static abstract class AbstractClass extends RuleSource {
     }
 
     public static interface AnInterface {
     }
 
-    public class InnerInstanceClass {
+    public class InnerInstanceClass extends RuleSource {
     }
 
     private class PrivateInnerStaticClass {

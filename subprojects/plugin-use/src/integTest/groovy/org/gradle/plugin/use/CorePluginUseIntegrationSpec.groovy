@@ -165,14 +165,14 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "can use apply method to load core plugins qualified or unqualified"() {
         when:
         buildScript """
-            apply plugin: "${plugins[1]}"
+            apply plugin: "${pluginId}"
         """
 
         then:
         succeeds "clean"
 
         where:
-        plugins << [QUALIFIED_JAVA, UNQUALIFIED_JAVA].permutations()
+        pluginId << [QUALIFIED_JAVA, UNQUALIFIED_JAVA]
     }
 
     def "can use apply method with other form of core plugin without problem"() {

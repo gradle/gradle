@@ -23,22 +23,22 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.core.ModelRuleSourceApplicator;
-import org.gradle.model.internal.core.PluginClassApplicator;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
+import java.util.List;
+
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
 
     @Override
-    public <R, S> ModelRuleRegistration registration(MethodRuleDefinition<R, S> ruleDefinition) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ModelRuleRegistration createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
@@ -49,7 +49,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
 
             ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ModelMutatorRegistration(ModelActionRole.Mutate, componentBinariesRule, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Mutate, componentBinariesRule, dependencies);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }
@@ -76,9 +76,8 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             this.binaryType = binaryType;
         }
 
-        public void execute(MutableModelNode modelNode, BinaryContainer binaries, Inputs inputs, ModelRuleSourceApplicator modelRuleSourceApplicator, ModelRegistrar modelRegistrar,
-                            PluginClassApplicator pluginClassApplicator) {
-            ComponentSpecContainer componentSpecs = inputs.get(0, ModelType.of(ComponentSpecContainer.class)).getInstance();
+        public void execute(MutableModelNode modelNode, BinaryContainer binaries, List<ModelView<?>> inputs) {
+            ComponentSpecContainer componentSpecs = ModelViews.assertType(inputs.get(0), ModelType.of(ComponentSpecContainer.class)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(componentSpec, binaries);
@@ -87,10 +86,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                         namedEntityInstantiator,
                         binaries,
                         getDescriptor(),
-                        modelNode,
-                        modelRuleSourceApplicator,
-                        modelRegistrar,
-                        pluginClassApplicator
+                        modelNode
                 );
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }

@@ -16,16 +16,17 @@
 
 package org.gradle.model.internal.registry
 
+import org.gradle.api.Nullable
 import org.gradle.api.Transformer
 import org.gradle.internal.Transformers
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
+import org.gradle.model.RuleSource
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.report.unbound.UnboundRule
 import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import org.gradle.model.internal.report.unbound.UnboundRulesReporter
+import org.gradle.model.internal.type.ModelType
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
@@ -140,6 +141,7 @@ class UnboundRulesProcessorTest extends Specification {
     }
 
     def "creates unbound rules with suggestions"() {
+        given:
         binder {
             descriptor("ruleWithSuggestions")
             subjectReference("subject", Number)
@@ -237,12 +239,133 @@ class UnboundRulesProcessorTest extends Specification {
         RuleBinder build() {
             def binder = new RuleBinder(subjectReference, inputReferences, descriptor, scope, null)
             if (subjectReferenceBindingPath) {
-                binder.bindSubject(new ModelPath(subjectReferenceBindingPath))
+                binder.bindSubject(new TestNode(subjectReferenceBindingPath))
             }
             boundInputReferencePaths.each { index, path ->
-                binder.bindInput(index, new ModelPath(path))
+                binder.bindInput(index, new TestNode(path))
             }
             return binder
+        }
+    }
+
+    private static class TestNode extends ModelNodeInternal {
+        TestNode(String creationPath) {
+            super(ModelPath.path(creationPath), null, null, null)
+        }
+
+        @Override
+        ModelNodeInternal getTarget() {
+            return this
+        }
+
+        @Override
+        Iterable<? extends ModelNodeInternal> getLinks() {
+            return null
+        }
+
+        @Override
+        ModelNodeInternal addLink(ModelNodeInternal node) {
+            return null
+        }
+
+        @Override
+        def <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+            return null
+        }
+
+        @Override
+        void addReference(ModelCreator creator) {
+
+        }
+
+        @Override
+        void addLink(ModelCreator creator) {
+
+        }
+
+        @Override
+        void removeLink(String name) {
+
+        }
+
+        @Override
+        def <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+
+        }
+
+        @Override
+        def <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+
+        }
+
+        @Override
+        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+
+        }
+
+        @Override
+        void applyToLink(String name, Class<? extends RuleSource> rules) {
+
+        }
+
+        @Override
+        void applyToSelf(Class<? extends RuleSource> rules) {
+
+        }
+
+        @Override
+        MutableModelNode getLink(String name) {
+            return null
+        }
+
+        @Override
+        int getLinkCount(ModelType<?> type) {
+            return 0
+        }
+
+        @Override
+        Set<String> getLinkNames(ModelType<?> type) {
+            return null
+        }
+
+        @Override
+        Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
+            return null
+        }
+
+        @Override
+        boolean hasLink(String name) {
+            return false
+        }
+
+        @Override
+        boolean hasLink(String name, ModelType<?> type) {
+            return false
+        }
+
+        @Override
+        def <T> void setPrivateData(ModelType<T> type, T object) {
+
+        }
+
+        @Override
+        def <T> T getPrivateData(ModelType<T> type) {
+            return null
+        }
+
+        @Override
+        void setTarget(ModelNode target) {
+
+        }
+
+        @Override
+        void ensureUsable() {
+
+        }
+
+        @Override
+        def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            return null
         }
     }
 }
