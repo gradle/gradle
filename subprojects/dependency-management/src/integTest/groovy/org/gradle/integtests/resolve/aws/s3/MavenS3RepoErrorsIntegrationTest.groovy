@@ -16,10 +16,7 @@
 
 
 package org.gradle.integtests.resolve.aws.s3
-
 import org.gradle.util.TextUtil
-
-import static org.gradle.util.Matchers.containsText
 
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
@@ -78,10 +75,10 @@ task retrieve(type: Sync) {
 
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertThatCause(containsText(TextUtil.toPlatformLineSeparators(
+                errorOutput.contains(TextUtil.toPlatformLineSeparators(
 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
     s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.pom
-    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar""")))
+    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar"""))
     }
 }
