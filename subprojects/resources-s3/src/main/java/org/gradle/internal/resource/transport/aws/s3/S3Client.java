@@ -159,7 +159,9 @@ public class S3Client {
             S3Object[] s3Objects = s3Service.listObjects(bucketName, s3Key, "/");
             results.addAll(resolveResourceNames(s3Objects));
         } catch (S3ServiceException e) {
-            throw new S3Exception(String.format("Could not list s3 resources for '%s'.", parent.toString()), e);
+            if(e.getResponseCode() != 404) {
+                throw new S3Exception(String.format("Could not list s3 resources for '%s'.", parent.toString()), e);
+            }
         }
         return results;
     }
