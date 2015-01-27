@@ -39,7 +39,7 @@
             along with some OS specific start scripts. All files stored in <filename>src/dist</filename> will be added to the root of the
             distribution. You can run <userinput>gradle installDist</userinput> to create an image of the application in
             <filename>build/install/<replaceable>projectName</replaceable></filename>. You can run <userinput>gradle distZip</userinput> to create a
-            ZIP containing the distribution.
+            ZIP containing the distribution, <userinput>gradle distTar</userinput> to create an application TAR or <userinput>gradle assemble</userinput> to build both.
         </para>
 
         <para>

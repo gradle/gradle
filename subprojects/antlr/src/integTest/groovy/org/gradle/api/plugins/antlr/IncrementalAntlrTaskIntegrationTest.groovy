@@ -16,9 +16,6 @@
 
 package org.gradle.api.plugins.antlr
 
-import spock.lang.Ignore
-import spock.lang.Issue
-
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     String antlrDependency = "org.antlr:antlr:3.5.2"
 
@@ -38,11 +35,11 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         when:
         def test1TokensFileSnapshot = test1TokenFile.snapshot()
-        def test1LexerFileSnapshot  = test1LexerFile.snapshot()
+        def test1LexerFileSnapshot = test1LexerFile.snapshot()
         def test1ParserFileSnapshot = test1ParserFile.snapshot()
 
         def test2TokensFileSnapshot = test2TokenFile.snapshot()
-        def test2LexerFileSnapshot  = test2LexerFile.snapshot()
+        def test2LexerFileSnapshot = test2LexerFile.snapshot()
         def test2ParserFileSnapshot = test2ParserFile.snapshot()
 
         changedGrammar("Test2")
@@ -87,9 +84,30 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
-    @Ignore
-    //Somehow the exposed issues seems related to:
-    @Issue("https://issues.gradle.org/browse/GRADLE-2440")
+    def "rerun when arguments changed"() {
+        when:
+        grammar("Test1")
+        then:
+        succeeds("generateGrammarSource")
+
+        when:
+        def test1TokensFileSnapshot = test1TokenFile.snapshot()
+        def test1LexerFileSnapshot = test1LexerFile.snapshot()
+        def test1ParserFileSnapshot = test1ParserFile.snapshot()
+
+        buildFile << """
+        generateGrammarSource {
+            arguments << '-dfa'
+        }
+        """
+
+        then:
+        succeeds("generateGrammarSource")
+        test1TokenFile.assertHasChangedSince(test1TokensFileSnapshot);
+        test1LexerFile.assertHasChangedSince(test1LexerFileSnapshot);
+        test1ParserFile.assertHasChangedSince(test1ParserFileSnapshot);
+    }
+
     def "output for removed grammar file is not handled correctly"() {
         when:
         grammar("Test1", "Test2")
@@ -104,6 +122,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         test2LexerFile.exists()
         test2ParserFile.exists()
 
+        when:
         removedGrammar("Test1")
 
         then:
@@ -114,7 +133,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     def grammar(String... ids) {
-        ids.each{ id ->
+        ids.each { id ->
             file("src/main/antlr/${id}.g") << """grammar ${id};
             list    :   item (item)*
                     ;
@@ -134,7 +153,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     def changedGrammar(String... ids) {
-        ids.each{ id ->
+        ids.each { id ->
             file("src/main/antlr/${id}.g").text = """grammar ${id};
              list    :   item (item)*
                     ;
@@ -154,7 +173,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     def removedGrammar(String... ids) {
-        ids.each{ id ->
+        ids.each { id ->
             file("src/main/antlr/${id}.g").delete()
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,12 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.Serializable;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-public class AntlrResult implements Serializable {
-
-    private final int errorCount;
-    private final Exception exception;
-
-    public AntlrResult(int errorCount) {
-        this(errorCount, null);
-    }
-    public AntlrResult(int errorCount, Exception exception) {
-        this.errorCount = errorCount;
-        this.exception = exception;
-    }
-
-    public int getErrorCount() {
-        return errorCount;
-    }
-
-    public Exception getException() {
-        return exception;
+@Contextual
+public class AntlrSourceGenerationException extends GradleException {
+    public AntlrSourceGenerationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

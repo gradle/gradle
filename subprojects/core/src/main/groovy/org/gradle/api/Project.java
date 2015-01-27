@@ -100,7 +100,7 @@ import java.util.Set;
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
- * Plugins can be applied using the {@link #apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
+ * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
  * </p>
  *
  * <a name="properties"/> <h3>Properties</h3>

@@ -172,7 +172,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> d
      */
     @Unroll
-    def "module with #name is not excluded if reachable via alternate path"() {
+    def "module with matching #name is not excluded if reachable via path that does not exclude it"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
@@ -194,6 +194,33 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'matching all modules' | [module: '*']     | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'matching module'      | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'matching name'        | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+    }
+
+    /**
+     * Transitive dependency exclude for a module reachable via alternative path using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     */
+    def "artifact is not excluded if reachable via path that does not exclude it"() {
+        given:
+        ivyRepo.module('d').artifact([type: 'war']).artifact([type: 'ear'])publish()
+        def moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModuleDependency(moduleB, 'd', [type: 'war'])
+        moduleB.publish()
+        def moduleC = ivyRepo.module('c').dependsOn('d')
+        addExcludeRuleToModuleDependency(moduleC, 'd', [type: 'ear'])
+        moduleC.publish()
+        def moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.ear', 'd-1.0.war'])
     }
 
     /**
