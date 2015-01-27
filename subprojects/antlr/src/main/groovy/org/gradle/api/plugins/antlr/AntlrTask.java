@@ -158,7 +158,7 @@ public class AntlrTask extends SourceTask {
     }
 
     @Inject
-    public Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 
