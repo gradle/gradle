@@ -795,30 +795,4 @@ class DefaultCollectionBuilderTest extends Specification {
         e.cause.message == "Creator in scope beans.element not supported, must be root"
     }
 
-    static class ValueMutationRules extends RuleSource {
-        @Mutate
-        void mutateElement(Bean element) {
-            element.value += " rule"
-        }
-    }
-
-    def "scoped rules can be used together with type applicable mutation actions and are executed in order of calling the respective collection builder method"() {
-        given:
-        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
-        registry
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
-                .mutate {
-            it.path "beans" type cbType action { c ->
-                c.create("element")
-                c.withType(Bean) {
-                    it.value = "withType"
-                }
-                c.named("element", ValueMutationRules)
-            }
-        }
-
-        expect:
-        registry.realize("beans")
-        registry.realize(ModelPath.path("beans.element"), ModelType.of(Bean)).value == "withType rule"
-    }
 }
