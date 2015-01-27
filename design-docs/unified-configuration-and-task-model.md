@@ -450,6 +450,8 @@ These should be rationalised and ideally replaced with model rules.
 - Cache/reuse model elements, avoiding need to run configuration on every build
 - Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
 - `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
+- DefaultModelRegistry stores RuleBinder implementations twice
+- Rule references are bound eagerly (should be deferred until the rule is needed)
 
 ## DSL
 
