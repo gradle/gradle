@@ -77,7 +77,7 @@ public class DefaultTestReport implements TestReporter {
                 public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
                     PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
                     ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider, new File(reportDir,"classes"));
-                    classPageRenderer.addAdditionalResourceListeners(additionalResourceListeners());
+                    classPageRenderer.addAdditionalResources(additionalResources());
                     output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
                         output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, packagePageRenderer);
@@ -92,7 +92,7 @@ public class DefaultTestReport implements TestReporter {
         }
     }
 
-    protected List<IAdditionalTestResultResource> additionalResourceListeners() {
+    protected List<IAdditionalTestResultResource> additionalResources() {
         return new ArrayList<IAdditionalTestResultResource>();
     }
 }

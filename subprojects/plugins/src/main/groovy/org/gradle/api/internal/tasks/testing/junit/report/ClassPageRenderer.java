@@ -37,7 +37,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final TestResultsProvider resultsProvider;
     private File classesBaseUrl;
 
-    private List<IAdditionalTestResultResource> additionalResourceListeners = new ArrayList<IAdditionalTestResultResource>();
+    private List<IAdditionalTestResultResource> additionalResources = new ArrayList<IAdditionalTestResultResource>();
 
     public ClassPageRenderer(TestResultsProvider provider, File classesBaseUrl) {
         this.resultsProvider = provider;
@@ -71,8 +71,8 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                     .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
                     .endElement();
             List<File> additionalFiles = new ArrayList<File>();
-            for (IAdditionalTestResultResource additionalResourceListener : additionalResourceListeners) {
-                additionalFiles.addAll(additionalResourceListener.findResources(test));
+            for (IAdditionalTestResultResource additionalResource : additionalResources) {
+                additionalFiles.addAll(additionalResource.findResources(test));
             }
             if (!additionalFiles.isEmpty()) {
                 htmlWriter.startElement("tr").startElement("td").attribute("colspan", "3").startElement("table");
@@ -145,7 +145,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
         }
     }
 
-    public void addAdditionalResourceListeners(List<IAdditionalTestResultResource> additionalResourceListeners) {
-        this.additionalResourceListeners.addAll(additionalResourceListeners);
+    public void addAdditionalResources(List<IAdditionalTestResultResource> additionalResources) {
+        this.additionalResources.addAll(additionalResources);
     }
 }
