@@ -31,6 +31,7 @@ import java.util.Set;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
+    private RuleBinder<?> creatorBinder;
     private BoundModelCreator creator;
     private Map<ModelActionRole, List<BoundModelMutator<?>>> mutators;
     private final Set<ModelPath> dependencies = Sets.newHashSet();
@@ -50,6 +51,27 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public BoundModelCreator getCreator() {
         return creator;
+    }
+
+    public void setCreator(BoundModelCreator creator) {
+        if (this.creator != null) {
+            throw new IllegalStateException("creator already set for node " + getPath());
+        }
+        this.creator = creator;
+        for (ModelBinding<?> modelBinding : creator.getInputs()) {
+            dependencies.add(modelBinding.getNode().getPath());
+        }
+    }
+
+    public RuleBinder<?> getCreatorBinder() {
+        return creatorBinder;
+    }
+
+    public void setCreatorBinder(RuleBinder<?> creatorBinder) {
+        if (creatorBinder != null && this.creatorBinder != null) {
+            throw new IllegalStateException("creatorBinder already set for node " + getPath());
+        }
+        this.creatorBinder = creatorBinder;
     }
 
     public void addMutator(ModelActionRole role, BoundModelMutator<?> mutator) {
@@ -84,16 +106,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public Iterable<ModelPath> getDependencies() {
         return dependencies;
-    }
-
-    public void setCreator(BoundModelCreator creator) {
-        if (this.creator != null) {
-            throw new IllegalStateException("creator already set for node " + getPath());
-        }
-        this.creator = creator;
-        for (ModelBinding<?> modelBinding : creator.getInputs()) {
-            dependencies.add(modelBinding.getNode().getPath());
-        }
     }
 
     public ModelPath getPath() {

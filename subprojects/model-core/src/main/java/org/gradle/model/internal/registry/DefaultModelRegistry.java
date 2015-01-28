@@ -47,7 +47,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final ModelRuleExtractor ruleExtractor;
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
-    private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
@@ -135,8 +134,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(ModelCreator creator, ModelNodeInternal node) {
-        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, node, creatorBinders));
-        creatorBinders.put(creator.getPath(), binder);
+        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, node));
+        node.setCreatorBinder(binder);
         bindInputs(binder, ModelPath.ROOT);
     }
 
@@ -320,7 +319,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (state == Known && desired.ordinal() >= Created.ordinal()) {
-            RuleBinder<?> creatorBinder = creatorBinders.get(path);
+            RuleBinder<?> creatorBinder = node.getCreatorBinder();
             if (creatorBinder != null) {
                 forceBind(creatorBinder);
             }

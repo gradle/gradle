@@ -18,24 +18,19 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-
-import java.util.Map;
 
 class RegisterBoundCreator implements Action<RuleBinder<Void>> {
     private final ModelCreator creator;
     private final ModelNodeInternal node;
-    private final Map<ModelPath, RuleBinder<?>> creatorBinders;
 
-    public RegisterBoundCreator(ModelCreator creator, ModelNodeInternal node, Map<ModelPath, RuleBinder<?>> creatorBinders) {
+    public RegisterBoundCreator(ModelCreator creator, ModelNodeInternal node) {
         this.creator = creator;
         this.node = node;
-        this.creatorBinders = creatorBinders;
     }
 
     public void execute(RuleBinder<Void> ruleBinding) {
-        creatorBinders.remove(creator.getPath());
         BoundModelCreator boundCreator = new BoundModelCreator(creator, ruleBinding.getInputBindings());
         node.setCreator(boundCreator);
+        node.setCreatorBinder(null);
     }
 }
