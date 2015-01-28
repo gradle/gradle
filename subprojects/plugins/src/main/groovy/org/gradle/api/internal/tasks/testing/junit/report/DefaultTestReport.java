@@ -30,6 +30,7 @@ import org.gradle.util.Clock;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
@@ -76,7 +77,7 @@ public class DefaultTestReport implements TestReporter {
                 public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
                     PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
                     ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider, new File(reportDir,"classes"));
-                    addAdditionalResourceListeners(classPageRenderer);
+                    classPageRenderer.addAdditionalResourceListeners(additionalResourceListeners());
                     output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
                         output.renderHtmlPage(packageResults.getBaseUrl(), packageResults, packagePageRenderer);
@@ -91,5 +92,7 @@ public class DefaultTestReport implements TestReporter {
         }
     }
 
-    protected void addAdditionalResourceListeners(ClassPageRenderer classPageRenderer) {}
+    protected List<IAdditionalTestResultResource> additionalResourceListeners() {
+        return new ArrayList<IAdditionalTestResultResource>();
+    }
 }

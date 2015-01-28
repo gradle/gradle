@@ -32,7 +32,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassPageRenderer extends PageRenderer<ClassTestResults> {
+class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
     private File classesBaseUrl;
@@ -145,7 +145,7 @@ public class ClassPageRenderer extends PageRenderer<ClassTestResults> {
         }
     }
 
-    public void addAdditionalResourceListeners(IAdditionalTestResultResource additionalResourceListeners) {
-        this.additionalResourceListeners.add(additionalResourceListeners);
+    public void addAdditionalResourceListeners(List<IAdditionalTestResultResource> additionalResourceListeners) {
+        this.additionalResourceListeners.addAll(additionalResourceListeners);
     }
 }
