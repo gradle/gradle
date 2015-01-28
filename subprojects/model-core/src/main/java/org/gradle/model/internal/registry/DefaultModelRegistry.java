@@ -521,32 +521,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return views;
     }
 
-    // Bust this out to top level
-    private static abstract class RegistryAwareNode extends ModelNodeInternal {
-        public RegistryAwareNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            super(creationPath, descriptor, promise, adapter);
-        }
-
-        @Override
-        public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
-            if (modelView == null) {
-                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
-            }
-            return modelView;
-        }
-
-        @Override
-        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
-            if (modelView == null) {
-                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
-            }
-            return modelView;
-        }
-    }
-
-    private class ModelReferenceNode extends RegistryAwareNode {
+    private class ModelReferenceNode extends ModelNodeInternal {
         private ModelNodeInternal target;
 
         public ModelReferenceNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
@@ -659,7 +634,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class ModelElementNode extends RegistryAwareNode {
+    private class ModelElementNode extends ModelNodeInternal {
         private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
         private Object privateData;
         private ModelType<?> privateDataType;

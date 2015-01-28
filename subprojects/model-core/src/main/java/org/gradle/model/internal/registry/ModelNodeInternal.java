@@ -20,8 +20,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
@@ -137,4 +139,22 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
     public abstract ModelNodeInternal addLink(ModelNodeInternal node);
+
+    @Override
+    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
+        if (modelView == null) {
+            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
+        }
+        return modelView;
+    }
+
+    @Override
+    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+        ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+        if (modelView == null) {
+            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
+        }
+        return modelView;
+    }
 }
