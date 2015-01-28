@@ -35,6 +35,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private String baseName;
+    private BinaryBuildAbility buildAbility;
 
     @Override
     protected String getTypeName() {
@@ -95,9 +96,12 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     @Override
     public BinaryBuildAbility getBuildAbility() {
-        return new CompositeBuildAbility(
-                super.getBuildAbility(),
-                new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
-        );
+        if (buildAbility == null) {
+            buildAbility = new CompositeBuildAbility(
+                    super.getBuildAbility(),
+                    new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
+            );
+        }
+        return buildAbility;
     }
 }

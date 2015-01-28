@@ -45,6 +45,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private File classesDir;
     private File resourcesDir;
     private boolean buildable = true;
+    private BinaryBuildAbility buildAbility;
 
     public DefaultClassDirectoryBinarySpec(String name, JavaToolChain toolChain, JavaPlatform platform) {
         this.name = name;
@@ -146,9 +147,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     @Override
     public BinaryBuildAbility getBuildAbility() {
-        return new CompositeBuildAbility(
-                new ConfigurableBuildAbility(buildable),
-                new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
-        );
+        if (buildAbility == null) {
+            buildAbility = new CompositeBuildAbility(
+                    new ConfigurableBuildAbility(buildable),
+                    new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()))
+            );
+        }
+        return buildAbility;
     }
 }

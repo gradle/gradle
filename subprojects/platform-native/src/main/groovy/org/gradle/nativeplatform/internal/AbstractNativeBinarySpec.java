@@ -51,6 +51,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
+    private BinaryBuildAbility buildAbility;
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -153,12 +154,15 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     @Override
     public BinaryBuildAbility getBuildAbility() {
-        NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) getToolChain();
-        NativePlatformInternal platformInternal = (NativePlatformInternal) getTargetPlatform();
-        return new CompositeBuildAbility(
-                super.getBuildAbility(),
-                new ToolSearchBuildAbility(toolChainInternal.select(platformInternal))
-        );
+        if (buildAbility == null) {
+            NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) getToolChain();
+            NativePlatformInternal platformInternal = (NativePlatformInternal) getTargetPlatform();
+            buildAbility = new CompositeBuildAbility(
+                    super.getBuildAbility(),
+                    new ToolSearchBuildAbility(toolChainInternal.select(platformInternal))
+            );
+        }
+        return buildAbility;
     }
 
     public void binaryInputs(FileCollection files) {
