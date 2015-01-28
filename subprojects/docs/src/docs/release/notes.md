@@ -21,13 +21,21 @@ The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gr
 
     org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
 
-### Support for AWS S3 backed maven repositories
+### Support for AWS S3 backed repositories
 
-Gradle now supports S3 backed maven repositories. Here's an example on how to declare a S3 backed maven repository in gradle:
+Gradle now supports S3 backed repositories. Here's an example on how to declare a S3 backed maven repository in gradle:
 
     repositories {
         maven {
-            url "s3://someS3Bucket/maven/release"
+            url "s3://someS3Bucket/maven2"
+            credentials(AwsCredentials) {
+                accessKey "someKey"
+                secretKey "someSecret"
+            }
+        }
+
+        ivy {
+            url "s3://someS3Bucket/ivy"
             credentials(AwsCredentials) {
                 accessKey "someKey"
                 secretKey "someSecret"
