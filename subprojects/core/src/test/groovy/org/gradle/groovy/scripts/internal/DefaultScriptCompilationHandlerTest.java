@@ -18,21 +18,23 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.resource.Resource;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
@@ -70,7 +72,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     private ClassLoader classLoader;
 
-    private Verifier verifier = new Verifier();
+    private Action<ClassNode> verifier = Actions.doNothing();
 
     private Class<? extends Script> expectedScriptClass;
 
@@ -263,6 +265,17 @@ public class DefaultScriptCompilationHandlerTest {
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, visitor, expectedScriptClass, verifier);
         Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, expectedScriptClass).newInstance();
         evaluateScript(script);
+    }
+
+    @Test
+    public void testCanVisitAndTransformGeneratedClasses() throws Exception {
+        final Action<ClassNode> verifier = context.mock(Action.class);
+        context.checking(new Expectations() {{
+            one(verifier).execute(with(notNullValue(ClassNode.class)));
+        }});
+
+        ScriptSource source = scriptSource("transformMe()");
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass, verifier);
     }
 
     private void checkScriptClassesInCache() {

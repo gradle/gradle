@@ -15,9 +15,11 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.ast.ClassNode;
+import org.gradle.api.Action;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,7 +40,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private final ScriptSource source;
         private ClassLoader classloader;
         private Transformer transformer;
-        private Verifier verifier = new Verifier();
+        private Action<? super ClassNode> verifier = Actions.doNothing();
         private final Instantiator instantiator = new DirectInstantiator();
 
         public ScriptCompilerImpl(ScriptSource source) {
@@ -55,7 +57,8 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             return this;
         }
 
-        public ScriptCompiler setVerifier(Verifier verifier) {
+        @Override
+        public ScriptCompiler setVerifier(Action<? super ClassNode> verifier) {
             this.verifier = verifier;
             return this;
         }

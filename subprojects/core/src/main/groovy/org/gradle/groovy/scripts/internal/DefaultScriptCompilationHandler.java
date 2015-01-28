@@ -21,6 +21,7 @@ import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
@@ -28,6 +29,7 @@ import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -58,7 +60,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir,
-                             Transformer transformer, Class<? extends Script> scriptBaseClass, Verifier verifier) {
+                             Transformer transformer, Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
@@ -76,7 +78,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
-                               File classesDir, final Transformer transformer, final Verifier customVerifier) {
+                               File classesDir, final Transformer transformer, final Action<? super ClassNode> customVerifier) {
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
@@ -216,10 +218,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         private final ScriptSource source;
 
-        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, Verifier customVerifier, ScriptSource source, GroovyClassLoader groovyClassLoader) {
+        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, ScriptSource source, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.source = source;
-            this.verifier = customVerifier;
+            this.verifier = new Verifier(){
+                public void visitClass(ClassNode node) {
+                    customVerifier.execute(node);
+                    super.visitClass(node);
+                }
+
+            };
         }
 
         // This creepy bit of code is here to put the full source path of the script into the debug info for

@@ -15,7 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.ast.ClassNode;
+import org.gradle.api.Action;
 
 /**
  * Compiles a script into a {@code Script} object.
@@ -33,7 +34,7 @@ public interface ScriptCompiler {
      */
     ScriptCompiler setTransformer(Transformer transformer);
 
-    ScriptCompiler setVerifier(Verifier verifier);
+    ScriptCompiler setVerifier(Action<? super ClassNode> verifier);
 
     /**
      * Compiles the script into a {@code Script} object of the given type. 

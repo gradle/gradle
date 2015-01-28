@@ -15,18 +15,17 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import org.codehaus.groovy.classgen.Verifier
-import spock.lang.Specification
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.Transformer
+import org.gradle.api.Action
 import org.gradle.groovy.scripts.Script
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.TestScript
+import org.gradle.groovy.scripts.Transformer
+import spock.lang.Specification
 
 class CachingScriptClassCompilerTest extends Specification {
     private final ScriptClassCompiler target = Mock()
     private final CachingScriptClassCompiler compiler = new CachingScriptClassCompiler(target)
-    final verifier = Mock(Verifier)
-
+    final verifier = Mock(Action)
 
     def "caches the script class for a given script class and classloader and transformer and baseclass"() {
         ScriptSource script1 = scriptSource('script')

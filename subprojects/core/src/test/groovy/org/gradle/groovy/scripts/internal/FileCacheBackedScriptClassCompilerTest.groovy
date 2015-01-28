@@ -15,9 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import org.codehaus.groovy.classgen.Verifier
 import org.gradle.api.Action
-import org.gradle.internal.resource.Resource
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -25,6 +23,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
+import org.gradle.internal.resource.Resource
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -40,7 +39,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final Transformer transformer = Mock()
     final File cacheDir = new File("base-dir")
     final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
-    private Verifier verifier = new Verifier()
+    final Action verifier = Stub()
 
     def setup() {
         Resource resource = Mock()
