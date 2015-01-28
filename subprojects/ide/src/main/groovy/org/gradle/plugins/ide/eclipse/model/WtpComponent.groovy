@@ -48,7 +48,11 @@ class WtpComponent extends XmlPersistableConfigurationObject {
                     wbModuleEntries << new WbResource(node)
                     break
                 case 'dependent-module':
-                    wbModuleEntries << new WbDependentModule(node)
+                    if(node.@archiveName != null){
+                        wbModuleEntries << new WbProjectDependentModule(node)
+                    }else{
+                        wbModuleEntries << new WbDependentModule(node)
+                    }
                     break
             }
         }
