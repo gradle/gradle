@@ -710,6 +710,10 @@
                     <td><literal>sftp</literal></td>
                     <td>username/password</td>
                 </tr>
+                <tr>
+                    <td><literal>s3</literal></td>
+                    <td>access key/secret key</td>
+                </tr>
             </table>
             <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
                 a Maven repository is declared with <literal>maven</literal>. An Ivy repository is declared with <literal>ivy</literal>. The transport protocol
@@ -723,6 +727,12 @@
             </para>
             <sample id="mavenIvyRepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Providing credentials to a Maven and Ivy repository">
                 <sourcefile file="build.gradle" snippet="maven-ivy-repository-auth"/>
+            </sample>
+            <para>When using an AWS S3 backed repository you need to authenticate using `AwsCredentials`, providing access-key and a private-key.
+                The following example shows how to declare a S3 backed repository and providing `AwsCredentials`:
+            </para>
+            <sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
+                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
             </sample>
         </section>
 
