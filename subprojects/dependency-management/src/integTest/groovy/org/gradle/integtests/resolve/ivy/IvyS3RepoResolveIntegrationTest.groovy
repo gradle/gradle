@@ -21,7 +21,9 @@ import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
