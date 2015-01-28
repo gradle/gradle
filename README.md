@@ -76,7 +76,7 @@ To open the Gradle project in IDEA, simply run the following task from the root:
 
     ./gradlew idea
 
-This will generate appropriate IDEA metadata so that the project can be opened from within IDEA.
+This will generate appropriate IDEA metadata so that the project can be opened from within IDEA. Also, IntelliJ Run Configurations will be generated, which allow you to run/debug Gradle or run pre-commit tests.
 
 Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. Launching a second build fixes the compilation error.
 
