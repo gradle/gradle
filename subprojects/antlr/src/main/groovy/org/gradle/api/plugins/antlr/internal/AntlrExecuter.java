@@ -27,7 +27,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-public class AntlrExecuter implements Serializable {
+public class AntlrExecuter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
 
@@ -79,13 +79,11 @@ public class AntlrExecuter implements Serializable {
                 Constructor<?> constructor = toolClass.getConstructor(String[].class);
                 return constructor.newInstance(new Object[]{args});
             }
-        } catch (NoSuchMethodException e) {
-            throw new GradleException("Failed to load ANTLR", e);
-        } catch (InstantiationException e) {
-            throw new GradleException("Failed to load ANTLR", e);
-        } catch (IllegalAccessException e) {
-            throw new GradleException("Failed to load ANTLR", e);
+        } catch (ClassNotFoundException e) {
+            throw e;
         } catch (InvocationTargetException e) {
+            throw new GradleException("Failed to load ANTLR", e.getCause());
+        } catch (Exception e) {
             throw new GradleException("Failed to load ANTLR", e);
         }
     }
