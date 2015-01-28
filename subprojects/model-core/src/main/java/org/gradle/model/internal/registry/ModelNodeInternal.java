@@ -16,10 +16,9 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -28,11 +27,13 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
     private BoundModelCreator creator;
     private Map<ModelActionRole, List<BoundModelMutator<?>>> mutators;
+    private final Set<ModelPath> dependencies = Sets.newHashSet();
 
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
@@ -63,6 +64,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
 
         mutatorsForRole.add(mutator);
+        for (ModelBinding<?> modelBinding : mutator.getInputs()) {
+            dependencies.add(modelBinding.getNode().getPath());
+        }
     }
 
     public List<BoundModelMutator<?>> removeMutators(ModelActionRole role) {
@@ -78,23 +82,18 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return mutatorsForRole;
     }
 
-    public Iterable<ModelPath> getMutationDependencies() {
-        if (mutators == null) {
-            return Collections.emptyList();
-        } else {
-            Iterable<BoundModelMutator<?>> allMutators = Iterables.concat(mutators.values());
-            Iterable<Iterable<ModelPath>> nestedPaths = Iterables.transform(allMutators, new Function<BoundModelMutator<?>, Iterable<ModelPath>>() {
-                @Override
-                public Iterable<ModelPath> apply(BoundModelMutator<?> input) {
-                    return Iterables.transform(input.getInputs(), ModelBinding.GetPath.INSTANCE);
-                }
-            });
-            return Iterables.concat(nestedPaths);
-        }
+    public Iterable<ModelPath> getDependencies() {
+        return dependencies;
     }
 
     public void setCreator(BoundModelCreator creator) {
+        if (this.creator != null) {
+            throw new IllegalStateException("creator already set for node " + getPath());
+        }
         this.creator = creator;
+        for (ModelBinding<?> modelBinding : creator.getInputs()) {
+            dependencies.add(modelBinding.getNode().getPath());
+        }
     }
 
     public ModelPath getPath() {

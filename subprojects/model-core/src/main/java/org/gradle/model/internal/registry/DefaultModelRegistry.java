@@ -46,7 +46,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final ModelGraph modelGraph;
     private final ModelRuleExtractor ruleExtractor;
-    private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
     private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
@@ -267,12 +266,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         Iterable<ModelPath> allDependedUpon = Iterables.concat(Iterables.transform(allNodes, new Function<ModelNodeInternal, Iterable<ModelPath>>() {
             @Override
             public Iterable<ModelPath> apply(ModelNodeInternal input) {
-                return input.getMutationDependencies();
+                return input.getDependencies();
             }
         }));
 
         Predicate<ModelPath> equalTo = Predicates.equalTo(candidate);
-        return Iterables.any(allDependedUpon, equalTo) || Iterables.any(Iterables.concat(usedActions.values()), equalTo);
+        return Iterables.any(allDependedUpon, equalTo);
     }
 
     private ModelNodeInternal require(ModelPath path) {
@@ -434,8 +433,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             for (BoundModelMutator<?> mutator : mutators) {
                 fireMutation(mutator);
-                List<ModelPath> inputPaths = Lists.transform(mutator.getInputs(), ModelBinding.GetPath.INSTANCE);
-                usedActions.put(path, inputPaths);
             }
         }
 
