@@ -31,7 +31,7 @@ public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
         return eclipseFacet
     }
 
-    def testFacet_installedFacet() {
+    def "created facets defaults to type 'installed'"() {
         when:
         eclipseFacet.facet.facet(name: 'fancyProject', version: '1.3')
 
@@ -39,11 +39,14 @@ public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
         eclipseFacet.facet.facets == [new Facet(FacetType.installed, 'fancyProject', '1.3')]
     }
 
-    def testFacet_fixedFacet() {
+    def "can explicitly configure facet type'"() {
         when:
-        eclipseFacet.facet.facet type: FacetType.fixed, name: 'fancyProject'
+        eclipseFacet.facet.facet type: facetType, name: 'fancyProject'
 
         then:
-        eclipseFacet.facet.facets == [new Facet(FacetType.fixed, 'fancyProject', null)]
+        eclipseFacet.facet.facets[0].type == FacetType.valueOf(facetType)
+        where:
+
+        facetType << ["fixed", "installed"]
     }
 }
