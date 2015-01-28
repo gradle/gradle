@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
@@ -270,8 +271,8 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
         }));
 
-        return Iterables.any(allDependedUpon, Predicates.equalTo(candidate))
-                || Iterables.any(Iterables.concat(usedActions.values()), Predicates.equalTo(candidate));
+        Predicate<ModelPath> equalTo = Predicates.equalTo(candidate);
+        return Iterables.any(allDependedUpon, equalTo) || Iterables.any(Iterables.concat(usedActions.values()), equalTo);
     }
 
     private ModelNodeInternal require(ModelPath path) {
