@@ -146,9 +146,10 @@ We would like to thank the following community members for making contributions 
 * [Victor Bronstein](https://github.com/victorbr) 
     - Convert NotationParser implementations to NotationConverter
     - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219) 
-* [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
-* [Michal Bendowski](https://github.com/bendowski-google) - fix webDist userguide example
+* [Vyacheslav Blinov](https://github.com/dant3) - fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
+* [Michal Bendowski](https://github.com/bendowski-google) - six webDist userguide example
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
+* [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
