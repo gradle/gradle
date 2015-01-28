@@ -15,12 +15,12 @@
  */
 package org.gradle.groovy.scripts
 
-import org.codehaus.groovy.classgen.Verifier
-import spock.lang.Specification
-import org.gradle.logging.StandardOutputCapture
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
+import org.gradle.api.Action
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
+import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.logging.StandardOutputCapture
+import spock.lang.Specification
 
 class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptRunnerFactory scriptRunnerFactory = Mock()
@@ -29,7 +29,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptRunner<TestScript> runner = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
-    final verifier = Mock(Verifier)
+    final verifier = Mock(Action)
     final DefaultScriptCompilerFactory factory = new DefaultScriptCompilerFactory(scriptClassCompiler, scriptRunnerFactory)
 
     def "compiles script into class and wraps instance in script runner"() {

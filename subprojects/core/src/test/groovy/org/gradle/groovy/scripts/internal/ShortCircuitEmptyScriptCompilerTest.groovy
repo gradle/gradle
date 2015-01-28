@@ -15,13 +15,13 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import org.codehaus.groovy.classgen.Verifier
-import spock.lang.Specification
-import org.gradle.internal.resource.Resource
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.Transformer
+import org.gradle.api.Action
 import org.gradle.groovy.scripts.Script
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.TestScript
+import org.gradle.groovy.scripts.Transformer
+import org.gradle.internal.resource.Resource
+import spock.lang.Specification
 
 class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final EmptyScriptGenerator emptyScriptGenerator = Mock()
@@ -30,7 +30,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final Resource resource = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
-    final verifier = Mock(Verifier)
+    final Action verifier = Mock()
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
 
     def setup() {

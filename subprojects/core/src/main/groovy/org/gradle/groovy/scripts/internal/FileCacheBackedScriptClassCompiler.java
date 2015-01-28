@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
@@ -50,7 +50,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Verifier verifier) {
+    @Override
+    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
         properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
@@ -80,13 +81,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private class CacheInitializer implements Action<PersistentCache> {
-        private final Verifier verifier;
+        private final Action<? super ClassNode> verifier;
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
         private final Transformer transformer;
         private final ScriptSource source;
 
-        private CacheInitializer(ScriptSource source, ClassLoader classLoader, Transformer transformer, Verifier verifier, Class<? extends Script> scriptBaseClass) {
+        private CacheInitializer(ScriptSource source, ClassLoader classLoader, Transformer transformer, Action<? super ClassNode> verifier, Class<? extends Script> scriptBaseClass) {
             this.source = source;
             this.classLoader = classLoader;
             this.transformer = transformer;
