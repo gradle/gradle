@@ -15,15 +15,13 @@
  */
 
 package org.gradle.integtests.resolve.ivy
-
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
@@ -35,87 +33,8 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         return server
     }
 
-    def setup() {
-        executer.withArgument('-i')
+    protected ExecutionResult succeeds(String... tasks) {
         executer.withArgument("-D${S3ConnectionProperties.S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}")
+        result = executer.withTasks(*tasks).run()
     }
-//
-//    @Override
-//    String getRepositoryPath() {
-//        return '/ivy/release/'
-//    }
-
-//    def "should not download artifacts when already present in ivy home"() {
-//        when:
-//        String artifactVersion = "1.85"
-//        IvyS3Module remoteModule = getIvyS3Repo().module("org.gradle", "test", artifactVersion)
-//        remoteModule.publish()
-//
-//        buildFile << """
-//repositories {
-//            ivy {
-//                url "s3://${getBucket()}${getRepositoryPath()}"
-//            }
-//        }
-//
-//configurations { compile }
-//
-//dependencies{
-//    compile 'org.gradle:test:$artifactVersion'
-//}
-//
-//task retrieve(type: Sync) {
-//    from configurations.compile
-//    into 'libs'
-//}
-//"""
-//        remoteModule.ivy.expectDownload()
-//        remoteModule.artifact.expectDownload()
-//
-//        then:
-//        succeeds 'retrieve'
-//    }
-//
-//
-//    def "should download artifacts when maven local artifacts are different to remote "() {
-//        setup:
-//        String artifactVersion = "1.85"
-//        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-//        remoteModule.publish()
-//
-//        m2Installation.generateGlobalSettingsFile()
-//        def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
-//
-//        buildFile << mavenAwsRepoDsl()
-//        buildFile << """
-//configurations { compile }
-//
-//dependencies{
-//    compile 'org.gradle:test:$artifactVersion'
-//}
-//
-//task retrieve(type: Sync) {
-//    from configurations.compile
-//    into 'libs'
-//}
-//"""
-//        and:
-//        remoteModule.pom.expectMetadataRetrieve()
-//        remoteModule.pomSha1.expectDownload()
-//        remoteModule.pom.expectDownload()
-//        remoteModule.artifact.expectMetadataRetrieve()
-//        remoteModule.artifactSha1.expectDownload()
-//        remoteModule.artifact.expectDownload()
-//
-//        when:
-//        using m2Installation
-//
-//        then:
-//        succeeds 'retrieve'
-//
-//        and:
-//        localModule.artifactFile.assertIsDifferentFrom(remoteModule.artifactFile)
-//        localModule.pomFile.assertIsDifferentFrom(remoteModule.pomFile)
-//        file('libs/test-1.85.jar').assertIsCopyOf(remoteModule.artifactFile)
-//    }
 }
