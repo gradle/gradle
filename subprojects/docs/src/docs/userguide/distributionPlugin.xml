@@ -159,6 +159,20 @@
             </tr>
             <tr>
                 <td>
+                    <literal>assemble<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.Task"/>
+                </td>
+                <td>
+                    Assembles all distribution archives
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <literal>install<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
                 </td>
                 <td>
@@ -180,6 +194,7 @@
             <itemizedlist>
                 <listitem>customDistZip</listitem>
                 <listitem>customDistTar</listitem>
+                <listitem>assembleCustomDist</listitem>
                 <listitem>installCustomDist</listitem>
             </itemizedlist>
         </para>
