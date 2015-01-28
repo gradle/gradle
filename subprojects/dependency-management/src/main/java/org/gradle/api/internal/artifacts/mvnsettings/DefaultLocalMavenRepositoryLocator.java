@@ -29,7 +29,6 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
     private final MavenSettingsProvider settingsProvider;
-    private File localMavenRepository;
     private final SystemPropertyAccess system;
     private String localRepoPathFromMavenSettings;
 
