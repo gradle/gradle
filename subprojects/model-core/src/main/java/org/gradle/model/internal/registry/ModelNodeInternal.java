@@ -77,14 +77,18 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public Iterable<ModelPath> getMutationDependencies() {
-        Iterable<BoundModelMutator<?>> allMutators = Iterables.concat(mutators.values());
-        Iterable<Iterable<ModelPath>> nestedPaths = Iterables.transform(allMutators, new Function<BoundModelMutator<?>, Iterable<ModelPath>>() {
-            @Override
-            public Iterable<ModelPath> apply(BoundModelMutator<?> input) {
-                return Iterables.transform(input.getInputs(), ModelBinding.GetPath.INSTANCE);
-            }
-        });
-        return Iterables.concat(nestedPaths);
+        if (mutators == null) {
+            return Collections.emptyList();
+        } else {
+            Iterable<BoundModelMutator<?>> allMutators = Iterables.concat(mutators.values());
+            Iterable<Iterable<ModelPath>> nestedPaths = Iterables.transform(allMutators, new Function<BoundModelMutator<?>, Iterable<ModelPath>>() {
+                @Override
+                public Iterable<ModelPath> apply(BoundModelMutator<?> input) {
+                    return Iterables.transform(input.getInputs(), ModelBinding.GetPath.INSTANCE);
+                }
+            });
+            return Iterables.concat(nestedPaths);
+        }
     }
 
     public void setCreator(BoundModelCreator creator) {
