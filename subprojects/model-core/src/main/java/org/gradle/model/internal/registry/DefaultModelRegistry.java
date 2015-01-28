@@ -40,28 +40,15 @@ import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
-    /*
-                Things we aren't doing and should:
-
-                - Detecting cycles between config rules
-                - Detecting dangling, unbound, rules
-                - Detecting model elements with no object at their parent path
-                - Detecting mutation rules registering parent model
-                - Detecting a rule binding the same input twice (maybe that's ok)
-                - Detecting a rule trying to bind the same element to mutate and to read
-             */
     private final ModelGraph modelGraph;
-
+    private final ModelRuleExtractor ruleExtractor;
     private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
-
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
-
     private final Map<ModelPath, RuleBinder<?>> creatorBinders = Maps.newHashMap();
     private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
-
-    private final ModelRuleExtractor ruleExtractor;
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
@@ -250,13 +237,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (binders.isEmpty()) {
             return;
         }
-
-        // Some rules may not have bound because their references are to nested properties
-        // This can happen, for example, if the reference is to a property of a managed model element
-        // Here, we look for such “non root” bindings where we know the parent exists.
-        // If we find such unbound references, we force the creation of the parent to try and bind the nested reference.
-
-        // TODO if we push more knowledge of nested properties up out of constructors, we can potentially bind such references without creating the parent chain.
 
         boolean newInputsBound = true;
         while (!binders.isEmpty() && newInputsBound) {
@@ -542,7 +522,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     // Bust this out to top level
-    private abstract class RegistryAwareNode extends ModelNodeInternal {
+    private static abstract class RegistryAwareNode extends ModelNodeInternal {
         public RegistryAwareNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
             super(creationPath, descriptor, promise, adapter);
         }
