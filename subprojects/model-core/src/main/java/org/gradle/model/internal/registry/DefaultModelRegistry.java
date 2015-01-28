@@ -16,13 +16,13 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Transformers;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -54,7 +54,6 @@ public class DefaultModelRegistry implements ModelRegistry {
              */
     private final ModelGraph modelGraph;
 
-    private final Multimap<MutationKey, BoundModelMutator<?>> actions = ArrayListMultimap.create();
     private final Multimap<ModelPath, List<ModelPath>> usedActions = ArrayListMultimap.create();
 
     private final List<RuleBinder<?>> binders = Lists.newLinkedList();
@@ -163,7 +162,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
         Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
-        RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, actions, mutationBinders));
+        RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, mutationBinders));
         ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, mutationBinders));
         registerListener(listener);
         bindInputs(binder, scope);
@@ -282,28 +281,17 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     // TODO - this needs to consider partially bound rules
     private boolean isDependedOn(ModelPath candidate) {
-        Transformer<Iterable<ModelPath>, BoundModelMutator<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, BoundModelMutator<?>>() {
-            public Iterable<ModelPath> transform(BoundModelMutator<?> boundModelMutator) {
-                return Iterables.transform(boundModelMutator.getInputs(), ModelBinding.GetPath.INSTANCE);
+        // NOTE - we could make this more efficient by storing the dependents of each node on it
+        Collection<ModelNodeInternal> allNodes = modelGraph.getFlattened().values();
+        Iterable<ModelPath> allDependedUpon = Iterables.concat(Iterables.transform(allNodes, new Function<ModelNodeInternal, Iterable<ModelPath>>() {
+            @Override
+            public Iterable<ModelPath> apply(ModelNodeInternal input) {
+                return input.getMutationDependencies();
             }
-        };
+        }));
 
-        Transformer<List<ModelPath>, List<ModelPath>> passThrough = Transformers.noOpTransformer();
-
-        return hasModelPath(candidate, actions.values(), extractInputPaths)
-                || hasModelPath(candidate, usedActions.values(), passThrough);
-    }
-
-    private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
-        for (T thing : things) {
-            for (ModelPath path : transformer.transform(thing)) {
-                if (path.equals(candidate)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return Iterables.any(allDependedUpon, Predicates.equalTo(candidate))
+                || Iterables.any(Iterables.concat(usedActions.values()), Predicates.equalTo(candidate));
     }
 
     private ModelNodeInternal require(ModelPath path) {
@@ -458,7 +446,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
             }
 
-            Collection<BoundModelMutator<?>> mutators = this.actions.removeAll(new MutationKey(path, type));
+            List<BoundModelMutator<?>> mutators = node.removeMutators(type);
             if (mutators.isEmpty()) {
                 break;
             }

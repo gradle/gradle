@@ -16,12 +16,21 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
     private BoundModelCreator creator;
+    private Map<ModelActionRole, List<BoundModelMutator<?>>> mutators;
 
     private final ModelPath creationPath;
     private final ModelRuleDescriptor descriptor;
@@ -38,6 +47,44 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public BoundModelCreator getCreator() {
         return creator;
+    }
+
+    public void addMutator(ModelActionRole role, BoundModelMutator<?> mutator) {
+        if (mutators == null) {
+            mutators = Maps.newEnumMap(ModelActionRole.class);
+        }
+
+        List<BoundModelMutator<?>> mutatorsForRole = mutators.get(role);
+        if (mutatorsForRole == null) {
+            mutatorsForRole = Lists.newLinkedList();
+            mutators.put(role, mutatorsForRole);
+        }
+
+        mutatorsForRole.add(mutator);
+    }
+
+    public List<BoundModelMutator<?>> removeMutators(ModelActionRole role) {
+        if (mutators == null) {
+            return Collections.emptyList();
+        }
+
+        List<BoundModelMutator<?>> mutatorsForRole = mutators.remove(role);
+        if (mutatorsForRole == null) {
+            return Collections.emptyList();
+        }
+
+        return mutatorsForRole;
+    }
+
+    public Iterable<ModelPath> getMutationDependencies() {
+        Iterable<BoundModelMutator<?>> allMutators = Iterables.concat(mutators.values());
+        Iterable<Iterable<ModelPath>> nestedPaths = Iterables.transform(allMutators, new Function<BoundModelMutator<?>, Iterable<ModelPath>>() {
+            @Override
+            public Iterable<ModelPath> apply(BoundModelMutator<?> input) {
+                return Iterables.transform(input.getInputs(), ModelBinding.GetPath.INSTANCE);
+            }
+        });
+        return Iterables.concat(nestedPaths);
     }
 
     public void setCreator(BoundModelCreator creator) {

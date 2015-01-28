@@ -25,13 +25,11 @@ import org.gradle.model.internal.core.ModelPath;
 class RegisterBoundModelAction<T> implements Action<RuleBinder<T>> {
     private final ModelAction<T> mutator;
     private final ModelActionRole type;
-    private final Multimap<MutationKey, BoundModelMutator<?>> actions;
     private final Multimap<ModelPath, RuleBinder<?>> mutationBinders;
 
-    public RegisterBoundModelAction(ModelAction<T> mutator, ModelActionRole type, Multimap<MutationKey, BoundModelMutator<?>> actions, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
+    public RegisterBoundModelAction(ModelAction<T> mutator, ModelActionRole type, Multimap<ModelPath, RuleBinder<?>> mutationBinders) {
         this.mutator = mutator;
         this.type = type;
-        this.actions = actions;
         this.mutationBinders = mutationBinders;
     }
 
@@ -39,6 +37,6 @@ class RegisterBoundModelAction<T> implements Action<RuleBinder<T>> {
         BoundModelMutator<T> boundMutator = new BoundModelMutator<T>(mutator, ruleBinder.getSubjectBinding().getNode(), ruleBinder.getSubjectReference(), ruleBinder.getInputBindings());
         ModelPath path = boundMutator.getSubject().getPath();
         mutationBinders.remove(path, ruleBinder);
-        actions.put(new MutationKey(path, type), boundMutator);
+        ruleBinder.getSubjectBinding().getNode().addMutator(type, boundMutator);
     }
 }
