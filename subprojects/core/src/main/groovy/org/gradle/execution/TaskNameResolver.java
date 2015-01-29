@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -82,7 +83,13 @@ public class TaskNameResolver {
     }
 
     private static ModelNode selfClosedTasksNode(ProjectInternal project) {
-        ModelNode modelNode = selfClose(project.getModelRegistry(), TaskContainerInternal.MODEL_PATH);
+        ModelRegistry modelRegistry = project.getModelRegistry();
+        ModelNode modelNode;
+        try {
+            modelNode = selfClose(modelRegistry, TaskContainerInternal.MODEL_PATH);
+        } catch (Throwable e) {
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+        }
         project.validateModel();
         return modelNode;
     }
@@ -103,7 +110,11 @@ public class TaskNameResolver {
         if (modelRegistry.node(path) == null) {
             return (TaskInternal) project.getTasks().getByName(taskName);
         } else {
-            return (TaskInternal) modelRegistry.realize(path, ModelType.of(Task.class));
+            try {
+                return (TaskInternal) modelRegistry.realize(path, ModelType.of(Task.class));
+            } catch (Throwable e) {
+                throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
+            }
         }
     }
 

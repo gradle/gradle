@@ -121,7 +121,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         fails "stage"
 
         then:
-        failureDescriptionContains("Exception thrown while executing model rule: org.gradle.play.plugins.PlayDistributionPlugin#createDistributionContentTasks(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, java.io.File, org.gradle.play.distribution.PlayDistributionContainer, org.gradle.play.plugins.PlayPluginConfigurations)")
+        failureDescriptionContains("A problem occurred configuring root project 'dist-play-app'.")
         failureHasCause("Play Distribution 'myDist' does not have a configured Play binary.")
     }
 
