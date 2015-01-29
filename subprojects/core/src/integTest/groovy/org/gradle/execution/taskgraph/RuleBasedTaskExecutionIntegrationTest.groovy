@@ -42,20 +42,34 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a', 'b', 'c'"
         buildFile << """
             allprojects {
-              model {
-                tasks {
-                  create("t1")
-                  create("t2")
+                model {
+                    tasks {
+                        create("t1")
+                    }
                 }
-              }
             }
         """
 
         then:
-        createdTasksFor(":a:t1").every { it.startsWith(":a:") }
-        createdTasksFor(":a:t1", "b:t1").every { it.startsWith(":a:") || it.startsWith(":b:") }
-        createdTasksFor(":t1").every { it.startsWith(":") && it.count(":") == 1}
-        createdTasksFor("t1").containsAll(":a:t1", ":b:t1", ":c:t1", ":t1")
+        createdTasksFor(":a:t1") == [":a:t1"]
+        createdTasksFor(":a:t1", "b:t1") == [":a:t1", ":b:t1"]
+        createdTasksFor(":t1") == [":t1"]
+        createdTasksFor("t1") == [":a:t1", ":b:t1", ":c:t1", ":t1"]
+    }
+
+    def "rule based tasks that are not requested on the command line are not realised"() {
+        when:
+        buildFile << """
+            model {
+                tasks {
+                    create("t1")
+                    create("t2")
+                }
+            }
+        """
+
+        then:
+        createdTasksFor("t1") == [":t1"]
     }
 
 }

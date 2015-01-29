@@ -47,6 +47,25 @@ alpha - ALPHA_in_sub1
 """))
     }
 
+    def "task report includes tasks defined via model rules"() {
+        when:
+        buildScript """
+            model {
+                tasks {
+                    create("t1") {
+                        description = "from rule"
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "tasks"
+
+        and:
+        output.contains("t1 - from rule")
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
     def "can deal with tasks with named task dependencies that are created by rules"() {
         when:

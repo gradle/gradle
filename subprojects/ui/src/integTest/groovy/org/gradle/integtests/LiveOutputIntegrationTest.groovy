@@ -16,7 +16,6 @@
 package org.gradle.integtests
 
 import org.gradle.foundation.TestUtility
-import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
 import org.gradle.foundation.output.FileLink
 import org.gradle.foundation.output.FileLinkDefinitionLord
 import org.gradle.foundation.output.LiveOutputParser
@@ -27,11 +26,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -187,73 +181,5 @@ that's likely to change over time. This version executes the command via GradleP
        FileLink link4 = parser.getPreviousFileLink( link1.getStartingIndex() );
        Assert.assertEquals( link3, link4 );
      }
-
-}
-
-//this class just holds onto our liveOutput and also tracks whether or not we've finished.
-public class TestExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
-    private StringBuilder liveOutput = new StringBuilder();
-    public boolean executionFinishedReported = false;
-    public boolean wasSuccessful = false;
-    public String finalMessage;
-    private Throwable failure
-    private final Lock lock = new ReentrantLock()
-    private final Condition condition = lock.newCondition()
-
-    public void reportLiveOutput(String message) {
-        liveOutput.append(message);
-    }
-
-    //when we finish executing, we'll make sure we got some type of live output from gradle.
-
-    public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
-        lock.lock()
-        try {
-            executionFinishedReported = true
-            this.wasSuccessful = wasSuccessful
-            this.finalMessage = message
-            failure = throwable
-            condition.signalAll()
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    def assertCompleted() {
-        lock.lock()
-        try {
-            if (!executionFinishedReported) {
-                throw new AssertionError("Request has not completed.")
-            }
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    public waitForCompletion(int maxWaitValue, TimeUnit maxWaitUnits) {
-        Date expiry = new Date(System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue))
-        lock.lock()
-        try {
-            while (!executionFinishedReported) {
-                if (!condition.awaitUntil(expiry)) {
-                    throw new AssertionError("Timeout waiting for execution to complete.")
-                }
-            }
-            if (failure != null) {
-                throw failure
-            }
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    public void reportExecutionStarted() { }
-
-    public void reportNumberOfTasksToExecute(int size) { }
-
-    public void reportTaskStarted(String message, float percentComplete) { }
-
-    public void reportTaskComplete(String message, float percentComplete) { }
-
 
 }
