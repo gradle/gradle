@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,34 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
-public class VersionForcingDependencyToModuleResolver implements DependencyToComponentIdResolver {
+import java.util.Arrays;
+
+public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
     private final Action<DependencyResolveDetailsInternal> rule;
 
-    public VersionForcingDependencyToModuleResolver(DependencyToComponentIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
         this.resolver = resolver;
         this.rule = rule;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
-        ModuleVersionSelector module = dependency.getRequested();
-        DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails(module);
+        DependencyResolveDetailsInternal<? extends ComponentSelector> details = new DefaultDependencyResolveDetails<ComponentSelector>(dependency.getSelector(), dependency.getRequested());
         try {
             rule.execute(details);
         } catch (Throwable e) {
-            result.failed(new ModuleVersionResolveException(module, e));
+            result.failed(new ModuleVersionResolveException(dependency.getSelector(), Arrays.asList(e)));
             return;
         }
         if (details.isUpdated()) {
-            DependencyMetaData substitutedDependency = dependency.withRequestedVersion(details.getTarget());
-            resolver.resolve(substitutedDependency, result);
+            resolver.resolve(dependency.withTarget(details.getTarget()), result);
             result.setSelectionReason(details.getSelectionReason());
             return;
         }

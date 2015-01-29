@@ -23,11 +23,14 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -117,6 +120,20 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
         DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
         return new DefaultDependencyMetaData(substitutedDescriptor);
+    }
+
+    @Override
+    public DependencyMetaData withTarget(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            return withRequestedVersion(DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion()));
+        } else if (target instanceof ProjectComponentSelector) {
+            // TODO:Prezi what to do here?
+            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
+            return new DefaultProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
+        } else {
+            throw new AssertionError();
+        }
     }
 
     public DependencyMetaData withChanging() {

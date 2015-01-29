@@ -24,22 +24,22 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
-import org.gradle.internal.component.local.model.ProjectDependencyMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.component.local.model.DefaultDslOriginProjectDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginProjectDependencyMetaData;
 
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public ProjectDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
+    public DslOriginProjectDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent, moduleRevisionId, false, false, dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
-        return new DefaultProjectDependencyMetaData(dependencyDescriptor, projectDependency);
+        return new DefaultDslOriginProjectDependencyMetaData(dependencyDescriptor, projectDependency);
     }
 
     public boolean canConvert(ModuleDependency dependency) {

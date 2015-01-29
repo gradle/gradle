@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,5 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.internal.component.model.DependencyMetaData;
-
-public interface ProjectDependencyMetaData extends DependencyMetaData {
-    ProjectComponentSelector getSelector();
+public interface DslOriginProjectDependencyMetaData extends DslOriginDependencyMetaData, ProjectDependencyMetaData {
 }

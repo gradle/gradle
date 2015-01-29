@@ -61,6 +61,11 @@ public interface DependencyMetaData {
     DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion);
 
     /**
+     * Returns a copy of this dependency with the given target.
+     */
+    DependencyMetaData withTarget(ComponentSelector target);
+
+    /**
      * Returns a copy of this dependency with the changing flag set.
      */
     DependencyMetaData withChanging();
