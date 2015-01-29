@@ -293,8 +293,7 @@ BUILD SUCCESSFUL"""))
         fails "tasks"
 
         then:
-        failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)"
+        failure.assertHasDescription "Exception thrown while executing model rule: MyOtherPlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)"
         failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin#register(org.gradle.platform.base.ComponentTypeBuilder<SampleComponent>)."
     }
 

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -46,6 +47,7 @@ Binaries
 
     }
 
+    @Ignore
     def "can build binary"() {
         given:
         sample languageTypeSample

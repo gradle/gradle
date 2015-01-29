@@ -77,7 +77,7 @@ Binaries
         fails "components"
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'play-app'.")
+        failure.assertHasDescription("Exception thrown while executing model rule: org.gradle.play.plugins.PlayApplicationPlugin\$Rules#failOnMultiplePlayComponents(org.gradle.model.collection.CollectionBuilder<org.gradle.play.PlayApplicationSpec>)")
         failure.assertHasCause("Multiple components of type 'PlayApplicationSpec' are not supported.")
     }
 

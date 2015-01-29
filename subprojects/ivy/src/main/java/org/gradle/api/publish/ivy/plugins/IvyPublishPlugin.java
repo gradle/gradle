@@ -40,7 +40,6 @@ import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Mutate;
-import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 
@@ -87,7 +86,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void createTasks(CollectionBuilder<Task> tasks, final @Path("tasks.publish") Task publishLifecycleTask, PublishingExtension publishingExtension) {
+        public void createTasks(CollectionBuilder<Task> tasks, PublishingExtension publishingExtension) {
             PublicationContainer publications = publishingExtension.getPublications();
             RepositoryHandler repositories = publishingExtension.getRepositories();
 
@@ -108,10 +107,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
                                 return new File(descriptorTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
                             }
                         });
-
-                        publication.setDescriptorFile(descriptorTask.getOutputs().getFiles());
                     }
                 });
+                publication.setDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
 
                 for (final IvyArtifactRepository repository : repositories.withType(IvyArtifactRepository.class)) {
                     final String repositoryName = repository.getName();
@@ -123,11 +121,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
                             publishTask.setRepository(repository);
                             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                             publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.", publicationName, repositoryName));
-
-                            //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
-                            publishLifecycleTask.dependsOn(publishTask);
                         }
                     });
+                    tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME).dependsOn(publishTaskName);
                 }
             }
         }

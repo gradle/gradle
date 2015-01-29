@@ -15,214 +15,263 @@
  */
 package org.gradle.execution
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
+
+import static org.gradle.model.internal.core.ModelNode.State.*
+import static org.gradle.model.internal.core.ModelPath.path
 
 class TaskNameResolverTest extends Specification {
     def tasks = Mock(TaskContainerInternal)
-    def project = Mock(ProjectInternal) {
-        getTasks() >> tasks
+    def registry = new ModelRegistryHelper()
+    def project = Mock(ProjectInternal)
+    def resolver = new TaskNameResolver()
+
+    def setup() {
+        _ * project.getTasks() >> Mock(TaskContainerInternal) {
+            _ * findByName(_)
+            _ * getTasks() >> tasks
+            0 * _
+        }
+        _ * project.getModelRegistry() >> registry
+
+        createTasksCollection(registry, "root")
     }
 
     private final TaskNameResolver resolver = new TaskNameResolver()
 
     def "eagerly locates task with given name for single project"() {
-        def task = task('task')
-
         when:
+        tasks(registry) { it.create("task")}
         def candidates = resolver.selectWithName('task', project, false)
 
         then:
-        1 * tasks.findByName('task') >> task
-        1 * project.realizeTasksAndValidateModel()
+        registry.state(path("tasks")) == SelfClosed
+        registry.state(path("tasks.task")) == Known
 
-        when:
-        asTasks(candidates) == [task]
-
-        then:
-        0 * tasks._
+        and:
+        asTasks(candidates).size() == 1
+        registry.state(path("tasks.task")) == GraphClosed
     }
 
     def "returns null when no task with given name for single project"() {
-        when:
-        def candidates = resolver.selectWithName('task', project, false)
-
-        then:
-        candidates == null
-        1 * tasks.findByName('task') >> null
-        1 * project.realizeTasksAndValidateModel()
+        expect:
+        resolver.selectWithName('task', project, false) == null
+        registry.state(path("tasks")) == SelfClosed
     }
 
     def "eagerly locates tasks with given name for multiple projects"() {
-        def childProject = Mock(ProjectInternal)
-        def childProjectTasks = Mock(TaskContainerInternal)
-        _ * project.childProjects >> [child: childProject]
-        _ * childProject.tasks >> childProjectTasks
-        _ * childProject.childProjects >> [:]
+        given:
+        def childRegistry = new ModelRegistryHelper()
 
-        def task1 = task('task')
-        def task2 = task('task')
+        def childProject = Mock(ProjectInternal) {
+            _ * getModelRegistry() >> childRegistry
+            _ * getTasks() >> Mock(TaskContainerInternal) {
+                _ * findByName(_)
+                0 * _
+            }
+            _ * getChildProjects() >> [:]
+        }
 
-        when:
-        def candidates = resolver.selectWithName('task', project, true)
-
-        then:
-        1 * tasks.findByName('task') >> task1
-        1 * project.realizeTasksAndValidateModel()
-        1 * childProjectTasks.findByName('task') >> task2
-        1 * childProject.realizeTasksAndValidateModel()
+        _ * project.getChildProjects() >> [child: childProject]
+        createTasksCollection(childRegistry, "child")
 
         when:
-        asTasks(candidates) == [task1, task2]
+        tasks(registry) { it.create("task") }
+        tasks(childRegistry) { it.create("task") }
+        def results = resolver.selectWithName('task', project, true)
 
         then:
-        0 * tasks._
-        0 * childProjectTasks._
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
+        registry.state(path("tasks.task")) == GraphClosed
+        childRegistry.state(path("tasks.task")) == GraphClosed
+
+        and:
+        asTasks(results)*.description == ["root", "child"]
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
+        registry.state(path("tasks.task")) == GraphClosed
+        childRegistry.state(path("tasks.task")) == GraphClosed
     }
 
     def "does not select tasks in sub projects when task implies sub projects"() {
-        def childProject = Mock(ProjectInternal)
-        def childProjectTasks = Mock(TaskContainerInternal)
-        _ * project.childProjects >> [child: childProject]
-        _ * childProject.tasks >> childProjectTasks
-        _ * childProject.childProjects >> [:]
+        given:
+        def childRegistry = new ModelRegistryHelper()
+        def childProject = Mock(ProjectInternal) {
+            _ * getModelRegistry() >> childRegistry
+            _ * getTasks() >> Mock(TaskContainerInternal) {
+                _ * findByName(_)
+                0 * _
+            }
+            _ * getChildProjects() >> [:]
+        }
 
-        def task1 = task('task')
-        _ * task1.impliesSubProjects >> true
-
-        when:
-        def candidates = resolver.selectWithName('task', project, true)
-
-        then:
-        1 * tasks.findByName('task') >> task1
-        1 * project.realizeTasksAndValidateModel()
+        _ * project.getChildProjects() >> [child: childProject]
+        createTasksCollection(childRegistry, "child")
 
         when:
-        asTasks(candidates) == [task1]
+        tasks(registry) { it.create("task") { _ * it.getImpliesSubProjects() >> true } }
+        def results = resolver.selectWithName('task', project, true)
 
         then:
-        0 * tasks._
-        0 * childProjectTasks._
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == Known
+        registry.state(path("tasks.task")) == GraphClosed
+
+        and:
+        asTasks(results)*.description == ["root"]
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == Known
+        registry.state(path("tasks.task")) == GraphClosed
     }
 
     def "locates tasks in child projects with given name when missing in starting project"() {
-        def childProject = Mock(ProjectInternal)
-        def childProjectTasks = Mock(TaskContainerInternal)
-        _ * project.childProjects >> [child: childProject]
-        _ * childProject.tasks >> childProjectTasks
-        _ * childProject.childProjects >> [:]
+        given:
+        def childRegistry = new ModelRegistryHelper()
+        def childProject = Mock(ProjectInternal) {
+            _ * getModelRegistry() >> childRegistry
+            _ * getTasks() >> Mock(TaskContainerInternal) {
+                _ * findByName(_)
+                0 * _
+            }
+            _ * getChildProjects() >> [:]
+        }
 
-        def task1 = task('task')
-
-        when:
-        def candidates = resolver.selectWithName('task', project, true)
-
-        then:
-        1 * tasks.findByName('task') >> null
-        1 * project.realizeTasksAndValidateModel()
-        1 * childProjectTasks.findByName('task') >> task1
-        1 * childProject.realizeTasksAndValidateModel()
+        _ * project.getChildProjects() >> [child: childProject]
+        createTasksCollection(childRegistry, "child")
 
         when:
-        asTasks(candidates) == [task1]
+        tasks(childRegistry) { it.create("task") }
+        def result = resolver.selectWithName('task', project, true)
 
         then:
-        0 * tasks._
-        0 * childProjectTasks._
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks.task")) == GraphClosed
+
+        and:
+        asTasks(result)*.description == ["child"]
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks.task")) == GraphClosed
     }
 
     def "lazily locates all tasks for a single project"() {
-        def task1 = task('task1')
-
         when:
-        def candidates = resolver.selectAll(project, false)
+        tasks(registry) { it.create("task1"); it.create("task2") }
 
         then:
-        1 * tasks.names >> (['task1', 'task2'] as SortedSet)
-        1 * project.realizeTasksAndValidateModel()
-        0 * tasks._
-
-        when:
-        asTasks(candidates.get('task1')) == [task1]
-
-        then:
-        1 * tasks.getByName('task1') >> task1
-        0 * tasks._
+        resolver.selectAll(project, false).keySet() == ["task1", "task2"].toSet()
+        registry.state(path("tasks.task1")) == Known
+        registry.state(path("tasks.task2")) == Known
     }
 
     def "lazily locates all tasks for multiple projects"() {
-        def childProject = Mock(ProjectInternal)
-        def childProjectTasks = Mock(TaskContainerInternal)
-        _ * project.childProjects >> [child: childProject]
-        _ * childProject.tasks >> childProjectTasks
-        _ * childProject.childProjects >> [:]
+        def childRegistry = new ModelRegistryHelper()
+        def childProject = Mock(ProjectInternal) {
+            _ * getModelRegistry() >> childRegistry
+            _ * getTasks() >> Mock(TaskContainerInternal) {
+                _ * findByName(_)
+                0 * _
+            }
+            _ * getChildProjects() >> [:]
+        }
 
-        def task1 = task('name1')
-        def task2 = task('name2')
+        _ * project.getChildProjects() >> [child: childProject]
+        createTasksCollection(childRegistry, "child")
+
+        tasks(registry) { it.create("name1"); it.create("name2") }
+        tasks(childRegistry) { it.create("name1"); it.create("name3") }
 
         when:
         def candidates = resolver.selectAll(project, true)
 
         then:
-        1 * tasks.names >> (['name1', 'name2'] as SortedSet)
-        1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
-        1 * project.realizeTasksAndValidateModel()
-        1 * childProject.realizeTasksAndValidateModel()
-        0 * tasks._
-        0 * childProjectTasks._
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
 
-        when:
-        asTasks(candidates.get('name1')) == [task1, task2]
+        registry.state(path("tasks.name1")) == Known
+        registry.state(path("tasks.name2")) == Known
+        childRegistry.state(path("tasks.name1")) == Known
+        childRegistry.state(path("tasks.name3")) == Known
 
-        then:
-        1 * tasks.findByName('name1') >> task1
-        1 * childProjectTasks.findByName('name1') >> task2
-        0 * tasks._
-        0 * childProjectTasks._
+        and:
+        asTasks(candidates.get('name1'))*.description == ["root", "child"]
+        registry.state(path("tasks.name1")) == GraphClosed
+        childRegistry.state(path("tasks.name1")) == GraphClosed
+        registry.state(path("tasks.name2")) == Known
+        childRegistry.state(path("tasks.name3")) == Known
+
+        asTasks(candidates.get('name2'))*.description == ["root"]
+        registry.state(path("tasks.name2")) == GraphClosed
+        childRegistry.state(path("tasks.name3")) == Known
+
+        asTasks(candidates.get('name3'))*.description == ["child"]
+        childRegistry.state(path("tasks.name3")) == GraphClosed
     }
 
     def "does not visit sub-projects when task implies sub-projects"() {
-        def childProject = Mock(ProjectInternal)
-        def childProjectTasks = Mock(TaskContainerInternal)
-        _ * project.childProjects >> [child: childProject]
-        _ * childProject.tasks >> childProjectTasks
-        _ * childProject.childProjects >> [:]
+        def childRegistry = new ModelRegistryHelper()
+        def childProject = Mock(ProjectInternal) {
+            _ * getModelRegistry() >> childRegistry
+            _ * getTasks() >> Mock(TaskContainerInternal) {
+                _ * findByName(_)
+                0 * _
+            }
+            _ * getChildProjects() >> [:]
+        }
 
-        def task1 = task('name1')
-        _ * task1.impliesSubProjects >> true
+        _ * project.getChildProjects() >> [child: childProject]
+        createTasksCollection(childRegistry, "child")
+
+        tasks(registry) { it.create("name1") { it.getImpliesSubProjects() >> true }; it.create("name2") }
+        tasks(childRegistry) { it.create("name1"); it.create("name3") }
 
         when:
         def candidates = resolver.selectAll(project, true)
 
         then:
-        1 * tasks.names >> (['name1', 'name2'] as SortedSet)
-        1 * childProjectTasks.names >> (['name1', 'name3'] as SortedSet)
-        1 * project.realizeTasksAndValidateModel()
-        1 * childProject.realizeTasksAndValidateModel()
-        0 * tasks._
-        0 * childProjectTasks._
+        registry.state(path("tasks")) == SelfClosed
+        childRegistry.state(path("tasks")) == SelfClosed
 
-        when:
-        asTasks(candidates.get('name1')) == [task1]
+        registry.state(path("tasks.name1")) == Known
+        registry.state(path("tasks.name2")) == Known
+        childRegistry.state(path("tasks.name1")) == Known
+        childRegistry.state(path("tasks.name3")) == Known
 
-        then:
-        1 * tasks.findByName('name1') >> task1
-        0 * tasks._
-        0 * childProjectTasks._
+        and:
+        asTasks(candidates.get('name1'))*.description == ["root"]
+        registry.state(path("tasks.name1")) == GraphClosed
+        childRegistry.state(path("tasks.name1")) == Known
+        registry.state(path("tasks.name2")) == Known
+        childRegistry.state(path("tasks.name3")) == Known
     }
 
-    def task(String name) {
-        TaskInternal task = Mock()
-        _ * task.name >> name
-        return task
+    def task(String name, String description = "") {
+        Stub(TaskInternal) { TaskInternal task ->
+            _ * task.getName() >> name
+            _ * task.getDescription() >> description
+        }
+    }
+
+    def tasks(ModelRegistryHelper registry, Action<? super CollectionBuilder<TaskInternal>> action) {
+        registry.mutateCollection("tasks", TaskInternal, action)
     }
 
     Set<Task> asTasks(TaskSelectionResult taskSelectionResult) {
         def result = []
         taskSelectionResult.collectTasks(result)
         return result
+    }
+
+    private ModelRegistryHelper createTasksCollection(ModelRegistryHelper registry, String description) {
+        registry.collection("tasks", TaskInternal) { name, type -> task(name, description) }
     }
 }

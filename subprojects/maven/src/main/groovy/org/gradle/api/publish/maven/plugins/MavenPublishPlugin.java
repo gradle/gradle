@@ -41,7 +41,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Mutate;
-import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 
@@ -95,10 +94,11 @@ public class MavenPublishPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void realizePublishingTasks(CollectionBuilder<Task> tasks, @Path("tasks.publish") Task publishLifecycleTask, @Path("tasks.publishToMavenLocal") Task publishLocalLifecycleTask,
-                                           PublishingExtension extension) {
+        public void realizePublishingTasks(CollectionBuilder<Task> tasks, PublishingExtension extension) {
             // Create generatePom tasks for any Maven publication
             PublicationContainer publications = extension.getPublications();
+            Task publishLifecycleTask = tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+            Task publishLocalLifecycleTask = tasks.get(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
 
             for (final MavenPublicationInternal publication : publications.withType(MavenPublicationInternal.class)) {
                 String publicationName = publication.getName();
@@ -123,10 +123,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
                         publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                         publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
 
-                        //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
-                        publishLifecycleTask.dependsOn(publishTask);
                     }
                 });
+                publishLifecycleTask.dependsOn(publishTaskName);
             }
         }
 
@@ -138,11 +137,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     publishLocalTask.setPublication(publication);
                     publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     publishLocalTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
-
-                    //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
-                    publishLocalLifecycleTask.dependsOn(installTaskName);
                 }
             });
+            publishLocalLifecycleTask.dependsOn(installTaskName);
         }
 
         private void createGeneratePomTask(CollectionBuilder<Task> tasks, final MavenPublicationInternal publication, String publicationName) {
@@ -159,11 +156,10 @@ public class MavenPublishPlugin implements Plugin<Project> {
                             return new File(generatePomTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/pom-default.xml");
                         }
                     });
-
-                    // Wire the generated pom into the publication.
-                    publication.setPomFile(generatePomTask.getOutputs().getFiles());
                 }
             });
+            // Wire the generated pom into the publication.
+            publication.setPomFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
         }
     }
 

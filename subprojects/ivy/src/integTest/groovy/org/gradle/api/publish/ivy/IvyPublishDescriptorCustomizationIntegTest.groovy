@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 import javax.xml.namespace.QName
 import org.gradle.test.fixtures.ivy.IvyDescriptor
@@ -160,6 +161,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }
 
+    @Unroll
     def "produces sensible error with invalid extra info elements" () {
         buildFile << """
             publishing {
@@ -177,8 +179,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
-        failure.assertHasCause("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
+        failure.assertHasDescription("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
         failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:
@@ -189,6 +190,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         '1foo'      | _
      }
 
+    @Unroll
     def "produces sensible error with extra info containing null values" () {
         buildFile << """
             publishing {
@@ -206,7 +208,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
+        failure.assertHasDescription("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(23)
         failure.assertHasCause("Cannot add an extra info element with null ")

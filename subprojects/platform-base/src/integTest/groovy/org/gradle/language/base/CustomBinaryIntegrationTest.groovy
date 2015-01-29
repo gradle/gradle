@@ -246,8 +246,7 @@ model {
         when:
         fails "tasks"
         then:
-        failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)"
+        failure.assertHasDescription "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)"
         failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin\$Rules#register(org.gradle.platform.base.BinaryTypeBuilder<SampleBinary>)."
     }
 

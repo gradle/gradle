@@ -150,6 +150,12 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.apply(rules);
     }
 
+    @Nullable
+    @Override
+    public ModelNode node(ModelPath path) {
+        return modelRegistry.node(path);
+    }
+
     public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
         return apply(role, action, ModelPath.ROOT);
     }

@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.language.scala.tasks.PlatformScalaCompile
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
@@ -54,6 +55,7 @@ class PlayTestPluginTest extends Specification {
         _ * binaryContainer.withType(PlayApplicationBinarySpecInternal.class) >> binaryContainer
         _ * binaryContainer.iterator() >> [binary].iterator()
         _ * binary.name >> "someBinary"
+        _ * binary.getTasks() >> Mock(BinaryTasksCollection)
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration

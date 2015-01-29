@@ -59,7 +59,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#name(Person)")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#name(Person)")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#name(Person)")
     }
 
@@ -98,7 +98,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyCompositeSubjectOfAnotherRule")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#tryToModifyCompositeSubjectOfAnotherRule")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#tryToModifyCompositeSubjectOfAnotherRule(org.gradle.model.collection.CollectionBuilder<org.gradle.api.Task>, Person)'")
     }
 
@@ -133,7 +133,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
+        failure.assertHasDescription("Exception thrown while executing model rule: model.tasks")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'model.tasks @ build file")
     }
 
@@ -172,7 +172,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Person' given to rule 'RulePlugin#person(Person)'")
     }
 
@@ -216,7 +216,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person)'")
     }
 
@@ -266,7 +266,7 @@ class InvalidManagedModelMutationIntegrationTest extends AbstractIntegrationSpec
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
+        failure.assertHasDescription("Exception thrown while executing model rule: RulePlugin#tryToModifyManagedObject")
         failure.assertHasCause("Attempt to mutate closed view of model of type 'Pet' given to rule 'RulePlugin#person(Person, Pet)'")
     }
 }

@@ -518,6 +518,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return views;
     }
 
+    @Override
+    public ModelNode node(ModelPath path) {
+        return modelGraph.find(path);
+    }
+
     private class ModelReferenceNode extends ModelNodeInternal {
         private ModelNodeInternal target;
 
@@ -818,7 +823,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(this, DefaultsApplied, true);
+            transition(this, Initialized, true);
         }
     }
 

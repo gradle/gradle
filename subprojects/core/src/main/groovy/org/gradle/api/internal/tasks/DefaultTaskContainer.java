@@ -196,12 +196,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         project.getModelRegistry().realizeNode(modelNode.getPath());
     }
 
+    private void maybeRealizeTask(String name) {
+        if (modelNode.hasLink(name)) {
+            realizeTask(MODEL_PATH.child(name));
+        }
+    }
+
     public Task findByName(String name) {
         Task task = super.findByName(name);
         if (task != null) {
             return task;
         }
         maybeMaterializePlaceholder(name);
+        maybeRealizeTask(name);
         return super.findByName(name);
     }
 

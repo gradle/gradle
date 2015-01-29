@@ -89,10 +89,9 @@ public class PlayTestPlugin extends RuleSource {
                     test.dependsOn(testCompileTaskName);
                     test.setTestSrcDirs(Arrays.asList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());
-
-                    binary.getTasks().add(test);
                 }
             });
+            binary.getTasks().add(tasks.get(testTaskName));
         }
     }
 

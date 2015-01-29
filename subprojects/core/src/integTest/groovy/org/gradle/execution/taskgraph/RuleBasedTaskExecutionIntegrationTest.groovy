@@ -55,7 +55,7 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         createdTasksFor(":a:t1").every { it.startsWith(":a:") }
         createdTasksFor(":a:t1", "b:t1").every { it.startsWith(":a:") || it.startsWith(":b:") }
         createdTasksFor(":t1").every { it.startsWith(":") && it.count(":") == 1}
-        createdTasksFor("t1").containsAll(":a:t1", ":a:t2", ":b:t1", ":b:t2", ":c:t1", ":c:t2", ":t1", ":t2")
+        createdTasksFor("t1").containsAll(":a:t1", ":b:t1", ":c:t1", ":t1")
     }
 
 }

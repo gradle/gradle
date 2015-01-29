@@ -64,7 +64,7 @@ class IvyPublishPluginTest extends Specification {
 
         then:
         publishTask != null
-        project.tasks["publish"].dependsOn.contains publishTask
+        project.tasks["publish"].dependsOn.contains publishTask.name
     }
 
     def "ivy publication coordinates are a snapshot of project identity"() {

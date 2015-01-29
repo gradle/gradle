@@ -15,12 +15,19 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.*;
 
@@ -44,44 +51,77 @@ public class TaskNameResolver {
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */
     @Nullable
-    public TaskSelectionResult selectWithName(String name, ProjectInternal project, boolean includeSubProjects) {
-        if (!includeSubProjects) {
-            realizeTasks(project);
-            TaskInternal task = (TaskInternal) project.getTasks().findByName(name);
-            if (task != null) {
-                return new FixedTaskSelectionResult(Collections.<Task>singleton(task));
-            }
-        } else {
-            LinkedHashSet<Task> tasks = new LinkedHashSet<Task>();
-            new MultiProjectTaskSelectionResult(name, project).collectTasks(tasks);
+    public TaskSelectionResult selectWithName(final String taskName, final ProjectInternal project, boolean includeSubProjects) {
+        if (includeSubProjects) {
+            Set<Task> tasks = Sets.newLinkedHashSet();
+            new MultiProjectTaskSelectionResult(taskName, project).collectTasks(tasks);
             if (!tasks.isEmpty()) {
                 return new FixedTaskSelectionResult(tasks);
+            }
+        } else {
+            if (hasTask(taskName, project)) {
+                return new TaskSelectionResult() {
+                    @Override
+                    public void collectTasks(Collection<? super Task> tasks) {
+                        tasks.add(getTask(project, taskName));
+                    }
+                };
             }
         }
 
         return null;
     }
 
-    private static void realizeTasks(ProjectInternal project) {
-        project.realizeTasksAndValidateModel();
+    private static ModelNode selfClose(ModelRegistry modelRegistry, ModelPath modelPath) {
+        ModelNode modelNode = modelRegistry.atStateOrLater(modelPath, ModelNode.State.SelfClosed);
+        if (modelNode == null) {
+            throw new IllegalStateException("Did not find " + modelPath + " in project model registry");
+        }
+
+        return modelNode;
+    }
+
+    private static ModelNode selfClosedTasksNode(ProjectInternal project) {
+        ModelNode modelNode = selfClose(project.getModelRegistry(), TaskContainerInternal.MODEL_PATH);
+        project.validateModel();
+        return modelNode;
+    }
+
+    private static Set<String> getTaskNames(ProjectInternal project) {
+        return selfClosedTasksNode(project).getLinkNames(ModelType.of(Task.class));
+    }
+
+    private static boolean hasTask(String taskName, ProjectInternal project) {
+        return getTaskNames(project).contains(taskName) || project.getTasks().findByName(taskName) != null; // look at task container to trigger rules / placeholders
+    }
+
+    private static TaskInternal getTask(ProjectInternal project, String taskName) {
+        // Prefer tasks from the model registry, but fall back to task container in case task was added after task container was closed in model registry
+
+        ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
+        ModelRegistry modelRegistry = project.getModelRegistry();
+        if (modelRegistry.node(path) == null) {
+            return (TaskInternal) project.getTasks().getByName(taskName);
+        } else {
+            return (TaskInternal) modelRegistry.realize(path, ModelType.of(Task.class));
+        }
     }
 
     /**
      * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
      */
     public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
-        Map<String, TaskSelectionResult> selected = new LinkedHashMap<String, TaskSelectionResult>();
+        Map<String, TaskSelectionResult> selected = Maps.newLinkedHashMap();
 
-        if (!includeSubProjects) {
-            realizeTasks(project);
-            for (String taskName : project.getTasks().getNames()) {
-                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
-            }
-        } else {
-            LinkedHashSet<String> taskNames = new LinkedHashSet<String>();
+        if (includeSubProjects) {
+            Set<String> taskNames = Sets.newLinkedHashSet();
             collectTaskNames(project, taskNames);
             for (String taskName : taskNames) {
                 selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project));
+            }
+        } else {
+            for (String taskName : getTaskNames(project)) {
+                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
             }
         }
 
@@ -89,8 +129,7 @@ public class TaskNameResolver {
     }
 
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
-        realizeTasks(project);
-        result.addAll(project.getTasks().getNames());
+        result.addAll(getTaskNames(project));
         for (Project subProject : project.getChildProjects().values()) {
             collectTaskNames((ProjectInternal) subProject, result);
         }
@@ -136,9 +175,8 @@ public class TaskNameResolver {
         }
 
         private void collect(ProjectInternal project, Collection<? super Task> tasks) {
-            realizeTasks(project);
-            TaskInternal task = (TaskInternal) project.getTasks().findByName(taskName);
-            if (task != null) {
+            if (hasTask(taskName, project)) {
+                TaskInternal task = getTask(project, taskName);
                 tasks.add(task);
                 if (task.getImpliesSubProjects()) {
                     return;

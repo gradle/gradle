@@ -338,7 +338,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#configureGeneratedSourceSets("
+        failure.assertHasDescription "Exception thrown while executing model rule: org.gradle.nativeplatform.plugins.NativeComponentModelPlugin\$Rules#configureGeneratedSourceSets("
         failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
     }
 

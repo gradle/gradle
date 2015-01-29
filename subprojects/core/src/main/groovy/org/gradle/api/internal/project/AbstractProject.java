@@ -488,6 +488,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return this;
     }
 
+    @Override
+    public ProjectInternal validateModel() {
+        try {
+            getModelRegistry().bindAllReferences();
+        } catch (Exception e) {
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
+        }
+        return this;
+    }
+
     public TaskContainerInternal getTasks() {
         return taskContainer;
     }

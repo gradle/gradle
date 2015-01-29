@@ -17,6 +17,7 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -86,7 +87,32 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                         container,
                         getDescriptor(),
                         modelNode
-                );
+                ) {
+                    //eagerly instantiate created tasks so that they get attached to their respective binary specs in the instantiator
+                    @Override
+                    public void create(String name) {
+                        super.create(name);
+                        get(name);
+                    }
+
+                    @Override
+                    public void create(String name, Action<? super Task> configAction) {
+                        super.create(name, configAction);
+                        get(name);
+                    }
+
+                    @Override
+                    public <S extends Task> void create(String name, Class<S> type) {
+                        super.create(name, type);
+                        get(name);
+                    }
+
+                    @Override
+                    public <S extends Task> void create(String name, Class<S> type, Action<? super S> configAction) {
+                        super.create(name, type, configAction);
+                        get(name);
+                    }
+                };
 
                 invoke(inputs, collectionBuilder, binary, binaries);
             }

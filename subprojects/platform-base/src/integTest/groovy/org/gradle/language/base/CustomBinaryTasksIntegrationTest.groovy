@@ -109,7 +109,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         task checkModel << {
             assert project.binaries.size() == 2
             assert project.binaries.sampleLibBinaryOne != null
-            assert project.binaries.sampleLibBinaryOne.tasks.collect{it.name} == ['sampleLibBinaryOneTask']
+            assert project.binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']
         }
 """
         expect:

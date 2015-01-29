@@ -228,7 +228,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'bad-project'.")
+        failure.assertHasDescription("Exception thrown while executing model rule: org.gradle.api.publish.plugins.PublishingPlugin\$Rules#publishing(org.gradle.api.plugins.ExtensionContainer)")
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 

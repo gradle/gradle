@@ -119,4 +119,7 @@ public interface ModelRegistry extends ModelRegistrar {
     <T> ModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
+
+    @Nullable
+    ModelNode node(ModelPath path);
 }
