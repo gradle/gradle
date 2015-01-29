@@ -18,8 +18,10 @@ package org.gradle.play.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
@@ -28,6 +30,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
@@ -120,6 +123,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     appSources.getSource().include("**/*.scala");
                     appSources.getSource().include("**/*.java");
                     ((ComponentSpecInternal) playComponent).getSources().add(appSources);
+
+                    DefaultSourceDirectorySet resourcesDirectorySet = new DefaultSourceDirectorySet("resources", fileResolver);
+                    JvmResourceSet appResources = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", playComponent.getName(), resourcesDirectorySet);
+                    appResources.getSource().srcDirs("conf");
+                    ((ComponentSpecInternal) playComponent).getSources().add(appResources);
                 }
             });
         }
@@ -171,9 +179,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     JvmClasses classes = playBinary.getClasses();
                     classes.setClassesDir(new File(binaryBuildDir, "classes"));
 
-                    // TODO:DAZ These should be configured on the component
-                    classes.addResourceDir(new File(projectIdentifier.getProjectDir(), "conf"));
+                    DomainObjectSet<JvmResourceSet> jvmResourceSets = componentSpec.getSource().withType(JvmResourceSet.class);
+                    for (JvmResourceSet jvmResourceSet : jvmResourceSets) {
+                        for (File resourceDir : jvmResourceSet.getSource()) {
+                            classes.addResourceDir(resourceDir);
+                        }
+                    }
 
+                    // TODO:DAZ These should be configured on the component
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 

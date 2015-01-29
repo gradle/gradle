@@ -56,6 +56,8 @@ Play Application 'play'
 Source sets
     Scala source 'play:appSources'
         app
+    JVM resources 'play:resources'
+        conf
 
 Binaries
     Play Application Jar 'playBinary'
