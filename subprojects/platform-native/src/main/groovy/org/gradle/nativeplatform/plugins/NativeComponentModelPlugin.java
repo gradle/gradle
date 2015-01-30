@@ -116,7 +116,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             resolvers.register(new NativePlatformResolver());
         }
 
-        @Mutate
+        @Defaults
         public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {

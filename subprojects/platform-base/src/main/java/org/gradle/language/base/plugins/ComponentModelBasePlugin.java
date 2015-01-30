@@ -27,10 +27,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.*;
-import org.gradle.model.Finalize;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ModelPath;
@@ -98,7 +95,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageTransformContainer.class);
         }
 
-        @Mutate
+        @Defaults
         void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 // TODO - allow beforeEach() to be applied to internal types
