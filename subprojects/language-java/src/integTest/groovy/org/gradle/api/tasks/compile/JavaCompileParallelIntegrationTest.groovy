@@ -17,11 +17,13 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class JavaCompileParallelIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
-    def "Using --parallel does not modify java.home across compile task boundaries"() {
+    def "system property java.home is not modified across compile task boundaries"() {
         def module = mavenHttpRepo.module('foo', 'bar')
         module.publish()
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
@@ -48,7 +50,6 @@ class JavaCompileParallelIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         module.pom.allowGetOrHead()
         module.artifact.allowGetOrHead()
-        args('--parallel', '--parallel-threads=2')
         run('compileJava')
 
         then:
