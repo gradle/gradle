@@ -35,7 +35,7 @@ import java.util.Set;
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private final PublicAssets assets = new DefaultPublicAssets();
-    private ScalaLanguageSourceSet generatedScala;
+    private Set<ScalaLanguageSourceSet> generatedScala = Sets.newLinkedHashSet();
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
@@ -87,12 +87,8 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return assets;
     }
 
-    public ScalaLanguageSourceSet getGeneratedScala() {
+    public Set<ScalaLanguageSourceSet> getGeneratedScala() {
         return generatedScala;
-    }
-
-    public void setGeneratedScala(ScalaLanguageSourceSet scalaSources) {
-        this.generatedScala = scalaSources;
     }
 
     @Override

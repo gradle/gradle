@@ -24,6 +24,7 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Represents a binary artifact that is the result of building a play component.
@@ -43,5 +44,5 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
 
     PublicAssets getAssets();
 
-    ScalaLanguageSourceSet getGeneratedScala();
+    Set<ScalaLanguageSourceSet> getGeneratedScala();
 }

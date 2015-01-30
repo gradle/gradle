@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
-
-import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.play.internal.spec.PlayCompileSpec;
-
-import java.io.Serializable;
-
-public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
-    Iterable<RelativeFile> getSources();
-
-    boolean isJavaProject();
-}
+/**
+ * Language support classes for twirl
+ */
+package org.gradle.language.twirl;

@@ -35,7 +35,7 @@ model {
     tasks {
         create("twirlCompile", TwirlCompile){ task ->
             task.outputDirectory = file('build/twirl')
-            task.sourceDirectory = file('./app')
+            task.source file('./app')
             task.platform = binaries.playBinary.targetPlatform
         }
     }

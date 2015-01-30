@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.twirl;
+package org.gradle.language.twirl.internal;
 
-import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.twirl.TwirlSourceSet;
 
-import java.io.Serializable;
-
-public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
-    Iterable<RelativeFile> getSources();
-
-    boolean isJavaProject();
+/**
+ * Default implementation of a TwirlSourceSet
+ */
+public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements TwirlSourceSet {
+    @Override
+    protected String getTypeName() {
+        return "Twirl template source";
+    }
 }

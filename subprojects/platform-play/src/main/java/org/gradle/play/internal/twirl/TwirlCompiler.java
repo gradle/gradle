@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -45,9 +46,9 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         try {
             ClassLoader cl = getClass().getClassLoader();
             ScalaMethod compile = adapter.getCompileMethod(cl);
-            Iterable<File> sources = spec.getSources();
-            for (File sourceFile : sources) {
-                Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getSourceDirectory(), spec.getDestinationDir(), spec.isJavaProject()));
+            Iterable<RelativeFile> sources = spec.getSources();
+            for (RelativeFile sourceFile : sources) {
+                Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.isJavaProject()));
                 ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
                 if (maybeFile.isDefined()) {
                     outputFiles.add(maybeFile.get());

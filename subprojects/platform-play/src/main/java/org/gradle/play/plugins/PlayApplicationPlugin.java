@@ -29,11 +29,14 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
+import org.gradle.language.twirl.TwirlSourceSet;
+import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
@@ -106,6 +109,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @BinaryType
         void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
+        }
+
+        @LanguageType
+        void registerTwirlLanguageType(LanguageTypeBuilder<TwirlSourceSet> builder) {
+            builder.setLanguageName("twirl");
+            builder.defaultImplementation(DefaultTwirlSourceSet.class);
         }
 
         @Mutate
@@ -190,9 +199,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                    ScalaLanguageSourceSet genSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "genSources", binaryName, fileResolver, instantiator);
-                    playBinaryInternal.setGeneratedScala(genSources);
-
                     playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
                 }
             });
@@ -220,27 +226,55 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
         }
 
-        @BinaryTasks
-        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-            final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
-            tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
-                public void execute(TwirlCompile twirlCompile) {
-                    twirlCompile.setPlatform(binary.getTargetPlatform());
-                    twirlCompile.setSourceDirectory(new File(projectIdentifier.getProjectDir(), "app"));
-                    twirlCompile.include("**/*.html");
-
-                    File twirlCompilerOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), twirlCompileTaskName));
-                    twirlCompile.setOutputDirectory(twirlCompilerOutputDirectory);
-
-                    binary.getGeneratedScala().getSource().srcDir(twirlCompilerOutputDirectory);
-                    binary.getGeneratedScala().builtBy(twirlCompile);
+        @Mutate
+        void createTwirlSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+            components.beforeEach(new Action<PlayApplicationSpec>() {
+                @Override
+                public void execute(PlayApplicationSpec playComponent) {
+                    TwirlSourceSet twirlSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("twirlTemplates", TwirlSourceSet.class);
+                    twirlSourceSet.getSource().srcDir("app");
+                    twirlSourceSet.getSource().include("**/*.html");
                 }
             });
         }
 
         @BinaryTasks
-        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir, ServiceRegistry serviceRegistry) {
+            createTwirlCompileTasks(tasks, binary, buildDir, serviceRegistry);
+            createRoutesCompile(tasks, binary, projectIdentifier, buildDir, serviceRegistry);
+            createScalaCompile(tasks, binary, projectIdentifier, buildDir);
+        }
+
+        void createTwirlCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir, ServiceRegistry serviceRegistry) {
+            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+
+            for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
+                final String twirlCompileTaskName = String.format("twirlCompile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
+                final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
+                final ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, String.format("%sScalaSources", twirlSourceSet.getName()), binary.getName(), fileResolver, instantiator);
+
+                tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
+                    public void execute(TwirlCompile twirlCompile) {
+                        twirlCompile.setPlatform(binary.getTargetPlatform());
+                        twirlCompile.setSource(twirlSourceSet.getSource());
+                        twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
+
+                        twirlScalaSources.generatedBy(twirlCompile);
+                    }
+                });
+
+                twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
+                binary.getGeneratedScala().add(twirlScalaSources);
+            }
+        }
+
+        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir, ServiceRegistry serviceRegistry) {
+            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
+            final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
+            final ScalaLanguageSourceSet routesScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "routesScalaSources", binary.getName(), fileResolver, instantiator);
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
                     routesCompile.setPlatform(binary.getTargetPlatform());
@@ -248,22 +282,21 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     routesCompile.setSource(new File(projectIdentifier.getProjectDir(), "conf"));
                     routesCompile.include("*.routes");
                     routesCompile.include("routes");
-
-                    final File routesCompilerOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), routesCompileTaskName));
                     routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
 
-                    binary.getGeneratedScala().getSource().srcDir(routesCompilerOutputDirectory);
-                    binary.getGeneratedScala().builtBy(routesCompile);
+                    routesScalaSources.generatedBy(routesCompile);
                 }
             });
+
+            routesScalaSources.getSource().srcDir(routesCompilerOutputDirectory);
+            binary.getGeneratedScala().add(routesScalaSources);
         }
 
-        @BinaryTasks
-        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary,
-                                FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
+
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
                     //infer scala classpath
@@ -278,10 +311,13 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
-                    scalaCompile.source(binary.getGeneratedScala().getSource());
-                    scalaCompile.dependsOn(binary.getGeneratedScala());
 
-                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
+                    for (LanguageSourceSet generatedSourceSet : binary.getGeneratedScala()) {
+                        scalaCompile.source(generatedSourceSet.getSource());
+                        scalaCompile.dependsOn(((LanguageSourceSetInternal)generatedSourceSet).getGeneratorTask());
+                    }
+
+                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal)binary).getClasspath());
 
                     binary.getClasses().builtBy(scalaCompile);
                 }
@@ -331,6 +367,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     }
                 });
             }
+        }
+
+        private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
+            return new File(buildDir, String.format("%s/src/%s", binary.getName(), taskName));
         }
     }
 }

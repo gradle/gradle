@@ -58,6 +58,8 @@ Source sets
         app
     JVM resources 'play:resources'
         conf
+    Twirl template source 'play:twirlTemplates'
+        app
 
 Binaries
     Play Application Jar 'playBinary'
@@ -88,8 +90,14 @@ Binaries
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":assemble")
-        skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":playBinary",
+                ":assemble")
+        skipped(":routesCompilePlayBinary" ,
+                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":scalaCompilePlayBinary")
 
         and:
         jar("build/playBinary/lib/play-app.jar").hasDescendants()

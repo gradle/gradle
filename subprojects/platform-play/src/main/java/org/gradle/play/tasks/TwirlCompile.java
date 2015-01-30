@@ -16,8 +16,12 @@
 
 package org.gradle.play.tasks;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -36,6 +40,7 @@ import org.gradle.play.toolchain.PlayToolChain;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -48,11 +53,6 @@ public class TwirlCompile extends SourceTask {
      * Target directory for the compiled template files.
      */
     private File outputDirectory;
-
-    /**
-     * Source directory for the template files. Used to find the relative path of templates.
-     */
-    private File sourceDirectory;
 
     private BaseForkOptions forkOptions;
 
@@ -94,28 +94,11 @@ public class TwirlCompile extends SourceTask {
         this.outputDirectory = outputDirectory;
     }
 
-    /**
-     * Returns the root directory where sources are found. Used to find the relative path of templates.
-     *
-     * @return The root directory for sources.
-     */
-    public File getSourceDirectory() {
-        return sourceDirectory;
-    }
-
-    /**
-     * Specifies the root directory where sources are found. Used to find the relative path of templates.
-     *
-     * @param sourceDirectory TThe root directory for sources.
-     */
-    public void setSourceDirectory(File sourceDirectory) {
-        this.sourceDirectory = sourceDirectory;
-        this.setSource(sourceDirectory);
-    }
-
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(getSourceDirectory(), getSource().getFiles(), getOutputDirectory(), getForkOptions(), useJavaDefaults());
+        RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
+        getSource().visit(relativeFileCollector);
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), useJavaDefaults());
         if (!inputs.isIncremental()) {
             if (compiler == null) {
                 compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(spec), getOutputs());
@@ -194,6 +177,19 @@ public class TwirlCompile extends SourceTask {
             String[] splits = inputFileName.split("\\.");
             String relativeOutputFilePath = String.format("views/%s/%s.template.scala", splits[2], splits[0]); //TODO: use Twirl library instead?
             return new File(destinationDir, relativeOutputFilePath);
+        }
+    }
+
+    private static class RelativeFileCollector implements FileVisitor {
+        List<RelativeFile> relativeFiles = Lists.newArrayList();
+
+        @Override
+        public void visitDir(FileVisitDetails dirDetails) {
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            relativeFiles.add(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
         }
     }
 }
