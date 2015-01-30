@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.model.internal.core.ModelNode
 
 class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -72,4 +73,32 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         createdTasksFor("t1") == [":t1"]
     }
 
+    def "task container is self closed by task selection and can be later graph closed"() {
+        when:
+        buildFile << '''
+            import org.gradle.model.internal.core.*
+
+            model {
+                tasks {
+                    create("t1")
+                    create("t2")
+                }
+            }
+
+            gradle.buildFinished {
+                def tasksPath = ModelPath.path("tasks")
+                def registry = project.modelRegistry
+                println "task container node state at the end of build: ${registry.state(tasksPath)}"
+                registry.atState(tasksPath, ModelNode.State.GraphClosed)
+                println "task container node state after graph closing: ${registry.state(tasksPath)}"
+            }
+        '''
+
+        then:
+        succeeds "t1"
+
+        and:
+        output.contains "task container node state at the end of build: ${ModelNode.State.SelfClosed}"
+        output.contains "task container node state after graph closing: ${ModelNode.State.GraphClosed}"
+    }
 }

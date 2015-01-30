@@ -127,7 +127,7 @@ See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing recla
 1. ~~Realize the task container as tasks are needed instead of at the end of evaluation (TaskNameResolver, DefaultProjectAccessListener, DefaultProjectLocator) - _interim step_~~
 1. ~~Change task placeholder mechanism to use model registry (internally in DefaultTaskContainer) instead of ad hoc deferral mechanism~~
 1. ~~Change task selection to avoid realising all tasks (i.e. self close the task container, realise just the tasks needed)~~
-1. Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.
+1. ~~Update ProjectTaskLister (used by Tooling API (GradleProjectBuilder), ‘tasks’ task and GUI) to use model registry etc.~~
 
 Note: Having `DefaultProjectAccessListener` and `DefaultProjectLocator` require the full closing of the task container is ok for this story.
 
@@ -136,7 +136,7 @@ Note: Having `DefaultProjectAccessListener` and `DefaultProjectLocator` require 
 1. ~~No error when model node is requested at state it is already at~~
 1. ~~Error when model node is requested at “previous” state~~
 1. ~~Simple task defined via `tasks.named()` is not realised if not requested on command line~~
-1. Task container can be self-closed by task selector/lister and then later graph-closed
+1. ~~Task container can be self-closed by task selector/lister and then later graph-closed~~
 1. ~~Tasks defined via rules are present in `gradle tasks` report~~
 1. ~~Tasks defined via rules are present in relevant Tooling API models that request task list, and can be executed by Tooling API~~
 1. ~~Tasks defined via rules are present in Gradle UI and can be executed by Gradle UI~~
