@@ -24,16 +24,12 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private RuleBinder<?> creatorBinder;
-    private BoundModelCreator creator;
-    private Map<ModelActionRole, List<BoundModelMutator<?>>> mutators;
+    private CreatorRuleBinder creatorBinder;
+    private Map<ModelActionRole, List<MutatorRuleBinder<?>>> mutators;
     private final Set<ModelPath> dependencies = Sets.newHashSet();
 
     private final ModelPath creationPath;
@@ -49,59 +45,62 @@ abstract class ModelNodeInternal implements MutableModelNode {
         this.adapter = adapter;
     }
 
-    public BoundModelCreator getCreator() {
-        return creator;
-    }
-
-    public void setCreator(BoundModelCreator creator) {
-        if (this.creator != null) {
-            throw new IllegalStateException("creator already set for node " + getPath());
-        }
-        this.creator = creator;
-        for (ModelBinding<?> modelBinding : creator.getInputs()) {
-            dependencies.add(modelBinding.getNode().getPath());
-        }
-    }
-
-    public RuleBinder<?> getCreatorBinder() {
+    public CreatorRuleBinder getCreatorBinder() {
         return creatorBinder;
     }
 
-    public void setCreatorBinder(RuleBinder<?> creatorBinder) {
-        if (creatorBinder != null && this.creatorBinder != null) {
+    public void setCreatorBinder(CreatorRuleBinder creatorBinder) {
+        if (this.creatorBinder != null) {
             throw new IllegalStateException("creatorBinder already set for node " + getPath());
         }
         this.creatorBinder = creatorBinder;
     }
 
-    public void addMutator(ModelActionRole role, BoundModelMutator<?> mutator) {
+    public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
         if (mutators == null) {
             mutators = Maps.newEnumMap(ModelActionRole.class);
         }
 
-        List<BoundModelMutator<?>> mutatorsForRole = mutators.get(role);
+        List<MutatorRuleBinder<?>> mutatorsForRole = mutators.get(role);
         if (mutatorsForRole == null) {
             mutatorsForRole = Lists.newLinkedList();
             mutators.put(role, mutatorsForRole);
         }
 
         mutatorsForRole.add(mutator);
-        for (ModelBinding<?> modelBinding : mutator.getInputs()) {
-            dependencies.add(modelBinding.getNode().getPath());
-        }
     }
 
-    public List<BoundModelMutator<?>> removeMutators(ModelActionRole role) {
+    public Iterable<MutatorRuleBinder<?>> getMutatorBinders(ModelActionRole role) {
         if (mutators == null) {
             return Collections.emptyList();
         }
-
-        List<BoundModelMutator<?>> mutatorsForRole = mutators.remove(role);
-        if (mutatorsForRole == null) {
+        final List<MutatorRuleBinder<?>> ruleBinders = mutators.get(role);
+        if (ruleBinders == null) {
             return Collections.emptyList();
-        }
+        } else {
+            return new Iterable<MutatorRuleBinder<?>>() {
+                @Override
+                public Iterator<MutatorRuleBinder<?>> iterator() {
+                    return new Iterator<MutatorRuleBinder<?>>() {
+                        int i;
 
-        return mutatorsForRole;
+                        @Override
+                        public boolean hasNext() {
+                            return i < ruleBinders.size();
+                        }
+
+                        @Override
+                        public MutatorRuleBinder<?> next() {
+                            if (hasNext()) {
+                                return ruleBinders.get(i++);
+                            } else {
+                                throw new NoSuchElementException();
+                            }
+                        }
+                    };
+                }
+            };
+        }
     }
 
     public Iterable<ModelPath> getDependencies() {

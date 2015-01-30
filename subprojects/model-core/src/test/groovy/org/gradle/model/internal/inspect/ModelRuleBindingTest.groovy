@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
-import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -32,8 +31,8 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
-    def modelRegistry = new DefaultModelRegistry(null)
-    def inspector = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def modelRegistry = new DefaultModelRegistry(extractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate
@@ -52,13 +51,10 @@ class ModelRuleBindingTest extends Specification {
         }
     }
 
-    void registerRules(Class<?> source) {
-        inspector.extract(source)*.applyTo(modelRegistry, ModelPath.ROOT)
-    }
 
     def "error message produced when unpathed reference matches more than one item"() {
         when:
-        registerRules(AmbiguousBindingsInOneSource)
+        modelRegistry.apply(AmbiguousBindingsInOneSource).bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -97,8 +93,9 @@ class ModelRuleBindingTest extends Specification {
     def "ambiguous binding is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            registerRules(it)
+            modelRegistry.apply(it)
         }
+        modelRegistry.bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -127,8 +124,9 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible writable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            registerRules(it)
+            modelRegistry.apply(it)
         }
+        modelRegistry.bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)
@@ -161,8 +159,9 @@ class ModelRuleBindingTest extends Specification {
     def "incompatible readable type binding of mutate rule is detected irrespective of discovery order - #order.simpleName"() {
         when:
         order.each {
-            registerRules(it)
+            modelRegistry.apply(it)
         }
+        modelRegistry.bindAllReferences()
 
         then:
         def e = thrown(InvalidModelRuleException)

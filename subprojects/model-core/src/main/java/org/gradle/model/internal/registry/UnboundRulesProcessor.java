@@ -31,17 +31,17 @@ import java.util.List;
 @ThreadSafe
 public class UnboundRulesProcessor {
 
-    private final Iterable<? extends RuleBinder<?>> binders;
+    private final Iterable<? extends RuleBinder> binders;
     private final Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider;
 
-    public UnboundRulesProcessor(Iterable<? extends RuleBinder<?>> binders, Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider) {
+    public UnboundRulesProcessor(Iterable<? extends RuleBinder> binders, Transformer<? extends Collection<? extends ModelPath>, ? super ModelPath> suggestionsProvider) {
         this.binders = binders;
         this.suggestionsProvider = suggestionsProvider;
     }
 
     public List<? extends UnboundRule> process() {
         List<UnboundRule> unboundRules = new ArrayList<UnboundRule>();
-        for (RuleBinder<?> binder : binders) {
+        for (RuleBinder binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());
 
             ModelPath scope = binder.getScope();

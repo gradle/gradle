@@ -19,7 +19,9 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -46,14 +48,13 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final ModelGraph modelGraph;
     private final ModelRuleExtractor ruleExtractor;
-    private final List<RuleBinder<?>> binders = Lists.newLinkedList();
-    private final Map<ModelActionRole, Multimap<ModelPath, RuleBinder<?>>> mutationBindersByActionRole = Maps.newEnumMap(ModelActionRole.class);
+
+    private final List<RuleBinder> binders = Lists.newLinkedList();
+    private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
+    private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        for (ModelActionRole role : ModelActionRole.values()) {
-            mutationBindersByActionRole.put(role, ArrayListMultimap.<ModelPath, RuleBinder<?>>create());
-        }
         modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), EmptyModelProjection.INSTANCE, EmptyModelProjection.INSTANCE));
         modelGraph.getRoot().setState(Created);
     }
@@ -134,32 +135,65 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void bind(ModelCreator creator, ModelNodeInternal node) {
-        RuleBinder<Void> binder = createAndRegisterBinder(null, creator.getInputs(), creator.getDescriptor(), ModelPath.ROOT, new RegisterBoundCreator(creator, node));
-        node.setCreatorBinder(binder);
-        bindInputs(binder, ModelPath.ROOT);
+        node.setCreatorBinder(new CreatorRuleBinder(creator, ModelPath.ROOT, binders));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> RuleBinder<T> createAndRegisterBinder(ModelReference<T> subject, List<? extends ModelReference<?>> inputs, ModelRuleDescriptor descriptor, ModelPath scope, final Action<? super RuleBinder<T>> onBind) {
-        RuleBinder<T> binder = new RuleBinder<T>(subject, inputs, descriptor, scope, onBind);
-        binders.add(binder);
-        return binder;
+    private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
+        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, binders);
+
+        // bind the subject eagerly if it's cheap so we can get early feedback if the role is invalid for the subject's current state
+        // note: we could be smarter here and detect if we are actually currently mutating the subject reference
+        if (binder.getSubjectReference().getPath() != null) {
+            bindMutatorSubject(binder);
+        } else {
+            pendingMutatorBinders.add(binder);
+        }
     }
 
-    private <T> void bind(ModelReference<T> subject, ModelActionRole type, ModelAction<T> mutator, ModelPath scope) {
-        Multimap<ModelPath, RuleBinder<?>> mutationBinders = mutationBindersByActionRole.get(type);
-        RuleBinder<T> binder = createAndRegisterBinder(subject, mutator.getInputs(), mutator.getDescriptor(), scope, new RegisterBoundModelAction<T>(mutator, type, mutationBinders));
-        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), scope, true, new BindSubject<T>(binder, mutator, type, mutationBinders));
+    private void flushPendingMutatorBinders() {
+        Iterator<MutatorRuleBinder<?>> iterator = pendingMutatorBinders.iterator();
+        while (iterator.hasNext()) {
+            MutatorRuleBinder<?> binder = iterator.next();
+            iterator.remove();
+            bindMutatorSubject(binder);
+        }
+    }
+
+    private <T> void bindMutatorSubject(final MutatorRuleBinder<T> binder) {
+        ModelCreationListener listener = listener(binder.getDescriptor(), binder.getSubjectReference(), binder.getScope(), true, new Action<ModelNodeInternal>() {
+            public void execute(ModelNodeInternal subject) {
+                if (!subject.canApply(binder.getRole())) {
+                    throw new IllegalStateException(String.format(
+                            "Cannot add %s rule '%s' for model element '%s' when element is in state %s.",
+                            binder.getRole(),
+                            binder.getAction().getDescriptor(),
+                            subject.getPath(),
+                            subject.getState()
+                    ));
+                }
+                unboundSubjectMutatorBinders.remove(binder);
+                binder.bindSubject(subject);
+                subject.addMutatorBinder(binder.getRole(), binder);
+            }
+        });
         registerListener(listener);
-        bindInputs(binder, scope);
     }
 
-    private void bindInputs(final RuleBinder<?> binder, ModelPath scope) {
-        List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
-        for (int i = 0; i < inputReferences.size(); i++) {
-            ModelReference<?> input = inputReferences.get(i);
-            ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : scope;
-            registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new BindInput(binder, i)));
+    private void bindInputs(final RuleBinder binder) {
+        if (!binder.isBindingInputs()) {
+            binder.setBindingInputs(true);
+            List<? extends ModelReference<?>> inputReferences = binder.getInputReferences();
+            for (int i = 0; i < inputReferences.size(); i++) {
+                final int finalI = i;
+                ModelReference<?> input = inputReferences.get(i);
+                ModelPath effectiveScope = input.getPath() == null ? ModelPath.ROOT : binder.getScope();
+                registerListener(listener(binder.getDescriptor(), input, effectiveScope, false, new Action<ModelNodeInternal>() {
+                    public void execute(ModelNodeInternal modelNode) {
+                        binder.bindInput(finalI, modelNode);
+                    }
+                }));
+                tryForceBind(binder);
+            }
         }
     }
 
@@ -233,6 +267,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void bindAllReferences() throws UnboundModelRulesException {
+        flushPendingMutatorBinders();
         if (binders.isEmpty()) {
             return;
         }
@@ -243,7 +278,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             //`binders` is mutated during tryForceBind (removal and insert), can't use foreach
             //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < binders.size(); i++) {
-                newInputsBound = newInputsBound || tryForceBind(binders.get(i));
+                RuleBinder binder = binders.get(i);
+                tryForceBind(binder);
+                newInputsBound = newInputsBound || binder.isBound();
             }
         }
 
@@ -252,7 +289,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private UnboundModelRulesException unbound(Iterable<RuleBinder<?>> binders) {
+    private UnboundModelRulesException unbound(Iterable<RuleBinder> binders) {
         ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
         return new UnboundModelRulesException(unboundRules);
@@ -319,16 +356,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (state == Known && desired.ordinal() >= Created.ordinal()) {
-            RuleBinder<?> creatorBinder = node.getCreatorBinder();
+            CreatorRuleBinder creatorBinder = node.getCreatorBinder();
             if (creatorBinder != null) {
+//                bindInputs(creatorBinder);
                 forceBind(creatorBinder);
             }
-            BoundModelCreator creator = node.getCreator();
-            if (creator == null) {
-                // Unbound creator - should give better error message here
-                throw new IllegalStateException("Don't know how to create model element at '" + path + "'");
-            }
-            doCreate(node, creator);
+            doCreate(node, creatorBinder);
             node.setState(Created);
 
             if (desired == Created) {
@@ -374,10 +407,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return false;
     }
 
-    private boolean tryForceBind(RuleBinder<?> binder) {
-        if (maybeFireThenUnregister(binder)) {
-            return true;
+    private boolean tryForceBind(RuleBinder binder) {
+        if (binder.isBound()) {
+            return false;
         }
+        bindInputs(binder);
 
         boolean boundSomething = false;
         ModelPath scope = binder.getScope();
@@ -393,22 +427,14 @@ public class DefaultModelRegistry implements ModelRegistry {
                 boundSomething = boundSomething || binder.getInputBindings().get(i) != null;
             }
         }
-        maybeFireThenUnregister(binder);
+
         return boundSomething;
     }
 
-    private boolean maybeFireThenUnregister(RuleBinder<?> binder) {
-        boolean fired = binder.maybeFire();
-        if (fired) {
-            binders.remove(binder);
-        }
-        return fired;
-    }
-
-    private void forceBind(RuleBinder<?> binder) {
+    private void forceBind(RuleBinder binder) {
         tryForceBind(binder);
         if (!binder.isBound()) {
-            throw unbound(Collections.<RuleBinder<?>>singleton(binder));
+            throw unbound(Collections.singleton(binder));
         }
     }
 
@@ -419,20 +445,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             return nodeState.ordinal() < desired.ordinal();
         }
 
-        while (true) {
-            //MultiMap.get() returns a live collection and force binding rules might change it
-            while (!mutationBindersByActionRole.get(type).get(path).isEmpty()) {
-                forceBind(mutationBindersByActionRole.get(type).get(path).iterator().next());
-            }
-
-            List<BoundModelMutator<?>> mutators = node.removeMutators(type);
-            if (mutators.isEmpty()) {
-                break;
-            }
-
-            for (BoundModelMutator<?> mutator : mutators) {
-                fireMutation(mutator);
-            }
+        flushPendingMutatorBinders();
+        for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
+            forceBind(binder);
+            fireMutation(binder);
         }
 
         node.setState(to);
@@ -467,9 +483,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNodeInternal doCreate(ModelNodeInternal node, BoundModelCreator boundCreator) {
+    private ModelNodeInternal doCreate(ModelNodeInternal node, CreatorRuleBinder boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
-        List<ModelView<?>> views = toViews(boundCreator.getInputs(), boundCreator.getCreator().getDescriptor());
+        List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator().getDescriptor());
 
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
@@ -483,11 +499,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(BoundModelMutator<T> boundMutator) {
-        List<ModelView<?>> inputs = toViews(boundMutator.getInputs(), boundMutator.getMutator().getDescriptor());
+    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
+        List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
 
-        ModelNodeInternal node = boundMutator.getSubject();
-        ModelAction<T> mutator = boundMutator.getMutator();
+        ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
+        ModelAction<T> mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
         LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());

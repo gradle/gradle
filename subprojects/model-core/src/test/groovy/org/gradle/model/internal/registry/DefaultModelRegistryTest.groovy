@@ -451,12 +451,16 @@ class DefaultModelRegistryTest extends Specification {
 
     @Unroll
     def "can add action for #targetRole mutation when in #fromRole mutation"() {
-        def action = Stub(Action)
-
         given:
-        registry.createInstance("thing", new MutableValue(value: "initial"))
-                .apply(fromRole) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(MutableValue).action { it.value = "mutated" } } }
+        registry.createInstance("thing", new MutableValue(value: "initial")).apply(fromRole) {
+            it.path("thing").node { MutableModelNode node ->
+                registry.apply(targetRole) {
+                    it.path("thing").type(MutableValue).action {
+                        it.value = "mutated"
+                    }
+                }
+            }
+        }
 
         when:
         def thing = registry.realize(ModelPath.path("thing"), ModelType.of(MutableValue))
@@ -700,8 +704,7 @@ class DefaultModelRegistryTest extends Specification {
         registry
                 .createInstance("foo", new Bean())
                 .mutate {
-            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean)) {
-            }
+            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean), {})
         }
         .mutate {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {

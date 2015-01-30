@@ -16,21 +16,20 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.api.Action;
 import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelPath;
 
-class RegisterBoundCreator implements Action<RuleBinder<Void>> {
+import java.util.Collection;
+
+public class CreatorRuleBinder extends RuleBinder {
     private final ModelCreator creator;
-    private final ModelNodeInternal node;
 
-    public RegisterBoundCreator(ModelCreator creator, ModelNodeInternal node) {
+    public CreatorRuleBinder(ModelCreator creator, ModelPath scope, Collection<RuleBinder> binders) {
+        super(creator.getInputs(), creator.getDescriptor(), scope, binders);
         this.creator = creator;
-        this.node = node;
     }
 
-    public void execute(RuleBinder<Void> ruleBinding) {
-        BoundModelCreator boundCreator = new BoundModelCreator(creator, ruleBinding.getInputBindings());
-        node.setCreator(boundCreator);
-        node.setCreatorBinder(null);
+    public ModelCreator getCreator() {
+        return creator;
     }
 }

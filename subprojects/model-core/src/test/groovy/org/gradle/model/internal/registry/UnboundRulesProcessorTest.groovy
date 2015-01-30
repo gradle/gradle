@@ -34,7 +34,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class UnboundRulesProcessorTest extends Specification {
 
-    List<RuleBinder<?>> binders = []
+    List<RuleBinder> binders = []
 
     Transformer<List<ModelPath>, ModelPath> suggestionProvider = Transformers.constant([])
 
@@ -237,9 +237,16 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         RuleBinder build() {
-            def binder = new RuleBinder(subjectReference, inputReferences, descriptor, scope, null)
-            if (subjectReferenceBindingPath) {
-                binder.bindSubject(new TestNode(subjectReferenceBindingPath))
+            def binder = new RuleBinder(inputReferences, descriptor, scope, []) {
+                @Override
+                ModelBinding<?> getSubjectBinding() {
+                    subjectReferenceBindingPath ? bind(getSubjectReference(), new TestNode(subjectReferenceBindingPath)) : null
+                }
+
+                @Override
+                ModelReference<?> getSubjectReference() {
+                    RuleBinderTestBuilder.this.subjectReference
+                }
             }
             boundInputReferencePaths.each { index, path ->
                 binder.bindInput(index, new TestNode(path))

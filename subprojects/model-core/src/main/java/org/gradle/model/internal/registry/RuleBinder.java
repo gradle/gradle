@@ -17,64 +17,57 @@
 package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * The progressive binding of the subject/inputs of the references of a model rule.
- *
- * The binder is not responsible for finding out what the references should be bound to.
- * It merely manages the state of the rule binding.
- * The {@link #bindSubject} and {@link #bindInput} methods are called by the model registry/graph.
- *
- * This type is mutable.
- */
 @NotThreadSafe
-public class RuleBinder<T> {
-
-    private final ModelReference<T> subjectReference;
-    private final List<? extends ModelReference<?>> inputReferences;
+public abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
-
+    private final List<? extends ModelReference<?>> inputReferences;
     private final ModelPath scope;
+    private final Collection<RuleBinder> binders;
 
-    private Action<? super RuleBinder<T>> onBind;
-
+    private boolean bindingInputs;
     private int inputsBound;
-
-    private ModelBinding<T> subjectBinding;
     private List<ModelBinding<?>> inputBindings;
 
-    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope,
-                      Action<? super RuleBinder<T>> onBind) {
-        this.subjectReference = subjectReference;
+    public RuleBinder(List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, ModelPath scope, Collection<RuleBinder> binders) {
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
         this.scope = scope;
-        this.onBind = onBind;
-
+        this.binders = binders;
         this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
+        if (!isBound()) {
+            binders.add(this);
+        }
     }
 
-    @Nullable
-    public ModelReference<T> getSubjectReference() {
-        return subjectReference;
+    // is binding then inputs for this binder in progress?
+    public boolean isBindingInputs() {
+        return bindingInputs;
+    }
+
+    public void setBindingInputs(boolean bindingInputs) {
+        this.bindingInputs = bindingInputs;
     }
 
     public List<? extends ModelReference<?>> getInputReferences() {
         return inputReferences;
     }
 
-    public ModelBinding<T> getSubjectBinding() {
-        return subjectBinding;
+    public ModelBinding<?> getSubjectBinding() {
+        return null;
+    }
+
+    public ModelReference<?> getSubjectReference() {
+        return null;
     }
 
     public List<ModelBinding<?>> getInputBindings() {
@@ -89,36 +82,25 @@ public class RuleBinder<T> {
         return scope;
     }
 
-    public void bindSubject(ModelNodeInternal modelNode) {
-        assert this.subjectBinding == null;
-        this.subjectBinding = bind(subjectReference, modelNode);
-    }
-
     public void bindInput(int i, ModelNodeInternal modelNode) {
         assert this.inputBindings.get(i) == null;
+        assert inputsBound < inputBindings.size();
         this.inputBindings.set(i, bind(inputReferences.get(i), modelNode));
-        inputsBound += 1;
+        ++inputsBound;
+        maybeFire();
     }
 
-    public boolean maybeFire() {
+    protected void maybeFire() {
         if (isBound()) {
-            fire();
-            return true;
-        } else {
-            return false;
+            binders.remove(this);
         }
     }
 
     public boolean isBound() {
-        return (subjectReference == null || subjectBinding != null) && inputsBound == inputReferences.size();
+        return inputsBound == inputReferences.size();
     }
 
-    public void fire() {
-        onBind.execute(this);
-        onBind = null; // let go for gc
-    }
-
-    private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelNodeInternal modelNode) {
+    static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelNodeInternal modelNode) {
         return ModelBinding.of(reference, modelNode);
     }
 }
