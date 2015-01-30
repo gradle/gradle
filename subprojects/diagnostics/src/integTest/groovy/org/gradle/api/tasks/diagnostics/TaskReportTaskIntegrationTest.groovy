@@ -53,7 +53,7 @@ alpha - ALPHA_in_sub1
             model {
                 tasks {
                     create("t1") {
-                        description = "from rule"
+                        description = "from model rule"
                     }
                 }
             }
@@ -63,7 +63,36 @@ alpha - ALPHA_in_sub1
         succeeds "tasks"
 
         and:
-        output.contains("t1 - from rule")
+        output.contains("t1 - from model rule")
+    }
+
+    def "task report includes task container rule based tasks which are a dependency of a task defined via model rule"() {
+        when:
+        buildScript """
+            tasks.addRule("Pattern: containerRule<ID>") { taskName ->
+                if (taskName.startsWith("containerRule")) {
+                    task(taskName) {
+                        description = "from container rule"
+                    }
+                }
+            }
+
+            model {
+                tasks {
+                    create("t1") {
+                        description = "from model rule"
+                        dependsOn "containerRule1"
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "tasks", "--all"
+
+        and:
+        output.contains("t1 - from model rule")
+        output.contains("containerRule1 - from container rule")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")

@@ -186,14 +186,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public void actualize() {
+        project.getModelRegistry().realizeNode(modelNode.getPath());
+
         new CachingDirectedGraphWalker<Task, Void>(new DirectedGraph<Task, Void>() {
             public void getNodeValues(Task node, Collection<? super Void> values, Collection<? super Task> connectedNodes) {
                 connectedNodes.addAll(node.getTaskDependencies().getDependencies(node));
             }
         }).add(this).findValues();
-
-
-        project.getModelRegistry().realizeNode(modelNode.getPath());
     }
 
     private void maybeRealizeTask(String name) {
