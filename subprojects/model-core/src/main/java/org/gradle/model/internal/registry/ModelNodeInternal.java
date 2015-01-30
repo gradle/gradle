@@ -85,6 +85,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
                         int i;
 
                         @Override
+                        public void remove() {
+                            throw new UnsupportedOperationException();
+                        }
+
+                        @Override
                         public boolean hasNext() {
                             return i < ruleBinders.size();
                         }
