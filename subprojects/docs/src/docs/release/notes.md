@@ -327,6 +327,11 @@ may cause a slightly different dependency resolution behavior if you heavily rel
 In this context, we also fixed the incorrect handling of the `artifact` attribute for [module exclude rules](http://ant.apache.org/ivy/history/latest-milestone/ivyfile/exclude.html). For
 more information see [GRADLE-3147](https://issues.gradle.org/browse/GRADLE-3147).
 
+### Changes in application plugin
+
+With the application plugin applied, `gradle assemble` will now also build the application distributions (application zip and tar)
+and not only the `jar`.
+
 ### Manually declared facets in eclipse-wtp plugin
 
 In previous Gradle versions, declaring a custom facet for `eclipse.wtp` caused the default facets to be removed.
