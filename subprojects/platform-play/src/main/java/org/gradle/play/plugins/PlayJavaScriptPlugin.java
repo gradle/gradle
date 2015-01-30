@@ -31,8 +31,8 @@ import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
 
 import java.io.File;
@@ -65,7 +65,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
                 final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());

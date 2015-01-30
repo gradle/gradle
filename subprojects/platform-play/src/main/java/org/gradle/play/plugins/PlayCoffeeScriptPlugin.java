@@ -33,7 +33,6 @@ import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
 import org.gradle.play.tasks.PlayCoffeeScriptCompile;
 
@@ -79,7 +78,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+    void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
         for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
                 String compileTaskName = createCoffeeScriptCompile(tasks, binary, buildDir, coffeeScriptSourceSet);
@@ -88,7 +87,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         }
     }
 
-    private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir,
+    private String createCoffeeScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final File buildDir,
                                              final CoffeeScriptSourceSet coffeeScriptSourceSet) {
         final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
@@ -106,7 +105,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         return compileTaskName;
     }
 
-    private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
+    private void createJavaScriptCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final File buildDir, final CoffeeScriptSourceSet coffeeScriptSourceSet,
                                          final String compileTaskName) {
         final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {

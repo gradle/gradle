@@ -221,7 +221,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createTwirlCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String twirlCompileTaskName = String.format("twirlCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                 public void execute(TwirlCompile twirlCompile) {
@@ -239,7 +239,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
+        void createRoutesCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String routesCompileTaskName = String.format("routesCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                 public void execute(RoutesCompile routesCompile) {
@@ -259,7 +259,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary,
+        void createScalaCompile(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary,
                                 FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
             final String scalaCompileTaskName = String.format("scalaCompile%s", StringUtils.capitalize(binary.getName()));
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
@@ -281,7 +281,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     scalaCompile.source(binary.getGeneratedScala().getSource());
                     scalaCompile.dependsOn(binary.getGeneratedScala());
 
-                    scalaCompile.setClasspath(binary.getClasspath());
+                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
 
                     binary.getClasses().builtBy(scalaCompile);
                 }
@@ -289,7 +289,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createJarTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary) {
+        void createJarTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary) {
             String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {

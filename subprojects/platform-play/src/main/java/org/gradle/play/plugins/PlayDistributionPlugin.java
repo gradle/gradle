@@ -18,23 +18,20 @@ package org.gradle.play.plugins;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Task;
-import org.gradle.api.Transformer;
+import org.gradle.api.*;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.model.*;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.distribution.PlayDistribution;
@@ -150,8 +147,7 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Mutate
-    void createDistributionZipTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
-        final @Path("distributions") PlayDistributionContainer distributions) {
+    void createDistributionZipTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir, PlayDistributionContainer distributions) {
         for (final PlayDistribution distribution : distributions) {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");
@@ -168,9 +164,15 @@ public class PlayDistributionPlugin extends RuleSource {
                     baseSpec.with(distribution.getContents());
                 }
             });
+            tasks.named("stage", new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(stageTaskName);
+                }
+            });
 
             final Task stageTask = tasks.get(stageTaskName);
-            String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
+            final String distributionTaskName = String.format("create%sDist", StringUtils.capitalize(distribution.getName()));
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
@@ -181,29 +183,14 @@ public class PlayDistributionPlugin extends RuleSource {
                     zip.from(stageTask);
                 }
             });
+
+            tasks.named("dist", new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.dependsOn(distributionTaskName);
+                }
+            });
         }
-    }
-
-    @Finalize
-    void wireDistLifecycleDependencies(@Path("tasks.dist") Task distTask, TaskContainer tasks) {
-        // TODO: Not sure this is the best way to do this, but it works for now
-        distTask.dependsOn(tasks.withType(Zip.class).matching(new Spec<Zip>() {
-            @Override
-            public boolean isSatisfiedBy(Zip zipTask) {
-                return DISTRIBUTION_GROUP.equals(zipTask.getGroup());
-            }
-        }));
-    }
-
-    @Finalize
-    void wireStageLifecycleDependencies(@Path("tasks.stage") Task stageTask, TaskContainer tasks) {
-        // TODO: Not sure this is the best way to do this, but it works for now
-        stageTask.dependsOn(tasks.withType(Copy.class).matching(new Spec<Copy>() {
-            @Override
-            public boolean isSatisfiedBy(Copy copyTask) {
-                return DISTRIBUTION_GROUP.equals(copyTask.getGroup());
-            }
-        }));
     }
 
     /**
