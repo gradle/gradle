@@ -44,7 +44,7 @@ class ModelTasksGradleUIIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
-        TestUtility.refreshProjectsBlocking(gradlePluginLord, 10, TimeUnit.SECONDS);
+        TestUtility.refreshProjectsBlocking(gradlePluginLord, 20, TimeUnit.SECONDS);
 
     }
 
