@@ -449,6 +449,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
             forceBind(binder);
             fireMutation(binder);
+            node.notifyFired(binder);
         }
 
         node.setState(to);

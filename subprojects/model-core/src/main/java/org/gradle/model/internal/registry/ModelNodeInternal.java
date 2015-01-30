@@ -108,6 +108,13 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
     }
 
+    public void notifyFired(MutatorRuleBinder<?> binder) {
+        assert binder.isBound();
+        for (ModelBinding<?> inputBinding : binder.getInputBindings()) {
+            dependencies.add(inputBinding.getNode().getPath());
+        }
+    }
+
     public Iterable<ModelPath> getDependencies() {
         return dependencies;
     }
