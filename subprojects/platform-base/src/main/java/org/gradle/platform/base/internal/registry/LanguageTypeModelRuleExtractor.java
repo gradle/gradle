@@ -52,7 +52,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
-            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, dependencies, mutator);
         }
         return new DependencyOnlyExtractedModelRule(dependencies);
     }

@@ -34,4 +34,9 @@ abstract class BinderCreationListener extends ModelCreationListener {
     boolean isTypeCompatible(ModelPromise promise) {
         return writable ? promise.canBeViewedAsWritable(reference.getType()) : promise.canBeViewedAsReadOnly(reference.getType());
     }
+
+    @Override
+    public String toString() {
+        return "ModelCreationListener{parent=" + matchParent() + ", path=" + matchPath() + ", scope=" + matchScope() + ", type=" + matchType() + "class=" + getClass().getSimpleName() + '}';
+    }
 }

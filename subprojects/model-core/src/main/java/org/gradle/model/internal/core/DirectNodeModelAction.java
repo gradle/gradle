@@ -17,34 +17,45 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
+import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ActionBackedModelAction<T> implements ModelAction<T> {
-    private final ModelReference<T> subject;
-    private final Action<? super T> configAction;
+public class DirectNodeModelAction<T> implements ModelAction<T> {
+
+    private final ModelReference<T> subjectReference;
+    private final BiAction<? super MutableModelNode, ? super T> action;
     private final ModelRuleDescriptor descriptor;
 
-    public ActionBackedModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
-        this.subject = subject;
-        this.configAction = configAction;
+    private DirectNodeModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
+        this.subjectReference = subjectReference;
+        this.action = action;
         this.descriptor = descriptor;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
-        return new ActionBackedModelAction<T>(reference, descriptor, configAction);
+    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
+        return new DirectNodeModelAction<T>(reference, descriptor, new BiAction<MutableModelNode, T>() {
+            @Override
+            public void execute(MutableModelNode modelNode, T t) {
+                action.execute(modelNode);
+            }
+        });
+    }
+
+    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
+        return new DirectNodeModelAction<T>(reference, descriptor, action);
     }
 
     @Override
     public ModelReference<T> getSubject() {
-        return subject;
+        return subjectReference;
     }
 
     @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        configAction.execute(object);
+        action.execute(modelNode, object);
     }
 
     @Override

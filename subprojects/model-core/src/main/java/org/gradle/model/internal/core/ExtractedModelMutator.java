@@ -30,10 +30,10 @@ public class ExtractedModelMutator implements ExtractedModelRule {
     private final List<ModelType<?>> dependencies;
 
     public ExtractedModelMutator(ModelActionRole role, ModelAction<?> action) {
-        this(role, action, ImmutableList.<ModelType<?>>of());
+        this(role, ImmutableList.<ModelType<?>>of(), action);
     }
 
-    public ExtractedModelMutator(ModelActionRole role, ModelAction<?> action, List<ModelType<?>> dependencies) {
+    public ExtractedModelMutator(ModelActionRole role, List<ModelType<?>> dependencies, ModelAction<?> action) {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;
@@ -41,7 +41,7 @@ public class ExtractedModelMutator implements ExtractedModelRule {
 
     @Override
     public void applyTo(ModelRegistrar registrar, ModelPath scope) {
-        registrar.apply(role, action, scope);
+        registrar.apply(scope, role, action);
     }
 
     @Override

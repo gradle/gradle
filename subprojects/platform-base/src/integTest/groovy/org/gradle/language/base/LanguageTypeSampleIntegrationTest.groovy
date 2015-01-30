@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -24,7 +25,8 @@ import spock.lang.Ignore
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
-    @Rule Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
+    @Rule
+    Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
     def "shows custom language sourcesets in component"() {
         given:

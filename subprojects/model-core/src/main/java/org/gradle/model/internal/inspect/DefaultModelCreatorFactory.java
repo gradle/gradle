@@ -47,7 +47,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     @Override
     public <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, Action<? super T> initializer) {
         ModelReference<T> modelReference = ModelReference.of(path, schema.getType());
-        ModelAction<T> modelAction = new ActionBackedModelAction<T>(modelReference, initializer, descriptor);
+        ModelAction<T> modelAction = new ActionBackedModelAction<T>(modelReference, descriptor, initializer);
         return creator(descriptor, modelReference, schema, modelAction);
     }
 

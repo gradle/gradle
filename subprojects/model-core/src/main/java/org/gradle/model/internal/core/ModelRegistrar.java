@@ -20,5 +20,5 @@ public interface ModelRegistrar {
 
     public ModelRegistrar create(ModelCreator creator, ModelPath scope);
 
-    public <T> ModelRegistrar apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
+    public <T> ModelRegistrar apply(ModelPath scope, ModelActionRole role, ModelAction<T> action);
 }

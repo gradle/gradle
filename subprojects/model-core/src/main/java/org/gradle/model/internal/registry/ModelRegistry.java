@@ -116,7 +116,7 @@ public interface ModelRegistry extends ModelRegistrar {
     ModelRegistry create(ModelCreator creator, ModelPath scope);
 
     @Override
-    <T> ModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope);
+    <T> ModelRegistry apply(ModelPath scope, ModelActionRole role, ModelAction<T> action);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 

@@ -24,6 +24,7 @@ import org.gradle.language.base.ProjectSourceSet
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.DefaultBinaryContainer
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -44,25 +45,28 @@ class LanguageBasePluginTest extends Specification {
         project.extensions.findByName("sources") instanceof ProjectSourceSet
     }
 
-    def "creates a lifecycle task for each binary"() {
+    def "copies binary tasks into task container"() {
         def tasks = Mock(TaskContainer)
         def binaries = new DefaultBinaryContainer(new DirectInstantiator())
         def binary = Mock(BinarySpecInternal)
-        def task = Mock(Task)
+        def binaryTasks = new DefaultBinaryTasksCollection(binary)
+        def someTask = Mock(Task) { getName() >> "someTask" }
+        def buildTask = Mock(Task) { getName() >> "lifecycleTask" }
+        binaryTasks.add(someTask)
 
         when:
         binaries.add(binary)
         def rules = new LanguageBasePlugin.Rules()
-        rules.createLifecycleTaskForBinary(tasks, binaries)
+        rules.copyBinaryTasksToTaskContainer(tasks, binaries)
 
         then:
         binary.name >> "binaryName"
         binary.toString() >> "binary foo"
+        binary.getTasks() >> binaryTasks
+        binary.getBuildTask() >> buildTask
 
         and:
-        1 * tasks.create("binaryName") >> task
-        1 * task.setGroup("build")
-        1 * task.setDescription("Assembles binary foo.")
-        1 * binary.setBuildTask(task)
+        1 * tasks.addAll(binaryTasks)
+        1 * tasks.add(buildTask)
     }
 }

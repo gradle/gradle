@@ -57,7 +57,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
             ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ExtractedModelMutator(ModelActionRole.Defaults, mutator, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Defaults, dependencies, mutator);
         }
         return new DependencyOnlyExtractedModelRule(dependencies);
     }

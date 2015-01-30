@@ -327,13 +327,13 @@ class ModelRuleExtractorTest extends Specification {
         extractor.extract(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
 
         then:
-        1 * registryMock.apply(ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") }, ModelPath.ROOT)
+        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") })
 
         then:
-        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") }, ModelPath.ROOT)
+        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") })
 
         then:
-        1 * registryMock.apply(ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") }, ModelPath.ROOT)
+        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") })
     }
 
     static class InvalidModelNameViaAnnotation extends RuleSource {

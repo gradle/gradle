@@ -140,8 +140,8 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
-        modelRegistry.apply(role, action, scope);
+    public <T> ModelRegistryHelper apply(ModelPath scope, ModelActionRole role, ModelAction<T> action) {
+        modelRegistry.apply(scope, role, action);
         return this;
     }
 
@@ -157,7 +157,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
-        return apply(role, action, ModelPath.ROOT);
+        return apply(ModelPath.ROOT, role, action);
     }
 
     public ModelRegistryHelper create(String path, Transformer<? extends ModelCreator, ? super ModelCreatorBuilder> def) {
@@ -204,7 +204,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public ModelRegistryHelper apply(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
-        return apply(role, def.transform(ModelActionBuilder.of()), ModelPath.ROOT);
+        return apply(ModelPath.ROOT, role, def.transform(ModelActionBuilder.of()));
     }
 
     public ModelRegistryHelper mutate(Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {

@@ -177,7 +177,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
         ModelReference<S> subject = ModelReference.of(modelNode.getPath().child(name), type);
         modelNode.addLink(ModelCreators.unmanagedInstance(subject, factory).descriptor(descriptor).build());
-        modelNode.applyToLink(ModelActionRole.Initialize, new ActionBackedModelAction<S>(subject, initAction, descriptor));
+        modelNode.applyToLink(ModelActionRole.Initialize, new ActionBackedModelAction<S>(subject, descriptor, initAction));
     }
 
     @Override
@@ -189,7 +189,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
-        modelNode.applyToLink(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, configAction, descriptor));
+        modelNode.applyToLink(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
     }
 
     @Override
@@ -206,7 +206,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<T> subject = ModelReference.of(elementType);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, configAction, descriptor));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
     }
 
     @Override
@@ -218,7 +218,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<S>(subject, configAction, descriptor));
+        modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
 
     @Override
@@ -239,7 +239,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Defaults, new ActionBackedModelAction<S>(subject, configAction, descriptor));
+        modelNode.applyToAllLinks(ModelActionRole.Defaults, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
 
     @Override
@@ -260,7 +260,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
         ModelReference<S> subject = ModelReference.of(type);
-        modelNode.applyToAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<S>(subject, configAction, descriptor));
+        modelNode.applyToAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
 
     public static <I> ModelType<CollectionBuilder<I>> typeOf(ModelType<I> type) {

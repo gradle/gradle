@@ -123,7 +123,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> DefaultModelRegistry apply(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+    public <T> DefaultModelRegistry apply(ModelPath scope, ModelActionRole role, ModelAction<T> action) {
         bind(action.getSubject(), role, action, scope);
         return this;
     }

@@ -49,14 +49,14 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
 
             ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ExtractedModelMutator(ModelActionRole.Mutate, componentBinariesRule, dependencies);
+            return new ExtractedModelMutator(ModelActionRole.Mutate, dependencies, componentBinariesRule);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }
     }
 
     private <S extends BinarySpec, R> void configureMutationRule(ModelRegistry modelRegistry, ModelReference<BinaryContainer> subject, Class<? extends ComponentSpec> componentType, Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-        modelRegistry.apply(ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition), ModelPath.ROOT);
+        modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Mutate, new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition));
     }
 
     private void visitAndVerifyMethodSignature(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition) {
