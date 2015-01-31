@@ -69,60 +69,45 @@ class EclipseWtpPlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project, EclipseModel eclipseModel) {
-
-        def adjustClasspath = { Classpath classpath ->
-            def libDeployPath = eclipseModel.wtp.component.libDeployPath
-            def depFiles = WtpComponentFactory.resolveDependenciesFor(eclipseModel.wtp.component.plusConfigurations,
-                    eclipseModel.wtp.component.minusConfigurations)*.file
-
-            for (entry in classpath.entries) {
-                if (!(entry instanceof AbstractLibrary)) {
-                    continue;
-                }
-                if (depFiles.contains(entry.library.file)) {
-                    // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
-                    //this is necessary so that the depended upon projects will have their dependencies
-                    // deployed to WEB-INF/lib of the main project.
-                    entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = libDeployPath
-                } else {
-                    // Mark this library as not required for deployment
-                    entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
-                }
-            }
-        }
-
-        def adjustWtpComponent = { WtpComponent wtpComponent ->
-            def depPaths = ClasspathFactory.resolveDependenciesFrom(eclipseModel.classpath).collect { dependency ->
-                eclipseModel.classpath.fileReferenceFactory.fromFile(dependency.file).path
-            }
-            wtpComponent.wbModuleEntries.removeAll{ wbModule ->
-                wbModule instanceof WbDependentModule && depPaths.any{ path -> wbModule.handle.endsWith(path) }
-            }
-        }
-
-        project.plugins.withType(JavaPlugin) {
-            eclipseModel.classpath.file.whenMerged { Classpath classpath ->
-                if (hasWarOrEarPlugin(project)) {
-                    return
-                }
-                adjustClasspath(classpath)
-            }
-            eclipseModel.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                if (hasWarOrEarPlugin(project)) {
-                    return
-                }
-                adjustWtpComponent(wtpComponent)
-            }
-        }
-
         project.plugins.withType(WarPlugin) {
             eclipseModel.classpath.containers WEB_LIBS_CONTAINER
+        }
 
-            project.eclipse.classpath.file.whenMerged { Classpath classpath ->
-                adjustClasspath(classpath)
+        // WarPlugin also applies JavaPlugin
+        project.plugins.withType(JavaPlugin) {
+            eclipseModel.classpath.file.whenMerged { Classpath classpath ->
+                if (hasEarPlugin(project)) {
+                    return
+                }
+                def libDeployPath = eclipseModel.wtp.component.libDeployPath
+                def depFiles = WtpComponentFactory.resolveDependenciesFor(eclipseModel.wtp.component.plusConfigurations,
+                        eclipseModel.wtp.component.minusConfigurations)*.file
+
+                for (entry in classpath.entries) {
+                    if (!(entry instanceof AbstractLibrary)) {
+                        continue;
+                    }
+                    if (depFiles.contains(entry.library.file)) {
+                        // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
+                        //this is necessary so that the depended upon projects will have their dependencies
+                        // deployed to WEB-INF/lib of the main project.
+                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = libDeployPath
+                    } else {
+                        // Mark this library as not required for deployment
+                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
+                    }
+                }
             }
-            project.eclipse.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                adjustWtpComponent(wtpComponent)
+            eclipseModel.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
+                if (hasEarPlugin(project)) {
+                    return
+                }
+                def depPaths = ClasspathFactory.resolveDependenciesFrom(eclipseModel.classpath).collect { dependency ->
+                    eclipseModel.classpath.fileReferenceFactory.fromFile(dependency.file).path
+                }
+                wtpComponent.wbModuleEntries.removeAll{ wbModule ->
+                    wbModule instanceof WbDependentModule && depPaths.any{ path -> wbModule.handle.endsWith(path) }
+                }
             }
         }
     }
@@ -230,7 +215,11 @@ class EclipseWtpPlugin extends IdePlugin {
     }
 
     private boolean hasWarOrEarPlugin(Project project) {
-        project.plugins.hasPlugin(WarPlugin) || project.plugins.hasPlugin(EarPlugin)
+        project.plugins.hasPlugin(WarPlugin) || hasEarPlugin(project)
+    }
+
+    private boolean hasEarPlugin(Project project) {
+        project.plugins.hasPlugin(EarPlugin)
     }
 
     private Set<File> getMainSourceDirs(Project project) {
