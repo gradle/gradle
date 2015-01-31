@@ -31,7 +31,7 @@ import org.gradle.platform.base.ModelInstantiationException;
 /**
  * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
  */
-public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
+public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private String name;
     private String fullName;
     private String parentName;
