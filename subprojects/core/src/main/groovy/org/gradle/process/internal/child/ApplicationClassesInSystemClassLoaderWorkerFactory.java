@@ -127,7 +127,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     private ActionExecutionWorker create() {
-        return new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
+        return new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress, processBuilder.getGradleUserHomeDir());
     }
 
 }

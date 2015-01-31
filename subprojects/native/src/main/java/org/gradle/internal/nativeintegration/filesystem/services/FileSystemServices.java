@@ -16,7 +16,6 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
@@ -26,11 +25,17 @@ import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.InitializableServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
+    private final InitializableServiceRegistry nativeServices;
+
+    public FileSystemServices(InitializableServiceRegistry nativeServices) {
+        this.nativeServices = nativeServices;
+    }
 
     @SuppressWarnings("UnusedDeclaration")
     public FileCanonicalizer createFileCanonicalizer() {
@@ -45,14 +50,14 @@ public class FileSystemServices {
         }
 
         // Use the native-platform integration, if available
-        try {
-            PosixFiles posixFiles = net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+        PosixFiles posixFiles = nativeServices.getInitialized().get(PosixFiles.class);
+        if (posixFiles instanceof UnavailablePosixFiles) {
+            LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
+        } else {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
             return new GenericFileSystem(chmod, stat, symlink);
-        } catch (NativeIntegrationUnavailableException ex) {
-            LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
         }
 
         LOGGER.debug("Using UnsupportedSymlink implementation.");

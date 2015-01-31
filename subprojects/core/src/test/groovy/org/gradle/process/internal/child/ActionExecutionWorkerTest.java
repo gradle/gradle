@@ -45,7 +45,7 @@ public class ActionExecutionWorkerTest {
     private final Address serverAddress = context.mock(Address.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
-    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", serverAddress) {
+    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", serverAddress, null) {
         @Override
         MessagingServices createClient() {
             return messagingServices;

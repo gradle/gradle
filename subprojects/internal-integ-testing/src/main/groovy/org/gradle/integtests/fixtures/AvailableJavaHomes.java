@@ -26,8 +26,8 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -139,7 +139,7 @@ abstract public class AvailableJavaHomes {
 
     private static List<JvmInstallation> getJvms() {
         if (jvms == null) {
-            FileCanonicalizer fileCanonicalizer = NativeServices.getInstance().get(FileCanonicalizer.class);
+            FileCanonicalizer fileCanonicalizer = NativeServicesTestFixture.getInstance().get(FileCanonicalizer.class);
             jvms = new ArrayList<JvmInstallation>();
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             jvms.addAll(new InstalledJvmLocator().findJvms());

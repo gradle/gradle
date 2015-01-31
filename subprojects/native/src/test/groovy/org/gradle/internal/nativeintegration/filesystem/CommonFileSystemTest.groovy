@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -25,7 +25,7 @@ import spock.lang.Specification
 class CommonFileSystemTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
 
-    def fs = NativeServices.instance.get(FileSystem)
+    def fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     def "unix permissions cannot be read on non existing file"() {
         def file = tmpDir.file("someFile")
