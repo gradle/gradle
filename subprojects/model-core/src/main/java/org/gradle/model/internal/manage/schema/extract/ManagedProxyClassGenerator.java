@@ -46,10 +46,11 @@ public class ManagedProxyClassGenerator {
 
     private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
 
-    private static final String CONCRETE_SIGNATURE = null;
-    private static final String STATE_FIELD_NAME = "state";
-    private static final String CAN_CALL_SETTERS_FIELD_NAME = "canCallSetters";
+    private static final String STATE_FIELD_NAME = "$state";
+    private static final String CAN_CALL_SETTERS_FIELD_NAME = "$canCallSetters";
     private static final String CONSTRUCTOR_NAME = "<init>";
+    private static final String CONCRETE_SIGNATURE = null;
+    private static final String[] NO_EXCEPTIONS = new String[0];
     private static final String STATE_SET_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Object.class));
     private static final String MANAGED_INSTANCE_TYPE = Type.getInternalName(ManagedInstance.class);
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
@@ -57,7 +58,6 @@ public class ManagedProxyClassGenerator {
     private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
     private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
-    private static final String[] NO_EXCEPTIONS = new String[0];
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
     private static final String CLASS_TYPE = Type.getInternalName(Class.class);
     private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Class.class), Type.getType(String.class));
