@@ -48,8 +48,8 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("A String or CharSequence path, e.g 'src/main/java' or '/usr/include'");
-        visitor.candidate("A String or CharSequence URI, e.g 'file:/usr/include'");
+        visitor.candidate("A String or CharSequence path").example("'src/main/java' or '/usr/include'");
+        visitor.candidate("A String or CharSequence URI").example("'file:/usr/include'");
         visitor.candidate("A File instance.");
         visitor.candidate("A URI or URL instance.");
     }

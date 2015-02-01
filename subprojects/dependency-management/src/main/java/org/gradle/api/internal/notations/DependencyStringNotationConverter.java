@@ -41,7 +41,7 @@ public class DependencyStringNotationConverter<T extends ExternalDependency> imp
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
+        visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
     }
 
     public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {

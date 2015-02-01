@@ -45,7 +45,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("ClassPathNotation, e.g. gradleApi().");
+        visitor.candidate("ClassPathNotation").example("gradleApi()");
     }
 
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {

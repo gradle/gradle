@@ -47,7 +47,7 @@ class NativeDependencyNotationParser {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map with mandatory 'library' and optional 'project' and 'linkage' keys, e.g. [project: ':someProj', library: 'mylib', linkage: 'static']");
+            visitor.candidate("Map with mandatory 'library' and optional 'project' and 'linkage' keys").example("[project: ':someProj', library: 'mylib', linkage: 'static']");
         }
 
         @SuppressWarnings("unused")

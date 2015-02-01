@@ -34,7 +34,7 @@ public class DependencyProjectNotationConverter implements NotationConverter<Pro
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("Projects, e.g. project(':some:project:path').");
+        visitor.candidate("Projects").example("project(':some:project:path')");
     }
 
     public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {

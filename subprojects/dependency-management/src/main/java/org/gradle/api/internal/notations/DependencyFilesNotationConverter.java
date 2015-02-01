@@ -33,7 +33,7 @@ public class DependencyFilesNotationConverter implements NotationConverter<FileC
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("FileCollections, e.g. files('some.jar', 'someOther.jar').");
+        visitor.candidate("FileCollections").example("files('some.jar', 'someOther.jar')");
     }
 
     public void convert(FileCollection notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {

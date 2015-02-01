@@ -28,9 +28,9 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("String or CharSequence instances e.g. 'some/path'");
-        visitor.candidate("Boolean values e.g. true, Boolean.TRUE");
-        visitor.candidate("Number values e.g. 42, 3.14");
+        visitor.candidate("String or CharSequence instances").example("'some/path'");
+        visitor.candidate("Boolean values").example("true").example("Boolean.TRUE");
+        visitor.candidate("Number values").example("42").example("3.14");
         visitor.candidate("A File instance");
         visitor.candidate("A Closure that returns any supported value.");
         visitor.candidate("A Callable that returns any supported value.");

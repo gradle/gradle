@@ -143,7 +143,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
+            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
 }

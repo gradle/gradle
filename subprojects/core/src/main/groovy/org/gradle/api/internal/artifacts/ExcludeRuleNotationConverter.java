@@ -36,7 +36,7 @@ public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRu
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("Maps with 'group' and/or 'module', e.g. [group: 'com.google.collections', module: 'google-collections'].");
+        visitor.candidate("Maps with 'group' and/or 'module'").example("[group: 'com.google.collections', module: 'google-collections']");
     }
 
     protected ExcludeRule parseMap(@MapKey(ExcludeRule.GROUP_KEY) @Optional String group,

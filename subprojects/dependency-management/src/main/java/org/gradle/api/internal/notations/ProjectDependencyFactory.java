@@ -54,7 +54,7 @@ public class ProjectDependencyFactory {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Map with mandatory 'path' and optional 'configuration' key, e.g. [path: ':someProj', configuration: 'someConf']");
+            visitor.candidate("Map with mandatory 'path' and optional 'configuration' key").example("[path: ':someProj', configuration: 'someConf']");
         }
     }
 }

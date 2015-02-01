@@ -35,7 +35,7 @@ public class DependencyMapNotationConverter<T extends ExternalDependency> extend
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("Maps, e.g. [group: 'org.gradle', name: 'gradle-core', version: '1.0'].");
+        visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
     }
 
     protected T parseMap(@MapKey("group") @Optional String group,

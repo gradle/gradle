@@ -32,7 +32,7 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.");
+        visitor.candidate("Non-empty String or CharSequence value").example("'some-lib' or 'org.libs:some-lib'");
     }
 
     public static NotationParser<Object, Spec<DependencyResult>> parser() {

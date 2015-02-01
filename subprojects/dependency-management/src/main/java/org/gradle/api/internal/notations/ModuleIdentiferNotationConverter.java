@@ -59,6 +59,6 @@ public class ModuleIdentiferNotationConverter extends TypedNotationConverter<Str
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'.");
+        visitor.candidate("String describing the module in 'group:name' format").example("'org.gradle:gradle-core'.");
     }
 }

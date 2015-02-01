@@ -72,7 +72,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Instances of AbstractArchiveTask e.g. jar");
+            visitor.candidate("Instances of AbstractArchiveTask").example("jar");
         }
     }
 
@@ -127,7 +127,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
+            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
 }

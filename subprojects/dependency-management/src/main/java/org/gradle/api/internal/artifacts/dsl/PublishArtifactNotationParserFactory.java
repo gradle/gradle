@@ -56,7 +56,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Instances of AbstractArchiveTask, e.g. jar.");
+            visitor.candidate("Instances of AbstractArchiveTask").example("jar.");
         }
 
         @Override
