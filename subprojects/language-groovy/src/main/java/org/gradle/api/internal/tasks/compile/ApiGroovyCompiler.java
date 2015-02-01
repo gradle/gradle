@@ -80,6 +80,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
         groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
         groovyCompilerClassLoader.disallowClass("groovy.servlet.GroovyServlet");
+        groovyCompilerClassLoader.disallowClass("groovy.servlet.ServletCategory");
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
         final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
