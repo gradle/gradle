@@ -16,21 +16,56 @@
 
 package org.gradle.internal.exceptions;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import com.google.common.base.Joiner;
+
+import java.util.*;
 
 /**
  * Formats candidates as a list.
  */
 public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
-    private final Set<String> candidates = new LinkedHashSet<String>();
+    private final Map<String, Candidate> candidates = new LinkedHashMap<String, Candidate>();
+    private Candidate current;
 
-    public Set<String> getCandidates() {
-        return candidates;
+    public Collection<String> getCandidates() {
+        return format(candidates);
+    }
+
+    private Collection<String> format(Map<String, Candidate> candidates) {
+        List<String> formatted = new ArrayList<String>();
+        for (Candidate candidate : candidates.values()) {
+            if (candidate.examples.isEmpty()) {
+                formatted.add(candidate.description);
+            } else {
+                formatted.add(String.format("%s, for example %s.", candidate.description, Joiner.on(", ").join(candidate.examples)));
+            }
+        }
+        return formatted;
     }
 
     @Override
-    public void candidate(String candidate) {
-        candidates.add(candidate);
+    public DiagnosticsVisitor candidate(String displayName) {
+        Candidate candidate = candidates.get(displayName);
+        if (candidate == null) {
+            candidate = new Candidate(displayName);
+            candidates.put(displayName, candidate);
+        }
+        current = candidate;
+        return this;
+    }
+
+    @Override
+    public DiagnosticsVisitor example(String example) {
+        current.examples.add(example);
+        return this;
+    }
+
+    private static class Candidate {
+        final String description;
+        final List<String> examples = new ArrayList<String>();
+
+        public Candidate(String description) {
+            this.description = description;
+        }
     }
 }

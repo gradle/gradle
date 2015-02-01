@@ -17,5 +17,13 @@
 package org.gradle.internal.exceptions;
 
 public interface DiagnosticsVisitor {
-    void candidate(String candidate);
+    /**
+     * Adds the description of some candidate.
+     */
+    DiagnosticsVisitor candidate(String displayName);
+
+    /**
+     * Adds an example for the previous candidate.
+     */
+    DiagnosticsVisitor example(String example);
 }
