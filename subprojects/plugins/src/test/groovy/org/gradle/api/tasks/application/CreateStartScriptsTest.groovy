@@ -21,16 +21,6 @@ import org.gradle.util.TestUtil
 class CreateStartScriptsTest extends Specification {
     final CreateStartScripts task = TestUtil.createTask(CreateStartScripts.class)
 
-    def scriptNameDefaultsToApplicationName() {
-        task.outputDir = new File('output')
-
-        when:
-        task.applicationName = "myApp"
-
-        then:
-        task.unixScript == new File(task.outputDir, 'myApp')
-        task.windowsScript == new File(task.outputDir, 'myApp.bat')
-    }
     
     def optsEnvironmentVariableNameDefaultsToApplicationName() {
         when:

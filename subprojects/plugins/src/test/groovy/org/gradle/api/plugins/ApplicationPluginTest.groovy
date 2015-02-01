@@ -65,6 +65,9 @@ class ApplicationPluginTest extends Specification {
         task.applicationName == project.applicationName
         task.outputDir == project.file('build/scripts')
         task.defaultJvmOpts == []
+        task.windowsStartScripts != null
+        task.unixStartScripts != null
+        task.quoteJvmOptsClosure == null
     }
 
     public void "adds installApp task to project with default target"() {
