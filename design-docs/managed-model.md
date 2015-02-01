@@ -580,15 +580,19 @@ Other issues:
 
 - Value types:
     - Should support `is` style getters for boolean properties.
-    - Should support all numeric types. (?)
+    - Should support all numeric types, including `Number`. (?)
     - Should support primitives. (?)
+    - Should support more value types, such as `File` and `CharSequence`
 - Support parameterized non-collection types as managed types
 
 ### Type coercions and general conveniences
 
 - Mix DSL and Groovy methods into managed type implementations.
     - Add DSL and Groovy type coercion for enums, closures, files, etc
-    - Missing property and method error messages use public type instead of implementation type.
+    - Improve 'missing property' and 'missing method' exceptions.
+    - 'Cannot set read-only property' error messages should report public type instead of implementation type.
+    - Error message attempting to set property using unsupported type should report public type and acceptable types.
+    - Missing method exception in DSL closure reports the method missing on the containing project, rather than the delegate object. Works for abstract Groovy class.
 - Add Java API for type coercion
 
 ### Collections
