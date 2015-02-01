@@ -32,10 +32,9 @@ public class OptionNotationParserFactory {
             parsers.add(new UnsupportedNotationParser());
         }
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
+            parsers.add(new NoDescriptionValuesJustReturningParser<String>(targetType.asSubclass(String.class)));
         }
         if (targetType.isEnum()) {
-            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
             parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
         if (parsers.isEmpty()) {
@@ -58,13 +57,26 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private static class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
+    private static class NoDescriptionValuesJustReturningParser<T extends CharSequence> implements ValueAwareNotationParser<T> {
+        private final Class<? extends T> passThroughType;
+
         public NoDescriptionValuesJustReturningParser(Class<? extends T> targetType) {
-            super(targetType);
+            this.passThroughType = targetType;
+        }
+
+        public T parseNotation(CharSequence notation) {
+            if (!passThroughType.isInstance(notation)) {
+                throw new UnsupportedNotationException(notation);
+            }
+            return passThroughType.cast(notation);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate(String.format("Instances of %s.", passThroughType.getSimpleName()));
         }
 
         public void describeValues(Collection<String> collector) {
-
         }
     }
 
