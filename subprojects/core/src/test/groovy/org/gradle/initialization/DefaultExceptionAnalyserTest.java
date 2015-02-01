@@ -47,6 +47,8 @@ public class DefaultExceptionAnalyserTest {
     private final StackTraceElement element = new StackTraceElement("class", "method", "filename", 7);
     private final StackTraceElement callerElement = new StackTraceElement("class", "method", "filename", 11);
     private final StackTraceElement otherElement = new StackTraceElement("class", "method", "otherfile", 11);
+    private final StackTraceElement elementWithNoSourceFile = new StackTraceElement("class", "method", null, 11);
+    private final StackTraceElement elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1);
     private final ScriptSource source = context.mock(ScriptSource.class);
 
     @Before
@@ -100,9 +102,9 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Test
-    public void addsLocationInfoFromDeepestStackFrame() {
+    public void addsLocationInfoFromDeepestStackFrameWithMatchingSourceFileAndLineInformation() {
         Throwable failure = new ContextualException();
-        failure.setStackTrace(toArray(element, otherElement, callerElement));
+        failure.setStackTrace(toArray(elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement));
 
         DefaultExceptionAnalyser analyser = analyser();
         notifyAnalyser(analyser, source);

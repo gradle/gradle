@@ -65,9 +65,9 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
                     Throwable currentException = actualException; currentException != null;
                     currentException = currentException.getCause()) {
                 for (StackTraceElement element : currentException.getStackTrace()) {
-                    if (scripts.containsKey(element.getFileName())) {
+                    if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
                         source = scripts.get(element.getFileName());
-                        lineNumber = element.getLineNumber() >= 0 ? element.getLineNumber() : null;
+                        lineNumber = element.getLineNumber();
                         break;
                     }
                 }
