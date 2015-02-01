@@ -18,6 +18,8 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.*;
@@ -34,7 +36,6 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class ManagedProxyClassGenerator {
-
     /*
         Note: there is deliberately no internal synchronizing or caching at this level.
 
@@ -55,6 +56,17 @@ public class ManagedProxyClassGenerator {
     private static final String CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
     private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
+    private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
+    private static final String[] NO_EXCEPTIONS = new String[0];
+    private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
+    private static final String CLASS_TYPE = Type.getInternalName(Class.class);
+    private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Class.class), Type.getType(String.class));
+    private static final String OBJECT_ARRAY_TYPE = Type.getInternalName(Object[].class);
+    private static final String MISSING_METHOD_EXCEPTION_TYPE = Type.getInternalName(MissingMethodException.class);
+    private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class));
+    private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
+    private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
+    private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
 
     public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -89,6 +101,7 @@ public class ManagedProxyClassGenerator {
         writeConstructor(visitor, generatedType, superclassType);
         writeToString(visitor, generatedType, managedTypeClass);
         writeManagedInstanceMethods(visitor, generatedType);
+        writeGroovyMethods(visitor, managedTypeClass);
         writeMutationMethods(visitor, generatedType, managedTypeClass);
         visitor.visitEnd();
     }
@@ -111,7 +124,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType) {
-        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
+        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         constructorVisitor.visitCode();
 
         invokeSuperConstructor(constructorVisitor, superclassType);
@@ -136,7 +149,7 @@ public class ManagedProxyClassGenerator {
     }
 
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
@@ -151,8 +164,54 @@ public class ManagedProxyClassGenerator {
         }
     }
 
+    private void writeGroovyMethods(ClassVisitor visitor, Class<?> managedTypeClass) {
+        // Object propertyMissing(String name)
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        methodVisitor.visitCode();
+
+        // throw new MissingPropertyException(name, <managed-type>.class)
+        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(Opcodes.DUP);
+        putFirstMethodArgumentOnStack(methodVisitor);
+        putClassOnStack(methodVisitor, managedTypeClass);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+
+        // Object propertyMissing(String name, Object value)
+
+        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        methodVisitor.visitCode();
+
+        // throw new MissingPropertyException(name, <managed-type>.class)
+        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(Opcodes.DUP);
+        putFirstMethodArgumentOnStack(methodVisitor);
+        putClassOnStack(methodVisitor, managedTypeClass);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+
+        // Object methodMissing(String name, Object args)
+        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        methodVisitor.visitCode();
+
+        // throw new MissingMethodException(name, <managed-type>.class, args)
+        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_METHOD_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(Opcodes.DUP);
+        putMethodArgumentOnStack(methodVisitor, 1);
+        putClassOnStack(methodVisitor, managedTypeClass);
+        putMethodArgumentOnStack(methodVisitor, 2);
+        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_ARRAY_TYPE);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+    }
+
+    private void putClassOnStack(MethodVisitor methodVisitor, Class<?> managedTypeClass) {
+        putConstantOnStack(methodVisitor, managedTypeClass.getName());
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, CLASS_TYPE, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
+    }
+
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, new String[0]);
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
@@ -249,13 +308,17 @@ public class ManagedProxyClassGenerator {
     }
 
     private MethodVisitor declareMethod(ClassVisitor visitor, Method method) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), CONCRETE_SIGNATURE, new String[0]);
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         return methodVisitor;
     }
 
     private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor) {
         methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+    }
+
+    private void putMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
     }
 
     private void putStateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
