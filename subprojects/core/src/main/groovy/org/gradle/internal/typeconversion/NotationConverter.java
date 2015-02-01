@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 /**
  * A converter from notations of type {@link N} to results of type {@link T}.
@@ -34,5 +34,5 @@ public interface NotationConverter<N, T> {
     /**
      * Describes the formats that this converter accepts.
      */
-    void describe(Collection<String> candidateFormats);
+    void describe(DiagnosticsVisitor visitor);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.typeconversion;
+package org.gradle.internal.exceptions;
 
-import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-class CharSequenceNotationParser implements NotationConverter<String, String> {
-    public void convert(String notation, NotationConvertResult<? super String> result) throws TypeConversionException {
-        result.converted(notation);
+/**
+ * Formats candidates as a list.
+ */
+public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
+    private final Set<String> candidates = new LinkedHashSet<String>();
+
+    public Set<String> getCandidates() {
+        return candidates;
     }
 
     @Override
-    public void describe(DiagnosticsVisitor visitor) {
-        visitor.candidate("String or CharSequence instances.");
+    public void candidate(String candidate) {
+        candidates.add(candidate);
     }
 }

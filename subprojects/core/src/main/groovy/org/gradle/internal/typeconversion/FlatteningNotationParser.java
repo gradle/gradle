@@ -16,6 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
@@ -34,9 +35,10 @@ public class FlatteningNotationParser<T> implements NotationParser<Object, Set<T
         this.delegate = delegate;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
-        candidateFormats.add("Collections or arrays of any other supported format. Nested collections/arrays will be flattened.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        delegate.describe(visitor);
+        visitor.candidate("Collections or arrays of any other supported format. Nested collections/arrays will be flattened.");
     }
 
     public Set<T> parseNotation(Object notation) {

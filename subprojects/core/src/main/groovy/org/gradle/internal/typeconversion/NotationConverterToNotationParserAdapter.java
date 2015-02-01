@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 public class NotationConverterToNotationParserAdapter<N, T> implements NotationParser<N, T> {
     private final NotationConverter<N, ? extends T> converter;
@@ -34,8 +34,9 @@ public class NotationConverterToNotationParserAdapter<N, T> implements NotationP
         return result.result;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        converter.describe(candidateFormats);
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        converter.describe(visitor);
     }
 
     private static class ResultImpl<T> implements NotationConvertResult<T> {

@@ -24,6 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -34,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
@@ -67,8 +67,9 @@ public abstract class AbstractFileResolver implements FileResolver {
                 return resolve(notation, PathValidation.NONE);
             }
 
-            public void describe(Collection<String> candidateFormats) {
-                candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                visitor.candidate("Anything that can be converted to a file, as per Project.file()");
             }
         };
     }

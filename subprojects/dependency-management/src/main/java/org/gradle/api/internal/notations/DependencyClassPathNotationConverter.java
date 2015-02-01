@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -42,8 +43,9 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         this.fileResolver = fileResolver;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("ClassPathNotation, e.g. gradleApi().");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("ClassPathNotation, e.g. gradleApi().");
     }
 
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {

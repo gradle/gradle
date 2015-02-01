@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 public class JustReturningConverter<N, T> implements NotationConverter<N, T> {
 
@@ -25,8 +25,9 @@ public class JustReturningConverter<N, T> implements NotationConverter<N, T> {
         this.passThroughType = passThroughType;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add(String.format("Instances of %s.", passThroughType.getSimpleName()));
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate(String.format("Instances of %s.", passThroughType.getSimpleName()));
     }
 
     @Override

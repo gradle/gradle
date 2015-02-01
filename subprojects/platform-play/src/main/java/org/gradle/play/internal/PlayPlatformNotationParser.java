@@ -17,11 +17,10 @@
 package org.gradle.play.internal;
 
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
-
-import java.util.Collection;
 
 // TODO:DAZ Unit test
 public class PlayPlatformNotationParser {
@@ -42,8 +41,8 @@ public class PlayPlatformNotationParser {
 
     static class MapConverter extends MapNotationConverter<PlatformRequirement> {
         @Override
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Map defining the platform versions, e.g. [play: '2.3.7', scala:'2.11.4', java: '1.6'].");
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Map defining the platform versions, e.g. [play: '2.3.7', scala:'2.11.4', java: '1.6'].");
         }
 
         protected PlatformRequirement parseMap(@MapKey("play") String playVersion,
@@ -54,8 +53,9 @@ public class PlayPlatformNotationParser {
     }
 
     static class StringConverter implements NotationConverter<String, PlatformRequirement> {
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("The name of a Play platform, e.g. 'play-2.3.7'.");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("The name of a Play platform, e.g. 'play-2.3.7'.");
         }
 
         public void convert(String notation, NotationConvertResult<? super PlatformRequirement> result) throws TypeConversionException {

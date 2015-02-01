@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 /**
  * A parser from notations of type {@link N} to a result of type {@link T}. This interface is used by clients to perform the parsing. To implement a parser, you should use {@link NotationConverter}
@@ -32,5 +32,5 @@ public interface NotationParser<N, T> {
     /**
      * Describes the formats that the parser accepts.
      */
-    void describe(Collection<String> candidateFormats);
+    void describe(DiagnosticsVisitor visitor);
 }

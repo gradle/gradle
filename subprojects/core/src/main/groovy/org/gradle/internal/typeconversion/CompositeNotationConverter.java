@@ -16,7 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+
 import java.util.List;
 
 public class CompositeNotationConverter<N, T> implements NotationConverter<N, T> {
@@ -33,9 +34,10 @@ public class CompositeNotationConverter<N, T> implements NotationConverter<N, T>
         }
     }
 
-    public void describe(Collection<String> candidateFormats) {
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
         for (NotationConverter<N, ? extends T> converter : converters) {
-            converter.describe(candidateFormats);
+            converter.describe(visitor);
         }
     }
 }

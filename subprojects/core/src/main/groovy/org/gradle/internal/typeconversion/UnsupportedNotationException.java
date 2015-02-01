@@ -18,8 +18,8 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
+import java.util.Collection;
 import java.util.Formatter;
-import java.util.List;
 
 public class UnsupportedNotationException extends RuntimeException {
     private final Object notation;
@@ -28,12 +28,12 @@ public class UnsupportedNotationException extends RuntimeException {
         this.notation = notation;
     }
 
-    public UnsupportedNotationException(Object notation, String failure, @Nullable String resolution, List<String> candidateTypes) {
+    public UnsupportedNotationException(Object notation, String failure, @Nullable String resolution, Collection<String> candidateTypes) {
         super(format(failure, resolution, candidateTypes));
         this.notation = notation;
     }
 
-    private static String format(String failure, String resolution, List<String> formats) {
+    private static String format(String failure, String resolution, Collection<String> formats) {
         Formatter message = new Formatter();
         message.format("%s%n", failure);
         message.format("The following types/formats are supported:");

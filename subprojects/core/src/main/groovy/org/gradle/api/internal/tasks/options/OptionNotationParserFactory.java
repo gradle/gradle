@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 import java.util.ArrayList;
@@ -49,7 +50,8 @@ public class OptionNotationParserFactory {
             throw new UnsupportedOperationException();
         }
 
-        public void describe(Collection<String> candidateFormats) {
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
         }
 
         public void describeValues(Collection<String> collector) {

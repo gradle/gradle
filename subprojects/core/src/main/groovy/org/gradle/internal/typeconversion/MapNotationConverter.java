@@ -18,12 +18,16 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.ConfigureUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Converts a {@code Map<String, Object>} to the target type. Subclasses should define a {@code T parseMap()} method which takes a parameter 
@@ -57,8 +61,9 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         throw new UnsupportedOperationException(String.format("No parseMap() method found on class %s.", getClass().getSimpleName()));
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Maps");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Maps");
     }
 
     public T parseType(Map values) throws UnsupportedNotationException {

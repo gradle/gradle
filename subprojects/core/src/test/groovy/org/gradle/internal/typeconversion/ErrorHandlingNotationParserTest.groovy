@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.typeconversion
 
+import org.gradle.internal.exceptions.DiagnosticsVisitor
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -36,14 +37,14 @@ The following types/formats are supported:
 
 <broken>''')
 
-        1 * target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
+        1 * target.describe(!null) >> { DiagnosticsVisitor visitor -> visitor.candidate("format 1"); visitor.candidate("format 2") }
         0 * target._  //no parsing
     }
 
     def "reports unable to parse non-null"() {
         given:
         target.parseNotation("bad") >> { throw new UnsupportedNotationException("broken-part") }
-        target.describe(!null) >> { args -> args[0].add("format 1"); args[0].add("format 2") }
+        target.describe(!null) >> { DiagnosticsVisitor visitor -> visitor.candidate("format 1"); visitor.candidate("format 2") }
 
         when:
         parser.parseNotation("bad")

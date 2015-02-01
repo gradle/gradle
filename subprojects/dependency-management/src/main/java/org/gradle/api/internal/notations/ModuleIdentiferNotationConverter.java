@@ -18,10 +18,10 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
-import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId;
@@ -57,7 +57,8 @@ public class ModuleIdentiferNotationConverter extends TypedNotationConverter<Str
         return newId(group, name);
     }
 
-    public void describe(Collection candidateFormats) {
-        candidateFormats.add("String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("String describing the module in 'group:name' format, for example: 'org.gradle:gradle-core'.");
     }
 }
