@@ -185,8 +185,9 @@ task sleep << {
 
     List<File> getLogs(baseDir) {
         //the gradle version dir
-        assert baseDir.listFiles().length == 1
-        def daemonFiles = baseDir.listFiles()[0].listFiles()
+        def daemonDirs = baseDir.listFiles().findAll { it.name != "native" }
+        assert daemonDirs.size() == 1
+        def daemonFiles = daemonDirs[0].listFiles()
 
         daemonFiles.findAll { it.name.endsWith('.log') }
     }

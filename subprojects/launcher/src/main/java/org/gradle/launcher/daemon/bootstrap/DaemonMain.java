@@ -19,6 +19,7 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
@@ -76,6 +77,7 @@ public class DaemonMain extends EntryPoint {
         }
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
+        NativeServices.initialize(daemonBaseDir);
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
