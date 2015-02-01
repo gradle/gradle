@@ -307,4 +307,40 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         and:
         failure.assertHasCause("Invalid managed model type Person: only paired getter/setter methods are supported (invalid methods: void Person#foo())")
     }
+
+    def "reports managed interface type in missing property error message"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void someone(Person person) {
+                }
+
+                @Mutate
+                void tasks(CollectionBuilder<Task> tasks, Person person) {
+                    println person.unknown
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(18)
+        failure.assertHasCause("No such property: unknown for class: Person")
+    }
+
 }

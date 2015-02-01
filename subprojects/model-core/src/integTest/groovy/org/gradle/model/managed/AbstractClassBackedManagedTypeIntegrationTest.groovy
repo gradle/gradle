@@ -269,4 +269,40 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         and:
         failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
     }
+
+    def "reports managed abstract type in missing property error message"() {
+        when:
+        buildScript '''
+            import org.gradle.model.*
+            import org.gradle.model.collection.*
+
+            @Managed
+            abstract class Person {
+                abstract String getName()
+                abstract void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void someone(Person person) {
+                }
+
+                @Mutate
+                void tasks(CollectionBuilder<Task> tasks, Person person) {
+                    println person.unknown
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(18)
+        failure.assertHasCause("No such property: unknown for class: Person")
+    }
+
 }
