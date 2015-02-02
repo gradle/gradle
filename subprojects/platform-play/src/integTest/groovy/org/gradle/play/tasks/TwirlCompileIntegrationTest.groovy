@@ -17,42 +17,39 @@
 package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.TextUtil
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
 
     def setup() {
-        buildFile <<"""
-plugins {
-    id 'play'
-}
+        settingsFile << """ rootProject.name = 'twirl-play-app' """
+        buildFile << """
+            plugins {
+                id 'play-application'
+            }
 
-model {
-    components {
-        play {
-            targetPlatform "play-${version}"
-        }
-    }
-    tasks {
-        create("twirlCompile", TwirlCompile){ task ->
-            task.outputDirectory = file('build/twirl')
-            task.source file('./app')
-            task.platform = binaries.playBinary.targetPlatform
-        }
-    }
-}
+            repositories{
+                jcenter()
+                maven{
+                    name = "typesafe-maven-release"
+                    url = "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+            }
 
-repositories{
-    jcenter()
-    maven{
-        name = "typesafe-maven-release"
-        url = "https://repo.typesafe.com/typesafe/maven-releases"
-    }
-}
-"""
+            model {
+                components {
+                    play {
+                        targetPlatform "play-${version}"
+                    }
+                }
+            }
+        """
     }
 
     def "can run TwirlCompile"(){
         given:
+        withCustomCompileTask()
         withTwirlTemplate()
         when:
         succeeds("twirlCompile")
@@ -67,6 +64,7 @@ repositories{
 
     def "runs compiler incrementally"(){
         when:
+        withCustomCompileTask()
         withTwirlTemplate("input1.scala.html")
         then:
         succeeds("twirlCompile")
@@ -93,6 +91,7 @@ repositories{
 
     def "removes stale output files in incremental compile"(){
         given:
+        withCustomCompileTask()
         withTwirlTemplate("input1.scala.html")
         withTwirlTemplate("input2.scala.html")
         succeeds("twirlCompile")
@@ -111,18 +110,72 @@ repositories{
         file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
     }
 
-    def withTwirlTemplate(String fileName = "index.scala.html") {
-        def templateFile = file("app", "views", fileName)
-        templateFile.createFile()
-        templateFile << """@(message: String)
+    def "builds multiple twirl source sets as part of play build" () {
+        withExtraSourceSets()
+        withTemplateSource(file("app", "views", "index.scala.html"))
+        withTemplateSource(file("otherSources", "templates", "other.scala.html"))
+        withTemplateSource(file("extraSources", "extra.scala.html"))
 
-@main("Welcome to Play") {
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":twirlCompileTwirlTemplatesPlayBinary",
+                ":twirlCompileExtraTwirlPlayBinary",
+                ":twirlCompileOtherTwirlPlayBinary"
+        )
+
+        and:
+        file("build/playBinary/src/twirlCompileTwirlTemplatesPlayBinary/views/html/").assertHasDescendants("index.template.scala")
+        file("build/playBinary/src/twirlCompileOtherTwirlPlayBinary/templates/html").assertHasDescendants("other.template.scala")
+        file("build/playBinary/src/twirlCompileExtraTwirlPlayBinary/html").assertHasDescendants("extra.template.scala")
+
+        and:
+        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("views/html/index.class")
+        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("templates/html/other.class")
+        jar("build/playBinary/lib/twirl-play-app.jar").assertContainsFile("html/extra.class")
+    }
+
+    def "extra sources appear in the component report"() {
+        withExtraSourceSets()
+
+        when:
+        succeeds "components"
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+Play Application 'play'
+-----------------------
+
+Source sets
+    Scala source 'play:appSources'
+        app
+    Twirl template source 'play:extraTwirl'
+        extraSources
+    Twirl template source 'play:otherTwirl'
+        otherSources
+    JVM resources 'play:resources'
+        conf
+    Twirl template source 'play:twirlTemplates'
+        app
+"""))
+
+    }
+
+
+    def withTemplateSource(File templateFile) {
+        templateFile << """@(message: String)
 
     @play20.welcome(message)
 
-}
-
 """
+    }
+
+    def withTwirlTemplate(String fileName = "index.scala.html") {
+        def templateFile = file("app", "views", fileName)
+        templateFile.createFile()
+        withTemplateSource(templateFile)
         buildFile << """
             model{
                 tasks.twirlCompile{
@@ -130,5 +183,42 @@ repositories{
                 }
             }"""
 
+    }
+
+    def withCustomCompileTask() {
+        buildFile << """
+            model {
+                tasks {
+                    create("twirlCompile", TwirlCompile){ task ->
+                        task.outputDirectory = file('build/twirl')
+                        task.source file('./app')
+                        task.platform = binaries.playBinary.targetPlatform
+                    }
+                }
+            }
+        """
+    }
+
+    def withExtraSourceSets() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            extraTwirl(TwirlSourceSet) {
+                                source.srcDir "extraSources"
+                            }
+                            otherTwirl(TwirlSourceSet) {
+                                source.srcDir "otherSources"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    JarTestFixture jar(String fileName) {
+        new JarTestFixture(file(fileName))
     }
 }
