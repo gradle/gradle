@@ -45,4 +45,11 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      */
     void realize();
 
+    /**
+     * Performs work to discover more tasks.
+     *
+     * This method differs from {@link #realize} in that it does not discover new tasks by traversing task dependencies.
+     */
+    void discoverTasks();
+
 }
