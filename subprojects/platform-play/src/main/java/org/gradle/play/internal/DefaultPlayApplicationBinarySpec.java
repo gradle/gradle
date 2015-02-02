@@ -41,6 +41,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
+    private BinaryBuildAbility buildAbility;
 
     @Override
     protected String getTypeName() {
@@ -103,10 +104,13 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public BinaryBuildAbility getBuildAbility() {
-        return new CompositeBuildAbility(
-                super.getBuildAbility(),
-                new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()))
-        );
+        if (buildAbility == null) {
+            buildAbility = new CompositeBuildAbility(
+                    super.getBuildAbility(),
+                    new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()))
+            );
+        }
+        return buildAbility;
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
