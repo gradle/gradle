@@ -77,7 +77,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "foo"
+        fails "dependencies"
 
         then:
         failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
