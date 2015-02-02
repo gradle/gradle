@@ -18,7 +18,8 @@
 
 package org.gradle.api.internal.notations
 
-import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter
+import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 import spock.lang.Subject
@@ -27,7 +28,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
 class ModuleIdentiferNotationConverterTest extends Specification {
 
-    @Subject parser = new NotationConverterToNotationParserAdapter(new ModuleIdentiferNotationConverter())
+    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentiferNotationConverter()).toComposite()
 
     def "parses module identifer notation"() {
         expect:

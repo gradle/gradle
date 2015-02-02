@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 public class TypedNotationConverterTest extends Specification {
 
-    def parser = new NotationConverterToNotationParserAdapter<>(new DummyConverter());
+    def parser = NotationParserBuilder.toType(Integer).converter(new DummyConverter()).toComposite()
 
     def "parses object of source type"(){
         expect:
