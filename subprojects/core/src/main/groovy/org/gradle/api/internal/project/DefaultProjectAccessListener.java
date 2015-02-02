@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.model.internal.core.ModelNode;
 
 public class DefaultProjectAccessListener implements ProjectAccessListener {
 
@@ -26,5 +28,6 @@ public class DefaultProjectAccessListener implements ProjectAccessListener {
 
     public void beforeResolvingProjectDependency(ProjectInternal targetProject) {
         targetProject.evaluate();
+        targetProject.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
     }
 }
