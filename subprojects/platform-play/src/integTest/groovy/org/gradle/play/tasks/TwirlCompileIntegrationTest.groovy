@@ -108,6 +108,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         and:
         file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
         file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
+        file("build/twirl/views/html/input2.template.scala").assertDoesNotExist()
     }
 
     def "builds multiple twirl source sets as part of play build" () {
@@ -159,6 +160,8 @@ Source sets
         conf
     Twirl template source 'play:twirlTemplates'
         app
+
+Binaries
 """))
 
     }
