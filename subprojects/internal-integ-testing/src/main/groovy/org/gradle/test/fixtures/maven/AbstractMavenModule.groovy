@@ -147,6 +147,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         assert parsedPom.packaging == null
     }
 
+    void assertPublishedAsJavaModuleWithSourcesAndJavaDoc() {
+        assertPublished()
+        assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.jar", "${artifactId}-${publishArtifactVersion}.pom",
+                "${artifactId}-${publishArtifactVersion}-sources.jar", "${artifactId}-${publishArtifactVersion}-javadoc.jar")
+        assert parsedPom.packaging == null
+    }
     void assertPublishedAsWebModule() {
         assertPublished()
         assertArtifactsPublished("${artifactId}-${publishArtifactVersion}.war", "${artifactId}-${publishArtifactVersion}.pom")

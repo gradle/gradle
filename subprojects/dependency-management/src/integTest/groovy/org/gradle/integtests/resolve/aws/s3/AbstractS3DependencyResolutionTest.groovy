@@ -24,7 +24,7 @@ import org.junit.Rule
 abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyResolutionTest {
 
     @Rule
-    public final S3StubServer server = new S3StubServer()
+    public final S3StubServer server = new S3StubServer(this)
     final S3StubSupport s3StubSupport = new S3StubSupport(server)
 
     def setup() {

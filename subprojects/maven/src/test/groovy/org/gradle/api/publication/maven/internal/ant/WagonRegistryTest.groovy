@@ -40,7 +40,7 @@ class WagonRegistryTest extends Specification {
         PlexusContainer container = Mock()
         container.lookup(WagonManager.ROLE) >> wagonManager
 
-        MavenDeploy mavenDeploy = Mock()
+        MavenDeployAction mavenDeploy = Mock()
         mavenDeploy.getContainer() >> container
 
         MavenArtifactRepository artifactRepository = Mock()
@@ -64,7 +64,7 @@ class WagonRegistryTest extends Specification {
         PlexusContainer container = Mock()
         container.lookup(WagonManager.ROLE) >> { throw new RuntimeException("should not happen") }
 
-        MavenDeploy mavenDeploy = Mock()
+        MavenDeployAction mavenDeploy = Mock()
         mavenDeploy.getContainer() >> container
 
         MavenArtifactRepository artifactRepository = Mock()

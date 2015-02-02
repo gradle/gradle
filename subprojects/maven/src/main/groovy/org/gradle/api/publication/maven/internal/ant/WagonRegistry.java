@@ -48,11 +48,12 @@ public class WagonRegistry {
         this.wagonDeployments.add(protocol.toLowerCase());
     }
 
-    public void register(MavenDeploy mavenDeploy, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+    public void register(MavenDeployAction mavenDeploy, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         PlexusContainer container = mavenDeploy.getContainer();
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
         if (wagonDeployments.contains(protocol)) {
             try {
+
                 WagonManager wagonManager = (WagonManager) container.lookup(WagonManager.ROLE);
                 ComponentDescriptor componentDescriptor = new ComponentDescriptor();
                 componentDescriptor.setRole(Wagon.ROLE);

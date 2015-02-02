@@ -43,6 +43,7 @@ import java.util.zip.GZIPOutputStream
 class HttpServer extends ServerWithExpectations {
 
     private final static Logger logger = LoggerFactory.getLogger(HttpServer.class)
+    def history = []
 
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
@@ -93,6 +94,7 @@ class HttpServer extends ServerWithExpectations {
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 println("handling http request: $request.method $target")
+                history << "${request.method} :${request.pathInfo}"
             }
         })
         handlers.addHandler(collection)
@@ -598,6 +600,15 @@ class HttpServer extends ServerWithExpectations {
 
     int getPort() {
         return server.connectors[0].localPort
+    }
+
+    /**
+     * Prints all requests handled by this server
+     */
+    def printHistory() {
+        history.each {
+            println it
+        }
     }
 
     static class HttpExpectOne extends ExpectOne {

@@ -81,19 +81,12 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumlength) {
         HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
+        String formattedHashString = hash.asZeroPaddedHexString(checksumlength);
         try {
             return formattedHashString.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    private String formatHashString(String hashKey, int length) {
-        while (hashKey.length() < length) {
-            hashKey = "0" + hashKey;
-        }
-        return hashKey;
     }
 
     private void doPut(final File source, URI destination) throws IOException {

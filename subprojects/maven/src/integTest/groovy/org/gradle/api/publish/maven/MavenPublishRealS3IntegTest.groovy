@@ -23,7 +23,7 @@ import spock.lang.Unroll
 /**
  * An ignored test which is useful for quickly testing publications against real repositories
  */
-class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishRealS3IntegTest extends AbstractMavenPublishIntegTest {
 
     @Ignore
     @Unroll

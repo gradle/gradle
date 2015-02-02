@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.resource.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +34,7 @@ public class RepositoryTransportDeployDelegate {
 
     private final RepositoryTransport transport;
     private final MavenArtifactRepository artifactRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployDelegate.class);
 
     public RepositoryTransportDeployDelegate(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         this.artifactRepository = artifactRepository;
@@ -47,6 +50,7 @@ public class RepositoryTransportDeployDelegate {
                 return true;
             }
         } catch (Exception e) {
+            LOGGER.debug("Could get and write file:" , e);
             return false;
         }
         return false;

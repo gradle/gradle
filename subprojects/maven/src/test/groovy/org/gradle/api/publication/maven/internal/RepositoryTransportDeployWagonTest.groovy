@@ -31,6 +31,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class RepositoryTransportDeployWagonTest extends Specification {
 
@@ -94,13 +95,13 @@ class RepositoryTransportDeployWagonTest extends Specification {
         'resourceExists' | ['a']
     }
 
-    def "should provide defaults which ignores maven centric stuff"() {
+    def "should provide defaults which ignore maven centric stuff"() {
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
 
         expect:
-        wagon.supportsDirectoryCopy() == false
+        !wagon.supportsDirectoryCopy()
         wagon.getTimeout() == 0
-        wagon.isInteractive() == false
+        !wagon.isInteractive()
     }
 
     def "should create a RepositoryTransportDeployDelegate"() {
@@ -115,13 +116,18 @@ class RepositoryTransportDeployWagonTest extends Specification {
         wagon.delegate.artifactRepository == mavenArtifactRepository
     }
 
-    def "should signal the correct events on a successful upload"() {
+    @Unroll
+    def "should signal #expectedProgressCount progress events on a successful upload of #byteSize bytes"() {
         setup:
         TransferListener transferListener = Mock()
         RepositoryTransportDeployDelegate delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
+        byte[] b = new byte[byteSize]
+        new Random().nextBytes(b)
+        file << b
+
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
@@ -138,11 +144,18 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * delegate.putFile(file, resourceName)
         then:
-        1 * transferListener.transferProgress(*_)
+        expectedProgressCount * transferListener.transferProgress(*_)
         then:
         1 * transferListener.transferCompleted(_)
         then:
         0 * transferListener._
+
+        where:
+        byteSize | expectedProgressCount
+        4096     | 1
+        4097     | 2
+        8192     | 2
+        8193     | 3
     }
 
     def "should signal correct events on a failed upload"() {
@@ -184,6 +197,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
+        file << "someText"
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
@@ -198,6 +212,8 @@ class RepositoryTransportDeployWagonTest extends Specification {
         1 * transferListener.transferStarted(_)
         then:
         1 * delegate.getAndWriteFile(file, resourceName) >> true
+        then:
+        1 * transferListener.transferProgress(*_)
         then:
         1 * transferListener.transferCompleted(*_)
         then:
