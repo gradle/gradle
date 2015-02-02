@@ -70,7 +70,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
     }
 
     @Issue("GRADLE-3235")
-    def canUseAstTransformThatReferencesServletCategory() {
+    def canUseAstTransformUsingServletCategory() {
         if (versionLowerThan('2.0.5')) {
             return
         }
