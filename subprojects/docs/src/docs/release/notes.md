@@ -158,6 +158,7 @@ We would like to thank the following community members for making contributions 
 * [Michal Bendowski](https://github.com/bendowski-google) - six webDist userguide example
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
 * [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
+* [Roman Donchenko](https://github.com/SpecLad) - fix a bug in `org.gradle.api.specs.OrSpecTest`
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
