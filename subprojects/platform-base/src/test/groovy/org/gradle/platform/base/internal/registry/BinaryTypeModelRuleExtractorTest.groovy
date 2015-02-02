@@ -20,13 +20,15 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrar
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.internal.DefaultBinaryContainer
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -45,37 +47,23 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        1 * modelRegistrar.apply(_, _, _)
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Defaults
+        registration.action.subject == ModelReference.of(DefaultBinaryContainer)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        0 * modelRegistrar._
+        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     @Unroll
@@ -94,9 +82,9 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
 
         where:
         methodName                         | expectedMessage                                                                                                        | descr
-        "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                                  | "additional rule parameter"
-        "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                                      | "method with return type"
-        "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                                  | "implementation set multiple times"
+        "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                  | "additional rule parameter"
+        "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                      | "method with return type"
+        "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                  | "implementation set multiple times"
         "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                         | "missing type parameter"
         "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
         "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                           | "type is BinarySpec"

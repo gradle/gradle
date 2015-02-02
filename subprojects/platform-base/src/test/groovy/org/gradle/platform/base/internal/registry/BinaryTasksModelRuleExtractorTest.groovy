@@ -20,8 +20,9 @@ import org.gradle.api.Task
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrar
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
@@ -65,20 +66,14 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
     @Unroll
     def "applies ComponentModelBasePlugin and adds binary task creation rule for plain sample binary"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        1 * modelRegistrar.apply(_, _, _)
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Defaults
+        registration.action.subject == ModelReference.of("binaries")
     }
 
     interface SomeBinary extends BinarySpec {}

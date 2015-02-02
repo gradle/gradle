@@ -20,10 +20,12 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrar
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.platform.base.internal.DefaultComponentSpecContainer
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -41,37 +43,23 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        1 * modelRegistrar.apply(_, _, _)
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Defaults
+        registration.action.subject == ModelReference.of(DefaultComponentSpecContainer)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        0 * modelRegistrar._
+        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     @Unroll

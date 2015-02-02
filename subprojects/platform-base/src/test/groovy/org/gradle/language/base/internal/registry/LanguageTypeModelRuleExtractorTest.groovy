@@ -24,8 +24,9 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrar
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -71,42 +72,28 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "notImplementingLibraryType"        | "Language implementation '${NotImplementingCustomLanguageSourceSet.name}' must implement '${CustomLanguageSourceSet.name}'." | "implementation not implementing type class"
         "wrongSubType"                      | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."                         | "implementation not extending BaseComponentSpec"
         "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
-        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."           | "implementation with not public default constructor"
+        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."              | "implementation with not public default constructor"
     }
 
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        1 * modelRegistrar.apply(_, _, _)
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Defaults
+        registration.action.subject == ModelReference.of(LanguageRegistry)
     }
 
     def "only applies ComponentModelBasePlugin when implementation not set"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        0 * modelRegistrar._
+        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     interface CustomLanguageSourceSet extends LanguageSourceSet {}

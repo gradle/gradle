@@ -19,8 +19,9 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelRegistrar
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
@@ -39,20 +40,14 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
-        given:
-        def modelRegistrar = Mock(ModelRegistrar)
-
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
-
-        when:
-        registration.applyTo(modelRegistrar, ModelPath.ROOT)
-
-        then:
-        1 * modelRegistrar.apply(_, _, _)
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Mutate
+        registration.action.subject == ModelReference.of("binaries", BinaryContainer)
 
         where:
         ruleName         | descr
