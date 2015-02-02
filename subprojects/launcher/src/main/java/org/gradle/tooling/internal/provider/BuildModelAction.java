@@ -49,7 +49,7 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
             for (Project project : gradle.getRootProject().getAllprojects()) {
                 ProjectInternal projectInternal = (ProjectInternal) project;
-                projectInternal.getTasks().realize();
+                projectInternal.getTasks().discoverTasks();
                 projectInternal.bindAllModelRules();
             }
         }
