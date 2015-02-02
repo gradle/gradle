@@ -1,0 +1,120 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.model.internal.registry
+
+import org.gradle.internal.Factory
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import spock.lang.Specification
+
+class ModelRegistryEphemeralNodeTest extends Specification {
+
+    def registry = new ModelRegistryHelper()
+
+    def "ephemeral model nodes are discarded when registry is reset"() {
+        when:
+        def events = []
+        registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+        registry.mutate(List) {
+            it.add "1"
+            events.add "mutate"
+        }
+
+        then:
+        registry.get("foo") == ["1"]
+        registry.node("foo").state == ModelNode.State.GraphClosed
+        events.size() == 1
+
+        when:
+        registry.stabilize()
+
+        then:
+        registry.node("foo").state == ModelNode.State.Known
+        registry.get("foo") == ["1"]
+        events.size() == 2
+    }
+
+    def "dependents of ephemeral nodes are reset"() {
+        when:
+        def events = []
+        registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+        registry.create("bar") { it.ephemeral(false).unmanaged(Queue, { [] } as Factory) }
+        registry.mutate(List) {
+            it.add "1"
+            events.add "mutate foo"
+        }
+        registry.mutate {
+            it.path("bar").type(Queue).action(List) { bar, foo ->
+                bar.add(foo.first())
+                events.add "mutate bar"
+            }
+        }
+
+        then:
+        registry.get("bar") == ["1"]
+        registry.node("foo").state == ModelNode.State.GraphClosed
+        registry.node("bar").state == ModelNode.State.GraphClosed
+        events == ["mutate foo", "mutate bar"]
+
+        when:
+        registry.stabilize()
+
+        then:
+        registry.node("foo").state == ModelNode.State.Known
+        registry.node("bar").state == ModelNode.State.Known
+        registry.get("foo") == ["1"]
+        events.size() == 3
+        registry.node("bar").state == ModelNode.State.Known
+        registry.get("bar") == ["1"]
+        events.size() == 4
+    }
+
+    static class Thing {
+        String name
+        String value
+    }
+
+    def "children of ephemeral collection nodes are implicitly ephemeral"() {
+        when:
+        registry.create("things") {
+            it.ephemeral(true).collection(Thing, { name, type -> return new Thing(name: name) })
+        }
+        registry.mutateCollection("things", Thing) {
+            it.create("foo") {
+                it.value = "1"
+            }
+            it.create("bar")
+        }
+        registry.mutate(ModelReference.of("things.bar", Thing)) {
+            it.value = "2"
+        }
+
+        then:
+        registry.get("things")
+        registry.node("things.foo").state == ModelNode.State.GraphClosed
+        registry.node("things.bar").state == ModelNode.State.GraphClosed
+
+        when:
+        registry.stabilize()
+
+        registry.node("things").state == ModelNode.State.Known
+        registry.node("things.foo").state == ModelNode.State.Known
+        registry.node("things.bar").state == ModelNode.State.Known
+    }
+
+}

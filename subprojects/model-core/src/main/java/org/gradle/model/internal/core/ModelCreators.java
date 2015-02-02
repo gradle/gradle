@@ -56,6 +56,7 @@ abstract public class ModelCreators {
         private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
         private final ModelReference<?> modelReference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
+        private boolean ephemeral;
 
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
@@ -65,7 +66,7 @@ abstract public class ModelCreators {
             this.initializer = initializer;
         }
 
-        public Builder simpleDescriptor(String descriptor) {
+        public Builder descriptor(String descriptor) {
             this.modelRuleDescriptor = new SimpleModelRuleDescriptor(descriptor);
             return this;
         }
@@ -91,9 +92,14 @@ abstract public class ModelCreators {
             return this;
         }
 
+        public Builder ephemeral(boolean flag) {
+            this.ephemeral = flag;
+            return this;
+        }
+
         public ModelCreator build() {
             ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, inputs, projection, initializer);
+            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, ephemeral, inputs, projection, initializer);
         }
     }
 

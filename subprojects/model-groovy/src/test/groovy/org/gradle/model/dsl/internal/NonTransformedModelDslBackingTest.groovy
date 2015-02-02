@@ -36,7 +36,7 @@ class NonTransformedModelDslBackingTest extends Specification {
     def modelDsl = new NonTransformedModelDslBacking(getModelRegistry())
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
     }
 
     def "can add rules via dsl"() {

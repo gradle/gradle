@@ -16,21 +16,19 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.report.unbound.UnboundRule;
 import org.gradle.model.internal.type.ModelType;
@@ -56,7 +54,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        modelGraph = new ModelGraph(new ModelElementNode(ModelPath.ROOT, new SimpleModelRuleDescriptor("<root>"), EmptyModelProjection.INSTANCE, EmptyModelProjection.INSTANCE));
+        ModelCreator rootCreator = ModelCreators.of(ModelReference.of(ModelPath.ROOT), BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
+        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator)));
         modelGraph.getRoot().setState(Created);
     }
 
@@ -72,11 +71,16 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
 
-        registerNode(modelGraph.getRoot(), new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+        registerNode(modelGraph.getRoot(), new ModelElementNode(toCreatorBinder(creator)));
         return this;
     }
 
-    private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child, ModelCreator creator) {
+    public CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
+        return new CreatorRuleBinder(creator, ModelPath.ROOT, binders);
+    }
+
+    private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
+        ModelCreator creator = child.getCreatorBinder().getCreator();
         ModelPath path = child.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
@@ -116,7 +120,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         node = parent.addLink(child);
         modelGraph.add(node);
-        bind(creator, node);
         return node;
     }
 
@@ -130,10 +133,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     public ModelRegistry apply(Class<? extends RuleSource> rules) {
         modelGraph.getRoot().applyToSelf(rules);
         return this;
-    }
-
-    private void bind(ModelCreator creator, ModelNodeInternal node) {
-        node.setCreatorBinder(new CreatorRuleBinder(creator, ModelPath.ROOT, binders));
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
@@ -247,11 +246,16 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void remove(ModelPath path) {
-        if (isDependedOn(path)) {
-            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
+        ModelNodeInternal node = modelGraph.find(path);
+        if (node == null) {
+            return;
         }
 
-        modelGraph.remove(path);
+        if (Iterables.isEmpty(node.getDependents())) {
+            modelGraph.remove(node);
+        } else {
+            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(node.getDependents()));
+        }
     }
 
     private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
@@ -291,21 +295,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
         return new UnboundModelRulesException(unboundRules);
-    }
-
-    // TODO - this needs to consider partially bound rules
-    private boolean isDependedOn(ModelPath candidate) {
-        // NOTE - we could make this more efficient by storing the dependents of each node on it
-        Collection<ModelNodeInternal> allNodes = modelGraph.getFlattened().values();
-        Iterable<ModelPath> allDependedUpon = Iterables.concat(Iterables.transform(allNodes, new Function<ModelNodeInternal, Iterable<ModelPath>>() {
-            @Override
-            public Iterable<ModelPath> apply(ModelNodeInternal input) {
-                return input.getDependencies();
-            }
-        }));
-
-        Predicate<ModelPath> equalTo = Predicates.equalTo(candidate);
-        return Iterables.any(allDependedUpon, equalTo);
     }
 
     private ModelNodeInternal require(ModelPath path) {
@@ -538,11 +527,38 @@ public class DefaultModelRegistry implements ModelRegistry {
         return modelGraph.find(path);
     }
 
+    @Override
+    public void stabilize() {
+        List<ModelNodeInternal> ephemerals = Lists.newLinkedList();
+        collectEphemeralChildren(modelGraph.getRoot(), ephemerals);
+        if (ephemerals.isEmpty()) {
+            LOGGER.debug("No ephemeral model nodes found to reset");
+        } else {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Resetting ephemeral model nodes: " + Joiner.on(", ").join(ephemerals));
+            }
+
+            for (ModelNodeInternal ephemeral : ephemerals) {
+                ephemeral.reset();
+            }
+        }
+    }
+
+    private void collectEphemeralChildren(ModelNodeInternal node, Collection<ModelNodeInternal> ephemerals) {
+        for (ModelNodeInternal child : node.getLinks()) {
+            if (child.isEphemeral()) {
+                ephemerals.add(child);
+            } else {
+                collectEphemeralChildren(child, ephemerals);
+            }
+        }
+    }
+
     private class ModelReferenceNode extends ModelNodeInternal {
         private ModelNodeInternal target;
 
-        public ModelReferenceNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            super(creationPath, descriptor, promise, adapter);
+        public ModelReferenceNode(CreatorRuleBinder creatorBinder) {
+            super(creatorBinder);
         }
 
         @Override
@@ -656,8 +672,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         private Object privateData;
         private ModelType<?> privateDataType;
 
-        public ModelElementNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-            super(creationPath, descriptor, promise, adapter);
+        public ModelElementNode(CreatorRuleBinder creatorBinder) {
+            super(creatorBinder);
         }
 
         @Override
@@ -818,7 +834,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelReferenceNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator)));
         }
 
         @Override
@@ -826,7 +842,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelElementNode(creator.getPath(), creator.getDescriptor(), creator.getPromise(), creator.getAdapter()), creator);
+            registerNode(this, new ModelElementNode(toCreatorBinder(creator)));
         }
 
         @Override

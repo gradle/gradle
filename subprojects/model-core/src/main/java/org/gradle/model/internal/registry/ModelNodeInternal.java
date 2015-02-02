@@ -28,32 +28,23 @@ import java.util.*;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private CreatorRuleBinder creatorBinder;
+    private final CreatorRuleBinder creatorBinder;
     private Map<ModelActionRole, List<MutatorRuleBinder<?>>> mutators;
-    private final Set<ModelPath> dependencies = Sets.newHashSet();
-
-    private final ModelPath creationPath;
-    private final ModelRuleDescriptor descriptor;
-    private final ModelPromise promise;
-    private final ModelAdapter adapter;
+    private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
+    private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
 
-    public ModelNodeInternal(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        this.creationPath = creationPath;
-        this.descriptor = descriptor;
-        this.promise = promise;
-        this.adapter = adapter;
+    public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
+        this.creatorBinder = creatorBinder;
     }
 
     public CreatorRuleBinder getCreatorBinder() {
         return creatorBinder;
     }
 
-    public void setCreatorBinder(CreatorRuleBinder creatorBinder) {
-        if (this.creatorBinder != null) {
-            throw new IllegalStateException("creatorBinder already set for node " + getPath());
-        }
-        this.creatorBinder = creatorBinder;
+    @Override
+    public boolean isEphemeral() {
+        return creatorBinder.getCreator().isEphemeral();
     }
 
     public void addMutatorBinder(ModelActionRole role, MutatorRuleBinder<?> mutator) {
@@ -111,20 +102,26 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public void notifyFired(MutatorRuleBinder<?> binder) {
         assert binder.isBound();
         for (ModelBinding<?> inputBinding : binder.getInputBindings()) {
-            dependencies.add(inputBinding.getNode().getPath());
+            ModelNodeInternal node = inputBinding.getNode();
+            dependencies.add(node);
+            node.dependents.add(this);
         }
     }
 
-    public Iterable<ModelPath> getDependencies() {
+    public Iterable<? extends ModelNode> getDependencies() {
         return dependencies;
     }
 
+    public Iterable<? extends ModelNode> getDependents() {
+        return dependents;
+    }
+
     public ModelPath getPath() {
-        return creationPath;
+        return creatorBinder.getCreator().getPath();
     }
 
     public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
+        return creatorBinder.getDescriptor();
     }
 
     public ModelNode.State getState() {
@@ -144,16 +141,16 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public ModelPromise getPromise() {
-        return promise;
+        return creatorBinder.getCreator().getPromise();
     }
 
     public ModelAdapter getAdapter() {
-        return adapter;
+        return creatorBinder.getCreator().getAdapter();
     }
 
     @Override
     public String toString() {
-        return creationPath.toString();
+        return getPath().toString();
     }
 
     public abstract ModelNodeInternal getTarget();
@@ -178,5 +175,18 @@ abstract class ModelNodeInternal implements MutableModelNode {
             throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
         }
         return modelView;
+    }
+
+    public void reset() {
+        if (getState() != State.Known) {
+            setState(State.Known);
+            setPrivateData(ModelType.untyped(), null);
+            for (ModelNodeInternal dependent : dependents) {
+                dependent.reset();
+            }
+            for (ModelNodeInternal child : getLinks()) {
+                child.reset();
+            }
+        }
     }
 }

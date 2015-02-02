@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry
 
 import org.gradle.api.Nullable
 import org.gradle.api.Transformer
+import org.gradle.internal.BiActions
 import org.gradle.internal.Transformers
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
@@ -257,7 +258,13 @@ class UnboundRulesProcessorTest extends Specification {
 
     private static class TestNode extends ModelNodeInternal {
         TestNode(String creationPath) {
-            super(ModelPath.path(creationPath), null, null, null)
+            super(toBinder(creationPath))
+        }
+
+        private static CreatorRuleBinder toBinder(String creationPath) {
+            def creator = ModelCreators.of(ModelReference.of(creationPath), BiActions.doNothing()).descriptor("test").withProjection(EmptyModelProjection.INSTANCE).build()
+            def binder = new CreatorRuleBinder(creator, ModelPath.ROOT, [])
+            binder
         }
 
         @Override

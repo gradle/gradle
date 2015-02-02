@@ -152,6 +152,16 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.node(path);
     }
 
+    @Nullable
+    public ModelNode node(String path) {
+        return node(ModelPath.path(path));
+    }
+
+    @Override
+    public void stabilize() {
+        modelRegistry.stabilize();
+    }
+
     public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
         return apply(ModelPath.ROOT, role, action);
     }
@@ -211,6 +221,10 @@ public class ModelRegistryHelper implements ModelRegistry {
         return apply(Mutate, type, action);
     }
 
+    public <T> ModelRegistryHelper mutate(ModelReference<T> reference, Action<? super T> action) {
+        return apply(Mutate, reference, action);
+    }
+
     public ModelRegistryHelper mutate(final String path, final Action<? super MutableModelNode> action) {
         return apply(Mutate, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
@@ -230,10 +244,14 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     private <T> ModelRegistryHelper apply(ModelActionRole role, final Class<T> type, final Action<? super T> action) {
+        return apply(role, ModelReference.of(type), action);
+    }
+
+    private <T> ModelRegistryHelper apply(ModelActionRole role, final ModelReference<T> reference, final Action<? super T> action) {
         return apply(role, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
-                return objectModelActionBuilder.type(type).action(action);
+                return objectModelActionBuilder.path(reference.getPath()).type(reference.getType()).action(action);
             }
         });
     }
@@ -266,7 +284,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             }
         }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                 .inputs(refs(ModelReference.of(inputPath)))
-                .simpleDescriptor("create " + path)
+                .descriptor("create " + path)
                 .build();
     }
 
@@ -389,6 +407,7 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     public static class ModelCreatorBuilder {
         private final ModelPath path;
+        private boolean ephemeral;
         private ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("tester");
 
         public ModelCreatorBuilder(ModelPath path) {
@@ -397,6 +416,11 @@ public class ModelRegistryHelper implements ModelRegistry {
 
         public ModelCreatorBuilder descriptor(String descriptor) {
             return descriptor(new SimpleModelRuleDescriptor(descriptor));
+        }
+
+        public ModelCreatorBuilder ephemeral(boolean flag) {
+            this.ephemeral = flag;
+            return this;
         }
 
         public ModelCreatorBuilder descriptor(ModelRuleDescriptor descriptor) {
@@ -417,6 +441,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .inputs(ModelReference.of(inputPath))
                     .descriptor(descriptor)
+                    .ephemeral(ephemeral)
                     .build();
         }
 
@@ -432,6 +457,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .inputs(ModelReference.of(inputModelType))
+                    .ephemeral(ephemeral)
                     .descriptor(descriptor)
                     .build();
         }
@@ -452,6 +478,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .descriptor(descriptor)
+                    .ephemeral(ephemeral)
                     .build();
         }
 
@@ -467,6 +494,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                     .descriptor(descriptor)
+                    .ephemeral(ephemeral)
                     .build();
         }
 
@@ -499,6 +527,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             })
                     .withProjection(new UnmanagedModelProjection<CollectionBuilder<I>>(collectionBuilderType, true, true))
                     .descriptor(descriptor)
+                    .ephemeral(ephemeral)
                     .build();
         }
     }

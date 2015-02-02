@@ -31,5 +31,7 @@ public interface ModelCreator {
 
     void create(MutableModelNode node, List<ModelView<?>> inputs);
 
+    boolean isEphemeral();
+
     List<? extends ModelReference<?>> getInputs();
 }

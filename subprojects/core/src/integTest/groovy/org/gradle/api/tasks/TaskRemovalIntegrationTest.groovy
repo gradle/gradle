@@ -106,7 +106,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails ":bar"
-        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by: tasks.bar"))
 
     }
 }

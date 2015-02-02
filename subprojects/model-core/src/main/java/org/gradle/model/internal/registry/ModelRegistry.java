@@ -122,4 +122,11 @@ public interface ModelRegistry extends ModelRegistrar {
 
     @Nullable
     ModelNode node(ModelPath path);
+
+    /**
+     * Resets the state of the model registry, discarding all ephemeral state.
+     */
+    // TODO Better name for this method?
+    void stabilize();
+
 }

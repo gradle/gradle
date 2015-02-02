@@ -185,7 +185,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
-                        .simpleDescriptor("Project.<init>.serviceRegistry()")
+                        .descriptor("Project.<init>.serviceRegistry()")
                         .build()
         );
 
@@ -195,19 +195,19 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         return getBuildDir();
                     }
                 })
-                        .simpleDescriptor("Project.<init>.buildDir()")
+                        .descriptor("Project.<init>.buildDir()")
                         .build()
         );
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
-                        .simpleDescriptor("Project.<init>.projectIdentifier()")
+                        .descriptor("Project.<init>.projectIdentifier()")
                         .build()
         );
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
-                        .simpleDescriptor("Project.<init>.extensions()")
+                        .descriptor("Project.<init>.extensions()")
                         .build()
         );
     }

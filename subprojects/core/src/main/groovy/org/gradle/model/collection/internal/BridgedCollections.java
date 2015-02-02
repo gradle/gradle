@@ -58,7 +58,7 @@ public abstract class BridgedCollections {
                                     ModelReference<I> itemReference = ModelReference.of(modelNode.getPath().child(name), itemType);
                                     modelNode.addLink(
                                             ModelCreators.bridgedInstance(itemReference, item)
-                                                    .simpleDescriptor(itemDescriptorGenerator.transform(name)).build());
+                                                    .descriptor(itemDescriptorGenerator.transform(name)).build());
                                 }
                             }
                         });
@@ -71,7 +71,7 @@ public abstract class BridgedCollections {
                     }
                 }
         )
-                .simpleDescriptor(descriptor);
+                .descriptor(descriptor);
     }
 
     public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> ModelCreator dynamicTypes(

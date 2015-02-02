@@ -20,6 +20,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.*;
@@ -174,12 +175,12 @@ public class ModelGraph {
     }
 
     @Nullable
-    public ModelNodeInternal remove(ModelPath path) {
-        ModelNodeInternal parentNode = find(path.getParent());
+    public ModelNodeInternal remove(ModelNode node) {
+        ModelNodeInternal parentNode = find(node.getPath().getParent());
         if (parentNode != null) {
-            parentNode.removeLink(path.getName());
+            parentNode.removeLink(node.getPath().getName());
         }
 
-        return flattened.remove(path);
+        return flattened.remove(node.getPath());
     }
 }
