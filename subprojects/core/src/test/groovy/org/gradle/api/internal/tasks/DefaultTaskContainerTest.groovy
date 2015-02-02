@@ -288,7 +288,12 @@ public class DefaultTaskContainerTest extends Specification {
         task.dependsOn("b")
 
         addPlaceholderTask("c")
-        1 * taskFactory.create("c", DefaultTask) >> { this.task(it[0], it[1]) }
+        def cTask = this.task("c", DefaultTask)
+        def cTaskDependency = Mock(TaskDependencyInternal)
+        cTask.getTaskDependencies() >> cTaskDependency
+        cTaskDependency.getDependencies(_) >> []
+
+        1 * taskFactory.create("c", DefaultTask) >> { cTask }
 
         assert container.size() == 1
 
@@ -404,6 +409,7 @@ public class DefaultTaskContainerTest extends Specification {
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
         Mock(type, name: "[task" + taskCount++ + "]") {
             getName() >> name
+            getTaskDependency() >> Mock(TaskDependency)
         }
     }
 
