@@ -166,6 +166,7 @@ class AssemblerPluginTest extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.realizeTasksAndValidateModel()
+        project.tasks.realize()
+        project.bindAllModelRules()
     }
 }

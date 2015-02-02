@@ -85,7 +85,7 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
-            allowing(taskContainer).actualize();
+            allowing(taskContainer).realize();
 
             allowing(taskContainer).size();
             will(returnValue(4));
@@ -142,7 +142,7 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(defaultTasks));
 
-            allowing(taskContainer).actualize();
+            allowing(taskContainer).realize();
 
             allowing(taskContainer).size();
             will(returnValue(0));

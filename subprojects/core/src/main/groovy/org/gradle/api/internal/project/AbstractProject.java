@@ -472,19 +472,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Override
-    public ProjectInternal realizeTasksAndValidateModel() {
-        evaluate();
-        try {
-            getModelRegistry().realizeNode(TaskContainerInternal.MODEL_PATH);
-            getModelRegistry().bindAllReferences();
-        } catch (Exception e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", this), e);
-        }
-        return this;
-    }
-
-    @Override
-    public ProjectInternal validateModel() {
+    public ProjectInternal bindAllModelRules() {
         try {
             getModelRegistry().bindAllReferences();
         } catch (Exception e) {

@@ -48,7 +48,9 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
             // Currently need to force everything to be configured
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
             for (Project project : gradle.getRootProject().getAllprojects()) {
-                ((ProjectInternal) project).realizeTasksAndValidateModel();
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                projectInternal.getTasks().realize();
+                projectInternal.bindAllModelRules();
             }
         }
 

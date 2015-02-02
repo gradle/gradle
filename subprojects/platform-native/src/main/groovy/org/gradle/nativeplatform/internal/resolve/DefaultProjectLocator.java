@@ -35,7 +35,8 @@ public class DefaultProjectLocator implements ProjectLocator {
 
         ProjectInternal referencedProject = delegate.getProject(path);
         // TODO This is a brain-dead way to ensure that the reference project's model is ready to access
-        referencedProject.realizeTasksAndValidateModel();
+        referencedProject.getTasks().realize();
+        referencedProject.bindAllModelRules();
         return referencedProject;
     }
 }

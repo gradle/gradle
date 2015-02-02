@@ -298,7 +298,7 @@ public class DefaultTaskContainerTest extends Specification {
         assert container.size() == 1
 
         when:
-        container.actualize()
+        container.realize()
 
         then:
         container.size() == 3

@@ -92,7 +92,7 @@ public class TaskNameResolver {
         } catch (Throwable e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
         }
-        project.validateModel();
+        project.bindAllModelRules();
         return modelNode;
     }
 

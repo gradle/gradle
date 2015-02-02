@@ -198,7 +198,8 @@ class NativeComponentModelPluginTest extends Specification {
     }
 
     private void realize() {
-        project.realizeTasksAndValidateModel()
+        project.tasks.realize();
+        project.bindAllModelRules()
     }
 
     static <T> T one(Collection<T> collection) {

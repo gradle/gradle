@@ -136,7 +136,7 @@ public class TestUtility {
         context.checking(new Expectations() {{
             allowing(parentProject).getTasks();
             will(returnValue(taskContainer));
-            allowing(taskContainer).actualize();
+            allowing(taskContainer).realize();
         }});
 
         final Set<Task> set

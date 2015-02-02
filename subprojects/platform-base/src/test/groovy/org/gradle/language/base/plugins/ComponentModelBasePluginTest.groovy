@@ -77,7 +77,7 @@ class ComponentModelBasePluginTest extends Specification {
             }
         }
         project.componentSpecs.add(componentSpecInternal)
-        project.realizeTasksAndValidateModel()
+        project.tasks.realize()
 
         then:
         1 * componentFunctionalSourceSet.registerFactory(TestSourceSet, _ as NamedDomainObjectFactory)

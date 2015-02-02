@@ -185,7 +185,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Sets.newTreeSet(modelNode.getLinkNames(ModelType.of(Task.class)));
     }
 
-    public void actualize() {
+    public void realize() {
         project.getModelRegistry().realizeNode(modelNode.getPath());
 
         new CachingDirectedGraphWalker<Task, Void>(new DirectedGraph<Task, Void>() {

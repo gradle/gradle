@@ -40,7 +40,8 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeExecutableSpec)
             }
         }
-        project.realizeTasksAndValidateModel()
+        project.tasks.realize()
+        project.bindAllModelRules()
 
         then:
         def testExecutable = project.binaries.testExecutable
@@ -67,7 +68,8 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeLibrarySpec)
             }
         }
-        project.realizeTasksAndValidateModel()
+        project.tasks.realize()
+        project.bindAllModelRules()
 
         then:
         def sharedLibraryBinary = project.binaries.testSharedLibrary

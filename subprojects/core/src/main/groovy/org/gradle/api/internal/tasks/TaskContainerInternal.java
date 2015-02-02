@@ -43,6 +43,6 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      *
      * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
-    void actualize();
+    void realize();
 
 }

@@ -53,9 +53,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     Project evaluate();
 
-    ProjectInternal realizeTasksAndValidateModel();
-
-    ProjectInternal validateModel();
+    ProjectInternal bindAllModelRules();
 
     TaskContainerInternal getTasks();
 
