@@ -15,8 +15,15 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+
+import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildExecutionAction {
     public void execute(BuildExecutionContext context) {
@@ -26,12 +33,26 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
             taskGraph.useFailureHandler(new ContinueOnFailureHandler());
         }
 
+        taskGraph.addTaskExecutionGraphListener(new BindAllReferencesOfProjectsToExecuteListener());
         taskGraph.execute();
     }
 
     private static class ContinueOnFailureHandler implements TaskFailureHandler {
         public void onTaskFailure(Task task) {
             // Do nothing
+        }
+    }
+
+    private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener {
+        @Override
+        public void graphPopulated(TaskExecutionGraph graph) {
+            Set<Project> seen = Sets.newHashSet();
+            for (Task task : graph.getAllTasks()) {
+                if (seen.add(task.getProject())) {
+                    ProjectInternal projectInternal = (ProjectInternal) task.getProject();
+                    projectInternal.bindAllModelRules();
+                }
+            }
         }
     }
 }

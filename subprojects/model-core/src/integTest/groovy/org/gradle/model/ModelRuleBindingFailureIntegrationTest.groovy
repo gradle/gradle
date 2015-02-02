@@ -229,4 +229,15 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
       - bar (java.lang.Integer) parameter 1""")
     }
 
+    def "unbound rule for project that has no needed tasks does not cause error"() {
+        when:
+        settingsFile << "include 'a', 'b'"
+        file("a/build.gradle") << "model { foo {} }"
+
+        then:
+        succeeds ":b:dependencies"
+        fails ":a:dependencies"
+        failure.assertHasDescription("A problem occurred configuring project ':a'")
+        failure.assertHasCause("The following model rules are unbound:")
+    }
 }
