@@ -15,8 +15,10 @@
  */
 
 package org.gradle.nativeplatform.internal
+
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
@@ -150,6 +152,6 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
         final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", new DirectInstantiator(), Stub(ProjectSourceSet)), instantiator);
-        return create(DefaultSharedLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"))
+        return create(DefaultSharedLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
     }
 }

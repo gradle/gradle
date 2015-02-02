@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.plugins
 
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import org.gradle.nativeplatform.tasks.InstallExecutable
@@ -42,7 +43,7 @@ class NativeBinariesTestPluginTest extends Specification {
         task.destinationDir = project.projectDir
         task.executable = project.file("executable")
 
-        def binary = BaseBinarySpec.create(DefaultNativeTestSuiteBinarySpec, "testBinary", project.services.get(Instantiator))
+        def binary = BaseBinarySpec.create(DefaultNativeTestSuiteBinarySpec, "testBinary", project.services.get(Instantiator), Mock(ITaskFactory))
         binary.setNamingScheme(namingScheme)
         binary.tasks.add(task)
 

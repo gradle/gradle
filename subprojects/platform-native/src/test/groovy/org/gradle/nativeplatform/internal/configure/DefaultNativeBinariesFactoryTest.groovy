@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Action
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
@@ -47,7 +48,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
     def instantiator = new DirectInstantiator();
-    def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver)
+    def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver, Mock(ITaskFactory))
     def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet));
 
     def "creates binaries for executable"() {

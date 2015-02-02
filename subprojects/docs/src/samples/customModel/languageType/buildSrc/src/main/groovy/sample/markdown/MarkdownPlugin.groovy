@@ -16,15 +16,12 @@
 
 package sample.markdown
 
-import org.gradle.api.Action
+import org.gradle.model.Defaults
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
-import org.gradle.model.RuleSource
-import org.gradle.platform.base.BinaryTasks
+import org.gradle.model.collection.CollectionBuilder
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.api.Task
 import sample.documentation.DocumentationBinary
 
 class MarkdownPlugin extends RuleSource {
@@ -34,19 +31,17 @@ class MarkdownPlugin extends RuleSource {
         builder.defaultImplementation(DefaultMarkdownSourceSet)
     }
 
-    @BinaryTasks
-    void createMarkdownHtmlCompilerTasks(CollectionBuilder<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
-        for (final MarkdownSourceSet markdownSourceSet : binary.getSource().withType(MarkdownSourceSet.class)) {
-            final String taskName = binary.getName() + markdownSourceSet.getName().capitalize() + "HtmlCompile"
-            final File htmlOutputDirectory = new File(buildDir, "${binary.name}/src/${markdownSourceSet.name}");
-            tasks.create(taskName, MarkdownHtmlCompile.class, new Action<MarkdownHtmlCompile>() {
-                @Override
-                public void execute(MarkdownHtmlCompile markdownHtmlCompile) {
-                    markdownHtmlCompile.setSource(markdownSourceSet.getSource());
-                    markdownHtmlCompile.setDestinationDir(htmlOutputDirectory);
-                    binary.add(markdownSourceSet.name, markdownHtmlCompile)
+    @Defaults
+    void createMarkdownHtmlCompilerTasks(CollectionBuilder<DocumentationBinary> binaries, @Path("buildDir") File buildDir) {
+        binaries.beforeEach { binary ->
+            source.withType(MarkdownSourceSet.class) { markdownSourceSet ->
+                taskName = binary.name + name.capitalize() + "HtmlCompile"
+                outputDir = new File(buildDir, "${binary.name}/src/${name}")
+                binary.tasks.create(markdownSourceSet.taskName, MarkdownHtmlCompile) {
+                    source = markdownSourceSet.source
+                    destinationDir = markdownSourceSet.outputDir
                 }
-            });
+            }
         }
     }
 }

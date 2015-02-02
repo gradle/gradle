@@ -18,4 +18,7 @@ package sample.markdown
 
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 
-class DefaultMarkdownSourceSet extends BaseLanguageSourceSet implements MarkdownSourceSet {}
+class DefaultMarkdownSourceSet extends BaseLanguageSourceSet implements MarkdownSourceSet {
+    File outputDir
+    String taskName
+}

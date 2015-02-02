@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.binary
 
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
@@ -34,7 +35,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "cannot create instance of base class"() {
         when:
-        BaseBinarySpec.create(BaseBinarySpec, "sampleBinary", instantiator)
+        BaseBinarySpec.create(BaseBinarySpec, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         then:
         def e = thrown ModelInstantiationException
@@ -42,7 +43,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "binary has name and sensible display name"() {
-        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator)
+        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         expect:
         binary.class == MySampleBinary
@@ -52,7 +53,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        BaseBinarySpec.create(MyConstructedBinary, "sampleBinary", instantiator)
+        BaseBinarySpec.create(MyConstructedBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         then:
         def e = thrown ModelInstantiationException

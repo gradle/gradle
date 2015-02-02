@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -75,7 +76,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
             this.descriptor = descriptor;
             this.instantiator = instantiator;
             this.subject = ModelReference.of(DefaultBinaryContainer.class);
-            this.inputs = Collections.emptyList();
+            this.inputs = Collections.<ModelReference<?>>singletonList(ModelReference.of(ITaskFactory.class));
         }
 
         @Override
@@ -94,12 +95,12 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, List<ModelView<?>> inputs) {
+        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, final List<ModelView<?>> inputs) {
             @SuppressWarnings("unchecked")
             Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
             binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {
                 public BaseBinarySpec create(String name) {
-                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator);
+                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator, ModelViews.assertType(inputs.get(0), ModelType.of(ITaskFactory.class)).getInstance());
                 }
             }, descriptor);
         }

@@ -28,7 +28,7 @@ import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import java.io.File;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
-    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
+    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private JavaToolChain toolChain;
     private JavaPlatform platform;
     private File classesDir;
@@ -99,7 +99,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
         if (buildAbility == null) {
             buildAbility = new CompositeBuildAbility(
                     super.getBuildAbility(),
-                    new ToolSearchBuildAbility(((JavaToolChainInternal)getToolChain()).select(getTargetPlatform()))
+                    new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()))
             );
         }
         return buildAbility;

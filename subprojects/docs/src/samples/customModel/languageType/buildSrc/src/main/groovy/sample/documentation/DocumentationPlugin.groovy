@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -16,20 +15,14 @@
  */
 package sample.documentation
 
-import org.gradle.model.Mutate
-import org.gradle.model.RuleSource
-import org.gradle.platform.base.BinaryTasks
-import org.gradle.platform.base.BinaryType
-import org.gradle.platform.base.ComponentBinaries
-import org.gradle.platform.base.ComponentType
-import org.gradle.model.collection.CollectionBuilder
-import org.gradle.platform.base.BinaryTypeBuilder
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.platform.base.*
-import org.gradle.api.Action
-
+import org.gradle.model.Mutate
 import org.gradle.model.Path
+import org.gradle.model.RuleSource
+import org.gradle.model.collection.CollectionBuilder
+import org.gradle.platform.base.*
 
 class DocumentationPlugin extends RuleSource {
     @ComponentType
@@ -54,13 +47,14 @@ class DocumentationPlugin extends RuleSource {
 
     @BinaryTasks
     void createZip(CollectionBuilder<Task> tasks, final DocumentationBinary binary, @Path("buildDir") final File buildDir) {
-        tasks.create("zip${binary.name}", Zip, new Action<Zip>() {
+        tasks.create("zip${binary.name.capitalize()}", Zip, new Action<Zip>() {
             @Override
             public void execute(Zip zipBinary) {
-                binary.content.each { target, content ->
-                    zipBinary.into(target) {
-                        from(content)
+                binary.source.withType(DocumentationSourceSet) { source ->
+                    zipBinary.into(source.name) {
+                        from(source.outputDir)
                     }
+                    zipBinary.dependsOn source.taskName
                 }
                 zipBinary.setDestinationDir(new File(buildDir, binary.name))
                 zipBinary.setArchiveName(binary.name + ".zip")

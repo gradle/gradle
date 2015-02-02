@@ -21,6 +21,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -46,18 +47,18 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private final LanguageSourceSetContainer sourceSets = new LanguageSourceSetContainer();
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
-    private final BinaryTasksCollection tasks = new DefaultBinaryTasksCollection(this);
+    private final BinaryTasksCollection tasks;
 
     private final String name;
     private final String typeName;
 
     private boolean buildable = true;
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator) {
+    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory) {
         if (type.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(name, type.getSimpleName()));
+        nextBinaryInfo.set(new BinaryInfo(name, type.getSimpleName(), taskFactory, instantiator));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -79,6 +80,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         }
         this.name = info.name;
         this.typeName = info.typeName;
+        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
     }
 
     protected String getTypeName() {
@@ -124,7 +126,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     public BinaryTasksCollection getTasks() {
-       return tasks;
+        return tasks;
     }
 
     public boolean isLegacyBinary() {
@@ -132,12 +134,16 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     private static class BinaryInfo {
-        final String name;
-        final String typeName;
+        private final String name;
+        private final String typeName;
+        private final ITaskFactory taskFactory;
+        private final Instantiator instantiator;
 
-        private BinaryInfo(String name, String typeName) {
+        private BinaryInfo(String name, String typeName, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.typeName = typeName;
+            this.taskFactory = taskFactory;
+            this.instantiator = instantiator;
         }
     }
 

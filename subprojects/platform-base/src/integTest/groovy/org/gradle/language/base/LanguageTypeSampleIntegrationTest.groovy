@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -49,14 +48,13 @@ Binaries
 
     }
 
-    @Ignore
     def "can build binary"() {
         given:
         sample languageTypeSample
         when:
         succeeds "assemble"
         then:
-        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipdocsBinary", ":docsBinary", ":assemble"]
+        executedTasks == [":docsBinaryUserguideHtmlCompile", ":zipDocsBinary", ":docsBinary", ":assemble"]
         and:
         new ZipTestFixture(languageTypeSample.dir.file("build/docsBinary/docsBinary.zip")).containsDescendants(
                 "userguide/chapter1.html",

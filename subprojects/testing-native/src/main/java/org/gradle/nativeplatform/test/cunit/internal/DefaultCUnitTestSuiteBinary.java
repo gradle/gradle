@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.cunit.internal;
 
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
@@ -27,8 +28,8 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public class DefaultCUnitTestSuiteBinary extends DefaultNativeTestSuiteBinarySpec implements CUnitTestSuiteBinarySpec {
 
-    public static DefaultCUnitTestSuiteBinary create(NativeComponentSpec owner, NativeBinarySpecInternal testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver, Instantiator instantiator) {
-        DefaultCUnitTestSuiteBinary spec = BaseBinarySpec.create(DefaultCUnitTestSuiteBinary.class, namingScheme.getLifecycleTaskName(), instantiator);
+    public static DefaultCUnitTestSuiteBinary create(NativeComponentSpec owner, NativeBinarySpecInternal testedBinary, BinaryNamingScheme namingScheme, NativeDependencyResolver resolver, Instantiator instantiator, ITaskFactory taskFactory) {
+        DefaultCUnitTestSuiteBinary spec = BaseBinarySpec.create(DefaultCUnitTestSuiteBinary.class, namingScheme.getLifecycleTaskName(), instantiator, taskFactory);
         spec.setComponent(owner);
         spec.setTestedBinary(testedBinary);
         spec.setNamingScheme(namingScheme);

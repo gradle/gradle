@@ -171,7 +171,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void testSetsTestFrameworkToNullAfterExecution() {
         configureTask();
-        // using a jmock generated mock for testFramework does not work here as it is referenced
+        // using a jmock generated taskFactory for testFramework does not work here as it is referenced
         // by jmock holds some references.
 
         test.useTestFramework(new TestFramework() {

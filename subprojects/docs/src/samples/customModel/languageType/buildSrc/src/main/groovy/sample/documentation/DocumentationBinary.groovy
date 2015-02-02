@@ -19,6 +19,5 @@ package sample.documentation
 import org.gradle.platform.base.BinarySpec
 
 interface DocumentationBinary extends BinarySpec {
-    void add(String name, Object contentProvider)
-    Map<String, Object> content;
+
 }

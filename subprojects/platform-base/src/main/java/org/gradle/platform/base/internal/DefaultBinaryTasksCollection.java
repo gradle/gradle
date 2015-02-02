@@ -16,19 +16,25 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 
 public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> implements BinaryTasksCollection {
-    private BinarySpec binary;
 
-    public DefaultBinaryTasksCollection(BinarySpec binarySpecInternal) {
+    private final BinarySpec binary;
+    private final ITaskFactory taskFactory;
+
+    public DefaultBinaryTasksCollection(BinarySpec binarySpecInternal, ITaskFactory taskFactory) {
         super(Task.class);
         this.binary = binarySpecInternal;
+        this.taskFactory = taskFactory;
     }
 
     public Task getBuild() {
@@ -44,5 +50,12 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
             throw new UnknownDomainObjectException(String.format("Multiple tasks with type '%s' found.", type.getSimpleName()));
         }
         return tasks.iterator().next();
+    }
+
+    @Override
+    public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
+        @SuppressWarnings("unchecked") T task = (T) taskFactory.create(name, (Class<TaskInternal>) type);
+        add(task);
+        config.execute(task);
     }
 }

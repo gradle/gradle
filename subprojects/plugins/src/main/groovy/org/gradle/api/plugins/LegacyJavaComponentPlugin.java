@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -52,11 +53,13 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final JavaToolChain toolChain;
+    private final ITaskFactory taskFactory;
 
     @Inject
-    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain) {
+    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.toolChain = toolChain;
+        this.taskFactory = taskFactory;
     }
 
     public void apply(final Project target) {
@@ -65,7 +68,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()));
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()), instantiator, taskFactory);
             }
         });
 

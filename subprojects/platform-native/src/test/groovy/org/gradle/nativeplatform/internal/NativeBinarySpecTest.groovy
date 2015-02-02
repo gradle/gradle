@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal
 
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
@@ -99,7 +100,7 @@ class NativeBinarySpecTest extends Specification {
         binary.lib(lib)
 
         and:
-        1 * resolver.resolve({NativeBinaryResolveResult result ->
+        1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [lib]
         }) >> { NativeBinaryResolveResult result ->
             result.allResolutions[0].nativeDependencySet = dependency
@@ -120,7 +121,7 @@ class NativeBinarySpecTest extends Specification {
         }
         binary.source sourceSet
 
-        1 * resolver.resolve({NativeBinaryResolveResult result ->
+        1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [lib]
         }) >> { NativeBinaryResolveResult result ->
             result.allResolutions[0].nativeDependencySet = dependency
@@ -143,7 +144,7 @@ class NativeBinarySpecTest extends Specification {
         binary.lib(dependency3)
 
         and:
-        1 * resolver.resolve({NativeBinaryResolveResult result ->
+        1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [dependency1, libraryBinary, dependency3]
         }) >> { NativeBinaryResolveResult result ->
             result.allResolutions[0].nativeDependencySet = dependency1
@@ -173,7 +174,7 @@ class NativeBinarySpecTest extends Specification {
         binary.lib(lib2)
 
         and:
-        1 * resolver.resolve({NativeBinaryResolveResult result ->
+        1 * resolver.resolve({ NativeBinaryResolveResult result ->
             result.allResolutions*.input == [lib1, lib2, sourceLib]
         }) >> { NativeBinaryResolveResult result ->
             result.allResolutions[0].nativeDependencySet = dep1
@@ -186,7 +187,7 @@ class NativeBinarySpecTest extends Specification {
     }
 
     def testBinary(NativeComponentSpec owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor)
+        return create(TestNativeBinarySpec, instantiator, owner, new DefaultBinaryNamingScheme("baseName", "", []), resolver, toolChain1, Stub(PlatformToolProvider), platform1, buildType1, flavor, Mock(ITaskFactory))
     }
 
     static class TestNativeComponentSpec extends AbstractNativeComponentSpec {
@@ -197,7 +198,7 @@ class NativeBinarySpecTest extends Specification {
 
     static class TestNativeBinarySpec extends AbstractNativeBinarySpec {
         def owner
-        def tasks = new DefaultBinaryTasksCollection(this)
+        def tasks = new DefaultBinaryTasksCollection(this, null)
 
         String getOutputFileName() {
             return null
@@ -214,7 +215,7 @@ class NativeBinarySpecTest extends Specification {
         }
 
         DefaultBinaryTasksCollection getTasks() {
-           return tasks;
-       }
+            return tasks;
+        }
     }
 }

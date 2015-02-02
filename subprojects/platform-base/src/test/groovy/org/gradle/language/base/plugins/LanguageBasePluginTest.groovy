@@ -18,6 +18,7 @@ package org.gradle.language.base.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
@@ -49,7 +50,7 @@ class LanguageBasePluginTest extends Specification {
         def tasks = Mock(TaskContainer)
         def binaries = new DefaultBinaryContainer(new DirectInstantiator())
         def binary = Mock(BinarySpecInternal)
-        def binaryTasks = new DefaultBinaryTasksCollection(binary)
+        def binaryTasks = new DefaultBinaryTasksCollection(binary, Mock(ITaskFactory))
         def someTask = Mock(Task) { getName() >> "someTask" }
         def buildTask = Mock(Task) { getName() >> "lifecycleTask" }
         binaryTasks.add(someTask)

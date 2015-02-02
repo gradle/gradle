@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
@@ -31,6 +32,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,7 +43,8 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class DefaultStaticLibraryBinarySpecTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule
+    TestNameTestDirectoryProvider tmpDir
     def instantiator = new DirectInstantiator()
     final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
@@ -50,15 +53,15 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)
     final outputFile = Mock(File)
-    def tasks = new DefaultStaticLibraryBinarySpec.DefaultTasksCollection()
+    def tasks = new DefaultStaticLibraryBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, Mock(ITaskFactory)))
 
-    def "has useful string representation"() {  
+    def "has useful string representation"() {
         expect:
         staticLibrary.toString() == "static library 'main:staticLibrary'"
     }
 
     def getStaticLibrary() {
-        create(DefaultStaticLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"))
+        create(DefaultStaticLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
     }
 
     def "can set output file"() {

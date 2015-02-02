@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,14 @@
 
 package sample.documentation
 
-import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.language.base.LanguageSourceSet
 
-class DefaultDocumentationBinary extends BaseBinarySpec implements DocumentationBinary {
+interface DocumentationSourceSet extends LanguageSourceSet {
+    File getOutputDir()
+
+    void setOutputDir(File file)
+
+    String getTaskName()
+
+    void setTaskName(String taskName)
 }

@@ -16,6 +16,14 @@
 
 package sample.markdown
 
-import org.gradle.language.base.LanguageSourceSet
+import sample.documentation.DocumentationSourceSet
 
-interface MarkdownSourceSet extends LanguageSourceSet {}
+interface MarkdownSourceSet extends DocumentationSourceSet {
+    File getOutputDir()
+
+    void setOutputDir(File file)
+
+    String getTaskName()
+
+    void setTaskName(String taskName)
+}

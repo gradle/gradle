@@ -15,15 +15,31 @@
  */
 
 package org.gradle.platform.base.internal
+
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.Copy
 import spock.lang.Specification
 
 class DefaultBinaryTasksCollectionTest extends Specification {
     def binary = Mock(BinarySpecInternal)
-    def tasks = new DefaultBinaryTasksCollection(binary)
+    def ITaskFactory taskFactory = Mock(ITaskFactory)
+    def tasks = new DefaultBinaryTasksCollection(binary, taskFactory)
     def task = Mock(Task)
+
+    def "can create task"() {
+        def action = Mock(Action)
+
+        when:
+        tasks.create("foo", DefaultTask, action)
+
+        then:
+        1 * taskFactory.create("foo", DefaultTask)
+        1 * action.execute(_)
+    }
 
     def "provides lifecycle task for binary"() {
         when:
