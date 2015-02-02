@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.groovy.compile
-
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Issue
 
