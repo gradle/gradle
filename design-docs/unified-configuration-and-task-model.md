@@ -274,19 +274,19 @@ As this is a large chunk of work, this story covers initial work and does not ta
 The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
 It will be wrapped in a feature toggle.
 
-Task instances attached to the model cannot be reused, as they retain references to the `Project` object and other state.
+Task instances attached to the model cannot be reused, as they retain references to the `Project` object and other build instance state.
 When “reusing the model”, tasks must be rebuilt.
-By extension any model element that depends on the task container or individual task is also implicitly volatile.
-
-> Note: In the component model BinaryContainer has an unexpressed dependency on TaskContainer due to the implementation of @BinaryTasks and other rules that mutate BinaryContainer as an input
+Tasks are examples of _ephemeral_ model elements.
+By extension any model element that depends on an ephemeral model element is also implicitly ephemeral.
+Later refinements may make it possible to detect that the dependents of ephemeral elements are not actually ephemeral because they do not transfer ephemeral state. 
 
 Steps/stages:
 
 1. Add ability to reconstitute/restore a model registry (and backing graph) from another registry (just assumes state at this stage)
-1. Add ability to declare model elements as volatile
-1. When restoring a registry, realised volatile elements are discarded (i.e. reverted to `known` state)
-1. All dependants of volatile elements (elements whose creators/mutators take volatile elements as inputs) are discarded
-1. Mark `tasks` model element as volatile
+1. Add ability to declare model elements as ephemeral
+1. When restoring a registry, realised ephemeral elements are discarded (i.e. reverted to `known` state)
+1. All dependants of ephemeral elements (elements whose creators/mutators take ephemeral elements as inputs) are discarded
+1. Mark `tasks` model element as ephemeral
 1. Add global scope service that retains/provides model registries across builds in some format (store registries by project path)
 1. When feature toggle is active, save/restore registries in between builds
 1. If a build fails, completely purge the registry store, forcing rebuild on next build
@@ -301,13 +301,13 @@ The feature will depend on the classloader caching feature.
 
 ### Test Coverage
 
-1. Volatile model element is rebuilt when requested from a restored model registry
-1. Dependants of volatile model element are rebuilt …
-    1. Model element where creator depends on a volatile
-    1. Model element where “mutator” of all types depends on a volatile
-1. Descendants of volatile model element are rebuilt …
-    1. Model element where creator depends on descendant of a volatile
-    1. Model element where “mutator” of all types depends on a descendant of a volatile
+1. Ephemeral model element is rebuilt when requested from a restored model registry
+1. Dependants of ephemeral model element are rebuilt …
+    1. Model element where creator depends on an ephemeral
+    1. Model element where “mutator” of all types depends on an ephemeral
+1. Descendants of ephemeral model element are rebuilt …
+    1. Model element where creator depends on descendant of an ephemeral
+    1. Model element where “mutator” of all types depends on a descendant of an ephemeral
 1. Model registry is not reused when feature toggle is not active (sanity check)
 1. Correct project specific registries are assigned to each project in multi project build
 1. Model is completely rebuilt following a build failure
@@ -315,28 +315,6 @@ The feature will depend on the classloader caching feature.
 1. Tasks are rebuilt each time when reusing model registry
 1. Error when model reuse enabled but not classloader caching
 1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
-
-## Plugin developer declares “volatile” model element
-
-A volatile model element derives its state from inputs unknown to Gradle.
-The distinction between volatile/non-volatile is important when considering reusing model elements across builds.
-Volatile elements cannot be reused and must be recreated each time.
-External inputs to the build will be modeled as volatile model elements.
-
-## Model is implicitly not reused when build logic has changed
-
-This story improves the accuracy of the model reuse feature by _effectively_ considering all build logic to be an explicit volatile dependency of all model elements.
-
-If any build script, plugin etc. changes then any stored model is discarded and rebuilt.
-
-> Note: this will allow model reuse to “work” when a daemon is hopping between projects, but reuse will be defeated.
-
-## Non configuration related build failure does not cause configuration to be fully rebuilt on subsequent build
-
-This story increases the usability of model reuse by not performing a complete invalidation/rebuild when errors such as compilation errors occur.
-
-Errors that occur during the building of configuration have the potential (with the current implementation) to leave the model registry in an incoherent state, preventing it from being reused.
-Actual “build failures” (e.g. test/compilation failures, i.e. execution time failures) should not leave the model in an incoherent state, and should not prevent reuse.
 
 # Open Questions
 
