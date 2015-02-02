@@ -56,34 +56,4 @@ class ModelRuleCachingIntegrationTest extends AbstractIntegrationSpec {
         then:
         !newRulesExtracted
     }
-
-    def "rules extracted from user plugins are reused across builds when using the daemon and classloader caching"() {
-        given:
-        buildFile << '''
-            import org.gradle.model.*
-
-            class Rules extends RuleSource {
-                @Model
-                String string() {
-                }
-            }
-
-            apply type: Rules
-        '''
-
-        and:
-        executer.withClassLoaderCaching(true)
-
-        when:
-        run()
-
-        then:
-        newRulesExtracted
-
-        when:
-        run()
-
-        then:
-        !newRulesExtracted
-    }
 }

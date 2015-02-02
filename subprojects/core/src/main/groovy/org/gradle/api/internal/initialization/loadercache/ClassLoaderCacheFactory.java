@@ -23,16 +23,12 @@ import java.util.HashMap;
 
 public class ClassLoaderCacheFactory {
 
-    public final static String TOGGLE_CACHING_PROPERTY = "org.gradle.caching.classloaders";
     private final static Logger LOGGER = Logging.getLogger(ClassLoaderCacheFactory.class);
     private DefaultClassLoaderCache instance;
 
     public ClassLoaderCache create() {
-        if ("true".equalsIgnoreCase(System.getProperty(TOGGLE_CACHING_PROPERTY))) {
-            maybeInit();
-            return instance;
-        }
-        return newCache(new FileClassPathSnapshotter());
+        maybeInit();
+        return instance;
     }
 
     private DefaultClassLoaderCache newCache(ClassPathSnapshotter snapshotter) {

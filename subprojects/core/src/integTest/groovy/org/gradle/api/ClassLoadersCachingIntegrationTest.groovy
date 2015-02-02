@@ -30,7 +30,6 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
-        executer.withClassLoaderCaching(true)
         buildFile << """
             class StaticState {
                 static set = new HashSet()
@@ -74,16 +73,6 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then: cached
-    }
-
-    def "no caching when property is off"() {
-        executer.withClassLoaderCaching(false)
-
-        when:
-        run()
-        run()
-
-        then: notCached
     }
 
     def "refreshes when buildscript changes"() {

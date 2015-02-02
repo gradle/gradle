@@ -57,12 +57,6 @@ Class loaders are not reused when build script classpath changes (for example, w
 In the reference project, we observed 10% build speed improvement for the initial build invocations in given daemon process.
 Later build invocations perform even better in comparison to Gradle daemon without classloader caching.
 
-This incubating feature is not turned on by default at the moment.
-It can be switched on via incubating system property "org.gradle.caching.classloaders".
-Example setting in gradle.properties file:
-
-    org.gradle.jvmargs=-Dorg.gradle.caching.classloaders=true
-
 ### Google Test support (i)
 
 - TBD

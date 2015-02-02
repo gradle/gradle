@@ -21,28 +21,12 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory.TOGGLE_CACHING_PROPERTY
-
 class ClassLoaderCacheFactoryTest extends Specification {
 
     @Subject factory = new ClassLoaderCacheFactory()
     @Rule SetSystemProperties s = new SetSystemProperties()
 
-    def "creates new instance if property is off"() {
-        System.setProperty(TOGGLE_CACHING_PROPERTY, "not true")
-        expect:
-        factory.create() != factory.create()
-        factory.create().snapshotter instanceof FileClassPathSnapshotter
-    }
-
-    def "creates new instance if property is not configured"() {
-        expect:
-        factory.create() != factory.create()
-        factory.create().snapshotter instanceof FileClassPathSnapshotter
-    }
-
-    def "reuses instance if property is on"() {
-        System.setProperty(TOGGLE_CACHING_PROPERTY, "True")
+    def "reuses class loader cache"() {
         expect:
         factory.create() == factory.create()
         factory.create().snapshotter instanceof HashClassPathSnapshotter

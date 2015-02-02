@@ -36,7 +36,6 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     private boolean daemonIsExpiredEagerly(String xmx) {
         file("gradle.properties") << ("org.gradle.jvmargs=$xmx"
-                + " -Dorg.gradle.caching.classloaders=true"
                 + " -Dorg.gradle.daemon.performance.logging=true")
 
         setupLeakyBuild()

@@ -27,8 +27,8 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon().build(),
+                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon().build()
         ]
 
         when:
@@ -51,8 +51,8 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin partial build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(":project1:clean", ":project1:assemble").gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon().build(),
+                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon().build()
         ]
 
         when:

@@ -28,8 +28,8 @@ class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).useDaemon().build()
         ]
 
         when:
@@ -52,8 +52,8 @@ class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants partial build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').useDaemon().build()
         ]
 
         when:
@@ -72,8 +72,8 @@ class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build(),
-                BuildSpecification.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).gradleOpts("-Dorg.gradle.caching.classloaders=true").useDaemon().build()
+                BuildSpecification.forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon().build(),
+                BuildSpecification.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon().build()
         ]
 
         when:

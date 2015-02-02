@@ -31,7 +31,6 @@ class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformance
         runner.runs = 2
         runner.subRuns = 5
         runner.warmUpRuns = 1
-        runner.gradleOpts = ["-Dorg.gradle.caching.classloaders=true"]
         runner.testId = "caching classloaders build $testProject"
         runner.testProject = testProject
         runner.useDaemon = true
@@ -48,7 +47,7 @@ class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformance
 
         where:
         testProject       | maxTimeReg    | maxMemReg
-        "small"           | millis(2000)  | DataAmount.kbytes(-150)
+        "small"           | millis(2000)  | DataAmount.kbytes(150)
         "multi"           | millis(5000)  | DataAmount.mbytes(0)
     }
 }
