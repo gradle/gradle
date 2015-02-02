@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.Path
@@ -32,7 +33,6 @@ import org.gradle.model.internal.inspect.MethodModelRuleExtractors
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class ScopedRuleTest extends Specification {
@@ -53,7 +53,7 @@ class ScopedRuleTest extends Specification {
     class DependencyAddingModelRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<HasDependencies> {
         @Override
         def <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-            new DependencyOnlyExtractedModelRule([ModelType.of(ImperativePlugin)])
+            new DependencyOnlyExtractedModelRule([ImperativePlugin])
         }
     }
 
@@ -87,8 +87,8 @@ class ScopedRuleTest extends Specification {
 
         then:
         ModelRuleExecutionException e = thrown()
-        e.cause.class == IllegalStateException
-        e.cause.message == "Creator in scope values not supported, must be root"
+        e.cause.class == InvalidModelRuleDeclarationException
+        e.cause.message == "Rule org.gradle.model.internal.registry.ScopedRuleTest\$CreatorRule#string() cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
     }
 
     static class ByPathBoundInputsChildRule extends RuleSource {

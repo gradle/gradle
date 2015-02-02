@@ -25,7 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -65,8 +64,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                                 return "Project.<init>.tasks." + s + "()";
                             }
                         }
-                ),
-                ModelPath.ROOT
+                )
         );
 
         ModelNode modelNode = modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);

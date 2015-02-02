@@ -29,8 +29,23 @@ public class ExtractedModelCreator implements ExtractedModelRule {
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
-        registrar.create(creator, scope);
+    public Type getType() {
+        return Type.CREATOR;
+    }
+
+    @Override
+    public ModelCreator getCreator() {
+        return creator;
+    }
+
+    @Override
+    public ModelActionRole getActionRole() {
+        return null;
+    }
+
+    @Override
+    public ModelAction<?> getAction() {
+        return null;
     }
 
     @Override

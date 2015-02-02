@@ -78,8 +78,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         Named.Namer.INSTANCE,
                         descriptor,
                         BridgedCollections.itemDescriptor(descriptor)
-                ),
-                ModelPath.ROOT
+                )
         );
     }
 

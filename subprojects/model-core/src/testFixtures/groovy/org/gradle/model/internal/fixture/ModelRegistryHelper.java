@@ -119,24 +119,20 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public <C> ModelRegistryHelper createInstance(String path, final C c) {
-        return create(instanceCreator(path, c), ModelPath.ROOT);
+        return create(instanceCreator(path, c));
     }
 
     public <C> ModelRegistryHelper create(String path, final C c, Action<? super C> action) {
-        return create(creator(path, c, action), ModelPath.ROOT);
+        return create(creator(path, c, action));
     }
 
     private <C> ModelCreator creator(String path, C c, Action<? super C> action) {
         return creator(path).unmanaged(c, action);
     }
 
-    public ModelRegistryHelper create(ModelCreator creator, ModelPath scope) {
-        modelRegistry.create(creator, scope);
-        return this;
-    }
-
     public ModelRegistryHelper create(ModelCreator creator) {
-        return create(creator, ModelPath.ROOT);
+        modelRegistry.create(creator);
+        return this;
     }
 
     @Override
@@ -165,7 +161,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public ModelRegistryHelper create(ModelPath path, Transformer<? extends ModelCreator, ? super ModelCreatorBuilder> def) {
-        modelRegistry.create(def.transform(creator(path)), ModelPath.ROOT);
+        modelRegistry.create(def.transform(creator(path)));
         return this;
     }
 

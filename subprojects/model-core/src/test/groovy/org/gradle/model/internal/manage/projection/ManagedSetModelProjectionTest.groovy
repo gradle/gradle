@@ -52,8 +52,7 @@ class ManagedSetModelProjectionTest extends Specification {
                         collectionPath,
                         schemaStore.getSchema(collectionType),
                         [],
-                        { value, inputs -> } as BiAction),
-                ModelPath.ROOT
+                        { value, inputs -> } as BiAction)
         )
     }
 

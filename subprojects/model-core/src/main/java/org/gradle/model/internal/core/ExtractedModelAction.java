@@ -16,41 +16,48 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class ExtractedModelMutator implements ExtractedModelRule {
+public class ExtractedModelAction implements ExtractedModelRule {
 
     private final ModelActionRole role;
     private final ModelAction<?> action;
-    private final List<ModelType<?>> dependencies;
+    private final List<? extends Class<?>> dependencies;
 
-    public ExtractedModelMutator(ModelActionRole role, ModelAction<?> action) {
-        this(role, ImmutableList.<ModelType<?>>of(), action);
+    public ExtractedModelAction(ModelActionRole role, ModelAction<?> action) {
+        this(role, ImmutableList.<Class<?>>of(), action);
     }
 
-    public ExtractedModelMutator(ModelActionRole role, List<ModelType<?>> dependencies, ModelAction<?> action) {
+    public ExtractedModelAction(ModelActionRole role, List<? extends Class<?>> dependencies, ModelAction<?> action) {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
-        registrar.apply(scope, role, action);
+    public Type getType() {
+        return Type.ACTION;
     }
 
     @Override
-    public List<Class<?>> getRuleDependencies() {
-        return Lists.transform(dependencies, new Function<ModelType<?>, Class<?>>() {
-            @Override
-            public Class<?> apply(ModelType<?> type) {
-                return type.getRawClass();
-            }
-        });
+    public ModelCreator getCreator() {
+        return null;
+    }
+
+    @Override
+    public ModelActionRole getActionRole() {
+        return role;
+    }
+
+    @Override
+    public ModelAction<?> getAction() {
+        return action;
+    }
+
+    @Override
+    public List<? extends Class<?>> getRuleDependencies() {
+        return dependencies;
     }
 }

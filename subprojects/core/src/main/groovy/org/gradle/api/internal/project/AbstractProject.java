@@ -62,7 +62,6 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -187,8 +186,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .simpleDescriptor("Project.<init>.serviceRegistry()")
-                        .build(),
-                ModelPath.ROOT
+                        .build()
         );
 
         modelRegistry.create(
@@ -198,22 +196,19 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                     }
                 })
                         .simpleDescriptor("Project.<init>.buildDir()")
-                        .build(),
-                ModelPath.ROOT
+                        .build()
         );
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .simpleDescriptor("Project.<init>.projectIdentifier()")
-                        .build(),
-                ModelPath.ROOT
+                        .build()
         );
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
                         .simpleDescriptor("Project.<init>.extensions()")
-                        .build(),
-                ModelPath.ROOT
+                        .build()
         );
     }
 

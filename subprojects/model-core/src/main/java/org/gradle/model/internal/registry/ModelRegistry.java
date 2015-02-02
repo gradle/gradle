@@ -113,7 +113,7 @@ public interface ModelRegistry extends ModelRegistrar {
     void bindAllReferences() throws UnboundModelRulesException;
 
     @Override
-    ModelRegistry create(ModelCreator creator, ModelPath scope);
+    ModelRegistry create(ModelCreator creator);
 
     @Override
     <T> ModelRegistry apply(ModelPath scope, ModelActionRole role, ModelAction<T> action);

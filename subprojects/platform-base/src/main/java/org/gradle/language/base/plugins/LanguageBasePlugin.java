@@ -81,8 +81,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                         Named.Namer.INSTANCE,
                         descriptor,
                         BridgedCollections.itemDescriptor(descriptor)
-                ),
-                ModelPath.ROOT
+                )
         );
 
         modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {

@@ -20,7 +20,23 @@ import java.util.List;
 
 public interface ExtractedModelRule {
 
-    void applyTo(ModelRegistrar registrar, ModelPath scope);
+    enum Type {
+        CREATOR,
+        ACTION,
+        DEPENDENCIES // this is pretty weird, but a 'dependencies' only type rule is a temporary thing
+    }
 
-    List<Class<?>> getRuleDependencies();
+    Type getType();
+
+    // null if not a creator
+    ModelCreator getCreator();
+
+    // null if not an action
+    ModelActionRole getActionRole();
+
+    // null if not an action
+    ModelAction<?> getAction();
+
+    // never null
+    List<? extends Class<?>> getRuleDependencies();
 }

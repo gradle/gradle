@@ -48,8 +48,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             final Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
 
             final BinaryTaskRule<R, S> binaryTaskRule = new BinaryTaskRule<R, S>(binaryType, ruleDefinition);
-            ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ExtractedModelMutator(ModelActionRole.Defaults, dependencies, DirectNodeModelAction.of(ModelReference.of("binaries"), new SimpleModelRuleDescriptor("binaries*.create()"), new Action<MutableModelNode>() {
+            return new ExtractedModelAction(ModelActionRole.Defaults, ImmutableList.of(ComponentModelBasePlugin.class), DirectNodeModelAction.of(ModelReference.of("binaries"), new SimpleModelRuleDescriptor("binaries*.create()"), new Action<MutableModelNode>() {
                 @Override
                 public void execute(MutableModelNode modelNode) {
                     modelNode.applyToAllLinks(ModelActionRole.Finalize, binaryTaskRule);

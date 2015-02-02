@@ -48,8 +48,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             ModelReference<BinaryContainer> subject = ModelReference.of(ModelPath.path("binaries"), ModelType.of(BinaryContainer.class));
             ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
 
-            ImmutableList<ModelType<?>> dependencies = ImmutableList.<ModelType<?>>of(ModelType.of(ComponentModelBasePlugin.class));
-            return new ExtractedModelMutator(ModelActionRole.Mutate, dependencies, componentBinariesRule);
+            return new ExtractedModelAction(ModelActionRole.Mutate, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
         } catch (InvalidModelException e) {
             throw invalidModelRule(ruleDefinition, e);
         }

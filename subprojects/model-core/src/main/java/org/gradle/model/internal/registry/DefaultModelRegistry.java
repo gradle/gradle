@@ -26,6 +26,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -65,11 +66,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         return stringBuilder.toString();
     }
 
-    public DefaultModelRegistry create(ModelCreator creator, ModelPath scope) {
+    public DefaultModelRegistry create(ModelCreator creator) {
         ModelPath path = creator.getPath();
-        if (!scope.equals(ModelPath.ROOT)) {
-            throw new IllegalStateException("Creator in scope " + scope + " not supported, must be root");
-        }
         if (!ModelPath.ROOT.isDirectChild(path)) {
             throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
         }
@@ -766,15 +764,25 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
-            Iterable<ExtractedModelRule> registrations = ruleExtractor.extract(rules);
-            for (ExtractedModelRule registration : registrations) {
+            Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
+            for (ExtractedModelRule extractedRule : extractedRules) {
                 // TODO - remove this when we remove the 'rule dependencies' mechanism
-                if (!registration.getRuleDependencies().isEmpty()) {
-                    throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + registration + ")");
+                if (!extractedRule.getRuleDependencies().isEmpty()) {
+                    throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + extractedRule + ")");
                 }
 
-                // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
-                registration.applyTo(DefaultModelRegistry.this, scope);
+                if (extractedRule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
+                    if (scope.equals(ModelPath.ROOT)) {
+                        DefaultModelRegistry.this.create(extractedRule.getCreator());
+                    } else {
+                        throw new InvalidModelRuleDeclarationException("Rule " + extractedRule.getCreator().getDescriptor() + " cannot be applied at the scope of model element " + scope + " as creation rules cannot be used when applying rule sources to particular elements");
+                    }
+                } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
+                    // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
+                    DefaultModelRegistry.this.apply(scope, extractedRule.getActionRole(), extractedRule.getAction());
+                } else {
+                    throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
+                }
             }
         }
 

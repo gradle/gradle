@@ -19,7 +19,7 @@ package org.gradle.model.internal.inspect
 import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
-import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -63,17 +63,28 @@ class ModelRuleExtractorTest extends Specification {
         }
     }
 
-    void registerRules(Class<?> source) {
-        extractor.extract(source)*.applyTo(registry, ModelPath.ROOT)
+    List<ExtractedModelRule> extract(Class<?> source) {
+        extractor.extract(source)
+    }
+
+    void registerRules(Class<?> clazz) {
+        def rules = extract(clazz)
+        rules.each {
+            if (it.type == ExtractedModelRule.Type.CREATOR) {
+                registry.create(it.creator)
+            } else if (it.type == ExtractedModelRule.Type.ACTION) {
+                registry.apply(ModelPath.ROOT, it.actionRole, it.action)
+            }
+        }
     }
 
     def "can inspect class with simple model creation rule"() {
         when:
-        registerRules(SimpleModelCreationRuleInferredName)
+        def rule = extract(SimpleModelCreationRuleInferredName).first()
 
         then:
-        def element = registry.realize(ModelPath.path("modelPath"), ModelType.of(ModelThing))
-        element.name == "foo"
+        rule.type == ExtractedModelRule.Type.CREATOR
+        rule.creator.path.toString() == "modelPath"
     }
 
     static class ParameterizedModel extends RuleSource {
@@ -269,7 +280,7 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         registerRules(MutationRules)
@@ -305,7 +316,7 @@ class ModelRuleExtractorTest extends Specification {
 
         // Have to make the inputs exist so the binding can be inferred by type
         // or, the inputs could be annotated with @Path
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(path, type), []).simpleDescriptor("strings").build())
 
         when:
         registerRules(MutationAndFinalizeRules)
@@ -316,24 +327,20 @@ class ModelRuleExtractorTest extends Specification {
     }
 
     def "methods are processed ordered by their to string representation"() {
-        given:
+        when:
         def stringListType = new ModelType<List<String>>() {}
         def integerListType = new ModelType<List<Integer>>() {}
 
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build(), ModelPath.ROOT)
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build(), ModelPath.ROOT)
-
-        when:
-        extractor.extract(MutationAndFinalizeRules)*.applyTo(registryMock, ModelPath.ROOT)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("strings"), stringListType), []).simpleDescriptor("strings").build())
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(ModelPath.path("integers"), integerListType), []).simpleDescriptor("integers").build())
 
         then:
-        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Finalize, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1") })
+        extractor.extract(MutationAndFinalizeRules)*.action*.descriptor == [
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
+                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
+        ]
 
-        then:
-        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1") })
-
-        then:
-        1 * registryMock.apply(ModelPath.ROOT, ModelActionRole.Mutate, { it.descriptor == MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3") })
     }
 
     static class InvalidModelNameViaAnnotation extends RuleSource {

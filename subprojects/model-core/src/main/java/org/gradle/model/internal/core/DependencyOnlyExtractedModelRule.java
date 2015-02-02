@@ -16,30 +16,37 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import org.gradle.model.internal.type.ModelType;
-
 import java.util.List;
 
 public class DependencyOnlyExtractedModelRule implements ExtractedModelRule {
 
-    private final List<ModelType<?>> dependencies;
+    private final List<Class<?>> dependencies;
 
-    public DependencyOnlyExtractedModelRule(List<ModelType<?>> dependencyList) {
+    public DependencyOnlyExtractedModelRule(List<Class<?>> dependencyList) {
         this.dependencies = dependencyList;
     }
 
     @Override
-    public void applyTo(ModelRegistrar registrar, ModelPath scope) {
+    public Type getType() {
+        return Type.DEPENDENCIES;
+    }
+
+    @Override
+    public ModelCreator getCreator() {
+        return null;
+    }
+
+    @Override
+    public ModelActionRole getActionRole() {
+        return null;
+    }
+
+    @Override
+    public ModelAction<?> getAction() {
+        return null;
     }
 
     public List<Class<?>> getRuleDependencies() {
-        return Lists.transform(dependencies, new Function<ModelType<?>, Class<?>>() {
-            @Override
-            public Class<?> apply(ModelType<?> type) {
-                return type.getRawClass();
-            }
-        });
+        return dependencies;
     }
 }

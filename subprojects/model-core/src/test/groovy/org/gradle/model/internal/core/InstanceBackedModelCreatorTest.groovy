@@ -34,14 +34,14 @@ class InstanceBackedModelCreatorTest extends Specification {
 
         def fooList = []
         def fooCreator = ModelCreators.bridgedInstance(foo, fooList).descriptor(descriptor).build()
-        registry.create(fooCreator, ModelPath.ROOT)
+        registry.create(fooCreator)
 
         def barList = []
         def factory = Mock(org.gradle.internal.Factory) {
             1 * create() >> barList
         }
         def barCreator = ModelCreators.unmanagedInstance(bar, factory).descriptor(descriptor).build()
-        registry.create(barCreator, ModelPath.ROOT)
+        registry.create(barCreator)
 
         then:
         !fooCreator.promise.canBeViewedAsReadOnly(ModelType.of(String))

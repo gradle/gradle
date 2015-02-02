@@ -19,7 +19,7 @@ package org.gradle.model.internal.inspect;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ExtractedModelMutator;
+import org.gradle.model.internal.core.ExtractedModelAction;
 import org.gradle.model.internal.core.ExtractedModelRule;
 
 import java.lang.annotation.Annotation;
@@ -29,7 +29,7 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
 
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         validate(ruleDefinition);
-        return new ExtractedModelMutator(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));
+        return new ExtractedModelAction(getMutationType(), new MethodBackedModelAction<S>(ruleDefinition));
     }
 
     protected abstract ModelActionRole getMutationType();
