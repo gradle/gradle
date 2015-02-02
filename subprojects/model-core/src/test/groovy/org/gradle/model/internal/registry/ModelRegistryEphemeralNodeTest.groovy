@@ -112,6 +112,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         when:
         registry.stabilize()
 
+        then:
         registry.node("things").state == ModelNode.State.Known
         registry.node("things.foo").state == ModelNode.State.Known
         registry.node("things.bar").state == ModelNode.State.Known
