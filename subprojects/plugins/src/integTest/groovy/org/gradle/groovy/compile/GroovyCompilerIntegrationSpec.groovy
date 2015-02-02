@@ -70,6 +70,18 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
         noExceptionThrown()
     }
 
+    @Issue("GRADLE-3235")
+    def canUseAstTransformThatReferencesServletCategory() {
+        if (versionLowerThan('2.0.5')) {
+            return
+        }
+
+        when:
+        run("test")
+
+        then:
+        noExceptionThrown()
+    }
 
     def canJointCompileWithJavaCompilerExecutable() {
         args("-PjdkHome=${Jvm.current().getExecutable('javac')}")
