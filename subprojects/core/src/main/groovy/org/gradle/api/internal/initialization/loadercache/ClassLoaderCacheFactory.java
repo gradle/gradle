@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 
 import java.util.HashMap;
 
 public class ClassLoaderCacheFactory {
 
-    private final static Logger LOGGER = Logging.getLogger(ClassLoaderCacheFactory.class);
+    private final GradleBuildEnvironment environment;
     private DefaultClassLoaderCache instance;
 
+    public ClassLoaderCacheFactory(GradleBuildEnvironment environment) {
+        this.environment = environment;
+    }
+
     public ClassLoaderCache create() {
-        maybeInit();
-        return instance;
+        if (environment.isLongLivingProcess()) {
+            maybeInit();
+            return instance;
+        }
+        return newCache(new FileClassPathSnapshotter());
     }
 
     private DefaultClassLoaderCache newCache(ClassPathSnapshotter snapshotter) {
@@ -38,7 +44,6 @@ public class ClassLoaderCacheFactory {
     private void maybeInit() {
         if (instance == null) {
             instance = newCache(new HashClassPathSnapshotter());
-            LOGGER.lifecycle("Initialized global ClassLoader cache.");
         }
     }
 }

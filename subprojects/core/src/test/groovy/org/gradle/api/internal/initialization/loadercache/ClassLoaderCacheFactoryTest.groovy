@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -23,12 +24,25 @@ import spock.lang.Subject
 
 class ClassLoaderCacheFactoryTest extends Specification {
 
-    @Subject factory = new ClassLoaderCacheFactory()
+    def environment = Stub(GradleBuildEnvironment)
+    @Subject factory = new ClassLoaderCacheFactory(environment)
     @Rule SetSystemProperties s = new SetSystemProperties()
 
+    def "creates new instance if property is off"() {
+        when:
+        environment.longLivingProcess >> false
+
+        then:
+        !factory.create().is(factory.create())
+        factory.create().snapshotter instanceof FileClassPathSnapshotter
+    }
+
     def "reuses class loader cache"() {
-        expect:
-        factory.create() == factory.create()
+        when:
+        environment.longLivingProcess >> true
+
+        then:
+        factory.create().is(factory.create())
         factory.create().snapshotter instanceof HashClassPathSnapshotter
     }
 }

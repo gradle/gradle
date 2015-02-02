@@ -180,8 +180,8 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem);
     }
 
-    ClassLoaderCacheFactory createClassLoaderCacheFactory() {
-        return new ClassLoaderCacheFactory();
+    ClassLoaderCacheFactory createClassLoaderCacheFactory(GradleBuildEnvironment environment) {
+        return new ClassLoaderCacheFactory(environment);
     }
 
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
