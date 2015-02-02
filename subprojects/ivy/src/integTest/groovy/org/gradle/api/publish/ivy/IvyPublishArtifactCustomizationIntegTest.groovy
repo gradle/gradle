@@ -327,7 +327,7 @@ The following types/formats are supported:
   - Instances of IvyArtifact.
   - Instances of AbstractArchiveTask.
   - Instances of PublishArtifact.
-  - Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].
+  - Maps containing a 'source' entry, for example [source: '/path/to/file', extension: 'zip'].
   - Anything that can be converted to a file, as per Project.file()""")
     }
 
