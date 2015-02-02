@@ -68,6 +68,17 @@ public class ManagedProxyClassGenerator {
     private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
     private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
 
+    /**
+     * Generates an implementation of the given managed type.
+     * <p>
+     * The generated class will implement/extend the managed type and will:
+     * <ul>
+     *     <li>provide implementations for abstract getters and setters</li>
+     *     <li>provide a `toString()` implementation</li>
+     *     <li>mix-in implementation of {@link ManagedInstance}</li>
+     *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
+     * </ul>
+     */
     public <T> Class<? extends T> generate(Class<T> managedTypeClass) {
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
