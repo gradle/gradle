@@ -146,7 +146,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         matchers.addAll(excludeSpecs);
-        return Specs.or(matchers);
+        return Specs.or(false, matchers);
     }
 
     public Set<String> getIncludes() {
