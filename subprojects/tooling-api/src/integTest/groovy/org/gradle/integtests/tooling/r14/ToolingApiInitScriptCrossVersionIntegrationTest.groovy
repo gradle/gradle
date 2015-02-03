@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r14
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -30,8 +31,6 @@ import spock.lang.Issue
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
 class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecification {
 
-    @Rule TestDistributionDirectoryProvider temporaryDistributionFolder =
-            new TestDistributionDirectoryProvider();
 
     TestFile createDistribution(int i) {
         def distro = temporaryDistributionFolder.file("distro$i")
@@ -44,6 +43,10 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
             }
         """
         distro
+    }
+
+    protected TestDirectoryProvider getTestDirectoryProvider() {
+        return temporaryDistributionFolder
     }
 
     String runWithInstallation(TestFile gradleHome) {

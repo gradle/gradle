@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
-
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
@@ -29,7 +29,6 @@ import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
-
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -52,10 +51,11 @@ abstract class ToolingApiSpecification extends Specification {
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule
-    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(toolingApi);
+    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
 
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
@@ -175,4 +175,5 @@ abstract class ToolingApiSpecification extends Specification {
         }
         return rootProjectImplicitTasks
     }
+
 }
