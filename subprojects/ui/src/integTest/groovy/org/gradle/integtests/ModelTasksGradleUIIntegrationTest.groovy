@@ -60,7 +60,7 @@ class ModelTasksGradleUIIntegrationTest extends AbstractIntegrationSpec {
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
 
         when:
-        TestUtility.executeBlocking(gradlePluginLord, "fromModel", "Test Execution", executionInteraction, 10)
+        TestUtility.executeBlocking(gradlePluginLord, "fromModel", "Test Execution", executionInteraction, 20)
 
         then:
         file('build/output.txt').text == "from model rule defined task"
