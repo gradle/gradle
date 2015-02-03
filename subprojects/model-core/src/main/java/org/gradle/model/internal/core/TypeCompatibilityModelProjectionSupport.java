@@ -86,4 +86,25 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     public static String description(ModelType<?> type) {
         return type.toString() + " (or assignment compatible type thereof)";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        TypeCompatibilityModelProjectionSupport<?> that = (TypeCompatibilityModelProjectionSupport<?>) o;
+        return canBeViewedAsReadOnly == that.canBeViewedAsReadOnly && canBeViewedAsWritable == that.canBeViewedAsWritable && type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type.hashCode();
+        result = 31 * result + (canBeViewedAsReadOnly ? 1 : 0);
+        result = 31 * result + (canBeViewedAsWritable ? 1 : 0);
+        return result;
+    }
 }

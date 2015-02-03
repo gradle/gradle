@@ -41,7 +41,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         events.size() == 1
 
         when:
-        registry.stabilize()
+        registry.prepareForReuse()
 
         then:
         registry.node("foo").state == ModelNode.State.Known
@@ -72,7 +72,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         events == ["mutate foo", "mutate bar"]
 
         when:
-        registry.stabilize()
+        registry.prepareForReuse()
 
         then:
         registry.node("foo").state == ModelNode.State.Known
@@ -110,7 +110,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.node("things.bar").state == ModelNode.State.GraphClosed
 
         when:
-        registry.stabilize()
+        registry.prepareForReuse()
 
         then:
         registry.node("things").state == ModelNode.State.Known

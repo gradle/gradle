@@ -52,6 +52,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
 
+    boolean reset;
+
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
         ModelCreator rootCreator = ModelCreators.of(ModelReference.of(ModelPath.ROOT), BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
@@ -251,11 +253,23 @@ public class DefaultModelRegistry implements ModelRegistry {
             return;
         }
 
-        if (Iterables.isEmpty(node.getDependents())) {
+        Iterable<? extends ModelNode> dependents = node.getDependents();
+        if (Iterables.isEmpty(dependents)) {
             modelGraph.remove(node);
         } else {
-            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(node.getDependents()));
+            throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }
+    }
+
+    @Override
+    public void replace(ModelCreator newCreator) {
+        ModelNodeInternal node = modelGraph.find(newCreator.getPath());
+        if (node == null) {
+            throw new IllegalStateException("can not replace node " + newCreator.getPath() + " as it does not exist");
+        }
+
+        // Will internally verify that this is valid
+        node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
     }
 
     private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
@@ -528,7 +542,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void stabilize() {
+    public void prepareForReuse() {
+        reset = true;
+
         List<ModelNodeInternal> ephemerals = Lists.newLinkedList();
         collectEphemeralChildren(modelGraph.getRoot(), ephemerals);
         if (ephemerals.isEmpty()) {

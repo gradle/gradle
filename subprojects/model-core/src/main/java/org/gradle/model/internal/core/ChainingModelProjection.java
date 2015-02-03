@@ -90,4 +90,23 @@ public class ChainingModelProjection implements ModelProjection {
         }
         return null;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChainingModelProjection that = (ChainingModelProjection) o;
+
+        return projections.equals(that.projections);
+    }
+
+    @Override
+    public int hashCode() {
+        return projections.hashCode();
+    }
 }

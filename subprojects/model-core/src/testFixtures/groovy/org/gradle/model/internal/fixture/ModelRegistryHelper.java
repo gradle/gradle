@@ -106,6 +106,11 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
+    public void replace(ModelCreator newCreator) {
+        modelRegistry.replace(newCreator);
+    }
+
+    @Override
     public void bindAllReferences() throws UnboundModelRulesException {
         modelRegistry.bindAllReferences();
     }
@@ -158,8 +163,8 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public void stabilize() {
-        modelRegistry.stabilize();
+    public void prepareForReuse() {
+        modelRegistry.prepareForReuse();
     }
 
     public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {

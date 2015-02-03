@@ -29,4 +29,8 @@ public interface ModelAdapter {
 
     @Nullable
     <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
+
+    @Override
+        // must implement logical equality
+    boolean equals(Object other);
 }

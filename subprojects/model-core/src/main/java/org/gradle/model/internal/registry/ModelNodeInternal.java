@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -23,12 +24,16 @@ import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private final CreatorRuleBinder creatorBinder;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
+
+    private CreatorRuleBinder creatorBinder;
     private Map<ModelActionRole, List<MutatorRuleBinder<?>>> mutators;
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
@@ -40,6 +45,28 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public CreatorRuleBinder getCreatorBinder() {
         return creatorBinder;
+    }
+
+    public void replaceCreatorRuleBinder(CreatorRuleBinder newCreatorBinder) {
+        if (getState() != State.Known) {
+            throw new IllegalStateException("Cannot replace creator rule binder when not in known state (node: " + this + ", state: " + getState() + ")");
+        }
+
+        ModelCreator newCreator = newCreatorBinder.getCreator();
+        ModelCreator oldCreator = creatorBinder.getCreator();
+
+        // Can't change type
+        if (!oldCreator.getPromise().equals(newCreator.getPromise())) {
+            throw new IllegalStateException("can not replace node " + getPath() + " with different promise (old: " + oldCreator.getPromise() + ", new: " + newCreator.getPromise() + ")");
+        }
+
+        // Can't have different inputs
+        if (!newCreator.getInputs().equals(oldCreator.getInputs())) {
+            Joiner joiner = Joiner.on(", ");
+            throw new IllegalStateException("can not replace node " + getPath() + " with creator with different input bindings (old: [" + joiner.join(oldCreator.getInputs()) + "], new: [" + joiner.join(newCreator.getInputs()) + "])");
+        }
+
+        this.creatorBinder = newCreatorBinder;
     }
 
     @Override
@@ -181,10 +208,19 @@ abstract class ModelNodeInternal implements MutableModelNode {
         if (getState() != State.Known) {
             setState(State.Known);
             setPrivateData(ModelType.untyped(), null);
+
             for (ModelNodeInternal dependent : dependents) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("resetting dependent node of {}: {}", this, dependent);
+                }
                 dependent.reset();
             }
+
             for (ModelNodeInternal child : getLinks()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("resetting child node of {}: {}", this, child);
+                }
+
                 child.reset();
             }
         }

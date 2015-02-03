@@ -195,4 +195,6 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
             }
         };
     }
+
+
 }

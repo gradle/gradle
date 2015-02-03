@@ -94,6 +94,8 @@ public interface ModelRegistry extends ModelRegistrar {
 
     void remove(ModelPath path);
 
+    void replace(ModelCreator newCreator);
+
     /**
      * Attempts to bind the references of all model rules known at this point in time.
      * <p>
@@ -125,8 +127,11 @@ public interface ModelRegistry extends ModelRegistrar {
 
     /**
      * Resets the state of the model registry, discarding all ephemeral state.
+     *
+     * This method also allows rules that were already added to be added again.
+     * All nodes that are known at the time this method is called are effectively frozen WRT rules.
      */
     // TODO Better name for this method?
-    void stabilize();
+    void prepareForReuse();
 
 }
