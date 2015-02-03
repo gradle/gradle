@@ -16,6 +16,7 @@
 
 package org.gradle.play.plugins
 
+import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -107,7 +108,7 @@ Binaries
     }
 
     @Unroll
-    def "can declare additional #language sourceSets"() {
+    def "can declare additional #languageName sourceSets"() {
         given:
         buildFile << """
         model {
@@ -123,7 +124,7 @@ Binaries
         }
 """
         and:
-        file("src/extra/org/acme/model/Person.${language}") << """
+        file("src/extra/org/acme/model/Person.${languageName}") << """
             package org.acme.model;
             class Person {
             }
@@ -140,7 +141,7 @@ Play Application 'play'
 Source sets
     Scala source 'play:appSources'
         app
-    Scala source 'play:extra'
+    ${StringUtils.capitalize(languageName)} source 'play:extra'
         src${File.separator}extra
     JVM resources 'play:resources'
         conf
@@ -167,8 +168,9 @@ Source sets
 
         where:
 
-        language | sourceSetType
-        "scala"  | "ScalaLanguageSourceSet"
+        languageName | sourceSetType
+        "scala"      | "ScalaLanguageSourceSet"
+        "java"       | "JavaSourceSet"
     }
 
     JarTestFixture jar(String fileName) {

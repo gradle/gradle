@@ -31,6 +31,8 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
+import org.gradle.language.java.JavaSourceSet;
+import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
@@ -124,6 +126,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void registerScalaLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
             builder.setLanguageName("scala");
             builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
+        }
+
+        /**
+         * TODO: leverage the java-language plugin here instead
+         * */
+        @LanguageType
+        void registerJavaLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+            builder.setLanguageName("java");
+            builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
         }
 
         @Mutate
@@ -317,6 +328,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", scalaCompileTaskName)));
 
                     for (LanguageSourceSet appSources : binary.getSource().withType(ScalaLanguageSourceSet.class)) {
+                        scalaCompile.source(appSources.getSource());
+                        scalaCompile.dependsOn(appSources);
+                    }
+
+                    for (LanguageSourceSet appSources : binary.getSource().withType(JavaSourceSet.class)) {
                         scalaCompile.source(appSources.getSource());
                         scalaCompile.dependsOn(appSources);
                     }
