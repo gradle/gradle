@@ -117,6 +117,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             builder.defaultImplementation(DefaultTwirlSourceSet.class);
         }
 
+        /**
+         * TODO: leverage the scala-language plugin here instead
+         * */
+        @LanguageType
+        void registerScalaLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
+            builder.setLanguageName("scala");
+            builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
+        }
+
         @Mutate
         void configureDefaultPlaySources(ComponentSpecContainer components, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);

@@ -15,12 +15,14 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Unroll
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -95,7 +97,7 @@ Binaries
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompilePlayBinary" ,
+        skipped(":routesCompilePlayBinary",
                 ":twirlCompileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary")
 
@@ -104,7 +106,72 @@ Binaries
         jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
+    @Unroll
+    def "can declare additional #language sourceSets"() {
+        given:
+        buildFile << """
+        model {
+            components {
+                play {
+                    sources {
+                        extra($sourceSetType) {
+                            source.srcDir "src/extra"
+                        }
+                    }
+                }
+            }
+        }
+"""
+        and:
+        file("src/extra/org/acme/model/Person.${language}") << """
+            package org.acme.model;
+            class Person {
+            }
+"""
+
+        when:
+        succeeds("components")
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+Play Application 'play'
+-----------------------
+
+Source sets
+    Scala source 'play:appSources'
+        app
+    Scala source 'play:extra'
+        src${File.separator}extra
+    JVM resources 'play:resources'
+        conf
+    Twirl template source 'play:twirlTemplates'
+        app
+"""))
+
+        when:
+        succeeds("assemble")
+
+        then:
+        executedAndNotSkipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":scalaCompilePlayBinary",
+                ":playBinary",
+                ":assemble")
+        skipped(":routesCompilePlayBinary",
+                ":twirlCompileTwirlTemplatesPlayBinary")
+
+        and:
+        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/Person.class")
+        jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
+
+        where:
+
+        language | sourceSetType
+        "scala"  | "ScalaLanguageSourceSet"
+    }
+
     JarTestFixture jar(String fileName) {
-           new JarTestFixture(file(fileName))
+        new JarTestFixture(file(fileName))
     }
 }

@@ -220,7 +220,7 @@ model {
                 resources {
                     source.srcDir "src/assets"
                 }
-                extraScala(ScalaSourceSet) {
+                extraScala(ScalaLanguageSourceSet) {
                     source.srcDir "src/extraScala"
                 }
             }
