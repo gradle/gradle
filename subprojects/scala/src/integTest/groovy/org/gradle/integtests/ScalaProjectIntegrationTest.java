@@ -32,4 +32,14 @@ public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks("build").run();
         testFile("build/libs/javaOnly.jar").assertExists();
     }
+
+    @Test
+    public void supportsScalaVersionConfiguration() {
+        testFile("src/main/scala/somepackage/SomeClass.scala").writelns("class SomeClass { }");
+        testFile("build.gradle").writelns("apply plugin: 'scala'", "scala { version = '2.11.5' }");
+        testFile("settings.gradle").write("rootProject.name='scala'");
+        inTestDirectory().withTasks("build").run();
+        testFile("build/libs/scala_2.11.jar").assertExists();
+    }
+
 }

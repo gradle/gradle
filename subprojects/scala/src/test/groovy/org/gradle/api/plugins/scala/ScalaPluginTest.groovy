@@ -26,6 +26,7 @@ import org.junit.Test
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.WrapUtil.toList
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
@@ -37,6 +38,14 @@ class ScalaPluginTest {
     @Test void appliesTheJavaPluginToTheProject() {
         scalaPlugin.apply(project)
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
+    }
+
+    @Test void addsScalaLibraryExtensionToTheProject() {
+        scalaPlugin.apply(project)
+        def extension = project.extensions.getByName(ScalaPlugin.SCALA_LIBRARY_EXTENSION_NAME) as ScalaLibraryExtension
+        assertThat(extension.version, equalTo(""))
+        assertThat(extension.binaryVersion, equalTo(""))
+        assertThat(extension.additionalComponents, equalTo(toList()))
     }
 
     @Test void addsScalaConventionToEachSourceSetAndAppliesMappings() {

@@ -22,6 +22,9 @@ import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.api.plugins.JavaBasePlugin
 
 public class ScalaPlugin implements Plugin<Project> {
+
+    public static final String SCALA_LIBRARY_EXTENSION_NAME = "scala"
+
     // tasks
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 
@@ -30,6 +33,7 @@ public class ScalaPlugin implements Plugin<Project> {
         project.pluginManager.apply(JavaPlugin);
 
         configureScaladoc(project);
+        configureScalaLibraryExtension(project);
     }
 
     private void configureScaladoc(final Project project) {
@@ -40,5 +44,9 @@ public class ScalaPlugin implements Plugin<Project> {
         ScalaDoc scalaDoc = project.tasks.create(SCALA_DOC_TASK_NAME, ScalaDoc.class)
         scalaDoc.description = "Generates Scaladoc for the main source code.";
         scalaDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
+    }
+
+    private void configureScalaLibraryExtension(final Project project) {
+        project.extensions.create(SCALA_LIBRARY_EXTENSION_NAME, ScalaLibraryExtension, project)
     }
 }
