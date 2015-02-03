@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
@@ -281,5 +282,53 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
         "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
         "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
+    }
+
+    @Issue("GRADLE-3236")
+    def "can resolve the same module differently in different configurations" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            configurations {
+                modules
+                modulesA {
+                    extendsFrom modules
+                    resolutionStrategy {
+                        componentSelection {
+                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                                println "A is evaluating \$selection.candidate"
+                                if (selection.candidate.version != "1.1") { selection.reject("Rejected by A") }
+                            }
+                        }
+                    }
+                }
+                modulesB {
+                    extendsFrom modules
+                    resolutionStrategy {
+                        componentSelection {
+                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                                println "B is evaluating \$selection.candidate"
+                                if (selection.candidate.version != "1.0") { selection.reject("Rejected by B") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                modules "org.utils:api:1.+"
+            }
+        """
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules['1.2'].ivy.expectGet()
+        modules['1.1'].ivy.expectGet()
+        modules['1.0'].ivy.expectGet()
+
+        when:
+        succeeds "dependencies"
+
+        then:
+        output.contains("\\--- org.utils:api:1.+ -> 1.1")
+        output.contains("\\--- org.utils:api:1.+ -> 1.0")
     }
 }
