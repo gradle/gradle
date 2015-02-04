@@ -21,8 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter;
 import org.gradle.api.publication.maven.internal.PomDependenciesConverter;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
@@ -124,8 +122,6 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         } else {
             mavenDependency.setArtifactId(name);
         }
-        Logger logger = Logging.getLogger(getClass());
-        logger.info(String.format("Dependency: %s:%s:%s", dependency.getGroup(), mavenDependency.getArtifactId(), dependency.getVersion()));
         mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
