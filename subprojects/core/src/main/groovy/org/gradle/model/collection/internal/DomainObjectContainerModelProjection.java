@@ -33,11 +33,13 @@ import java.util.List;
 public abstract class DomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> implements ModelProjection {
 
     protected final Class<M> baseItemType;
+    private final ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference;
     private final ModelType<M> baseItemModelType;
 
-    public DomainObjectContainerModelProjection(Class<M> baseItemType) {
-        this.baseItemType = baseItemType;
-        this.baseItemModelType = ModelType.of(baseItemType);
+    public DomainObjectContainerModelProjection(ModelType<M> baseItemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference) {
+        this.baseItemModelType = baseItemType;
+        this.baseItemType = baseItemType.getConcreteClass();
+        this.instantiatorModelReference = instantiatorModelReference;
     }
 
     protected abstract C getContainer(MutableModelNode node);
@@ -52,8 +54,7 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
 
     protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container.getEntityInstantiator(), container, sourceDescriptor, node
-        );
+        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container, sourceDescriptor, node, instantiatorModelReference);
 
         CollectionBuilder<S> subBuilder = builder.withType(itemClass);
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(node.getPath(), DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);

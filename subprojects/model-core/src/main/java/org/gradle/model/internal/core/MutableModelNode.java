@@ -82,7 +82,7 @@ public interface MutableModelNode extends ModelNode {
 
     boolean hasLink(String name, ModelType<?> type);
 
-    <T> void setPrivateData(ModelType<T> type, T object);
+    <T> void setPrivateData(ModelType<? super T> type, T object);
 
     <T> T getPrivateData(ModelType<T> type);
 

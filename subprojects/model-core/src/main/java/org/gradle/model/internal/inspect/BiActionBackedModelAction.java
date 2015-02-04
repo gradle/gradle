@@ -17,15 +17,13 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.Collections;
 import java.util.List;
 
-class BiActionBackedModelAction<T> implements ModelAction<T> {
+public class BiActionBackedModelAction<T> implements ModelAction<T> {
     private final ModelReference<T> modelReference;
     private final ModelRuleDescriptor descriptor;
     private final List<ModelReference<?>> inputs;
@@ -36,6 +34,19 @@ class BiActionBackedModelAction<T> implements ModelAction<T> {
         this.descriptor = descriptor;
         this.inputs = inputs;
         this.initializer = initializer;
+    }
+
+    public static <T> ModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
+        return new BiActionBackedModelAction<T>(modelReference, descriptor, inputs, initializer);
+    }
+
+    public static <T, I> ModelAction<T> singleInput(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, final ModelReference<I> input, final BiAction<? super T, ? super I> initializer) {
+        return of(modelReference, descriptor, Collections.<ModelReference<?>>singletonList(input), new BiAction<T, List<ModelView<?>>>() {
+            @Override
+            public void execute(T t, List<ModelView<?>> modelViews) {
+                initializer.execute(t, ModelViews.assertType(modelViews.get(0), input.getType()).getInstance());
+            }
+        });
     }
 
     @Override

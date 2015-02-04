@@ -358,7 +358,7 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         @Override
-        def <T> void setPrivateData(ModelType<T> type, T object) {
+        def <T> void setPrivateData(ModelType<? super T> type, T object) {
 
         }
 

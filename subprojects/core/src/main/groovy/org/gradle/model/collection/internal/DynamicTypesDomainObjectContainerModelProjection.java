@@ -17,7 +17,10 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 
@@ -30,8 +33,8 @@ public class DynamicTypesDomainObjectContainerModelProjection<C extends Polymorp
 
     private final C container;
 
-    public DynamicTypesDomainObjectContainerModelProjection(C container, Class<M> itemType) {
-        super(itemType);
+    public DynamicTypesDomainObjectContainerModelProjection(C container, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference) {
+        super(itemType, instantiatorModelReference);
         this.container = container;
     }
 

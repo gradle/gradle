@@ -71,17 +71,16 @@ public class LanguageBasePlugin implements Plugin<Project> {
         String descriptor = getClass().getName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
-        modelRegistry.create(
-                BridgedCollections.dynamicTypes(
-                        ModelType.of(DefaultBinaryContainer.class),
-                        ModelType.of(DefaultBinaryContainer.class),
-                        ModelType.of(BinarySpec.class),
-                        binariesPath,
-                        binaries,
-                        Named.Namer.INSTANCE,
-                        descriptor,
-                        BridgedCollections.itemDescriptor(descriptor)
-                )
+        BridgedCollections.dynamicTypes(
+                modelRegistry,
+                binariesPath,
+                descriptor,
+                ModelType.of(DefaultBinaryContainer.class),
+                ModelType.of(DefaultBinaryContainer.class),
+                ModelType.of(BinarySpec.class),
+                binaries,
+                Named.Namer.INSTANCE,
+                BridgedCollections.itemDescriptor(descriptor)
         );
 
         modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {

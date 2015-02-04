@@ -82,10 +82,10 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
                 NamedEntityInstantiator<S> namedEntityInstantiator = new Instantiator<S>(componentSpec, binaries);
                 CollectionBuilder<S> collectionBuilder = new DefaultCollectionBuilder<S>(
                         ModelType.of(binaryType),
-                        namedEntityInstantiator,
                         binaries,
                         getDescriptor(),
-                        modelNode
+                        modelNode,
+                        namedEntityInstantiator
                 );
                 invoke(inputs, collectionBuilder, componentSpec, componentSpecs);
             }

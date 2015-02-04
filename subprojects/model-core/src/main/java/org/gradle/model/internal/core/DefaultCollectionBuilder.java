@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Actions;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.ErroringAction;
-import org.gradle.internal.Factory;
+import org.gradle.internal.util.BiFunction;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
@@ -30,6 +32,7 @@ import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -37,18 +40,25 @@ import static org.gradle.internal.Cast.uncheckedCast;
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final ModelType<T> elementType;
-    private final NamedEntityInstantiator<? super T> instantiator;
     private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
+    private final BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction;
 
-    public DefaultCollectionBuilder(ModelType<T> elementType, NamedEntityInstantiator<? super T> instantiator, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor,
-                                    MutableModelNode modelNode) {
+    public DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, NamedEntityInstantiator<? super T> entityInstantiator) {
+        this(elementType, target, sourceDescriptor, modelNode, createViaInstance(entityInstantiator));
+    }
+
+    public DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
+        this(elementType, target, sourceDescriptor, modelNode, createViaReference(instantiatorReference));
+    }
+
+    private DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction) {
         this.elementType = elementType;
-        this.instantiator = instantiator;
         this.target = target;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
+        this.creatorFunction = creatorFunction;
     }
 
     @Override
@@ -70,19 +80,24 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     public <S> CollectionBuilder<S> withType(Class<S> type) {
         if (type.equals(elementType.getConcreteClass())) {
             return uncheckedCast(this);
+        }
 
-        }
         if (elementType.getConcreteClass().isAssignableFrom(type)) {
-            NamedEntityInstantiator<? super S> castInstantiator = uncheckedCast(instantiator);
-            Collection<? super S> castTarget = uncheckedCast(target);
-            return new DefaultCollectionBuilder<S>(ModelType.of(type), castInstantiator, castTarget, sourceDescriptor, modelNode);
+            Class<? extends T> castType = uncheckedCast(type);
+            CollectionBuilder<? extends T> subType = toSubType(castType);
+            return uncheckedCast(subType);
         }
-        return new DefaultCollectionBuilder<S>(ModelType.of(type), new NamedEntityInstantiator<S>() {
+
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), ImmutableList.<S>of(), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends S>>() {
             @Override
-            public <U extends S> U create(String name, Class<U> type) {
-                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type.getName(), elementType.toString()));
+            public ModelCreators.Builder apply(ModelPath s, ModelType<? extends S> modelType) {
+                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", modelType, elementType.toString()));
             }
-        }, ImmutableList.<S>of(), sourceDescriptor, modelNode);
+        });
+    }
+
+    public <S extends T> CollectionBuilder<S> toSubType(Class<S> type) {
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), target, sourceDescriptor, modelNode, creatorFunction);
     }
 
     @Nullable
@@ -139,35 +154,10 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type) {
-        doCreate(name, type, new Factory<S>() {
-            @Override
-            public S create() {
-                return instantiator.create(name, type.getConcreteClass());
-            }
-        }, new Action<S>() {
-            @Override
-            public void execute(S s) {
-                target.add(s);
-            }
-        });
+        doCreate(name, type, Actions.doNothing());
     }
 
-    private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> configAction) {
-        doCreate(name, type, new Factory<S>() {
-            @Override
-            public S create() {
-                return instantiator.create(name, type.getConcreteClass());
-            }
-        }, new Action<S>() {
-            @Override
-            public void execute(S s) {
-                configAction.execute(s);
-                target.add(s);
-            }
-        });
-    }
-
-    private <S extends T> void doCreate(final String name, ModelType<S> type, Factory<? extends S> factory, Action<? super S> initAction) {
+    private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
         ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
             @Override
             protected void doExecute(Appendable thing) throws Exception {
@@ -175,9 +165,22 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             }
         }));
 
-        ModelReference<S> subject = ModelReference.of(modelNode.getPath().child(name), type);
-        modelNode.addLink(ModelCreators.unmanagedInstance(subject, factory).descriptor(descriptor).build());
-        modelNode.applyToLink(ModelActionRole.Initialize, new ActionBackedModelAction<S>(subject, descriptor, initAction));
+        ModelCreators.Builder creatorBuilder = creatorFunction.apply(modelNode.getPath().child(name), type);
+
+        ModelCreator creator = creatorBuilder
+                .withProjection(new UnmanagedModelProjection<S>(type, true, true))
+                .descriptor(descriptor)
+                .build();
+
+        modelNode.addLink(creator);
+
+        modelNode.applyToLink(ModelActionRole.Initialize, new ActionBackedModelAction<S>(ModelReference.of(creator.getPath(), type), descriptor, new Action<S>() {
+            @Override
+            public void execute(S s) {
+                initAction.execute(s);
+                target.add(s);
+            }
+        }));
     }
 
     @Override
@@ -269,5 +272,49 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
                 new ModelType.Parameter<I>() {
                 }, type
         ).build();
+    }
+
+
+    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaReference(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
+        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
+            @Override
+            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
+                return ModelCreators
+                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                doExecute(modelNode, modelType, modelViews);
+                            }
+
+                            public <S extends T> void doExecute(MutableModelNode modelNode, ModelType<S> subType, List<ModelView<?>> modelViews) {
+                                NamedEntityInstantiator<? super T> instantiator = ModelViews.getInstance(modelViews.get(0), instantiatorReference);
+                                S item = instantiator.create(path.getName(), subType.getConcreteClass());
+                                modelNode.setPrivateData(subType, item);
+                            }
+                        })
+                        .inputs(instantiatorReference);
+
+            }
+        };
+    }
+
+    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaInstance(final NamedEntityInstantiator<? super T> entityInstantiator) {
+        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
+            @Override
+            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
+                return ModelCreators
+                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                doExecute(modelNode, modelType);
+                            }
+
+                            public <S extends T> void doExecute(MutableModelNode modelNode, ModelType<S> subType) {
+                                S item = entityInstantiator.create(path.getName(), subType.getConcreteClass());
+                                modelNode.setPrivateData(subType, item);
+                            }
+                        });
+            }
+        };
     }
 }

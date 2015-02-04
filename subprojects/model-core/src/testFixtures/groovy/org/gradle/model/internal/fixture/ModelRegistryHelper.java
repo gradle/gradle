@@ -526,7 +526,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
                     node.setPrivateData(
                             collectionBuilderType,
-                            new DefaultCollectionBuilder<I>(itemModelType, instantiator, Lists.newLinkedList(), descriptor, node)
+                            new DefaultCollectionBuilder<I>(itemModelType, Lists.newLinkedList(), descriptor, node, instantiator)
                     );
                 }
             })

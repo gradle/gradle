@@ -68,17 +68,16 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
         DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
-        modelRegistry.create(
-                BridgedCollections.dynamicTypes(
-                        ModelType.of(DefaultComponentSpecContainer.class),
-                        ModelType.of(DefaultComponentSpecContainer.class),
-                        ModelType.of(ComponentSpec.class),
-                        ModelPath.path("components"),
-                        components,
-                        Named.Namer.INSTANCE,
-                        descriptor,
-                        BridgedCollections.itemDescriptor(descriptor)
-                )
+        BridgedCollections.dynamicTypes(
+                modelRegistry,
+                ModelPath.path("components"),
+                descriptor,
+                ModelType.of(DefaultComponentSpecContainer.class),
+                ModelType.of(DefaultComponentSpecContainer.class),
+                ModelType.of(ComponentSpec.class),
+                components,
+                Named.Namer.INSTANCE,
+                BridgedCollections.itemDescriptor(descriptor)
         );
     }
 

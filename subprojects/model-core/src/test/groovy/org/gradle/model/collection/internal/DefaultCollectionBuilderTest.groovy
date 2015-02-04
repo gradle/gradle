@@ -16,6 +16,7 @@
 
 package org.gradle.model.collection.internal
 
+import org.gradle.api.Named
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
@@ -35,7 +36,7 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def type = new ModelType<NamedThing>() {}
 
-    class NamedThing {
+    class NamedThing implements Named {
         String name
         String other
     }
@@ -50,15 +51,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
 
     def setup() {
-        registry.create(
-                ModelCreators.bridgedInstance(
-                        ModelReference.of(containerPath, containerType),
-                        container
-                )
-                        .withProjection(new DynamicTypesDomainObjectContainerModelProjection<DefaultPolymorphicDomainObjectContainer<NamedThing>, NamedThing>(container, NamedThing))
-                        .descriptor("foo")
-                        .build()
-        )
+        BridgedCollections.dynamicTypes(registry, containerPath, "container", containerType, containerType, ModelType.of(NamedThing), container, Named.Namer.forType(NamedThing), BridgedCollections.itemDescriptor("container"))
         container.registerFactory(NamedThing) {
             NamedThing.newInstance(name: it)
         }
@@ -192,7 +185,6 @@ class DefaultCollectionBuilderTest extends Specification {
             assert withType(SpecialNamedThing).size() == 1
             assert withType(Special).size() == 1
             assert withType(NamedThing).size() == 2
-            assert withType(Object).size() == 2
             assert withType(String).size() == 0
 
             assert !withType(SpecialNamedThing).isEmpty()
@@ -263,14 +255,12 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can query filtered collection keys"() {
         when:
         mutate {
-            assert withType(Object).keySet().isEmpty()
             assert withType(NamedThing).keySet().isEmpty()
             assert withType(String).keySet().isEmpty()
 
             create("b", SpecialNamedThing)
             create("a")
 
-            assert withType(Object).keySet() as List == ["a", "b"]
             assert withType(NamedThing).keySet() as List == ["a", "b"]
             assert withType(SpecialNamedThing).keySet() as List == ["b"]
             assert withType(Special).keySet() as List == ["b"]
@@ -363,8 +353,8 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register mutate rule for all items using filtered container"() {
         when:
         mutate {
-            withType(Object).all {
-                other += " Object"
+            withType(Named).all {
+                other += " Named"
             }
             withType(String).all {
                 other += " String"
@@ -388,8 +378,8 @@ class DefaultCollectionBuilderTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "types: Object NamedThing"
-        container.getByName("bar").other == "types: Object NamedThing Special SpecialNamedThing"
+        container.getByName("foo").other == "types: Named NamedThing"
+        container.getByName("bar").other == "types: Named NamedThing Special SpecialNamedThing"
     }
 
     def "can register mutate rule for all items"() {
@@ -412,8 +402,8 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register mutate rule for all items with specific type"() {
         when:
         mutate {
-            withType(Object) {
-                other += " Object"
+            withType(Named) {
+                other += " Named"
             }
             withType(String) {
                 other += " String"
@@ -434,8 +424,8 @@ class DefaultCollectionBuilderTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "foo: Object"
-        container.getByName("bar").other == "bar: Object Special SpecialNamedThing"
+        container.getByName("foo").other == "foo: Named"
+        container.getByName("bar").other == "bar: Named Special SpecialNamedThing"
     }
 
     def "can register defaults rule for all items"() {
@@ -460,8 +450,8 @@ class DefaultCollectionBuilderTest extends Specification {
     def "can register defaults rule for all items with type"() {
         when:
         mutate {
-            beforeEach(Object) {
-                other = "Object"
+            beforeEach(Named) {
+                other = "Named"
             }
             beforeEach(String) {
                 other += " String"
@@ -482,8 +472,8 @@ class DefaultCollectionBuilderTest extends Specification {
         realize()
 
         then:
-        container.getByName("foo").other == "Object create(foo)"
-        container.getByName("bar").other == "Object Special SpecialNamedThing create(bar)"
+        container.getByName("foo").other == "Named create(foo)"
+        container.getByName("bar").other == "Named Special SpecialNamedThing create(bar)"
     }
 
     def "can register finalize rule for all items"() {

@@ -674,7 +674,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void setPrivateData(ModelType<T> type, T object) {
+        public <T> void setPrivateData(ModelType<? super T> type, T object) {
             throw new UnsupportedOperationException();
         }
 
@@ -709,7 +709,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return Cast.uncheckedCast(privateData);
         }
 
-        public <T> void setPrivateData(ModelType<T> type, T object) {
+        public <T> void setPrivateData(ModelType<? super T> type, T object) {
             if (!isMutable()) {
                 throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
             }

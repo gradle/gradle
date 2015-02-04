@@ -17,7 +17,9 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -26,8 +28,8 @@ public class StaticTypeDomainObjectContainerModelProjection<C extends Polymorphi
 
     private final ModelType<C> collectionType;
 
-    public StaticTypeDomainObjectContainerModelProjection(ModelType<C> collectionType, Class<M> itemType) {
-        super(itemType);
+    public StaticTypeDomainObjectContainerModelProjection(ModelType<C> collectionType, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference) {
+        super(itemType, instantiatorModelReference);
         this.collectionType = collectionType;
     }
 

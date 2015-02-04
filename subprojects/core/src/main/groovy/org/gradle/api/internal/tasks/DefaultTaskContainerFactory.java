@@ -45,26 +45,25 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     }
 
     public TaskContainerInternal create() {
-        modelRegistry.create(
-                BridgedCollections.staticTypes(
-                        TaskContainerInternal.MODEL_TYPE,
-                        ModelType.of(TaskContainer.class),
-                        ModelType.of(Task.class),
-                        TaskContainerInternal.MODEL_PATH,
-                        new Transformer<TaskContainerInternal, MutableModelNode>() {
-                            @Override
-                            public TaskContainerInternal transform(MutableModelNode mutableModelNode) {
-                                return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener);
-                            }
-                        },
-                        new Task.Namer(),
-                        "Project.<init>.tasks()",
-                        new Transformer<String, String>() {
-                            public String transform(String s) {
-                                return "Project.<init>.tasks." + s + "()";
-                            }
-                        }
-                )
+        BridgedCollections.staticTypes(
+                modelRegistry,
+                TaskContainerInternal.MODEL_PATH,
+                TaskContainerInternal.MODEL_TYPE,
+                ModelType.of(Task.class),
+                ModelType.of(TaskContainer.class),
+                new Transformer<TaskContainerInternal, MutableModelNode>() {
+                    @Override
+                    public TaskContainerInternal transform(MutableModelNode mutableModelNode) {
+                        return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener);
+                    }
+                },
+                new Task.Namer(),
+                "Project.<init>.tasks()",
+                new Transformer<String, String>() {
+                    public String transform(String s) {
+                        return "Project.<init>.tasks." + s + "()";
+                    }
+                }
         );
 
         ModelNode modelNode = modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);

@@ -84,10 +84,10 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, taskFactory);
             DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
                     ModelType.of(Task.class),
-                    instantiator,
                     binary.getTasks(),
                     getDescriptor(),
-                    modelNode
+                    modelNode,
+                    instantiator
             ) {
                 //eagerly instantiate created tasks so that they get attached to their respective binary specs in the instantiator
                 @Override

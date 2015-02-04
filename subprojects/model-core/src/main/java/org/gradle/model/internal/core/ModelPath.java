@@ -125,6 +125,15 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return path(childComponents);
     }
 
+    public ModelPath sibling(String name) {
+        if (this == ROOT) {
+            throw new IllegalStateException("Cannot create sibling path of root path");
+        }
+        List<String> newComponents = new ArrayList<String>(components);
+        newComponents.set(newComponents.size() - 1, name);
+        return path(newComponents);
+    }
+
     public boolean isTopLevel() {
         return getDepth() == 1;
     }
