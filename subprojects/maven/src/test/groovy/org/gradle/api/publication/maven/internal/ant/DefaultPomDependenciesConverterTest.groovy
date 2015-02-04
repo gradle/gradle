@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.publication.maven.internal.ExcludeRuleConverter
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.*
@@ -107,6 +108,21 @@ public class DefaultPomDependenciesConverterTest extends Specification {
         then:
         actualMavenDependencies.size() == 4
         checkCommonMavenDependencies(actualMavenDependencies)
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3233")
+    def convertsDependencyWithNullVersion() {
+        def dependency4 = createDependency("org4", "name4", null)
+
+        when:
+        def stubbedConfiguration = createNamedConfigurationStubWithDependencies("conf", dependency4)
+        _ * conf2ScopeMappingContainerMock.getMapping(toSet(stubbedConfiguration)) >> createMapping(stubbedConfiguration, null)
+
+        then:
+        def  actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(compileConfStub, testCompileConfStub, stubbedConfiguration));
+
+        and:
+        actualMavenDependencies.find { it.artifactId == "name4" }.version == null
     }
 
     def convertWithUnMappedConfAndSkipTrue() {

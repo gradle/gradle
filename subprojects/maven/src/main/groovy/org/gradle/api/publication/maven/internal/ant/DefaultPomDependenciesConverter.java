@@ -132,6 +132,9 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
     }
 
     private String mapToMavenSyntax(String version) {
+        if(version == null) {
+            return null;
+        }
        return versionRangeMapper.map(version);
     }
 
