@@ -57,10 +57,10 @@ Play Application 'play'
 -----------------------
 
 Source sets
-    Scala source 'play:appSources'
-        app
     JVM resources 'play:resources'
         conf
+    Scala source 'play:scala'
+        app
     Twirl template source 'play:twirlTemplates'
         app
 
@@ -139,12 +139,12 @@ Play Application 'play'
 -----------------------
 
 Source sets
-    Scala source 'play:appSources'
-        app
     ${StringUtils.capitalize(languageName)} source 'play:extra'
         src${File.separator}extra
     JVM resources 'play:resources'
         conf
+    Scala source 'play:scala'
+        app
     Twirl template source 'play:twirlTemplates'
         app
 """))

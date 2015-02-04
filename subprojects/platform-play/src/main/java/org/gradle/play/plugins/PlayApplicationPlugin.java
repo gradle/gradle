@@ -144,7 +144,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
                     // TODO:DAZ Scala source set type should be registered via scala-lang plugin
-                    ScalaLanguageSourceSet appSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "appSources", playComponent.getName(), fileResolver, instantiator);
+                    ScalaLanguageSourceSet appSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
 
                     // Compile scala/java sources under /app\
                     // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
