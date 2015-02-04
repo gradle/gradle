@@ -230,13 +230,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().realize(taskPath, ModelType.of(Task.class));
     }
 
-    private boolean hasTaskNode(String name) {
-        return modelNode.hasLink(name);
-    }
-
     public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
-        if (!hasTaskNode(placeholderName)) {
-            placeholders.add(placeholderName);
+        if (!modelNode.hasLink(placeholderName)) {
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
             modelNode.addLink(
@@ -250,7 +245,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                     DeprecationLogger.whileDisabled(new Runnable() {
                                         @Override
                                         public void run() {
-                                            add(task);
+                                            modelNode.getPrivateData(ModelType.of(TaskContainerInternal.class)).add(task);
                                         }
                                     });
                                     mutableModelNode.setPrivateData(taskModelType, task);
@@ -261,6 +256,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                             .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
                             .build()
             );
+        }
+        if (findByNameWithoutRules(placeholderName) == null) {
+            placeholders.add(placeholderName);
         }
     }
 

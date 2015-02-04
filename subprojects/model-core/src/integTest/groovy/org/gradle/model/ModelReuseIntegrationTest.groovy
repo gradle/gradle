@@ -80,4 +80,15 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         m2[0][1] == valAddress
     }
 
+    def "can enable reuse with the component model"() {
+        when:
+        buildScript """
+            plugins { id "org.gradle.java-lang" }
+        """
+
+        then:
+        succeeds "build"
+        succeeds "build"
+    }
+
 }
