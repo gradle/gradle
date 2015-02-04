@@ -379,7 +379,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (state == Known && desired.ordinal() >= Created.ordinal()) {
             CreatorRuleBinder creatorBinder = node.getCreatorBinder();
             if (creatorBinder != null) {
-//                bindInputs(creatorBinder);
                 forceBind(creatorBinder);
             }
             doCreate(node, creatorBinder);
