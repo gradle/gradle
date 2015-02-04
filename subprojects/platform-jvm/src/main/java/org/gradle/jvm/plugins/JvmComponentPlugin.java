@@ -17,7 +17,6 @@ package org.gradle.jvm.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -129,26 +128,23 @@ public class JvmComponentPlugin extends RuleSource {
         });
     }
 
-    @Mutate
-    public void createTasks(TaskContainer tasks, BinaryContainer binaries) {
-        for (JarBinarySpecInternal projectJarBinary : binaries.withType(JarBinarySpecInternal.class)) {
-            Task jarTask = createJarTask(tasks, projectJarBinary);
-            projectJarBinary.builtBy(jarTask);
-            projectJarBinary.getTasks().add(jarTask);
-        }
-    }
-
-    private Task createJarTask(TaskContainer tasks, JarBinarySpecInternal binary) {
+    @BinaryTasks
+    public void createTasks(CollectionBuilder<Task> tasks, final JarBinarySpec binary) {
         String taskName = "create" + StringUtils.capitalize(binary.getName());
-        Jar jar = tasks.create(taskName, Jar.class);
-        jar.setDescription(String.format("Creates the binary file for %s.", binary));
-        jar.from(binary.getClassesDir());
-        jar.from(binary.getResourcesDir());
+        tasks.create(taskName, Jar.class, new Action<Jar>() {
+            @Override
+            public void execute(Jar jar) {
+                jar.setDescription(String.format("Creates the binary file for %s.", binary));
+                jar.from(binary.getClassesDir());
+                jar.from(binary.getResourcesDir());
 
-        jar.setDestinationDir(binary.getJarFile().getParentFile());
-        jar.setArchiveName(binary.getJarFile().getName());
+                jar.setDestinationDir(binary.getJarFile().getParentFile());
+                jar.setArchiveName(binary.getJarFile().getName());
+            }
+        });
 
-        return jar;
+        // bad, bad, bad
+        binary.builtBy(tasks.get(taskName));
     }
 
     private String createBinaryName(JvmLibrarySpec jvmLibrary, BinaryNamingSchemeBuilder namingSchemeBuilder, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
