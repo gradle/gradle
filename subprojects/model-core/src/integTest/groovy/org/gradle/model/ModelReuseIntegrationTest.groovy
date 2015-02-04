@@ -40,6 +40,10 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument("--stop").run()
     }
 
+    String hashFor(String prefix) {
+        (output =~ /$prefix: (\d+)/)[0][1]
+    }
+
     def "model elements are reused when toggle is enabled and when using daemon"() {
         when:
         buildScript """
@@ -69,15 +73,17 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         succeeds "show"
         ":show" in executedTasks
         output.contains ReusingModelRegistryStore.BANNER
-        def m = output =~ /vals: (.+)\n/
-        def valAddress = m[0][1]
+
+        and:
+        def valHash = hashFor("vals")
+        def taskHash = hashFor("task")
 
         when:
-        succeeds("show")
+        succeeds "show"
 
         then:
-        def m2 = output =~ /vals: (.+)\n/
-        m2[0][1] == valAddress
+        valHash == hashFor("vals")
+        taskHash != hashFor("task")
     }
 
     def "can enable reuse with the component model"() {
