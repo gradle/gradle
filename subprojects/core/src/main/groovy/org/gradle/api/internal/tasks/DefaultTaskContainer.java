@@ -41,14 +41,16 @@ import java.util.*;
 
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final MutableModelNode modelNode;
+    private final ModelReference<NamedEntityInstantiator<Task>> instantiatorReference;
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
     private final NamedEntityInstantiator<Task> instantiator;
 
-    public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
+    public DefaultTaskContainer(MutableModelNode modelNode, ModelReference<NamedEntityInstantiator<Task>> instantiatorReference, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
         this.modelNode = modelNode;
+        this.instantiatorReference = instantiatorReference;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.instantiator = new TaskInstantiator(taskFactory);
@@ -242,6 +244,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                             .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                                 @Override
                                 public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                                    NamedEntityInstantiator<Task> instantiator = ModelViews.getInstance(inputs.get(0), instantiatorReference);
                                     final T task = instantiator.create(placeholderName, taskType);
                                     configure.execute(task);
                                     DeprecationLogger.whileDisabled(new Runnable() {
@@ -253,6 +256,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                     mutableModelNode.setPrivateData(taskModelType, task);
                                 }
                             })
+                            .inputs(instantiatorReference)
                             .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
                             .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
                             .build()

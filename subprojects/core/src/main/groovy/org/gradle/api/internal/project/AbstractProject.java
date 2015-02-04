@@ -40,6 +40,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -61,8 +62,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -183,6 +183,20 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
+        ModelPath taskFactoryPath = ModelPath.path("taskFactory");
+        ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(taskFactoryPath, ITaskFactory.class), services.get(ITaskFactory.class))
+                .descriptor("Project.<init>.taskFactory")
+                .ephemeral(true)
+                .build();
+
+        ModelNode taskFactoryNode = modelRegistry.node(taskFactoryPath);
+        if (taskFactoryNode == null) {
+            modelRegistry.create(taskFactoryCreator);
+        } else {
+            // means we are reusing the model registry
+            modelRegistry.replace(taskFactoryCreator);
+        }
+
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .descriptor("Project.<init>.serviceRegistry()")

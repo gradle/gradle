@@ -36,12 +36,12 @@ public class BiActionBackedModelAction<T> implements ModelAction<T> {
         this.initializer = initializer;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
+    public static <T> BiActionBackedModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, BiAction<? super T, ? super List<ModelView<?>>> initializer) {
         return new BiActionBackedModelAction<T>(modelReference, descriptor, inputs, initializer);
     }
 
-    public static <T, I> ModelAction<T> singleInput(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, final ModelReference<I> input, final BiAction<? super T, ? super I> initializer) {
-        return of(modelReference, descriptor, Collections.<ModelReference<?>>singletonList(input), new BiAction<T, List<ModelView<?>>>() {
+    public static <T, I> BiActionBackedModelAction<T> single(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, final ModelReference<I> input, final BiAction<? super T, ? super I> initializer) {
+        return new BiActionBackedModelAction<T>(modelReference, descriptor, Collections.<ModelReference<?>>singletonList(input), new BiAction<T, List<ModelView<?>>>() {
             @Override
             public void execute(T t, List<ModelView<?>> modelViews) {
                 initializer.execute(t, ModelViews.assertType(modelViews.get(0), input.getType()).getInstance());

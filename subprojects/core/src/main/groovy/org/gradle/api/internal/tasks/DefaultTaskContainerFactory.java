@@ -25,7 +25,9 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
@@ -44,17 +46,20 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.projectAccessListener = projectAccessListener;
     }
 
+    ModelType<Task> taskModelType = ModelType.of(Task.class);
+
     public TaskContainerInternal create() {
         BridgedCollections.staticTypes(
                 modelRegistry,
                 TaskContainerInternal.MODEL_PATH,
                 TaskContainerInternal.MODEL_TYPE,
-                ModelType.of(Task.class),
+                taskModelType,
                 ModelType.of(TaskContainer.class),
                 new Transformer<TaskContainerInternal, MutableModelNode>() {
                     @Override
                     public TaskContainerInternal transform(MutableModelNode mutableModelNode) {
-                        return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener);
+                        ModelReference<NamedEntityInstantiator<Task>> instantiatorReference = BridgedCollections.instantiatorReference(TaskContainerInternal.MODEL_PATH, taskModelType);
+                        return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, instantiatorReference, project, instantiator, taskFactory, projectAccessListener);
                     }
                 },
                 new Task.Namer(),

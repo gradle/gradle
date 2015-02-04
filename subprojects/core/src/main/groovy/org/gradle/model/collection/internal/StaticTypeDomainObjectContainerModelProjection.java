@@ -42,4 +42,28 @@ public class StaticTypeDomainObjectContainerModelProjection<C extends Polymorphi
     public Iterable<String> getWritableTypeDescriptions() {
         return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(Collections.singleton(baseItemType)));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        StaticTypeDomainObjectContainerModelProjection<?, ?> that = (StaticTypeDomainObjectContainerModelProjection<?, ?>) o;
+
+        return collectionType.equals(that.collectionType);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + collectionType.hashCode();
+        return result;
+    }
 }

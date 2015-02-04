@@ -20,8 +20,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
@@ -33,6 +33,7 @@ import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.inspect.BiActionBackedModelAction;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -54,13 +55,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
-    private final ITaskFactory taskFactory;
 
     @Inject
     public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.modelRegistry = modelRegistry;
-        this.taskFactory = taskFactory;
     }
 
     public void apply(final Project target) {
@@ -83,31 +82,28 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 BridgedCollections.itemDescriptor(descriptor)
         );
 
+        final ModelAction<?> eachBinaryAction = BiActionBackedModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
+            @Override
+            public void execute(BinarySpec binary, ITaskFactory taskFactory) {
+                if (!((BinarySpecInternal) binary).isLegacyBinary()) {
+                    TaskInternal binaryLifecycleTask = taskFactory.create(binary.getName(), DefaultTask.class);
+                    binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+                    binary.setBuildTask(binaryLifecycleTask);
+                }
+            }
+        });
+
         modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
-                binariesNode.applyToAllLinks(ModelActionRole.Finalize, ActionBackedModelAction.of(ModelReference.of(BinarySpec.class), ruleDescriptor, new Action<BinarySpec>() {
-                    @Override
-                    public void execute(BinarySpec binary) {
-                        if (!((BinarySpecInternal) binary).isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getName(), DefaultTask.class);
-                            binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                            binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-                            binary.setBuildTask(binaryLifecycleTask);
-                        }
-                    }
-                }));
+                binariesNode.applyToAllLinks(ModelActionRole.Finalize, eachBinaryAction);
             }
         }));
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-
-        @Model
-        ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ITaskFactory.class);
-        }
 
         @Model
         ProjectSourceSet sources(ExtensionContainer extensions) {

@@ -50,8 +50,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.persist.ModelRegistryStore;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
@@ -139,8 +139,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    protected ModelRegistry createModelRegistry() {
-        return new DefaultModelRegistry(get(ModelRuleExtractor.class));
+    protected ModelRegistry createModelRegistry(ModelRegistryStore modelRegistryStore) {
+        return modelRegistryStore.get(project);
     }
 
     protected ScriptHandler createScriptHandler() {

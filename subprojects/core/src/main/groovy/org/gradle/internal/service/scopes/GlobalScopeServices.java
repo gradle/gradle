@@ -26,6 +26,8 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -57,6 +59,9 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
+import org.gradle.model.persist.AlwaysNewModelRegistryStore;
+import org.gradle.model.persist.ModelRegistryStore;
+import org.gradle.model.persist.ReusingModelRegistryStore;
 
 import java.util.List;
 
@@ -64,6 +69,8 @@ import java.util.List;
  * Defines the global services shared by all services in a given process. This includes the Gradle CLI, daemon and tooling API provider.
  */
 public class GlobalScopeServices {
+
+    private static final Logger LOGGER = Logging.getLogger(GlobalScopeServices.class);
 
     private GradleBuildEnvironment environment;
 
@@ -196,6 +203,15 @@ public class GlobalScopeServices {
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
         return new ModelRuleSourceDetector();
+    }
+
+    protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
+        if (buildEnvironment.isLongLivingProcess() && Boolean.getBoolean(ReusingModelRegistryStore.TOGGLE)) {
+            LOGGER.warn(ReusingModelRegistryStore.BANNER);
+            return new ReusingModelRegistryStore(ruleExtractor);
+        } else {
+            return new AlwaysNewModelRegistryStore(ruleExtractor);
+        }
     }
 
 }

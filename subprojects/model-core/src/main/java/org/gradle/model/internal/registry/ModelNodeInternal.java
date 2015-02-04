@@ -210,15 +210,15 @@ abstract class ModelNodeInternal implements MutableModelNode {
             setPrivateData(ModelType.untyped(), null);
 
             for (ModelNodeInternal dependent : dependents) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("resetting dependent node of {}: {}", this, dependent);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("resetting dependent node of {}: {}", this, dependent);
                 }
                 dependent.reset();
             }
 
             for (ModelNodeInternal child : getLinks()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("resetting child node of {}: {}", this, child);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("resetting child node of {}: {}", this, child);
                 }
 
                 child.reset();

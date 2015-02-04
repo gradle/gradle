@@ -82,6 +82,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
+        if (reset) {
+            return child;
+        }
+
         ModelCreator creator = child.getCreatorBinder().getCreator();
         ModelPath path = child.getPath();
 
@@ -138,6 +142,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
+        if (reset) {
+            return;
+        }
+
         MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, binders);
 
         // bind the subject eagerly if it's cheap so we can get early feedback if the role is invalid for the subject's current state
@@ -548,10 +556,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         List<ModelNodeInternal> ephemerals = Lists.newLinkedList();
         collectEphemeralChildren(modelGraph.getRoot(), ephemerals);
         if (ephemerals.isEmpty()) {
-            LOGGER.debug("No ephemeral model nodes found to reset");
+            LOGGER.info("No ephemeral model nodes found to reset");
         } else {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Resetting ephemeral model nodes: " + Joiner.on(", ").join(ephemerals));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Resetting ephemeral model nodes: " + Joiner.on(", ").join(ephemerals));
             }
 
             for (ModelNodeInternal ephemeral : ephemerals) {

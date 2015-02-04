@@ -114,4 +114,22 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
         return getWritableTypeDescriptions();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DomainObjectContainerModelProjection)) {
+            return false;
+        }
+
+        DomainObjectContainerModelProjection<?, ?> that = (DomainObjectContainerModelProjection<?, ?>) o;
+
+        return baseItemType.equals(that.baseItemType);
+    }
+
+    @Override
+    public int hashCode() {
+        return baseItemType.hashCode();
+    }
 }

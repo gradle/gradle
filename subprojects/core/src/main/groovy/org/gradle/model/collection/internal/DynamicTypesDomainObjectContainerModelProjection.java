@@ -47,4 +47,28 @@ public class DynamicTypesDomainObjectContainerModelProjection<C extends Polymorp
         return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(container.getCreateableTypes()));
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DynamicTypesDomainObjectContainerModelProjection<?, ?> that = (DynamicTypesDomainObjectContainerModelProjection<?, ?>) o;
+
+        return container.equals(that.container);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + container.hashCode();
+        return result;
+    }
 }

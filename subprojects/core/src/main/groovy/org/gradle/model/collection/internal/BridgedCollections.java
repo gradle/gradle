@@ -38,6 +38,16 @@ public abstract class BridgedCollections {
     private BridgedCollections() {
     }
 
+    public static <I> ModelReference<NamedEntityInstantiator<I>> instantiatorReference(ModelPath containerPath, ModelType<I> itemType) {
+        final String instantiatorNodeName = "__instantiator";
+        return ModelReference.of(
+                containerPath.child(instantiatorNodeName),
+                new ModelType.Builder<NamedEntityInstantiator<I>>() {
+                }.where(new ModelType.Parameter<I>() {
+                }, itemType).build()
+        );
+    }
+
     private static <I, C extends PolymorphicDomainObjectContainerInternal<I>> Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> creator(
             final ModelRegistry modelRegistry,
             final ModelReference<C> containerReference,
@@ -49,15 +59,9 @@ public abstract class BridgedCollections {
     ) {
         assert containerReference.getPath() != null : "container reference path cannot be null";
 
-        final String instantiatorNodeName = "__instantiator";
         final String storeNodeName = "__store";
 
-        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference = ModelReference.of(
-                containerReference.getPath().child(instantiatorNodeName),
-                new ModelType.Builder<NamedEntityInstantiator<I>>() {
-                }.where(new ModelType.Parameter<I>() {
-                }, itemType).build()
-        );
+        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference = instantiatorReference(containerReference.getPath(), itemType);
 
         final ModelReference<C> storeReference = ModelReference.of(
                 containerReference.getPath().child(storeNodeName),
@@ -82,6 +86,9 @@ public abstract class BridgedCollections {
                         } else {
                             containerNode.addLink(storeCreator);
                         }
+
+                        @SuppressWarnings("ConstantConditions")
+                        String instantiatorNodeName = instantiatorReference.getPath().getName();
 
                         ModelCreator instantiatorCreator = ModelCreators.bridgedInstance(instantiatorReference, container.getEntityInstantiator())
                                 .ephemeral(true)
@@ -157,7 +164,8 @@ public abstract class BridgedCollections {
         ModelCreators.Builder creator = tuple.left;
         ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
 
-        modelRegistry.create(
+        createOrReplace(
+                modelRegistry,
                 creator
                         .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, instantiatorModelReference))
                         .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
@@ -181,12 +189,22 @@ public abstract class BridgedCollections {
         Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> tuple = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
         ModelCreators.Builder creator = tuple.left;
         ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
-        modelRegistry.create(
+        createOrReplace(
+                modelRegistry,
                 creator
                         .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, instantiatorModelReference))
                         .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                         .build()
         );
+    }
+
+    private static void createOrReplace(ModelRegistry registry, ModelCreator modelCreator) {
+        ModelNode node = registry.node(modelCreator.getPath());
+        if (node == null) {
+            registry.create(modelCreator);
+        } else {
+            registry.replace(modelCreator);
+        }
     }
 
     public static Transformer<String, String> itemDescriptor(String parentDescriptor) {

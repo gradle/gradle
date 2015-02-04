@@ -109,4 +109,9 @@ public class ChainingModelProjection implements ModelProjection {
     public int hashCode() {
         return projections.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "ChainingModelProjection{projections=" + projections + '}';
+    }
 }
