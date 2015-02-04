@@ -79,7 +79,7 @@ public class JavaReflectionUtil {
      *
      * @throws NoSuchPropertyException
      */
-    public static <T, F> PropertyAccessor readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
+    public static <T, F> PropertyAccessor<T, F> readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         Field field;
         try {
             field = target.getField(fieldName);
@@ -95,7 +95,7 @@ public class JavaReflectionUtil {
      *
      * @throws NoSuchPropertyException
      */
-    public static <T, F> PropertyAccessor readableField(T target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
+    public static <T, F> PropertyAccessor<T, F> readableField(T target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
         @SuppressWarnings("unchecked")
         Class<T> targetClass = (Class<T>) target.getClass();
         return readableField(targetClass, fieldType, fieldName);
