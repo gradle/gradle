@@ -20,11 +20,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.Cast;
+import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
@@ -51,6 +53,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<RuleBinder> binders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
+    private final LinkedHashSet<ModelPath> transitionedNodes = Sets.newLinkedHashSet();
 
     boolean reset;
 
@@ -341,6 +344,21 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
+        ModelPath path = node.getPath();
+        if (!transitionedNodes.add(path)) {
+            List<ModelPath> transitionedNodesList = Lists.newArrayList(transitionedNodes);
+            List<ModelPath> cycleElements = transitionedNodesList.subList(transitionedNodesList.indexOf(path), transitionedNodesList.size());
+            cycleElements.add(path);
+            throw new ConfigurationCycleException("A cycle in model rule dependencies has been detected. Nodes forming the cycle: " + Joiner.on(" -> ").join(cycleElements));
+        }
+        try {
+            performTransition(node, desired, laterOk);
+        } finally {
+            transitionedNodes.remove(path);
+        }
+    }
+
+    private void performTransition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
         ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 

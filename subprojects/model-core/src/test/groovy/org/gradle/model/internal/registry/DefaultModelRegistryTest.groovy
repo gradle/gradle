@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
+import org.gradle.model.ConfigurationCycleException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
@@ -604,7 +605,7 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "cannot request model node at earlier state"() {
+    def "cannot request model node at earlier state when at #state"() {
         given:
         registry.createInstance("thing", new Bean())
 
@@ -618,7 +619,7 @@ class DefaultModelRegistryTest extends Specification {
                 registry.atState(ModelPath.path("thing"), earlier)
                 throw new AssertionError("Expected error")
             } catch (IllegalStateException e) {
-                // expected
+                assert e.message == "Cannot lifecycle model node 'thing' to state ${earlier.name()} as it is already at ${state.name()}"
             }
         }
 
@@ -698,6 +699,7 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     def "only rules that actually have unbound inputs are reported as unbound"() {
+        given:
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
         registry
                 .createInstance("foo", new Bean())
@@ -727,6 +729,70 @@ class DefaultModelRegistryTest extends Specification {
       + foo (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)
     Immutable:
       - emptyBeans.element (org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean)'''
+    }
+
+    def "two element mutation rule based configuration cycles are detected"() {
+        given:
+        registry.createInstance("foo", "foo")
+                .createInstance("bar", "bar")
+                .mutate {
+            it.path("foo").type(String).action("bar", ModelType.of(String), {})
+        }.mutate {
+            it.path("bar").type(String).action("foo", ModelType.of(String), {})
+        }
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message.endsWith "Nodes forming the cycle: foo -> bar -> foo"
+    }
+
+    def "multiple element configuration cycles are detected"() {
+        registry.create("foo") { it.unmanaged(String, "bar") { "foo" }}
+                .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
+                .createInstance("fizz", "fizz")
+                .mutate { it.path("fizz").type(String).action("buzz", ModelType.of(String), {}) }
+                .createInstance("buzz", "buzz")
+                .mutate { it.path("buzz").type(String).action("foo", ModelType.of(String), {}) }
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message.endsWith "Nodes forming the cycle: foo -> bar -> fizz -> buzz -> foo"
+    }
+
+    def "one element configuration cycles are detected"() {
+        given:
+        registry.createInstance("foo", "foo")
+                .mutate { it.path("foo").type(String).action(String) {} }
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message.endsWith "Nodes forming the cycle: foo -> foo"
+    }
+
+    def "only the elements actually forming the cycle are reported when configuration cycles are detected"() {
+        given:
+        registry.create("foo") { it.unmanaged(String, "bar") { "foo" }}
+                .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
+                .mutate { it.path("foo").type(String).action(String) {} }
+                .create("fizz") { it.unmanaged(String, "buzz") { "buzz" }}
+                .mutate { it.path("fizz").type(String).action("bar", ModelType.of(String), {}) }
+                .createInstance("buzz", "buzz")
+
+        when:
+        registry.get("foo")
+
+        then:
+        ConfigurationCycleException e = thrown()
+        e.message.endsWith "Nodes forming the cycle: bar -> fizz -> bar"
     }
 
     class Bean {
