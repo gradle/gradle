@@ -24,12 +24,19 @@ class JavaScriptCompileDestinationCalculatorTest extends Specification {
     File outputDir = new File("/path/to/output")
     JavaScriptCompileDestinationCalculator calculator = new JavaScriptCompileDestinationCalculator(outputDir)
 
-    def "calculates correct destination for javascript file" () {
-        given:
-        File inputFile = new File("/some/input/javascript/file.js")
-        RelativeFile relativeInputFile = new RelativeFile(inputFile, new RelativePath(true, "javascript", "file.js"))
+    def "calculates correct destination for javascript file"() {
+        when:
+        File inputFile = new File("/some/input/javascript/${fileName}")
+        RelativeFile relativeInputFile = new RelativeFile(inputFile, new RelativePath(true, "javascript", fileName))
 
-        expect:
-        calculator.transform(relativeInputFile) == new File("/path/to/output/javascript/file.min.js")
+        then:
+        calculator.transform(relativeInputFile) == new File("/path/to/output/javascript/${minFileName}")
+
+        where:
+        fileName      | minFileName
+        "file.js"     | "file.min.js"
+        "file.max.js" | "file.max.min.js"
+        ".js"         | ".min.js"
+        "no-ext"      | "no-ext.min"
     }
 }

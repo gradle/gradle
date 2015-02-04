@@ -36,6 +36,9 @@ public class JavaScriptCompileDestinationCalculator implements Transformer<File,
 
     private static String getMinifiedFileName(String fileName) {
         int extIndex = fileName.lastIndexOf('.');
+        if (extIndex == -1) {
+            return fileName + ".min";
+        }
         String prefix = fileName.substring(0, extIndex);
         String extension = fileName.substring(extIndex);
         return String.format("%s.min%s", prefix, extension);
