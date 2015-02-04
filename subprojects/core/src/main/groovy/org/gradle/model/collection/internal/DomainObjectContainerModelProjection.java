@@ -119,17 +119,19 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DomainObjectContainerModelProjection)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        DomainObjectContainerModelProjection<?, ?> that = (DomainObjectContainerModelProjection<?, ?>) o;
+        DomainObjectContainerModelProjection that = (DomainObjectContainerModelProjection) o;
 
-        return baseItemType.equals(that.baseItemType);
+        return baseItemType.equals(that.baseItemType) && instantiatorModelReference.equals(that.instantiatorModelReference);
     }
 
     @Override
     public int hashCode() {
-        return baseItemType.hashCode();
+        int result = baseItemType.hashCode();
+        result = 31 * result + instantiatorModelReference.hashCode();
+        return result;
     }
 }
