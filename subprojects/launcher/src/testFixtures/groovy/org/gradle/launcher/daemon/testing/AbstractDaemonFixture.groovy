@@ -26,6 +26,14 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
     AbstractDaemonFixture(File daemonLog) {
         this.context = DaemonContextParser.parseFrom(daemonLog.text)
+        if (this.context.pid == null) {
+            println "PID in daemon log ($daemonLog.absolutePath) is null."
+            println "daemon.log exists: ${daemonLog.exists()}"
+
+            println "daemon.log content: "
+            println daemonLog.text;
+
+        }
     }
 
     void becomesIdle() {
