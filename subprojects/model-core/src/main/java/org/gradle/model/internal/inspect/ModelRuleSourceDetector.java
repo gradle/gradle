@@ -21,7 +21,10 @@ import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -29,6 +32,7 @@ import org.gradle.model.RuleSource;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,6 +40,12 @@ import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleSourceDetector {
+
+    private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
+        public int compare(Class<?> left, Class<?> right) {
+            return left.getName().compareTo(right.getName());
+        }
+    };
 
     final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
             .weakKeys()
@@ -46,16 +56,18 @@ public class ModelRuleSourceDetector {
                         Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
                         return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
                     }
+
                     Class<?>[] declaredClasses = container.getDeclaredClasses();
+
                     if (declaredClasses.length == 0) {
                         return Collections.emptySet();
                     } else {
-                        ImmutableSortedSet.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableSortedSet.orderedBy(new Comparator<Reference<Class<? extends RuleSource>>>() {
-                            public int compare(Reference<Class<? extends RuleSource>> left, Reference<Class<? extends RuleSource>> right) {
-                                return left.get().getName().compareTo(right.get().getName());
-                            }
-                        });
-                        for (Class<?> declaredClass : declaredClasses) {
+                        Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
+                        System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
+                        Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
+
+                        ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                        for (Class<?> declaredClass : sortedDeclaredClasses) {
                             if (isRuleSource(declaredClass)) {
                                 Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
                                 found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
