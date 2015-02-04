@@ -21,10 +21,7 @@ import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -34,6 +31,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
@@ -52,7 +50,11 @@ public class ModelRuleSourceDetector {
                     if (declaredClasses.length == 0) {
                         return Collections.emptySet();
                     } else {
-                        ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                        ImmutableSortedSet.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableSortedSet.orderedBy(new Comparator<Reference<Class<? extends RuleSource>>>() {
+                            public int compare(Reference<Class<? extends RuleSource>> left, Reference<Class<? extends RuleSource>> right) {
+                                return left.get().getName().compareTo(right.get().getName());
+                            }
+                        });
                         for (Class<?> declaredClass : declaredClasses) {
                             if (isRuleSource(declaredClass)) {
                                 Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);

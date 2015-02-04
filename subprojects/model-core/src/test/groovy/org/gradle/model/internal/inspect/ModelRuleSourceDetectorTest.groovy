@@ -42,6 +42,12 @@ class ModelRuleSourceDetectorTest extends Specification {
     static class IsASource extends RuleSource {
     }
 
+    static class SourcesNotDeclaredAlphabetically {
+        static class B extends RuleSource {}
+
+        static class A extends RuleSource {}
+    }
+
     @Unroll
     def "find model rule sources - #clazz"() {
         expect:
@@ -92,6 +98,11 @@ class ModelRuleSourceDetectorTest extends Specification {
                 "class SomeThing extends ${RuleSource.name} {}",
                 "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
         ]
+    }
+
+    def "detected sources are returned ordered by class name"() {
+        expect:
+        detector.getDeclaredSources(SourcesNotDeclaredAlphabetically).toList() == [SourcesNotDeclaredAlphabetically.A, SourcesNotDeclaredAlphabetically.B]
     }
 
     private void addClass(GroovyClassLoader cl, String impl) {

@@ -389,9 +389,8 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("thing"), ModelType.untyped())
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof IllegalStateException
-        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+        IllegalStateException e = thrown()
+        e.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
 
         where:
         fromRole                   | targetRole
@@ -426,9 +425,8 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize(ModelPath.path("another"), ModelType.untyped())
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof IllegalStateException
-        e.cause.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
+        IllegalStateException e = thrown()
+        e.message.startsWith "Cannot add $targetRole rule 'X' for model element 'thing'"
 
         where:
         fromState                       | targetRole

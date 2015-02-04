@@ -148,13 +148,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(subject, role, mutator, scope, binders);
 
-        // bind the subject eagerly if it's cheap so we can get early feedback if the role is invalid for the subject's current state
-        // note: we could be smarter here and detect if we are actually currently mutating the subject reference
-        if (binder.getSubjectReference().getPath() != null) {
-            bindMutatorSubject(binder);
-        } else {
-            pendingMutatorBinders.add(binder);
-        }
+        pendingMutatorBinders.add(binder);
     }
 
     private void flushPendingMutatorBinders() {
@@ -458,6 +452,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         for (MutatorRuleBinder<?> binder : node.getMutatorBinders(type)) {
             forceBind(binder);
             fireMutation(binder);
+            flushPendingMutatorBinders();
             node.notifyFired(binder);
         }
 
