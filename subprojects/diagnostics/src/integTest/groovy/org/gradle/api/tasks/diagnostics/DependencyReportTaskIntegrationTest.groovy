@@ -680,4 +680,140 @@ compile - Compile classpath for source set 'main'.
           \\--- foo:bar:2.0
 """))
     }
+
+    def "reports external dependency replaced to project dependency"()
+    {
+        mavenRepo.module("org.utils", "api",  '1.3').publish()
+
+        file("settings.gradle") << "include 'client', 'api', 'impl'"
+
+        buildFile << """
+            allprojects {
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+
+                configurations {
+                    compile
+                }
+
+                group "org.utils"
+            }
+
+            project(":api") {
+                version = '1.5'
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.version == '1.3') {
+                        it.useTarget project(":api")
+                    }
+                }
+            }
+"""
+
+        when:
+        run(":impl:dependencies")
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+compile
+\\--- org.utils:api:1.3 -> project :api
+"""))
+    }
+
+    def "reports external dependency replaced to project dependency with other group/name"()
+    {
+        mavenRepo.module("org.utils", "api",  '1.3').publish()
+
+        file("settings.gradle") << "include 'client', 'api2', 'impl'"
+
+        buildFile << """
+            allprojects {
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+
+                configurations {
+                    compile
+                }
+
+                group "org.somethingelse"
+            }
+
+            project(":api2") {
+                version = '1.5'
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.version == '1.3') {
+                        it.useTarget project(":api2")
+                    }
+                }
+            }
+"""
+
+        when:
+        run(":impl:dependencies")
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+compile
+\\--- org.utils:api:1.3 -> project :api2
+"""))
+    }
+
+    def "reports external dependency name and version change"() {
+        mavenRepo.module("org.utils", "api2", '0.1').publish()
+
+        file("settings.gradle") << "include 'client', 'impl'"
+
+        buildFile << """
+            allprojects {
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+
+                configurations {
+                    compile
+                }
+
+                group "org.utils"
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: 'org.utils', name: 'api', version: '1.3'
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.version == '1.3') {
+                        it.useTarget group: 'org.utils', name: 'api2', version: '0.1'
+                    }
+                }
+            }
+"""
+
+        when:
+        run(":impl:dependencies")
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+compile
+\\--- org.utils:api:1.3 -> org.utils:api2:0.1
+"""))
+    }
 }
