@@ -76,7 +76,7 @@ public class DefaultTestReport implements TestReporter {
                 @Override
                 public void render(AllTestResults model, HtmlReportBuilder output) throws IOException {
                     PackagePageRenderer packagePageRenderer = new PackagePageRenderer();
-                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider, new File(reportDir,"classes"));
+                    ClassPageRenderer classPageRenderer = new ClassPageRenderer(resultsProvider, new File(reportDir, "classes"));
                     classPageRenderer.addAdditionalResources(additionalResources());
                     output.renderHtmlPage("index.html", model, new OverviewPageRenderer());
                     for (PackageTestResults packageResults : model.getPackages()) {
