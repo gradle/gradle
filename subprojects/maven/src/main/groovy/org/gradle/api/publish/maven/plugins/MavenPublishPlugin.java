@@ -19,10 +19,8 @@ package org.gradle.api.publish.maven.plugins;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -41,12 +39,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -94,7 +92,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void realizePublishingTasks(CollectionBuilder<Task> tasks, PublishingExtension extension) {
+        public void realizePublishingTasks(CollectionBuilder<Task> tasks, PublishingExtension extension, @Path("buildDir") File buildDir) {
             // Create generatePom tasks for any Maven publication
             PublicationContainer publications = extension.getPublications();
             Task publishLifecycleTask = tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
@@ -103,7 +101,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             for (final MavenPublicationInternal publication : publications.withType(MavenPublicationInternal.class)) {
                 String publicationName = publication.getName();
 
-                createGeneratePomTask(tasks, publication, publicationName);
+                createGeneratePomTask(tasks, publication, publicationName, buildDir);
                 createLocalInstallTask(tasks, publishLocalLifecycleTask, publication, publicationName);
                 createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication, publicationName);
             }
@@ -142,20 +140,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
             publishLocalLifecycleTask.dependsOn(installTaskName);
         }
 
-        private void createGeneratePomTask(CollectionBuilder<Task> tasks, final MavenPublicationInternal publication, String publicationName) {
+        private void createGeneratePomTask(CollectionBuilder<Task> tasks, final MavenPublicationInternal publication, String publicationName, final File buildDir) {
             String descriptorTaskName = String.format("generatePomFileFor%sPublication", capitalize(publicationName));
             tasks.create(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
                 public void execute(final GenerateMavenPom generatePomTask) {
                     generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
                     generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     generatePomTask.setPom(publication.getPom());
-
-                    ConventionMapping descriptorTaskConventionMapping = new DslObject(generatePomTask).getConventionMapping();
-                    descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
-                        public Object call() throws Exception {
-                            return new File(generatePomTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/pom-default.xml");
-                        }
-                    });
+                    generatePomTask.setDestination(new File(buildDir, "publications/" + publication.getName() + "/pom-default.xml"));
                 }
             });
             // Wire the generated pom into the publication.

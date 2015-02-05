@@ -161,14 +161,9 @@ class MavenPublishPluginTest extends Specification {
     def "pom dir moves with build dir"() {
         when:
         publishing.publications.create("test", MavenPublication)
-        closeTaskContainer()
-
-        then:
-        project.tasks["generatePomFileForTestPublication"].destination == new File(project.buildDir, "publications/test/pom-default.xml")
-
-        when:
         def newBuildDir = project.file("changed")
         project.buildDir = newBuildDir
+        closeTaskContainer()
 
         then:
         project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")
