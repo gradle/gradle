@@ -33,6 +33,8 @@ public interface DependencyResolveDetails<T extends ComponentSelector> {
      * The module selector, before it is resolved.
      * The requested module selector does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
+     *
+     * @since 2.4
      */
     T getSelector();
 
@@ -67,10 +69,14 @@ public interface DependencyResolveDetails<T extends ComponentSelector> {
      * In many cases users are interested in changing the version.
      * For such scenario you can use the {@link #useVersion(String)} method.
      *
-     * @param notation the notation that gets parsed into an instance of {@link org.gradle.api.artifacts.ModuleVersionSelector}.
-     * You can pass Strings like 'org.gradle:gradle-core:1.4',
-     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
-     * or instances of ModuleVersionSelector.
+     * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
+     * You can pass:
+     * <ul>
+     *     <li>Strings like <code>"org.gradle:gradle-core:1.4"</code></li>
+     *     <li>Maps like <code>[group: 'org.gradle', name: 'gradle-core', version: '1.4']</code></li>
+     *     <li>instances of <code>ModuleVersionSelector</code></li>
+     *     <li>{@link org.gradle.api.Project} instances with <code>project(":path")</code></li>
+     * </ul>
      *
      * @since 1.5
      */
