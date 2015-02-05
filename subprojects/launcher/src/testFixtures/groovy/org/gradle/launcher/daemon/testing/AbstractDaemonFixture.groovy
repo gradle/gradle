@@ -30,8 +30,10 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
             println "PID in daemon log ($daemonLog.absolutePath) is null."
             println "daemon.log exists: ${daemonLog.exists()}"
 
-            println "daemon.log content: "
+            println "start daemon.log content: "
+            println "{daemonLog.text.isEmpty()}) = ${daemonLog.text.isEmpty()})"
             println daemonLog.text;
+            println "end daemon.log content"
 
         }
     }
