@@ -158,8 +158,10 @@ Source sets
         conf
     Scala source 'play:scala'
         app
+        includes: **/*.scala, **/*.java
     Twirl template source 'play:twirlTemplates'
         app
+        includes: **/*.html
 
 Binaries
 """))

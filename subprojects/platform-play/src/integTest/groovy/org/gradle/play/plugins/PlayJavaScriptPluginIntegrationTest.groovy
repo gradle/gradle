@@ -47,6 +47,7 @@ class PlayJavaScriptPluginIntegrationTest extends AbstractIntegrationSpec {
         normalizedOutput.contains("""
     JavaScript source 'play:javaScriptAssets'
         app/assets
+        includes: **/*.js
     JavaScript source 'play:otherJavaScript'
         src/play/otherJavaScript
 """)

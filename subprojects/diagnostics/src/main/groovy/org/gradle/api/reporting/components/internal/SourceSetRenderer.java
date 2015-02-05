@@ -17,10 +17,12 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Set;
@@ -36,6 +38,15 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
         } else {
             for (File file : srcDirs) {
                 builder.item(file);
+            }
+            SourceDirectorySet source = sourceSet.getSource();
+            Set<String> includes = source.getIncludes();
+            if(!includes.isEmpty()) {
+                builder.item("includes", CollectionUtils.join(", ", includes));
+            }
+            Set<String> excludes = source.getExcludes();
+            if(!excludes.isEmpty()) {
+                builder.item("excludes", CollectionUtils.join(", ", excludes));
             }
         }
     }
