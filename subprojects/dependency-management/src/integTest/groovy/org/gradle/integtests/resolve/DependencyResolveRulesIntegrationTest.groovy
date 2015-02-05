@@ -322,7 +322,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "rule selects a project"()
+    void "can replace external dependency with project dependency"()
     {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
