@@ -37,6 +37,7 @@ class TaskNameResolverTest extends Specification {
         _ * project.getTasks() >> Mock(TaskContainerInternal) {
             _ * findByName(_)
             _ * getTasks() >> tasks
+            _ * getNames() >> tasks.getNames()
             0 * _
         }
         _ * project.getModelRegistry() >> registry

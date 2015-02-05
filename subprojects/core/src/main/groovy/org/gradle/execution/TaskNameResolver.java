@@ -118,7 +118,7 @@ public class TaskNameResolver {
     }
 
     private static Set<String> getTaskNames(ProjectInternal project) {
-        return Sets.union(selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE), project.getTasks().getNames());
+        return selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE);
     }
 
     private static boolean hasTask(String taskName, ProjectInternal project) {
