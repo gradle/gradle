@@ -28,11 +28,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.TaskContainerInternal.TASK_MODEL_TYPE;
 
 public class TaskNameResolver {
 
@@ -66,13 +67,34 @@ public class TaskNameResolver {
                 return new TaskSelectionResult() {
                     @Override
                     public void collectTasks(Collection<? super Task> tasks) {
-                        tasks.add(getTask(project, taskName));
+                        tasks.add(getExistingTask(project, taskName));
                     }
                 };
             }
         }
 
         return null;
+    }
+
+    /**
+     * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
+     */
+    public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
+        Map<String, TaskSelectionResult> selected = Maps.newLinkedHashMap();
+
+        if (includeSubProjects) {
+            Set<String> taskNames = Sets.newLinkedHashSet();
+            collectTaskNames(project, taskNames);
+            for (String taskName : taskNames) {
+                selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project));
+            }
+        } else {
+            for (String taskName : getTaskNames(project)) {
+                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
+            }
+        }
+
+        return selected;
     }
 
     private static ModelNode selfClose(ModelRegistry modelRegistry, ModelPath modelPath) {
@@ -96,48 +118,22 @@ public class TaskNameResolver {
     }
 
     private static Set<String> getTaskNames(ProjectInternal project) {
-        return selfClosedTasksNode(project).getLinkNames(ModelType.of(Task.class));
+        return selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE);
     }
 
     private static boolean hasTask(String taskName, ProjectInternal project) {
-        return getTaskNames(project).contains(taskName) || project.getTasks().findByName(taskName) != null; // look at task container to trigger rules / placeholders
+        // ask registry first as tasks.findByName will fully realise the task if it is defined through the registry
+        // i.e. avoid configuring tasks defined through the registry at this point, because we just need to know if it exists
+        return selfClosedTasksNode(project).hasLink(taskName, TASK_MODEL_TYPE) || project.getTasks().findByName(taskName) != null; // look at task container to trigger rules / placeholders
     }
 
-    private static TaskInternal getTask(ProjectInternal project, String taskName) {
-        // Prefer tasks from the model registry, but fall back to task container in case task was added after task container was closed in model registry
-
-        ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
-        ModelRegistry modelRegistry = project.getModelRegistry();
-        if (modelRegistry.node(path) == null) {
-            return (TaskInternal) project.getTasks().getByName(taskName);
-        } else {
-            try {
-                return (TaskInternal) modelRegistry.realize(path, ModelType.of(Task.class));
-            } catch (Throwable e) {
-                throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
-            }
+    private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
+        try {
+            // pull through the registry, even for tasks defined via legacy DSL, to ensure all configuration rules get applied
+            return (TaskInternal) project.getModelRegistry().realize(TaskContainerInternal.MODEL_PATH.child(taskName), TASK_MODEL_TYPE);
+        } catch (Throwable e) {
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
         }
-    }
-
-    /**
-     * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
-     */
-    public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
-        Map<String, TaskSelectionResult> selected = Maps.newLinkedHashMap();
-
-        if (includeSubProjects) {
-            Set<String> taskNames = Sets.newLinkedHashSet();
-            collectTaskNames(project, taskNames);
-            for (String taskName : taskNames) {
-                selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project));
-            }
-        } else {
-            for (String taskName : getTaskNames(project)) {
-                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
-            }
-        }
-
-        return selected;
     }
 
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
@@ -188,7 +184,7 @@ public class TaskNameResolver {
 
         private void collect(ProjectInternal project, Collection<? super Task> tasks) {
             if (hasTask(taskName, project)) {
-                TaskInternal task = getTask(project, taskName);
+                TaskInternal task = getExistingTask(project, taskName);
                 tasks.add(task);
                 if (task.getImpliesSubProjects()) {
                     return;

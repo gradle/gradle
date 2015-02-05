@@ -24,6 +24,10 @@ import java.util.Set;
 
 public interface ModelNode {
 
+    boolean hasLink(String name);
+
+    boolean hasLink(String name, ModelType<?> type);
+
     // Note: order is crucial here
     public enum State {
         Known(true),

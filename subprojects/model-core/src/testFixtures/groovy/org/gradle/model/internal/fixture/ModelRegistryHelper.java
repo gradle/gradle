@@ -159,7 +159,6 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.apply(rules);
     }
 
-    @Nullable
     @Override
     public ModelNode node(ModelPath path) {
         return modelRegistry.node(path);

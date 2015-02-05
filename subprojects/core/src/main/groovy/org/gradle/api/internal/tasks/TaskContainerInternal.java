@@ -29,6 +29,7 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     // The path to the project's task container in the model registry
     ModelPath MODEL_PATH = ModelPath.path("tasks");
     ModelType<TaskContainerInternal> MODEL_TYPE = ModelType.of(TaskContainerInternal.class);
+    ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
 
     DynamicObject getTasksAsDynamicObject();
 

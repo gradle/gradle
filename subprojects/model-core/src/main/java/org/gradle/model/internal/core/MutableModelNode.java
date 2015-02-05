@@ -78,10 +78,6 @@ public interface MutableModelNode extends ModelNode {
 
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
-    boolean hasLink(String name);
-
-    boolean hasLink(String name, ModelType<?> type);
-
     <T> void setPrivateData(ModelType<? super T> type, T object);
 
     <T> T getPrivateData(ModelType<T> type);
