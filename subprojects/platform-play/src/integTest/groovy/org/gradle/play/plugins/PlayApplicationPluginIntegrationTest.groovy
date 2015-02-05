@@ -62,6 +62,9 @@ Source sets
         includes: **/*.java
     JVM resources 'play:resources'
         conf
+    Routes source 'play:routesSources'
+        conf
+        includes: routes, *.routes
     Scala source 'play:scala'
         app
         includes: **/*.scala
@@ -103,7 +106,7 @@ Binaries
                 ":createPlayBinaryAssetsJar",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompilePlayBinary",
+        skipped(":routesCompileRoutesSourcesPlayBinary",
                 ":twirlCompileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary")
 
@@ -151,6 +154,9 @@ Source sets
         includes: **/*.java
     JVM resources 'play:resources'
         conf
+    Routes source 'play:routesSources'
+        conf
+        includes: routes, *.routes
     Scala source 'play:scala'
         app
         includes: **/*.scala
@@ -168,7 +174,7 @@ Source sets
                 ":scalaCompilePlayBinary",
                 ":playBinary",
                 ":assemble")
-        skipped(":routesCompilePlayBinary",
+        skipped(":routesCompileRoutesSourcesPlayBinary",
                 ":twirlCompileTwirlTemplatesPlayBinary")
 
         and:

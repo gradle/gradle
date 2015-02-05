@@ -39,7 +39,7 @@ import java.util.Set;
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private final PublicAssets assets = new DefaultPublicAssets();
-    private Set<ScalaLanguageSourceSet> generatedScala = Sets.newLinkedHashSet();
+    private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
@@ -93,7 +93,8 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return assets;
     }
 
-    public Set<ScalaLanguageSourceSet> getGeneratedScala() {
+    @Override
+    public Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala() {
         return generatedScala;
     }
 

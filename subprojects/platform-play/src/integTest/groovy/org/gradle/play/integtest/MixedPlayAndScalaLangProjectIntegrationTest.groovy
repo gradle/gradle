@@ -59,7 +59,7 @@ class MixedPlayAndScalaLangProjectIntegrationTest extends AbstractIntegrationSpe
         when:
         succeeds("assemble")
         then:
-        executedAndNotSkipped(":createPlayBinaryAssetsJar", ":routesCompilePlayBinary", ":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary",
+        executedAndNotSkipped(":createPlayBinaryAssetsJar", ":routesCompileRoutesSourcesPlayBinary", ":twirlCompileTwirlTemplatesPlayBinary", ":scalaCompilePlayBinary", ":createPlayBinaryJar", ":playBinary",
                 ":compileScalaLibJarScalaLibScala", ":processScalaLibJarScalaLibResources", ":createScalaLibJar", ":scalaLibJar", ":assemble")
         and:
         file("build/classes/scalaLibJar").assertHasDescendants(scalaApp.expectedOutputs*.fullPath as String[])

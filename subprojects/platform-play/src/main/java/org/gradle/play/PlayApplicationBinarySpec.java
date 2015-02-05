@@ -27,7 +27,6 @@ import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Represents a binary artifact that is the result of building a play component.
@@ -47,7 +46,7 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
 
     PublicAssets getAssets();
 
-    Set<ScalaLanguageSourceSet> getGeneratedScala();
+    Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala();
 
     Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript();
 }

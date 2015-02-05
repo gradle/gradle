@@ -159,6 +159,9 @@ Source sets
         otherSources
     JVM resources 'play:resources'
         conf
+    Routes source 'play:routesSources'
+        conf
+        includes: routes, *.routes
     Scala source 'play:scala'
         app
         includes: **/*.scala

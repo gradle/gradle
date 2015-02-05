@@ -28,7 +28,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
         then:
         executedAndNotSkipped(
-                ":routesCompilePlayBinary",
+                ":routesCompileRoutesSourcesPlayBinary",
                 ":twirlCompileTwirlTemplatesPlayBinary",
                 ":scalaCompilePlayBinary",
                 ":createPlayBinaryJar",
