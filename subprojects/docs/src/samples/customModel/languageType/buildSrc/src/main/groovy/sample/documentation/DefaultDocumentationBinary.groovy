@@ -18,5 +18,4 @@ package sample.documentation
 
 import org.gradle.platform.base.binary.BaseBinarySpec
 
-class DefaultDocumentationBinary extends BaseBinarySpec implements DocumentationBinary {
-}
+class DefaultDocumentationBinary extends BaseBinarySpec implements DocumentationBinary {}

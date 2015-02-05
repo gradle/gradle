@@ -18,6 +18,4 @@ package sample.documentation
 
 import org.gradle.platform.base.BinarySpec
 
-interface DocumentationBinary extends BinarySpec {
-
-}
+interface DocumentationBinary extends BinarySpec {}

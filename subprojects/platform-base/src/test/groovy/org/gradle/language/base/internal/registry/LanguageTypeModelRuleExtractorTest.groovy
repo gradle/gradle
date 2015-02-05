@@ -47,7 +47,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         return LanguageType
     }
 
-
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
@@ -74,7 +73,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
         "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."              | "implementation with not public default constructor"
     }
-
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
         when:
@@ -120,13 +118,11 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @Override
         void source(Action<? super SourceDirectorySet> config) {
-
         }
 
         @Override
         void generatedBy(Task generatorTask) {
-
-        }
+            }
 
         @Override
         String getName() {
@@ -138,6 +134,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @LanguageType
         String returnValue(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            return null
         }
 
         @LanguageType
@@ -155,7 +152,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @LanguageType
         void wildcardLanguageTypeBuilder(LanguageTypeBuilder<?> builder) {
         }
-
 
         @LanguageType
         void wrongSubType(LanguageTypeBuilder<String> languageBuilder) {
@@ -178,9 +174,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @LanguageType
         void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
-
         }
-
 
         @LanguageType
         void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
