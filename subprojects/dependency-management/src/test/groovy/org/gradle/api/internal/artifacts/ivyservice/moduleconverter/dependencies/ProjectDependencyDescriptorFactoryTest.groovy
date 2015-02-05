@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
-
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.internal.component.local.model.ProjectDependencyMetaData
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
 import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Test
@@ -45,7 +44,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        ProjectDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
+        DslOriginDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency, moduleDescriptor);
 
         def dependencyDescriptor = dependencyMetaData.descriptor
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);

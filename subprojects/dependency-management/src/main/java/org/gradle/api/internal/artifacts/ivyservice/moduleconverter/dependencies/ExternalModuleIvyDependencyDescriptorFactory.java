@@ -22,8 +22,10 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
+import org.gradle.internal.component.model.DefaultDependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
 
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
@@ -43,7 +45,8 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
                 getExternalModuleDependency(dependency).isChanging(),
                 getExternalModuleDependency(dependency).isTransitive());
         addExcludesArtifactsAndDependencies(configuration, getExternalModuleDependency(dependency), dependencyDescriptor);
-        return new DefaultDslOriginDependencyMetaData(dependencyDescriptor, dependency);
+        DependencyMetaData dependencyMetaData = new DefaultDependencyMetaData(dependencyDescriptor);
+        return new DslOriginDependencyMetaDataWrapper(dependencyMetaData, dependency);
     }
 
     private ExternalModuleDependency getExternalModuleDependency(ModuleDependency dependency) {
