@@ -74,6 +74,19 @@ A number of improvements have been made to the model rules execution used by the
 
 There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
 
+### Dependency substitution accepts projects
+
+You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
+allows access to the `ComponentSelector` as well:
+
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
+                useTarget project(":my-module")
+            }
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -97,6 +110,33 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
+
+### Dependency substitution changes
+
+In previous Gradle versions you could replace an external dependency with another like this:
+
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
+                useVersion '1.3'
+            }
+        }
+    }
+
+Now the `requested` property on `DependencyResolveDetails` is deprecated; you can use the `selector` property instead. This returns a `ComponentSelector` instead
+a `ModuleVersionSelector`.
+
+The `useVersion()` method is also deprecated. You can use the `useTarget()` method instead:
+
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
+                useTarget group: 'com.example', name: 'my-module', version: '1.3'
+            }
+        }
+    }
+
+Note that `ModuleComponentSelector` has a `module` property to return the module's name, while `ModuleVersionSelector` had a `name` property.
 
 ## Potential breaking changes
 
@@ -137,6 +177,10 @@ location to `install` to. The default repository was `mavenLocal()`.
 It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
 will be ignored.
 
+### DependencyResolveDetails.getTarget() is gone
+
+There still is a `getTarget()` method on `DefaultDependencyResolveDetails`, but it returns a `ComponentSelector` instead of a `ModuleVersionSelector`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -153,6 +197,7 @@ We would like to thank the following community members for making contributions 
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
 * [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
 * [Roman Donchenko](https://github.com/SpecLad) - fix a bug in `org.gradle.api.specs.OrSpecTest`
+* [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits),  - implement dependency substitution for projects
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
