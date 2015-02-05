@@ -184,11 +184,11 @@ class DefaultModelRegistryTest extends Specification {
         def actionImpl = registry.action().path("foo").type(Bean).action(action)
         registry
                 .create("foo", new Bean(), action)
-                .apply(ModelActionRole.Defaults, actionImpl)
-                .apply(ModelActionRole.Initialize, actionImpl)
-                .apply(ModelActionRole.Mutate, actionImpl)
-                .apply(ModelActionRole.Finalize, actionImpl)
-                .apply(ModelActionRole.Validate, actionImpl)
+                .configure(ModelActionRole.Defaults, actionImpl)
+                .configure(ModelActionRole.Initialize, actionImpl)
+                .configure(ModelActionRole.Mutate, actionImpl)
+                .configure(ModelActionRole.Finalize, actionImpl)
+                .configure(ModelActionRole.Validate, actionImpl)
 
         when:
         def value = registry.realize(ModelPath.path("foo"), ModelType.of(Bean)).value
@@ -348,7 +348,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.createInstance("thing", "value")
-        registry.apply(ModelActionRole.Validate) { it.path "thing" type Object node action }
+        registry.configure(ModelActionRole.Validate) { it.path "thing" type Object node action }
         action.execute(_) >> { MutableModelNode node -> node.addLink(registry.creator("thing.child") { it.descriptor("create thing.child as String").unmanaged("value") }) }
 
         when:
@@ -365,7 +365,7 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.createInstance("thing", "value")
-        registry.apply(ModelActionRole.Validate) { it.path("thing").type(Object).node(action) }
+        registry.configure(ModelActionRole.Validate) { it.path("thing").type(Object).node(action) }
         action.execute(_) >> { MutableModelNode node -> node.setPrivateData(ModelType.of(String), "value 2") }
 
         when:
@@ -383,8 +383,8 @@ class DefaultModelRegistryTest extends Specification {
 
         given:
         registry.createInstance("thing", "value")
-                .apply(fromRole) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
+                .configure(fromRole) { it.path("thing").node(action) }
+        action.execute(_) >> { MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
 
         when:
         registry.realize(ModelPath.path("thing"), ModelType.untyped())
@@ -414,11 +414,11 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("thing", "value")
                 .createInstance("another", "value")
-                .apply(ModelActionRole.Mutate) {
+                .configure(ModelActionRole.Mutate) {
             it.path("another").node(action)
         }
         action.execute(_) >> {
-            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+            MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
         }
 
         when:
@@ -451,9 +451,9 @@ class DefaultModelRegistryTest extends Specification {
     @Unroll
     def "can add action for #targetRole mutation when in #fromRole mutation"() {
         given:
-        registry.createInstance("thing", new MutableValue(value: "initial")).apply(fromRole) {
+        registry.createInstance("thing", new MutableValue(value: "initial")).configure(fromRole) {
             it.path("thing").node { MutableModelNode node ->
-                registry.apply(targetRole) {
+                registry.configure(targetRole) {
                     it.path("thing").type(MutableValue).action {
                         it.value = "mutated"
                     }
@@ -493,11 +493,11 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("thing", "value")
                 .createInstance("another", "value")
-                .apply(ModelActionRole.Mutate) {
+                .configure(ModelActionRole.Mutate) {
             it.path("another").node(action)
         }
         action.execute(_) >> {
-            MutableModelNode node -> registry.apply(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+            MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
         }
 
         when:
@@ -526,7 +526,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("thing", new Bean(value: "created"))
         ModelActionRole.values().each { role ->
-            registry.apply(role, {
+            registry.configure(role, {
                 it.path "thing" type Bean action {
                     if (it) {
                         it.value = role.name()
@@ -673,7 +673,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.createInstance("thing", new Bean())
         def uptoRole = ModelActionRole.values().findAll { it.ordinal() <= role.ordinal() }
         uptoRole.each { r ->
-            registry.apply(r) { it.path "thing" type Bean action { events << r.name() } }
+            registry.configure(r) { it.path "thing" type Bean action { events << r.name() } }
         }
 
         when:

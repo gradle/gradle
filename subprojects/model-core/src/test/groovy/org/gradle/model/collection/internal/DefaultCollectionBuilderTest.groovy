@@ -64,7 +64,7 @@ class DefaultCollectionBuilderTest extends Specification {
         mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
         mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.apply(ModelPath.ROOT, ModelActionRole.Mutate, mutator)
+        registry.configure(ModelActionRole.Mutate, mutator)
     }
 
     void realize() {

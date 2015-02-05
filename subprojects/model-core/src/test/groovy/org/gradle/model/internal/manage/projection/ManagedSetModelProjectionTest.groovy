@@ -62,7 +62,7 @@ class ManagedSetModelProjectionTest extends Specification {
         mutator.descriptor >> new SimpleModelRuleDescriptor("mutate collection")
         mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
 
-        registry.apply(ModelPath.ROOT, ModelActionRole.Mutate, mutator)
+        registry.configure(ModelActionRole.Mutate, mutator)
         registry.realizeNode(collectionPath)
     }
 

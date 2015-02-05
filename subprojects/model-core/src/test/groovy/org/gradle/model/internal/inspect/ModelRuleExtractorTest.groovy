@@ -73,7 +73,7 @@ class ModelRuleExtractorTest extends Specification {
             if (it.type == ExtractedModelRule.Type.CREATOR) {
                 registry.create(it.creator)
             } else if (it.type == ExtractedModelRule.Type.ACTION) {
-                registry.apply(ModelPath.ROOT, it.actionRole, it.action)
+                registry.configure(it.actionRole, it.action)
             }
         }
     }

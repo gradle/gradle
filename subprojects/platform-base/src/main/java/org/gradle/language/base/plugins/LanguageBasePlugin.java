@@ -94,7 +94,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         });
 
-        modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
                 binariesNode.applyToAllLinks(ModelActionRole.Finalize, eachBinaryAction);

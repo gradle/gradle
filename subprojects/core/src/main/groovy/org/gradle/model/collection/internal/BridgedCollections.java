@@ -80,12 +80,7 @@ public abstract class BridgedCollections {
                                 .descriptor(itemDescriptorGenerator.transform(storeNodeName))
                                 .build();
 
-                        if (containerNode.hasLink(storeNodeName)) {
-                            // assume that it's because we are ephemeral and have been reset
-                            modelRegistry.replace(storeCreator);
-                        } else {
-                            containerNode.addLink(storeCreator);
-                        }
+                        modelRegistry.createOrReplace(storeCreator);
 
                         @SuppressWarnings("ConstantConditions")
                         String instantiatorNodeName = instantiatorReference.getPath().getName();
@@ -95,12 +90,7 @@ public abstract class BridgedCollections {
                                 .descriptor(itemDescriptorGenerator.transform(instantiatorNodeName))
                                 .build();
 
-                        if (containerNode.hasLink(instantiatorNodeName)) {
-                            // assume that it's because we are ephemeral and have been reset
-                            modelRegistry.replace(instantiatorCreator);
-                        } else {
-                            containerNode.addLink(instantiatorCreator);
-                        }
+                        modelRegistry.createOrReplace(instantiatorCreator);
 
                         containerNode.setPrivateData(containerReference.getType(), container);
                         container.all(new Action<I>() {
@@ -164,13 +154,10 @@ public abstract class BridgedCollections {
         ModelCreators.Builder creator = tuple.left;
         ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
 
-        createOrReplace(
-                modelRegistry,
-                creator
-                        .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, instantiatorModelReference))
-                        .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
-                        .build()
-        );
+        modelRegistry.createOrReplace(creator
+                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, instantiatorModelReference))
+                .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
+                .build());
     }
 
     public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void staticTypes(
@@ -189,22 +176,10 @@ public abstract class BridgedCollections {
         Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> tuple = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
         ModelCreators.Builder creator = tuple.left;
         ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
-        createOrReplace(
-                modelRegistry,
-                creator
-                        .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, instantiatorModelReference))
-                        .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
-                        .build()
-        );
-    }
-
-    private static void createOrReplace(ModelRegistry registry, ModelCreator modelCreator) {
-        ModelNode node = registry.node(modelCreator.getPath());
-        if (node == null) {
-            registry.create(modelCreator);
-        } else {
-            registry.replace(modelCreator);
-        }
+        modelRegistry.createOrReplace(creator
+                .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, instantiatorModelReference))
+                .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
+                .build());
     }
 
     public static Transformer<String, String> itemDescriptor(String parentDescriptor) {

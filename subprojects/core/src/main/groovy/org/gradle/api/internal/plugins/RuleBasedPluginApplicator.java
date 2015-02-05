@@ -20,7 +20,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ExtractedModelRule;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -55,7 +54,7 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
                 }
 
                 if (rule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    modelRegistry.apply(ModelPath.ROOT, rule.getActionRole(), rule.getAction());
+                    modelRegistry.configure(rule.getActionRole(), rule.getAction());
                 } else if (rule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
                     modelRegistry.create(rule.getCreator());
                 } else if (!rule.getType().equals(ExtractedModelRule.Type.DEPENDENCIES)) {

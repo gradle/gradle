@@ -62,7 +62,10 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -189,13 +192,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 .ephemeral(true)
                 .build();
 
-        ModelNode taskFactoryNode = modelRegistry.node(taskFactoryPath);
-        if (taskFactoryNode == null) {
-            modelRegistry.create(taskFactoryCreator);
-        } else {
-            // means we are reusing the model registry
-            modelRegistry.replace(taskFactoryCreator);
-        }
+        modelRegistry.createOrReplace(taskFactoryCreator);
 
         modelRegistry.create(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)

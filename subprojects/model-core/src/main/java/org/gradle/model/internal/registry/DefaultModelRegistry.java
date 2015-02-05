@@ -133,8 +133,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> DefaultModelRegistry apply(ModelPath scope, ModelActionRole role, ModelAction<T> action) {
-        bind(action.getSubject(), role, action, scope);
+    public <T> DefaultModelRegistry configure(ModelActionRole role, ModelAction<T> action) {
+        bind(action.getSubject(), role, action, ModelPath.ROOT);
         return this;
     }
 
@@ -142,6 +142,10 @@ public class DefaultModelRegistry implements ModelRegistry {
     public ModelRegistry apply(Class<? extends RuleSource> rules) {
         modelGraph.getRoot().applyToSelf(rules);
         return this;
+    }
+
+    private <T> void bind(ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
+        bind(mutator.getSubject(), role, mutator, scope);
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
@@ -267,7 +271,25 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void replace(ModelCreator newCreator) {
+    public ModelRegistry createOrReplace(ModelCreator newCreator) {
+        ModelPath path = newCreator.getPath();
+        ModelNodeInternal node = modelGraph.find(path);
+        if (node == null) {
+            ModelNodeInternal parent = modelGraph.find(path.getParent());
+            if (parent == null) {
+                throw new IllegalStateException("Cannot create '" + path + "' as its parent node does not exist");
+            }
+
+            parent.addLink(newCreator);
+        } else {
+            replace(newCreator);
+        }
+
+        return this;
+    }
+
+    @Override
+    public ModelRegistry replace(ModelCreator newCreator) {
         ModelNodeInternal node = modelGraph.find(newCreator.getPath());
         if (node == null) {
             throw new IllegalStateException("can not replace node " + newCreator.getPath() + " as it does not exist");
@@ -275,6 +297,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         // Will internally verify that this is valid
         node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
+        return this;
     }
 
     private ModelNode selfCloseAncestryAndSelf(ModelPath path) {
@@ -831,7 +854,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                     }
                 } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
                     // TODO this is a roundabout path, something like the registrar interface should be implementable by the regsitry and nodes
-                    DefaultModelRegistry.this.apply(scope, extractedRule.getActionRole(), extractedRule.getAction());
+                    bind(extractedRule.getActionRole(), extractedRule.getAction(), scope);
                 } else {
                     throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
                 }

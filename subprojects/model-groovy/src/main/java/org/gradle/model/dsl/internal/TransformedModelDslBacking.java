@@ -23,9 +23,9 @@ import org.gradle.api.Transformer;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
+import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
@@ -77,7 +77,7 @@ public class TransformedModelDslBacking {
         SourceLocation sourceLocation = ruleLocationExtractor.transform(configuration);
         ModelPath modelPath = ModelPath.path(modelPathString);
         Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
-        modelRegistry.apply(ModelPath.ROOT, ModelActionRole.Mutate, new ClosureBackedModelAction(reownered, references, modelPath, sourceLocation));
+        modelRegistry.configure(ModelActionRole.Mutate, new ClosureBackedModelAction(reownered, references, modelPath, sourceLocation));
     }
 
     private static RuleMetadata getRuleMetadata(Closure<?> closure) {

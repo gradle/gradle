@@ -94,7 +94,11 @@ public interface ModelRegistry extends ModelRegistrar {
 
     void remove(ModelPath path);
 
-    void replace(ModelCreator newCreator);
+    @Override
+    ModelRegistry replace(ModelCreator newCreator);
+
+    @Override
+    ModelRegistry createOrReplace(ModelCreator newCreator);
 
     /**
      * Attempts to bind the references of all model rules known at this point in time.
@@ -118,7 +122,7 @@ public interface ModelRegistry extends ModelRegistrar {
     ModelRegistry create(ModelCreator creator);
 
     @Override
-    <T> ModelRegistry apply(ModelPath scope, ModelActionRole role, ModelAction<T> action);
+    <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 

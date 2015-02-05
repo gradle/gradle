@@ -106,8 +106,9 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public void replace(ModelCreator newCreator) {
+    public ModelRegistryHelper replace(ModelCreator newCreator) {
         modelRegistry.replace(newCreator);
+        return this;
     }
 
     @Override
@@ -140,9 +141,16 @@ public class ModelRegistryHelper implements ModelRegistry {
         return this;
     }
 
+
     @Override
-    public <T> ModelRegistryHelper apply(ModelPath scope, ModelActionRole role, ModelAction<T> action) {
-        modelRegistry.apply(scope, role, action);
+    public ModelRegistryHelper createOrReplace(ModelCreator newCreator) {
+        modelRegistry.createOrReplace(newCreator);
+        return this;
+    }
+
+    @Override
+    public <T> ModelRegistryHelper configure(ModelActionRole role, ModelAction<T> action) {
+        modelRegistry.configure(role, action);
         return this;
     }
 
@@ -165,10 +173,6 @@ public class ModelRegistryHelper implements ModelRegistry {
     @Override
     public void prepareForReuse() {
         modelRegistry.prepareForReuse();
-    }
-
-    public <T> ModelRegistryHelper apply(ModelActionRole role, ModelAction<T> action) {
-        return apply(ModelPath.ROOT, role, action);
     }
 
     public ModelRegistryHelper create(String path, Transformer<? extends ModelCreator, ? super ModelCreatorBuilder> def) {
@@ -214,12 +218,12 @@ public class ModelRegistryHelper implements ModelRegistry {
         return new ModelCreatorBuilder(path);
     }
 
-    public ModelRegistryHelper apply(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
-        return apply(ModelPath.ROOT, role, def.transform(ModelActionBuilder.of()));
+    public ModelRegistryHelper configure(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
+        return configure(role, def.transform(ModelActionBuilder.of()));
     }
 
     public ModelRegistryHelper mutate(Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
-        return apply(Mutate, def);
+        return configure(Mutate, def);
     }
 
     public <T> ModelRegistryHelper mutate(Class<T> type, Action<? super T> action) {
@@ -227,11 +231,11 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public <T> ModelRegistryHelper mutate(ModelReference<T> reference, Action<? super T> action) {
-        return apply(Mutate, reference, action);
+        return configure(Mutate, reference, action);
     }
 
     public ModelRegistryHelper mutate(final String path, final Action<? super MutableModelNode> action) {
-        return apply(Mutate, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+        return configure(Mutate, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(path).node(action);
@@ -249,11 +253,11 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     private <T> ModelRegistryHelper apply(ModelActionRole role, final Class<T> type, final Action<? super T> action) {
-        return apply(role, ModelReference.of(type), action);
+        return configure(role, ModelReference.of(type), action);
     }
 
-    private <T> ModelRegistryHelper apply(ModelActionRole role, final ModelReference<T> reference, final Action<? super T> action) {
-        return apply(role, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+    private <T> ModelRegistryHelper configure(ModelActionRole role, final ModelReference<T> reference, final Action<? super T> action) {
+        return configure(role, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(reference.getPath()).type(reference.getType()).action(action);
