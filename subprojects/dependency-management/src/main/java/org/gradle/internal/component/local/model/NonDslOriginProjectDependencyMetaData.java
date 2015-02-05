@@ -17,16 +17,24 @@
 package org.gradle.internal.component.local.model;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 
-public class DefaultDslOriginProjectDependencyMetaData extends DefaultDslOriginDependencyMetaData implements DslOriginProjectDependencyMetaData {
-    public DefaultDslOriginProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, ProjectDependency source) {
-        super(dependencyDescriptor, source);
+public class NonDslOriginProjectDependencyMetaData extends DefaultDslOriginDependencyMetaData implements ProjectDependencyMetaData {
+    private final String projectPath;
+
+    public NonDslOriginProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, String projectPath) {
+        super(dependencyDescriptor, null);
+        this.projectPath = projectPath;
+    }
+
+    @Override
+    public ModuleDependency getSource() {
+        throw new UnsupportedOperationException("Cannot get source of non-dsl origin meta data");
     }
 
     @Override
     public ProjectComponentSelector getSelector() {
-        return new DefaultProjectComponentSelector(((ProjectDependency)getSource()).getDependencyProject().getPath());
+        return new DefaultProjectComponentSelector(projectPath);
     }
 }

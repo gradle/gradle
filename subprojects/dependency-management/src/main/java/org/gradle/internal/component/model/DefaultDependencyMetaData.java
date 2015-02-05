@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
+import org.gradle.internal.component.local.model.NonDslOriginProjectDependencyMetaData;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -126,7 +126,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         } else if (target instanceof ProjectComponentSelector) {
             // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
+            return new NonDslOriginProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
         } else {
             throw new AssertionError();
         }

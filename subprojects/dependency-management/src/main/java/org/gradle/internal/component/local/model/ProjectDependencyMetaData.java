@@ -17,8 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.internal.component.model.DependencyMetaData;
 
-public interface ProjectDependencyMetaData extends DependencyMetaData {
+public interface ProjectDependencyMetaData extends DslOriginDependencyMetaData {
     ProjectComponentSelector getSelector();
 }
