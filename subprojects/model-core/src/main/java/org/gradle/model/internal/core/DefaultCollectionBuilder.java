@@ -181,6 +181,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
                 target.add(s);
             }
         }));
+
+        onCreate(name, type);
+    }
+
+    protected <S extends T> void onCreate(String name, ModelType<S> type) {
+
     }
 
     @Override

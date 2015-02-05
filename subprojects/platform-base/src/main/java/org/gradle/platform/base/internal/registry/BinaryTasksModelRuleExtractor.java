@@ -89,28 +89,9 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
                     modelNode,
                     instantiator
             ) {
-                //eagerly instantiate created tasks so that they get attached to their respective binary specs in the instantiator
                 @Override
-                public void create(String name) {
-                    super.create(name);
-                    get(name);
-                }
-
-                @Override
-                public void create(String name, Action<? super Task> configAction) {
-                    super.create(name, configAction);
-                    get(name);
-                }
-
-                @Override
-                public <S extends Task> void create(String name, Class<S> type) {
-                    super.create(name, type);
-                    get(name);
-                }
-
-                @Override
-                public <S extends Task> void create(String name, Class<S> type, Action<? super S> configAction) {
-                    super.create(name, type, configAction);
+                protected <S extends Task> void onCreate(String name, ModelType<S> type) {
+                    // eagerly create the tasks to make them available through binary.tasks
                     get(name);
                 }
             };
