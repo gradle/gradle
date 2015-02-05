@@ -74,7 +74,7 @@ public interface DependencyResolveDetails<T extends ComponentSelector> {
      * <ul>
      *     <li>Strings like <code>"org.gradle:gradle-core:1.4"</code></li>
      *     <li>Maps like <code>[group: 'org.gradle', name: 'gradle-core', version: '1.4']</code></li>
-     *     <li>instances of <code>ModuleVersionSelector</code></li>
+     *     <li>instances of <code>ComponentSelector</code></li>
      *     <li>{@link org.gradle.api.Project} instances with <code>project(":path")</code></li>
      * </ul>
      *
