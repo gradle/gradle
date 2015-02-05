@@ -112,21 +112,17 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return new DefaultDependencyMetaData(dependencyDescriptor.clone(IvyUtil.createModuleRevisionId(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
     }
 
-    public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
-        if (requestedVersion.equals(requested)) {
-            return this;
-        }
-
-        ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
-        DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
-        return new DefaultDependencyMetaData(substitutedDescriptor);
-    }
-
     @Override
     public DependencyMetaData withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            return withRequestedVersion(DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion()));
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            if (requestedVersion.equals(requested)) {
+                return this;
+            }
+            ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
+            DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
+            return new DefaultDependencyMetaData(substitutedDescriptor);
         } else if (target instanceof ProjectComponentSelector) {
             // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;

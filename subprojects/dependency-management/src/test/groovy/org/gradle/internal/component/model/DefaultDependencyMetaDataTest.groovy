@@ -22,8 +22,9 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
@@ -75,7 +76,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.withRequestedVersion("1.2+").is(metaData)
-        metaData.withRequestedVersion(DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")).is(metaData)
+        metaData.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metaData)
     }
 
     def "can set changing flag"() {

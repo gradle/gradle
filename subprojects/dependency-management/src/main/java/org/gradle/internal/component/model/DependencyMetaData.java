@@ -56,11 +56,6 @@ public interface DependencyMetaData {
     DependencyMetaData withRequestedVersion(String requestedVersion);
 
     /**
-     * Returns a copy of this dependency with the given requested version.
-     */
-    DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion);
-
-    /**
      * Returns a copy of this dependency with the given target.
      */
     DependencyMetaData withTarget(ComponentSelector target);
