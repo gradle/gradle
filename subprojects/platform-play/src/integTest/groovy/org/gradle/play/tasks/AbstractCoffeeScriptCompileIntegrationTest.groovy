@@ -37,6 +37,21 @@ abstract class AbstractCoffeeScriptCompileIntegrationTest extends AbstractJavaSc
         matchesExpectedRaw(compiled(sourceSet, fileName))
     }
 
+    @Override
+    TestFile copied(String fileName) {
+        return super.copied("${defaultSourceSet}JavaScript", fileName)
+    }
+
+    @Override
+    void matchesExpected(String fileName) {
+        super.matchesExpected("${defaultSourceSet}JavaScript", fileName)
+    }
+
+    @Override
+    TestFile minified(String fileName) {
+        return super.minified("${defaultSourceSet}JavaScript", fileName)
+    }
+
     def withCoffeeScriptSource(String path) {
         withCoffeeScriptSource(file(path))
     }

@@ -18,12 +18,15 @@ package org.gradle.play;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -45,4 +48,6 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
     PublicAssets getAssets();
 
     Set<ScalaLanguageSourceSet> getGeneratedScala();
+
+    Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript();
 }

@@ -19,7 +19,6 @@ package org.gradle.play.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
@@ -65,23 +64,33 @@ public class PlayJavaScriptPlugin extends RuleSource {
     }
 
     @BinaryTasks
-    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
-        for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
-                final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
-                final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
-                tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
-                    @Override
-                    public void execute(JavaScriptMinify javaScriptMinify) {
-                        javaScriptMinify.setSource(javaScriptSourceSet.getSource());
-                        javaScriptMinify.setDestinationDir(minifyOutputDirectory);
-                        javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
-
-                        binary.getAssets().builtBy(javaScriptMinify);
-                        binary.getAssets().addAssetDir(minifyOutputDirectory);
-                    }
-                });
+                createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
             }
         }
+
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getGeneratedJavaScript().values()) {
+            createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
+        }
+    }
+
+    void createJavaScriptMinifyTask(CollectionBuilder<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
+        final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
+        tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
+            @Override
+            public void execute(JavaScriptMinify javaScriptMinify) {
+                javaScriptMinify.setSource(javaScriptSourceSet.getSource());
+                javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+                javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
+
+                binary.getAssets().builtBy(javaScriptMinify);
+                binary.getAssets().addAssetDir(minifyOutputDirectory);
+
+                javaScriptMinify.dependsOn(javaScriptSourceSet.getBuildDependencies());
+            }
+        });
     }
 }

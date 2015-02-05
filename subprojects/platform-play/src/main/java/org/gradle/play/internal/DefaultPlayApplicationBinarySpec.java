@@ -16,9 +16,12 @@
 
 package org.gradle.play.internal;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -30,12 +33,14 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private final PublicAssets assets = new DefaultPublicAssets();
     private Set<ScalaLanguageSourceSet> generatedScala = Sets.newLinkedHashSet();
+    private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
@@ -90,6 +95,11 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     public Set<ScalaLanguageSourceSet> getGeneratedScala() {
         return generatedScala;
+    }
+
+    @Override
+    public Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript() {
+        return generatedJavaScript;
     }
 
     @Override

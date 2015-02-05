@@ -51,7 +51,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -62,6 +62,15 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 "public/test.js",
                 "public/test.min.js"
         )
+    }
+
+    def "minify task depends on compile task" () {
+        when:
+        withCoffeeScriptSource(assets("test.coffee"))
+        succeeds "minifyPlayBinaryCoffeeScriptAssetsJavaScript"
+
+        then:
+        executedAndNotSkipped ":compilePlayBinaryCoffeeScriptAssets"
     }
 
     def "compiles multiple coffeescript source sets as part of play application build" () {
@@ -93,11 +102,11 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
                 ":compilePlayBinaryExtraCoffeeScript",
-                ":minifyPlayBinaryExtraCoffeeScript",
+                ":minifyPlayBinaryExtraCoffeeScriptJavaScript",
                 ":compilePlayBinaryAnotherCoffeeScript",
-                ":minifyPlayBinaryAnotherCoffeeScript",
+                ":minifyPlayBinaryAnotherCoffeeScriptJavaScript",
                 ":minifyPlayBinaryJavaScriptAssets",
                 ":minifyPlayBinaryExtraJavaScript",
                 ":createPlayBinaryJar",
@@ -107,11 +116,11 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         matchesExpectedRaw("ExtraCoffeeScript", "xxx/test2.js")
         matchesExpectedRaw("AnotherCoffeeScript", "a/b/c/test3.js")
         matchesExpectedRaw(copied("test1.js"))
-        matchesExpectedRaw(copied("ExtraCoffeeScript", "xxx/test2.js"))
-        matchesExpectedRaw(copied("AnotherCoffeeScript", "a/b/c/test3.js"))
+        matchesExpectedRaw(copied("ExtraCoffeeScriptJavaScript", "xxx/test2.js"))
+        matchesExpectedRaw(copied("AnotherCoffeeScriptJavaScript", "a/b/c/test3.js"))
         matchesExpected("test1.min.js")
-        matchesExpected("ExtraCoffeeScript", "xxx/test2.min.js")
-        matchesExpected("AnotherCoffeeScript", "a/b/c/test3.min.js")
+        matchesExpected("ExtraCoffeeScriptJavaScript", "xxx/test2.min.js")
+        matchesExpected("AnotherCoffeeScriptJavaScript", "a/b/c/test3.min.js")
         assetsJar.containsDescendants(
                 "public/test1.js",
                 "public/xxx/test2.js",
@@ -136,7 +145,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
         then:
         skipped(":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
                 ":createPlayBinaryJar",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
@@ -154,7 +163,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
     }
@@ -174,7 +183,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         then:
         executedAndNotSkipped(
                 ":compilePlayBinaryCoffeeScriptAssets",
-                ":minifyPlayBinaryCoffeeScriptAssets",
+                ":minifyPlayBinaryCoffeeScriptAssetsJavaScript",
                 ":createPlayBinaryAssetsJar",
                 ":playBinary")
         compiled("test.js").exists()

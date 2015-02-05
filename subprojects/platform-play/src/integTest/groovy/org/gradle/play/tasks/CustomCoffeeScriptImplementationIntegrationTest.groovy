@@ -67,9 +67,9 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         matchesExpectedRaw('test.js')
         matchesExpectedRaw('Extra', 'test2.js')
         matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('Extra', 'test2.js'))
+        matchesExpectedRaw(copied('ExtraJavaScript', 'test2.js'))
         matchesExpected('test.min.js')
-        matchesExpected('Extra', 'test2.min.js')
+        matchesExpected('ExtraJavaScript', 'test2.min.js')
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -105,8 +105,8 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         matchesExpectedRaw('test.js')
         matchesExpectedRaw('Extra', 'test2.js')
         matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('Extra', 'test2.js'))
+        matchesExpectedRaw(copied('ExtraJavaScript', 'test2.js'))
         matchesExpected('test.min.js')
-        matchesExpected('Extra', 'test2.min.js')
+        matchesExpected('ExtraJavaScript', 'test2.min.js')
     }
 }
