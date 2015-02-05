@@ -38,6 +38,8 @@ import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 import static org.gradle.model.internal.core.ModelActionRole.*;
@@ -54,7 +56,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<RuleBinder> binders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
-    private final LinkedHashSet<ModelPath> transitionedNodes = Sets.newLinkedHashSet();
+    private final LinkedHashMap<ModelRule, ModelReference<?>> rulesWithInputsBeingClosed = Maps.newLinkedHashMap();
 
     boolean reset;
 
@@ -369,21 +371,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
         ModelPath path = node.getPath();
-        if (!transitionedNodes.add(path)) {
-            List<ModelPath> transitionedNodesList = Lists.newArrayList(transitionedNodes);
-            List<ModelPath> cycleElements = transitionedNodesList.subList(transitionedNodesList.indexOf(path), transitionedNodesList.size());
-            cycleElements.add(path);
-            throw new ConfigurationCycleException("A cycle in model rule dependencies has been detected. Nodes forming the cycle: " + Joiner.on(" -> ").join(cycleElements));
-        }
-        try {
-            performTransition(node, desired, laterOk);
-        } finally {
-            transitionedNodes.remove(path);
-        }
-    }
-
-    private void performTransition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk) {
-        ModelPath path = node.getPath();
         ModelNode.State state = node.getState();
 
         LOGGER.debug("Transitioning model element '{}' from state {} to {}", path, state.name(), desired.name());
@@ -531,7 +518,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private ModelNodeInternal doCreate(ModelNodeInternal node, CreatorRuleBinder boundCreator) {
         ModelCreator creator = boundCreator.getCreator();
-        List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator().getDescriptor());
+        List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator());
 
         LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
 
@@ -546,7 +533,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
-        List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
+        List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
 
         ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
         ModelAction<T> mutator = boundMutator.getAction();
@@ -565,19 +552,70 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private List<ModelView<?>> toViews(List<ModelBinding<?>> bindings, final ModelRuleDescriptor ruleDescriptor) {
+    private List<ModelView<?>> toViews(List<ModelBinding<?>> bindings, ModelRule modelRule) {
         // hot path; create as little as possible…
         @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
         int i = 0;
         for (ModelBinding<?> binding : bindings) {
-            close(binding.getNode());
+            closeRuleBinding(modelRule, binding);
             ModelPath path = binding.getNode().getPath();
             ModelNodeInternal element = require(path);
-            ModelView<?> view = assertView(element, binding.getReference().getType(), ruleDescriptor, "toViews");
+            ModelView<?> view = assertView(element, binding.getReference().getType(), modelRule.getDescriptor(), "toViews");
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
         return views;
+    }
+
+    private void closeRuleBinding(ModelRule modelRule, ModelBinding<?> binding) {
+        if (rulesWithInputsBeingClosed.containsKey(modelRule)) {
+            throw ruleCycle(modelRule);
+        }
+        rulesWithInputsBeingClosed.put(modelRule, binding.getReference());
+        try {
+            close(binding.getNode());
+        } finally {
+            rulesWithInputsBeingClosed.remove(modelRule);
+        }
+    }
+
+    private ConfigurationCycleException ruleCycle(ModelRule cycleStartRule) {
+        boolean cycleStartFound = false;
+        String indent = "  ";
+        StringBuilder prefix = new StringBuilder(indent);
+        StringWriter out = new StringWriter();
+        PrintWriter writer = new PrintWriter(out);
+
+        writer.println("A cycle has been detected in model rule dependencies. References forming the cycle:");
+
+        for (Map.Entry<ModelRule, ModelReference<?>> ruleInputInClosing : rulesWithInputsBeingClosed.entrySet()) {
+            ModelRule rule = ruleInputInClosing.getKey();
+            ModelRuleDescriptor ruleDescriptor = rule.getDescriptor();
+            String referenceDescription = ruleInputInClosing.getValue().getDescription();
+            if (cycleStartFound) {
+                reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, referenceDescription);
+            } else {
+                if (rule.equals(cycleStartRule)) {
+                    cycleStartFound = true;
+                    reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, referenceDescription);
+                }
+            }
+        }
+        writer.print(cycleStartRule.getDescriptor().toString());
+
+        return new ConfigurationCycleException(out.toString());
+    }
+
+    private void reportRuleInputBeingClosed(String indent, StringBuilder prefix, PrintWriter writer, ModelRuleDescriptor ruleDescriptor, String referenceDescription) {
+        writer.print(ruleDescriptor.toString());
+        if (referenceDescription != null) {
+            writer.print(" ");
+            writer.print(referenceDescription);
+        }
+        writer.println();
+        writer.print(prefix);
+        writer.print("\\--- ");
+        prefix.append(indent);
     }
 
     @Override

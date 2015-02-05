@@ -367,8 +367,16 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelAction<T> action(final String modelPath, final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
-            return build(refs(ModelReference.of(modelPath, inputType)), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
+        public <I> ModelAction<T> action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+            return action(modelPath, inputType, inputType.toString(), action);
+        }
+
+        public <I> ModelAction<T> action(String modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+            return action(modelPath, inputType, modelPath, action);
+        }
+
+        public <I> ModelAction<T> action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+            return build(refs(ModelReference.of(modelPath, inputType, referenceDescription)), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
                     action.execute(t, ModelViews.assertType(inputs.get(0), inputType).getInstance());
@@ -376,8 +384,12 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
+        public <I> ModelAction<T> action(final String modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+            return action(ModelPath.path(modelPath), inputType, referenceDescription, action);
+        }
+
         public <I> ModelAction<T> action(final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
-            return action(null, inputType, action);
+            return action((ModelPath) null, inputType, action);
         }
 
         public <I> ModelAction<T> action(final Class<I> inputType, final BiAction<? super T, ? super I> action) {
@@ -420,6 +432,7 @@ public class ModelRegistryHelper implements ModelRegistry {
 
         public ModelCreatorBuilder(ModelPath path) {
             this.path = path;
+            descriptor = new SimpleModelRuleDescriptor(path + " creator");
         }
 
         public ModelCreatorBuilder descriptor(String descriptor) {
@@ -437,17 +450,25 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C> ModelCreator unmanaged(final Class<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-            return unmanaged(ModelType.of(modelType), inputPath, action);
+            return unmanaged(modelType, inputPath, inputPath, action);
+        }
+
+        public <C> ModelCreator unmanaged(final Class<C> modelType, String inputPath, String referenceDescription, final Transformer<? extends C, Object> action) {
+            return unmanaged(ModelType.of(modelType), inputPath, referenceDescription, action);
         }
 
         public <C> ModelCreator unmanaged(final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
+            return unmanaged(modelType, inputPath, inputPath, action);
+        }
+
+        public <C> ModelCreator unmanaged(final ModelType<C> modelType, String inputPath, String inputDescriptor, final Transformer<? extends C, Object> action) {
             return ModelCreators.of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                     mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
-                    .inputs(ModelReference.of(inputPath))
+                    .inputs(ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor))
                     .descriptor(descriptor)
                     .ephemeral(ephemeral)
                     .build();

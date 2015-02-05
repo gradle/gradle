@@ -23,6 +23,7 @@ import org.gradle.model.ConfigurationCycleException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -64,7 +65,7 @@ class DefaultModelRegistryTest extends Specification {
 
     def "cannot get element for which creator inputs are not bound"() {
         given:
-        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, "other", Stub(Transformer)) }
+        registry.create("foo") { it.descriptor("foo creator").unmanaged(String, "other", null, Stub(Transformer)) }
 
         when:
         registry.realize(ModelPath.path("foo"), ModelType.untyped())
@@ -704,7 +705,7 @@ class DefaultModelRegistryTest extends Specification {
         registry
                 .createInstance("foo", new Bean())
                 .mutate {
-            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean), {})
+            it.descriptor("non-bindable").path("foo").type(Bean).action("emptyBeans.element", ModelType.of(Bean), null, {})
         }
         .mutate {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
@@ -735,47 +736,54 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("foo", "foo")
                 .createInstance("bar", "bar")
-                .mutate {
-            it.path("foo").type(String).action("bar", ModelType.of(String), {})
-        }.mutate {
-            it.path("bar").type(String).action("foo", ModelType.of(String), {})
-        }
+                .mutate { it.path("foo").descriptor("foo mutator").type(String).action("bar", ModelType.of(String), "parameter 1", {}) }
+                .mutate { it.path("bar").descriptor("bar mutator").type(String).action("foo", ModelType.of(String), null,{}) }
 
         when:
         registry.get("foo")
 
         then:
         ConfigurationCycleException e = thrown()
-        e.message.endsWith "Nodes forming the cycle: foo -> bar -> foo"
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+foo mutator parameter 1
+  \\--- bar mutator
+    \\--- foo mutator""")
     }
 
     def "multiple element configuration cycles are detected"() {
         registry.create("foo") { it.unmanaged(String, "bar") { "foo" }}
                 .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
                 .createInstance("fizz", "fizz")
-                .mutate { it.path("fizz").type(String).action("buzz", ModelType.of(String), {}) }
+                .mutate { it.path("fizz").descriptor("fizz mutator").type(String).action("buzz", ModelType.of(String), {}) }
                 .createInstance("buzz", "buzz")
-                .mutate { it.path("buzz").type(String).action("foo", ModelType.of(String), {}) }
+                .mutate { it.path("buzz").descriptor("buzz mutator").type(String).action("foo", ModelType.of(String), {}) }
 
         when:
         registry.get("foo")
 
         then:
         ConfigurationCycleException e = thrown()
-        e.message.endsWith "Nodes forming the cycle: foo -> bar -> fizz -> buzz -> foo"
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+foo creator bar
+  \\--- bar creator fizz
+    \\--- fizz mutator buzz
+      \\--- buzz mutator foo
+        \\--- foo creator""")
     }
 
     def "one element configuration cycles are detected"() {
         given:
         registry.createInstance("foo", "foo")
-                .mutate { it.path("foo").type(String).action(String) {} }
+                .mutate { it.path("foo").descriptor("foo mutator").type(String).action(String) {} }
 
         when:
         registry.get("foo")
 
         then:
         ConfigurationCycleException e = thrown()
-        e.message.endsWith "Nodes forming the cycle: foo -> foo"
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+foo mutator java.lang.String
+  \\--- foo mutator""")
     }
 
     def "only the elements actually forming the cycle are reported when configuration cycles are detected"() {
@@ -784,7 +792,7 @@ class DefaultModelRegistryTest extends Specification {
                 .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
                 .mutate { it.path("foo").type(String).action(String) {} }
                 .create("fizz") { it.unmanaged(String, "buzz") { "buzz" }}
-                .mutate { it.path("fizz").type(String).action("bar", ModelType.of(String), {}) }
+                .mutate { it.path("fizz").descriptor("fizz mutator").type(String).action("bar", ModelType.of(String), {}) }
                 .createInstance("buzz", "buzz")
 
         when:
@@ -792,7 +800,10 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         ConfigurationCycleException e = thrown()
-        e.message.endsWith "Nodes forming the cycle: bar -> fizz -> bar"
+        e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
+bar creator fizz
+  \\--- fizz mutator bar
+    \\--- bar creator""")
     }
 
     class Bean {
