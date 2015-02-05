@@ -48,7 +48,15 @@ A few notes:
 
 ### Test coverage
 
-How are we going to test this feature? How do we prove that the work is done?
+- Resolved graph includes correct (substituted) dependencies
+    - Replacement of top-level dependency
+    - Replacement of transitive dependency
+    - Replacement of Client module dependency
+- Interaction with forced versions and other resolve rules
+- Conflict resolution where 2 external dependency versions are in graph, but only one version is replaced by project dependency
+- Additional dependency details (configuration, transitive, etc) are retained in substituted dependency
+- Real resolution of dependency files: pre-build the substituted project. (This test would later be modified to remove the pre-build step).
+- Dependency reports provide information on dependency substitution
 
 ### Open issues
 
@@ -111,9 +119,12 @@ external dependency, the correct tasks are included for execution:
 - Dependency substitution rules already apply when resolving project dependencies as well as external dependencies.
 - `DependencyResolveDetails.getRequested()` should return `ComponentSelector`
 
-## Story: IDE plugins include correct set of projects based on dependency substitution
+### Test coverage
 
-## Story: Dependency reports provide information on dependency substitution
+- TBD
+- Dependency reports provide information on dependency substitution
+
+## Story: IDE plugins include correct set of projects based on dependency substitution
 
 # Feature: Improve the dependency substitution rule DSL
 
