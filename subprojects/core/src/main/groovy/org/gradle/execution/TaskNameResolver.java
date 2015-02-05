@@ -118,7 +118,7 @@ public class TaskNameResolver {
     }
 
     private static Set<String> getTaskNames(ProjectInternal project) {
-        return selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE);
+        return Sets.union(selfClosedTasksNode(project).getLinkNames(TASK_MODEL_TYPE), project.getTasks().getNames());
     }
 
     private static boolean hasTask(String taskName, ProjectInternal project) {
@@ -128,9 +128,17 @@ public class TaskNameResolver {
     }
 
     private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
+        ModelRegistry modelRegistry = project.getModelRegistry();
+        ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
         try {
-            // pull through the registry, even for tasks defined via legacy DSL, to ensure all configuration rules get applied
-            return (TaskInternal) project.getModelRegistry().realize(TaskContainerInternal.MODEL_PATH.child(taskName), TASK_MODEL_TYPE);
+            if (modelRegistry.node(path) == null) {
+                // The tasks exists but isn't in the model registry, was created after the registry was closed
+                // This can happen for a few reasons, use of task container rules being a common one
+                return (TaskInternal) project.getTasks().getByName(taskName);
+            } else {
+                // pull through the registry, even for tasks defined via legacy DSL, to ensure all configuration rules get applied
+                return (TaskInternal) modelRegistry.realize(path, TASK_MODEL_TYPE);
+            }
         } catch (Throwable e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
         }
