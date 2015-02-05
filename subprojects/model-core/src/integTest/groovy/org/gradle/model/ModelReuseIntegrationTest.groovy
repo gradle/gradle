@@ -89,7 +89,17 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
     def "can enable reuse with the component model"() {
         when:
         buildScript """
-            plugins { id "org.gradle.java-lang" }
+            plugins {
+              id "org.gradle.jvm-component"
+              id "org.gradle.java-lang"
+            }
+
+            model {
+                components {
+                    println "creating component"
+                    create("main", JvmLibrarySpec)
+                }
+            }
         """
 
         then:

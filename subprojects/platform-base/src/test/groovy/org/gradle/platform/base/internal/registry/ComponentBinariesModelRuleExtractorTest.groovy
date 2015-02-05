@@ -19,6 +19,7 @@ package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.DefaultCollectionBuilder
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
@@ -47,7 +48,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.ACTION
         registration.actionRole == ModelActionRole.Mutate
-        registration.action.subject == ModelReference.of("binaries", BinaryContainer)
+        registration.action.subject == ModelReference.of("binaries", DefaultCollectionBuilder.typeOf(BinarySpec))
 
         where:
         ruleName         | descr

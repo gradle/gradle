@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -32,6 +33,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
@@ -76,50 +78,32 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
     private class BinaryTaskRule<R, T extends BinarySpec> extends CollectionBuilderBasedRule<R, Task, T, T> {
 
         public BinaryTaskRule(Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(ModelReference.of(binaryType), binaryType, ruleDefinition, ModelReference.of(ITaskFactory.class));
+            super(ModelReference.of(binaryType), binaryType, ruleDefinition);
         }
 
-        public void execute(MutableModelNode modelNode, T binary, List<ModelView<?>> inputs) {
-            ITaskFactory taskFactory = ModelViews.assertType(inputs.get(0), ModelType.of(ITaskFactory.class)).getInstance();
-            NamedEntityInstantiator<Task> instantiator = new Instantiator(binary, taskFactory);
-            DefaultCollectionBuilder<Task> collectionBuilder = new DefaultCollectionBuilder<Task>(
-                    ModelType.of(Task.class),
+        public void execute(MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
+            DefaultCollectionBuilder<TaskInternal> collectionBuilder = new DefaultCollectionBuilder<TaskInternal>(
+                    ModelType.of(TaskInternal.class),
                     binary.getTasks(),
                     getDescriptor(),
                     modelNode,
-                    instantiator
+                    ModelReference.of(ITaskFactory.class)
             ) {
                 @Override
-                protected <S extends Task> void onCreate(String name, ModelType<S> type) {
-                    // eagerly create the tasks to make them available through binary.tasks
-                    get(name);
+                protected <S extends TaskInternal> void onCreate(final String name, ModelType<S> type) {
+                    Task task = get(name);
+                    binary.builtBy(task);
                 }
             };
 
-            invoke(inputs, collectionBuilder, binary, taskFactory);
+            CollectionBuilder<Task> cast = Cast.uncheckedCast(collectionBuilder);
+
+            List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size() + 1);
+            inputsWithBinary.addAll(inputs);
+            inputsWithBinary.add(new InstanceModelView<T>(getSubject().getPath(), getSubject().getType(), binary));
+
+            invoke(inputsWithBinary, cast, binary, binary);
         }
     }
 
-    private class Instantiator implements NamedEntityInstantiator<Task> {
-        private final BinarySpec binarySpec;
-        private final ITaskFactory taskFactory;
-
-        public Instantiator(BinarySpec binarySpec, ITaskFactory taskFactory) {
-            this.binarySpec = binarySpec;
-            this.taskFactory = taskFactory;
-        }
-
-        public <U extends Task> U create(String name, Class<U> type) {
-            Class<? extends TaskInternal> castType = Cast.uncheckedCast(type);
-            TaskInternal taskInternal = doCreate(name, castType);
-            return Cast.uncheckedCast(taskInternal);
-        }
-
-        public <U extends TaskInternal> U doCreate(String name, Class<U> type) {
-            U task = taskFactory.create(name, type);
-            binarySpec.builtBy(task);
-            binarySpec.getTasks().add(task);
-            return task;
-        }
-    }
 }

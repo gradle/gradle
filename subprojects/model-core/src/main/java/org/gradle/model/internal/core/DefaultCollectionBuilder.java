@@ -280,6 +280,9 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         ).build();
     }
 
+    public static <I> ModelType<CollectionBuilder<I>> typeOf(Class<I> type) {
+        return typeOf(ModelType.of(type));
+    }
 
     public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaReference(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
         return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
