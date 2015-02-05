@@ -28,7 +28,15 @@
         build your project) as it requires no configuration on the server.
     </para>
     <para>
-        You install the wrapper into your project by adding and configuring a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> 
+        You install the wrapper into your project by running the <literal>wrapper</literal> task. (This task is always available, even if
+        you don't add it to your build.) To specify a Gradle version use <literal>--gradle-version</literal> on the command-line.
+        You can also set the URL to download Gradle from directly via <literal>--gradle-distribution-url</literal>.
+    </para>
+    <sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the wrapper task">
+        <output args="wrapper --gradle-version 2.0"/>
+    </sample>
+    <para>
+        The wrapper can be further customized by adding and configuring a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         task in your build script, and then executing it.
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
