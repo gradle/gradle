@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -64,7 +64,7 @@ public class RepositoryChainAdapter implements DependencyToComponentIdResolver, 
 
         // Force the requested version
         ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
-        dependency = dependency.withRequestedVersion(new DefaultModuleVersionSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
+        dependency = dependency.withTarget(new DefaultModuleComponentSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
 
         metaDataResolver.resolve(dependency, result);
     }

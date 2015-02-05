@@ -17,55 +17,82 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
-import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
-
-public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
+public class DefaultDependencyResolveDetails<T extends ComponentSelector> implements DependencyResolveDetailsInternal<T> {
+    private final T selector;
     private final ModuleVersionSelector requested;
     private ComponentSelectionReason selectionReason;
-    private ModuleVersionSelector target;
+    private ComponentSelector target;
 
-    public DefaultDependencyResolveDetails(ModuleVersionSelector requested) {
+    public DefaultDependencyResolveDetails(T selector, ModuleVersionSelector requested) {
+        this.selector = selector;
+        this.target = selector;
         this.requested = requested;
-        this.target = requested;
     }
 
+    @Override
+    public T getSelector() {
+        return selector;
+    }
+
+    @Override
     public ModuleVersionSelector getRequested() {
         return requested;
     }
 
+    @Override
     public void useVersion(String version) {
         useVersion(version, VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
+    @Override
     public void useVersion(String version, ComponentSelectionReason selectionReason) {
         assert selectionReason != null;
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
-        if (!version.equals(target.getVersion())) {
-            target = newSelector(target.getGroup(), target.getName(), version);
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            if (!version.equals(moduleTarget.getVersion())) {
+                useTarget(DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), version), selectionReason);
+            } else {
+                useTarget(moduleTarget, selectionReason);
+            }
+        } else {
+            throw new ModuleVersionResolveException(target, "Cannot substitute %s with version '" + version + "'.");
         }
+    }
+
+    @Override
+    public void useTarget(Object notation) {
+        ComponentSelector target = ComponentSelectorParsers.parser().parseNotation(notation);
+        useTarget(target, VersionSelectionReasons.SELECTED_BY_RULE);
+    }
+
+    private void useTarget(ComponentSelector target, ComponentSelectionReason selectionReason) {
+        this.target = target;
         this.selectionReason = selectionReason;
     }
 
-    public void useTarget(Object notation) {
-        this.target = ModuleVersionSelectorParsers.parser().parseNotation(notation);
-        this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
-    }
-
+    @Override
     public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
     }
 
-    public ModuleVersionSelector getTarget() {
+    @Override
+    public ComponentSelector getTarget() {
         return target;
     }
 
+    @Override
     public boolean isUpdated() {
         return selectionReason != null;
     }

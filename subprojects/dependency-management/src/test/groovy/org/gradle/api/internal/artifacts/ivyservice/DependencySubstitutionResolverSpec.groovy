@@ -18,21 +18,24 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyResolveDetails
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import spock.lang.Specification
 
-class VersionForcingDependencyToModuleResolverSpec extends Specification {
+class DependencySubstitutionResolverSpec extends Specification {
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
+    def selector = new DefaultModuleComponentSelector("group", "module", "version")
     def dependency = Mock(DependencyMetaData) {
         getRequested() >> requested
+        getSelector() >> selector
     }
     def result = Mock(BuildableComponentIdResolveResult)
     def target = Mock(DependencyToComponentIdResolver)
     def rule = Mock(Action)
-    def resolver = new VersionForcingDependencyToModuleResolver(target, rule)
+    def resolver = new DependencySubstitutionResolver(target, rule)
 
     def "passes through dependency when it does not match any rule"() {
         given:
@@ -58,7 +61,7 @@ class VersionForcingDependencyToModuleResolverSpec extends Specification {
         resolver.resolve(dependency, result)
 
         then:
-        1 * dependency.withRequestedVersion(new DefaultModuleVersionSelector("group", "module", "new")) >> substitutedDependency
+        1 * dependency.withTarget(DefaultModuleComponentSelector.newSelector("group", "module", "new")) >> substitutedDependency
         1 * target.resolve(substitutedDependency, result)
     }
 

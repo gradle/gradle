@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
-import org.gradle.internal.component.local.model.ProjectDependencyMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
@@ -39,7 +38,7 @@ class ProjectDependencyResolverTest extends Specification {
             toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableComponentIdResolveResult)
-        def dependencyMetaData = Stub(ProjectDependencyMetaData) {
+        def dependencyMetaData = Stub(DependencyMetaData) {
             getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
         }
 

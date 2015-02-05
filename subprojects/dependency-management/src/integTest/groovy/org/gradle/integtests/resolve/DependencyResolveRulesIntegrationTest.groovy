@@ -119,12 +119,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations.conf.resolutionStrategy {
 	            eachDependency {
-	                assert it.target == it.requested
+	                assert it.target == it.selector
                     it.useVersion '1.4'
 	            }
 	            eachDependency {
 	                assert it.target.version == '1.4'
-	                assert it.target.name == it.requested.name
+	                assert it.target.module == it.requested.name
 	                assert it.target.group == it.requested.group
                     it.useVersion '1.5'
 	            }
@@ -257,7 +257,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
 	            eachDependency {
                     if (it.requested.name == 'api') {
-                        assert it.target == it.requested
+                        assert it.target == it.selector
                         it.useVersion '1.5'
                     }
 	            }
@@ -317,6 +317,57 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can replace external dependency with project dependency"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                $common
+
+                group "org.utils"
+            }
+
+            project(":api") {
+                version = "1.6"
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf group: "org.utils", name: "api", version: "1.5", configuration: "conf"
+                }
+
+                configurations.conf.resolutionStrategy.eachDependency {
+                    it.useTarget project(":api")
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+                    assert deps[0].requested.group == "org.utils"
+                    assert deps[0].requested.module == "api"
+                    assert deps[0].requested.version == "1.5"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+                    assert deps[0].selected.componentId.projectPath == ":api"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
+            }
+"""
+
+        when:
+        run("impl:check")
 
         then:
         noExceptionThrown()

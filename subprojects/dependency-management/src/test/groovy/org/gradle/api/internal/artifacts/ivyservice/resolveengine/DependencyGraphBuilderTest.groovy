@@ -43,8 +43,9 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.internal.component.local.model.DefaultDslOriginDependencyMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper
 import org.gradle.internal.component.model.ComponentUsage
+import org.gradle.internal.component.model.DefaultDependencyMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -973,7 +974,7 @@ class DependencyGraphBuilderTest extends Specification {
                     PatternMatcher.ANY_EXPRESSION),
                     ExactPatternMatcher.INSTANCE, null))
         }
-        def dependencyMetaData = new DefaultDslOriginDependencyMetaData(descriptor, Stub(ModuleDependency))
+        def dependencyMetaData = new DslOriginDependencyMetaDataWrapper(new DefaultDependencyMetaData(descriptor), Stub(ModuleDependency))
         from.addDependency(dependencyMetaData)
         return dependencyMetaData
     }

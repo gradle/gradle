@@ -23,11 +23,14 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -109,14 +112,24 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return new DefaultDependencyMetaData(dependencyDescriptor.clone(IvyUtil.createModuleRevisionId(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
     }
 
-    public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
-        if (requestedVersion.equals(requested)) {
-            return this;
+    @Override
+    public DependencyMetaData withTarget(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            if (requestedVersion.equals(requested)) {
+                return this;
+            }
+            ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
+            DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
+            return new DefaultDependencyMetaData(substitutedDescriptor);
+        } else if (target instanceof ProjectComponentSelector) {
+            // TODO:Prezi what to do here?
+            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
+            return new DefaultProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
+        } else {
+            throw new AssertionError();
         }
-
-        ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
-        DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
-        return new DefaultDependencyMetaData(substitutedDescriptor);
     }
 
     public DependencyMetaData withChanging() {

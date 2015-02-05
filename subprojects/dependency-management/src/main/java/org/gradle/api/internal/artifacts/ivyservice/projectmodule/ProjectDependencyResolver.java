@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.local.model.ProjectDependencyMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ModuleToComponentResolver;
@@ -40,9 +40,9 @@ public class ProjectDependencyResolver implements DependencyToComponentIdResolve
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
-        if (dependency instanceof ProjectDependencyMetaData) {
-            ProjectDependencyMetaData projectDependency = (ProjectDependencyMetaData) dependency;
-            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(projectDependency.getSelector().getProjectPath());
+        if (dependency.getSelector() instanceof ProjectComponentSelector) {
+            ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(selector.getProjectPath());
             result.resolved(componentMetaData.toResolveMetaData());
         } else {
             delegate.resolve(dependency, result);

@@ -17,11 +17,16 @@ package org.gradle.internal.resolve;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 import java.util.List;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
     @SuppressWarnings("UnusedDeclaration")
+    public ModuleVersionNotFoundException(ComponentSelector selector, String messageFormat) {
+        super(selector, messageFormat);
+    }
+
     public ModuleVersionNotFoundException(ModuleVersionSelector selector, String messageFormat) {
         super(selector, messageFormat);
     }
