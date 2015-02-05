@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -786,7 +787,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
-            Set<String> names = new TreeSet<String>();
+            Set<String> names = Sets.newLinkedHashSet();
             for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
                 if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
                     names.add(entry.getKey());
@@ -796,14 +797,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public Set<MutableModelNode> getLinks(ModelType<?> type) {
-            Set<MutableModelNode> nodes = new LinkedHashSet<MutableModelNode>();
-            for (ModelNodeInternal linked : links.values()) {
-                if (linked.getPromise().canBeViewedAsWritable(type)) {
-                    nodes.add(linked);
+        public Iterable<? extends MutableModelNode> getLinks(final ModelType<?> type) {
+            return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
+                @Override
+                public boolean apply(ModelNodeInternal input) {
+                    return input.getPromise().canBeViewedAsWritable(type);
                 }
-            }
-            return nodes;
+            });
         }
 
         @Override
