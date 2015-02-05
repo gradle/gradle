@@ -30,8 +30,8 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 public interface DependencyResolveDetails<T extends ComponentSelector> {
 
     /**
-     * The module selector, before it is resolved.
-     * The requested module selector does not change even if there are multiple dependency resolve rules
+     * The component selector, before it is resolved.
+     * The requested component selector does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
      *
      * @since 2.4
