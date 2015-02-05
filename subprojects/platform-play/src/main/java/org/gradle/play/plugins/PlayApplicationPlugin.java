@@ -28,6 +28,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
@@ -144,19 +145,24 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
                     // TODO:DAZ Scala source set type should be registered via scala-lang plugin
-                    ScalaLanguageSourceSet appSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
+                    ScalaLanguageSourceSet scalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
 
                     // Compile scala/java sources under /app\
                     // TODO:DAZ Should be selecting 'controllers/**' and 'model/**' I think, allowing user to add more includes
-                    appSources.getSource().srcDir("app");
-                    appSources.getSource().include("**/*.scala");
-                    appSources.getSource().include("**/*.java");
-                    ((ComponentSpecInternal) playComponent).getSources().add(appSources);
+                    scalaSources.getSource().srcDir("app");
+                    scalaSources.getSource().include("**/*.scala");
+                    FunctionalSourceSet sources = ((ComponentSpecInternal) playComponent).getSources();
+                    sources.add(scalaSources);
+
+                    JavaSourceSet javaSources = BaseLanguageSourceSet.create(DefaultJavaLanguageSourceSet.class, "java", playComponent.getName(), fileResolver, instantiator);
+                    javaSources.getSource().srcDir("app");
+                    javaSources.getSource().include("**/*.java");
+                    sources.add(javaSources);
 
                     DefaultSourceDirectorySet resourcesDirectorySet = new DefaultSourceDirectorySet("resources", fileResolver);
                     JvmResourceSet appResources = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", playComponent.getName(), resourcesDirectorySet);
                     appResources.getSource().srcDirs("conf");
-                    ((ComponentSpecInternal) playComponent).getSources().add(appResources);
+                    sources.add(appResources);
                 }
             });
         }
