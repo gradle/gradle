@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultDependencyResolveDetails<T extends ComponentSelector> implements DependencyResolveDetailsInternal<T> {
     private final T selector;
@@ -65,6 +66,8 @@ public class DefaultDependencyResolveDetails<T extends ComponentSelector> implem
             } else {
                 useTarget(moduleTarget, selectionReason);
             }
+        } else {
+            throw new ModuleVersionResolveException(target, "Cannot substitute %s with version '" + version + "'.");
         }
     }
 
