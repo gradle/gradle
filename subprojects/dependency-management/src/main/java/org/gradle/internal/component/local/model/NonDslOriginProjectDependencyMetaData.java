@@ -19,12 +19,13 @@ package org.gradle.internal.component.local.model;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.internal.component.model.DefaultDependencyMetaData;
 
-public class NonDslOriginProjectDependencyMetaData extends DefaultDslOriginDependencyMetaData implements ProjectDependencyMetaData {
+public class NonDslOriginProjectDependencyMetaData extends DefaultDependencyMetaData implements ProjectDependencyMetaData {
     private final String projectPath;
 
     public NonDslOriginProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, String projectPath) {
-        super(dependencyDescriptor, null);
+        super(dependencyDescriptor);
         this.projectPath = projectPath;
     }
 
