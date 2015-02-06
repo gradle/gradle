@@ -13,5 +13,5 @@ dependencies {
 
 strictCompile()
 useTestFixtures()
-useTestFixtures(project: ":languageJvm")
+useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")

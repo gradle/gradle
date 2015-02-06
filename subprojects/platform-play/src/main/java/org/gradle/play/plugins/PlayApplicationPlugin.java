@@ -34,9 +34,11 @@ import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
+import org.gradle.language.java.plugins.JavaLanguagePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.language.scala.internal.DefaultScalaLanguageSourceSet;
+import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.language.scala.tasks.PlatformScalaCompile;
 import org.gradle.language.twirl.TwirlSourceSet;
 import org.gradle.language.twirl.internal.DefaultTwirlSourceSet;
@@ -74,6 +76,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply(JavaLanguagePlugin.class);
+        project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
     }
 
@@ -118,24 +122,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void registerTwirlLanguageType(LanguageTypeBuilder<TwirlSourceSet> builder) {
             builder.setLanguageName("twirl");
             builder.defaultImplementation(DefaultTwirlSourceSet.class);
-        }
-
-        /**
-         * TODO: leverage the scala-language plugin here instead
-         * */
-        @LanguageType
-        void registerScalaLanguage(LanguageTypeBuilder<ScalaLanguageSourceSet> builder) {
-            builder.setLanguageName("scala");
-            builder.defaultImplementation(DefaultScalaLanguageSourceSet.class);
-        }
-
-        /**
-         * TODO: leverage the java-language plugin here instead
-         * */
-        @LanguageType
-        void registerJavaLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
-            builder.setLanguageName("java");
-            builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
         }
 
         @Mutate
