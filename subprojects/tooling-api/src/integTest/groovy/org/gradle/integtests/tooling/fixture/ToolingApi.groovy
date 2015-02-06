@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.logging.Logging
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -182,7 +181,7 @@ class ToolingApi implements TestRule {
                             getDaemons().killAll()
                         } catch (RuntimeException ex) {
                             //TODO once we figured out why pid from logfile can be null we should remove this again
-                            Logging.getLogger(getClass()).warn("Unable to kill daemon(s)", ex);
+                            LOGGER.warn("Unable to kill daemon(s)", ex);
                         }
                     }
                 }
