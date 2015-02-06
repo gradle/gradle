@@ -90,6 +90,19 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo.url == centralUrl
     }
 
+    def testCreateSonatypeSnapshotRepo() {
+        given:
+        def snapshotUrl = new URI(DefaultRepositoryHandler.SONATYPE_SNAPSHOT_URL)
+
+        when:
+        fileResolver.resolveUri(DefaultRepositoryHandler.SONATYPE_SNAPSHOT_URL) >> snapshotUrl
+
+        then:
+        def repo = factory.createSonatypeSnapshotRepository()
+        repo instanceof DefaultMavenArtifactRepository
+        repo.url == snapshotUrl
+    }
+
     def createIvyRepository() {
         expect:
         def repo = factory.createIvyRepository()

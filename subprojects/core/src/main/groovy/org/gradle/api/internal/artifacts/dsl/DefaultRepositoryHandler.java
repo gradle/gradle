@@ -37,6 +37,9 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
     public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
 
+    public static final String DEFAULT_SONATYPE_SNAPSHOT_REPO_NAME = "Sonatype Snapshot";
+    public static final String SONATYPE_SNAPSHOT_URL = "https://oss.sonatype.org/content/repositories/snapshots/";
+
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
     private static final String IVY_REPO_DEFAULT_NAME = "ivy";
@@ -79,6 +82,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
         Map<String, Object> modifiedArgs = new HashMap<String, Object>(args);
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<MavenArtifactRepository>(modifiedArgs));
+    }
+
+    @Override
+    public MavenArtifactRepository sonatypeSnapshot() {
+        return addRepository(repositoryFactory.createSonatypeSnapshotRepository(), DEFAULT_SONATYPE_SNAPSHOT_REPO_NAME);
     }
 
     public MavenArtifactRepository mavenLocal() {
