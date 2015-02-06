@@ -1,7 +1,6 @@
 dependencies {
     compile libraries.groovy
     compile project(":core")
-    integTestRuntime project(':plugins')
 }
 
 useClassycle()
