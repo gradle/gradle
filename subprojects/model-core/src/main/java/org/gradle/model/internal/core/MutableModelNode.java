@@ -78,8 +78,6 @@ public interface MutableModelNode extends ModelNode {
 
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 
-    <T> void setPrivateData(T object);
-
     <T> void setPrivateData(ModelType<? super T> type, T object);
 
     <T> T getPrivateData(ModelType<T> type);

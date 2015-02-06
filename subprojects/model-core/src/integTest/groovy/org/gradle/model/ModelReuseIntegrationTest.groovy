@@ -103,9 +103,8 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds "mainJar"
-        output.contains ReusingModelRegistryStore.BANNER
-        succeeds "mainJar"
+        succeeds "build"
+        succeeds "build"
     }
 
 }

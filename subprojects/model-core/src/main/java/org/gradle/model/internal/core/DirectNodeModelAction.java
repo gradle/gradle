@@ -18,7 +18,6 @@ package org.gradle.model.internal.core;
 
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.TriAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
@@ -27,24 +26,13 @@ import java.util.List;
 public class DirectNodeModelAction<T> implements ModelAction<T> {
 
     private final ModelReference<T> subjectReference;
+    private final BiAction<? super MutableModelNode, ? super T> action;
     private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputs;
-    private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    private DirectNodeModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+    private DirectNodeModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
         this.subjectReference = subjectReference;
-        this.inputs = inputs;
         this.action = action;
         this.descriptor = descriptor;
-    }
-
-    public DirectNodeModelAction(ModelReference<T> reference, ModelRuleDescriptor descriptor, final BiAction<? super MutableModelNode, ? super T> action) {
-        this(reference, descriptor, ModelReference.NONE, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
-            @Override
-            public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> modelViews) {
-                action.execute(modelNode, t);
-            }
-        });
     }
 
     public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
@@ -56,25 +44,8 @@ public class DirectNodeModelAction<T> implements ModelAction<T> {
         });
     }
 
-    public static ModelAction<?> of(ModelPath path, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
-        return of(ModelReference.of(path), descriptor, action);
-    }
-
     public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
         return new DirectNodeModelAction<T>(reference, descriptor, action);
-    }
-
-    public static <T, I> ModelAction<?> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final ModelReference<I> input, final BiAction<? super MutableModelNode, ? super I> action) {
-        return new DirectNodeModelAction<T>(reference, descriptor, Collections.<ModelReference<?>>singletonList(input), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
-            @Override
-            public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> modelViews) {
-                action.execute(modelNode, ModelViews.getInstance(modelViews.get(0), input));
-            }
-        });
-    }
-
-    public static <I> ModelAction<?> of(ModelPath path, ModelRuleDescriptor descriptor, ModelReference<I> input, BiAction<? super MutableModelNode, ? super I> action) {
-        return of(ModelReference.of(path), descriptor, input, action);
     }
 
     @Override
@@ -84,12 +55,12 @@ public class DirectNodeModelAction<T> implements ModelAction<T> {
 
     @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        action.execute(modelNode, object, inputs);
+        action.execute(modelNode, object);
     }
 
     @Override
     public List<ModelReference<?>> getInputs() {
-        return inputs;
+        return Collections.emptyList();
     }
 
     @Override

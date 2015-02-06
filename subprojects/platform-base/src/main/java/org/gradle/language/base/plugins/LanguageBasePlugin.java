@@ -18,10 +18,9 @@ package org.gradle.language.base.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
@@ -43,7 +42,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
-import java.util.List;
 
 /**
  * Base plugin for language support.
@@ -59,7 +57,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.modelRegistry = modelRegistry;
     }
@@ -71,7 +69,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         String descriptor = getClass().getName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
-        final ModelPath binariesPath = ModelPath.path("binaries");
+        ModelPath binariesPath = ModelPath.path("binaries");
         BridgedCollections.dynamicTypes(
                 modelRegistry,
                 binariesPath,
@@ -96,73 +94,10 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         });
 
-        ModelReference<BinaryContainer> binaryContainerReference = ModelReference.of(binariesPath, BinaryContainer.class);
-        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(binaryContainerReference, ruleDescriptor, new Action<MutableModelNode>() {
+        modelRegistry.configure(ModelActionRole.Defaults, DirectNodeModelAction.of(ModelReference.of(binariesPath), ruleDescriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode binariesNode) {
                 binariesNode.applyToAllLinks(ModelActionRole.Finalize, eachBinaryAction);
-            }
-        }));
-
-        SimpleModelRuleDescriptor copyTasksDescriptor = new SimpleModelRuleDescriptor("LanguageBasePlugin.apply().copyTasks");
-        modelRegistry.configure(ModelActionRole.Mutate, DirectNodeModelAction.of(TaskContainerInternal.MODEL_PATH, copyTasksDescriptor, binaryContainerReference, new BiAction<MutableModelNode, BinaryContainer>() {
-            @Override
-            public void execute(MutableModelNode modelNode, BinaryContainer binaryContainer) {
-                for (BinarySpec binarySpec : binaryContainer) {
-                    if (((BinarySpecInternal) binarySpec).isLegacyBinary()) {
-                        continue;
-                    }
-
-                    for (Task task : binarySpec.getTasks()) {
-                        addTaskNode(modelNode, binariesPath, binarySpec.getName(), task.getName(), getTaskType(task));
-                    }
-                    Task buildTask = binarySpec.getBuildTask();
-                    if (buildTask != null) {
-                        addBuildTaskNode(modelNode, binariesPath, binarySpec.getName(), buildTask.getName(), getTaskType(buildTask));
-                    }
-                }
-            }
-
-            public ModelType<? extends Task> getTaskType(Task buildTask) {
-                // Unpack decoration layer
-                return Cast.uncheckedCast(ModelType.of(buildTask.getClass().getSuperclass()));
-            }
-
-            public <T extends Task> void addTaskNode(MutableModelNode modelNode, ModelPath binariesPath, String binaryName, final String taskName, final ModelType<T> type) {
-                ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
-                ModelReference<T> reference = ModelReference.of(path, type);
-                ModelCreator creator = ModelCreators.of(reference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        BinarySpec binary = ModelViews.getInstance(modelViews.get(0), BinarySpec.class);
-                        modelNode.setPrivateData(type, type.cast(binary.getTasks().get(taskName)));
-                    }
-                })
-                        .descriptor("LanguageBasePlugin.apply().addTaskNode." + taskName)
-                        .withProjection(new UnmanagedModelProjection<T>(type))
-                        .inputs(ModelReference.of(binariesPath.child(binaryName), BinarySpec.class))
-                        .build();
-
-                modelNode.addLink(creator);
-            }
-
-            public <T extends Task> void addBuildTaskNode(MutableModelNode modelNode, ModelPath binariesPath, String binaryName, String taskName, final ModelType<T> type) {
-                ModelPath path = TaskContainerInternal.MODEL_PATH.child(taskName);
-                ModelReference<T> reference = ModelReference.of(path, type);
-                ModelCreator creator = ModelCreators.of(reference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                    @Override
-                    public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        BinarySpec binary = ModelViews.getInstance(modelViews.get(0), BinarySpec.class);
-                        T buildTask = type.cast(binary.getBuildTask());
-                        modelNode.setPrivateData(type, buildTask);
-                    }
-                })
-                        .descriptor("LanguageBasePlugin.apply().addBuildTaskNode." + taskName)
-                        .inputs(ModelReference.of(binariesPath.child(binaryName), BinarySpec.class))
-                        .withProjection(new UnmanagedModelProjection<T>(type))
-                        .build();
-
-                modelNode.addLink(creator);
             }
         }));
     }
@@ -173,6 +108,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Model
         ProjectSourceSet sources(ExtensionContainer extensions) {
             return extensions.getByType(ProjectSourceSet.class);
+        }
+
+        @Mutate
+        void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
+            for (BinarySpec binary : binaries) {
+                tasks.addAll(binary.getTasks());
+                Task buildTask = binary.getBuildTask();
+                if (buildTask != null) {
+                    tasks.add(buildTask);
+                }
+            }
         }
 
         /**

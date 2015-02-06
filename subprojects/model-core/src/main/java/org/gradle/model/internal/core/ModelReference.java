@@ -20,9 +20,6 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * A model reference is a speculative reference to a potential model element.
  * <p>
@@ -36,8 +33,6 @@ import java.util.List;
  */
 @ThreadSafe
 public class ModelReference<T> {
-
-    public static final List<ModelReference<?>> NONE = Collections.emptyList();
 
     private final ModelPath path;
     private final ModelType<T> type;

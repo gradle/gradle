@@ -16,8 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
@@ -55,20 +53,9 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
     }
 
     @Override
-    public <T extends Task> T create(String name, Class<T> type, Action<? super T> config) {
+    public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
         @SuppressWarnings("unchecked") T task = (T) taskFactory.create(name, (Class<TaskInternal>) type);
         add(task);
         config.execute(task);
-        return task;
-    }
-
-    @Override
-    public Task get(final String name) {
-        return Iterables.find(this, new Predicate<Task>() {
-            @Override
-            public boolean apply(Task input) {
-                return input.getName().equals(name);
-            }
-        });
     }
 }

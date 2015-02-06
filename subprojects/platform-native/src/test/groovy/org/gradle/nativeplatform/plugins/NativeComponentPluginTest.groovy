@@ -16,8 +16,11 @@
 
 package org.gradle.nativeplatform.plugins
 
-import org.gradle.nativeplatform.*
+import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.util.TestUtil
@@ -41,13 +44,21 @@ class NativeComponentPluginTest extends Specification {
         project.bindAllModelRules()
 
         then:
-        NativeExecutableBinarySpec testExecutable = project.binaries.testExecutable
-        with(testExecutable.tasks.link) {
+        def testExecutable = project.binaries.testExecutable
+        with(project.tasks.linkTestExecutable) {
             it instanceof LinkExecutable
+            it == testExecutable.tasks.link
             it.toolChain == testExecutable.toolChain
             it.targetPlatform == testExecutable.targetPlatform
             it.linkerArgs == testExecutable.linker.args
         }
+
+        and:
+        def lifecycleTask = project.tasks.testExecutable
+        lifecycleTask TaskDependencyMatchers.dependsOn("linkTestExecutable")
+
+        and:
+        project.tasks.installTestExecutable instanceof InstallExecutable
     }
 
     def "creates link task and static archive task for library"() {
@@ -61,21 +72,31 @@ class NativeComponentPluginTest extends Specification {
         project.bindAllModelRules()
 
         then:
-        SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary
-        with(sharedLibraryBinary.tasks.link) {
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        with(project.tasks.linkTestSharedLibrary) {
             it instanceof LinkSharedLibrary
+            it == sharedLibraryBinary.tasks.link
             it.toolChain == sharedLibraryBinary.toolChain
             it.targetPlatform == sharedLibraryBinary.targetPlatform
             it.linkerArgs == sharedLibraryBinary.linker.args
         }
 
         and:
-        StaticLibraryBinarySpec staticLibraryBinary = project.binaries.testStaticLibrary
-        with(staticLibraryBinary.tasks.createStaticLib) {
+        def sharedLibTask = project.tasks.testSharedLibrary
+        sharedLibTask TaskDependencyMatchers.dependsOn("linkTestSharedLibrary")
+
+        and:
+        def staticLibraryBinary = project.binaries.testStaticLibrary
+        with(project.tasks.createTestStaticLibrary) {
             it instanceof CreateStaticLibrary
+            it == staticLibraryBinary.tasks.createStaticLib
             it.toolChain == staticLibraryBinary.toolChain
             it.targetPlatform == staticLibraryBinary.targetPlatform
             it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
         }
+
+        and:
+        def staticLibTask = project.tasks.testStaticLibrary
+        staticLibTask TaskDependencyMatchers.dependsOn("createTestStaticLibrary")
     }
 }

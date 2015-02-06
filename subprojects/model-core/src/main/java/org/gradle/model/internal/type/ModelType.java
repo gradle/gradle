@@ -126,15 +126,6 @@ public abstract class ModelType<T> {
         }
     }
 
-    public T cast(Object object) {
-        ModelType<?> objectType = ModelType.typeOf(object);
-        if (isAssignableFrom(objectType)) {
-            return Cast.uncheckedCast(object);
-        } else {
-            throw new ClassCastException("Cannot cast object '" + object + "' of type '" + objectType + "' to type '" + this + "'");
-        }
-    }
-
     @Nullable
     public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
         if (isWildcard() || modelType.isWildcard()) {

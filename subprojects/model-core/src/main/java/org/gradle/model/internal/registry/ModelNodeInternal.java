@@ -225,10 +225,4 @@ abstract class ModelNodeInternal implements MutableModelNode {
             }
         }
     }
-
-    @Override
-    public <T> void setPrivateData(T object) {
-        setPrivateData(ModelType.typeOf(object), object);
-    }
-
 }
