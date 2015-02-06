@@ -16,47 +16,42 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultBuildableComponentSelectionResult implements BuildableComponentSelectionResult {
-    private Reason reason = Reason.CANNOT_DETERMINE;
+    private State state = State.Unknown;
     private ModuleComponentIdentifier moduleComponentIdentifier;
 
-    public boolean hasMatch() {
-        return reason == Reason.MATCH;
-    }
-
-    public boolean hasNoMatch() {
-        return reason == Reason.NO_MATCH;
-    }
-
     public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
-        setChosenComponentWithReason(Reason.MATCH, moduleComponentIdentifier);
+        setChosenComponentWithReason(State.Match, moduleComponentIdentifier);
     }
 
-    public void noMatch() {
-        setChosenComponentWithReason(Reason.NO_MATCH, null);
+    public void noMatchFound() {
+        setChosenComponentWithReason(State.NoMatch, null);
     }
 
-    public void cannotDetermine() {
-        setChosenComponentWithReason(Reason.CANNOT_DETERMINE, null);
-    }
-
-    private void setChosenComponentWithReason(Reason reason, ModuleComponentIdentifier moduleComponentIdentifier) {
-        this.reason = reason;
+    private void setChosenComponentWithReason(State state, ModuleComponentIdentifier moduleComponentIdentifier) {
+        this.state = state;
         this.moduleComponentIdentifier = moduleComponentIdentifier;
     }
 
-    public Reason getReason() {
-        return reason;
+    public State getState() {
+        return state;
     }
 
-    public ModuleComponentIdentifier getModuleComponentIdentifier() {
+    public ModuleComponentIdentifier getMatch() {
         return moduleComponentIdentifier;
     }
 
     @Override
     public boolean hasResult() {
-        return moduleComponentIdentifier != null;
+        return state != State.Unknown;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getFailure() {
+        return null;
     }
 }

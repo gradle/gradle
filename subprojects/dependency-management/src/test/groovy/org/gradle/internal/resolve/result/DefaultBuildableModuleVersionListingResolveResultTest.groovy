@@ -15,11 +15,12 @@
  */
 
 package org.gradle.internal.resolve.result
+
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static BuildableModuleVersionListingResolveResult.State.*
+import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.*
 
 class DefaultBuildableModuleVersionListingResolveResultTest extends Specification {
     def descriptor = new DefaultBuildableModuleVersionListingResolveResult()

@@ -83,7 +83,6 @@ class NewestVersionComponentChooser implements ComponentChooser {
             MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
             if(requestedVersion.requiresMetadata() && !metadataProvider.canProvideMetaData()) {
-                result.cannotDetermine();
                 return;
             }
 
@@ -99,7 +98,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
             }
         }
 
-        result.noMatch();
+        result.noMatchFound();
     }
 
     private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {

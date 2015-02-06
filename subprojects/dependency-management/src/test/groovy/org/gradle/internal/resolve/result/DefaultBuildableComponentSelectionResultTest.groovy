@@ -20,17 +20,15 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
-import static BuildableComponentSelectionResult.Reason.*
+import static org.gradle.internal.resolve.result.BuildableComponentSelectionResult.State.*
 
 class DefaultBuildableComponentSelectionResultTest extends Specification {
     DefaultBuildableComponentSelectionResult result = new DefaultBuildableComponentSelectionResult()
 
     def "has no matching state by default"() {
         expect:
-        !result.hasMatch()
-        !result.hasNoMatch()
-        result.reason == CANNOT_DETERMINE
-        !result.moduleComponentIdentifier
+        result.state == Unknown
+        !result.match
         !result.hasResult()
     }
 
@@ -42,34 +40,19 @@ class DefaultBuildableComponentSelectionResultTest extends Specification {
         result.matches(moduleComponentIdentifier)
 
         then:
-        result.hasMatch()
-        !result.hasNoMatch()
-        result.reason == MATCH
-        result.moduleComponentIdentifier == moduleComponentIdentifier
+        result.state == Match
+        result.match == moduleComponentIdentifier
         result.hasResult()
     }
 
     def "can mark no match"() {
         when:
-        result.noMatch()
+        result.noMatchFound()
 
         then:
-        !result.hasMatch()
-        result.hasNoMatch()
-        result.reason == NO_MATCH
-        !result.moduleComponentIdentifier
-        !result.hasResult()
+        result.state == NoMatch
+        result.hasResult()
+        !result.match
     }
 
-    def "cannot determine match"() {
-        when:
-        result.cannotDetermine()
-
-        then:
-        !result.hasMatch()
-        !result.hasNoMatch()
-        result.reason == CANNOT_DETERMINE
-        !result.moduleComponentIdentifier
-        !result.hasResult()
-    }
 }

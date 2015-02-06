@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -180,16 +181,17 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             BuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
             componentChooser.choose(versionListingResult.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
-            switch (componentSelectionResult.getReason()) {
+            switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
-                case NO_MATCH:
+                case NoMatch:
                     resolveResult.missing();
                     resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
                     break;
                 // Found version matching in list: resolve component
-                case MATCH:
-                    DependencyMetaData staticVersionDependency = dynamicVersionDependency.withRequestedVersion(componentSelectionResult.getModuleComponentIdentifier().getVersion());
-                    moduleAccess.resolveComponentMetaData(staticVersionDependency, componentSelectionResult.getModuleComponentIdentifier(), resolveResult);
+                case Match:
+                    ModuleComponentIdentifier selectedComponentId = componentSelectionResult.getMatch();
+                    DependencyMetaData selectedVersionDependency = dynamicVersionDependency.withRequestedVersion(selectedComponentId.getVersion());
+                    moduleAccess.resolveComponentMetaData(selectedVersionDependency, selectedComponentId, resolveResult);
                     break;
                 // Could not determine if there is a matching version in list: continue
                 default:

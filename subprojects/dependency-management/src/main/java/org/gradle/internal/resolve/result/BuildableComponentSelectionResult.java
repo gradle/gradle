@@ -18,24 +18,17 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public interface BuildableComponentSelectionResult extends ComponentSelectionResult {
-    static enum Reason {
-        MATCH, NO_MATCH, CANNOT_DETERMINE
+public interface BuildableComponentSelectionResult extends ResolveResult {
+    static enum State {
+        Match, NoMatch, Unknown
     }
 
     /**
-     * Checks if a component could be chosen, more specifically the reason is {@link Reason#MATCH}.
+     * Returns the chosen module component identifier. The component identifier may be null.
      *
-     * @return Flag
+     * @return Chosen module component identifier
      */
-    boolean hasMatch();
-
-    /**
-     * Checks if a component has no match, more specifically the reason is {@link Reason#NO_MATCH}.
-     *
-     * @return Flag
-     */
-    boolean hasNoMatch();
+    ModuleComponentIdentifier getMatch();
 
     /**
      * Marks the given module component identifier as matching.
@@ -47,15 +40,10 @@ public interface BuildableComponentSelectionResult extends ComponentSelectionRes
     /**
      * Registers that there was no matching module component identifier.
      */
-    void noMatch();
-
-    /**
-     * Registers that no matching module component identifier could be determined.
-     */
-    void cannotDetermine();
+    void noMatchFound();
 
     /**
      * Returns the reason for choosing the component.
      */
-    Reason getReason();
+    State getState();
 }

@@ -138,7 +138,7 @@ class DynamicVersionResolverTest extends Specification {
             result.listed(versionListing1)
         }
         1 * componentSelectionStrategy.choose(versionListing1, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
-            res.noMatch()
+            res.noMatchFound()
         }
 
         1 * localAccess2.listModuleVersions(dynamicDependency, _) >> { dep, result ->
@@ -180,7 +180,7 @@ class DynamicVersionResolverTest extends Specification {
             result.listed(versionListing)
         }
         1 * componentSelectionStrategy.choose(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
-            res.noMatch()
+            res.noMatchFound()
         }
         1 * result.attempted('somewhere')
         1 * result.notFound(selector)
