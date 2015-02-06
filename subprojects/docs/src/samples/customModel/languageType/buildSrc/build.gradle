@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import sample.documentation.DocumentationComponent
+
 apply plugin:'groovy'
 
 repositories {
@@ -24,4 +26,8 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile "org.pegdown:pegdown:1.1.0"
+}
+
+components {
+    docs(DocumentationComponent)
 }

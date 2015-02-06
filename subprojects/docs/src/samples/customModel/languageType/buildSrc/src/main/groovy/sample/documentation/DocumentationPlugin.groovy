@@ -30,11 +30,6 @@ class DocumentationPlugin extends RuleSource {
         builder.defaultImplementation(DefaultDocumentationComponent)
     }
 
-    @Mutate
-    void createSampleComponentComponents(CollectionBuilder<DocumentationComponent> componentSpecs) {
-        componentSpecs.create("docs")
-    }
-
     @BinaryType
     void register(BinaryTypeBuilder<DocumentationBinary> builder) {
         builder.defaultImplementation(DefaultDocumentationBinary)
