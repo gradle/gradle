@@ -24,7 +24,7 @@ import java.util.Collection;
 /**
  * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
  */
-public interface BuildableModuleComponentVersionSelectionResolveResult extends ResourceAwareResolveResult, ResolveResult {
+public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult {
 
     static enum State {
         Listed, Failed, Unknown

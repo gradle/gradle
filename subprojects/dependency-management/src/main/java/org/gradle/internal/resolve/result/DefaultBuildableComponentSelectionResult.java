@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public class DefaultBuildableSelectedComponentResult implements BuildableSelectedComponentResult {
+public class DefaultBuildableComponentSelectionResult implements BuildableComponentSelectionResult {
     private Reason reason = Reason.CANNOT_DETERMINE;
     private ModuleComponentIdentifier moduleComponentIdentifier;
 

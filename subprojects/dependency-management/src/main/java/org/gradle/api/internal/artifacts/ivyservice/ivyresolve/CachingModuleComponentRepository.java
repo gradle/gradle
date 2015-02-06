@@ -106,7 +106,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
 
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (result.hasResult()) {
@@ -116,7 +116,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             listModuleVersionsFromCache(dependency, result);
         }
 
-        private void listModuleVersionsFromCache(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        private void listModuleVersionsFromCache(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             ModuleVersionSelector requested = dependency.getRequested();
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
@@ -264,7 +264,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:

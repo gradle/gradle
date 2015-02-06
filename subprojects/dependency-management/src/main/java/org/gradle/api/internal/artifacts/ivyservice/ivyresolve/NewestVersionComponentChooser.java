@@ -28,8 +28,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableSelectedComponentResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -73,7 +73,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableSelectedComponentResult result) {
+    public void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();

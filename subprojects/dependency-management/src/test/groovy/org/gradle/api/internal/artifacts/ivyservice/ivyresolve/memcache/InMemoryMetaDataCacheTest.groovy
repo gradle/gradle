@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
@@ -36,12 +36,12 @@ class InMemoryMetaDataCacheTest extends Specification {
 
     def "caches and supplies module versions"() {
         def listing = Mock(ModuleVersionListing)
-        def result = Mock(BuildableModuleComponentVersionSelectionResolveResult)
-        def missingResult = Mock(BuildableModuleComponentVersionSelectionResolveResult)
+        def result = Mock(BuildableModuleVersionListingResolveResult)
+        def missingResult = Mock(BuildableModuleVersionListingResolveResult)
 
         given:
-        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleComponentVersionSelectionResolveResult) {
-            getState() >> BuildableModuleComponentVersionSelectionResolveResult.State.Listed
+        cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleVersionListingResolveResult) {
+            getState() >> BuildableModuleVersionListingResolveResult.State.Listed
             getVersions() >> listing
         })
 
@@ -59,12 +59,12 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "does not cache failed module version listing"() {
-        def failedResult = Stub(BuildableModuleComponentVersionSelectionResolveResult) {
-            getState() >> BuildableModuleComponentVersionSelectionResolveResult.State.Failed
+        def failedResult = Stub(BuildableModuleVersionListingResolveResult) {
+            getState() >> BuildableModuleVersionListingResolveResult.State.Failed
         }
         cache.newModuleVersions(newSelector("org", "lib", "1.0"), failedResult)
 
-        def result = Mock(BuildableModuleComponentVersionSelectionResolveResult)
+        def result = Mock(BuildableModuleVersionListingResolveResult)
 
         when:
         def foundInCache = cache.supplyModuleVersions(newSelector("org", "lib", "1.0"), result)

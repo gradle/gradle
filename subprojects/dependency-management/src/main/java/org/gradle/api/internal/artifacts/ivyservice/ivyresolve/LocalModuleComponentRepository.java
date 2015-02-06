@@ -24,7 +24,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
     private final ComponentMetadataProcessor metadataProcessor;
@@ -45,7 +45,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private class LocalAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (!result.hasResult()) {
                 delegate.getRemoteAccess().listModuleVersions(dependency, result);
@@ -86,7 +86,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
         }
 
         public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {

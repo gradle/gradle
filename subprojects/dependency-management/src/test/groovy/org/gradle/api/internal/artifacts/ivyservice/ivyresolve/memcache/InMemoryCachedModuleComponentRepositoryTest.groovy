@@ -26,7 +26,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -50,7 +50,7 @@ class InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def selector = newSelector("org", "lib", "1.0")
     def dep = Stub(DependencyMetaData) { getRequested() >> selector }
 
-    def listingResult = Mock(BuildableModuleComponentVersionSelectionResolveResult)
+    def listingResult = Mock(BuildableModuleVersionListingResolveResult)
     def metaDataResult = Mock(BuildableModuleComponentMetaDataResolveResult)
 
     def "delegates"() {

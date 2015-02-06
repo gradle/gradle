@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public interface BuildableSelectedComponentResult extends SelectedComponentResult {
+public interface BuildableComponentSelectionResult extends ComponentSelectionResult {
     static enum Reason {
         MATCH, NO_MATCH, CANNOT_DETERMINE
     }

@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public interface SelectedComponentResult {
+public interface ComponentSelectionResult {
     /**
      * Returns the chosen module component identifier. The component identifier may be null.
      *

@@ -28,9 +28,9 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.resolve.result.BuildableSelectedComponentResult
+import org.gradle.internal.resolve.result.BuildableComponentSelectionResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableSelectedComponentResult
+import org.gradle.internal.resolve.result.DefaultBuildableComponentSelectionResult
 import org.gradle.internal.resolve.result.ModuleVersionListing
 import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
@@ -98,7 +98,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -125,7 +125,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -158,7 +158,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -197,7 +197,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -244,7 +244,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -274,7 +274,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -300,7 +300,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
@@ -332,7 +332,7 @@ class NewestVersionComponentChooserTest extends Specification {
         def dependency = Mock(DependencyMetaData)
         def repo = Mock(ModuleComponentRepositoryAccess)
         def versions = [new VersionInfo("1.2"), new VersionInfo("1.3"), new VersionInfo("2.0")]
-        BuildableSelectedComponentResult selectedComponentResult = new DefaultBuildableSelectedComponentResult()
+        BuildableComponentSelectionResult selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
         _ * dependency.getRequested() >> selector
