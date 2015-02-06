@@ -79,6 +79,16 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.mavenCentral(artifactUrls: ["abc"]).is(repository)
     }
 
+    public void testSonatypeSnapshot() {
+        when:
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)
+        1 * repositoryFactory.createSonatypeSnapshotRepository() >> repository
+        repository.getName() >> "name"
+
+        then:
+        handler.sonatypeSnapshot().is(repository)
+    }
+
     def testMavenLocalWithNoArgs() {
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository)

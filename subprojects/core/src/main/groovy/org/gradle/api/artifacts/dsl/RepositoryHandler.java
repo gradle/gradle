@@ -175,6 +175,23 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository mavenCentral();
 
     /**
+     * Adds a repository which looks in the Sonatype snapshots repository for dependencies. The URL used to access this repository is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#SONATYPE_SNAPSHOT_URL}. The name of the repository is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#DEFAULT_SONATYPE_SNAPSHOT_REPO_NAME}.
+     *
+     * <p>Examples:
+     * <pre autoTested="">
+     * repositories {
+     *     sonatypeSnapshot()
+     * }
+     * </pre>
+     * </p>
+     *
+     * @return the added resolver
+     */
+    MavenArtifactRepository sonatypeSnapshot();
+
+    /**
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *

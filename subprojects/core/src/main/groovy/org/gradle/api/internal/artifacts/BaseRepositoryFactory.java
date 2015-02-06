@@ -31,6 +31,8 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenCentralRepository();
 
+    MavenArtifactRepository createSonatypeSnapshotRepository();
+
     IvyArtifactRepository createIvyRepository();
 
     MavenArtifactRepository createMavenRepository();

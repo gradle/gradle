@@ -86,6 +86,13 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return mavenRepository;
     }
 
+    @Override
+    public MavenArtifactRepository createSonatypeSnapshotRepository() {
+        MavenArtifactRepository mavenRepository = createMavenRepository();
+        mavenRepository.setUrl(DefaultRepositoryHandler.SONATYPE_SNAPSHOT_URL);
+        return mavenRepository;
+    }
+
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
                 locallyAvailableResourceFinder, instantiator, resolverStrategy, artifactFileStore);
