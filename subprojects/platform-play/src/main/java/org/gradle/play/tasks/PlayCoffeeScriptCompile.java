@@ -28,8 +28,6 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile;
  */
 @Incubating
 public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
-    boolean hasCustomCoffeeScript;
-
     public void setCoffeeScriptJsNotation(String notation) {
         super.setCoffeeScriptJs(getDetachedConfiguration(notation));
     }
@@ -37,12 +35,6 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
     @Override
     public void setCoffeeScriptJs(Object coffeeScriptJs) {
         super.setCoffeeScriptJs(coffeeScriptJs);
-        hasCustomCoffeeScript = true;
-    }
-
-    // TODO:DAZ Need to in order to avoid overwriting custom coffee script js set in tasks.withType()
-    public boolean hasCustomCoffeeScriptJs() {
-        return hasCustomCoffeeScript;
     }
 
     public void setRhinoClasspathNotation(String notation) {

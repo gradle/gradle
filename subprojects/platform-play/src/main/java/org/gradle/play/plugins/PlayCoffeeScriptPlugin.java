@@ -28,11 +28,12 @@ import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.coffeescript.internal.DefaultCoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
+import org.gradle.model.Defaults;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -96,28 +97,37 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
         });
     }
 
-    @BinaryTasks
-    void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
-        for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
-            if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
-                final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
-                tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
-                    @Override
-                    public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
-                        File outputDiretory = outputDirectory(buildDir, binary, compileTaskName);
-                        coffeeScriptCompile.setDestinationDir(outputDiretory);
-                        coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
-                        // TODO:DAZ This is a workaround for ordering issues in setting coffeeScriptJs (need something like convention mapping)
-                        if (!coffeeScriptCompile.hasCustomCoffeeScriptJs()) {
-                            coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
-                        }
-                        coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+    @Defaults
+    void setupCoffeeScriptCompileDefaults(CollectionBuilder<Task> tasks) {
+        tasks.beforeEach(PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
+            @Override
+            public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                coffeeScriptCompile.setRhinoClasspathNotation(getDefaultRhinoDependencyNotation());
+                coffeeScriptCompile.setCoffeeScriptJsNotation(getDefaultCoffeeScriptDependencyNotation());
+            }
+        });
+    }
 
-                        JavaScriptSourceSet javaScriptSourceSet = binary.getGeneratedJavaScript().get(coffeeScriptSourceSet);
-                        javaScriptSourceSet.getSource().srcDir(outputDiretory);
-                        javaScriptSourceSet.builtBy(coffeeScriptCompile);
-                    }
-                });
+    @Mutate
+    void createCoffeeScriptTasks(CollectionBuilder<Task> tasks, BinaryContainer binaries, @Path("buildDir") final File buildDir) {
+        for (final PlayApplicationBinarySpec binary : binaries.withType(PlayApplicationBinarySpec.class)) {
+            for (final CoffeeScriptSourceSet coffeeScriptSourceSet : binary.getSource().withType(CoffeeScriptSourceSet.class)) {
+                if (((LanguageSourceSetInternal) coffeeScriptSourceSet).getMayHaveSources()) {
+                    final String compileTaskName = "compile" + capitalize(binary.getName()) + capitalize(coffeeScriptSourceSet.getName());
+                    tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
+                        @Override
+                        public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                            File outputDirectory = outputDirectory(buildDir, binary, compileTaskName);
+                            coffeeScriptCompile.setDestinationDir(outputDirectory);
+                            coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());
+
+                            JavaScriptSourceSet javaScriptSourceSet = binary.getGeneratedJavaScript().get(coffeeScriptSourceSet);
+                            javaScriptSourceSet.getSource().srcDir(outputDirectory);
+                            javaScriptSourceSet.builtBy(coffeeScriptCompile);
+                        }
+                    });
+                    binary.getTasks().add(tasks.get(compileTaskName));
+                }
             }
         }
     }
