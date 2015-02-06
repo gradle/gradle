@@ -194,9 +194,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         modelRegistry.createOrReplace(taskFactoryCreator);
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .descriptor("Project.<init>.serviceRegistry()")
+                        .ephemeral(true)
                         .build()
         );
 
@@ -216,9 +217,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                         .build()
         );
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
                         .descriptor("Project.<init>.extensions()")
+                        .ephemeral(true)
                         .build()
         );
     }

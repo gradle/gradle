@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -68,21 +68,18 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void createTestTasks(final TaskContainer tasks, BinaryContainer binaries) {
+        public void createTestTasks(BinaryContainer binaries, @Path("buildDir") File buildDir) {
             for (NativeTestSuiteBinarySpec testBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
                 NativeBinarySpecInternal binary = (NativeBinarySpecInternal) testBinary;
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
 
-                RunTestExecutable runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable.class);
-                final Project project = runTask.getProject();
+                RunTestExecutable runTask = binary.getTasks().create(namingScheme.getTaskName("run"), RunTestExecutable.class, Actions.doNothing());
                 runTask.setDescription(String.format("Runs the %s", binary));
 
                 final InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
                 runTask.getInputs().files(installTask.getOutputs().getFiles());
                 runTask.setExecutable(installTask.getRunScript().getPath());
-                runTask.setOutputDir(new File(project.getBuildDir(), "/test-results/" + namingScheme.getOutputDirectoryBase()));
-
-                testBinary.getTasks().add(runTask);
+                runTask.setOutputDir(new File(buildDir, "/test-results/" + namingScheme.getOutputDirectoryBase()));
             }
         }
 

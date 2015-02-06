@@ -43,14 +43,14 @@ class NativeBinariesTestPluginTest extends Specification {
         task.destinationDir = project.projectDir
         task.executable = project.file("executable")
 
-        def binary = BaseBinarySpec.create(DefaultNativeTestSuiteBinarySpec, "testBinary", project.services.get(Instantiator), Mock(ITaskFactory))
+        def binary = BaseBinarySpec.create(DefaultNativeTestSuiteBinarySpec, "testBinary", project.services.get(Instantiator), project.services.get(ITaskFactory))
         binary.setNamingScheme(namingScheme)
         binary.tasks.add(task)
 
         project.binaries.add(binary)
 
         when:
-        new NativeBinariesTestPlugin.Rules().createTestTasks(project.tasks, project.binaries)
+        new NativeBinariesTestPlugin.Rules().createTestTasks(project.binaries, new File("foo"))
 
         then:
         binary.tasks.withType(RunTestExecutable).size() == 1

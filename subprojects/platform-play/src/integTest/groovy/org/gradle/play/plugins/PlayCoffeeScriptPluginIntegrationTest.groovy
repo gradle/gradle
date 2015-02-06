@@ -15,7 +15,9 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -59,11 +61,17 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "creates and configures compile task when source exists"() {
+        EnableModelDsl.enable(executer)
         buildFile << """
-            task checkTasks {
-                doLast {
-                    assert tasks.withType(CoffeeScriptCompile).size() == 2
-                    tasks.withType(CoffeeScriptCompile)*.name as Set == ["compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryOtherCoffeeScript"] as Set
+            model {
+                tasks { t ->
+                    create("checkTasks") {
+                        doLast {
+                            def tasks = t.withType(CoffeeScriptCompile)
+                            assert tasks.size() == 2
+                            assert tasks.keySet() == ["compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryOtherCoffeeScript"] as Set
+                        }
+                    }
                 }
             }
         """

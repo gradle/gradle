@@ -25,6 +25,14 @@ import java.util.Arrays;
 
 public abstract class Actions {
 
+
+    private static final NullAction<Object> NULL_ACTION = new NullAction<Object>();
+
+    private static class NullAction<T> implements Action<T>, Serializable {
+        public void execute(T t) {
+        }
+    }
+
     /**
      * Creates an action implementation that simply does nothing.
      *
@@ -33,12 +41,7 @@ public abstract class Actions {
      * @return An action object with an empty implementation
      */
     public static <T> Action<T> doNothing() {
-        return new NullAction<T>();
-    }
-
-    private static class NullAction<T> implements Action<T>, Serializable {
-        public void execute(T t) {
-        }
+        return Cast.uncheckedCast(NULL_ACTION);
     }
 
     /**

@@ -23,6 +23,7 @@ import org.gradle.platform.base.BinaryTasksCollection;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 @SuppressWarnings("rawtypes")
@@ -51,8 +52,13 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
-    public <T extends Task> void create(String name, Class<T> type, Action<? super T> config) {
-        delegate.create(name, type, config);
+    public <T extends Task> T create(String name, Class<T> type, Action<? super T> config) {
+        return delegate.create(name, type, config);
+    }
+
+    @Override
+    public Task get(String name) throws NoSuchElementException {
+        return delegate.get(name);
     }
 
     @Override
