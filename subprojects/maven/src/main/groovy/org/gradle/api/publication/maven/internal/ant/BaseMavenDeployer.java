@@ -46,16 +46,16 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenDeploy deployTask = new MavenDeploy(pomFile);
-        deployTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
-        deployTask.setUniqueVersion(isUniqueVersion());
-        addProtocolProvider(deployTask);
-        addRemoteRepositories(deployTask);
-        return deployTask;
+    protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenDeployAction deployAction = new MavenDeployAction(pomFile);
+        deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
+        deployAction.setUniqueVersion(isUniqueVersion());
+        addProtocolProvider(deployAction);
+        addRemoteRepositories(deployAction);
+        return deployAction;
     }
 
-    private void addProtocolProvider(MavenDeploy deployTask) {
+    private void addProtocolProvider(MavenDeployAction deployTask) {
         for (File wagonProviderJar : getJars()) {
             deployTask.addWagonJar(wagonProviderJar);
         }
@@ -65,7 +65,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         return configuration != null ? new ArrayList<File>(configuration.resolve()) : protocolProviderJars;
     }
 
-    private void addRemoteRepositories(MavenDeploy deployTask) {
+    private void addRemoteRepositories(MavenDeployAction deployTask) {
         deployTask.setRepositories(remoteRepository, remoteSnapshotRepository);
     }
 

@@ -33,8 +33,8 @@ import java.io.File;
 /**
  * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
  */
-public class MavenDeploy extends AbstractMavenPublish {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeploy.class);
+public class MavenDeployAction extends AbstractMavenPublishAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
     private RemoteRepository remoteRepository;
 
@@ -42,7 +42,7 @@ public class MavenDeploy extends AbstractMavenPublish {
 
     private boolean uniqueVersion = true;
 
-    public MavenDeploy(File pomFile) {
+    public MavenDeployAction(File pomFile) {
         super(pomFile);
     }
 

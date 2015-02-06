@@ -29,9 +29,9 @@ public class BaseMavenInstaller extends AbstractMavenResolver {
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenInstall mavenInstallTask = new MavenInstall(pomFile);
-        mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
-        return mavenInstallTask;
+    protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenInstallAction installAction = new MavenInstallAction(pomFile);
+        installAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
+        return installAction;
     }
 }

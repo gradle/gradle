@@ -17,10 +17,10 @@ package org.gradle.api.publication.maven.internal.ant;
 
 import java.io.File;
 
-public interface MavenPublishSupport {
-    void publish();
-
+public interface MavenPublishAction {
     void setMainArtifact(File file);
 
     void addAdditionalArtifact(File file, String type, String classifier);
+
+    void publish();
 }

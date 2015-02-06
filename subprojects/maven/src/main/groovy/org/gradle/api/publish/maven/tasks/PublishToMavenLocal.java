@@ -21,7 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenLocalPublisher;
+import org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
@@ -49,7 +49,7 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
         new PublishOperation(publication, "mavenLocal") {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new AntTaskBackedMavenLocalPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator());
+                MavenPublisher antBackedPublisher = new MavenLocalPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), null);

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenPublisher;
+import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
@@ -138,7 +138,7 @@ public class PublishToMavenRepository extends DefaultTask {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new AntTaskBackedMavenPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator(), getTemporaryDirFactory());
+                MavenPublisher antBackedPublisher = new MavenRemotePublisher(getLoggingManagerFactory(), getMavenRepositoryLocator(), getTemporaryDirFactory());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), repository);

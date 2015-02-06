@@ -71,7 +71,7 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         return this;
     }
 
-    protected abstract MavenPublishSupport createPreConfiguredTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetaData moduleVersion) {
         for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
@@ -95,28 +95,28 @@ public abstract class AbstractMavenResolver extends AbstractArtifactRepository i
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
             File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishSupport installDeployTaskSupport = createPreConfiguredTask(pomFile, mavenRepositoryLocator);
+            MavenPublishAction publishAction = createPublishAction(pomFile, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
-            addArtifacts(installDeployTaskSupport, mavenDeployment);
-            execute(installDeployTaskSupport);
+            addArtifacts(publishAction, mavenDeployment);
+            execute(publishAction);
         }
     }
 
-    private void execute(MavenPublishSupport deployTask) {
+    private void execute(MavenPublishAction publishAction) {
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
-            deployTask.publish();
+            publishAction.publish();
         } finally {
             loggingManager.stop();
         }
     }
 
-    private void addArtifacts(MavenPublishSupport installOrDeployTask, MavenDeployment mavenDeployment) {
+    private void addArtifacts(MavenPublishAction publishAction, MavenDeployment mavenDeployment) {
         if (mavenDeployment.getMainArtifact() != null) {
-            installOrDeployTask.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
+            publishAction.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }
         for (PublishArtifact classifierArtifact : mavenDeployment.getAttachedArtifacts()) {
-            installOrDeployTask.addAdditionalArtifact(classifierArtifact.getFile(), classifierArtifact.getType(), classifierArtifact.getClassifier());
+            publishAction.addAdditionalArtifact(classifierArtifact.getFile(), classifierArtifact.getType(), classifierArtifact.getClassifier());
         }
     }
 

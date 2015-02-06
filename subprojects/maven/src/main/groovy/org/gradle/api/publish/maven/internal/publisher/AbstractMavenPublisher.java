@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.publication.maven.internal.ant.MavenPublishSupport;
+import org.gradle.api.publication.maven.internal.ant.MavenPublishAction;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublishSupport> implements MavenPublisher {
+abstract public class AbstractMavenPublisher<T extends MavenPublishAction> implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractAntTaskBackedMavenPublisher.class);
+    private static Logger logger = LoggerFactory.getLogger(AbstractMavenPublisher.class);
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
-    public AbstractAntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+    public AbstractMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
@@ -49,25 +49,25 @@ abstract public class AbstractAntTaskBackedMavenPublisher<T extends MavenPublish
 
     abstract protected T createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
-    private void addPomAndArtifacts(MavenPublishSupport installOrDeployTask, MavenNormalizedPublication publication) {
+    private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();
         if (mainArtifact != null) {
-            installOrDeployTask.setMainArtifact(mainArtifact.getFile());
+            publishAction.setMainArtifact(mainArtifact.getFile());
         }
 
         for (MavenArtifact mavenArtifact : publication.getArtifacts()) {
             if (mavenArtifact == mainArtifact) {
                 continue;
             }
-            installOrDeployTask.addAdditionalArtifact(mavenArtifact.getFile(), GUtil.elvis(mavenArtifact.getExtension(), ""), GUtil.elvis(mavenArtifact.getClassifier(), ""));
+            publishAction.addAdditionalArtifact(mavenArtifact.getFile(), GUtil.elvis(mavenArtifact.getExtension(), ""), GUtil.elvis(mavenArtifact.getClassifier(), ""));
         }
     }
 
-    private void execute(MavenPublishSupport deployTask) {
+    private void execute(MavenPublishAction publishAction) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
-            deployTask.publish();
+            publishAction.publish();
         } finally {
             loggingManager.stop();
         }

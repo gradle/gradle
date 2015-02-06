@@ -23,8 +23,8 @@ import org.gradle.api.GradleException;
 
 import java.io.File;
 
-public class MavenInstall extends AbstractMavenPublish {
-    public MavenInstall(File pomFile) {
+public class MavenInstallAction extends AbstractMavenPublishAction {
+    public MavenInstallAction(File pomFile) {
         super(pomFile);
     }
 

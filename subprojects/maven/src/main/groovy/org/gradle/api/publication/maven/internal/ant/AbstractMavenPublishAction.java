@@ -40,7 +40,7 @@ import org.gradle.internal.UncheckedException;
 import java.io.File;
 import java.util.List;
 
-abstract class AbstractMavenPublish implements MavenPublishSupport {
+abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private static ClassLoader plexusClassLoader;
 
     protected final WagonManager wagonManager;
@@ -51,7 +51,7 @@ abstract class AbstractMavenPublish implements MavenPublishSupport {
     private File localMavenRepository;
     private PlexusContainer container;
 
-    protected AbstractMavenPublish(File pomFile) {
+    protected AbstractMavenPublishAction(File pomFile) {
         this.pomFile = pomFile;
         this.wagonManager = lookup(WagonManager.class);
         wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());

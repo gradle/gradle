@@ -18,22 +18,22 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
-import org.gradle.api.publication.maven.internal.ant.MavenDeploy;
+import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher<MavenDeploy> {
+public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployAction> {
     private final Factory<File> temporaryDirFactory;
 
-    public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator, Factory<File> temporaryDirFactory) {
+    public MavenRemotePublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, mavenRepositoryLocator);
         this.temporaryDirFactory = temporaryDirFactory;
     }
 
-    protected MavenDeploy createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenDeploy deployTask = new MavenDeploy(pomFile);
+    protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        MavenDeployAction deployTask = new MavenDeployAction(pomFile);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(new MavenRemoteRepositoryFactory(artifactRepository).create(), null);
         deployTask.setUniqueVersion(true);
