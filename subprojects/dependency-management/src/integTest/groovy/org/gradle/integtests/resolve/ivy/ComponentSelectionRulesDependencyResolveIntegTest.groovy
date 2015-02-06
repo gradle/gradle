@@ -318,17 +318,22 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
             dependencies {
                 modules "org.utils:api:1.+"
             }
+
+            task verify {
+                doLast {
+                    assert configurations.modulesA.files.collect { it.name } == [ 'api-1.1.jar']
+                    assert configurations.modulesB.files.collect { it.name } == [ 'api-1.0.jar']
+                }
+            }
         """
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
         modules['1.2'].ivy.expectGet()
         modules['1.1'].ivy.expectGet()
         modules['1.0'].ivy.expectGet()
+        modules['1.1'].artifact.expectGet()
+        modules['1.0'].artifact.expectGet()
 
-        when:
-        succeeds "dependencies"
-
-        then:
-        output.contains("\\--- org.utils:api:1.+ -> 1.1")
-        output.contains("\\--- org.utils:api:1.+ -> 1.0")
+        expect:
+        succeeds "verify"
     }
 }
