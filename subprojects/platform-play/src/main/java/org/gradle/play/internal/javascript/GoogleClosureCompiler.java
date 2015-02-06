@@ -38,14 +38,12 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
 
-@SuppressWarnings("rawtypes")
-
 public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, Serializable {
     private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
-    private Class sourceFileClass;
-    private Class compilerOptionsClass;
-    private Class compilationLevelClass;
-    private Class compilerClass;
+    private Class<?> sourceFileClass;
+    private Class<?> compilerOptionsClass;
+    private Class<Enum> compilationLevelClass;
+    private Class<Object> compilerClass;
 
     public List<String> getClassLoaderPackages() {
         return Lists.newArrayList("com.google.javascript");
@@ -71,18 +69,17 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         }
     }
 
-    @SuppressWarnings("unchecked")
     List<String> compile(RelativeFile javascriptFile, JavaScriptCompileSpec spec, JavaScriptCompileDestinationCalculator destinationCalculator) {
         List<String> errors = Lists.newArrayList();
 
         loadCompilerClasses(getClass().getClassLoader());
 
         // Create a SourceFile object to represent an "empty" extern
-        JavaMethod fromCodeJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
+        JavaMethod<?, Object> fromCodeJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromCode", String.class, String.class);
         Object extern = fromCodeJavaMethod.invokeStatic("/dev/null", "");
 
         // Create a SourceFile object to represent the javascript file to compile
-        JavaMethod fromFileJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromFile", File.class);
+        JavaMethod<?, Object> fromFileJavaMethod = JavaReflectionUtil.staticMethod(sourceFileClass, Object.class, "fromFile", File.class);
         Object sourceFile = fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
 
         // Construct a new CompilerOptions class
@@ -90,8 +87,8 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object compilerOptions = compilerOptionsFactory.create();
 
         // Get the CompilationLevel.SIMPLE_OPTIMIZATIONS class and set it on the CompilerOptions class
-        Enum simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
-        JavaMethod setOptionsForCompilationLevelMethod = JavaReflectionUtil.method(compilationLevelClass, Void.class, "setOptionsForCompilationLevel", compilerOptionsClass);
+        @SuppressWarnings({ "rawtypes", "unchecked" }) Enum simpleLevel = Enum.valueOf(compilationLevelClass, "SIMPLE_OPTIMIZATIONS");
+        @SuppressWarnings("rawtypes") JavaMethod<Enum, Void> setOptionsForCompilationLevelMethod = JavaReflectionUtil.method(compilationLevelClass, Void.class, "setOptionsForCompilationLevel", compilerOptionsClass);
         setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
 
         // Construct a new Compiler class
@@ -99,7 +96,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object compiler = compilerFactory.create();
 
         // Compile the javascript file with the options we've created
-        JavaMethod compileMethod = JavaReflectionUtil.method(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
+        JavaMethod<Object, Object> compileMethod = JavaReflectionUtil.method(compilerClass, Object.class, "compile", sourceFileClass, sourceFileClass, compilerOptionsClass);
         Object result = compileMethod.invoke(compiler, extern, sourceFile, compilerOptions);
 
         // Get any errors from the compiler result
@@ -129,10 +126,12 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
                 compilerOptionsClass = cl.loadClass("com.google.javascript.jscomp.CompilerOptions");
             }
             if (compilationLevelClass == null) {
-                compilationLevelClass = cl.loadClass("com.google.javascript.jscomp.CompilationLevel");
+                @SuppressWarnings("unchecked") Class<Enum> clazz = (Class<Enum>) cl.loadClass("com.google.javascript.jscomp.CompilationLevel");
+                compilationLevelClass = clazz;
             }
             if (compilerClass == null) {
-                compilerClass = cl.loadClass("com.google.javascript.jscomp.Compiler");
+                @SuppressWarnings("unchecked") Class<Object> clazz = (Class<Object>) cl.loadClass("com.google.javascript.jscomp.Compiler");
+                compilerClass = clazz;
             }
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
