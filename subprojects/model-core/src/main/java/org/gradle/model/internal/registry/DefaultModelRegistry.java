@@ -56,7 +56,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final List<RuleBinder> binders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
-    private final LinkedHashMap<ModelRule, ModelReference<?>> rulesWithInputsBeingClosed = Maps.newLinkedHashMap();
+    private final LinkedHashMap<ModelRule, ModelBinding<?>> rulesWithInputsBeingClosed = Maps.newLinkedHashMap();
 
     boolean reset;
 
@@ -571,7 +571,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         if (rulesWithInputsBeingClosed.containsKey(modelRule)) {
             throw ruleCycle(modelRule);
         }
-        rulesWithInputsBeingClosed.put(modelRule, binding.getReference());
+        rulesWithInputsBeingClosed.put(modelRule, binding);
         try {
             close(binding.getNode());
         } finally {
@@ -588,16 +588,16 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         writer.println("A cycle has been detected in model rule dependencies. References forming the cycle:");
 
-        for (Map.Entry<ModelRule, ModelReference<?>> ruleInputInClosing : rulesWithInputsBeingClosed.entrySet()) {
+        for (Map.Entry<ModelRule, ModelBinding<?>> ruleInputInClosing : rulesWithInputsBeingClosed.entrySet()) {
             ModelRule rule = ruleInputInClosing.getKey();
             ModelRuleDescriptor ruleDescriptor = rule.getDescriptor();
-            String referenceDescription = ruleInputInClosing.getValue().getDescription();
+            ModelBinding<?> binding = ruleInputInClosing.getValue();
             if (cycleStartFound) {
-                reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, referenceDescription);
+                reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, binding);
             } else {
                 if (rule.equals(cycleStartRule)) {
                     cycleStartFound = true;
-                    reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, referenceDescription);
+                    reportRuleInputBeingClosed(indent, prefix, writer, ruleDescriptor, binding);
                 }
             }
         }
@@ -606,12 +606,16 @@ public class DefaultModelRegistry implements ModelRegistry {
         return new ConfigurationCycleException(out.toString());
     }
 
-    private void reportRuleInputBeingClosed(String indent, StringBuilder prefix, PrintWriter writer, ModelRuleDescriptor ruleDescriptor, String referenceDescription) {
+    private void reportRuleInputBeingClosed(String indent, StringBuilder prefix, PrintWriter writer, ModelRuleDescriptor ruleDescriptor, ModelBinding<?> binding) {
         writer.print(ruleDescriptor.toString());
+        String referenceDescription = binding.getReference().getDescription();
         if (referenceDescription != null) {
             writer.print(" ");
             writer.print(referenceDescription);
         }
+        writer.print(" (path: ");
+        writer.print(binding.getNode().getPath().toString());
+        writer.print(")");
         writer.println();
         writer.print(prefix);
         writer.print("\\--- ");

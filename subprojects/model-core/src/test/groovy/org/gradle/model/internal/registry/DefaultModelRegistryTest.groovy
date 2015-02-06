@@ -745,8 +745,8 @@ class DefaultModelRegistryTest extends Specification {
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo mutator parameter 1
-  \\--- bar mutator
+foo mutator parameter 1 (path: bar)
+  \\--- bar mutator (path: foo)
     \\--- foo mutator""")
     }
 
@@ -764,10 +764,10 @@ foo mutator parameter 1
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo creator bar
-  \\--- bar creator fizz
-    \\--- fizz mutator buzz
-      \\--- buzz mutator foo
+foo creator bar (path: bar)
+  \\--- bar creator fizz (path: fizz)
+    \\--- fizz mutator buzz (path: buzz)
+      \\--- buzz mutator foo (path: foo)
         \\--- foo creator""")
     }
 
@@ -782,7 +782,7 @@ foo creator bar
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-foo mutator java.lang.String
+foo mutator java.lang.String (path: foo)
   \\--- foo mutator""")
     }
 
@@ -801,8 +801,8 @@ foo mutator java.lang.String
         then:
         ConfigurationCycleException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
-bar creator fizz
-  \\--- fizz mutator bar
+bar creator fizz (path: fizz)
+  \\--- fizz mutator bar (path: bar)
     \\--- bar creator""")
     }
 

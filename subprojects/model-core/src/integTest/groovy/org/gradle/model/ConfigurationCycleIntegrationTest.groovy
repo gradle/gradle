@@ -65,9 +65,9 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
-Rules#first(java.lang.String) parameter 1
-  \\--- model.second @ build file '${buildFile}' line 29, column 17 @ line 30
-    \\--- Rules#third(java.lang.String) parameter 1
+Rules#first(java.lang.String) parameter 1 (path: second)
+  \\--- model.second @ build file '${buildFile}' line 29, column 17 @ line 30 (path: third)
+    \\--- Rules#third(java.lang.String) parameter 1 (path: first)
       \\--- Rules#first(java.lang.String)""")
     }
 }
