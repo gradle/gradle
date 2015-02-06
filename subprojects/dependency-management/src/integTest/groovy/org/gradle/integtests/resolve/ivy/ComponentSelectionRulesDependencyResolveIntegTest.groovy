@@ -285,7 +285,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     }
 
     @Issue("GRADLE-3236")
-    def "can resolve the same module differently in different configurations" () {
+    def "can select a different component for the same selector in different configurations" () {
         buildFile << """
             $httpBaseBuildFile
 
