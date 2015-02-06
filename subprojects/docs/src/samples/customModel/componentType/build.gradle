@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import org.gradle.model.Model
-import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.model.collection.CollectionBuilder
 
-interface ImageComponent extends LibrarySpec { }
-class DefaultImageComponent extends BaseComponentSpec implements ImageComponent {}
+interface ImageComponent extends LibrarySpec {
+    String title
+    List<String> sizes
+}
+
+class DefaultImageComponent extends BaseComponentSpec implements ImageComponent {
+    List<String> sizes
+    String title
+}
 
 interface ImageBinary extends BinarySpec {
     String getTitle()
@@ -33,55 +38,33 @@ class DefaultImageBinary extends BaseBinarySpec implements ImageBinary {
     String size
 }
 
-class ImagesExtension {
-    List<String> titles = new ArrayList<String>()
-    List<String> sizes = new ArrayList<String>()
-}
-
-class MyImageRenderingPlugin implements Plugin<Project> {
-    void apply(Project project) {
+class MyImageRenderingPlugin extends RuleSource {
+    @ComponentType
+    void register(ComponentTypeBuilder<ImageComponent> builder) {
+        builder.defaultImplementation(DefaultImageComponent)
     }
 
-    static class Rules extends RuleSource {
-        @Model("images")
-        ImagesExtension createSampleExtension() {
-             return new ImagesExtension()
-        }
+    @BinaryType
+    void register(BinaryTypeBuilder<ImageBinary> builder) {
+        builder.defaultImplementation(DefaultImageBinary)
+    }
 
-        @ComponentType
-        void register(ComponentTypeBuilder<ImageComponent> builder) {
-            builder.defaultImplementation(DefaultImageComponent)
-        }
-
-        @Mutate
-        void createImageComponents(CollectionBuilder<ImageComponent> sampleLibraries, ImagesExtension imagesExtension) {
-            for (String libraryName : imagesExtension.getTitles()) {
-                sampleLibraries.create(libraryName)
+    @ComponentBinaries
+    void createBinariesForBinaryComponent(CollectionBuilder<ImageBinary> binaries, ImageComponent library) {
+        library.sizes.each{ fontSize ->
+            binaries.create("${library.title}${fontSize}Binary"){
+                it.size = fontSize;
+                it.title = library.title
             }
         }
+    }
 
-        @BinaryType
-        void register(BinaryTypeBuilder<ImageBinary> builder) {
-            builder.defaultImplementation(DefaultImageBinary)
-        }
-
-        @ComponentBinaries
-        void createBinariesForBinaryComponent(CollectionBuilder<ImageBinary> binaries, ImageComponent library, ImagesExtension imagesExtension) {
-            imagesExtension.sizes.each{ fontSize ->
-                binaries.create("${library.name}${fontSize}Binary"){
-                    it.size = fontSize;
-                    it.title = library.name
-                }
-            }
-        }
-
-        @BinaryTasks
-        void createRenderingTasks(CollectionBuilder<Task> tasks, ImageBinary binary) {
-            tasks.create("render${binary.title}${binary.size}Svg", RenderSvg){
-                it.content = binary.title;
-                it.fontSize = binary.size;
-                it.outputFile = new File(it.project.buildDir, "renderedSvg/${binary.title}_${binary.size}.svg")
-            }
+    @BinaryTasks
+    void createRenderingTasks(CollectionBuilder<Task> tasks, ImageBinary binary) {
+        tasks.create("render${binary.title}${binary.size}Svg", RenderSvg){
+            it.content = binary.title;
+            it.fontSize = binary.size;
+            it.outputFile = new File(it.project.buildDir, "renderedSvg/${binary.title}_${binary.size}.svg")
         }
     }
 }
@@ -105,9 +88,15 @@ class RenderSvg extends DefaultTask{
 apply plugin:MyImageRenderingPlugin
 
 model {
-    images {
-        titles << "TitleA" << "TitleB"
-        sizes << "14px" << "28px" << "40px"
+    components {
+        imageA(ImageComponent) {
+            title = "TitleA"
+            sizes = ["14px", "28px", "40px"]
+        }
+        imageB(ImageComponent) {
+            title = "TitleB"
+            sizes = ["14px", "28px", "40px"]
+        }
     }
 }
 

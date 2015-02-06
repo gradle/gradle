@@ -29,10 +29,11 @@ class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
 
 task checkModel << {
     assert project.componentSpecs.size() == 2
-    def titleAImage = project.componentSpecs.TitleA
+    def titleAImage = project.componentSpecs.imageA
     assert titleAImage instanceof ImageComponent
     assert titleAImage.projectPath == project.path
-    assert titleAImage.displayName == "DefaultImageComponent 'TitleA'"
+    assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
+    assert titleAImage.title == 'TitleA'
     assert titleAImage.binaries.collect{it.name}.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
 }
 
