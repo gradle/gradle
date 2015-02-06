@@ -17,21 +17,16 @@
 package org.gradle.play.internal.distribution;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
 public class DefaultPlayDistributionContainer extends AbstractNamedDomainObjectContainer<PlayDistribution> implements PlayDistributionContainer {
-    private final FileOperations fileOperations;
-
-    public DefaultPlayDistributionContainer(Instantiator instantiator, FileOperations fileOperations) {
+    public DefaultPlayDistributionContainer(Instantiator instantiator) {
         super(PlayDistribution.class, instantiator);
-        this.fileOperations = fileOperations;
     }
 
     protected PlayDistribution doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPlayDistribution.class, name, fileOperations.copySpec(Actions.doNothing()));
+        throw new UnsupportedOperationException(String.format("Creating a new Play Distribution (%s) is not supported.", name));
     }
 }

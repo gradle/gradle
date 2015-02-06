@@ -26,5 +26,4 @@ import org.gradle.play.PlayApplicationBinarySpec;
 @Incubating
 public interface PlayDistribution extends Distribution {
     PlayApplicationBinarySpec getBinary();
-    void setBinary(PlayApplicationBinarySpec binary);
 }

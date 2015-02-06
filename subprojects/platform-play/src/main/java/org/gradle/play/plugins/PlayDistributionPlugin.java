@@ -25,18 +25,21 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.model.Defaults;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
+import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
+import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.util.CollectionUtils;
 
@@ -55,9 +58,8 @@ public class PlayDistributionPlugin extends RuleSource {
     @Model
     PlayDistributionContainer distributions(ServiceRegistry serviceRegistry) {
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
 
-        return new DefaultPlayDistributionContainer(instantiator, fileOperations);
+        return new DefaultPlayDistributionContainer(instantiator);
     }
 
     @Mutate
@@ -79,13 +81,14 @@ public class PlayDistributionPlugin extends RuleSource {
         });
     }
 
-    @Mutate
-    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations) {
-        for (PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-            String jarTaskName = String.format("create%sDistributionJar", StringUtils.capitalize(binary.getName()));
-            PlayDistribution distribution = distributions.create(binary.getName());
-            distribution.setBinary(binary);
+    @Defaults
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
+        FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
+        Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getName(), fileOperations.copySpec(Actions.doNothing()), binary);
             distribution.setBaseName(binary.getName());
+            distributions.add(distribution);
         }
     }
 
@@ -94,7 +97,7 @@ public class PlayDistributionPlugin extends RuleSource {
                                         final @Path("distributions") PlayDistributionContainer distributions,
                                         final PlayPluginConfigurations configurations) {
         for (PlayDistribution distribution : distributions) {
-            final PlayApplicationBinarySpecInternal binary = (PlayApplicationBinarySpecInternal) distribution.getBinary();
+            final PlayApplicationBinarySpec binary = distribution.getBinary();
             if (binary == null) {
                 throw new InvalidUserCodeException(String.format("Play Distribution '%s' does not have a configured Play binary.", distribution.getName()));
             }

@@ -403,7 +403,6 @@ model {
     - application.conf and any secondary routes files in "conf".
     - any README file provided in conventional location "${projectDir}/README"
 - content added to the distribution is also included in the zip
-- additional arbitrary distributions can be created
 - application script and batch file will successfully run play:
     - can access a public asset
     - can access a custom route
@@ -411,7 +410,6 @@ model {
 #### Open Issues
 - A Play distribution zip, by default, contains a shared/docs directory with the scaladocs for the application.  We'll need 
 a scaladoc task wired in to duplicate this functionality.
-- Play compile and runtime dependencies need to be added to distribution.
     
 ### Implementation
 
