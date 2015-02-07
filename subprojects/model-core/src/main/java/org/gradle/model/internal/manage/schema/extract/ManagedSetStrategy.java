@@ -60,7 +60,7 @@ public class ManagedSetStrategy implements ModelSchemaExtractionStrategy {
                 throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
             }
 
-            ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType());
+            ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType(), elementType);
             ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
                 public void execute(ModelSchemaExtractionContext<?> context) {
                     ModelSchema<?> typeParamSchema = cache.get(context.getType());

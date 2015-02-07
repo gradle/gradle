@@ -24,6 +24,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.projection.ManagedSetModelProjection;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
@@ -60,9 +61,10 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
 
     private <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelReference<T> modelReference, ModelSchema<T> schema, @Nullable ModelAction<T> initializer) {
         // TODO reuse pooled projections
-        if (schema.getKind() == ModelSchema.Kind.COLLECTION) {
+        if (schema instanceof ModelCollectionSchema) {
+            ModelCollectionSchema<T> collectionSchema = (ModelCollectionSchema<T>) schema;
             return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
-                    .withProjection(ManagedSetModelProjection.of(schema.getType().getTypeVariables().get(0), schemaStore, this))
+                    .withProjection(ManagedSetModelProjection.of(collectionSchema.getElementType(), schemaStore, this))
                     .descriptor(descriptor)
                     .build();
         }

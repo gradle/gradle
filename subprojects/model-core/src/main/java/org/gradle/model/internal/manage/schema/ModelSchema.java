@@ -67,8 +67,8 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.STRUCT, properties, managedImpl);
     }
 
-    public static <T> ModelSchema<T> collection(ModelType<T> type) {
-        return new ModelSchema<T>(type, Kind.COLLECTION);
+    public static <T> ModelCollectionSchema<T> collection(ModelType<T> type, ModelType<?> elementType) {
+        return new ModelCollectionSchema<T>(type, elementType);
     }
 
     public static <T> ModelSchema<T> unmanaged(ModelType<T> type) {
@@ -87,7 +87,7 @@ public class ModelSchema<T> {
         this.properties = builder.build();
     }
 
-    private ModelSchema(ModelType<T> type, Kind kind) {
+    protected ModelSchema(ModelType<T> type, Kind kind) {
         this(type, kind, Collections.<ModelProperty<?>>emptySet(), null);
     }
 
