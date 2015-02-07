@@ -36,12 +36,12 @@ import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
-class NewestVersionComponentChooserTest extends Specification {
+class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = Mock(VersionSelectorScheme)
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
 
-    def chooser = new NewestVersionComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules)
+    def chooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules)
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetaData) {
@@ -58,13 +58,13 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * componentSelectionRules.apply(_,_)
 
         then:
-        chooser.choose(one, two) == two
+        chooser.selectNewestComponent(one, two) == two
 
         when:
         0 * componentSelectionRules.apply(_,_)
 
         then:
-        chooser.choose(two, three) == three
+        chooser.selectNewestComponent(two, three) == three
     }
 
     def "chooses non-generated descriptor over generated"() {
@@ -81,14 +81,14 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * componentSelectionRules.apply(_,_)
 
         then:
-        chooser.choose(one, two) == two
+        chooser.selectNewestComponent(one, two) == two
 
         when:
         1 * one.generated >> false
         0 * componentSelectionRules.apply(_,_)
 
         then:
-        chooser.choose(one, two) == one
+        chooser.selectNewestComponent(one, two) == one
     }
 
     def "chooses newest matching version without requiring metadata"() {
@@ -114,7 +114,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
@@ -147,7 +147,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
     }
 
@@ -186,7 +186,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == DefaultModuleComponentIdentifier.newId("group", "name", "1.2")
     }
 
@@ -232,7 +232,7 @@ class NewestVersionComponentChooserTest extends Specification {
 
         then:
         // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == null
 
     }
@@ -263,7 +263,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == null
     }
 
@@ -289,7 +289,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == null
     }
 
@@ -321,7 +321,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == null
     }
 
@@ -350,7 +350,7 @@ class NewestVersionComponentChooserTest extends Specification {
         0 * _
 
         then:
-        chooser.choose(listing, dependency, repo, selectedComponentResult)
+        chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
         selectedComponentResult.match == null
     }
 

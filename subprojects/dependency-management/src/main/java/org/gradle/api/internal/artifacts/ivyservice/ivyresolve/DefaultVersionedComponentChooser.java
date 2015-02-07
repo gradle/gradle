@@ -40,19 +40,19 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MetadataProvider.MetaDataSupplier;
 
-class NewestVersionComponentChooser implements ComponentChooser {
+class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
-    NewestVersionComponentChooser(VersionComparator versionComparator, VersionSelectorScheme versionSelectorScheme, ComponentSelectionRulesInternal componentSelectionRules) {
+    DefaultVersionedComponentChooser(VersionComparator versionComparator, VersionSelectorScheme versionSelectorScheme, ComponentSelectionRulesInternal componentSelectionRules) {
         this.versionComparator = versionComparator;
         this.versionSelectorScheme = versionSelectorScheme;
         this.componentSelectionRules = componentSelectionRules;
     }
 
-    public ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two) {
+    public ComponentResolveMetaData selectNewestComponent(ComponentResolveMetaData one, ComponentResolveMetaData two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -73,7 +73,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result) {
+    public void selectNewestMatchingComponent(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
@@ -109,7 +109,7 @@ class NewestVersionComponentChooser implements ComponentChooser {
         }
     }
 
-    public boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier) {
+    public boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier) {
         return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), new MetadataProvider(metaDataSupplier));
     }
 

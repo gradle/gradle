@@ -37,11 +37,11 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
     private final List<String> repositoryNames = new ArrayList<String>();
-    private final ComponentChooser componentChooser;
+    private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory;
 
-    public DynamicVersionResolver(ComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
-        this.componentChooser = componentChooser;
+    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+        this.versionedComponentChooser = versionedComponentChooser;
         this.metaDataFactory = metaDataFactory;
     }
 
@@ -137,7 +137,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
-        return componentChooser.choose(one.module, two.module) == one.module ? one : two;
+        return versionedComponentChooser.selectNewestComponent(one.module, two.module) == one.module ? one : two;
     }
 
     public class RepositoryResolveState {
@@ -180,7 +180,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private void selectMatchingVersionAndResolve(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             BuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
-            componentChooser.choose(versionListingResult.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
+            versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:

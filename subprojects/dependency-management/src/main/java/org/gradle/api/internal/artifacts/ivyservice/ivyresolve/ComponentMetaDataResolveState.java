@@ -28,7 +28,7 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 */
 class ComponentMetaDataResolveState {
     private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-    private final ComponentChooser componentChooser;
+    private final VersionedComponentChooser versionedComponentChooser;
     private final DependencyMetaData dependency;
     final ModuleComponentIdentifier componentIdentifier;
     final ModuleComponentRepository repository;
@@ -36,11 +36,11 @@ class ComponentMetaDataResolveState {
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepository repository, ComponentChooser componentChooser) {
+    public ComponentMetaDataResolveState(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
         this.dependency = dependency;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
-        this.componentChooser = componentChooser;
+        this.versionedComponentChooser = versionedComponentChooser;
     }
 
     BuildableModuleComponentMetaDataResolveResult resolve() {
@@ -72,7 +72,7 @@ class ComponentMetaDataResolveState {
             throw resolveResult.getFailure();
         }
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            if (componentChooser.isRejectedByRules(componentIdentifier, Factories.constant(resolveResult))) {
+            if (versionedComponentChooser.isRejectedComponent(componentIdentifier, Factories.constant(resolveResult))) {
                 resolveResult.missing();
             }
         }

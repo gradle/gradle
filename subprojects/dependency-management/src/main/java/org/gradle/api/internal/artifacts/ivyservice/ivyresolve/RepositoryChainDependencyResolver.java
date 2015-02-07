@@ -41,11 +41,11 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
 
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
     private final List<String> repositoryNames = new ArrayList<String>();
-    private final ComponentChooser componentChooser;
+    private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory;
 
-    public RepositoryChainDependencyResolver(ComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
-        this.componentChooser = componentChooser;
+    public RepositoryChainDependencyResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+        this.versionedComponentChooser = versionedComponentChooser;
         this.metaDataFactory = metaDataFactory;
     }
 
@@ -64,7 +64,7 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(dependency, moduleComponentIdentifier, repository, componentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(dependency, moduleComponentIdentifier, repository, versionedComponentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);

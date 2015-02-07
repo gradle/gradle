@@ -46,7 +46,7 @@ class DynamicVersionResolverTest extends Specification {
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
 
-    final def componentSelectionStrategy = Mock(ComponentChooser)
+    final def componentSelectionStrategy = Mock(VersionedComponentChooser)
     final def resolver = new DynamicVersionResolver(componentSelectionStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
@@ -95,7 +95,7 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing)
         }
-        _ * componentSelectionStrategy.choose(versionListing, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+        _ * componentSelectionStrategy.selectNewestMatchingComponent(versionListing, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
             res.matches(selectedId)
         }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
@@ -137,14 +137,14 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing1)
         }
-        1 * componentSelectionStrategy.choose(versionListing1, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing1, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
             res.noMatchFound()
         }
 
         1 * localAccess2.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing2)
         }
-        1 * componentSelectionStrategy.choose(versionListing2, dynamicDependency, localAccess2, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing2, dynamicDependency, localAccess2, _) >> { ver, dep, acc, res ->
             res.matches(selectedId)
         }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
@@ -179,7 +179,7 @@ class DynamicVersionResolverTest extends Specification {
             result.attempted('somewhere')
             result.listed(versionListing)
         }
-        1 * componentSelectionStrategy.choose(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
             res.noMatchFound()
         }
         1 * result.attempted('somewhere')

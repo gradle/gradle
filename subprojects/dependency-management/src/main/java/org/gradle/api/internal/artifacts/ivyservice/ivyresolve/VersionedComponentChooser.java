@@ -23,8 +23,8 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 
-public interface ComponentChooser {
-    ComponentResolveMetaData choose(ComponentResolveMetaData one, ComponentResolveMetaData two);
-    void choose(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result);
-    boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier);
+public interface VersionedComponentChooser {
+    ComponentResolveMetaData selectNewestComponent(ComponentResolveMetaData one, ComponentResolveMetaData two);
+    void selectNewestMatchingComponent(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result);
+    boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier);
 }

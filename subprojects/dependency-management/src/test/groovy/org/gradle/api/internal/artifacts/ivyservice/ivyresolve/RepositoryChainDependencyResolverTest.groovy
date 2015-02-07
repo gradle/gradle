@@ -47,7 +47,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
 
-    final ComponentChooser componentSelectionStrategy = Mock(ComponentChooser)
+    final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
     final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(componentSelectionStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
