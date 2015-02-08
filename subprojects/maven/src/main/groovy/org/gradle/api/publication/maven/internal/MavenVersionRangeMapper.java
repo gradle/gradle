@@ -25,6 +25,9 @@ public class MavenVersionRangeMapper implements VersionRangeMapper {
     private final VersionSelectorScheme mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
 
     public String map(String version) {
+        if(version == null) {
+            return null;
+        }
         return mavenVersionSelectorScheme.renderSelector(defaultVersionSelectorScheme.parseSelector(version));
     }
 }
