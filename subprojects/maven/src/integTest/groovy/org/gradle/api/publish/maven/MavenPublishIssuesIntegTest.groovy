@@ -15,11 +15,13 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.M2Installation
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
+
 /**
  * Tests for bugfixes to maven publishing scenarios
  */
@@ -108,15 +110,15 @@ publishing {
         succeeds "publish"
     }
 
-   @Issue("GRADLE-2837")
-   def "project is properly configured when it is the target of a project dependency"() {
-       given:
-       mavenRepo.module("org.gradle", "dep", "1.1").publish()
+    @Issue("GRADLE-2837")
+    def "project is properly configured when it is the target of a project dependency"() {
+        given:
+        mavenRepo.module("org.gradle", "dep", "1.1").publish()
 
-       and:
-       settingsFile << "include ':main', ':util'"
+        and:
+        settingsFile << "include ':main', ':util'"
 
-       buildFile << """
+        buildFile << """
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
@@ -137,13 +139,13 @@ subprojects {
     }
 }
 """
-       file("main", "build.gradle") << """
+        file("main", "build.gradle") << """
     dependencies {
         compile project(':util')
     }
 """
 
-       file("util", "build.gradle") << """
+        file("util", "build.gradle") << """
     dependencies {
         compile 'org.gradle:dep:1.1'
     }
@@ -160,15 +162,15 @@ subprojects {
         utilPom.scopes.runtime.expectDependency('org.gradle:dep:1.1')
     }
 
-   @Issue("GRADLE-2945")
-   def "maven-publish plugin adds excludes to pom"() {
+    @Issue("GRADLE-2945")
+    def "maven-publish plugin adds excludes to pom"() {
 
-       given:
-       mavenRepo.module("org.gradle", "pom-excludes", "0.1").publish()
+        given:
+        mavenRepo.module("org.gradle", "pom-excludes", "0.1").publish()
 
-       and:
-       settingsFile << 'rootProject.name = "root"'
-       buildFile << """
+        and:
+        settingsFile << 'rootProject.name = "root"'
+        buildFile << """
     apply plugin: "java"
     apply plugin: "maven-publish"
 
@@ -197,18 +199,18 @@ subprojects {
     }
     """
 
-       when:
-       succeeds 'publish'
+        when:
+        succeeds 'publish'
 
-       then:
-       def mainPom = mavenRepo.module('org.gradle', 'root', '1.0').parsedPom
-       def dependency = mainPom.scopes.runtime.expectDependency('org.gradle:pom-excludes:0.1')
-       dependency.exclusions.size() == 3
-       dependency.exclusions[0].groupId == "org.opensource1"
-       dependency.exclusions[0].artifactId == "dep1"
-       dependency.exclusions[1].groupId == "org.opensource2"
-       dependency.exclusions[1].artifactId == "*"
-       dependency.exclusions[2].groupId == "*"
-       dependency.exclusions[2].artifactId == "dep2"
+        then:
+        def mainPom = mavenRepo.module('org.gradle', 'root', '1.0').parsedPom
+        def dependency = mainPom.scopes.runtime.expectDependency('org.gradle:pom-excludes:0.1')
+        dependency.exclusions.size() == 3
+        dependency.exclusions[0].groupId == "org.opensource1"
+        dependency.exclusions[0].artifactId == "dep1"
+        dependency.exclusions[1].groupId == "org.opensource2"
+        dependency.exclusions[1].artifactId == "*"
+        dependency.exclusions[2].groupId == "*"
+        dependency.exclusions[2].artifactId == "dep2"
     }
 }
