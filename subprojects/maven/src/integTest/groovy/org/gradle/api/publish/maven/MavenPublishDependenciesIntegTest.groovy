@@ -61,7 +61,7 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3233")
-    def "succeeds publishing when dependency has null version"() {
+    def "publishes POM dependency with empty version for Gradle dependency with null version"() {
         given:
         def repoModule = mavenRepo.module('group', 'root', '1.0')
 
@@ -95,6 +95,10 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
         then:
         repoModule.assertPublishedAsJavaModule()
-        repoModule.parsedPom.scopes.runtime.expectDependency('group:projectA:null')
+        repoModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:")
+        def dependency = repoModule.parsedPom.scopes.runtime.dependencies.get("group:projectA:")
+        dependency.groupId == "group"
+        dependency.artifactId == "projectA"
+        dependency.version == ""
     }
 }
