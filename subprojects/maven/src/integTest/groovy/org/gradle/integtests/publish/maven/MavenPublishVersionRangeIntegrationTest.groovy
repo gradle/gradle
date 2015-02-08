@@ -17,6 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class MavenPublishVersionRangeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,5 +54,38 @@ uploadArchives {
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
         mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:RELEASE")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectB:LATEST")
+    }
+
+    @Issue("GRADLE-3233")
+    public void "succeeds publishing when dependency has null version"() {
+        given:
+        file("settings.gradle") << "rootProject.name = 'publishTest' "
+        and:
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.gradle.test'
+version = '1.9'
+
+dependencies {
+    compile "group:projectA:null"
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+"""
+
+        when:
+        run "uploadArchives"
+
+        then:
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        mavenModule.parsedPom.scopes.compile.assertDependsOn("group:projectA:null")
     }
 }
