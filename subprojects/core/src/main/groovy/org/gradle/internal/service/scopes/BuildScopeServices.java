@@ -62,6 +62,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -184,10 +185,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
                                 scriptCompiler,
-                                emptyScriptGenerator)
+                                emptyScriptGenerator
+                        )
                 ),
                 new DefaultScriptRunnerFactory(
-                        scriptExecutionListener)
+                        scriptExecutionListener,
+                        new DirectInstantiator()
+                )
         );
     }
 

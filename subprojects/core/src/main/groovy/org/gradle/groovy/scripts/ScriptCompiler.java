@@ -37,7 +37,7 @@ public interface ScriptCompiler {
     ScriptCompiler setVerifier(Action<? super ClassNode> verifier);
 
     /**
-     * Compiles the script into a {@code Script} object of the given type. 
+     * Compiles the script into a {@code Script} object of the given type.
      *
      * @returns a {@code ScriptRunner} for the script.
      * @throws ScriptCompilationException On compilation failure.

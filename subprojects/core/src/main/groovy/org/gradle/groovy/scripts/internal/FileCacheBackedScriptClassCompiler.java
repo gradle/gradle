@@ -50,8 +50,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    @Override
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
         properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
@@ -68,8 +67,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // closed once we no longer require the script classes. This may be earlier than the end of the current build, or it may used across multiple builds
         caches.add(cache);
 
-        File classesDir = classesDir(cache);
-        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
+        final File classesDir = classesDir(cache);
+
+        return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
+            public Class<? extends T> loadClass() {
+                return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
+            }
+        });
     }
 
     public void close() {

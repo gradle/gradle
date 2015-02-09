@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.scripts.internal;
 
-import org.gradle.groovy.scripts.Script;
-import org.gradle.groovy.scripts.ScriptRunner;
-import org.gradle.groovy.scripts.ScriptSource;
+import groovy.lang.Script;
 
-public interface ScriptRunnerFactory {
-    <T extends Script> ScriptRunner<T> create(CompiledScript<T> scriptClass, ScriptSource source, ClassLoader contextClassLoader);
+public class ClassCachingCompiledScript<T extends Script> implements CompiledScript<T> {
+
+    private final CompiledScript<T> delegate;
+    private Class<? extends T> scriptClass;
+
+    public ClassCachingCompiledScript(CompiledScript<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public Class<? extends T> loadClass() {
+        if (scriptClass == null) {
+            scriptClass = delegate.loadClass();
+        }
+        return scriptClass;
+    }
 }

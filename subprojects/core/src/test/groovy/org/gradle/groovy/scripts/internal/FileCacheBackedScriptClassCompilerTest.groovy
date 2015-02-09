@@ -54,7 +54,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "loads classes from cache directory"() {
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -94,7 +94,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def initializer
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
 
         then:
         result == Script

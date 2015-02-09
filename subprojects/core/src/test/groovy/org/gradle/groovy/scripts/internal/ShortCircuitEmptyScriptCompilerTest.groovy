@@ -42,7 +42,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         _ * resource.text >> '  \n\t'
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
 
         then:
         result == TestScript
@@ -54,13 +54,14 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     def "compiles script when script contains anything other than whitespace"() {
         given:
         _ * resource.text >> 'some script'
+        CompiledScript<?> compiledScript = Mock()
 
         when:
         def result = compiler.compile(source, classLoader, transformer, Script, verifier)
 
         then:
-        result == TestScript
-        1 * target.compile(source, classLoader, transformer, Script, verifier) >> TestScript
+        result == compiledScript
+        1 * target.compile(source, classLoader, transformer, Script, verifier) >> compiledScript
         0 * emptyScriptGenerator._
         0 * target._
     }

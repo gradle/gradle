@@ -15,16 +15,18 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.Cast;
 
 import java.util.*;
 
 public class CachingScriptClassCompiler implements ScriptClassCompiler {
-    private final Map<Collection<Object>, Class<?>> cachedClasses = new HashMap<Collection<Object>, Class<?>>();
+    private final Map<Collection<Object>, CompiledScript<?>> cachedCompiledScripts = Maps.newHashMap();
     private final ScriptClassCompiler scriptClassCompiler;
 
     public CachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
@@ -32,13 +34,13 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         List<Object> key = Arrays.asList(source.getClassName(), classLoader, transformer.getId(), scriptBaseClass.getName());
-        Class<?> c = cachedClasses.get(key);
-        if (c == null) {
-            c = scriptClassCompiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
-            cachedClasses.put(key, c);
+        CompiledScript<T> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
+        if (compiledScript == null) {
+            compiledScript = scriptClassCompiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
+            cachedCompiledScripts.put(key, compiledScript);
         }
-        return c.asSubclass(scriptBaseClass);
+        return compiledScript;
     }
 }

@@ -17,11 +17,10 @@ package org.gradle.groovy.scripts;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.internal.Actions;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptRunnerFactory scriptRunnerFactory;
@@ -41,7 +40,6 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private ClassLoader classloader;
         private Transformer transformer;
         private Action<? super ClassNode> verifier = Actions.doNothing();
-        private final Instantiator instantiator = new DirectInstantiator();
 
         public ScriptCompilerImpl(ScriptSource source) {
             this.source = new CachingScriptSource(source);
@@ -63,12 +61,10 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             return this;
         }
 
+        @Override
         public <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) {
-            Class<? extends T> scriptClass = scriptClassCompiler.compile(source, classloader, transformer, scriptType, verifier);
-            T script = instantiator.newInstance(scriptClass);
-            script.setScriptSource(source);
-            script.setContextClassloader(classloader);
-            return scriptRunnerFactory.create(script);
+            CompiledScript<T> scriptClass = scriptClassCompiler.compile(source, classloader, transformer, scriptType, verifier);
+            return scriptRunnerFactory.create(scriptClass, source, classloader);
         }
     }
 }

@@ -19,31 +19,48 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptExecutionListener listener;
+    private final Instantiator instantiator;
 
-    public DefaultScriptRunnerFactory(ScriptExecutionListener listener) {
+    public DefaultScriptRunnerFactory(ScriptExecutionListener listener, Instantiator instantiator) {
         this.listener = listener;
+        this.instantiator = instantiator;
     }
 
-    public <T extends Script> ScriptRunner<T> create(T script) {
-        return new ScriptRunnerImpl<T>(script);
+    public <T extends Script> ScriptRunner<T> create(CompiledScript<T> script, ScriptSource source, ClassLoader contextClassLoader) {
+        return new ScriptRunnerImpl<T>(script, source, contextClassLoader);
     }
 
     private class ScriptRunnerImpl<T extends Script> implements ScriptRunner<T> {
-        private final T script;
+        private final ScriptSource source;
+        private final ClassLoader contextClassLoader;
+        private T script;
+        private final CompiledScript<T> compiledScript;
 
-        public ScriptRunnerImpl(T script) {
-            this.script = script;
+        public ScriptRunnerImpl(CompiledScript<T> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
+            this.compiledScript = compiledScript;
+            this.source = source;
+            this.contextClassLoader= contextClassLoader;
         }
 
+        @Override
         public T getScript() {
+            if (script == null) {
+                script = instantiator.newInstance(compiledScript.loadClass());
+                script.setScriptSource(source);
+                script.setContextClassloader(contextClassLoader);
+            }
             return script;
         }
 
+        @Override
         public void run() throws GradleScriptException {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+            T script = getScript();
             listener.beforeScript(script);
             GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());

@@ -16,6 +16,7 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.api.Action
+import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -29,6 +30,9 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptRunner<TestScript> runner = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
+    final CompiledScript<TestScript> compiledScript = Mock() {
+        loadClass() >> TestScript
+    }
     final verifier = Mock(Action)
     final DefaultScriptCompilerFactory factory = new DefaultScriptCompilerFactory(scriptClassCompiler, scriptRunnerFactory)
 
@@ -42,8 +46,8 @@ class DefaultScriptCompilerFactoryTest extends Specification {
 
         then:
         result == runner
-        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, transformer, Script, verifier) >> TestScript
-        1 * scriptRunnerFactory.create({it instanceof TestScript}) >> runner
+        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, transformer, Script, verifier) >> compiledScript
+        1 * scriptRunnerFactory.create(compiledScript, {it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._
     }
