@@ -50,13 +50,14 @@ class GCLoggingCollectorTest extends Specification {
         operation.maxCommittedHeap == DataAmount.kbytes(maxCommittedHeap)
 
         where:
-        logName     | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap | locale         | startTime      | endTime
-        "gc-1.txt"  | 76639          | 33334        | 20002              | 44092            | Locale.US      | "16:04:50.000" | "16:05:00.000"
-        "gc-2.txt"  | 140210         | 40427        | 34145              | 223360           | Locale.US      | "16:04:50.000" | "16:05:00.000"
-        "gc-3.txt"  | 183544         | 119384       | 37982              | 295488           | Locale.US      | "16:04:50.000" | "16:05:00.000"
-        "gc-4.txt"  | 709909         | 292868       | 86455              | 474176           | Locale.GERMANY | "16:04:50.000" | "16:05:00.000"
-        "win-1.txt" | 76639          | 33334        | 20002              | 44092            | Locale.US      | "16:04:50.000" | "16:05:00.000"
-        "gc-3.txt"  | 40704          | 18661        | 6827               | 65472            | Locale.US      | "16:04:50.519" | "16:04:51.319"
-        "gc-3.txt"  | 142840         | 119384       | 37982              | 295488           | Locale.US      | "16:04:51.319" | "16:04:52.519"
+        logName             | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap | locale         | startTime      | endTime
+        "gc-1.txt"          | 76639          | 33334        | 20002              | 44092            | Locale.US      | "16:04:50.000" | "16:05:00.000"
+        "gc-2.txt"          | 140210         | 40427        | 34145              | 223360           | Locale.US      | "16:04:50.000" | "16:05:00.000"
+        "gc-3.txt"          | 183544         | 119384       | 37982              | 295488           | Locale.US      | "16:04:50.000" | "16:05:00.000"
+        "gc-4.txt"          | 709909         | 292868       | 86455              | 474176           | Locale.GERMANY | "16:04:50.000" | "16:05:00.000"
+        "win-1.txt"         | 76639          | 33334        | 20002              | 44092            | Locale.US      | "16:04:50.000" | "16:05:00.000"
+        "gc-3.txt"          | 40704          | 18661        | 6827               | 65472            | Locale.US      | "16:04:50.519" | "16:04:51.319"
+        "gc-3.txt"          | 142840         | 119384       | 37982              | 295488           | Locale.US      | "16:04:51.319" | "16:04:52.519"
+        "mac-jdk8.0.25.txt" | 48177          | 49967        | 13008              | 308224           | Locale.US      | "16:04:51.319" | "16:04:52.519"
     }
 }

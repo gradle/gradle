@@ -27,11 +27,15 @@ class GCEventParser {
     private final Pattern ignorePattern;
 
     GCEventParser(char decimalSeparator) {
-        pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator, decimalSeparator));
-        ignorePattern = Pattern.compile(String.format("\\s*\\[Times: .+\\]\\s*"));
+        pattern = Pattern.compile(String.format("(.+): \\[(?:(?:Full )?GC(?: ?(?:[^\\s]+|\\(.+?\\)))?) (?:\\d+\\%s\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)", decimalSeparator));
+        ignorePattern = Pattern.compile(String.format("Java HotSpot.+|Memory:.+|/proc.+|CommandLine flags:.+|\\s*\\[Times: .+\\]\\s*"));
     }
 
     GCEvent parseLine(String line) {
+        if (line.trim().isEmpty()) {
+            return GCEvent.IGNORED;
+        }
+
         Matcher matcher = pattern.matcher(line);
         if (!matcher.lookingAt()) {
             if (ignorePattern.matcher(line).matches()) {
@@ -43,9 +47,9 @@ class GCEventParser {
         }
 
         DateTime timestamp = DateTime.parse(matcher.group(1));
-        long start = Long.parseLong(matcher.group(3));
-        long end = Long.parseLong(matcher.group(4));
-        long committed = Long.parseLong(matcher.group(5));
+        long start = Long.parseLong(matcher.group(2));
+        long end = Long.parseLong(matcher.group(3));
+        long committed = Long.parseLong(matcher.group(4));
 
         return new GCEvent(start, end, committed, timestamp);
     }
