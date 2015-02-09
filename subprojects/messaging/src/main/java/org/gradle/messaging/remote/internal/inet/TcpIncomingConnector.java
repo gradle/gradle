@@ -100,7 +100,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                         final SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
-                        if (!allowRemote && !addressFactory.isLocal(remoteInetAddress)) {
+                        if (!allowRemote && !addressFactory.isLocal(remoteInetAddress) && !addressFactory.findLocalBindingAddress().equals(remoteInetAddress)) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
                             socket.close();
                             continue;

@@ -31,6 +31,11 @@ import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
+    private final InetAddressFactory addressFactory;
+
+    public TcpOutgoingConnector(InetAddressFactory addressFactory) {
+        this.addressFactory = addressFactory;
+    }
 
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
@@ -42,6 +47,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         // Try each address in turn. Not all of them are necessarily reachable (eg when socket option IPV6_V6ONLY
         // is on - the default for debian and others), so we will try each of them until we can connect
         List<InetAddress> candidateAddresses = address.getCandidates();
+        candidateAddresses.add(addressFactory.findLocalBindingAddress());
 
         // Now try each address
         try {

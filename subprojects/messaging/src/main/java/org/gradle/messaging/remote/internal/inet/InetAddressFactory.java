@@ -229,7 +229,7 @@ public class InetAddressFactory {
         // Detect Openshift IP environment variable.
         InetAddress openshiftEnvironment = findOpenshiftAddresses();
         if (openshiftEnvironment != null) {
-           localBindingAddress = openshiftEnvironment;
+            localBindingAddress = openshiftEnvironment;
         } else {
             localBindingAddress = InetAddress.getByName("0.0.0.0");
         }
