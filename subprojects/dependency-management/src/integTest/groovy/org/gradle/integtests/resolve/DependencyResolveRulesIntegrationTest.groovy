@@ -332,36 +332,62 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 $common
 
+                configurations { lajos }
+
                 group "org.utils"
             }
 
             project(":api") {
                 version = "1.6"
+
+                def output = file("output.txt")
+                task build {
+                    outputs.file output
+                    doLast {
+                        delete(output)
+                        mkdir(output.parentFile)
+                        output << "lajos"
+                    }
+                }
+
+                artifacts {
+                    lajos (output) {
+                        builtBy build
+                    }
+                }
             }
 
             project(":impl") {
                 dependencies {
-                    conf group: "org.utils", name: "api", version: "1.5", configuration: "conf"
+//                    conf group: "org.utils", name: "api", version: "1.5", configuration: "lajos"
+                    conf project(path: ":api", configuration: "lajos")
                 }
 
                 configurations.conf.resolutionStrategy.eachDependency {
-                    it.useTarget project(":api")
+//                    it.useTarget project(":api")
                 }
 
-                task check << {
+                task check {
+                    inputs.files configurations.conf
+                }
+
+                check << {
                     def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
-                    assert deps[0].requested.group == "org.utils"
-                    assert deps[0].requested.module == "api"
-                    assert deps[0].requested.version == "1.5"
-
-                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
-                    assert deps[0].selected.componentId.projectPath == ":api"
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
+//                    assert deps.size() == 1
+//                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+//
+//                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+//                    assert deps[0].requested.group == "org.utils"
+//                    assert deps[0].requested.module == "api"
+//                    assert deps[0].requested.version == "1.5"
+//
+//                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+//                    assert deps[0].selected.componentId.projectPath == ":api"
+//                    assert !deps[0].selected.selectionReason.forced
+//                    assert deps[0].selected.selectionReason.selectedByRule
+                    def files = configurations.conf.files
+                    assert files[0].name == "output.txt"
+                    assert files[0].text == "lajos"
                 }
             }
 """

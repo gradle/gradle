@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -270,7 +272,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        return allDependencies.getBuildDependencies();
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(allDependencies.getBuildDependencies());
+
+        for (ResolvedDependency dependency : getResolvedConfiguration().getFirstLevelModuleDependencies()) {
+            ResolvedConfigurationIdentifier id = ((DefaultResolvedDependency) dependency).getId();
+            Project project = null; // from id
+            Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
+            taskDependency.add(targetConfig);
+        }
+        return taskDependency;
     }
 
     /**
