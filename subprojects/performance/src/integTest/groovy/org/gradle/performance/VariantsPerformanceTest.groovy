@@ -17,10 +17,11 @@
 
 package org.gradle.performance
 
+import org.gradle.model.persist.ReusingModelRegistryStore
 import org.gradle.performance.fixture.BuildSpecification
 import spock.lang.Unroll
 
-class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "#size project using variants #scenario build"() {
@@ -28,7 +29,7 @@ class   VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpecifications = [
-                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).useDaemon().build(),
+                BuildSpecification.forProject("${size}VariantsNewModel").displayName("new model").gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true").tasksToRun(*tasks).useDaemon().build(),
                 BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).useDaemon().build()
         ]
 
