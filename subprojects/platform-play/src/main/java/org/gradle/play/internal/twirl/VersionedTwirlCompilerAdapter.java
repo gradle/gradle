@@ -23,8 +23,8 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-interface VersionedTwirlCompilerAdapter extends Serializable {
-    Object getDependencyNotation();
+public interface VersionedTwirlCompilerAdapter extends Serializable {
+    public Object getDependencyNotation();
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 

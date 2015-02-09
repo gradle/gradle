@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -34,6 +35,7 @@ import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.twirl.DefaultTwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
@@ -83,6 +85,11 @@ public class TwirlCompile extends SourceTask {
     @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
+    }
+
+    @Input
+    public Object getDependencyNotation() {
+        return TwirlCompilerFactory.createAdapter(platform).getDependencyNotation();
     }
 
     /**
