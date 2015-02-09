@@ -21,6 +21,10 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.DefaultCollectionBuilder
+import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.NamedEntityInstantiator
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
 
@@ -273,6 +277,11 @@ class TaskNameResolverTest extends Specification {
     }
 
     private ModelRegistryHelper createTasksCollection(ModelRegistryHelper registry, String description) {
-        registry.collection("tasks", TaskInternal) { name, type -> task(name, description) }
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(TaskInternal)
+        def iRef = ModelReference.of("instantiator", iType)
+
+        registry
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> task(name, description) } as NamedEntityInstantiator).build())
+                .collection("tasks", TaskInternal, iRef)
     }
 }

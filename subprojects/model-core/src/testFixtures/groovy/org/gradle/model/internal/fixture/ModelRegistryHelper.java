@@ -187,7 +187,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         return creator(ModelPath.path(path));
     }
 
-    public <I> ModelRegistryHelper collection(String path, final Class<I> itemType, final NamedEntityInstantiator<I> instantiator) {
+    public <I> ModelRegistryHelper collection(String path, final Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<I>> instantiator) {
         return create(path, new Transformer<ModelCreator, ModelCreatorBuilder>() {
             @Override
             public ModelCreator transform(ModelCreatorBuilder modelCreatorBuilder) {
@@ -541,7 +541,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelCreator collection(Class<I> itemType, final NamedEntityInstantiator<I> instantiator) {
+        public <I> ModelCreator collection(Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<I>> instantiator) {
             final ModelType<I> itemModelType = ModelType.of(itemType);
             final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
 

@@ -582,8 +582,12 @@ class DefaultModelRegistryTest extends Specification {
         given:
         def events = []
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
-                .collection("things", Bean) { name, type -> new Bean(name: name) }
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
+                .collection("things", Bean, iRef)
                 .mutate {
             it.path "things" type cbType action { c ->
                 events << "collection mutated"
@@ -702,6 +706,9 @@ class DefaultModelRegistryTest extends Specification {
     def "only rules that actually have unbound inputs are reported as unbound"() {
         given:
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
                 .createInstance("foo", new Bean())
                 .mutate {
@@ -711,13 +718,14 @@ class DefaultModelRegistryTest extends Specification {
             it.descriptor("bindable").path("foo").type(Bean).action("beans.element", ModelType.of(Bean)) {
             }
         }
-        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+        .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
+                .collection("beans", Bean, iRef)
                 .mutate {
             it.path "beans" type cbType action { c ->
                 c.create("element")
             }
         }
-        .collection("emptyBeans", Bean) { name, type -> new Bean(name: name) }
+        .collection("emptyBeans", Bean, iRef)
 
         when:
         registry.bindAllReferences()
@@ -737,7 +745,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.createInstance("foo", "foo")
                 .createInstance("bar", "bar")
                 .mutate { it.path("foo").descriptor("foo mutator").type(String).action("bar", ModelType.of(String), "parameter 1", {}) }
-                .mutate { it.path("bar").descriptor("bar mutator").type(String).action("foo", ModelType.of(String), null,{}) }
+                .mutate { it.path("bar").descriptor("bar mutator").type(String).action("foo", ModelType.of(String), null, {}) }
 
         when:
         registry.get("foo")
@@ -751,8 +759,8 @@ foo mutator parameter 1 (path: bar)
     }
 
     def "multiple element configuration cycles are detected"() {
-        registry.create("foo") { it.unmanaged(String, "bar") { "foo" }}
-                .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
+        registry.create("foo") { it.unmanaged(String, "bar") { "foo" } }
+                .create("bar") { it.unmanaged(String, "fizz") { "bar" } }
                 .createInstance("fizz", "fizz")
                 .mutate { it.path("fizz").descriptor("fizz mutator").type(String).action("buzz", ModelType.of(String), {}) }
                 .createInstance("buzz", "buzz")
@@ -788,10 +796,10 @@ foo mutator java.lang.String (path: foo)
 
     def "only the elements actually forming the cycle are reported when configuration cycles are detected"() {
         given:
-        registry.create("foo") { it.unmanaged(String, "bar") { "foo" }}
-                .create("bar") { it.unmanaged(String, "fizz") { "bar" }}
+        registry.create("foo") { it.unmanaged(String, "bar") { "foo" } }
+                .create("bar") { it.unmanaged(String, "fizz") { "bar" } }
                 .mutate { it.path("foo").type(String).action(String) {} }
-                .create("fizz") { it.unmanaged(String, "buzz") { "buzz" }}
+                .create("fizz") { it.unmanaged(String, "buzz") { "buzz" } }
                 .mutate { it.path("fizz").descriptor("fizz mutator").type(String).action("bar", ModelType.of(String), {}) }
                 .createInstance("buzz", "buzz")
 

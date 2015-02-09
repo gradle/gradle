@@ -524,8 +524,12 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(MutableValue))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(ModelType.of(MutableValue))
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
-                .collection("values", MutableValue) { name, type -> new MutableValue() }
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new MutableValue() }).build())
+                .collection("values", MutableValue, iRef)
                 .mutate {
             it.descriptor("mutating elements").path "values" type cbType action { c ->
                 c.create("element")
@@ -552,10 +556,13 @@ class DefaultCollectionBuilderTest extends Specification {
     def "inputs of a rule from an inner source are not realised if the rule is not required"() {
         given:
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
         def events = []
         registry
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
                 .create("input", "input") { events << "input created" }
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .collection("beans", Bean, iRef)
                 .mutate {
             it.path "beans" type cbType action { c ->
                 events << "collection mutated"
@@ -580,14 +587,18 @@ class DefaultCollectionBuilderTest extends Specification {
 
     def "model rule with by-path dependency on non task related collection element's child that does exist passes validation"() {
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
                 .createInstance("foo", new Bean())
                 .mutate {
             it.path("foo").type(Bean).action("beans.element.mutable", ModelType.of(MutableValue)) { Bean subject, MutableValue input ->
                 subject.value = input.value
             }
         }
-        .collection("beans", Bean) { name, type -> new Bean(name: name) }
+        .collection("beans", Bean, iRef)
                 .mutate {
             it.path "beans" type cbType action { c ->
                 c.create("element")
@@ -616,8 +627,12 @@ class DefaultCollectionBuilderTest extends Specification {
     def "model rule with by-type dependency on non task related collection element's child that does exist passes validation"() {
         given:
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) } as NamedEntityInstantiator).build())
+                .collection("beans", Bean, iRef)
                 .mutate {
             it.path "beans" type cbType action { c ->
                 c.create("element")
@@ -640,8 +655,12 @@ class DefaultCollectionBuilderTest extends Specification {
     def "adding an unbound scoped rule for an element that is never created results in an error upon validation if the scope parent has been self closed"() {
         given:
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+
         registry
-                .collection("beans", Bean) { name, type -> new Bean(name: name) }
+                .create(ModelCreators.bridgedInstance(iRef, { name, type -> new Bean(name: name) }).build())
+                .collection("beans", Bean, iRef)
                 .mutate {
             it.path "beans" type cbType action { c ->
                 c.named("element", ElementRules)

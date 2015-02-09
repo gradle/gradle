@@ -45,10 +45,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final MutableModelNode modelNode;
     private final BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction;
 
-    public DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, NamedEntityInstantiator<? super T> entityInstantiator) {
-        this(elementType, target, sourceDescriptor, modelNode, createViaInstance(entityInstantiator));
-    }
-
     public DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
         this(elementType, target, sourceDescriptor, modelNode, createViaReference(instantiatorReference));
     }
@@ -284,6 +280,18 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         return typeOf(ModelType.of(type));
     }
 
+    public static <I> ModelType<NamedEntityInstantiator<I>> instantiatorTypeOf(Class<I> type) {
+        return instantiatorTypeOf(ModelType.of(type));
+    }
+
+    public static <I> ModelType<NamedEntityInstantiator<I>> instantiatorTypeOf(ModelType<I> type) {
+        return new ModelType.Builder<NamedEntityInstantiator<I>>() {
+        }.where(
+                new ModelType.Parameter<I>() {
+                }, type
+        ).build();
+    }
+
     public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaReference(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
         return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
             @Override
@@ -307,23 +315,4 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         };
     }
 
-    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaInstance(final NamedEntityInstantiator<? super T> entityInstantiator) {
-        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
-            @Override
-            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
-                return ModelCreators
-                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                            @Override
-                            public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                                doExecute(modelNode, modelType);
-                            }
-
-                            public <S extends T> void doExecute(MutableModelNode modelNode, ModelType<S> subType) {
-                                S item = entityInstantiator.create(path.getName(), subType.getConcreteClass());
-                                modelNode.setPrivateData(subType, item);
-                            }
-                        });
-            }
-        };
-    }
 }
