@@ -22,13 +22,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.Tuple;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 
 public abstract class BridgedCollections {
@@ -48,7 +48,19 @@ public abstract class BridgedCollections {
         );
     }
 
-    private static <I, C extends PolymorphicDomainObjectContainerInternal<I>> Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> creator(
+    private static class ContainerInfo<I> {
+        final ModelCreators.Builder creatorBuilder;
+        final ModelReference<NamedEntityInstantiator<I>> instantiatorReference;
+        final ModelReference<? extends Collection<I>> storeReference;
+
+        public ContainerInfo(ModelCreators.Builder creatorBuilder, ModelReference<NamedEntityInstantiator<I>> instantiatorReference, ModelReference<? extends Collection<I>> storeReference) {
+            this.creatorBuilder = creatorBuilder;
+            this.instantiatorReference = instantiatorReference;
+            this.storeReference = storeReference;
+        }
+    }
+
+    private static <I, C extends PolymorphicDomainObjectContainerInternal<I>> ContainerInfo<I> creator(
             final ModelRegistry modelRegistry,
             final ModelReference<C> containerReference,
             final ModelType<I> itemType,
@@ -134,7 +146,7 @@ public abstract class BridgedCollections {
                 .ephemeral(true)
                 .descriptor(descriptor);
 
-        return Tuple.of(creatorBuilder, instantiatorReference);
+        return new ContainerInfo<I>(creatorBuilder, instantiatorReference, storeReference);
     }
 
     public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void dynamicTypes(
@@ -150,12 +162,10 @@ public abstract class BridgedCollections {
     ) {
         ModelReference<C> containerReference = ModelReference.of(modelPath, containerType);
 
-        Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> tuple = creator(modelRegistry, containerReference, itemType, Transformers.constant(container), namer, descriptor, itemDescriptorGenerator);
-        ModelCreators.Builder creator = tuple.left;
-        ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
+        ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, Transformers.constant(container), namer, descriptor, itemDescriptorGenerator);
 
-        modelRegistry.createOrReplace(creator
-                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, instantiatorModelReference))
+        modelRegistry.createOrReplace(containerInfo.creatorBuilder
+                .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                 .build());
     }
@@ -173,11 +183,10 @@ public abstract class BridgedCollections {
     ) {
         ModelReference<C> containerReference = ModelReference.of(modelPath, containerType);
 
-        Tuple<ModelCreators.Builder, ModelReference<NamedEntityInstantiator<I>>> tuple = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
-        ModelCreators.Builder creator = tuple.left;
-        ModelReference<NamedEntityInstantiator<I>> instantiatorModelReference = tuple.right;
-        modelRegistry.createOrReplace(creator
-                .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, instantiatorModelReference))
+        ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, containerFactory, namer, descriptor, itemDescriptorGenerator);
+
+        modelRegistry.createOrReplace(containerInfo.creatorBuilder
+                .withProjection(new StaticTypeDomainObjectContainerModelProjection<C, I>(containerType, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
                 .build());
     }

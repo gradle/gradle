@@ -82,6 +82,8 @@ public interface MutableModelNode extends ModelNode {
 
     <T> T getPrivateData(ModelType<T> type);
 
+    Object getPrivateData();
+
     @Nullable
     MutableModelNode getTarget();
 

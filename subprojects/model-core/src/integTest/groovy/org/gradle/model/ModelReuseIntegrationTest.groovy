@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.model.persist.ReusingModelRegistryStore
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.isDaemon() })
@@ -86,6 +87,7 @@ class ModelReuseIntegrationTest extends AbstractIntegrationSpec {
         taskHash != hashFor("task")
     }
 
+    @Ignore
     def "can enable reuse with the component model"() {
         when:
         buildScript """

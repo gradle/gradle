@@ -368,6 +368,11 @@ class UnboundRulesProcessorTest extends Specification {
         }
 
         @Override
+        Object getPrivateData() {
+            return null
+        }
+
+        @Override
         void setTarget(ModelNode target) {
 
         }

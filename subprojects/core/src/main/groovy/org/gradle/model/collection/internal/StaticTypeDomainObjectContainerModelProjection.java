@@ -18,24 +18,19 @@ package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
 import java.util.Collections;
 
 public class StaticTypeDomainObjectContainerModelProjection<C extends PolymorphicDomainObjectContainerInternal<M>, M> extends DomainObjectContainerModelProjection<C, M> {
 
     private final ModelType<C> collectionType;
 
-    public StaticTypeDomainObjectContainerModelProjection(ModelType<C> collectionType, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference) {
-        super(itemType, instantiatorModelReference);
+    public StaticTypeDomainObjectContainerModelProjection(ModelType<C> collectionType, ModelType<M> itemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
+        super(itemType, instantiatorModelReference, storeReference);
         this.collectionType = collectionType;
-    }
-
-    @Override
-    protected C getContainer(MutableModelNode node) {
-        return node.getPrivateData(collectionType);
     }
 
     @Override

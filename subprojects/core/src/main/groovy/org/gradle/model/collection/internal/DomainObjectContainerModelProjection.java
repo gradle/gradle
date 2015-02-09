@@ -35,26 +35,26 @@ public abstract class DomainObjectContainerModelProjection<C extends Polymorphic
     protected final Class<M> baseItemType;
     private final ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference;
     private final ModelType<M> baseItemModelType;
+    private final ModelReference<? extends Collection<? super M>> storeReference;
 
-    public DomainObjectContainerModelProjection(ModelType<M> baseItemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference) {
+    public DomainObjectContainerModelProjection(ModelType<M> baseItemType, ModelReference<NamedEntityInstantiator<M>> instantiatorModelReference, ModelReference<? extends Collection<? super M>> storeReference) {
         this.baseItemModelType = baseItemType;
+        this.storeReference = storeReference;
         this.baseItemType = baseItemType.getConcreteClass();
         this.instantiatorModelReference = instantiatorModelReference;
     }
 
-    protected abstract C getContainer(MutableModelNode node);
-
     public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         Class<? extends M> itemType = itemType(targetType);
         if (itemType != null) {
-            return toView(ruleDescriptor, node, itemType, getContainer(node));
+            return toView(ruleDescriptor, node, itemType);
         }
         return null;
     }
 
-    protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, C container) {
+    protected <T, S extends M> ModelView<? extends T> toView(ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass) {
         ModelType<S> itemType = ModelType.of(itemClass);
-        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, container, sourceDescriptor, node, instantiatorModelReference);
+        CollectionBuilder<M> builder = new DefaultCollectionBuilder<M>(baseItemModelType, sourceDescriptor, node, DefaultCollectionBuilder.createAndStoreVia(instantiatorModelReference, storeReference));
 
         CollectionBuilder<S> subBuilder = builder.withType(itemClass);
         CollectionBuilderModelView<S> view = new CollectionBuilderModelView<S>(node.getPath(), DefaultCollectionBuilder.typeOf(itemType), subBuilder, sourceDescriptor);

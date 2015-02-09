@@ -765,6 +765,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public Object getPrivateData() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void ensureUsable() {
         }
     }
@@ -793,6 +798,11 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
             }
             return Cast.uncheckedCast(privateData);
+        }
+
+        @Override
+        public Object getPrivateData() {
+            return privateData;
         }
 
         public <T> void setPrivateData(ModelType<? super T> type, T object) {

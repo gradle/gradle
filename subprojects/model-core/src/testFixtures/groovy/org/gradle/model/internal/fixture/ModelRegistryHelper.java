@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.fixture;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -541,7 +540,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelCreator collection(Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<I>> instantiator) {
+        public <I> ModelCreator collection(Class<I> itemType, final ModelReference<? extends NamedEntityInstantiator<? super I>> instantiator) {
             final ModelType<I> itemModelType = ModelType.of(itemType);
             final ModelType<CollectionBuilder<I>> collectionBuilderType = DefaultCollectionBuilder.typeOf(itemModelType);
 
@@ -550,7 +549,7 @@ public class ModelRegistryHelper implements ModelRegistry {
                 public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
                     node.setPrivateData(
                             collectionBuilderType,
-                            new DefaultCollectionBuilder<I>(itemModelType, Lists.newLinkedList(), descriptor, node, instantiator)
+                            new DefaultCollectionBuilder<I>(itemModelType, descriptor, node, DefaultCollectionBuilder.createVia(instantiator))
                     );
                 }
             })

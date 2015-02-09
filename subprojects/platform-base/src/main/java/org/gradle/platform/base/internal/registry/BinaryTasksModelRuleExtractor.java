@@ -29,6 +29,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.InvalidModelException;
@@ -84,10 +85,13 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         public void execute(MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
             DefaultCollectionBuilder<TaskInternal> collectionBuilder = new DefaultCollectionBuilder<TaskInternal>(
                     ModelType.of(TaskInternal.class),
-                    binary.getTasks(),
                     getDescriptor(),
                     modelNode,
-                    ModelReference.of(ITaskFactory.class)
+                    DefaultCollectionBuilder.createAndStoreVia(
+                            ModelReference.of(ITaskFactory.class),
+                            ModelReference.of(modelNode.getPath().child("__tasks"), ModelTypes.collectionOf(Task .class))
+                    )
+
             ) {
                 @Override
                 protected <S extends TaskInternal> void onCreate(final String name, ModelType<S> type) {

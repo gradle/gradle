@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
@@ -29,6 +28,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
@@ -39,19 +39,14 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 @NotThreadSafe
 public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
+
     private final ModelType<T> elementType;
-    private final Collection<? super T> target;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
     private final BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction;
 
-    public DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
-        this(elementType, target, sourceDescriptor, modelNode, createViaReference(instantiatorReference));
-    }
-
-    private DefaultCollectionBuilder(ModelType<T> elementType, Collection<? super T> target, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction) {
+    public DefaultCollectionBuilder(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction) {
         this.elementType = elementType;
-        this.target = target;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
         this.creatorFunction = creatorFunction;
@@ -59,7 +54,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public String toString() {
-        return target.toString();
+        return modelNode.getPrivateData().toString();
     }
 
     @Override
@@ -84,7 +79,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             return uncheckedCast(subType);
         }
 
-        return new DefaultCollectionBuilder<S>(ModelType.of(type), ImmutableList.<S>of(), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends S>>() {
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends S>>() {
             @Override
             public ModelCreators.Builder apply(ModelPath s, ModelType<? extends S> modelType) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", modelType, elementType.toString()));
@@ -93,7 +88,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     public <S extends T> CollectionBuilder<S> toSubType(Class<S> type) {
-        return new DefaultCollectionBuilder<S>(ModelType.of(type), target, sourceDescriptor, modelNode, creatorFunction);
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, creatorFunction);
     }
 
     @Nullable
@@ -174,7 +169,6 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             @Override
             public void execute(S s) {
                 initAction.execute(s);
-                target.add(s);
             }
         }));
 
@@ -292,7 +286,36 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         ).build();
     }
 
-    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createViaReference(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
+    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createAndStoreVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference, final ModelReference<? extends Collection<? super T>> storeReference) {
+        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
+            @Override
+            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
+                return ModelCreators
+                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                doExecute(modelNode, modelType, modelViews);
+                            }
+
+                            public <S extends T> void doExecute(MutableModelNode modelNode, ModelType<S> subType, List<ModelView<?>> modelViews) {
+                                NamedEntityInstantiator<? super T> instantiator = ModelViews.getInstance(modelViews.get(0), instantiatorReference);
+                                S item = instantiator.create(path.getName(), subType.getConcreteClass());
+                                modelNode.setPrivateData(subType, item);
+                                modelNode.applyToSelf(ModelActionRole.Initialize, BiActionBackedModelAction.single(ModelReference.of(path, subType), new SimpleModelRuleDescriptor("DefaultCollectionBuilder.createAndStoreVia() - " + path), storeReference, new BiAction<S, Collection<? super T>>() {
+                                    @Override
+                                    public void execute(S s, Collection<? super T> objects) {
+                                        objects.add(s);
+                                    }
+                                }));
+                            }
+                        })
+                        .inputs(instantiatorReference);
+
+            }
+        };
+    }
+
+    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
         return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
             @Override
             public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
