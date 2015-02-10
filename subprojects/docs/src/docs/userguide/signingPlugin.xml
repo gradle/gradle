@@ -54,7 +54,7 @@
             is to store them in the user <literal>gradle.properties</literal> file (described in <xref linkend="sec:gradle_properties_and_system_properties"/>).
         </para>
         <programlisting>
-            signing.keyId=24875D73
+signing.keyId=24875D73
 signing.password=secret
 signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
         </programlisting>
