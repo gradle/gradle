@@ -52,6 +52,8 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.persist.ModelRegistryStore;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
@@ -95,6 +97,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected DefaultFileOperations createFileOperations() {
         return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class), get(FileLookup.class));
+    }
+
+    protected ExecActionFactory createExecActionFactory() {
+        return new DefaultExecActionFactory(get(FileResolver.class));
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

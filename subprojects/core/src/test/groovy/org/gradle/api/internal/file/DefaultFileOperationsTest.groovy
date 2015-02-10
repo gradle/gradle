@@ -34,7 +34,6 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
-import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -194,7 +193,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def createsCopySpec() {
         when:
-        def spec = fileOperations.copySpec { include 'pattern'}
+        def spec = fileOperations.copySpec { include 'pattern' }
 
         then:
         spec instanceof DefaultCopySpec
@@ -307,11 +306,6 @@ public class DefaultFileOperationsTest extends Specification {
 
         then:
         result.exitValue != 0
-    }
-
-    def createsExecAction() {
-        expect:
-        fileOperations.newExecAction() instanceof DefaultExecAction
     }
 
     def resolver() {
