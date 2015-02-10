@@ -21,12 +21,12 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("Project '#testProject' build")
     def "build"() {
         given:
-        runner.testId = "caching classloaders build $testProject"
+        runner.testId = "daemon clean build $testProject"
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
@@ -41,8 +41,8 @@ class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformance
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxTimeReg    | maxMemReg
-        "small"           | millis(2000)  | DataAmount.kbytes(150)
-        "multi"           | millis(5000)  | DataAmount.mbytes(0)
+        testProject | maxTimeReg   | maxMemReg
+        "small"     | millis(500)  | DataAmount.kbytes(150)
+        "multi"     | millis(1000) | DataAmount.mbytes(0)
     }
 }
