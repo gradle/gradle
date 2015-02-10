@@ -727,12 +727,6 @@ public class DependencyGraphBuilder {
                     continue;
                 }
                 DependencyEdge dependencyEdge = new DependencyEdge(this, dependency, resolutionFilter, resolveState);
-
-                // Verify dependency selector against itself
-                if (isExcluded(dependencyEdge.getSelector(), targetModuleId)) {
-                    continue;
-                }
-
                 outgoingEdges.add(dependencyEdge);
                 target.add(dependencyEdge);
             }
