@@ -194,31 +194,35 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         modelRegistry.createOrReplace(taskFactoryCreator);
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                         .descriptor("Project.<init>.serviceRegistry()")
+                        .ephemeral(true)
                         .build()
         );
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
                     public File create() {
                         return getBuildDir();
                     }
                 })
                         .descriptor("Project.<init>.buildDir()")
+                        .ephemeral(true)
                         .build()
         );
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                         .descriptor("Project.<init>.projectIdentifier()")
+                        .ephemeral(true)
                         .build()
         );
 
-        modelRegistry.create(
+        modelRegistry.createOrReplace(
                 ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
                         .descriptor("Project.<init>.extensions()")
+                        .ephemeral(true)
                         .build()
         );
     }
@@ -941,7 +945,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public void model(Closure<?> modelRules) {
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(getModelRegistry(), modelRules.getOwner(), modelRules.getThisObject()), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(getModelRegistry()), modelRules);
         } else {
             new NonTransformedModelDslBacking(getModelRegistry()).configure(modelRules);
         }

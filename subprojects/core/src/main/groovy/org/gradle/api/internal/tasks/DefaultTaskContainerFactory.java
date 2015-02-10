@@ -58,17 +58,13 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                 new Transformer<TaskContainerInternal, MutableModelNode>() {
                     @Override
                     public TaskContainerInternal transform(MutableModelNode mutableModelNode) {
-                        ModelReference<NamedEntityInstantiator<Task>> instantiatorReference = BridgedCollections.instantiatorReference(TaskContainerInternal.MODEL_PATH, taskModelType);
+                        ModelReference<NamedEntityInstantiator<Task>> instantiatorReference = BridgedCollections.instantiatorReference(TaskContainerInternal.MODEL_PATH, TaskContainerInternal.TASK_MODEL_TYPE);
                         return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, instantiatorReference, project, instantiator, taskFactory, projectAccessListener);
                     }
                 },
                 new Task.Namer(),
                 "Project.<init>.tasks()",
-                new Transformer<String, String>() {
-                    public String transform(String s) {
-                        return "Project.<init>.tasks." + s + "()";
-                    }
-                }
+                new Namer()
         );
 
         ModelNode modelNode = modelRegistry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.Created);
@@ -80,4 +76,11 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
         return mutableModelNode.getPrivateData(TaskContainerInternal.MODEL_TYPE);
     }
+
+    private static class Namer implements Transformer<String, String> {
+        public String transform(String s) {
+            return "Project.<init>.tasks." + s + "()";
+        }
+    }
+
 }

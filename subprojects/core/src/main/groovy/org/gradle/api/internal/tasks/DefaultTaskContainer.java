@@ -234,32 +234,36 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!modelNode.hasLink(placeholderName)) {
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
-            modelNode.addLink(
-                    ModelCreators
-                            .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                                @Override
-                                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                                    NamedEntityInstantiator<Task> instantiator = ModelViews.getInstance(inputs.get(0), instantiatorReference);
-                                    final T task = instantiator.create(placeholderName, taskType);
-                                    configure.execute(task);
-                                    DeprecationLogger.whileDisabled(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            modelNode.getPrivateData(ModelType.of(TaskContainerInternal.class)).add(task);
-                                        }
-                                    });
-                                    mutableModelNode.setPrivateData(taskModelType, task);
-                                }
-                            })
-                            .inputs(instantiatorReference)
-                            .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
-                            .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
-                            .build()
-            );
+            addPlaceholderModelLink(placeholderName, taskType, configure, taskModelType, path, instantiatorReference, modelNode);
         }
         if (findByNameWithoutRules(placeholderName) == null) {
             placeholders.add(placeholderName);
         }
+    }
+
+    private static <T extends TaskInternal> void addPlaceholderModelLink(final String placeholderName, final Class<T> taskType, final Action<? super T> configure, final ModelType<T> taskModelType, ModelPath path, final ModelReference<NamedEntityInstantiator<Task>> instantiatorReference, final MutableModelNode modelNode) {
+        modelNode.addLink(
+                ModelCreators
+                        .of(ModelReference.of(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                                NamedEntityInstantiator<Task> instantiator = ModelViews.getInstance(inputs.get(0), instantiatorReference);
+                                final T task = instantiator.create(placeholderName, taskType);
+                                configure.execute(task);
+                                DeprecationLogger.whileDisabled(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        modelNode.getPrivateData(ModelType.of(TaskContainerInternal.class)).add(task);
+                                    }
+                                });
+                                mutableModelNode.setPrivateData(taskModelType, task);
+                            }
+                        })
+                        .inputs(instantiatorReference)
+                        .withProjection(new UnmanagedModelProjection<T>(taskModelType, true, true))
+                        .descriptor(new SimpleModelRuleDescriptor("tasks.addPlaceholderAction(" + placeholderName + ")"))
+                        .build()
+        );
     }
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {

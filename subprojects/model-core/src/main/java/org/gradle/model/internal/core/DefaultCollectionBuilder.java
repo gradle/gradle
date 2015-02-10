@@ -149,12 +149,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("create(").append(name).append(")");
-            }
-        }));
+        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new Append(name)));
 
         ModelCreators.Builder creatorBuilder = creatorFunction.apply(modelNode.getPath().child(name), type);
 
@@ -338,4 +333,16 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         };
     }
 
+    private static class Append extends ErroringAction<Appendable> {
+        private final String name;
+
+        public Append(String name) {
+            this.name = name;
+        }
+
+        @Override
+        protected void doExecute(Appendable thing) throws Exception {
+            thing.append("create(").append(name).append(")");
+        }
+    }
 }

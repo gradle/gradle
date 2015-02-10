@@ -59,7 +59,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry, ITaskFactory taskFactory) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
         this.instantiator = instantiator;
         this.modelRegistry = modelRegistry;
     }
@@ -69,7 +69,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
 
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
-        final String descriptor = getClass().getName() + ".apply()";
+        applyRules(modelRegistry, binaries);
+    }
+
+    private static void applyRules(ModelRegistry modelRegistry, DefaultBinaryContainer binaries) {
+        final String descriptor = LanguageBasePlugin.class.getName() + ".apply()";
         final ModelRuleDescriptor ruleDescriptor = new SimpleModelRuleDescriptor(descriptor);
         ModelPath binariesPath = ModelPath.path("binaries");
         BridgedCollections.dynamicTypes(

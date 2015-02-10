@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
@@ -28,6 +29,10 @@ import org.gradle.api.reporting.components.ComponentReport;
 import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.*;
 import org.gradle.configuration.Help;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.Defaults;
+import org.gradle.model.RuleSource;
+import org.gradle.model.collection.CollectionBuilder;
 
 import java.util.concurrent.Callable;
 
@@ -47,81 +52,147 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         final TaskContainerInternal tasks = project.getTasks();
 
-        tasks.addPlaceholderAction(ProjectInternal.HELP_TASK, Help.class, new Action<Help>() {
-            public void execute(Help task) {
-                task.setDescription("Displays a help message.");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
+        // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
+        tasks.addPlaceholderAction(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
+        tasks.addPlaceholderAction(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(project.toString()));
+        tasks.addPlaceholderAction(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(project.toString(), project.getChildProjects().isEmpty()));
+        tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(project.toString()));
+        tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(project.toString()));
+        tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(project.toString()));
+        tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(project.toString()));
+        tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(project.toString()));
+    }
 
-        tasks.addPlaceholderAction(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new Action<ProjectReportTask>() {
-            public void execute(ProjectReportTask task) {
-                task.setDescription("Displays the sub-projects of " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(ProjectInternal.TASKS_TASK, TaskReportTask.class, new Action<TaskReportTask>() {
-            public void execute(TaskReportTask task) {
-                String description;
-                if (project.getChildProjects().isEmpty()) {
-                    description = "Displays the tasks runnable from " + project + ".";
-                } else {
-                    description = "Displays the tasks runnable from " + project + " (some of the displayed tasks may belong to subprojects).";
-                }
-                task.setDescription(description);
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new Action<PropertyReportTask>() {
-            public void execute(PropertyReportTask task) {
-                task.setDescription("Displays the properties of " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
-
-        tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new Action<DependencyInsightReportTask>() {
-            public void execute(final DependencyInsightReportTask task) {
-                task.setDescription("Displays the insight into a specific dependency in " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
+    static class Rules extends RuleSource {
+        static class Rule extends RuleSource {
+            @Defaults
+            void add(DependencyInsightReportTask task, final ServiceRegistry services) {
                 new DslObject(task).getConventionMapping().map("configuration", new Callable<Object>() {
                     public Object call() {
-                        BuildableJavaComponent javaProject = project.getServices().get(ComponentRegistry.class).getMainComponent();
+                        BuildableJavaComponent javaProject = services.get(ComponentRegistry.class).getMainComponent();
                         return javaProject == null ? null : javaProject.getCompileDependencies();
                     }
                 });
             }
-        });
+        }
 
+        @Defaults
+        void addDefaultDependenciesReportConfiguration(CollectionBuilder<Task> task, ServiceRegistry serviceRegistry) {
+            task.named(DEPENDENCY_INSIGHT_TASK, Rule.class);
+        }
+    }
 
-        tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new Action<DependencyReportTask>() {
-            public void execute(DependencyReportTask task) {
-                task.setDescription("Displays all dependencies declared in " + project + ".");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
+    private static class HelpAction implements Action<Help> {
+        public void execute(Help task) {
+            task.setDescription("Displays a help message.");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class ProjectReportTaskAction implements Action<ProjectReportTask> {
+        private final String project;
+
+        public ProjectReportTaskAction(String projectName) {
+            this.project = projectName;
+        }
+
+        public void execute(ProjectReportTask task) {
+            task.setDescription("Displays the sub-projects of " + project + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class TaskReportTaskAction implements Action<TaskReportTask> {
+        private final String projectName;
+        private final boolean noChildren;
+
+        public TaskReportTaskAction(String projectName, boolean noChildren) {
+            this.projectName = projectName;
+            this.noChildren = noChildren;
+        }
+
+        public void execute(TaskReportTask task) {
+            String description;
+            if (noChildren) {
+                description = "Displays the tasks runnable from " + projectName + ".";
+            } else {
+                description = "Displays the tasks runnable from " + projectName + " (some of the displayed tasks may belong to subprojects).";
             }
-        });
+            task.setDescription(description);
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
 
-        tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new Action<ComponentReport>() {
-            public void execute(ComponentReport task) {
-                task.setDescription("Displays the components produced by " + project + ". [incubating]");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
+    private static class PropertyReportTaskAction implements Action<PropertyReportTask> {
+        private final String projectName;
 
-        tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new Action<ModelReport>() {
-            public void execute(ModelReport task) {
-                task.setDescription("Displays the configuration model of " + project + ". [incubating]");
-                task.setGroup(HELP_GROUP);
-                task.setImpliesSubProjects(true);
-            }
-        });
+        public PropertyReportTaskAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(PropertyReportTask task) {
+            task.setDescription("Displays the properties of " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class DependencyInsightReportTaskAction implements Action<DependencyInsightReportTask> {
+        private final String projectName;
+
+        public DependencyInsightReportTaskAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(final DependencyInsightReportTask task) {
+            task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class DependencyReportTaskAction implements Action<DependencyReportTask> {
+        private final String projectName;
+
+        public DependencyReportTaskAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(DependencyReportTask task) {
+            task.setDescription("Displays all dependencies declared in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class ComponentReportAction implements Action<ComponentReport> {
+        private final String projectName;
+
+        public ComponentReportAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(ComponentReport task) {
+            task.setDescription("Displays the components produced by " + projectName + ". [incubating]");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
+    }
+
+    private static class ModelReportAction implements Action<ModelReport> {
+        private final String projectName;
+
+        public ModelReportAction(String projectName) {
+            this.projectName = projectName;
+        }
+
+        public void execute(ModelReport task) {
+            task.setDescription("Displays the configuration model of " + projectName + ". [incubating]");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+        }
     }
 }

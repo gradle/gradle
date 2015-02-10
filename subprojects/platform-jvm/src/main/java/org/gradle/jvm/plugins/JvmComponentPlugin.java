@@ -94,22 +94,7 @@ public class JvmComponentPlugin extends RuleSource {
         for (final JavaPlatform platform : selectedPlatforms) {
             final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
             final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
-
-            binaries.create(binaryName, new Action<JarBinarySpec>() {
-                public void execute(JarBinarySpec jarBinary) {
-                    JarBinarySpecInternal jarBinaryInternal = (JarBinarySpecInternal) jarBinary;
-                    jarBinaryInternal.setBaseName(jvmLibrary.getName());
-                    jarBinary.setToolChain(toolChain);
-                    jarBinary.setTargetPlatform(platform);
-
-                    File outputDir = new File(classesDir, jarBinary.getName());
-                    jarBinary.setClassesDir(outputDir);
-                    jarBinary.setResourcesDir(outputDir);
-                    jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
-
-                    jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
-                }
-            });
+            binaries.create(binaryName, new ConfigureJarBinary(jvmLibrary, toolChain, platform, classesDir, binariesDir, jvmComponentExtension));
         }
     }
 
@@ -155,5 +140,37 @@ public class JvmComponentPlugin extends RuleSource {
             componentBuilder = componentBuilder.withVariantDimension(platform.getName());
         }
         return componentBuilder.build().getLifecycleTaskName();
+    }
+
+    private static class ConfigureJarBinary implements Action<JarBinarySpec> {
+        private final JvmLibrarySpec jvmLibrary;
+        private final JavaToolChainInternal toolChain;
+        private final JavaPlatform platform;
+        private final File classesDir;
+        private final File binariesDir;
+        private final JvmComponentExtension jvmComponentExtension;
+
+        public ConfigureJarBinary(JvmLibrarySpec jvmLibrary, JavaToolChainInternal toolChain, JavaPlatform platform, File classesDir, File binariesDir, JvmComponentExtension jvmComponentExtension) {
+            this.jvmLibrary = jvmLibrary;
+            this.toolChain = toolChain;
+            this.platform = platform;
+            this.classesDir = classesDir;
+            this.binariesDir = binariesDir;
+            this.jvmComponentExtension = jvmComponentExtension;
+        }
+
+        public void execute(JarBinarySpec jarBinary) {
+            JarBinarySpecInternal jarBinaryInternal = (JarBinarySpecInternal) jarBinary;
+            jarBinaryInternal.setBaseName(jvmLibrary.getName());
+            jarBinary.setToolChain(toolChain);
+            jarBinary.setTargetPlatform(platform);
+
+            File outputDir = new File(classesDir, jarBinary.getName());
+            jarBinary.setClassesDir(outputDir);
+            jarBinary.setResourcesDir(outputDir);
+            jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinaryInternal.getBaseName())));
+
+            jvmComponentExtension.getAllBinariesAction().execute(jarBinary);
+        }
     }
 }
