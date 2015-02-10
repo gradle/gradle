@@ -36,6 +36,8 @@ public interface ScriptCompiler {
 
     ScriptCompiler setVerifier(Action<? super ClassNode> verifier);
 
+    ScriptCompiler setClasspathClosureName(String classpathClosureName);
+
     /**
      * Compiles the script into a {@code Script} object of the given type.
      *

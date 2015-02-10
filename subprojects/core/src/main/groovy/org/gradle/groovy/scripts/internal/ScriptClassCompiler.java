@@ -21,5 +21,5 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 
 public interface ScriptClassCompiler {
-    public <T extends groovy.lang.Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier);
+    public <T extends groovy.lang.Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, String classpathClosureName, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier);
 }

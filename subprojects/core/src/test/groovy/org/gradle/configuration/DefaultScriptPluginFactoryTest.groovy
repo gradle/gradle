@@ -56,6 +56,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def loggingManager = Mock(LoggingManagerInternal)
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
+    def classpathClosureName = "buildscript"
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
             documentationRegistry, new ModelRuleSourceDetector())
@@ -80,6 +81,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
+        1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
@@ -105,6 +107,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
+        1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
         1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)

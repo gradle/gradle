@@ -19,5 +19,7 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 
 public interface CompiledScript<T extends Script> {
+    boolean hasImperativeStatements();
+
     Class<? extends T> loadClass();
 }

@@ -25,8 +25,8 @@ import java.io.File;
 
 public interface ScriptCompilationHandler {
     void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Transformer transformer,
-                      Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
+                      String classpathClosureName, Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
-    <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                                       Class<T> scriptBaseClass);
+    <T extends Script> CompiledScript<T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                                                     Class<T> scriptBaseClass);
 }

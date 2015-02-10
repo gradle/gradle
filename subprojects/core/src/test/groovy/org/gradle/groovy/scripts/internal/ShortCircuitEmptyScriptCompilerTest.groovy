@@ -32,6 +32,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final Transformer transformer = Mock()
     final Action verifier = Mock()
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
+    String classpathClosureName = "buildscript"
 
     def setup() {
         _ * source.resource >> resource
@@ -42,10 +43,12 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         _ * resource.text >> '  \n\t'
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
+        def compiledScript = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier)
+        def result = compiledScript.loadClass()
 
         then:
         result == TestScript
+        !compiledScript.hasImperativeStatements()
         1 * emptyScriptGenerator.generate(Script) >> TestScript
         0 * emptyScriptGenerator._
         0 * target._
@@ -57,11 +60,11 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         CompiledScript<?> compiledScript = Mock()
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier)
 
         then:
         result == compiledScript
-        1 * target.compile(source, classLoader, transformer, Script, verifier) >> compiledScript
+        1 * target.compile(source, classLoader, transformer, classpathClosureName, Script, verifier) >> compiledScript
         0 * emptyScriptGenerator._
         0 * target._
     }

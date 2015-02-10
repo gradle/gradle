@@ -31,14 +31,19 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, String classpathClosureName, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
+                @Override
+                public boolean hasImperativeStatements() {
+                    return false;
+                }
+
                 public Class<? extends T> loadClass() {
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }
             });
         }
-        return compiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
+        return compiler.compile(source, classLoader, transformer, classpathClosureName, scriptBaseClass, verifier);
     }
 }

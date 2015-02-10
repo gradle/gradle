@@ -16,14 +16,13 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
@@ -51,6 +50,7 @@ import java.util.List;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
+    private static final String IMPERATIVE_STATEMENTS_MARKER_FILE_NAME = "hasImperativeStatements.txt";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
 
@@ -59,15 +59,15 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         this.classLoaderCache = classLoaderCache;
     }
 
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir,
-                             Transformer transformer, Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, Transformer transformer, String classpathClosureName, Class<? extends Script> scriptBaseClass,
+                             Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, classesDir, transformer, verifier);
+            compileScript(source, classLoader, configuration, classesDir, transformer, verifier, classpathClosureName);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
             throw e;
@@ -78,11 +78,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
-                               File classesDir, final Transformer transformer, final Action<? super ClassNode> customVerifier) {
+                               File classesDir, final Transformer transformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
+        final ImperativeStatementDetector imperativeStatementDetector = new ImperativeStatementDetector(classpathClosureName);
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
@@ -95,6 +96,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
                 compilationUnit.addPhaseOperation(packageDetector, Phases.CANONICALIZATION);
                 compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
+                compilationUnit.addPhaseOperation(imperativeStatementDetector, Phases.CANONICALIZATION);
                 return compilationUnit;
             }
         };
@@ -115,6 +117,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
         if (emptyScriptDetector.isEmptyScript()) {
             GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
+        }
+        if(imperativeStatementDetector.hasImperativeStatements) {
+            GFileUtils.touch(new File(classesDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME));
         }
     }
 
@@ -148,21 +153,63 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                                                             Class<T> scriptBaseClass) {
-        if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
-            return emptyScriptGenerator.generate(scriptBaseClass);
+    public <T extends Script> CompiledScript<T> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
+                                                            final Class<T> scriptBaseClass) {
+        final boolean hasImperativeStatements = new File(scriptCacheDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME).isFile();
+
+        return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
+
+            public boolean hasImperativeStatements() {
+                return hasImperativeStatements;
+            }
+
+            @Override
+            public Class<? extends T> loadClass() {
+                if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
+                    return emptyScriptGenerator.generate(scriptBaseClass);
+                }
+
+                try {
+                    ClassLoader loader = classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()), new DefaultClassPath(scriptCacheDir), classLoader, null);
+                    return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
+                } catch (Exception e) {
+                    File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
+                    if (!expectedClassFile.exists()) {
+                        throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+                    }
+                    throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+                }
+            }
+        });
+    }
+
+    private static class ImperativeStatementDetector extends CompilationUnit.SourceUnitOperation {
+        private final List<String> scriptBlockNames;
+
+        private boolean hasImperativeStatements;
+
+        private ImperativeStatementDetector(String classpathClosureName) {
+            scriptBlockNames = ImmutableList.of(classpathClosureName, PluginsAndBuildscriptTransformer.PLUGINS);
         }
 
-        try {
-            ClassLoader loader = this.classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()), new DefaultClassPath(scriptCacheDir), classLoader, null);
-            return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
-        } catch (Exception e) {
-            File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
-            if (!expectedClassFile.exists()) {
-                throw new GradleException(String.format("Could not load compiled classes for %s from cache. Expected class file %s does not exist.", source.getDisplayName(), expectedClassFile.getAbsolutePath()), e);
+        @Override
+        public void call(SourceUnit source) throws CompilationFailedException {
+            hasImperativeStatements = hasImperativeStatements(source);
+        }
+
+        private boolean hasImperativeStatements(SourceUnit source) {
+            if (source.getAST().getMethods().isEmpty()) {
+                boolean hasImperativeStatements = false;
+                List<Statement> statements = source.getAST().getStatementBlock().getStatements();
+                if (statements.size() == 1) {
+                    return !AstUtils.isReturnNullStatement(statements.get(0));
+                }
+                for (int i = 0; i < statements.size() && !hasImperativeStatements; i++) {
+                    hasImperativeStatements = AstUtils.detectScriptBlock(statements.get(i), scriptBlockNames) == null;
+                }
+                return hasImperativeStatements;
             }
-            throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+            return true;
         }
     }
 
@@ -195,18 +242,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 return true;
             }
 
-            Statement statement = statements.get(0);
-            if (statement instanceof ReturnStatement) {
-                ReturnStatement returnStatement = (ReturnStatement) statement;
-                if (returnStatement.getExpression() instanceof ConstantExpression) {
-                    ConstantExpression constantExpression = (ConstantExpression) returnStatement.getExpression();
-                    if (constantExpression.getValue() == null) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return AstUtils.isReturnNullStatement(statements.get(0));
         }
 
         public boolean isEmptyScript() {

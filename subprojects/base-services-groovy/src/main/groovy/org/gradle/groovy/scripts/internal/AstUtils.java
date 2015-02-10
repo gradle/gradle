@@ -24,6 +24,7 @@ import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
@@ -205,6 +206,19 @@ public abstract class AstUtils {
 
         List<MethodNode> doCallMethods = classNode.getDeclaredMethods("doCall");
         return doCallMethods.get(0);
+    }
+
+    public static boolean isReturnNullStatement(Statement statement) {
+        if (statement instanceof ReturnStatement) {
+            ReturnStatement returnStatement = (ReturnStatement) statement;
+            if (returnStatement.getExpression() instanceof ConstantExpression) {
+                ConstantExpression constantExpression = (ConstantExpression) returnStatement.getExpression();
+                if (constantExpression.getValue() == null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

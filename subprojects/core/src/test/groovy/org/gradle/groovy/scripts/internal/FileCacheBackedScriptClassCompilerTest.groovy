@@ -40,6 +40,10 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final File cacheDir = new File("base-dir")
     final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
     final Action verifier = Stub()
+    final String classpathClosureName = "buildscript"
+    final CompiledScript compiledScript = Stub() {
+        loadClass() >> Script
+    }
 
     def setup() {
         Resource resource = Mock()
@@ -54,7 +58,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "loads classes from cache directory"() {
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
+        def result = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -68,7 +72,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
@@ -79,10 +83,10 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         cacheBuilder.withInitializer(!null) >> cacheBuilder
         cacheBuilder.withDisplayName(!null) >> cacheBuilder
         cacheBuilder.open() >> cache
-        scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> compiledScript
 
         when:
-        compiler.compile(source, classLoader, transformer, Script, verifier)
+        compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier)
 
         then:
         1 * cacheBuilder.withValidator(validator) >> cacheBuilder
@@ -94,7 +98,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         def initializer
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier).loadClass()
+        def result = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier).loadClass()
 
         then:
         result == Script
@@ -104,8 +108,8 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> {args -> initializer = args[0]; return cacheBuilder}
         1 * cacheBuilder.open() >> {initializer.execute(cache); return cache}
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script, verifier)
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, classpathClosureName, Script, verifier)
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> compiledScript
         0 * scriptCompilationHandler._
     }
 

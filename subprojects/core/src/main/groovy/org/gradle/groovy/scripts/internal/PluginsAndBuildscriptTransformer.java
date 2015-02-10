@@ -30,7 +30,7 @@ import java.util.List;
 
 public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
-    private static final String PLUGINS = "plugins";
+    static final String PLUGINS = "plugins";
 
     private final String classpathBlockName;
     private final String pluginsBlockMessage;

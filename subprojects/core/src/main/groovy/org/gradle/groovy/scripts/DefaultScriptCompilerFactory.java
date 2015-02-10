@@ -40,6 +40,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private ClassLoader classloader;
         private Transformer transformer;
         private Action<? super ClassNode> verifier = Actions.doNothing();
+        private String classpathClosureName;
 
         public ScriptCompilerImpl(ScriptSource source) {
             this.source = new CachingScriptSource(source);
@@ -62,8 +63,14 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         }
 
         @Override
+        public ScriptCompiler setClasspathClosureName(String classpathClosureName) {
+            this.classpathClosureName = classpathClosureName;
+            return this;
+        }
+
+        @Override
         public <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) {
-            CompiledScript<T> scriptClass = scriptClassCompiler.compile(source, classloader, transformer, scriptType, verifier);
+            CompiledScript<T> scriptClass = scriptClassCompiler.compile(source, classloader, transformer, classpathClosureName, scriptType, verifier);
             return scriptRunnerFactory.create(scriptClass, source, classloader);
         }
     }

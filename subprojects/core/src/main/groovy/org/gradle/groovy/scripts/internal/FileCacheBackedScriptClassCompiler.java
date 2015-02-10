@@ -43,14 +43,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final CompositeStoppable caches = new CompositeStoppable();
 
-    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler, ProgressLoggerFactory progressLoggerFactory) {
+    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
+                                              ProgressLoggerFactory progressLoggerFactory) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, String classpathClosureName, final Class<T> scriptBaseClass,
+                                                        Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
         properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
@@ -60,7 +62,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
-                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, verifier, scriptBaseClass)))
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, classpathClosureName, verifier, scriptBaseClass)))
                 .open();
 
         // This isn't quite right. The cache will be closed at the end of the build, releasing the shared lock on the classes. Instead, the cache for a script should be
@@ -69,11 +71,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final File classesDir = classesDir(cache);
 
-        return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
-            public Class<? extends T> loadClass() {
-                return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
-            }
-        });
+        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
     }
 
     public void close() {
@@ -89,19 +87,21 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
         private final Transformer transformer;
+        private final String classpathClosureName;
         private final ScriptSource source;
 
-        private CacheInitializer(ScriptSource source, ClassLoader classLoader, Transformer transformer, Action<? super ClassNode> verifier, Class<? extends Script> scriptBaseClass) {
+        private CacheInitializer(ScriptSource source, ClassLoader classLoader, Transformer transformer, String classpathClosureName, Action<? super ClassNode> verifier, Class<? extends Script> scriptBaseClass) {
             this.source = source;
             this.classLoader = classLoader;
             this.transformer = transformer;
+            this.classpathClosureName = classpathClosureName;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
         }
 
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass, verifier);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, classpathClosureName, scriptBaseClass, verifier);
         }
     }
 

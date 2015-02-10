@@ -28,6 +28,11 @@ public class ClassCachingCompiledScript<T extends Script> implements CompiledScr
     }
 
     @Override
+    public boolean hasImperativeStatements() {
+        return delegate.hasImperativeStatements();
+    }
+
+    @Override
     public Class<? extends T> loadClass() {
         if (scriptClass == null) {
             scriptClass = delegate.loadClass();

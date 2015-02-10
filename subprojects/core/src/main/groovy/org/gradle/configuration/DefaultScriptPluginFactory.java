@@ -127,6 +127,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
             compiler.setTransformer(classpathScriptTransformer);
+            compiler.setClasspathClosureName(classpathClosureName);
 
             ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType);
             classPathScriptRunner.getScript().init(target, services);
