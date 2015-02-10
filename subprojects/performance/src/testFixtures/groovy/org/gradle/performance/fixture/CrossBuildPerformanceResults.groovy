@@ -16,15 +16,9 @@
 
 package org.gradle.performance.fixture
 
-class CrossBuildPerformanceResults {
-    String testId
+class CrossBuildPerformanceResults extends PerformanceTestResult {
     String testGroup
-    String jvm
     String versionUnderTest
-    String operatingSystem
-    long testTime
-    String vcsBranch
-    String vcsCommit
 
     private final Map<BuildSpecification, MeasuredOperationList> buildResults = new LinkedHashMap<>()
 

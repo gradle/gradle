@@ -28,7 +28,7 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
-public class CrossVersionPerformanceTestRunner {
+public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     TestDirectoryProvider testDirectoryProvider
     GradleDistribution current
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -36,10 +36,7 @@ public class CrossVersionPerformanceTestRunner {
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 
-    String testId
     String testProject
-    int runs
-    int warmUpRuns
     boolean useDaemon
 
     //sub runs 'inside' a run. Useful for tests with the daemon
@@ -127,7 +124,7 @@ public class CrossVersionPerformanceTestRunner {
         def operation = timer.measure { MeasuredOperation operation ->
             subRuns.times {
                 println "Sub-run ${it + 1}..."
-                //creation of executer is included in measuer operation
+                //creation of executer is included in measured operation
                 //this is not ideal but it does not prevent us from finding performance regressions
                 //because extra time is equally added to all executions
                 def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider)

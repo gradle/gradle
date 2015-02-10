@@ -18,19 +18,13 @@ package org.gradle.performance.fixture
 
 import org.gradle.api.logging.Logging
 
-public class CrossVersionPerformanceResults {
+public class CrossVersionPerformanceResults extends PerformanceTestResult {
     private final static LOGGER = Logging.getLogger(CrossVersionPerformanceResults.class)
 
-    String testId
     String testProject
     String[] args
     String[] tasks
-    String jvm
-    String operatingSystem
-    long testTime
     String versionUnderTest
-    String vcsBranch
-    String vcsCommit
 
     private final Map<String, BaselineVersion> baselineVersions = new LinkedHashMap<>()
     final MeasuredOperationList current = new MeasuredOperationList(name: "Current Gradle")

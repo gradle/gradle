@@ -24,7 +24,7 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
-class CrossBuildPerformanceTestRunner {
+class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
     TestDirectoryProvider testDirectoryProvider
     GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
@@ -33,9 +33,6 @@ class CrossBuildPerformanceTestRunner {
     OperationTimer timer = new OperationTimer()
 
     String testGroup
-    String testId
-    int runs = 5
-    int warmUpRuns = 3
     List<BuildSpecification> buildSpecifications = []
 
     private GCLoggingCollector gcCollector = new GCLoggingCollector()
@@ -45,6 +42,11 @@ class CrossBuildPerformanceTestRunner {
 
     CrossBuildPerformanceResults results
     DataReporter<CrossBuildPerformanceResults> reporter
+
+    CrossBuildPerformanceTestRunner() {
+        runs = 5
+        warmUpRuns = 3
+    }
 
     CrossBuildPerformanceResults run() {
         assert !buildSpecifications.empty
