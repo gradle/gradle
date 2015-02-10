@@ -66,7 +66,7 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         runAllSpecifications()
 
         reporter.report(results)
-        results
+        return results
     }
 
     void runAllSpecifications() {
@@ -78,7 +78,7 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
             }
             def operations = results.buildResult(buildSpecification)
             runs.times {
-                runNow(buildSpecification, projectDir, operations)
+                runOnce(buildSpecification, projectDir, operations)
             }
             if (buildSpecification.useDaemon) {
                 executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).withTasks().withArgument('--stop').run()
@@ -86,7 +86,7 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         }
     }
 
-    void runNow(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results) {
+    void runOnce(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results) {
         def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider)
         dataCollector.beforeExecute(projectDir, executer)
 
@@ -97,6 +97,7 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)
         }
+
         results.add(operation)
     }
 }

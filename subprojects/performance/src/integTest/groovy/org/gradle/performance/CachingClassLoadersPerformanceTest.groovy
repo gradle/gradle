@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.performance
 
 import org.gradle.performance.measure.DataAmount
@@ -28,9 +26,6 @@ class CachingClassLoadersPerformanceTest extends AbstractCrossVersionPerformance
     @Unroll("Project '#testProject' build")
     def "build"() {
         given:
-        runner.runs = 2
-        runner.subRuns = 5
-        runner.warmUpRuns = 1
         runner.testId = "caching classloaders build $testProject"
         runner.testProject = testProject
         runner.useDaemon = true

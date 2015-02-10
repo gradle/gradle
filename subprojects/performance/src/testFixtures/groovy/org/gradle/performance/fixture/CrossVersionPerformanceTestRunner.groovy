@@ -39,9 +39,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     String testProject
     boolean useDaemon
 
-    //sub runs 'inside' a run. Useful for tests with the daemon
-    int subRuns
-
     List<String> tasksToRun = []
     private GCLoggingCollector gcCollector = new GCLoggingCollector()
     DataCollector dataCollector = new CompositeDataCollector(
@@ -89,51 +86,47 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         assert !allVersions.isEmpty()
 
+        File projectDir = testProjectLocator.findProjectDir(testProject)
+
+        println "Running performance tests for test project '$testProject', no. of runs: $runs"
+
         allVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
+
+            println "Gradle ${baselineVersion.version}..."
+            runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
         }
 
-        println "Running performance tests for test project '$testProject', no. of runs: $runs"
-        warmUpRuns.times {
-            println "Executing warm-up run #${it + 1}"
-            runNow(1) //warm-up will not do any sub-runs
-        }
-        results.clear()
-        runs.times {
-            println "Executing test run #${it + 1}"
-            runNow(subRuns)
-        }
+        println "Current Gradle..."
+        runVersion(current, projectDir, results.current)
+
         reporter.report(results)
         results
     }
 
-    void runNow(int subRuns) {
-        File projectDir = testProjectLocator.findProjectDir(testProject)
-        results.baselineVersions.each {
-            println "Gradle ${it.version}..."
-            runNow(buildContext.distribution(it.version), projectDir, it.results, subRuns)
+    private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
+        warmUpRuns.times {
+            println "Executing warm-up run #${it + 1}"
+            runOnce(dist, projectDir, new MeasuredOperationList())
         }
-
-        println "Current Gradle..."
-        runNow(current, projectDir, results.current, subRuns)
-    }
-
-    void runNow(GradleDistribution dist, File projectDir, MeasuredOperationList results, int subRuns) {
-        def operation = timer.measure { MeasuredOperation operation ->
-            subRuns.times {
-                println "Sub-run ${it + 1}..."
-                //creation of executer is included in measured operation
-                //this is not ideal but it does not prevent us from finding performance regressions
-                //because extra time is equally added to all executions
-                def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider)
-                dataCollector.beforeExecute(projectDir, executer)
-                executer.run()
-            }
+        runs.times {
+            println "Executing test run #${it + 1}"
+            runOnce(dist, projectDir, results)
         }
         if (useDaemon) {
             executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider).withTasks("--stop").run()
+        }
+    }
+
+    private void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
+        gcCollector.useDaemon(useDaemon)
+        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider)
+        dataCollector.beforeExecute(projectDir, executer)
+
+        def operation = timer.measure { MeasuredOperation operation ->
+            executer.run()
         }
         if (operation.exception == null) {
             dataCollector.collect(projectDir, operation)

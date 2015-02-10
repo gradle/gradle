@@ -37,7 +37,6 @@ class AbstractCrossVersionPerformanceTest extends Specification {
             current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
-            subRuns: 1,
             targetVersions: ['1.0', '1.4', '1.8', 'last'],
             maxExecutionTimeRegression: Duration.millis(500),
             maxMemoryRegression: DataAmount.mbytes(25)
