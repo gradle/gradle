@@ -16,13 +16,8 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.collect.ImmutableSortedMap;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
-
-import java.lang.ref.WeakReference;
-import java.util.Collections;
 
 @ThreadSafe
 public class ModelSchema<T> {
@@ -56,15 +51,13 @@ public class ModelSchema<T> {
 
     private final ModelType<T> type;
     private final Kind kind;
-    private final ImmutableSortedMap<String, ModelProperty<?>> properties;
-    private final WeakReference<Class<? extends T>> managedImpl;
 
     public static <T> ModelSchema<T> value(ModelType<T> type) {
         return new ModelSchema<T>(type, Kind.VALUE);
     }
 
-    public static <T> ModelSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl) {
-        return new ModelSchema<T>(type, Kind.STRUCT, properties, managedImpl);
+    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl) {
+        return new ModelStructSchema<T>(type, properties, managedImpl);
     }
 
     public static <T> ModelCollectionSchema<T> collection(ModelType<T> type, ModelType<?> elementType) {
@@ -75,20 +68,9 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.UNMANAGED);
     }
 
-    private ModelSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl) {
+    protected ModelSchema(ModelType<T> type, Kind kind) {
         this.type = type;
         this.kind = kind;
-        this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);
-
-        ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
-        for (ModelProperty<?> property : properties) {
-            builder.put(property.getName(), property);
-        }
-        this.properties = builder.build();
-    }
-
-    protected ModelSchema(ModelType<T> type, Kind kind) {
-        this(type, kind, Collections.<ModelProperty<?>>emptySet(), null);
     }
 
     public ModelType<T> getType() {
@@ -99,12 +81,4 @@ public class ModelSchema<T> {
         return kind;
     }
 
-    public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
-        return properties;
-    }
-
-    @Nullable
-    public Class<? extends T> getManagedImpl() {
-        return managedImpl == null ? null : managedImpl.get();
-    }
 }

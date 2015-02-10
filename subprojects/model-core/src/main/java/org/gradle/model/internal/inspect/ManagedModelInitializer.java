@@ -23,17 +23,18 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Object> {
 
-    private final ModelSchema<T> modelSchema;
+    private final ModelStructSchema<T> modelSchema;
     private final ModelAction<T> initializer;
     private final ModelRuleDescriptor descriptor;
     private final ModelSchemaStore schemaStore;
     private final ModelCreatorFactory modelCreatorFactory;
 
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, ModelAction<T> initializer) {
+    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ModelCreatorFactory modelCreatorFactory, ModelAction<T> initializer) {
         this.descriptor = descriptor;
         this.schemaStore = schemaStore;
         this.modelCreatorFactory = modelCreatorFactory;

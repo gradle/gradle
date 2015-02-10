@@ -571,7 +571,6 @@ $type
     def "can extract enum"() {
         expect:
         extract(MyEnum).kind == ModelSchema.Kind.VALUE
-        extract(MyEnum).properties.isEmpty()
     }
 
     @Managed

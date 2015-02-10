@@ -32,6 +32,7 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
@@ -156,7 +157,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
 
             Class<R> concreteClass = type.getConcreteClass();
             Class<? extends R> implClass = classGenerator.generate(concreteClass);
-            final ModelSchema<R> schema = ModelSchema.struct(type, properties, implClass);
+            final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, implClass);
             extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
                 @Override
                 public void execute(ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext) {
@@ -175,7 +176,7 @@ public class StructStrategy implements ModelSchemaExtractionStrategy {
         }
     }
 
-    private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelSchema<R> schema) {
+    private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelStructSchema<R> schema) {
         try {
             proxyFactory.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {

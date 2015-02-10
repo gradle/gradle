@@ -27,6 +27,7 @@ import org.gradle.model.internal.manage.projection.ManagedSetModelProjection;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 
 import java.util.List;
 
@@ -68,9 +69,10 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
                     .descriptor(descriptor)
                     .build();
         }
-        if (schema.getKind() == ModelSchema.Kind.STRUCT) {
-            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, schema, schemaStore, this, initializer))
-                    .withProjection(new ManagedModelProjection<T>(schema, schemaStore, proxyFactory))
+        if (schema instanceof ModelStructSchema) {
+            ModelStructSchema<T> structSchema = (ModelStructSchema<T>) schema;
+            return ModelCreators.of(modelReference, new ManagedModelInitializer<T>(descriptor, structSchema, schemaStore, this, initializer))
+                    .withProjection(new ManagedModelProjection<T>(structSchema, schemaStore, proxyFactory))
                     .descriptor(descriptor)
                     .build();
         }
