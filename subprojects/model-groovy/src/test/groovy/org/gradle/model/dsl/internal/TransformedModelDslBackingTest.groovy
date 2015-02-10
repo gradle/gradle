@@ -32,7 +32,7 @@ class TransformedModelDslBackingTest extends Specification {
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def blockOwner = new Object()
-    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), this, blockOwner, referenceExtractor, locationExtractor)
+    def modelDsl = new TransformedModelDslBacking(getModelRegistry(), referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {
         modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
@@ -45,7 +45,6 @@ class TransformedModelDslBackingTest extends Specification {
 
         when:
         modelDsl.configure("foo") {
-            assert owner.is(this.blockOwner)
             add 1
         }
 

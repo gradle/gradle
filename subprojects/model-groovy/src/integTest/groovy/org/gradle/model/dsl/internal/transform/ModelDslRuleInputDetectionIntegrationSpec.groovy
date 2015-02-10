@@ -227,18 +227,20 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         ))
     }
 
-    def "owner chain for rule script does not include intermediate objects"() {
+    def "can not access project or script from rule"() {
         when:
         buildScript """
-            def o
-            def c = {
-                o = owner
-            }
-            c()
-
             model {
                 tasks {
-                    assert owner.is(o)
+                    assert owner == null
+                    assert this == null
+
+                    try {
+                        project.tasks
+                        assert false : "should not reach here"
+                    } catch (MissingPropertyException ignore) {
+
+                    }
                 }
             }
         """

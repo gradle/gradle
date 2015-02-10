@@ -54,20 +54,16 @@ public class TransformedModelDslBacking {
     };
 
     private final ModelRegistry modelRegistry;
-    private final Object thisObject;
-    private final Object owner;
     private final Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner) {
-        this(modelRegistry, thisObject, owner, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
+    public TransformedModelDslBacking(ModelRegistry modelRegistry) {
+        this(modelRegistry, INPUT_PATHS_EXTRACTOR, RULE_LOCATION_EXTRACTOR);
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, Object thisObject, Object owner, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends List<ModelReference<?>>, ? super Closure<?>> inputPathsExtractor,
                                Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
-        this.thisObject = thisObject;
-        this.owner = owner;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -76,7 +72,7 @@ public class TransformedModelDslBacking {
         List<ModelReference<?>> references = inputPathsExtractor.transform(configuration);
         SourceLocation sourceLocation = ruleLocationExtractor.transform(configuration);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        Closure<?> reownered = configuration.rehydrate(null, owner, thisObject);
+        Closure<?> reownered = configuration.rehydrate(null, null, null);
         modelRegistry.configure(ModelActionRole.Mutate, new ClosureBackedModelAction(reownered, references, modelPath, sourceLocation));
     }
 
