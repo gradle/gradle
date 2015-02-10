@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildSpecification
+import org.gradle.performance.fixture.Toggles
 import spock.lang.Unroll
 
 class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -28,7 +29,7 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon().build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon().build()
+                Toggles.modelReuse(BuildSpecification.forProject("${size}NewJava")).displayName("new plugin").tasksToRun(*tasks).useDaemon().build()
         ]
 
         when:
@@ -52,7 +53,7 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testId = "$size project old vs new java plugin partial build"
         runner.buildSpecifications = [
                 BuildSpecification.forProject("${size}OldJava").displayName("old plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon().build(),
-                BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon().build()
+                Toggles.modelReuse(BuildSpecification.forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon()).build()
         ]
 
         when:
