@@ -17,7 +17,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.BuildSpecification
 import org.gradle.performance.fixture.Toggles
 import spock.lang.Unroll
 
@@ -28,10 +27,12 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         given:
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
-        runner.buildSpecifications = [
-                Toggles.modelReuse(BuildSpecification.forProject("${size}VariantsNewModel")).displayName("new model").tasksToRun(*tasks).useDaemon().build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).useDaemon().build()
-        ]
+        runner.buildSpec {
+            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).useDaemon()
+        }
+        runner.baseline {
+            it.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).useDaemon()
+        }
 
         when:
         def result = runner.run()
@@ -52,10 +53,12 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         given:
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants partial build"
-        runner.buildSpecifications = [
-                Toggles.modelReuse(BuildSpecification.forProject("${size}VariantsNewModel")).displayName("new model").tasksToRun('flavour1type1').useDaemon().build(),
-                BuildSpecification.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').useDaemon().build()
-        ]
+        runner.buildSpec {
+            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').useDaemon()
+        }
+        runner.baseline {
+            it.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').useDaemon()
+        }
 
         when:
         def result = runner.run()
@@ -72,10 +75,12 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         given:
         runner.testGroup = "project using variants"
         runner.testId = "multiproject using variants $scenario build"
-        runner.buildSpecifications = [
-                BuildSpecification.forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon().build(),
-                BuildSpecification.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon().build()
-        ]
+        runner.buildSpec {
+            Toggles.modelReuse(it).forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon()
+        }
+        runner.baseline {
+            it.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon()
+        }
 
         when:
         def result = runner.run()

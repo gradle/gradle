@@ -41,12 +41,23 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
     CrossBuildPerformanceResults results
     final DataReporter<CrossBuildPerformanceResults> reporter
 
-    CrossBuildPerformanceTestRunner(GradleExecuterProvider executerProvider, DataReporter<CrossBuildPerformanceResults> dataReporter) {
+    public CrossBuildPerformanceTestRunner(GradleExecuterProvider executerProvider, DataReporter<CrossBuildPerformanceResults> dataReporter) {
         this.reporter = dataReporter
         this.executerProvider = executerProvider
     }
 
-    CrossBuildPerformanceResults run() {
+    public void buildSpec(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
+        def builder = new BuildSpecification.Builder(null)
+        configureAction.delegate = builder
+        configureAction.call(builder)
+        buildSpecifications << builder.build()
+    }
+
+    public void baseline(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
+        buildSpec(configureAction)
+    }
+
+    public CrossBuildPerformanceResults run() {
         assert !buildSpecifications.empty
         assert testId
 

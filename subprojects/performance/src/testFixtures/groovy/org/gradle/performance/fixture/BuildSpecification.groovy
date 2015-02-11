@@ -45,7 +45,7 @@ class BuildSpecification implements BuildParametersSpecification {
     }
 
     static class Builder {
-        private final String projectName
+        private String projectName
         private String displayName
         private String[] tasksToRun
         private String[] args
@@ -54,6 +54,11 @@ class BuildSpecification implements BuildParametersSpecification {
 
         Builder(String projectName) {
             this.projectName = projectName
+        }
+
+        Builder forProject(String projectName) {
+            this.projectName = projectName
+            this
         }
 
         Builder displayName(String displayName) {
