@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * Options for Scala platform compilation, excluding any options for compilation with Ant.
  */
+@Incubating
 public class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
