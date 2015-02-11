@@ -37,8 +37,7 @@ public class PluginId {
 
     private final String value;
 
-    // Only use when id is guaranteed to be valid, prefer of()
-    public PluginId(String value) {
+    private PluginId(String value) {
         this.value = value;
     }
 

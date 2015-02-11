@@ -29,22 +29,25 @@ import java.util.List;
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
  */
 public class LocationAwareException extends GradleException implements FailureResolutionAware {
-    private final ScriptSource source;
+    private final String sourceDisplayName;
     private final Integer lineNumber;
 
     public LocationAwareException(Throwable cause, ScriptSource source, Integer lineNumber) {
-        this.source = source;
+        this(cause, source != null ? source.getDisplayName() : null, lineNumber);
+    }
+
+    public LocationAwareException(Throwable cause, String sourceDisplayName, Integer lineNumber) {
+        this.sourceDisplayName = sourceDisplayName;
         this.lineNumber = lineNumber;
         initCause(cause);
     }
 
     /**
-     * <p>Returns the source of the script where this exception occurred.</p>
-     *
-     * @return The source. May return null.
+     * <p>Returns the display name of the script where this exception occurred.</p>
+     * @return The source display name. May return null.
      */
-    public ScriptSource getScriptSource() {
-        return source;
+    public String getSourceDisplayName() {
+        return sourceDisplayName;
     }
 
     /**
@@ -53,10 +56,10 @@ public class LocationAwareException extends GradleException implements FailureRe
      * @return The location description. May return null.
      */
     public String getLocation() {
-        if (source == null) {
+        if (sourceDisplayName == null) {
             return null;
         }
-        String sourceMsg = StringUtils.capitalize(source.getDisplayName());
+        String sourceMsg = StringUtils.capitalize(sourceDisplayName);
         if (lineNumber == null) {
             return sourceMsg;
         }

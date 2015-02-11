@@ -56,6 +56,8 @@ public class DefaultExceptionAnalyserTest {
         context.checking(new Expectations() {{
             allowing(source).getFileName();
             will(returnValue("filename"));
+            allowing(source).getDisplayName();
+            will(returnValue("build file filename"));
         }});
     }
 
@@ -113,7 +115,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
 
@@ -131,7 +133,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
 
@@ -142,7 +144,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), nullValue());
+        assertThat(gse.getSourceDisplayName(), nullValue());
         assertThat(gse.getLineNumber(), nullValue());
     }
 
@@ -226,7 +228,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
         assertThat(gse.getCause(), sameInstance(failure));
     }

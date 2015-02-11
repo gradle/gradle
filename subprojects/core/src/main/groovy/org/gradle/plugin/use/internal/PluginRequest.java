@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Nullable;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.internal.PluginId;
 
 public interface PluginRequest {
@@ -29,7 +28,7 @@ public interface PluginRequest {
 
     int getLineNumber();
 
-    ScriptSource getScriptSource();
+    String getScriptDisplayName();
 
     String getDisplayName();
 }

@@ -91,7 +91,7 @@ public class PluginDependenciesService {
                 PluginRequest second = pluginRequests.get(1);
 
                 InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                throw new LocationAwareException(exception, second.getScriptSource(), second.getLineNumber());
+                throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
             }
         }
 
