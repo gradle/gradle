@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.performance.fixture.BuildSpecification;
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
 
 import javax.annotation.Nullable;
 import java.util.List;

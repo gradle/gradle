@@ -16,8 +16,6 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.PerformanceResults;
-
 import java.util.List;
 
 public interface TestExecutionHistory {

@@ -19,7 +19,6 @@ package org.gradle.performance.results;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.results;
+
+import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.List;
 

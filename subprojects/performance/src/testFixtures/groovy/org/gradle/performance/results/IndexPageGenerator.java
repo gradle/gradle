@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import com.googlecode.jatl.Html;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
 
 import java.io.IOException;
 import java.io.Writer;
