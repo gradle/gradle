@@ -209,35 +209,4 @@ task check << {
         expect:
         succeeds "check"
     }
-
-    def "dependency exclude rule does not apply to declaring module"() {
-        given:
-        final String groupId = 'org.gradle'
-        def module = mavenRepo().module(groupId, "test", "1.45")
-        mavenRepo().module(groupId, "foo", "2.0").publish()
-        mavenRepo().module(groupId, "bar", "3.0").publish()
-        mavenRepo().module(groupId, "other", "4.0").publish()
-        module.dependsOn(groupId, "foo", "2.0")
-        module.dependsOn(groupId, "bar", "3.0")
-        module.dependsOn(groupId, "other", "4.0")
-        module.publish()
-
-        and:
-        buildFile << """
-repositories { maven { url "${mavenRepo().uri}" } }
-configurations { compile }
-dependencies {
-    compile('org.gradle:test:1.45') {
-        exclude group: '${groupId}'
-    }
-}
-
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar']
-}
-"""
-
-        expect:
-        succeeds "check"
-    }
 }
