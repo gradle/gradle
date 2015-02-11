@@ -512,7 +512,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-            return acceptModule(module);
+            return true;
         }
     }
 
@@ -556,7 +556,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-            return acceptModule(module);
+            return true;
         }
     }
 
@@ -600,7 +600,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-            return acceptModule(module);
+            return true;
         }
     }
 

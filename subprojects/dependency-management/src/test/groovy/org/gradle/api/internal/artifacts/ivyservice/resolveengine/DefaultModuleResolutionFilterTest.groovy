@@ -132,9 +132,6 @@ class DefaultModuleResolutionFilterTest extends Specification {
 
         where:
         rule << [excludeRule('*', '*', '*', '*', '*'),
-                 excludeRule('org', '*', '*', '*', '*'),
-                 excludeRule('*', 'module', '*', '*', '*'),
-                 excludeRule('org', 'module', '*', '*', '*'),
                  excludeRule('org', 'module', 'mylib', 'jar', 'jar'),
                  excludeRule('org', 'module', '*', 'jar', 'jar'),
                  excludeRule('org', 'module', 'mylib', '*', 'jar'),
@@ -161,7 +158,10 @@ class DefaultModuleResolutionFilterTest extends Specification {
         spec.acceptArtifact(moduleId('org', 'module'), artifactName('mylib', 'jar', 'jar'))
 
         where:
-        rule << [excludeRule('*', 'module2', '*', '*', '*'),
+        rule << [excludeRule('*', 'module', '*', '*', '*'),
+                 excludeRule('org', '*', '*', '*', '*'),
+                 excludeRule('org', 'module', '*', '*', '*'),
+                 excludeRule('*', 'module2', '*', '*', '*'),
                  excludeRule('org2', '*', '*', '*', '*'),
                  excludeRule('org2', 'module2', '*', '*', '*'),
                  excludeRule('org', 'module', 'mylib', 'sources', 'jar'),
@@ -560,10 +560,10 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def spec = DefaultModuleResolutionFilter.excludeAny(rule1, rule2, rule3, rule4, rule5)
 
         expect:
-        !spec.acceptArtifact(moduleId("org", "module"), artifactName("a", "jar", "jar"))
-        !spec.acceptArtifact(moduleId("org", "module2"), artifactName("b", "jar", "jar"))
-        !spec.acceptArtifact(moduleId("org2", "anything"), artifactName("c", "jar", "jar"))
-        !spec.acceptArtifact(moduleId("other", "module4"), artifactName("d", "jar", "jar"))
+        spec.acceptArtifact(moduleId("org", "module"), artifactName("a", "jar", "jar"))
+        spec.acceptArtifact(moduleId("org", "module2"), artifactName("b", "jar", "jar"))
+        spec.acceptArtifact(moduleId("org2", "anything"), artifactName("c", "jar", "jar"))
+        spec.acceptArtifact(moduleId("other", "module4"), artifactName("d", "jar", "jar"))
         !spec.acceptArtifact(moduleId("regexp-72", "module12"), artifactName("e", "jar", "jar"))
         spec.acceptArtifact(moduleId("org", "other"), artifactName("f", "jar", "jar"))
         spec.acceptArtifact(moduleId("regexp-72", "other"), artifactName("g", "jar", "jar"))
