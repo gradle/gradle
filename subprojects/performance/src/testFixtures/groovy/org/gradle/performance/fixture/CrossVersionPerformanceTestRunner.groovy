@@ -61,10 +61,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         assert !targetVersions.empty
         assert testId
 
-        if (useDaemon) {
-            gcCollector.useDaemon()
-        }
-
         results = new CrossVersionPerformanceResults(
                 testId: testId,
                 testProject: testProject,
