@@ -17,17 +17,21 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import javax.tools.JavaCompiler;
 import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
     private final CompilerDaemonFactory compilerDaemonFactory;
+    private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory) {
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.compilerDaemonFactory = compilerDaemonFactory;
+        this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
     public Compiler<JavaCompileSpec> createForJointCompilation(CompileOptions options) {
@@ -44,7 +48,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return new CommandLineJavaCompiler();
         }
 
-        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler();
+        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (options.isFork() && !jointCompilation) {
             return new DaemonJavaCompiler(daemonWorkingDir, compiler, compilerDaemonFactory);
         }

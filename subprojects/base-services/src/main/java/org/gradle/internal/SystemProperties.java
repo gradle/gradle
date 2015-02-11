@@ -85,6 +85,14 @@ public class SystemProperties {
         return new File(System.getProperty("user.dir"));
     }
 
+    public static File getJavaHomeDir() {
+        return new File(System.getProperty("java.home"));
+    }
+
+    public static void setJavaHomeDir(File javaHomeDir) {
+        System.setProperty("java.home", javaHomeDir.getAbsolutePath());
+    }
+
     /**
      * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.

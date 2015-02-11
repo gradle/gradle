@@ -17,10 +17,14 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.internal.Factory
 import spock.lang.Specification
 
+import javax.tools.JavaCompiler
+
 class DefaultJavaCompilerFactoryTest extends Specification {
-    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory))
+    Factory<JavaCompiler> javaCompilerFinder = Mock()
+    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory), javaCompilerFinder)
     def options = new CompileOptions()
     
     def "creates in-process compiler when not forking"() {
