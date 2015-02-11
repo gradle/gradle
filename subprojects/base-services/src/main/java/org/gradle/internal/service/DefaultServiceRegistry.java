@@ -70,6 +70,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final CompositeProvider parentServices;
     private final String displayName;
     private boolean closed;
+    private boolean mutable = true; // access under lock
 
     public DefaultServiceRegistry() {
         this(null, Collections.<ServiceRegistry>emptyList());
@@ -180,14 +181,20 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private RelevantMethods getMethods(Class<?> type) {
         RelevantMethods relevantMethods = METHODS_CACHE.get(type);
         if (relevantMethods == null) {
-            RelevantMethodsBuilder builder = new RelevantMethodsBuilder(type);
-            addDecoratorMethods(builder);
-            addFactoryMethods(builder);
-            addConfigureMethods(builder);
-            relevantMethods = builder.build();
+            relevantMethods = buildRelevantMethods(type);
             METHODS_CACHE.putIfAbsent(type, relevantMethods);
         }
 
+        return relevantMethods;
+    }
+
+    private RelevantMethods buildRelevantMethods(Class<?> type) {
+        RelevantMethods relevantMethods;
+        RelevantMethodsBuilder builder = new RelevantMethodsBuilder(type);
+        addDecoratorMethods(builder);
+        addFactoryMethods(builder);
+        addConfigureMethods(builder);
+        relevantMethods = builder.build();
         return relevantMethods;
     }
 
@@ -266,7 +273,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
      * Adds services to this container using the given action.
      */
     public void register(Action<? super ServiceRegistration> action) {
+        assertMutable();
         action.execute(newRegistration());
+    }
+
+    private void assertMutable() {
+        if (!mutable) {
+            throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
+        }
     }
 
     private ServiceRegistration newRegistration() {
@@ -289,6 +303,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
      * Adds a service to this registry. The given object is closed when this registry is closed.
      */
     public <T> DefaultServiceRegistry add(Class<T> serviceType, final T serviceInstance) {
+        assertMutable();
         ownServices.add(new FixedInstanceService<T>(serviceType, serviceInstance));
         return this;
     }
@@ -297,6 +312,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
     public DefaultServiceRegistry addProvider(Object provider) {
+        assertMutable();
         findProviderMethods(provider);
         return this;
     }
@@ -343,6 +359,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         synchronized (lock) {
+            mutable = false;
             if (closed) {
                 throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), displayName));
             }
@@ -364,22 +381,25 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private Object doGet(Type serviceType) throws IllegalArgumentException {
         synchronized (lock) {
+            mutable = false;
             if (closed) {
                 throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), displayName));
             }
             ServiceProvider provider = providerCache.get(serviceType);
             if (provider == null) {
-                DefaultLookupContext context = new DefaultLookupContext();
-                provider = context.find(serviceType, allServices);
-                if (provider == null) {
-                    throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), displayName));
-                } else {
-                    providerCache.put(serviceType, provider);
-                }
+                provider = getServiceProvider(serviceType);
+                providerCache.put(serviceType, provider);
             }
-
             return provider.get();
         }
+    }
+
+    private ServiceProvider getServiceProvider(Type serviceType) {
+        ServiceProvider provider = new DefaultLookupContext().find(serviceType, allServices);
+        if (provider == null) {
+            throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), displayName));
+        }
+        return provider;
     }
 
     public <T> Factory<T> getFactory(Class<T> type) {
