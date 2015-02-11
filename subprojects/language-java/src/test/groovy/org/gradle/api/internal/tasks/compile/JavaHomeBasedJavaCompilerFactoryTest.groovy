@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.SystemProperties
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -33,6 +36,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     JavaHomeBasedJavaCompilerFactory.JavaHomeProviderFacade systemPropertiesJavaHomeProviderFacade = Mock()
     JavaHomeBasedJavaCompilerFactory.JavaCompilerProviderFacade javaCompilerProviderFacade = Mock()
     JavaCompiler javaCompiler = Mock()
+    @Rule TestNameTestDirectoryProvider temporaryFolder
 
     def setup() {
         factory.currentJvmJavaHomeProviderFacade = currentJvmJavaHomeProviderFacade
@@ -41,7 +45,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     }
 
     def "creates Java compiler for matching Java home directory"() {
-        File javaHome = new File('/my/test/java/home')
+        TestFile javaHome = temporaryFolder.file('my/test/java/home')
 
         when:
         JavaCompiler expectedJavaCompiler = factory.create()
@@ -54,7 +58,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     }
 
     def "cannot find Java compiler for matching Java home directory"() {
-        File javaHome = new File('/my/test/java/home')
+        TestFile javaHome = temporaryFolder.file('my/test/java/home')
 
         when:
         factory.create()
@@ -68,8 +72,8 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     }
 
     def "creates Java compiler for mismatching Java home directory"() {
-        File realJavaHome = new File('/my/test/java/home/real')
-        File javaHomeFromToolProvidersPointOfView = new File('/my/test/java/home/toolprovider')
+        TestFile realJavaHome = temporaryFolder.file('my/test/java/home/real')
+        TestFile javaHomeFromToolProvidersPointOfView = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
         JavaCompiler expectedJavaCompiler = factory.create()
@@ -79,14 +83,14 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         1 * systemPropertiesJavaHomeProviderFacade.dir >> javaHomeFromToolProvidersPointOfView
         1 * javaCompilerProviderFacade.compiler >> javaCompiler
         javaCompiler == expectedJavaCompiler
-        SystemProperties.javaHomeDir == javaHomeFromToolProvidersPointOfView
+        SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "creates Java compiler for mismatching Java home directory for multiple threads concurrently"() {
         int threadCount = 100
-        File realJavaHome = new File('/my/test/java/home/real')
-        File javaHomeFromToolProvidersPointOfView = new File('/my/test/java/home/toolprovider')
+        TestFile realJavaHome = temporaryFolder.file('my/test/java/home/real')
+        TestFile javaHomeFromToolProvidersPointOfView = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
         concurrent(threadCount) {
@@ -98,7 +102,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         threadCount * currentJvmJavaHomeProviderFacade.dir >> realJavaHome
         threadCount * systemPropertiesJavaHomeProviderFacade.dir >> javaHomeFromToolProvidersPointOfView
         threadCount * javaCompilerProviderFacade.compiler >> javaCompiler
-        assert SystemProperties.javaHomeDir == javaHomeFromToolProvidersPointOfView
+        assert SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
 
     def concurrent(int count, Closure closure) {
