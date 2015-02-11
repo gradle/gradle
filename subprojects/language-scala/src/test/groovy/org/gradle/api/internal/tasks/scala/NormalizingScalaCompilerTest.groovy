@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.scala
-
 import groovy.transform.InheritConstructors
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
 
 class NormalizingScalaCompilerTest extends Specification {
@@ -35,11 +34,11 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.classpath = files("Dep1.jar", "Dep2.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
-        spec.scalaCompileOptions = new ScalaCompileOptions()
+        spec.scalaCompileOptions = new BaseScalaCompileOptions()
     }
 
     def "delegates to target compiler after resolving source and classpaths"() {
-        WorkResult workResult = Mock()
+        def workResult = Mock(WorkResult)
 
         when:
         def result = compiler.execute(spec)
