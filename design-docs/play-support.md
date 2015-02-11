@@ -195,6 +195,32 @@ model {
     - Remove A, outputs for A are removed
 - Can include both Java and Scala sources in lib: no cross-compilation
 
+### Story: Developer configures target Scala platform for Jvm library
+
+```gradle
+plugins {
+    id 'jvm-component'
+    id 'scala-lang'
+}
+model {
+    components {
+        scalaLib(JvmLibrarySpec) {
+            platform java: "1.6", scala: "2.10"
+        }
+    }
+}
+```
+
+- Pull `platform(Object)` method up from `PlayApplicationSpec` to `PlatformAwareComponentSpec`
+- Allow arbitrary `Map<String, String>` inputs to `platform()`, converting into a `PlatformRequirement`
+- Add a `CompositePlatform` type that is returned by `PlatformResolver.resolve()`
+    - Allow various typed `PlatformResolver` instances to plugin to the composite `PlatformResolver`
+    - When resolving a play platform, return a composite platform with `PlayPlatform`, `ScalaPlatform` and `JavaPlatform` components.
+    - When resolving a jvm platform, return a composite platform with `JavaPlatform` and optional `ScalaPlatform` components.
+         - Maybe add a `JvmPlatform` that extends `CompositePlatform`, encoding jvm compatibility version.
+         - Maybe make `PlayPlatform` extend `CompositePlatform` with a `JvmPlatform` component. Later will have a `BrowserPlatform` component.
+- Scala-lang plugin registers a resolver that returns a `ScalaPlatform` for a 'scala' platform requirement
+
 ### Story: Developer configures Scala sources and Jvm resources for Play application
 
 Extend the Play support to full model Scala sources and Jvm resources.
@@ -244,6 +270,9 @@ model {
     - Removal of Scala/Java source files removes classes from the Play app
 
 #### Open issues
+
+- Use `LanguageTransform` from `scala-lang` plugin to configure scala compile task for source sets
+- Use source set dependencies to determine of source sets should be joint compiled
 
 ### Story: Developer configures template sources for Play application
 
