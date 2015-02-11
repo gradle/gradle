@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
@@ -30,8 +31,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.internal.LoggingOutputInternal;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -65,19 +64,19 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
 
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
-        return new LinkedList<DaemonCommandAction>(Arrays.asList(
-            new HandleCancel(),            
-            new ReturnResult(),
-            new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
-            healthServices.getGCHintAction(), //TODO SF needs to happen after the result is returned to the client
-            new EstablishBuildEnvironment(processEnvironment),
-            new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
-            healthServices.getHealthTrackerAction(),
-            new ForwardClientInput(),
-            new RequestStopIfSingleUsedDaemon(),
-            new ResetDeprecationLogger(),
-            new WatchForDisconnection(),
-            new ExecuteBuild(actionExecuter)
-        ));
+        return ImmutableList.of(
+                new HandleCancel(),
+                new ReturnResult(),
+                new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
+                healthServices.getGCHintAction(), //TODO SF needs to happen after the result is returned to the client
+                new EstablishBuildEnvironment(processEnvironment),
+                new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
+                healthServices.getHealthTrackerAction(),
+                new ForwardClientInput(),
+                new RequestStopIfSingleUsedDaemon(),
+                new ResetDeprecationLogger(),
+                new WatchForDisconnection(),
+                new ExecuteBuild(actionExecuter)
+        );
     }
 }
