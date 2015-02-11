@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import sample.documentation.DocumentationComponent
 import sample.markdown.MarkdownSourceSet
 import sample.markdown.MarkdownPlugin
 
@@ -21,7 +23,7 @@ apply plugin:sample.markdown.MarkdownPlugin
 
 model {
     components {
-        docs {
+        docs(DocumentationComponent) {
             sources {
                 userguide(MarkdownSourceSet)
             }
