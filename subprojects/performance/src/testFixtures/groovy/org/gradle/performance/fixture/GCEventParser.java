@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,6 +48,8 @@ class GCEventParser {
         }
 
         DateTime timestamp = DateTime.parse(matcher.group(1));
+        // Some JVMs generate an incorrect timezone offset in the timestamps. Discard timezone and use the local timezone instead
+        timestamp = timestamp.toLocalDateTime().toDateTime(DateTimeZone.getDefault());
         long start = Long.parseLong(matcher.group(2));
         long end = Long.parseLong(matcher.group(3));
         long committed = Long.parseLong(matcher.group(4));

@@ -35,7 +35,7 @@ class GCLoggingCollectorTest extends Specification {
 
     @Unroll
     def "parses GC Log #logName with locale #locale"() {
-        def operation = new MeasuredOperation(start: DateTime.parse("2015-01-22T$startTime+0000"), end: DateTime.parse("2015-01-22T$endTime+0000"))
+        def operation = new MeasuredOperation(start: DateTime.parse("2015-01-22T$startTime"), end: DateTime.parse("2015-01-22T$endTime"))
         def projectDir = tmpDir.createDir("project")
         resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
 
