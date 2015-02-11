@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleExecuterProvider
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,14 +27,11 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossBuildResultsStore()
 
-    final def runner = new CrossBuildPerformanceTestRunner(
-            testDirectoryProvider: tmpDir,
-            runs: 5,
-            warmUpRuns: 1
-    )
+    final def runner = new CrossBuildPerformanceTestRunner(new GradleExecuterProvider(tmpDir), resultStore)
 
     def setup() {
-        runner.reporter = resultStore
+        runner.runs = 5
+        runner.warmUpRuns = 1
     }
 
     static {

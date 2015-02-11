@@ -21,31 +21,29 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
-    TestDirectoryProvider testDirectoryProvider
-    GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
-    TestProjectLocator testProjectLocator = new TestProjectLocator()
-    GradleExecuterProvider executerProvider = new GradleExecuterProvider()
+    final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
+    final TestProjectLocator testProjectLocator = new TestProjectLocator()
+    final GradleExecuterProvider executerProvider
 
-    OperationTimer timer = new OperationTimer()
+    final OperationTimer timer = new OperationTimer()
 
     String testGroup
     List<BuildSpecification> buildSpecifications = []
 
-    private GCLoggingCollector gcCollector = new GCLoggingCollector()
-    DataCollector dataCollector = new CompositeDataCollector(
+    final GCLoggingCollector gcCollector = new GCLoggingCollector()
+    final DataCollector dataCollector = new CompositeDataCollector(
             new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
             gcCollector)
 
     CrossBuildPerformanceResults results
-    DataReporter<CrossBuildPerformanceResults> reporter
+    final DataReporter<CrossBuildPerformanceResults> reporter
 
-    CrossBuildPerformanceTestRunner() {
-        runs = 5
-        warmUpRuns = 3
+    CrossBuildPerformanceTestRunner(GradleExecuterProvider executerProvider, DataReporter<CrossBuildPerformanceResults> dataReporter) {
+        this.reporter = dataReporter
+        this.executerProvider = executerProvider
     }
 
     CrossBuildPerformanceResults run() {
@@ -74,20 +72,20 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
             gcCollector.useDaemon(buildSpecification.useDaemon);
             File projectDir = testProjectLocator.findProjectDir(buildSpecification.projectName)
             warmUpRuns.times {
-                executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).run()
+                executerProvider.executer(buildSpecification, gradleDistribution, projectDir).run()
             }
             def operations = results.buildResult(buildSpecification)
             runs.times {
                 runOnce(buildSpecification, projectDir, operations)
             }
             if (buildSpecification.useDaemon) {
-                executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider).withTasks().withArgument('--stop').run()
+                executerProvider.executer(buildSpecification, gradleDistribution, projectDir).withTasks().withArgument('--stop').run()
             }
         }
     }
 
     void runOnce(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results) {
-        def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider)
+        def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir)
         dataCollector.beforeExecute(projectDir, executer)
 
         def operation = timer.measure { MeasuredOperation operation ->

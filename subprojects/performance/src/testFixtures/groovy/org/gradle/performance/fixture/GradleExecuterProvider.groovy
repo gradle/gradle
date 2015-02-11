@@ -21,8 +21,13 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class GradleExecuterProvider {
+    private final TestDirectoryProvider testDirectoryProvider
 
-    GradleExecuter executer(BuildParametersSpecification buildSpecification, GradleDistribution dist, File projectDir, TestDirectoryProvider testDirectoryProvider) {
+    GradleExecuterProvider(TestDirectoryProvider testDirectoryProvider) {
+        this.testDirectoryProvider = testDirectoryProvider
+    }
+
+    GradleExecuter executer(BuildParametersSpecification buildSpecification, GradleDistribution dist, File projectDir) {
         def executer = dist.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().

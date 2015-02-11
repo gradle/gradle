@@ -99,8 +99,12 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        return new CrossVersionPerformanceTestRunner(testId: 'some-test',
-                timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector,
-                current: currentGradle, reporter: reporter, executerProvider: Stub(GradleExecuterProvider))
+        def runner = new CrossVersionPerformanceTestRunner(Stub(GradleExecuterProvider), reporter)
+        runner.testId = 'some-test'
+        runner.timer = timer
+        runner.testProjectLocator = testProjectLocator
+        runner.dataCollector = dataCollector
+        runner.current = currentGradle
+        return runner
     }
 }

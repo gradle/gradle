@@ -25,14 +25,12 @@ import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
-    TestDirectoryProvider testDirectoryProvider
     GradleDistribution current
-    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    DataReporter<CrossVersionPerformanceResults> reporter
+    final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    final DataReporter<CrossVersionPerformanceResults> reporter
     OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
 
@@ -40,7 +38,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     boolean useDaemon
 
     List<String> tasksToRun = []
-    private GCLoggingCollector gcCollector = new GCLoggingCollector()
+    final GCLoggingCollector gcCollector = new GCLoggingCollector()
     DataCollector dataCollector = new CompositeDataCollector(
             new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
             gcCollector)
@@ -52,7 +50,12 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     CrossVersionPerformanceResults results
-    GradleExecuterProvider executerProvider = new GradleExecuterProvider()
+    final GradleExecuterProvider executerProvider
+
+    CrossVersionPerformanceTestRunner(GradleExecuterProvider executerProvider, DataReporter<CrossVersionPerformanceResults> reporter) {
+        this.reporter = reporter
+        this.executerProvider = executerProvider
+    }
 
     CrossVersionPerformanceResults run() {
         assert !targetVersions.empty
@@ -116,13 +119,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             runOnce(dist, projectDir, results)
         }
         if (useDaemon) {
-            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider).withTasks("--stop").run()
+            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir).withTasks("--stop").run()
         }
     }
 
     private void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         gcCollector.useDaemon(useDaemon)
-        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir, this.testDirectoryProvider)
+        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir)
         dataCollector.beforeExecute(projectDir, executer)
 
         def operation = timer.measure { MeasuredOperation operation ->

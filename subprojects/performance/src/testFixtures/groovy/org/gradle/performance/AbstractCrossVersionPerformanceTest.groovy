@@ -19,6 +19,7 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.performance.fixture.CompositeDataReporter
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.GradleExecuterProvider
 import org.gradle.performance.fixture.TextFileDataReporter
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -32,18 +33,15 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     static def resultStore = new CrossVersionResultsStore()
     static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
 
-    final def runner = new CrossVersionPerformanceTestRunner(
-            testDirectoryProvider: tmpDir,
-            current: new UnderDevelopmentGradleDistribution(),
-            runs: 5,
-            warmUpRuns: 1,
-            targetVersions: ['1.0', '1.4', '1.8', 'last'],
-            maxExecutionTimeRegression: Duration.millis(500),
-            maxMemoryRegression: DataAmount.mbytes(25)
-    )
+    final def runner = new CrossVersionPerformanceTestRunner(new GradleExecuterProvider(tmpDir), new CompositeDataReporter([textReporter, resultStore]))
 
     def setup() {
-        runner.reporter = new CompositeDataReporter([textReporter, resultStore])
+        runner.current = new UnderDevelopmentGradleDistribution()
+        runner.runs = 5
+        runner.warmUpRuns = 1
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
+        runner.maxExecutionTimeRegression = Duration.millis(500)
+        runner.maxMemoryRegression = DataAmount.mbytes(25)
     }
 
     static {
