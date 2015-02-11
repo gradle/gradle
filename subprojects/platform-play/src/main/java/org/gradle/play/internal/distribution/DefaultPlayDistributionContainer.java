@@ -16,17 +16,13 @@
 
 package org.gradle.play.internal.distribution;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.distribution.Distribution;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.play.distribution.PlayDistribution;
+import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
-public class DefaultPlayDistributionContainer extends AbstractNamedDomainObjectContainer<PlayDistribution> implements PlayDistributionContainer {
+public class DefaultPlayDistributionContainer extends RuleAwarePolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {
     public DefaultPlayDistributionContainer(Instantiator instantiator) {
-        super(PlayDistribution.class, instantiator);
-    }
-
-    protected PlayDistribution doCreate(String name) {
-        throw new UnsupportedOperationException(String.format("Creating a new Play Distribution (%s) is not supported.", name));
+        super(Distribution.class, instantiator);
     }
 }

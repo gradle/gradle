@@ -37,10 +37,10 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
-import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
-import org.gradle.play.internal.distribution.DefaultPlayDistribution;
+import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
+import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -58,7 +58,6 @@ public class PlayDistributionPlugin extends RuleSource {
     @Model
     PlayDistributionContainer distributions(ServiceRegistry serviceRegistry) {
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-
         return new DefaultPlayDistributionContainer(instantiator);
     }
 
@@ -96,7 +95,7 @@ public class PlayDistributionPlugin extends RuleSource {
     void createDistributionContentTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir,
                                         final @Path("distributions") PlayDistributionContainer distributions,
                                         final PlayPluginConfigurations configurations) {
-        for (PlayDistribution distribution : distributions) {
+        for (PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
             final PlayApplicationBinarySpec binary = distribution.getBinary();
             if (binary == null) {
                 throw new InvalidUserCodeException(String.format("Play Distribution '%s' does not have a configured Play binary.", distribution.getName()));
@@ -151,7 +150,7 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Mutate
     void createDistributionZipTasks(CollectionBuilder<Task> tasks, final @Path("buildDir") File buildDir, PlayDistributionContainer distributions) {
-        for (final PlayDistribution distribution : distributions) {
+        for (final PlayDistribution distribution : distributions.withType(PlayDistribution.class)) {
             final String stageTaskName = String.format("stage%sDist", StringUtils.capitalize(distribution.getName()));
             final File stageDir = new File(buildDir, "stage");
             final String baseName = StringUtils.isNotEmpty(distribution.getBaseName()) ? distribution.getBaseName() : distribution.getName();

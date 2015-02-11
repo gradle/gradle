@@ -43,6 +43,7 @@ import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.distribution.PlayDistribution
 import org.gradle.play.distribution.PlayDistributionContainer
 import org.gradle.play.internal.distribution.DefaultPlayDistribution
+import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class PlayDistributionPluginTest extends Specification {
@@ -86,6 +87,7 @@ class PlayDistributionPluginTest extends Specification {
     }
 
     def "adds scripts and distribution jar tasks for binary" () {
+        def distributions = Mock(PlayDistributionContainer)
         File buildDir = new File("")
         DomainObjectSet jarTasks = Stub(DomainObjectSet)
         PlayApplicationBinarySpec binary = binary("playBinary", jarTasks)
@@ -119,7 +121,6 @@ class PlayDistributionPluginTest extends Specification {
                 }
             }
         }
-        PlayDistributionContainer distributions = distributions([distribution])
         ConfigurationContainer configurationContainer = Stub(ConfigurationContainer) {
             create(_) >> Stub(Configuration)
             maybeCreate(_) >> Stub(Configuration)
@@ -130,6 +131,7 @@ class PlayDistributionPluginTest extends Specification {
         plugin.createDistributionContentTasks(tasks, buildDir, distributions, configurations)
 
         then:
+        1 * distributions.withType(PlayDistribution) >> WrapUtil.toNamedDomainObjectSet(PlayDistribution, distribution)
         1 * tasks.create("createPlayBinaryStartScripts", CreateStartScripts, _) >> { String name, Class type, Action action ->
             action.execute(Mock(CreateStartScripts) {
                 1 * setDescription(_)
@@ -168,12 +170,13 @@ class PlayDistributionPluginTest extends Specification {
             getName() >> "playBinary"
             getContents() >> Mock(CopySpecInternal)
         }
-        PlayDistributionContainer distributions = distributions([ distribution ])
+        def distributions = Mock(PlayDistributionContainer)
 
         when:
         plugin.createDistributionZipTasks(tasks, buildDir, distributions)
 
         then:
+        1 * distributions.withType(PlayDistribution) >> WrapUtil.toNamedDomainObjectSet(PlayDistribution, distribution)
         1 * tasks.create("createPlayBinaryDist", Zip, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Zip) {
                 1 * setDescription(_)

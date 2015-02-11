@@ -17,11 +17,12 @@
 package org.gradle.play.distribution;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.distribution.Distribution;
 
 /**
- * Manages a set of {@link org.gradle.play.distribution.PlayDistribution} objects.
+ * Manages a set of {@link org.gradle.api.distribution.Distribution} objects.
  */
 @Incubating
-public interface PlayDistributionContainer extends NamedDomainObjectContainer<PlayDistribution> {
+public interface PlayDistributionContainer extends PolymorphicDomainObjectContainer<Distribution> {
 }

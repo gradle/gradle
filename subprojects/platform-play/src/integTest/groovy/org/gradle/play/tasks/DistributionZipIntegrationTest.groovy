@@ -72,7 +72,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains("A problem occurred configuring root project 'dist-play-app'")
-        failureHasCause("Creating a new Play Distribution (myDist) is not supported.")
+        failureHasCause("Cannot create a Distribution named 'myDist' because this container does not support creating elements by name alone.")
     }
 
     ZipTestFixture zip(String path) {
