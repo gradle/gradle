@@ -25,8 +25,8 @@ class DependencyExcludeResolveIntegrationTest extends AbstractDependencyResoluti
      *
      * Dependency graph:
      *
-     * org.gradle:test:1.45 -> org.gradle:foo:2.0, org.gradle:bar:3.0, com.company:baz:4.0
-     * com.company:baz:4.0 -> com.enterprise:some:5.0
+     * org.gradle:test:1.45 -> org.gradle:foo:2.0, org.gradle:bar:3.0, com.company:company:4.0, com.company:other-company:4.0
+     * com.company:company:4.0 -> com.enterprise:enterprise:5.0, org.gradle:baz:6.0
      */
     @Unroll
     def "dependency exclude rule for #condition"() {
@@ -37,16 +37,24 @@ class DependencyExcludeResolveIntegrationTest extends AbstractDependencyResoluti
         fooModule.publish()
         def barModule = mavenRepo().module(orgGradleGroupId, 'bar', '3.0')
         barModule.publish()
-
-        def bazModule = mavenRepo().module('com.company', 'baz', '4.0')
-        def someModule = mavenRepo().module('com.enterprise', 'some', '5.0')
-        bazModule.dependsOn(someModule.groupId, someModule.artifactId, someModule.version)
+        def bazModule = mavenRepo().module(orgGradleGroupId, 'baz', '6.0')
         bazModule.publish()
-        someModule.publish()
+
+        def enterpriseModule = mavenRepo().module('com.enterprise', 'enterprise', '5.0')
+        enterpriseModule.publish()
+
+        def companyModule = mavenRepo().module('com.company', 'company', '4.0')
+        companyModule.dependsOn(enterpriseModule.groupId, enterpriseModule.artifactId, enterpriseModule.version)
+        companyModule.dependsOn(bazModule.groupId, bazModule.artifactId, bazModule.version)
+        companyModule.publish()
+
+        def otherCompanyModule = mavenRepo().module('com.company', 'other-company', '4.0')
+        otherCompanyModule.publish()
 
         testModule.dependsOn(fooModule.groupId, fooModule.artifactId, fooModule.version)
         testModule.dependsOn(barModule.groupId, barModule.artifactId, barModule.version)
-        testModule.dependsOn(bazModule.groupId, bazModule.artifactId, bazModule.version)
+        testModule.dependsOn(companyModule.groupId, companyModule.artifactId, companyModule.version)
+        testModule.dependsOn(otherCompanyModule.groupId, otherCompanyModule.artifactId, otherCompanyModule.version)
         testModule.publish()
 
         and:
@@ -55,7 +63,7 @@ repositories { maven { url "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
     compile('${testModule.groupId}:${testModule.artifactId}:${testModule.version}') {
-        exclude ${excludeAttributes.collect { key, value -> "$key: '$value'"}.join(', ')}
+        exclude ${excludeAttributes.collect { key, value -> "$key: '$value'" }.join(', ')}
     }
 }
 
@@ -68,13 +76,14 @@ task check << {
         succeeds "check"
 
         where:
-        condition                                                                     | excludeAttributes                        | resolvedJars
-        'no matching group attribute'                                                 | [group: 'some.other']                    | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'baz-4.0.jar', 'some-5.0.jar']
-        'matching group attribute same as declared module'                            | [group: 'org.gradle']                    | ['test-1.45.jar', 'baz-4.0.jar', 'some-5.0.jar']
-        'matching group attribute other than declared module'                         | [group: 'com.company']                   | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar']
-        'no matching group and module attributes'                                     | [group: 'some.other', module: 'unknown'] | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'baz-4.0.jar', 'some-5.0.jar']
-        'matching group attribute same as declared module but other module attribute' | [group: 'org.gradle', module: 'foo']     | ['test-1.45.jar', 'bar-3.0.jar', 'baz-4.0.jar', 'some-5.0.jar']
-        'matching group and module attributes other than declared module'             | [group: 'com.company', module: 'baz']    | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar']
-        'same group and module attributes as declared module'                         | [group: 'org.gradle', module: 'test']    | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'baz-4.0.jar', 'some-5.0.jar']
+        condition                                          | excludeAttributes                         | resolvedJars
+        'excluding by group'                               | [group: 'com.company']                    | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar']
+        'excluding by module and group'                    | [group: 'com.company', module: 'company'] | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'other-company-4.0.jar']
+        'excluding group of declared module'               | [group: 'org.gradle']                     | ['test-1.45.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar']
+        'excluding other module in same group as declared' | [group: 'org.gradle', module: 'foo']      | ['test-1.45.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
+        'excluding transitive module by group'             | [group: 'com.enterprise']                 | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'baz-6.0.jar']
+        'non-matching group attribute'                     | [group: 'some.other']                     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
+        'non-matching module attribute'                    | [module: 'unknown']                       | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
+        'attempting to exclude declared module'            | [group: 'org.gradle', module: 'test']     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
     }
 }
