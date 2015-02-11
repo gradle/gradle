@@ -16,8 +16,11 @@
 
 package org.gradle.performance.fixture
 
-public interface BuildParametersSpecification {
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 
+public interface BuildParametersSpecification {
+    GradleDistribution getGradleDistribution()
+    File getWorkingDirectory()
     String[] getTasksToRun()
     String[] getArgs()
     String[] getGradleOpts()

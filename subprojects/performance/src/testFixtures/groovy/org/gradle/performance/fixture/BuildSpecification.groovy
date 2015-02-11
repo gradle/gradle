@@ -19,7 +19,7 @@ package org.gradle.performance.fixture
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
-class BuildSpecification implements BuildParametersSpecification {
+class BuildSpecification {
     final String projectName
     final String displayName
     final String[] tasksToRun

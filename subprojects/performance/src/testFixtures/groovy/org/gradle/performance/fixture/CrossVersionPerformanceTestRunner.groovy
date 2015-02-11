@@ -119,13 +119,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             runOnce(dist, projectDir, results)
         }
         if (useDaemon) {
-            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir).withTasks("--stop").run()
+            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this, dist, projectDir)).withTasks("--stop").run()
         }
     }
 
     private void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         gcCollector.useDaemon(useDaemon)
-        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this), dist, projectDir)
+        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this, dist, projectDir))
         dataCollector.beforeExecute(projectDir, executer)
 
         def operation = timer.measure { MeasuredOperation operation ->
@@ -138,11 +138,24 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private static class RunnerBackedBuildParametersSpecification implements BuildParametersSpecification {
-
+        final GradleDistribution distribution
         final CrossVersionPerformanceTestRunner runner
+        final File workingDir
 
-        RunnerBackedBuildParametersSpecification(CrossVersionPerformanceTestRunner runner) {
+        RunnerBackedBuildParametersSpecification(CrossVersionPerformanceTestRunner runner, GradleDistribution distribution, File workingDir) {
             this.runner = runner
+            this.distribution = distribution
+            this.workingDir = workingDir
+        }
+
+        @Override
+        GradleDistribution getGradleDistribution() {
+            return distribution
+        }
+
+        @Override
+        File getWorkingDirectory() {
+            return workingDir
         }
 
         @Override

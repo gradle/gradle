@@ -82,31 +82,64 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         buildSpecifications.each { buildSpecification ->
             gcCollector.useDaemon(buildSpecification.useDaemon);
             File projectDir = testProjectLocator.findProjectDir(buildSpecification.projectName)
+            def buildParametersSpec = new BuildSpecificationBackedParametersSpecification(buildSpecification, gradleDistribution, projectDir)
             warmUpRuns.times {
-                executerProvider.executer(buildSpecification, gradleDistribution, projectDir).run()
+                executerProvider.executer(buildParametersSpec).run()
             }
             def operations = results.buildResult(buildSpecification)
             runs.times {
-                runOnce(buildSpecification, projectDir, operations)
+                runOnce(buildParametersSpec, operations)
             }
             if (buildSpecification.useDaemon) {
-                executerProvider.executer(buildSpecification, gradleDistribution, projectDir).withTasks().withArgument('--stop').run()
+                executerProvider.executer(buildParametersSpec).withTasks().withArgument('--stop').run()
             }
         }
     }
 
-    void runOnce(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results) {
-        def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir)
-        dataCollector.beforeExecute(projectDir, executer)
+    void runOnce(BuildParametersSpecification buildParametersSpecification, MeasuredOperationList results) {
+        def executer = executerProvider.executer(buildParametersSpecification)
+        dataCollector.beforeExecute(buildParametersSpecification.workingDirectory, executer)
 
         def operation = timer.measure { MeasuredOperation operation ->
             executer.run()
         }
 
         if (operation.exception == null) {
-            dataCollector.collect(projectDir, operation)
+            dataCollector.collect(buildParametersSpecification.workingDirectory, operation)
         }
 
         results.add(operation)
+    }
+
+    static class BuildSpecificationBackedParametersSpecification implements BuildParametersSpecification {
+        final BuildSpecification buildSpecification
+        final GradleDistribution gradleDistribution
+        final File workingDirectory
+
+        BuildSpecificationBackedParametersSpecification(BuildSpecification buildSpecification, GradleDistribution gradleDistribution, File workingDir) {
+            this.buildSpecification = buildSpecification
+            this.gradleDistribution = gradleDistribution
+            this.workingDirectory = workingDir
+        }
+
+        @Override
+        String[] getArgs() {
+            return buildSpecification.args
+        }
+
+        @Override
+        String[] getGradleOpts() {
+            return buildSpecification.gradleOpts
+        }
+
+        @Override
+        String[] getTasksToRun() {
+            return buildSpecification.tasksToRun
+        }
+
+        @Override
+        boolean getUseDaemon() {
+            return buildSpecification.useDaemon
+        }
     }
 }

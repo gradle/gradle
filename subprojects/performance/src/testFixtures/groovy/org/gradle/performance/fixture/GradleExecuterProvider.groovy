@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
@@ -27,14 +26,14 @@ class GradleExecuterProvider {
         this.testDirectoryProvider = testDirectoryProvider
     }
 
-    GradleExecuter executer(BuildParametersSpecification buildSpecification, GradleDistribution dist, File projectDir) {
-        def executer = dist.executer(testDirectoryProvider).
+    GradleExecuter executer(BuildParametersSpecification buildSpecification) {
+        def executer = buildSpecification.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
                 withDeprecationChecksDisabled().
                 withStackTraceChecksDisabled().
                 withArgument('-u').
-                inDirectory(projectDir).
+                inDirectory(buildSpecification.workingDirectory).
                 withTasks(buildSpecification.tasksToRun).
                 withGradleOpts(buildSpecification.gradleOpts)
 
