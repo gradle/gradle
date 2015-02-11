@@ -325,8 +325,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     void "can replace external dependency with project dependency"()
     {
         mavenRepo.module("org.utils", "api", '1.5').publish()
+        mavenRepo.module("org.utils", "api2", '1.5').publish()
+        mavenRepo.module("org.utils", "api3", '1.5').publish()
 
-        settingsFile << 'include "api", "impl"'
+        settingsFile << 'include "api", "api3", "impl"'
 
         buildFile << """
             allprojects {
@@ -357,14 +359,37 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            project(":api3") {
+                version = "1.6"
+
+                def output = file("output2.txt")
+                task build {
+                    outputs.file output
+                    doLast {
+                        delete(output)
+                        mkdir(output.parentFile)
+                        output << "lajos2"
+                    }
+                }
+
+                artifacts {
+                    lajos (output) {
+                        builtBy build
+                    }
+                }
+            }
+
             project(":impl") {
                 dependencies {
-//                    conf group: "org.utils", name: "api", version: "1.5", configuration: "lajos"
+                    conf group: "org.utils", name: "api2", version: "1.5"
                     conf project(path: ":api", configuration: "lajos")
+                    //conf group: "org.utils", name: "api3", version: "1.5"
                 }
 
                 configurations.conf.resolutionStrategy.eachDependency {
-//                    it.useTarget project(":api")
+                    if (it.requested.name == 'api3' && it.requested.version == '1.5') {
+                        it.useTarget project(":api3") // TODO: specify configuration 'lajos'
+                    }
                 }
 
                 task check {
@@ -386,8 +411,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 //                    assert !deps[0].selected.selectionReason.forced
 //                    assert deps[0].selected.selectionReason.selectedByRule
                     def files = configurations.conf.files
-                    assert files[0].name == "output.txt"
-                    assert files[0].text == "lajos"
+                    assert files[0].name == "api2-1.5.jar"
+                    assert files[1].name == "output.txt"
+                    assert files[1].text == "lajos"
+                    //assert files[2].name == "output2.txt"
+                    //assert files[2].text == "lajos2"
                 }
             }
 """

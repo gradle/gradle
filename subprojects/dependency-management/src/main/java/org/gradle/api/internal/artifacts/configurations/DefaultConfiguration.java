@@ -22,11 +22,14 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
@@ -74,11 +77,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean includedInResult;
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final ProjectFinder projectFinder;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy) {
+                                ResolutionStrategyInternal resolutionStrategy,
+                                ProjectFinder projectFinder) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -86,6 +91,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
         this.resolutionStrategy = resolutionStrategy;
+        this.projectFinder = projectFinder;
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -271,16 +277,41 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void collectProjectDependencies(Set<ResolvedDependency> resolvedDependencies, Map<ModuleVersionIdentifier, Project> projectMapping, DefaultTaskDependency taskDependency) {
+        for (ResolvedDependency dependency : resolvedDependencies) {
+            if (dependency instanceof DefaultResolvedDependency) {
+                ResolvedConfigurationIdentifier id = ((DefaultResolvedDependency) dependency).getId();
+                Project project = projectMapping.get(id.getId());
+
+                if (project != null) {
+                    Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
+                    taskDependency.add(targetConfig);
+                }
+            }
+
+            // Handling transitive dependencies
+            collectProjectDependencies(dependency.getChildren(), projectMapping, taskDependency);
+        }
+    }
+
     public TaskDependency getBuildDependencies() {
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         taskDependency.add(allDependencies.getBuildDependencies());
 
-        for (ResolvedDependency dependency : getResolvedConfiguration().getFirstLevelModuleDependencies()) {
-            ResolvedConfigurationIdentifier id = ((DefaultResolvedDependency) dependency).getId();
-            Project project = null; // from id
-            Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
-            taskDependency.add(targetConfig);
-        }
+        final Map<ModuleVersionIdentifier, Project> projectMapping = new HashMap<ModuleVersionIdentifier, Project>();
+        getIncoming().getResolutionResult().allComponents(new Action<ResolvedComponentResult>() {
+            @Override
+            public void execute(ResolvedComponentResult resolvedComponentResult) {
+                if (resolvedComponentResult.getId() instanceof ProjectComponentIdentifier) {
+                    ProjectComponentIdentifier projectId = (ProjectComponentIdentifier)resolvedComponentResult.getId();
+                    Project project = projectFinder.getProject(projectId.getProjectPath());
+                    projectMapping.put(resolvedComponentResult.getModuleVersion(), project);
+                }
+            }
+        });
+
+        collectProjectDependencies(getResolvedConfiguration().getFirstLevelModuleDependencies(), projectMapping, taskDependency);
+
         return taskDependency;
     }
 
@@ -357,7 +388,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
+                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectFinder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
