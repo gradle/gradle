@@ -21,7 +21,9 @@ import spock.lang.Specification
 class WaitingReaderTest extends Specification {
 
     def "can read lines"() {
-        def source = new BufferedReader(new StringReader("1\n2"))
+        def input = new ExpandingReader()
+        input.append("1\n2")
+        def source = new BufferedReader(input)
         def reader = new WaitingReader(source, 1, 1)
         expect:
         reader.readLine() == "1"
@@ -32,5 +34,46 @@ class WaitingReaderTest extends Specification {
 
         reader.readLine() == null
         reader.retriedCount > 0
+    }
+
+    def "can receive content after end of stream reached"() {
+        def input = new ExpandingReader()
+        input.append("1\n2\n")
+        def source = new BufferedReader(input)
+        def reader = new WaitingReader(source, 1, 1)
+
+        expect:
+        reader.readLine() == "1"
+        reader.readLine() == "2"
+        reader.readLine() == null
+        input.append("3\n4")
+        reader.readLine() == "3"
+        reader.readLine() == "4"
+        reader.readLine() == null
+    }
+
+    static class ExpandingReader extends Reader {
+        final buffer = new StringBuilder()
+
+        void append(String content) {
+            buffer.append(content)
+        }
+
+        @Override
+        void close() throws IOException {
+        }
+
+        @Override
+        int read(char[] dest, int offset, int len) throws IOException {
+            if (buffer.length() == 0) {
+                return -1
+            }
+            int count = Math.min(len, buffer.length())
+            for (int i = 0; i < count; i++) {
+                dest[i + offset] = buffer.charAt(i)
+            }
+            buffer.delete(0, count)
+            return count
+        }
     }
 }
