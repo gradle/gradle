@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
@@ -101,7 +102,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         }
 
         public void apply(final Object target) {
-            DefaultServiceRegistry services = new DefaultServiceRegistry();
+            final DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
             services.add(ClassLoaderScope.class, targetScope);
@@ -116,7 +117,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             PluginDependenciesService pluginDependenciesService = new PluginDependenciesService(getSource());
             services.add(PluginDependenciesService.class, pluginDependenciesService);
 
-            ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
+            final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
             compiler.setClassloader(baseScope.getExportClassLoader());
 
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
@@ -145,15 +146,24 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
             compiler.setVerifier(new ClosureCreationInterceptingVerifier());
 
-            ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
+            final ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
 
-            BasicScript script = runner.getScript();
-            script.init(target, services);
-            if (ownerScript && target instanceof ScriptAware) {
-                ((ScriptAware) target).setScript(script);
+            Runnable buildScriptRunner = new Runnable() {
+                public void run() {
+                    BasicScript script = runner.getScript();
+                    script.init(target, services);
+                    if (ownerScript && target instanceof ScriptAware) {
+                        ((ScriptAware) target).setScript(script);
+                    }
+                    runner.run();
+                }
+            };
+
+            if (!runner.getCompiledScript().hasImperativeStatements() && target instanceof ProjectInternal) {
+                ((ProjectInternal) target).setModelRulesBlockRunner(buildScriptRunner);
+            } else {
+                buildScriptRunner.run();
             }
-            runner.run();
         }
-
     }
 }

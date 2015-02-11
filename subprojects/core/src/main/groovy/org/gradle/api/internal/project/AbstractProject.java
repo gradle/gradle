@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Runnables;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
@@ -142,6 +143,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private String description;
 
     private final Path path;
+
+    private Runnable modelRulesBlockRunner = Runnables.doNothing();
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -951,4 +954,29 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
     }
 
+    @Override
+    public void setModelRulesBlockRunner(final Runnable modelRulesBlockRunner) {
+        this.modelRulesBlockRunner = new SingleRunRunnable(modelRulesBlockRunner);
+    }
+
+    @Override
+    public void runModelRulesBlock() {
+        modelRulesBlockRunner.run();
+    }
+
+    private static class SingleRunRunnable implements Runnable {
+        private final Runnable runnable;
+        private boolean hasRun;
+
+        public SingleRunRunnable(Runnable runnable) {
+            this.runnable = runnable;
+        }
+
+        public void run() {
+            if (!hasRun) {
+                hasRun = true;
+                runnable.run();
+            }
+        }
+    }
 }

@@ -42,11 +42,12 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         compiler.classloader = classLoader
         compiler.transformer = transformer
         compiler.verifier = verifier
+        compiler.classpathClosureName = "buildscript"
         def result = compiler.compile(Script)
 
         then:
         result == runner
-        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, transformer, Script, verifier) >> compiledScript
+        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, transformer, "buildscript", Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, {it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.groovy.scripts.*
+import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
@@ -57,6 +58,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathClosureName = "buildscript"
+    def compiledScript = Mock(CompiledScript)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
             documentationRegistry, new ModelRuleSourceDetector())
@@ -90,6 +92,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.setTransformer(!null)
         1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
         1 * scriptRunner.getScript() >> script
+        1 * scriptRunner.compiledScript >> compiledScript
         1 * script.init(target, _ as ServiceRegistry)
         1 * scriptRunner.run()
 
@@ -116,6 +119,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.setTransformer(!null)
         1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
         1 * scriptRunner.getScript() >> script
+        1 * scriptRunner.compiledScript >> compiledScript
         1 * script.init(target, _ as ServiceRegistry)
         1 * scriptRunner.run()
 

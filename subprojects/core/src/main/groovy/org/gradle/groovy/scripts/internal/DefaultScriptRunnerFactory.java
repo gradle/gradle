@@ -58,6 +58,11 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         }
 
         @Override
+        public CompiledScript<T> getCompiledScript() {
+            return compiledScript;
+        }
+
+        @Override
         public void run() throws GradleScriptException {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();

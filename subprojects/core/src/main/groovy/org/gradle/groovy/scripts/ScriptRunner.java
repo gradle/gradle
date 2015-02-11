@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
 import org.gradle.api.GradleScriptException;
+import org.gradle.groovy.scripts.internal.CompiledScript;
 
 /**
  * Executes a script of type T.
@@ -28,6 +29,8 @@ public interface ScriptRunner<T extends Script> extends Runnable {
      * @return the script.
      */
     T getScript();
+
+    CompiledScript<T> getCompiledScript();
 
     /**
      * Executes the script.

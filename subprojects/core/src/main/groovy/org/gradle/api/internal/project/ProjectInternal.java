@@ -93,4 +93,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ClassLoaderScope getBaseClassLoaderScope();
 
+    void setModelRulesBlockRunner(Runnable modelRulesBlockRunner);
+
+    void runModelRulesBlock();
 }

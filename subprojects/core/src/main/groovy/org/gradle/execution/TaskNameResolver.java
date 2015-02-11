@@ -110,6 +110,7 @@ public class TaskNameResolver {
         ModelRegistry modelRegistry = project.getModelRegistry();
         ModelNode modelNode;
         try {
+            project.runModelRulesBlock();
             modelNode = selfClose(modelRegistry, TaskContainerInternal.MODEL_PATH);
         } catch (Throwable e) {
             throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project), e);
