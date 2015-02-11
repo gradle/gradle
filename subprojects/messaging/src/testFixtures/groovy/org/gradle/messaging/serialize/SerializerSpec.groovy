@@ -21,16 +21,16 @@ import org.gradle.messaging.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class SerializerSpec extends Specification {
-    def serialize(def value, Serializer serializer) {
+    public <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
         return fromBytes(bytes, serializer)
     }
 
-    def fromBytes(def bytes, Serializer serializer) {
+    public <T> T fromBytes(byte[] bytes, Serializer<T> serializer) {
         return serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(bytes)))
     }
 
-    def toBytes(def value, Serializer serializer) {
+    public <T> byte[] toBytes(T value, Serializer<T> serializer) {
         def bytes = new ByteArrayOutputStream()
         def encoder = new KryoBackedEncoder(bytes)
         serializer.write(encoder, value)

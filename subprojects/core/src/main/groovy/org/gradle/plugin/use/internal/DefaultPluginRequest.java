@@ -34,6 +34,10 @@ public class DefaultPluginRequest implements PluginRequest {
         this(id, version, lineNumber, scriptSource.getDisplayName());
     }
 
+    public DefaultPluginRequest(String id, String version, int lineNumber, String scriptDisplayName) {
+        this(PluginId.of(id), version, lineNumber, scriptDisplayName);
+    }
+
     public DefaultPluginRequest(PluginId id, String version, int lineNumber, String scriptDisplayName) {
         this.id = id;
         this.version = version;

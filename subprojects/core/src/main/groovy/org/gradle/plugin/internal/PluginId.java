@@ -98,6 +98,10 @@ public class PluginId {
         return value;
     }
 
+    public String asString() {
+        return value;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
