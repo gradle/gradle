@@ -330,9 +330,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: "java"
                 group "org.utils"
-            }
-
-            project(":api") {
                 version = "1.6"
             }
 
@@ -392,9 +389,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-            }
-
-            project(":api") {
                 version = "1.6"
             }
 
@@ -441,9 +435,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
-            }
-
-            project(":api") {
                 version = "1.6"
             }
 
@@ -494,11 +485,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
+                version = "1.6"
             }
 
             project(":api") {
-                version = "1.6"
-
                 jar << {
                     throw new RuntimeException("External artifact should be used instead")
                 }
@@ -558,22 +548,19 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: "java"
                 group "org.utils"
+                version = "1.6"
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
             }
 
             project(":api") {
-                version = "1.6"
-
                 jar << {
                     throw new RuntimeException("External artifact should be used instead")
                 }
             }
 
             project(":impl") {
-                version = "1.6"
-
                 dependencies {
                     compile project(":api")
                 }
