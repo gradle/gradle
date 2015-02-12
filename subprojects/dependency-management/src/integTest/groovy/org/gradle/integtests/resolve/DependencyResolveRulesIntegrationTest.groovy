@@ -380,6 +380,54 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace transitive external dependency with project dependency"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        settingsFile << 'include "api", "test"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":api") {
+                version = "1.6"
+            }
+
+            project(":test") {
+                dependencies {
+                    compile group: "org.utils", name: "impl", version: "1.5"
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.6.jar", "impl-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+"""
+
+        when:
+        run("test:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
