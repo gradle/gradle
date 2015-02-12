@@ -28,36 +28,19 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(*tasks).useDaemon()
+            forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(task).useDaemon()
         }
-        runner.baseline {
-            it.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(*tasks).useDaemon()
-        }
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertEveryBuildSucceeds()
-
-        where:
-        [size, tasks] << GroovyCollections.combinations(
-                ["small", "medium", "big"],
-                [["allVariants"], ["help"]]
-        )
-        scenario = tasks == ["help"] ? "empty" : "full"
-    }
-
-    @Unroll
-    def "#size project using variants partial build"() {
-        given:
-        runner.testGroup = "project using variants"
-        runner.testId = "$size project using variants partial build"
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model").tasksToRun('flavour1type1').useDaemon()
+            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model (reuse)").tasksToRun(task).useDaemon()
+        }
+        runner.buildSpec {
+            Toggles.noDaemonLogging(it).forProject("${size}VariantsNewModel").displayName("new model (no client logging)").tasksToRun(task).useDaemon()
         }
         runner.baseline {
-            it.forProject("${size}VariantsOldModel").displayName("old model").tasksToRun('flavour1type1').useDaemon()
+            forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(task).useDaemon()
+        }
+        runner.baseline {
+            Toggles.noDaemonLogging(it).forProject("${size}VariantsOldModel").displayName("old model (no client logging)").tasksToRun(task).useDaemon()
         }
 
         when:
@@ -67,7 +50,15 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         result.assertEveryBuildSucceeds()
 
         where:
-        size << ["medium", "big"]
+        scenario  | size     | task
+        "empty"   | "small"  | "help"
+        "empty"   | "medium" | "help"
+        "empty"   | "big"    | "help"
+        "full"    | "small"  | "allVariants"
+        "full"    | "medium" | "allVariants"
+        "full"    | "big"    | "allVariants"
+        "partial" | "medium" | "flavour1type1"
+        "partial" | "big"    | "flavour1type1"
     }
 
     @Unroll
@@ -76,10 +67,19 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon()
+            forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon()
+        }
+        runner.buildSpec {
+            Toggles.modelReuse(it).forProject("variantsNewModelMultiproject").displayName("new model (reuse)").tasksToRun(*tasks).useDaemon()
+        }
+        runner.buildSpec {
+            Toggles.noDaemonLogging(it).forProject("variantsNewModelMultiproject").displayName("new model (no client logging)").tasksToRun(*tasks).useDaemon()
         }
         runner.baseline {
-            it.forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon()
+            forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon()
+        }
+        runner.baseline {
+            Toggles.noDaemonLogging(it).forProject("variantsOldModelMultiproject").displayName("old model (no client logging)").tasksToRun(*tasks).useDaemon()
         }
 
         when:
