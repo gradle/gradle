@@ -50,7 +50,9 @@ public class UnavailablePlatformToolProvider extends AbstractPlatformToolProvide
     public String getObjectFileExtension() {
         throw failure();
     }
-    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
+
+    @Override
+    public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
         throw failure();
     }
 }

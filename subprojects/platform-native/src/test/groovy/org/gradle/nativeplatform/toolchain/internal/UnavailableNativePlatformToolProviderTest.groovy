@@ -42,7 +42,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
 
     def "throws failure when attempting to create a compiler"() {
         when:
-        toolChain.newCompiler(Stub(NativeCompileSpec))
+        toolChain.newCompiler(NativeCompileSpec.class)
 
         then:
         GradleException e = thrown()
