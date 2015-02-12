@@ -85,6 +85,7 @@ public class ProviderConnection {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
             return new DefaultBuildEnvironment(
+                    params.gradleUserhome,
                     GradleVersion.current().getVersion(),
                     params.daemonParams.getEffectiveJavaHome(),
                     params.daemonParams.getEffectiveJvmArgs());
@@ -156,16 +157,19 @@ public class ProviderConnection {
             daemonParams.setIdleTimeout(idleTimeout);
         }
 
-        return new Parameters(daemonParams, properties);
+        return new Parameters(daemonParams, properties, layout.getGradleUserHomeDir());
     }
 
     private static class Parameters {
         DaemonParameters daemonParams;
         Map<String, String> properties;
+        File gradleUserhome;
 
-        public Parameters(DaemonParameters daemonParams, Map<String, String> properties) {
+        public Parameters(DaemonParameters daemonParams, Map<String, String> properties, File gradleUserhome) {
             this.daemonParams = daemonParams;
             this.properties = properties;
+            this.gradleUserhome = gradleUserhome;
         }
     }
+
 }
