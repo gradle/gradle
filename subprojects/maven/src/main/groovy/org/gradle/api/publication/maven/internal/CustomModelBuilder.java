@@ -18,7 +18,6 @@ package org.gradle.api.publication.maven.internal;
 import groovy.util.FactoryBuilderSupport;
 import org.apache.maven.model.Model;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
-import org.gradle.api.internal.artifacts.PlexusLoggerAdapter;
 import org.slf4j.LoggerFactory;
 import org.sonatype.maven.polyglot.execute.ExecuteManager;
 import org.sonatype.maven.polyglot.execute.ExecuteManagerImpl;
