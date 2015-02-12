@@ -500,7 +500,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 version = "1.6"
 
                 jar << {
-                    throw new RutimeException("External artifact should be used instead")
+                    throw new RuntimeException("External artifact should be used instead")
                 }
             }
 
@@ -567,7 +567,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 version = "1.6"
 
                 jar << {
-                    throw new RutimeException("External artifact should be used instead")
+                    throw new RuntimeException("External artifact should be used instead")
                 }
             }
 
