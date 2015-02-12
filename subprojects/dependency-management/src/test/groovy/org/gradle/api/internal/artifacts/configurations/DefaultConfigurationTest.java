@@ -471,20 +471,12 @@ public class DefaultConfigurationTest {
     @Test
     public void buildDependenciesDelegatesToAllSelfResolvingDependencies() {
         final Task target = context.mock(Task.class, "target");
-        final Task projectDepTaskDummy = context.mock(Task.class, "projectDepTask");
         final Task fileDepTaskDummy = context.mock(Task.class, "fileDepTask");
-        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
         final FileCollectionDependency fileCollectionDependencyStub = context.mock(FileCollectionDependency.class);
 
         context.checking(new Expectations() {{
             TaskDependency projectTaskDependencyDummy = context.mock(TaskDependency.class, "projectDep");
             TaskDependency fileTaskDependencyStub = context.mock(TaskDependency.class, "fileDep");
-
-            allowing(projectDependencyStub).getBuildDependencies();
-            will(returnValue(projectTaskDependencyDummy));
-
-            allowing(projectTaskDependencyDummy).getDependencies(target);
-            will(returnValue(toSet(projectDepTaskDummy)));
 
             allowing(fileCollectionDependencyStub).getBuildDependencies();
             will(returnValue(fileTaskDependencyStub));
@@ -493,11 +485,9 @@ public class DefaultConfigurationTest {
             will(returnValue(toSet(fileDepTaskDummy)));
         }});
 
-        configuration.getDependencies().add(projectDependencyStub);
         configuration.getDependencies().add(fileCollectionDependencyStub);
 
-        assertThat(configuration.getBuildDependencies().getDependencies(target), equalTo((Set) toSet(fileDepTaskDummy,
-                projectDepTaskDummy)));
+        assertThat(configuration.getBuildDependencies().getDependencies(target), equalTo((Set) toSet(fileDepTaskDummy)));
     }
 
     @Test
