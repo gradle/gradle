@@ -49,8 +49,7 @@ class JavaCompileParallelIntegrationTest extends AbstractHttpDependencyResolutio
         }
 
         when:
-        module.pom.allowGetOrHead()
-        module.artifact.allowGetOrHead()
+        module.allowAll()
         args('--parallel-threads=4')
         run('compileJava')
 
