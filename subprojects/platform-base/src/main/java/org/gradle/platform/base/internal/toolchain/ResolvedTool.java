@@ -16,11 +16,6 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
-
-public interface ToolProvider extends ToolSearchResult {
-    <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec);
-
-    <T> T get(Class<T> toolType);
+public interface ResolvedTool<T> extends ToolSearchResult {
+    public T get();
 }

@@ -17,10 +17,13 @@
 package org.gradle.platform.base.internal.toolchain;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.platform.base.Platform;
 import org.gradle.language.base.internal.compile.Compiler;
 
-public interface ToolProvider extends ToolSearchResult {
-    <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec);
+public interface ToolResolver {
+    ToolSearchResult checkToolAvailability(Platform requirement);
 
-    <T> T get(Class<T> toolType);
+    <T> ResolvedTool<T> resolve(Class<T> toolType, Platform requirement);
+
+    <C extends CompileSpec> ResolvedTool<Compiler<C>> resolveCompiler(Class<C> specType, Platform requirement);
 }

@@ -89,6 +89,11 @@ class DefaultPlayToolProvider implements PlayToolProvider {
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }
 
+    @Override
+    public <T> T get(Class<T> toolType) {
+        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+    }
+
     private <T extends CompileSpec> Compiler<T> cast(Compiler<? extends PlayCompileSpec> raw) {
         @SuppressWarnings("unchecked")
         Compiler<T> converted = (Compiler<T>) raw;

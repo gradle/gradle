@@ -55,6 +55,11 @@ public class DefaultScalaToolProvider implements ToolProvider {
         throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }
 
+    @Override
+    public <T> T get(Class<T> toolType) {
+        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+    }
+
     public boolean isAvailable() {
         return true;
     }

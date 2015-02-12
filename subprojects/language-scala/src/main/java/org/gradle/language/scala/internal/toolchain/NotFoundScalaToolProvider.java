@@ -35,6 +35,11 @@ public class NotFoundScalaToolProvider implements ToolProvider {
     }
 
     @Override
+    public <T> T get(Class<T> toolType) {
+        throw failure();
+    }
+
+    @Override
     public boolean isAvailable() {
         return false;
     }

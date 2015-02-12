@@ -75,6 +75,11 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             throw new IllegalArgumentException(String.format("Don't know how to compile using spec of type %s.", spec.getClass().getSimpleName()));
         }
 
+        @Override
+        public <T> T get(Class<T> toolType) {
+            throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+        }
+
         public boolean isAvailable() {
             return true;
         }
@@ -91,6 +96,11 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         }
 
         public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
+            throw new IllegalArgumentException(getMessage());
+        }
+
+        @Override
+        public <T> T get(Class<T> toolType) {
             throw new IllegalArgumentException(getMessage());
         }
 

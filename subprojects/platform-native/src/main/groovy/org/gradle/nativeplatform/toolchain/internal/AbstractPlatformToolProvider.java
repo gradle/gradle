@@ -64,6 +64,11 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
 
+    @Override
+    public <T> T get(Class<T> toolType) {
+        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+    }
+
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (CppCompileSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createCppCompiler());

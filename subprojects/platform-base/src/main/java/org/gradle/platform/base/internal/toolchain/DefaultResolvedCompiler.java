@@ -16,11 +16,30 @@
 
 package org.gradle.platform.base.internal.toolchain;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.*;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.TreeVisitor;
 
-public interface ToolProvider extends ToolSearchResult {
-    <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec);
+public class DefaultResolvedCompiler<C extends CompileSpec> implements ResolvedTool<org.gradle.language.base.internal.compile.Compiler<C>> {
+    private final ToolProvider provider;
+    private final Class<C> specType;
 
-    <T> T get(Class<T> toolType);
+    public DefaultResolvedCompiler(ToolProvider provider, Class<C> specType) {
+        this.provider = provider;
+        this.specType = specType;
+    }
+
+    @Override
+    public Compiler<C> get() {
+        return provider.newCompiler(specType);
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
+
+    @Override
+    public void explain(TreeVisitor<? super String> visitor) {
+    }
 }
