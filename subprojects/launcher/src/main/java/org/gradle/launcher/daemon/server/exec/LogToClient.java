@@ -40,12 +40,14 @@ public class LogToClient extends BuildCommandOnly {
     }
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
+        if (Boolean.getBoolean(DISABLE_OUTPUT)) {
+            execution.proceed();
+            return;
+        }
+
         final LogLevel buildLogLevel = build.getParameters().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (Boolean.getBoolean(DISABLE_OUTPUT)) {
-                    return;
-                }
                 try {
                     if (event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0) {
                         execution.getConnection().logEvent(event);
