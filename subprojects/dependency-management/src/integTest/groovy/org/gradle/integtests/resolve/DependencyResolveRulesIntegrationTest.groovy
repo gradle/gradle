@@ -324,40 +324,26 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can replace external dependency with project dependency"()
     {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-        mavenRepo.module("org.utils", "api2", '1.5').publish()
-        mavenRepo.module("org.utils", "api3", '1.5').publish()
-
-        settingsFile << 'include "api", "api3", "impl"'
+        settingsFile << 'include "api", "impl"'
 
         buildFile << """
             allprojects {
                 apply plugin: "java"
                 group "org.utils"
-
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
             }
 
             project(":api") {
                 version = "1.6"
             }
 
-            project(":api3") {
-                version = "1.6"
-            }
-
             project(":impl") {
                 dependencies {
-//                    compile group: "org.utils", name: "api2", version: "1.5"
-                    compile project(path: ":api")
-                    compile group: "org.utils", name: "api3", version: "1.5"
+                    compile group: "org.utils", name: "api", version: "1.5"
                 }
 
                 configurations.compile.resolutionStrategy.eachDependency {
-                    if (it.requested.name == 'api3' && it.requested.version == '1.5') {
-                        it.useTarget project(":api3")
+                    if (it.requested.name == 'api') {
+                        it.useTarget project(":api")
                     }
                 }
 
@@ -367,21 +353,22 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
                 checkIt << {
                     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
-//                    assert deps.size() == 1
-//                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-//
-//                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
-//                    assert deps[0].requested.group == "org.utils"
-//                    assert deps[0].requested.module == "api"
-//                    assert deps[0].requested.version == "1.5"
-//
-//                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
-//                    assert deps[0].selected.componentId.projectPath == ":api"
-//                    assert !deps[0].selected.selectionReason.forced
-//                    assert deps[0].selected.selectionReason.selectedByRule
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+                    assert deps[0].requested.group == "org.utils"
+                    assert deps[0].requested.module == "api"
+                    assert deps[0].requested.version == "1.5"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+                    assert deps[0].selected.componentId.projectPath == ":api"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+
                     def files = configurations.compile.files
-                    assert files*.name.sort() == ["api-1.6.jar", "api3-1.6.jar"]
-                    assert files*.exists() == [ true, true ]
+                    assert files*.name.sort() == ["api-1.6.jar"]
+                    assert files*.exists() == [ true ]
                 }
             }
 """
