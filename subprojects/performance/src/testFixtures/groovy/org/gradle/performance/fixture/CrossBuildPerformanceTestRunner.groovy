@@ -50,7 +50,12 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         def builder = new BuildSpecification.Builder(null)
         configureAction.delegate = builder
         configureAction.call(builder)
-        buildSpecifications << builder.build()
+        def specification = builder.build()
+
+        if (buildSpecifications.find { it.displayName == specification.displayName }) {
+            throw new IllegalStateException("Multiple specifications with display name '${spec.displayName}.")
+        }
+        buildSpecifications << specification
     }
 
     public void baseline(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
@@ -80,14 +85,17 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
 
     void runAllSpecifications() {
         buildSpecifications.each { buildSpecification ->
+            println "${buildSpecification.displayName} ..."
             gcCollector.useDaemon(buildSpecification.useDaemon);
             File projectDir = testProjectLocator.findProjectDir(buildSpecification.projectName)
             def buildParametersSpec = new BuildSpecificationBackedParametersSpecification(buildSpecification, gradleDistribution, projectDir)
             warmUpRuns.times {
+                println "Executing warm-up run #${it + 1}"
                 executerProvider.executer(buildParametersSpec).run()
             }
             def operations = results.buildResult(buildSpecification)
             runs.times {
+                println "Executing test run #${it + 1}"
                 runOnce(buildParametersSpec, operations)
             }
             if (buildSpecification.useDaemon) {
