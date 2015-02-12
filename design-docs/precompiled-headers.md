@@ -127,14 +127,14 @@ Visual-C++ requires precompiled headers to be created from a source file (.c or 
 
 my_pch.cpp will consist of:
 
-   #include "some_pch.h"
-   #include "my_pch.h"
-   #include "not_pch.h"
-   // more code could go here
+    #include "some_pch.h"
+    #include "my_pch.h"
+    #include "not_pch.h"
+    // more code could go here
 
 Command-line to create PCH:
 
-   CL /Ycmy_pch.h my_pch.cpp 
+    CL /Ycmy_pch.h my_pch.cpp 
 
 The compiler will compile my_pch.cpp up until it reaches the boundary header file (my_pch.h) and produce a file my_pch.pch.  We could control that with /Fp.  Spaces are not allowed after MSVC arguments (e.g., '/Yc filename' is wrong).  This means the PCH source file could also be a "normal" source file and need to be compiled into an object file as well.
 
@@ -143,6 +143,12 @@ For source files that use the precompiled headers, you must compile with /Yumy_p
 Like GCC, Visual-C++ has a force include feature (/FI). 
 
 [Reference](https://msdn.microsoft.com/en-us/library/b4w02hte.aspx)
+
+## IDE Integration
+
+### MSVC
+
+TBD
 
 # Open Questions
 
