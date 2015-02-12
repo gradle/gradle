@@ -97,8 +97,8 @@ public class MessagingServices extends DefaultServiceRegistry implements Stoppab
         return new InetAddressFactory();
     }
 
-    protected OutgoingConnector createOutgoingConnector(InetAddressFactory inetAddressFactory) {
-        return new TcpOutgoingConnector(inetAddressFactory);
+    protected OutgoingConnector createOutgoingConnector() {
+        return new TcpOutgoingConnector();
     }
 
     protected IncomingConnector createIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {

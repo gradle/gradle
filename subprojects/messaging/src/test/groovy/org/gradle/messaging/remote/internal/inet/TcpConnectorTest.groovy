@@ -26,7 +26,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
-    final def outgoingConnector = new TcpOutgoingConnector(addressFactory)
+    final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
 
     def "client can connect to server"() {

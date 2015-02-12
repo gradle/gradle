@@ -29,7 +29,6 @@ import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
 import java.io.InputStream;
@@ -82,15 +81,11 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
 
-    OutgoingConnector createOutgoingConnector(InetAddressFactory inetAddressFactory) {
-        return new TcpOutgoingConnector(inetAddressFactory);
+    OutgoingConnector createOutgoingConnector() {
+        return new TcpOutgoingConnector();
     }
 
     DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter) {
         return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter);
-    }
-
-    InetAddressFactory createInetAddressFactory() {
-        return new InetAddressFactory();
     }
 }

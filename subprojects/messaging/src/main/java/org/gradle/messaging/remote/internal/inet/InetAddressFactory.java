@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -227,11 +224,12 @@ public class InetAddressFactory {
         }
 
         // Detect Openshift IP environment variable.
-        InetAddress openshiftEnvironment = findOpenshiftAddresses();
-        if (openshiftEnvironment != null) {
-            localBindingAddress = openshiftEnvironment;
+        InetAddress openshiftBindAddress = findOpenshiftAddresses();
+        if (openshiftBindAddress != null) {
+            localBindingAddress = openshiftBindAddress;
+            localAddresses.add(openshiftBindAddress);
         } else {
-            localBindingAddress = InetAddress.getByName("0.0.0.0");
+            localBindingAddress = new InetSocketAddress(0).getAddress();
         }
     }
 
