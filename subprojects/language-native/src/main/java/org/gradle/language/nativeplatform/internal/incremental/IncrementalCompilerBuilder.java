@@ -31,7 +31,7 @@ public class IncrementalCompilerBuilder {
         this.fileSnapshotter = fileSnapshotter;
     }
 
-    public Compiler<NativeCompileSpec> createIncrementalCompiler(TaskInternal task, Compiler<NativeCompileSpec> compiler, NativeToolChain toolchain) {
-        return new IncrementalNativeCompiler(task, cacheAccess, fileSnapshotter, compiler, toolchain);
+    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
+        return new IncrementalNativeCompiler<T>(task, cacheAccess, fileSnapshotter, compiler, toolchain);
     }
 }

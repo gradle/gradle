@@ -102,15 +102,15 @@ public class RoutesCompile extends SourceTask {
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject());
         if (compiler == null) {
-            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(spec), getOutputs());
+            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
         }
         compiler.execute(spec);
     }
 
-    private Compiler<RoutesCompileSpec> getCompiler(RoutesCompileSpec spec) {
+    private Compiler<RoutesCompileSpec> getCompiler() {
         if (compiler == null) {
             ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
-            compiler = select.newCompiler(spec);
+            compiler = select.newCompiler(RoutesCompileSpec.class);
         }
         return compiler;
     }

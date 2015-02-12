@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -68,7 +69,7 @@ public class Assemble extends DefaultTask {
         spec.source(getSource());
         spec.args(getAssemblerArgs());
 
-        WorkResult result = toolChain.select(targetPlatform).newCompiler(spec).execute(spec);
+        WorkResult result = toolChain.select(targetPlatform).newCompiler(AssembleSpec.class).execute(spec);
         setDidWork(result.getDidWork());
     }
 

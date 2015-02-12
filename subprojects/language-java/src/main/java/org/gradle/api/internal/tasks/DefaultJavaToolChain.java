@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -63,13 +62,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     }
 
     private class JavaToolProvider implements ToolProvider {
-        public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
-            if (spec instanceof JavaCompileSpec) {
-                CompileOptions options = ((JavaCompileSpec) spec).getCompileOptions();
-                @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(options);
+        public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
+            if (JavaCompileSpec.class.isAssignableFrom(spec)) {
+                @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(spec);
                 return compiler;
             }
-            if (spec instanceof JavadocSpec) {
+            if (JavadocSpec.class.isAssignableFrom(spec)) {
                 @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) new JavadocGenerator(execActionFactory);
                 return compiler;
             }
@@ -92,7 +90,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             this.targetPlatform = targetPlatform;
         }
 
-        public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
+        public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
             throw new IllegalArgumentException(getMessage());
         }
 

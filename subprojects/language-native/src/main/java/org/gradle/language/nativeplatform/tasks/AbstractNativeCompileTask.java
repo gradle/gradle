@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -80,7 +81,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setIncrementalCompile(inputs.isIncremental());
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        WorkResult result = getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec), toolChain).execute(spec);
+        WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
 
         setDidWork(result.getDidWork());
     }

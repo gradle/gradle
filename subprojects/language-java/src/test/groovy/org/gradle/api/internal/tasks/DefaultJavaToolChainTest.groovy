@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.javadoc.internal.JavadocGenerator
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec
 import org.gradle.jvm.platform.JavaPlatform
@@ -43,22 +42,18 @@ class DefaultJavaToolChainTest extends Specification {
     }
 
     def "creates compiler for JavaCompileSpec"() {
-        def options = Stub(CompileOptions)
-        def spec = Stub(JavaCompileSpec) {
-            getCompileOptions() >> options
-        }
         def compiler = Stub(Compiler)
 
         given:
-        javaCompilerFactory.create(options) >> compiler
+        javaCompilerFactory.create(JavaCompileSpec.class) >> compiler
 
         expect:
-        toolChain.select(currentPlatform).newCompiler(spec) == compiler
+        toolChain.select(currentPlatform).newCompiler(JavaCompileSpec.class) == compiler
     }
 
     def "creates compiler for JavadocSpec"() {
         expect:
-        toolChain.select(currentPlatform).newCompiler(Stub(JavadocSpec)) instanceof JavadocGenerator
+        toolChain.select(currentPlatform).newCompiler(JavadocSpec.class) instanceof JavadocGenerator
     }
 
     def "creates available tool provider for earlier platform"() {

@@ -54,7 +54,7 @@ class DownloadingScalaToolChainTest extends Specification {
         when:
         dependencyNotAvailable("scala-compiler")
         def toolProvider = scalaToolChain.select(scalaPlatform)
-        toolProvider.newCompiler(Mock(ScalaCompileSpec))
+        toolProvider.newCompiler(ScalaCompileSpec.class)
 
         then:
         !toolProvider.isAvailable()
@@ -68,7 +68,7 @@ class DownloadingScalaToolChainTest extends Specification {
         dependencyAvailable("scala-compiler")
         dependencyNotAvailable("zinc")
         toolProvider = scalaToolChain.select(scalaPlatform)
-        toolProvider.newCompiler(Mock(ScalaCompileSpec))
+        toolProvider.newCompiler(ScalaCompileSpec.class)
 
         then:
         def zincErrorFormatter = new TreeFormatter()

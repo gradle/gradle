@@ -51,7 +51,7 @@ class AssemblerTest extends Specification {
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({it instanceof AssembleSpec}) >> assembler
+        1 * platformToolChain.newCompiler({AssembleSpec.class.isAssignableFrom(it)}) >> assembler
         1 * assembler.execute({ AssembleSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

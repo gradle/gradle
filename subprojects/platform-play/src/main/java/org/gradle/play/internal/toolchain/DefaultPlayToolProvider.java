@@ -72,21 +72,21 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     }
 
     // TODO:DAZ Detangle Routes adapter from compile specs
-    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
-        if (spec instanceof TwirlCompileSpec) {
+    public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
+        if (TwirlCompileSpec.class.isAssignableFrom(spec)) {
             TwirlCompiler twirlCompiler = TwirlCompilerFactory.create(targetPlatform);
             Set<File> twirlClasspath = resolveToolClasspath(twirlCompiler.getDependencyNotation()).getFiles();
             return cast(new DaemonPlayCompiler<TwirlCompileSpec>(fileResolver.resolve("."), twirlCompiler, compilerDaemonManager, twirlClasspath, twirlCompiler.getClassLoaderPackages()));
-        } else if (spec instanceof RoutesCompileSpec) {
+        } else if (RoutesCompileSpec.class.isAssignableFrom(spec)) {
             RoutesCompiler routesCompiler = RoutesCompilerFactory.create(targetPlatform);
             Set<File> routesClasspath = resolveToolClasspath(routesCompiler.getDependencyNotation()).getFiles();
             return cast(new DaemonPlayCompiler<RoutesCompileSpec>(fileResolver.resolve("."), routesCompiler, compilerDaemonManager, routesClasspath, routesCompiler.getClassLoaderPackages()));
-        } else if (spec instanceof JavaScriptCompileSpec) {
+        } else if (JavaScriptCompileSpec.class.isAssignableFrom(spec)) {
             GoogleClosureCompiler javaScriptCompiler = new GoogleClosureCompiler();
             Set<File> javaScriptCompilerClasspath = resolveToolClasspath(javaScriptCompiler.getDependencyNotation()).getFiles();
             return cast(new DaemonPlayCompiler<JavaScriptCompileSpec>(fileResolver.resolve("."), javaScriptCompiler, compilerDaemonManager, javaScriptCompilerClasspath, javaScriptCompiler.getClassLoaderPackages()));
         }
-        throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
+        throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
     }
 
     private <T extends CompileSpec> Compiler<T> cast(Compiler<? extends PlayCompileSpec> raw) {

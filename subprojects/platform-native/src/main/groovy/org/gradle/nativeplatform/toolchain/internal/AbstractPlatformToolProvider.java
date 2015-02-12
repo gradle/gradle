@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
@@ -63,30 +64,30 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
         return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
 
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
-        if (spec instanceof CppCompileSpec) {
-            return castCompiler(createCppCompiler());
+    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
+        if (CppCompileSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createCppCompiler());
         }
-        if (spec instanceof CCompileSpec) {
-            return castCompiler(createCCompiler());
+        if (CCompileSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createCCompiler());
         }
-        if (spec instanceof ObjectiveCppCompileSpec) {
-            return castCompiler(createObjectiveCppCompiler());
+        if (ObjectiveCppCompileSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createObjectiveCppCompiler());
         }
-        if (spec instanceof ObjectiveCCompileSpec) {
-            return castCompiler(createObjectiveCCompiler());
+        if (ObjectiveCCompileSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createObjectiveCCompiler());
         }
-        if (spec instanceof WindowsResourceCompileSpec) {
-            return castCompiler(createWindowsResourceCompiler());
+        if (WindowsResourceCompileSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createWindowsResourceCompiler());
         }
-        if (spec instanceof AssembleSpec) {
-            return castCompiler(createAssembler());
+        if (AssembleSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createAssembler());
         }
-        if (spec instanceof LinkerSpec) {
-            return castCompiler(createLinker());
+        if (LinkerSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createLinker());
         }
-        if (spec instanceof StaticLibraryArchiverSpec) {
-            return castCompiler(createStaticLibraryArchiver());
+        if (StaticLibraryArchiverSpec.class.isAssignableFrom(spec)) {
+            return CompilerUtil.castCompiler(createStaticLibraryArchiver());
         }
         throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
     }
@@ -125,10 +126,5 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
 
     protected Compiler<?> createStaticLibraryArchiver() {
         throw unavailableTool("Static library archiver is not available");
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends CompileSpec> Compiler<T> castCompiler(Compiler<?> compiler) {
-        return (Compiler<T>) compiler;
     }
 }

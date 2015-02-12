@@ -87,7 +87,7 @@ class DefaultPlayToolProviderTest extends Specification {
         playToolProvider = new DefaultPlayToolProvider(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory, playPlatform)
 
         when:
-        playToolProvider.newCompiler(new UnknownCompileSpec())
+        playToolProvider.newCompiler(UnknownCompileSpec.class)
 
         then:
         def ex = thrown(IllegalArgumentException)

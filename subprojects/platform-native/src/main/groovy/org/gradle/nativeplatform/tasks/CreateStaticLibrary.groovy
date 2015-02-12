@@ -93,7 +93,7 @@ class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
         spec.objectFiles getSource()
         spec.args getStaticLibArgs()
 
-        def result = toolChain.select(targetPlatform).newCompiler(spec).execute(spec)
+        def result = toolChain.select(targetPlatform).newCompiler(spec.getClass()).execute(spec)
         didWork = result.didWork
     }
 

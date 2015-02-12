@@ -102,10 +102,10 @@ public class JavaScriptMinify extends SourceTask {
         this.playPlatform = playPlatform;
     }
 
-    private Compiler<JavaScriptCompileSpec> getCompiler(JavaScriptCompileSpec spec) {
+    private Compiler<JavaScriptCompileSpec> getCompiler() {
         if (compiler == null) {
             ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
-            compiler = select.newCompiler(spec);
+            compiler = select.newCompiler(JavaScriptCompileSpec.class);
         }
 
         return compiler;
@@ -133,7 +133,7 @@ public class JavaScriptMinify extends SourceTask {
         getSource().visit(visitor);
 
         JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
-        getCompiler(spec).execute(spec);
+        getCompiler().execute(spec);
     }
 
     /**

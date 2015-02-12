@@ -34,7 +34,7 @@ class DefaultScalaToolProviderTest extends Specification {
         DefaultScalaToolProvider scalaToolProvider = new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, scalacClasspath, zincClasspath)
 
         when:
-        scalaToolProvider.newCompiler(new UnknownCompileSpec())
+        scalaToolProvider.newCompiler(UnknownCompileSpec.class)
 
         then:
         def ex = thrown(IllegalArgumentException)

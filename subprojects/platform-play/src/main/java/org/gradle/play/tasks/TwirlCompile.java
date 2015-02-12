@@ -108,7 +108,7 @@ public class TwirlCompile extends SourceTask {
         TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), useJavaDefaults());
         if (!inputs.isIncremental()) {
             if (compiler == null) {
-                compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(spec), getOutputs());
+                compiler = new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs());
             }
             compiler.execute(spec);
         } else {
@@ -129,14 +129,14 @@ public class TwirlCompile extends SourceTask {
                 cleaner = new TwirlStaleOutputCleaner(getOutputDirectory());
             }
             cleaner.execute(staleOutputFiles);
-            getCompiler(spec).execute(spec);
+            getCompiler().execute(spec);
         }
     }
 
-    private Compiler<TwirlCompileSpec> getCompiler(TwirlCompileSpec spec) {
+    private Compiler<TwirlCompileSpec> getCompiler() {
         if (compiler == null) {
             ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
-            compiler = select.newCompiler(spec);
+            compiler = select.newCompiler(TwirlCompileSpec.class);
         }
         return compiler;
     }

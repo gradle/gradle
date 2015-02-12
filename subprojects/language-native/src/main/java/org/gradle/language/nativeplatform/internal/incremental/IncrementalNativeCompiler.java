@@ -35,8 +35,8 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 
-public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
-    private final Compiler<NativeCompileSpec> delegateCompiler;
+public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
+    private final Compiler<T> delegateCompiler;
     private final boolean importsAreIncludes;
     private final TaskInternal task;
     private final TaskArtifactStateCacheAccess cacheAccess;
@@ -44,7 +44,7 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<NativeCompileSpec> delegateCompiler, NativeToolChain toolChain) {
+    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, Compiler<T> delegateCompiler, NativeToolChain toolChain) {
         this.task = task;
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
@@ -52,7 +52,7 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
     }
 
-    public WorkResult execute(final NativeCompileSpec spec) {
+    public WorkResult execute(final T spec) {
         IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
             public IncrementalCompilation create() {
                 DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
@@ -67,14 +67,14 @@ public class IncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
         return doCleanIncrementalCompile(spec);
     }
 
-    protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, NativeCompileSpec spec) {
+    protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {
         // Determine the actual sources to clean/compile
         spec.setSourceFiles(compilation.getRecompile());
         spec.setRemovedSourceFiles(compilation.getRemoved());
         return delegateCompiler.execute(spec);
     }
 
-    protected WorkResult doCleanIncrementalCompile(NativeCompileSpec spec) {
+    protected WorkResult doCleanIncrementalCompile(T spec) {
         boolean deleted = cleanPreviousOutputs(spec);
         WorkResult compileResult = delegateCompiler.execute(spec);
         if (deleted && !compileResult.getDidWork()) {

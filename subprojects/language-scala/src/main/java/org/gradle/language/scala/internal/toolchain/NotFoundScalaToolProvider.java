@@ -30,7 +30,7 @@ public class NotFoundScalaToolProvider implements ToolProvider {
     }
 
     @Override
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
+    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         throw failure();
     }
 

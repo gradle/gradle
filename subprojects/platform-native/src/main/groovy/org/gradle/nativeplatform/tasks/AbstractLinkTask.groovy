@@ -112,7 +112,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
         spec.libraries getLibs()
         spec.args getLinkerArgs()
 
-        def result = toolChain.select(targetPlatform).newCompiler(spec).execute(spec)
+        def result = toolChain.select(targetPlatform).newCompiler(spec.getClass()).execute(spec)
         didWork = result.didWork
     }
 
