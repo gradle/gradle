@@ -22,7 +22,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
  */
 @HasInternalProtocol
-public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
+public interface ProjectDependency extends ModuleDependency {
     /**
      * Returns the project associated with this project dependency.
      */
