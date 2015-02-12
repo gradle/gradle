@@ -482,6 +482,133 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace project dependency with external dependency"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":api") {
+                version = "1.6"
+
+                jar << {
+                    throw new RutimeException("External artifact should be used instead")
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget group: "org.utils", name: "api", version: "1.5"
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ProjectComponentSelector
+                    assert deps[0].requested.projectPath == ":api"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+                    assert deps[0].selected.componentId.group == "org.utils"
+                    assert deps[0].selected.componentId.module == "api"
+                    assert deps[0].selected.componentId.version == "1.5"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.5.jar"]
+                    assert files*.exists() == [ true ]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can replace transitive project dependency with external dependency"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        settingsFile << 'include "api", "impl", "test"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":api") {
+                version = "1.6"
+
+                jar << {
+                    throw new RutimeException("External artifact should be used instead")
+                }
+            }
+
+            project(":impl") {
+                version = "1.6"
+
+                dependencies {
+                    compile project(":api")
+                }
+            }
+
+            project(":test") {
+                dependencies {
+                    compile project(":impl")
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget group: "org.utils", name: "api", version: "1.5"
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.5.jar", "impl-1.6.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+"""
+
+        when:
+        run("test:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
