@@ -332,72 +332,41 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             allprojects {
-                $common
-
-                configurations { lajos }
-
+                apply plugin: "java"
                 group "org.utils"
+
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
             }
 
             project(":api") {
                 version = "1.6"
-
-                def output = file("output.txt")
-                task build {
-                    outputs.file output
-                    doLast {
-                        delete(output)
-                        mkdir(output.parentFile)
-                        output << "lajos"
-                    }
-                }
-
-                artifacts {
-                    lajos (output) {
-                        builtBy build
-                    }
-                }
             }
 
             project(":api3") {
                 version = "1.6"
-
-                def output = file("output2.txt")
-                task build {
-                    outputs.file output
-                    doLast {
-                        delete(output)
-                        mkdir(output.parentFile)
-                        output << "lajos2"
-                    }
-                }
-
-                artifacts {
-                    lajos (output) {
-                        builtBy build
-                    }
-                }
             }
 
             project(":impl") {
                 dependencies {
-                    conf group: "org.utils", name: "api2", version: "1.5"
-                    conf project(path: ":api", configuration: "lajos")
-                    //conf group: "org.utils", name: "api3", version: "1.5"
+//                    compile group: "org.utils", name: "api2", version: "1.5"
+                    compile project(path: ":api")
+                    compile group: "org.utils", name: "api3", version: "1.5"
                 }
 
-                configurations.conf.resolutionStrategy.eachDependency {
+                configurations.compile.resolutionStrategy.eachDependency {
                     if (it.requested.name == 'api3' && it.requested.version == '1.5') {
-                        it.useTarget project(":api3") // TODO: specify configuration 'lajos'
+                        it.useTarget project(":api3")
                     }
                 }
 
-                task check {
-                    inputs.files configurations.conf
+                task checkIt {
+                    inputs.files configurations.compile
                 }
 
-                check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                checkIt << {
+                    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
 //                    assert deps.size() == 1
 //                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 //
@@ -410,18 +379,15 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 //                    assert deps[0].selected.componentId.projectPath == ":api"
 //                    assert !deps[0].selected.selectionReason.forced
 //                    assert deps[0].selected.selectionReason.selectedByRule
-                    def files = configurations.conf.files
-                    assert files[0].name == "api2-1.5.jar"
-                    assert files[1].name == "output.txt"
-                    assert files[1].text == "lajos"
-                    //assert files[2].name == "output2.txt"
-                    //assert files[2].text == "lajos2"
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.6.jar", "api3-1.6.jar"]
+                    assert files*.exists() == [ true, true ]
                 }
             }
 """
 
         when:
-        run("impl:check")
+        run("impl:checkIt")
 
         then:
         noExceptionThrown()
