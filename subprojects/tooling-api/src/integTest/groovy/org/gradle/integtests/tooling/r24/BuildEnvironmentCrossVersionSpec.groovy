@@ -40,7 +40,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         then:
         buildEnvironment != null
         buildEnvironment.gradle.gradleUserHome != null
-        buildEnvironment.gradle.gradleUserHome != new File(System.getProperty('user.name'), '.gradle')
+        buildEnvironment.gradle.gradleUserHome == toolingApi.gradleUserHomeDir
     }
 
 }
