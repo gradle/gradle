@@ -280,12 +280,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void collectProjectDependencies(Set<ResolvedDependency> resolvedDependencies, Map<ModuleVersionIdentifier, Project> projectMapping, DefaultTaskDependency taskDependency) {
         for (ResolvedDependency dependency : resolvedDependencies) {
             if (dependency instanceof DefaultResolvedDependency) {
-                ResolvedConfigurationIdentifier id = ((DefaultResolvedDependency) dependency).getId();
+                DefaultResolvedDependency resolvedDependency = (DefaultResolvedDependency) dependency;
+                ResolvedConfigurationIdentifier id = resolvedDependency.getId();
                 Project project = projectMapping.get(id.getId());
 
                 if (project != null) {
                     Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
-                    taskDependency.add(targetConfig);
+                    for (PublishArtifact artifact : targetConfig.getAllArtifacts()) {
+                        TaskDependency artifactBuildDependencies = artifact.getBuildDependencies();
+                        taskDependency.add(artifactBuildDependencies);
+                    }
                 }
             }
 
