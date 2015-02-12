@@ -76,10 +76,22 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
     dependency "org.samba.jcifs:jcifs:1.3.17@jar"
 }
 
-libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
-    libraries.ant
-}
-
+libraries.maven_publish = [
+    'classworlds:classworlds:1.1-alpha-2@jar',
+    'org.codehaus.plexus:plexus-container-default:1.0-alpha-9-stable-1@jar',
+    'org.codehaus.plexus:plexus-utils:1.5.15@jar',
+    'org.codehaus.plexus:plexus-interpolation:1.11@jar',
+    'org.apache.maven:maven-artifact:2.2.1@jar',
+    'org.apache.maven:maven-artifact-manager:2.2.1@jar',
+    'org.apache.maven:maven-repository-metadata:2.2.1@jar',
+    'org.apache.maven:maven-model:2.2.1@jar',
+    'org.apache.maven:maven-project:2.2.1@jar',
+    'org.apache.maven:maven-error-diagnostics:2.2.1@jar',
+    'org.apache.maven:maven-settings:2.2.1@jar',
+    'org.apache.maven.wagon:wagon-file:1.0-beta-6@jar',
+    'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-6@jar',
+    'org.apache.maven.wagon:wagon-provider-api:1.0-beta-6@jar',
+]
 libraries += [
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava-jdk5:17.0@jar',
