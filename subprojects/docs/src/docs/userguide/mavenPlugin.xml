@@ -236,7 +236,7 @@
                 <tr>
                     <td>repository</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RemoteRepository.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RemoteRepository.html'>
                             org.apache.maven.artifact.ant.RemoteRepository
                         </ulink>
                     </td>
@@ -244,7 +244,7 @@
                 <tr>
                     <td>authentication</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/Authentication.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/Authentication.html'>
                             org.apache.maven.artifact.ant.Authentication
                         </ulink>
                     </td>
@@ -252,7 +252,7 @@
                 <tr>
                     <td>releases</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
                             org.apache.maven.artifact.ant.RepositoryPolicy
                         </ulink>
                     </td>
@@ -260,7 +260,7 @@
                 <tr>
                     <td>snapshots</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
                             org.apache.maven.artifact.ant.RepositoryPolicy
                         </ulink>
                     </td>
@@ -268,7 +268,7 @@
                 <tr>
                     <td>proxy</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/Proxy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/Proxy.html'>
                             org.apache.maven.artifact.ant.Proxy
                         </ulink>
                     </td>
@@ -276,7 +276,7 @@
                 <tr>
                     <td>snapshotRepository</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RemoteRepository.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RemoteRepository.html'>
                             org.apache.maven.artifact.ant.RemoteRepository
                         </ulink>
                     </td>
