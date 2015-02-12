@@ -24,4 +24,8 @@ class Toggles {
         spec.gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true", "-Dorg.gradle.model.dsl=true", "-Dorg.gradle.daemon.performance.expire-at=0")
     }
 
+    static BuildSpecification.Builder noDaemonLogging(BuildSpecification.Builder spec) {
+        spec.gradleOpts("-Dorg.gradle.daemon.disable-output=true")
+    }
+
 }

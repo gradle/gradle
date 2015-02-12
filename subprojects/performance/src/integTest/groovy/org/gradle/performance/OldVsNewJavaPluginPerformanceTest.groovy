@@ -27,36 +27,19 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon()
+            Toggles.modelReuse(it).forProject("${size}NewJava").displayName("new plugin (reuse)").tasksToRun(*tasks).useDaemon()
         }
-        runner.baseline {
-            it.forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon()
-        }
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertEveryBuildSucceeds()
-
-        where:
-        [size, tasks] << GroovyCollections.combinations(
-                ["small", "medium", "big"],
-                [["clean", "assemble"], ["help"]]
-        )
-        scenario = tasks == ["help"] ? "empty" : "full"
-    }
-
-    @Unroll
-    def "#size project old vs new java plugin partial build"() {
-        given:
-        runner.testGroup = "old vs new java plugin"
-        runner.testId = "$size project old vs new java plugin partial build"
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}NewJava").displayName("new plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon()
+            Toggles.noDaemonLogging(it).forProject("${size}NewJava").displayName("new plugin (no client logging)").tasksToRun(*tasks).useDaemon()
+        }
+        runner.buildSpec {
+            forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon()
         }
         runner.baseline {
-            it.forProject("${size}OldJava").displayName("old plugin").tasksToRun(":project1:clean", ":project1:assemble").useDaemon()
+            forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon()
+        }
+        runner.baseline {
+            Toggles.noDaemonLogging(it).forProject("${size}OldJava").displayName("old plugin (no client logging)").tasksToRun(*tasks).useDaemon()
         }
 
         when:
@@ -66,6 +49,14 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         result.assertEveryBuildSucceeds()
 
         where:
-        size << ["medium", "big"]
+        scenario  | size     | tasks
+        "empty"   | "small"  | ["help"]
+        "empty"   | "medium" | ["help"]
+        "empty"   | "big"    | ["help"]
+        "full"    | "small"  | ["clean", "assemble"]
+        "full"    | "medium" | ["clean", "assemble"]
+        "full"    | "big"    | ["clean", "assemble"]
+        "partial" | "medium" | [":project1:clean", ":project1:assemble"]
+        "partial" | "big"    | [":project1:clean", ":project1:assemble"]
     }
 }
