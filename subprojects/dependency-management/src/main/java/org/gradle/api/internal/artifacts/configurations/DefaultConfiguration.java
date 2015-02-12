@@ -286,10 +286,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 if (project != null) {
                     Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
-                    for (PublishArtifact artifact : targetConfig.getAllArtifacts()) {
-                        TaskDependency artifactBuildDependencies = artifact.getBuildDependencies();
-                        taskDependency.add(artifactBuildDependencies);
-                    }
+                    taskDependency.add(targetConfig.getAllArtifacts());
                 }
             }
 
