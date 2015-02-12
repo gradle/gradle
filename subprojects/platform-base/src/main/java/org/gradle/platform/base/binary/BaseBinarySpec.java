@@ -52,7 +52,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     private final String name;
     private final String typeName;
 
-    private boolean buildable = true;
+    private boolean disabled;
 
     public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory) {
         if (type.equals(BaseBinarySpec.class)) {
@@ -97,10 +97,10 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     @Override
     public void setBuildable(boolean buildable) {
-        this.buildable = buildable;
+        this.disabled = !buildable;
     }
 
-    public boolean isBuildable() {
+    public final boolean isBuildable() {
         return getBuildAbility().isBuildable();
     }
 
@@ -153,9 +153,16 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     }
 
     @Override
-    public BinaryBuildAbility getBuildAbility() {
+    public final BinaryBuildAbility getBuildAbility() {
+        if (disabled) {
+            return new ConfigurableBuildAbility(false);
+        }
+        return getBinaryBuildAbility();
+    }
+
+    protected BinaryBuildAbility getBinaryBuildAbility() {
         // Default behavior is to always be buildable.  Binary implementations should define what
         // criteria make them buildable or not.
-        return new ConfigurableBuildAbility(buildable);
+        return new ConfigurableBuildAbility(true);
     }
 }

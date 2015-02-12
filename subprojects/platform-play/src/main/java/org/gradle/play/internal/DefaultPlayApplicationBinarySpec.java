@@ -25,7 +25,6 @@ import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.CompositeBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PublicAssets;
@@ -114,14 +113,8 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     }
 
     @Override
-    public BinaryBuildAbility getBuildAbility() {
-        if (buildAbility == null) {
-            buildAbility = new CompositeBuildAbility(
-                    super.getBuildAbility(),
-                    new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()))
-            );
-        }
-        return buildAbility;
+    public BinaryBuildAbility getBinaryBuildAbility() {
+        return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

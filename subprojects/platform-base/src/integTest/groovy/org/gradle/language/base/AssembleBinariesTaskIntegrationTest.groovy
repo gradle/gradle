@@ -111,7 +111,7 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
                 @Override
-                public BinaryBuildAbility getBuildAbility() {
+                protected BinaryBuildAbility getBinaryBuildAbility() {
                     return new BinaryBuildAbility() {
                         @Override
                         public boolean isBuildable() {

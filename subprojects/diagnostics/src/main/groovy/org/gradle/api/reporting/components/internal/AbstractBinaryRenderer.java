@@ -21,6 +21,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.reporting.ReportRenderer;
 
@@ -45,12 +46,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
 
         renderOutputs(specialized, builder);
 
-        if (!binary.isBuildable()) {
-            BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
-            TreeFormatter formatter = new TreeFormatter();
-            binarySpecInternal.getBuildAbility().explain(formatter);
-            builder.item(formatter.toString());
-        }
+        renderBuildAbility(specialized, builder);
     }
 
     public abstract Class<T> getTargetType();
@@ -62,5 +58,14 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderTasks(T binary, TextReportBuilder builder) {
+    }
+
+    private void renderBuildAbility(BinarySpec binary, TextReportBuilder builder) {
+        BinaryBuildAbility buildAbility = ((BinarySpecInternal) binary).getBuildAbility();
+        if (!buildAbility.isBuildable()) {
+            TreeFormatter formatter = new TreeFormatter();
+            buildAbility.explain(formatter);
+            builder.item(formatter.toString());
+        }
     }
 }
