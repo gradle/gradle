@@ -57,6 +57,20 @@ With -S, show all build operation failure causes.
 
 ### Test Cases
 
+- Check output of failed build includes failed filenames for 1, 10, >10 cases (should only show max of 10).
+- Check total count of failures == total number of operations that failed.
+- Check that -S prints all appropriate stacktraces.
+
+### Discussion 
+
+I'm not sure how we should treat the exceptions for each file. Is there any point keeping each exception? Is there ever a point in printing a stack trace for every file that fails compilation?  The only benefit I see to keeping all of the exceptions is that it's a general capability of BuildOperationProcessor.  Seems like collapsing would be specific to the type of operation? 
+
+I guess it would be a good idea to have a special exception type, and put the logic for rendering with the logic for rendering MultipleBuildFailures. We have -s and -S, so we can do something clever, I think. Maybe collapsing the common stack trace for each cause?  
+
+The question is whether we keep all of the exceptions or throw them away.  Chucking them is probably ok for now, but long term I think we'll want to keep them and just do better rendering.
+
+Not sure if memory is an issue for 1000 exceptions reporting 'compilation failed'.  Maybe we can only keep the 1st N exceptions: this would mean that we could later abort after that many failures.  So instead of just displaying the first 10: we actually throw the others away early.
+
 ## Story: Improve output of build operation failures
 
 2. Show stderr from 1st 10 files that fail compilation
