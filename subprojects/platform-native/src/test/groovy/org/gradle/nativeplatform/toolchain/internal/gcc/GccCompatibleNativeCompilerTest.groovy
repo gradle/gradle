@@ -19,8 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
-/**
- */
 abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {

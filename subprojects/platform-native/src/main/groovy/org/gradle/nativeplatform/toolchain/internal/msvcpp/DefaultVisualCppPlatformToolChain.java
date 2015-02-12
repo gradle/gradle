@@ -27,8 +27,6 @@ import org.gradle.nativeplatform.toolchain.internal.tools.DefaultCommandLineTool
 import java.util.HashMap;
 import java.util.Map;
 
-/**
-*/
 public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
     private final NativePlatform platform;
     protected final Map<ToolType, CommandLineToolConfigurationInternal> tools;

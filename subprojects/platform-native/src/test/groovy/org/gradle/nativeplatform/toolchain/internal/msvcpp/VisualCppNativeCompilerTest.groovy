@@ -19,8 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
-/**
- */
 abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {

@@ -22,9 +22,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Unroll
 
-/**
- *
- */
 class GccOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 

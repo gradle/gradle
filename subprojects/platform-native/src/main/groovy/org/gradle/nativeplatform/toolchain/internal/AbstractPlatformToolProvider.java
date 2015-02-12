@@ -26,8 +26,6 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.util.TreeVisitor;
 
-/**
- */
 public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
     protected final BuildOperationProcessor buildOperationProcessor;
