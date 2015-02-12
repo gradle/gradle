@@ -18,33 +18,22 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.util.TreeVisitor;
 
-public class ConfigurableBuildAbility implements BinaryBuildAbility {
-    private boolean enabled = true;
+public class FixedBuildAbility implements BinaryBuildAbility {
+    private final boolean buildable;
 
-    public ConfigurableBuildAbility() {
-    }
-
-    public ConfigurableBuildAbility(boolean enabled) {
-        this.enabled = enabled;
+    public FixedBuildAbility(boolean buildable) {
+        this.buildable = buildable;
     }
 
     @Override
     public boolean isBuildable() {
-        return enabled;
+        return buildable;
     }
 
     @Override
     public void explain(TreeVisitor<? super String> visitor) {
-        if (!enabled) {
+        if (!buildable) {
             visitor.node("Disabled by user");
         }
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 }

@@ -147,7 +147,7 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     @Override
     public BinaryBuildAbility getBuildAbility() {
         if (!buildable) {
-            return new ConfigurableBuildAbility(false);
+            return new FixedBuildAbility(false);
         }
         return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }

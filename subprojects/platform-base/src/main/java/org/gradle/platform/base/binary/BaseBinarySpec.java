@@ -31,7 +31,7 @@ import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.ConfigurableBuildAbility;
+import org.gradle.platform.base.internal.FixedBuildAbility;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 
 /**
@@ -155,7 +155,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     @Override
     public final BinaryBuildAbility getBuildAbility() {
         if (disabled) {
-            return new ConfigurableBuildAbility(false);
+            return new FixedBuildAbility(false);
         }
         return getBinaryBuildAbility();
     }
@@ -163,6 +163,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     protected BinaryBuildAbility getBinaryBuildAbility() {
         // Default behavior is to always be buildable.  Binary implementations should define what
         // criteria make them buildable or not.
-        return new ConfigurableBuildAbility(true);
+        return new FixedBuildAbility(true);
     }
 }

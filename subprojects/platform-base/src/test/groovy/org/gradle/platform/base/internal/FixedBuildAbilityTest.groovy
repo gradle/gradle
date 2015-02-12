@@ -19,27 +19,28 @@ package org.gradle.platform.base.internal
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-class ConfigurableBuildAbilityTest extends Specification {
-    ConfigurableBuildAbility ability = new ConfigurableBuildAbility()
-
-    def "is buildable by default" () {
-        expect:
-        ability.isBuildable()
-    }
-
-    def "is not buildable when disabled" () {
+class FixedBuildAbilityTest extends Specification {
+    def "is buildable" () {
         when:
-        ability.setEnabled(false)
+        def ability = new FixedBuildAbility(true)
 
         then:
-        !ability.isBuildable()
+        ability.buildable
+    }
+
+    def "is not buildable" () {
+        when:
+        def ability = new FixedBuildAbility(false)
+
+        then:
+        !ability.buildable
     }
 
     def "explains not buildable reason" () {
         TreeVisitor visitor = Mock(TreeVisitor)
 
         when:
-        ability.setEnabled(false)
+        def ability = new FixedBuildAbility(false)
         ability.explain(visitor)
 
         then:
