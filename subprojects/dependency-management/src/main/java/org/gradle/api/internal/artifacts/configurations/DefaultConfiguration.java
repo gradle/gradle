@@ -303,16 +303,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         taskDependency.add(allDependencies.getBuildDependencies());
 
         final Map<ModuleVersionIdentifier, Project> projectMapping = new HashMap<ModuleVersionIdentifier, Project>();
-        getIncoming().getResolutionResult().allComponents(new Action<ResolvedComponentResult>() {
-            @Override
-            public void execute(ResolvedComponentResult resolvedComponentResult) {
-                if (resolvedComponentResult.getId() instanceof ProjectComponentIdentifier) {
-                    ProjectComponentIdentifier projectId = (ProjectComponentIdentifier)resolvedComponentResult.getId();
-                    Project project = projectFinder.getProject(projectId.getProjectPath());
-                    projectMapping.put(resolvedComponentResult.getModuleVersion(), project);
-                }
+        for (ResolvedComponentResult resolvedComponentResult : getIncoming().getResolutionResult().getAllComponents()) {
+            if (resolvedComponentResult.getId() instanceof ProjectComponentIdentifier) {
+                ProjectComponentIdentifier projectId = (ProjectComponentIdentifier)resolvedComponentResult.getId();
+                Project project = projectFinder.getProject(projectId.getProjectPath());
+                projectMapping.put(resolvedComponentResult.getModuleVersion(), project);
             }
-        });
+        }
 
         collectProjectDependencies(getResolvedConfiguration().getFirstLevelModuleDependencies(), projectMapping, taskDependency);
 
