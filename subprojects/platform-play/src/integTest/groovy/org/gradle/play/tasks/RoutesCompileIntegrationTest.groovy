@@ -18,6 +18,7 @@
 
 package org.gradle.play.tasks
 
+import org.apache.commons.lang.StringUtils
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -31,7 +32,7 @@ class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile <<"""
 plugins {
-    id 'play'
+    id 'play-application'
 }
 
 model {
@@ -150,9 +151,6 @@ Source sets
     Java source 'play:java'
         app
         includes: **/*.java
-    JavaScript source 'play:javaScriptAssets'
-        app/assets
-        includes: **/*.js
     Routes source 'play:otherRoutes'
         otherRoutes
     JVM resources 'play:resources'
@@ -172,7 +170,7 @@ Binaries
     }
 
     def destinationDir(String sourceSetName) {
-        return file("build/playBinary/src/routesCompile${sourceSetName}PlayBinary")
+        return file("build/playBinary/src/routesCompile${StringUtils.capitalize(sourceSetName)}PlayBinary")
     }
 
     def withRoutesSource(TestFile routesFile, String packageId) {
