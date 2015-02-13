@@ -17,6 +17,8 @@
 package org.gradle.model.dsl.internal.transform;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 @ThreadSafe
 public class SourceLocation {
@@ -45,5 +47,9 @@ public class SourceLocation {
     @Override
     public String toString() {
         return String.format("%s line %d, column %d", scriptSourceDescription, lineNumber, columnNumber);
+    }
+
+    public ModelRuleDescriptor asDescriptor(String val) {
+        return new SimpleModelRuleDescriptor(String.format("%s @ %s", val, toString()));
     }
 }

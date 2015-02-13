@@ -63,10 +63,8 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -888,6 +886,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public ModelSchemaStore getModelSchemaStore() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public ModelCreatorFactory getModelCreatorFactory() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
@@ -947,10 +957,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
 
     public void model(Closure<?> modelRules) {
+        ModelRegistry modelRegistry = getModelRegistry();
+        ModelSchemaStore modelSchemaStore = getModelSchemaStore();
+        ModelCreatorFactory modelCreatorFactory = getModelCreatorFactory();
+
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(getModelRegistry()), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, modelCreatorFactory), modelRules);
         } else {
-            new NonTransformedModelDslBacking(getModelRegistry()).configure(modelRules);
+            new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore, modelCreatorFactory).configure(modelRules);
         }
     }
 

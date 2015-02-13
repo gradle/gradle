@@ -28,6 +28,7 @@ import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Pair;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -137,6 +138,32 @@ public abstract class AstUtils {
 
         ClosureExpression closureExpression = getSingleClosureArg(methodCall);
         return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);
+    }
+
+    public static Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {
+        if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+            return null;
+        }
+
+        ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
+        if (args.getExpressions().size() == 2 && args.getExpression(0) instanceof ClassExpression && args.getExpression(1) instanceof ClosureExpression) {
+            return Pair.of((ClassExpression) args.getExpression(0), (ClosureExpression) args.getExpression(1));
+        } else {
+            return null;
+        }
+    }
+
+    public static ClassExpression getClassArg(MethodCall methodCall) {
+        if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+            return null;
+        }
+
+        ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
+        if (args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClassExpression) {
+            return (ClassExpression) args.getExpression(0);
+        } else {
+            return null;
+        }
     }
 
     public static ClosureExpression getSingleClosureArg(MethodCall methodCall) {

@@ -76,7 +76,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     public DefaultModelRegistry create(ModelCreator creator) {
         ModelPath path = creator.getPath();
         if (!ModelPath.ROOT.isDirectChild(path)) {
-            throw new IllegalStateException("Creator at path " + path + " not supported, must be top level");
+            throw new InvalidModelRuleDeclarationException(creator.getDescriptor(), "Cannot create element at '" + path + "', only top level is allowed (e.g. '" + path.getRootParent() + "')");
         }
 
         registerNode(modelGraph.getRoot(), new ModelElementNode(toCreatorBinder(creator)));

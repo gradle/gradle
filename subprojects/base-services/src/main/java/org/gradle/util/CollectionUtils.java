@@ -26,6 +26,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
 
 import java.lang.reflect.Array;
@@ -393,13 +394,8 @@ public abstract class CollectionUtils {
      * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, org.gradle.api.Transformer)
      */
     public static class SetDiff<T> {
-        public static class Pair<T> {
-            public T left;
-            public T right;
-        }
-
         public Set<T> leftOnly = new HashSet<T>();
-        public Set<Pair<T>> common = new HashSet<Pair<T>>();
+        public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
         public Set<T> rightOnly = new HashSet<T>();
     }
 
@@ -434,9 +430,7 @@ public abstract class CollectionUtils {
             if (rightValue == null) {
                 setDiff.leftOnly.add(leftEntry.getValue());
             } else {
-                SetDiff.Pair<T> pair = new SetDiff.Pair<T>();
-                pair.left = leftEntry.getValue();
-                pair.right = rightValue;
+                Pair<T, T> pair = Pair.of(leftEntry.getValue(), rightValue);
                 setDiff.common.add(pair);
             }
         }

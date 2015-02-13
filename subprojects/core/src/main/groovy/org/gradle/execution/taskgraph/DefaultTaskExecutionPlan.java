@@ -31,7 +31,7 @@ import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.Tuple;
+import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
@@ -501,7 +501,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
 
-        Tuple<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
+        Pair<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
         if (overlap == null) {
             return true;
         } else {
@@ -533,7 +533,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Nullable
-    private Tuple<TaskInternal, String> firstTaskWithOverlappingOutput(TaskInternal candidateTask) {
+    private Pair<TaskInternal, String> firstTaskWithOverlappingOutput(TaskInternal candidateTask) {
         if (runningTasks.isEmpty()) {
             return null;
         }
@@ -542,7 +542,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             for (TaskInternal runningTask : runningTasks) {
                 for (String runningTaskOutputPath : canonicalizedOutputPaths(runningTask)) {
                     if (pathsOverlap(candidateTaskOutputPath, runningTaskOutputPath)) {
-                        return Tuple.of(runningTask, TextUtil.shorterOf(candidateTaskOutputPath, runningTaskOutputPath));
+                        return Pair.of(runningTask, TextUtil.shorterOf(candidateTaskOutputPath, runningTaskOutputPath));
                     }
                 }
             }

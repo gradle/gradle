@@ -18,20 +18,20 @@ package org.gradle.internal
 
 import spock.lang.Specification
 
-import static org.gradle.internal.Tuple.unpackLeft
-import static org.gradle.internal.Tuple.unpackRight
+import static Pair.unpackLeft
+import static Pair.unpackRight
 
-class TupleTest extends Specification {
+class PairTest extends Specification {
 
   def "can create and transform pair"() {
     given:
-    def t = Tuple.of(1, "a")
+    def t = Pair.of(1, "a")
 
     expect:
-    t.nestLeft(2).left == Tuple.of(2, 1)
+    t.nestLeft(2).left == Pair.of(2, 1)
     t.nestLeft(2).right == "a"
     t.nestRight(2).left == 1
-    t.nestRight(2).right == Tuple.of(2, "a")
+    t.nestRight(2).right == Pair.of(2, "a")
 
     t.pushLeft(2).left == 2
     t.pushLeft(2).right == t

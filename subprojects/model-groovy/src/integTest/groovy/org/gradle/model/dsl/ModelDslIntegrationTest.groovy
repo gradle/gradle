@@ -228,7 +228,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
         failure.assertHasLineNumber 17
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString(RulesVisitor.ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE))
+        failure.assertThatCause(containsString(RulesVisitor.INVALID_RULE_SIGNATURE))
     }
 
 }

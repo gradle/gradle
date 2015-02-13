@@ -16,11 +16,12 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.internal.core.ModelView;
 
 import java.util.List;
+import java.util.Map;
 
 @ThreadSafe
 public abstract class RuleInputAccessBacking {
@@ -28,17 +29,16 @@ public abstract class RuleInputAccessBacking {
     private RuleInputAccessBacking() {
     }
 
-    private static final ThreadLocal<ImmutableMap<String, Object>> INPUT = new ThreadLocal<ImmutableMap<String, Object>>();
+    private static final ThreadLocal<Map<String, Object>> INPUT = new ThreadLocal<Map<String, Object>>();
 
     public static void runWithContext(List<ModelView<?>> views, Runnable runnable) {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        Map<String, Object> map = Maps.newHashMap();
         int i = 0;
         for (ModelView<?> view : views) {
-            builder.put(view.getPath().toString(), views.get(i++).getInstance());
+            map.put(view.getPath().toString(), views.get(i++).getInstance());
         }
 
-        ImmutableMap<String, Object> inputsMap = builder.build();
-        INPUT.set(inputsMap);
+        INPUT.set(map);
         try {
             runnable.run();
         } finally {
@@ -47,7 +47,7 @@ public abstract class RuleInputAccessBacking {
     }
 
     public static RuleInputAccess getAccess() {
-        final ImmutableMap<String, Object> inputs = INPUT.get();
+        final Map<String, Object> inputs = INPUT.get();
         return new RuleInputAccess() {
             public Object input(String modelPath) {
                 return inputs.get(modelPath);

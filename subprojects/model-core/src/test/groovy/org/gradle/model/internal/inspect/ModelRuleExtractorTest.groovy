@@ -39,7 +39,7 @@ import java.beans.Introspector
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
     def registryMock = Mock(ModelRegistry)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance)))
 
     static class ModelThing {
         final String name

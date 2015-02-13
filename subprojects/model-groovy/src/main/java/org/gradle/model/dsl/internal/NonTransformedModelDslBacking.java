@@ -23,12 +23,14 @@ import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.internal.core.ActionBackedModelAction;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,21 +42,25 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private final ModelPath modelPath;
     private final ModelRegistry modelRegistry;
+    private final ModelSchemaStore modelSchemaStore;
+    private final ModelCreatorFactory modelCreatorFactory;
     private AtomicBoolean executingDsl;
 
-    public NonTransformedModelDslBacking(ModelRegistry modelRegistry) {
-        this(new AtomicBoolean(), null, modelRegistry);
+    public NonTransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore, ModelCreatorFactory modelCreatorFactory) {
+        this(new AtomicBoolean(), null, modelRegistry, modelSchemaStore, modelCreatorFactory);
     }
 
-    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
+    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore, ModelCreatorFactory modelCreatorFactory) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRegistry = modelRegistry;
+        this.modelSchemaStore = modelSchemaStore;
+        this.modelCreatorFactory = modelCreatorFactory;
     }
 
     private NonTransformedModelDslBacking getChildPath(String name) {
         ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
-        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry);
+        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry, modelSchemaStore, modelCreatorFactory);
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
@@ -63,6 +69,16 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                         ModelReference.untyped(modelPath),
                         new SimpleModelRuleDescriptor("model." + modelPath), new ClosureBackedAction<Object>(action)
                 ));
+    }
+
+    private <T> void registerCreator(Class<T> type, Closure<?> closure) {
+        ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
+        ModelSchema<T> schema = modelSchemaStore.getSchema(ModelType.of(type));
+        if (!schema.getKind().isManaged()) {
+            throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
+        }
+
+        modelRegistry.create(modelCreatorFactory.creator(descriptor, modelPath, schema, new ClosureBackedAction<T>(closure)));
     }
 
     public void configure(Closure<?> action) {
@@ -91,12 +107,22 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 throw new MissingMethodException(name, getClass(), args);
             }
         } else {
-            if (args.length != 1 || !(args[0] instanceof Closure)) {
-                throw new MissingMethodException(name, getClass(), args);
-            } else {
+            if (args.length == 1 && args[0] instanceof Closure) {
                 Closure<?> closure = (Closure) args[0];
                 getChildPath(name).registerConfigurationAction(closure);
                 return null;
+            } else if (args.length == 2 && args[0] instanceof Class && args[1] instanceof Closure) {
+                Class<?> clazz = (Class<?>) args[0];
+                Closure<?> closure = (Closure<?>) args[1];
+                getChildPath(name).registerCreator(clazz, closure);
+                return null;
+            } else if (args.length == 1 && args[0] instanceof Class) {
+                Class<?> clazz = (Class<?>) args[0];
+                Closure<?> closure = Closure.IDENTITY;
+                getChildPath(name).registerCreator(clazz, closure);
+                return null;
+            } else {
+                throw new MissingMethodException(name, getClass(), args);
             }
         }
     }
