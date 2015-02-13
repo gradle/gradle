@@ -28,6 +28,7 @@ import org.gradle.util.TreeVisitor;
 import java.util.Set;
 
 public class DefaultToolResolver implements ToolResolver {
+    @SuppressWarnings("rawtypes")
     private Set<ToolChainInternal> toolChains;
 
     public DefaultToolResolver(ToolChainInternal... toolChains) {
@@ -37,7 +38,7 @@ public class DefaultToolResolver implements ToolResolver {
     @Override
     public ToolSearchResult checkToolAvailability(Platform requirement) {
         ToolSearchFailure notAvailableResult = new ToolSearchFailure("No tool chains can satisfy the requirement");
-        for (ToolChainInternal toolChain : toolChains) {
+        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
             @SuppressWarnings("unchecked") ToolSearchResult result = toolChain.select(requirement);
             if (result.isAvailable()) {
                 return result;
@@ -51,7 +52,7 @@ public class DefaultToolResolver implements ToolResolver {
     @Override
     public <T> ResolvedTool<T> resolve(Class<T> toolType, Platform requirement) {
         ResolvedToolSearchFailure<T> notAvailableResult = new ResolvedToolSearchFailure<T>(String.format("No tool chains can provide a tool of type %s", toolType.getSimpleName()));
-        for (ToolChainInternal toolChain : toolChains) {
+        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
             @SuppressWarnings("unchecked") ToolProvider provider = toolChain.select(requirement);
             if (provider.isAvailable()) {
                 return new DefaultResolvedTool<T>(provider, toolType);
@@ -65,7 +66,7 @@ public class DefaultToolResolver implements ToolResolver {
     @Override
     public <C extends CompileSpec> ResolvedTool<Compiler<C>> resolveCompiler(Class<C> specType, Platform requirement) {
         CompilerSearchFailure<C> notAvailableResult = new CompilerSearchFailure<C>(String.format("No tool chains can provide a compiler for type %s", specType.getSimpleName()));
-        for (ToolChainInternal toolChain : toolChains) {
+        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
             @SuppressWarnings("unchecked") ToolProvider provider = toolChain.select(requirement);
             if (provider.isAvailable()) {
                 return new DefaultResolvedCompiler<C>(provider, specType);

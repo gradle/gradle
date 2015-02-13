@@ -26,6 +26,7 @@ import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
@@ -45,7 +46,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
-    private BinaryBuildAbility buildAbility;
+    private ToolResolver toolResolver;
 
     @Override
     protected String getTypeName() {
@@ -114,7 +115,17 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
 
     @Override
     public BinaryBuildAbility getBinaryBuildAbility() {
-        return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
+        return new ToolSearchBuildAbility(toolResolver.checkToolAvailability(getTargetPlatform()));
+    }
+
+    @Override
+    public void setToolResolver(ToolResolver toolResolver) {
+        this.toolResolver = toolResolver;
+    }
+
+    @Override
+    public ToolResolver getToolResolver() {
+        return toolResolver;
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {

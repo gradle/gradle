@@ -22,7 +22,7 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
-    def destinationDirPath = "build/routes/"
+    def destinationDirPath = "build/playBinary/src/routesCompileRoutesSourcesPlayBinary"
     def destinationDir = file(destinationDirPath)
 
     def setup() {
@@ -37,12 +37,6 @@ model {
             targetPlatform "play-${version}"
         }
     }
-    tasks {
-        create("routesCompile", RoutesCompile){ task ->
-            task.outputDirectory = file('$destinationDirPath')
-            task.platform = binaries.playBinary.targetPlatform
-        }
-    }
 }
 
 repositories{
@@ -55,11 +49,11 @@ repositories{
 """
     }
 
-    def "can run RoutesCompile"(){
+    def "can run RoutesCompile"() {
         given:
         withRoutesTemplate()
         expect:
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
@@ -68,13 +62,13 @@ repositories{
         when:
         withRoutesTemplate()
         then:
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
 
         withRoutesTemplate("foo")
         and:
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
         then:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala",
                 "controllers/foo/routes.java", "foo/routes_reverseRouting.scala", "foo/routes_routing.scala")
@@ -82,7 +76,7 @@ repositories{
         when:
         file("conf/foo.routes").delete()
         then:
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
     }
@@ -90,7 +84,7 @@ repositories{
     def "removes stale output files in incremental compile"(){
         given:
         TestFile templateFile = withRoutesTemplate()
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
 
         and:
         destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
@@ -102,7 +96,7 @@ repositories{
         templateFile.delete()
 
         then:
-        succeeds("routesCompile")
+        succeeds("routesCompileRoutesSourcesPlayBinary")
         and:
         file(destinationDirPath, "controllers/routes.java").assertHasNotChangedSince(routesFirstCompileSnapshot);
         file(destinationDirPath, "routes_reverseRouting.scala").assertHasNotChangedSince(revRoutingFirstCompileSnapshot);
@@ -123,13 +117,6 @@ GET     /                          controllers${packageId}.Application.index()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
-"""
-        buildFile << """
-            model{
-                tasks.routesCompile{
-                    source '${routesFile.toURI()}'
-                }
-            }
 """
 
         return routesFile

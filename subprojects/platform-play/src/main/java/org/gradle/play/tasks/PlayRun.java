@@ -27,11 +27,11 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.play.internal.run.DefaultPlayRunSpec;
 import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.run.PlayApplicationRunnerToken;
 import org.gradle.play.internal.run.PlayRunSpec;
-import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class PlayRun extends ConventionTask {
     private BaseForkOptions forkOptions;
 
     private PlayApplicationRunnerToken runnerToken;
-    private PlayToolProvider toolProvider;
+    private ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool;
 
     /**
      * fork options for the running a play application.
@@ -82,9 +82,8 @@ public class PlayRun extends ConventionTask {
         applicationJars = applicationJars.plus(runtimeClasspath);
         PlayRunSpec spec = new DefaultPlayRunSpec(applicationJars, getProject().getProjectDir(), getForkOptions(), httpPort);
 
-        PlayApplicationRunner playApplicationRunner = toolProvider.newApplicationRunner();
         try {
-            runnerToken = playApplicationRunner.start(spec);
+            runnerToken = playApplicationRunnerTool.get().start(spec);
             progressLogger.completed();
             progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                     .start(String.format("Run Play App at http://localhost:%d/", httpPort),
@@ -131,7 +130,7 @@ public class PlayRun extends ConventionTask {
         this.runtimeClasspath = runtimeClasspath;
     }
 
-    public void setToolProvider(PlayToolProvider toolProvider) {
-        this.toolProvider = toolProvider;
+    public void setPlayApplicationRunnerTool(ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool) {
+        this.playApplicationRunnerTool = playApplicationRunnerTool;
     }
 }

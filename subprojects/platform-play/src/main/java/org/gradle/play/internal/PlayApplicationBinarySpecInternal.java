@@ -18,6 +18,7 @@ package org.gradle.play.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -30,6 +31,10 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
     void setToolChain(PlayToolChainInternal toolChain);
 
     PlayToolChainInternal getToolChain();
+
+    void setToolResolver(ToolResolver toolResolver);
+
+    ToolResolver getToolResolver();
 
     void setJarFile(File file);
 

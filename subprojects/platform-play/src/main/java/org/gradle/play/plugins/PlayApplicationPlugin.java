@@ -50,17 +50,24 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 import org.gradle.platform.base.internal.PlatformResolvers;
+import org.gradle.platform.base.internal.toolchain.ResolvedTool;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
+import org.gradle.play.internal.routes.RoutesCompileSpec;
+import org.gradle.play.internal.run.PlayApplicationRunner;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.internal.twirl.TwirlCompileSpec;
+import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -92,6 +99,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @Model
         PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(PlayToolChainInternal.class);
+        }
+
+        @Model
+        ToolResolver toolResolver(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ToolResolver.class);
         }
 
         @Model
@@ -177,7 +189,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec,
+        void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, final ToolResolver toolResolver,
                             final PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations,
                             final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
@@ -195,6 +207,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                     playBinaryInternal.setTargetPlatform(chosenPlatform);
                     playBinaryInternal.setToolChain(playToolChainInternal);
+
+                    playBinaryInternal.setToolResolver(toolResolver);
 
                     File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", projectIdentifier.getName()));
                     File assetsJar = new File(binaryBuildDir, String.format("lib/%s-assets.jar", projectIdentifier.getName()));
@@ -291,16 +305,18 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createTwirlCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        void createTwirlCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ToolResolver toolResolver, @Path("buildDir") final File buildDir) {
+            final ResolvedTool<Compiler<TwirlCompileSpec>> compilerTool = toolResolver.resolveCompiler(TwirlCompileSpec.class, binary.getTargetPlatform());
             for (final TwirlSourceSet twirlSourceSet : binary.getSource().withType(TwirlSourceSet.class)) {
                 final String twirlCompileTaskName = String.format("twirlCompile%s%s", StringUtils.capitalize(twirlSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File twirlCompileOutputDirectory = srcOutputDirectory(buildDir, binary, twirlCompileTaskName);
 
                 tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                     public void execute(TwirlCompile twirlCompile) {
-                        twirlCompile.setPlatform(binary.getTargetPlatform());
+                        twirlCompile.setDependencyNotation(TwirlCompilerFactory.createAdapter(binary.getTargetPlatform()).getDependencyNotation());
                         twirlCompile.setSource(twirlSourceSet.getSource());
                         twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
+                        twirlCompile.setCompilerTool(compilerTool);
 
                         ScalaLanguageSourceSet twirlScalaSources = binary.getGeneratedScala().get(twirlSourceSet);
                         twirlScalaSources.getSource().srcDir(twirlCompileOutputDirectory);
@@ -311,14 +327,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        void createRoutesCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        void createRoutesCompileTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpec binary, final ToolResolver toolResolver, @Path("buildDir") final File buildDir) {
+            final ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool = toolResolver.resolveCompiler(RoutesCompileSpec.class, binary.getTargetPlatform());
             for (final RoutesSourceSet routesSourceSet : binary.getSource().withType(RoutesSourceSet.class)) {
                 final String routesCompileTaskName = String.format("routesCompile%s%s", StringUtils.capitalize(routesSourceSet.getName()), StringUtils.capitalize(binary.getName()));
                 final File routesCompilerOutputDirectory = srcOutputDirectory(buildDir, binary, routesCompileTaskName);
 
                 tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                     public void execute(RoutesCompile routesCompile) {
-                        routesCompile.setPlatform(binary.getTargetPlatform());
+                        routesCompile.setCompilerTool(compilerTool);
                         routesCompile.setAdditionalImports(new ArrayList<String>());
                         routesCompile.setSource(routesSourceSet.getSource());
                         routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
@@ -398,13 +415,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
-        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayToolChainInternal toolChain, final PlayPluginConfigurations configurations) {
+        void createPlayRunTask(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, ToolResolver toolResolver, final PlayPluginConfigurations configurations) {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+                final ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = toolResolver.resolve(PlayApplicationRunner.class, binary.getTargetPlatform());
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
-                        playRun.setToolProvider(toolChain.select(binary.getTargetPlatform()));
+                        playRun.setPlayApplicationRunnerTool(playApplicationRunnerTool);
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getFileCollection());

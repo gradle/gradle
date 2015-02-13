@@ -32,11 +32,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.play.internal.javascript.DefaultJavaScriptCompileSpec;
 import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -50,8 +48,7 @@ import java.util.List;
 @Incubating
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
-    private PlayPlatform playPlatform;
-    private Compiler<JavaScriptCompileSpec> compiler;
+    private ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool;
     private BaseForkOptions forkOptions;
 
     public JavaScriptMinify() {
@@ -93,22 +90,8 @@ public class JavaScriptMinify extends SourceTask {
         this.destinationDir = destinationDir;
     }
 
-    /**
-     * Sets the target Play platform.
-     *
-     * @param playPlatform The target Play platform.
-     */
-    public void setPlayPlatform(PlayPlatform playPlatform) {
-        this.playPlatform = playPlatform;
-    }
-
-    private Compiler<JavaScriptCompileSpec> getCompiler() {
-        if (compiler == null) {
-            ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
-            compiler = select.newCompiler(JavaScriptCompileSpec.class);
-        }
-
-        return compiler;
+    public void setCompilerTool(ResolvedTool<Compiler<JavaScriptCompileSpec>> compilerTool) {
+        this.compilerTool = compilerTool;
     }
 
     /**
@@ -133,7 +116,7 @@ public class JavaScriptMinify extends SourceTask {
         getSource().visit(visitor);
 
         JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
-        getCompiler().execute(spec);
+        compilerTool.get().execute(spec);
     }
 
     /**

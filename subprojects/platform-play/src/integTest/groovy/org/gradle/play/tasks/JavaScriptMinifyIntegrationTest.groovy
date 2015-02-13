@@ -41,31 +41,6 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         """
     }
 
-    def "non-play task minifies javascript files" () {
-        buildFile << """
-            model {
-                tasks {
-                    create('minifyJavaScript', JavaScriptMinify) {
-                        source = fileTree("js")
-                        destinationDir = new File(buildDir, "min")
-                        playPlatform = binaries.playBinary.targetPlatform
-                    }
-                }
-            }
-        """
-        withJavaScriptSource("js/test.js")
-        withJavaScriptSource("js/x/y/z.js")
-
-        when:
-        succeeds "minifyJavaScript"
-
-        then:
-        matchesExpected file("build/min/test.min.js")
-        matchesExpected file("build/min/x/y/z.min.js")
-        matchesExpectedRaw file("build/min/test.js")
-        matchesExpectedRaw file("build/min/x/y/z.js")
-    }
-
     def "minifies default javascript source set as part of play application build"() {
         given:
         withJavaScriptSource("app/assets/test.js")

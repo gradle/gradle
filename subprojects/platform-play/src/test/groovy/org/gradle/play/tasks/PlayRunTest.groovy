@@ -16,10 +16,10 @@
 
 package org.gradle.play.tasks
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.platform.base.internal.toolchain.ResolvedTool
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
-import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -29,7 +29,9 @@ class PlayRunTest extends Specification {
 
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
-    PlayToolProvider toolProvider = Mock()
+    ResolvedTool<PlayApplicationRunner> playApplicationRunnerTool = Mock(ResolvedTool) {
+        get() >> playApplicationRunner
+    }
     InputStream systemInputStream = Mock()
 
     @Rule
@@ -41,7 +43,7 @@ class PlayRunTest extends Specification {
         playRun = TestUtil.createTask(PlayRun)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
-        playRun.toolProvider = toolProvider
+        playRun.playApplicationRunnerTool = playApplicationRunnerTool
         System.in = systemInputStream
     }
 
@@ -53,7 +55,6 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions().memoryInitialSize == "1G"
             assert spec.getForkOptions().memoryMaximumSize == "5G"
@@ -66,8 +67,6 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
-
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
             assert spec.getForkOptions() != null
             runnerToken
@@ -82,7 +81,6 @@ class PlayRunTest extends Specification {
         when:
         playRun.execute();
         then:
-        1 * toolProvider.newApplicationRunner() >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> runnerToken
     }
 }

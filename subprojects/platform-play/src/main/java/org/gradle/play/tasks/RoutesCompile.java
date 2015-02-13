@@ -22,12 +22,10 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.platform.base.internal.toolchain.ResolvedTool;
 import org.gradle.play.internal.CleaningPlayToolCompiler;
 import org.gradle.play.internal.routes.DefaultRoutesCompileSpec;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
-import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
 import javax.inject.Inject;
@@ -53,14 +51,8 @@ public class RoutesCompile extends SourceTask {
 
     private boolean javaProject;
     private boolean namespaceReverseRouter;
-    private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-
-    void setCompiler(Compiler<RoutesCompileSpec> compiler) {
-        this.compiler = compiler;
-    }
-
-    private Compiler<RoutesCompileSpec> compiler;
+    private ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -101,26 +93,15 @@ public class RoutesCompile extends SourceTask {
     @TaskAction
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject());
-        if (compiler == null) {
-            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs());
-        }
-        compiler.execute(spec);
+        new CleaningPlayToolCompiler<RoutesCompileSpec>(compilerTool.get(), getOutputs()).execute(spec);
     }
 
-    private Compiler<RoutesCompileSpec> getCompiler() {
-        if (compiler == null) {
-            ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
-            compiler = select.newCompiler(RoutesCompileSpec.class);
-        }
-        return compiler;
+    public void setCompilerTool(ResolvedTool<Compiler<RoutesCompileSpec>> compilerTool) {
+        this.compilerTool = compilerTool;
     }
 
     public boolean isJavaProject() {
         return javaProject;
-    }
-
-    public void setPlatform(PlayPlatform platform) {
-        this.platform = platform;
     }
 
     /**
