@@ -59,13 +59,15 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         this.classLoaderCache = classLoaderCache;
     }
 
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, Transformer transformer, String classpathClosureName, Class<? extends Script> scriptBaseClass,
-                             Action<? super ClassNode> verifier) {
+    @Override
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName,
+                             Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
+        Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         try {
             compileScript(source, classLoader, configuration, classesDir, transformer, verifier, classpathClosureName);
         } catch (GradleException e) {

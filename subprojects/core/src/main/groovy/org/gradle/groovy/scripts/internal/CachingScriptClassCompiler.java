@@ -20,7 +20,6 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.Cast;
 
 import java.util.*;
@@ -34,13 +33,14 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        List<Object> key = Arrays.asList(source.getClassName(), classLoader, transformer.getId(), scriptBaseClass.getName());
+    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+        List<Object> key = Arrays.asList(source.getClassName(), classLoader, extractingTransformer.getTransformer().getId(), scriptBaseClass.getName());
         CompiledScript<T> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = scriptClassCompiler.compile(source, classLoader, transformer, classpathClosureName, scriptBaseClass, verifier);
+            compiledScript = scriptClassCompiler.compile(source, classLoader, extractingTransformer, classpathClosureName, scriptBaseClass, verifier);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;
     }
+
 }

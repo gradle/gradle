@@ -19,13 +19,13 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Transformer;
 
 import java.io.File;
 
 public interface ScriptCompilationHandler {
-    void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Transformer transformer,
-                      String classpathClosureName, Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
+
+    void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, MetadataExtractingTransformer<?> transformer, String classpathClosureName,
+                      Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
     <T extends Script> CompiledScript<T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                                      Class<T> scriptBaseClass);

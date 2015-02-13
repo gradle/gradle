@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.scripts.internal;
 
-import groovy.lang.Script;
-import org.codehaus.groovy.ast.ClassNode;
-import org.gradle.api.Action;
-import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.Transformer;
 
-public interface ScriptClassCompiler {
-    <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<?> transformer, String classpathClosureName, Class<T> scriptBaseClass,
-                                                 Action<? super ClassNode> verifier);
+public class TransformationOnlyMetadataExtractingTransformer  implements MetadataExtractingTransformer<Void> {
+
+    private final Transformer transformer;
+
+    public TransformationOnlyMetadataExtractingTransformer(Transformer transformer) {
+        this.transformer = transformer;
+    }
+
+    public Transformer getTransformer() {
+        return transformer;
+    }
 }

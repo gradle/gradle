@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.Action
 import org.gradle.groovy.scripts.internal.CompiledScript
+import org.gradle.groovy.scripts.internal.MetadataExtractingTransformer
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -29,7 +30,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptSource source = Mock()
     final ScriptRunner<TestScript> runner = Mock()
     final ClassLoader classLoader = Mock()
-    final Transformer transformer = Mock()
+    final MetadataExtractingTransformer<?> extractingTransformer = Mock()
     final CompiledScript<TestScript> compiledScript = Mock() {
         loadClass() >> TestScript
     }
@@ -40,14 +41,13 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         when:
         def compiler = factory.createCompiler(source)
         compiler.classloader = classLoader
-        compiler.transformer = transformer
         compiler.verifier = verifier
         compiler.classpathClosureName = "buildscript"
-        def result = compiler.compile(Script)
+        def result = compiler.compile(Script, extractingTransformer)
 
         then:
         result == runner
-        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, transformer, "buildscript", Script, verifier) >> compiledScript
+        1 * scriptClassCompiler.compile({it instanceof CachingScriptSource}, classLoader, extractingTransformer, "buildscript", Script, verifier) >> compiledScript
         1 * scriptRunnerFactory.create(compiledScript, {it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._

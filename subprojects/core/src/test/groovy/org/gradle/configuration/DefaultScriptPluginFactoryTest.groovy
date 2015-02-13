@@ -82,15 +82,13 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
-        1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer instanceof StatementExtractingScriptTransformer }) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * scriptCompiler.setClassloader(scopeClassLoader)
-        1 * scriptCompiler.setTransformer(!null)
-        1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * script.init(target, _ as ServiceRegistry)
@@ -109,15 +107,13 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * importsReader.withImports(scriptSource) >> sourceWithImports
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
-        1 * scriptCompiler.setTransformer(_ as StatementExtractingScriptTransformer)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer instanceof StatementExtractingScriptTransformer }) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * scriptCompiler.setClassloader(scopeClassLoader)
-        1 * scriptCompiler.setTransformer(!null)
-        1 * scriptCompiler.compile(DefaultScript) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * script.init(target, _ as ServiceRegistry)

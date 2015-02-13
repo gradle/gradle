@@ -33,7 +33,7 @@ class CachingScriptClassCompilerTest extends Specification {
         ScriptSource script1 = scriptSource('script')
         ScriptSource script2 = scriptSource('script')
         ClassLoader parentClassLoader = Mock()
-        Transformer transformer = transformer()
+        MetadataExtractingTransformer<?> transformer = transformer()
 
         when:
         def c1 = compiler.compile(script1, parentClassLoader, transformer, classpathClosureName, Script.class, verifier)
@@ -49,7 +49,7 @@ class CachingScriptClassCompilerTest extends Specification {
         ScriptSource script1 = scriptSource('script')
         ScriptSource script2 = scriptSource('other')
         ClassLoader parentClassLoader = Mock()
-        Transformer transformer = transformer()
+        MetadataExtractingTransformer<?> transformer = transformer()
 
         when:
         compiler.compile(script1, parentClassLoader, transformer, classpathClosureName, Script.class, verifier)
@@ -64,8 +64,8 @@ class CachingScriptClassCompilerTest extends Specification {
         ScriptSource script1 = scriptSource('script')
         ScriptSource script2 = scriptSource('script')
         ClassLoader parentClassLoader = Mock()
-        Transformer transformer1 = transformer('t1')
-        Transformer transformer2 = transformer('t2')
+        MetadataExtractingTransformer<?> transformer1 = transformer('t1')
+        MetadataExtractingTransformer<?> transformer2 = transformer('t2')
 
         when:
         compiler.compile(script1, parentClassLoader, transformer1, classpathClosureName, Script.class, verifier)
@@ -81,7 +81,7 @@ class CachingScriptClassCompilerTest extends Specification {
         ScriptSource script2 = scriptSource('script')
         ClassLoader parentClassLoader1 = Mock()
         ClassLoader parentClassLoader2 = Mock()
-        Transformer transformer = transformer()
+        MetadataExtractingTransformer<?> transformer = transformer()
 
         when:
         compiler.compile(script1, parentClassLoader1, transformer, classpathClosureName, Script.class, verifier)
@@ -96,7 +96,7 @@ class CachingScriptClassCompilerTest extends Specification {
         ScriptSource script1 = scriptSource('script')
         ScriptSource script2 = scriptSource('script')
         ClassLoader parentClassLoader = Mock()
-        Transformer transformer = transformer()
+        MetadataExtractingTransformer<?> transformer = transformer()
 
         when:
         compiler.compile(script1, parentClassLoader, transformer, classpathClosureName, Script.class, verifier)
@@ -114,8 +114,10 @@ class CachingScriptClassCompilerTest extends Specification {
     }
 
     def transformer(String id = 'id') {
+        MetadataExtractingTransformer<?> extractingTransformer = Mock()
         Transformer transformer = Mock()
         _ * transformer.id >> id
-        transformer
+        extractingTransformer.transformer >> transformer
+        extractingTransformer
     }
 }

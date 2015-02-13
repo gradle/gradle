@@ -19,7 +19,6 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Transformer;
 
 public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     private final ScriptClassCompiler compiler;
@@ -31,7 +30,8 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, String classpathClosureName, final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<?> transformer, String classpathClosureName,
+                                                        final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
                 @Override
@@ -46,4 +46,5 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
         }
         return compiler.compile(source, classLoader, transformer, classpathClosureName, scriptBaseClass, verifier);
     }
+
 }

@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.TestScript
-import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.resource.Resource
 import spock.lang.Specification
 
@@ -29,7 +28,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final ScriptSource source = Mock()
     final Resource resource = Mock()
     final ClassLoader classLoader = Mock()
-    final Transformer transformer = Mock()
+    final MetadataExtractingTransformer<?> extractingTransformer = Mock()
     final Action verifier = Mock()
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
     String classpathClosureName = "buildscript"
@@ -43,7 +42,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         _ * resource.text >> '  \n\t'
 
         when:
-        def compiledScript = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier)
+        def compiledScript = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
         def result = compiledScript.loadClass()
 
         then:
@@ -60,11 +59,11 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         CompiledScript<?> compiledScript = Mock()
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, classpathClosureName, Script, verifier)
+        def result = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
 
         then:
         result == compiledScript
-        1 * target.compile(source, classLoader, transformer, classpathClosureName, Script, verifier) >> compiledScript
+        1 * target.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier) >> compiledScript
         0 * emptyScriptGenerator._
         0 * target._
     }

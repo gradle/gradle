@@ -29,6 +29,7 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
+import org.gradle.groovy.scripts.internal.TransformationOnlyMetadataExtractingTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -127,10 +128,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
-            compiler.setTransformer(classpathScriptTransformer);
             compiler.setClasspathClosureName(classpathClosureName);
 
-            ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType);
+            ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(classpathScriptTransformer));
             classPathScriptRunner.getScript().init(target, services);
             classPathScriptRunner.run();
 
@@ -141,12 +141,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
             BuildScriptTransformer transformer = new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(), scriptSource);
-            compiler.setTransformer(transformer);
 
             // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
             compiler.setVerifier(new ClosureCreationInterceptingVerifier());
 
-            final ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
+            final ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(transformer));
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {

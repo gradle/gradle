@@ -22,7 +22,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.logging.ProgressLogger;
@@ -51,17 +50,19 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, Transformer transformer, String classpathClosureName, final Class<T> scriptBaseClass,
+    @Override
+    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, MetadataExtractingTransformer<?> transformer, String classpathClosureName, final Class<T> scriptBaseClass,
                                                         Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
         properties.put("source.hash", HashUtil.createCompactMD5(source.getResource().getText()));
 
-        String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformer.getId());
+        String transformerId = transformer.getTransformer().getId();
+        String cacheName = String.format("scripts/%s/%s/%s", source.getClassName(), scriptBaseClass.getSimpleName(), transformerId);
         PersistentCache cache = cacheRepository.cache(cacheName)
                 .withProperties(properties)
                 .withValidator(validator)
-                .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
+                .withDisplayName(String.format("%s class cache for %s", transformerId, source.getDisplayName()))
                 .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, classpathClosureName, verifier, scriptBaseClass)))
                 .open();
 
@@ -86,11 +87,12 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Action<? super ClassNode> verifier;
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
-        private final Transformer transformer;
+        private final MetadataExtractingTransformer<?> transformer;
         private final String classpathClosureName;
         private final ScriptSource source;
 
-        private CacheInitializer(ScriptSource source, ClassLoader classLoader, Transformer transformer, String classpathClosureName, Action<? super ClassNode> verifier, Class<? extends Script> scriptBaseClass) {
+        public <T extends Script> CacheInitializer(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<?> transformer, String classpathClosureName,
+                                                   Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
             this.source = source;
             this.classLoader = classLoader;
             this.transformer = transformer;

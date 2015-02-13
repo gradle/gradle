@@ -278,7 +278,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCanVisitAndTransformScriptClass() throws Exception {
-        Transformer visitor = new AbstractScriptTransformer() {
+        final Transformer visitor = new AbstractScriptTransformer() {
             public String getId() {
                 return "id";
             }
@@ -301,9 +301,9 @@ public class DefaultScriptCompilationHandlerTest {
                 });
             }
         };
-
+        MetadataExtractingTransformer<?> transformer = new TransformationOnlyMetadataExtractingTransformer(visitor);
         ScriptSource source = scriptSource("transformMe()");
-        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, visitor, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, transformer, classpathClosureName, expectedScriptClass, verifier);
         Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, expectedScriptClass).loadClass().newInstance();
         evaluateScript(script);
     }
