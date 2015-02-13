@@ -35,7 +35,6 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
-import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
 import java.util.Arrays;
@@ -50,8 +49,7 @@ public class PlayTestPlugin extends RuleSource {
     void createTestTasks(CollectionBuilder<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
-            final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
-            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
+            final FileCollection testCompileClasspath = getTestCompileClasspath(binary, configurations);
 
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
             // TODO:DAZ Model a test suite
@@ -95,7 +93,7 @@ public class PlayTestPlugin extends RuleSource {
         }
     }
 
-    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
+    private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayPluginConfigurations configurations) {
         return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getFileCollection());
     }
 

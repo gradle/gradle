@@ -29,7 +29,6 @@ import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
 import org.gradle.play.PublicAssets;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
@@ -42,7 +41,6 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
     private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
-    private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
     private FileCollection classpath;
@@ -57,20 +55,12 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return platform;
     }
 
-    public PlayToolChainInternal getToolChain() {
-        return toolChain;
-    }
-
     public File getJarFile() {
         return jarFile;
     }
 
     public void setTargetPlatform(PlayPlatform platform) {
         this.platform = platform;
-    }
-
-    public void setToolChain(PlayToolChainInternal toolChain) {
-        this.toolChain = toolChain;
     }
 
     public void setJarFile(File file) {

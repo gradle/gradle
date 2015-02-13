@@ -60,7 +60,6 @@ import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.routes.RoutesCompileSpec;
 import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
@@ -94,11 +93,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @Model
         PlayPluginConfigurations configurations(ExtensionContainer extensions) {
             return extensions.getByType(PlayPluginConfigurations.class);
-        }
-
-        @Model
-        PlayToolChainInternal playToolChain(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(PlayToolChainInternal.class);
         }
 
         @Model
@@ -190,8 +184,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
         @ComponentBinaries
         void createBinaries(CollectionBuilder<PlayApplicationBinarySpec> binaries, final PlayApplicationSpec componentSpec, final ToolResolver toolResolver,
-                            final PlatformResolvers platforms, final PlayToolChainInternal playToolChainInternal, final PlayPluginConfigurations configurations,
-                            final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
+                            final PlatformResolvers platforms, final PlayPluginConfigurations configurations, final ServiceRegistry serviceRegistry,
+                            @Path("buildDir") final File buildDir, final ProjectIdentifier projectIdentifier) {
 
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
@@ -206,8 +200,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     initialiseConfigurations(configurations, chosenPlatform);
 
                     playBinaryInternal.setTargetPlatform(chosenPlatform);
-                    playBinaryInternal.setToolChain(playToolChainInternal);
-
                     playBinaryInternal.setToolResolver(toolResolver);
 
                     File mainJar = new File(binaryBuildDir, String.format("lib/%s.jar", projectIdentifier.getName()));
