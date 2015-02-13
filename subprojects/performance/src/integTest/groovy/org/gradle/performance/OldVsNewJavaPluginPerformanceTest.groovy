@@ -17,8 +17,10 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.Toggles
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+@Category(Experiment.class)
 class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
