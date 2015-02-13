@@ -21,13 +21,13 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
 
-class PluginDependenciesServiceTest extends Specification {
+class PluginRequestCollectorTest extends Specification {
 
     final scriptSource = new StringScriptSource("d", "c")
     static final int LINE_NUMBER = 10
 
     List<PluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
-        new PluginDependenciesService(scriptSource).with {
+        new PluginRequestCollector(scriptSource).with {
             createSpec(LINE_NUMBER).with(closure)
             getRequests()
         }

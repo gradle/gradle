@@ -26,21 +26,15 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
-import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
-import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
-import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
-import org.gradle.groovy.scripts.internal.TransformationOnlyMetadataExtractingTransformer;
+import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.use.internal.PluginDependenciesService;
-import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-
-import java.util.List;
+import org.gradle.plugin.use.internal.PluginRequests;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
@@ -115,26 +109,25 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
-            PluginDependenciesService pluginDependenciesService = new PluginDependenciesService(getSource());
-            services.add(PluginDependenciesService.class, pluginDependenciesService);
-
             final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
             compiler.setClassloader(baseScope.getExportClassLoader());
 
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
 
-            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError, documentationRegistry);
+            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
 
-            StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
+            StatementFilteringScriptTransformer classpathScriptTransformer = new StatementFilteringScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
             compiler.setClasspathClosureName(classpathClosureName);
 
-            ScriptRunner<? extends BasicScript, Void> classPathScriptRunner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(classpathScriptTransformer));
+            PluginsAndBuildscriptMetadataExtractingTransformer extractingTransformer = new PluginsAndBuildscriptMetadataExtractingTransformer(scriptBlockTransformer, classpathScriptTransformer);
+
+            ScriptRunner<? extends BasicScript, PluginRequests> classPathScriptRunner = compiler.compile(scriptType, extractingTransformer);
             classPathScriptRunner.getScript().init(target, services);
             classPathScriptRunner.run();
 
-            List<PluginRequest> pluginRequests = pluginDependenciesService.getRequests();
+            PluginRequests pluginRequests = classPathScriptRunner.getCompiledScript().getMetadata();
             PluginManagerInternal pluginManager = target instanceof PluginAwareInternal ? ((PluginAwareInternal) target).getPluginManager() : null;
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 

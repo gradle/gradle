@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.groovy.scripts.*
 import org.gradle.groovy.scripts.internal.CompiledScript
-import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer
+import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptMetadataExtractingTransformer
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -59,6 +59,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathClosureName = "buildscript"
     def compiledScript = Mock(CompiledScript)
+    def classpathCompiledScript = Mock(CompiledScript)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
             documentationRegistry, new ModelRuleSourceDetector())
@@ -83,10 +84,11 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer instanceof StatementExtractingScriptTransformer }) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
+        1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
         1 * scriptCompiler.setClassloader(scopeClassLoader)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script
@@ -108,10 +110,11 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer instanceof StatementExtractingScriptTransformer }) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
+        1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
         1 * scriptCompiler.setClassloader(scopeClassLoader)
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script

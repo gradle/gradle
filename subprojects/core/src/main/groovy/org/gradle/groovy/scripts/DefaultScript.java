@@ -58,7 +58,6 @@ public abstract class DefaultScript extends BasicScript {
     private ProcessOperations processOperations;
     private LoggingManager loggingManager;
 
-    public static final String SCRIPT_SERVICES_PROPERTY = "__scriptServices";
     public ServiceRegistry __scriptServices;
 
     public void init(final Object target, ServiceRegistry services) {

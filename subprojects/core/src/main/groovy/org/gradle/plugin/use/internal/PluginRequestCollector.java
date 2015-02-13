@@ -35,11 +35,11 @@ import static org.gradle.util.CollectionUtils.collect;
  *
  * The PluginUseScriptBlockTransformer interacts with this type.
  */
-public class PluginDependenciesService {
+public class PluginRequestCollector {
 
     private final ScriptSource scriptSource;
 
-    public PluginDependenciesService(ScriptSource scriptSource) {
+    public PluginRequestCollector(ScriptSource scriptSource) {
         this.scriptSource = scriptSource;
     }
 

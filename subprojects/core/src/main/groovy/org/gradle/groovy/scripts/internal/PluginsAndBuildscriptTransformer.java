@@ -21,9 +21,9 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.specs.Spec;
-import org.gradle.groovy.scripts.DefaultScript;
-import org.gradle.plugin.use.internal.PluginDependenciesService;
-import org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.plugin.use.internal.PluginRequests;
+import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +35,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     private final String classpathBlockName;
     private final String pluginsBlockMessage;
 
-    private final PluginUseScriptBlockTransformer pluginBlockTransformer;
+    private final PluginUseScriptBlockMetadataExtractor pluginBlockMetadataExtractor;
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
     private final List<String> scriptBlockNames;
@@ -45,11 +45,12 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
         }
     };
 
-    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage, DocumentationRegistry documentationRegistry) {
+    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage,
+                                            ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
         this.classpathBlockName = classpathBlockName;
         this.scriptBlockNames = Arrays.asList(classpathBlockName, PLUGINS);
         this.pluginsBlockMessage = pluginsBlockMessage;
-        this.pluginBlockTransformer = new PluginUseScriptBlockTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginDependenciesService.class, documentationRegistry);
+        this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(scriptSource, documentationRegistry);
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
@@ -61,19 +62,18 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
         } else {
             if (scriptBlock.getName().equals(PLUGINS)) {
                 String failMessage = null;
-                Statement returnStatement = statement;
 
                 if (pluginsBlockMessage != null) {
-                    failMessage = pluginBlockTransformer.formatErrorMessage(pluginsBlockMessage);
+                    failMessage = pluginBlockMetadataExtractor.formatErrorMessage(pluginsBlockMessage);
                 } else {
                     seenPluginsBlock = true;
                     if (seenNonClasspathStatement) {
                         failMessage = String.format(
-                                pluginBlockTransformer.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                                pluginBlockMetadataExtractor.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
                                 classpathBlockName, PLUGINS, PLUGINS
                         );
                     } else {
-                        returnStatement = pluginBlockTransformer.transform(sourceUnit, scriptBlock);
+                        pluginBlockMetadataExtractor.extract(sourceUnit, scriptBlock);
                     }
                 }
 
@@ -84,11 +84,11 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
                     );
                 }
 
-                return returnStatement;
+                return null;
             } else {
                 if (seenPluginsBlock) {
                     String message = String.format(
-                            pluginBlockTransformer.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
+                            pluginBlockMetadataExtractor.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
                             classpathBlockName, PLUGINS
                     );
                     sourceUnit.getErrorCollector().addError(
@@ -105,4 +105,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
         return statementSpec;
     }
 
+    public PluginRequests getRequests() {
+        return pluginBlockMetadataExtractor.getRequests();
+    }
 }

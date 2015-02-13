@@ -38,12 +38,12 @@ import java.util.Map;
  * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes. <p> *All* other kinds of constructs are filtered, including:
  * classes, methods etc.
  */
-public class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
+public class StatementFilteringScriptTransformer extends AbstractScriptTransformer {
 
     private final String id;
     private final StatementTransformer transformer;
 
-    public StatementExtractingScriptTransformer(String id, StatementTransformer transformer) {
+    public StatementFilteringScriptTransformer(String id, StatementTransformer transformer) {
         this.id = id;
         this.transformer = transformer;
     }
@@ -116,7 +116,7 @@ public class StatementExtractingScriptTransformer extends AbstractScriptTransfor
     }
 
     public Transformer invert() {
-        return new Inverse("no_" + StatementExtractingScriptTransformer.this.getId(), Specs.not(transformer.getSpec()));
+        return new Inverse("no_" + StatementFilteringScriptTransformer.this.getId(), Specs.not(transformer.getSpec()));
     }
 
     private static class Inverse extends AbstractScriptTransformer {

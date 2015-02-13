@@ -16,21 +16,22 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.PluginId;
+import org.gradle.plugin.use.PluginDependencySpec;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.isString;
 
-public class PluginUseScriptBlockTransformer {
+public class PluginUseScriptBlockMetadataExtractor {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
     public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
@@ -38,32 +39,16 @@ public class PluginUseScriptBlockTransformer {
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
-    private final String servicesFieldName;
-    private final Class<?> serviceClass;
     private final DocumentationRegistry documentationRegistry;
+    private final PluginRequestCollector pluginRequestCollector;
 
-    public PluginUseScriptBlockTransformer(String servicesFieldName, Class<?> serviceClass, DocumentationRegistry documentationRegistry) {
-        this.servicesFieldName = servicesFieldName;
-        this.serviceClass = serviceClass;
+    public PluginUseScriptBlockMetadataExtractor(ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
+        this.pluginRequestCollector = new PluginRequestCollector(scriptSource);
         this.documentationRegistry = documentationRegistry;
     }
 
-    public Statement transform(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
+    public void extract(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
         ClosureExpression closureArg = scriptBlock.getClosureExpression();
-
-        PropertyExpression servicesProperty = new PropertyExpression(VariableExpression.THIS_EXPRESSION, servicesFieldName);
-        final MethodCallExpression getServiceMethodCall = new MethodCallExpression(servicesProperty, "get",
-                new ArgumentListExpression(
-                        new ClassExpression(new ClassNode(serviceClass))
-                )
-        );
-
-        // Remove access to any surrounding context
-        Expression hydrateMethodCall = new MethodCallExpression(closureArg, "rehydrate", new ArgumentListExpression(
-                getServiceMethodCall, ConstantExpression.NULL, ConstantExpression.NULL
-        ));
-
-        Expression closureCall = new MethodCallExpression(hydrateMethodCall, "call", ArgumentListExpression.EMPTY_ARGUMENTS);
 
         closureArg.getCode().visit(new RestrictiveCodeVisitor(sourceUnit, formatErrorMessage(BASE_MESSAGE)) {
 
@@ -106,8 +91,7 @@ public class PluginUseScriptBlockTransformer {
                                 if (call.isImplicitThis()) {
                                     try {
                                         PluginId.validate(argStringValue);
-                                        call.setObjectExpression(new MethodCallExpression(new VariableExpression("this"), "createSpec", new ConstantExpression(call.getLineNumber(), true)));
-                                        call.setImplicitThis(false);
+                                        call.setNodeMetaData(PluginDependencySpec.class, pluginRequestCollector.createSpec(call.getLineNumber()).id(argStringValue));
                                     } catch (InvalidPluginIdException e) {
                                         restrict(argumentExpression, formatErrorMessage(e.getReason()));
                                     }
@@ -118,7 +102,12 @@ public class PluginUseScriptBlockTransformer {
 
                             if (methodName.getText().equals("version")) {
                                 Expression objectExpression = call.getObjectExpression();
-                                if (!(objectExpression instanceof MethodCallExpression)) {
+                                if (objectExpression instanceof MethodCallExpression) {
+                                    PluginDependencySpec spec = objectExpression.getNodeMetaData(PluginDependencySpec.class);
+                                    if (spec != null) {
+                                        spec.version(argStringValue);
+                                    }
+                                } else {
                                     restrict(call, formatErrorMessage(BASE_MESSAGE));
                                 }
                             }
@@ -163,8 +152,10 @@ public class PluginUseScriptBlockTransformer {
                 statement.getExpression().visit(this);
             }
         });
+    }
 
-        return new ExpressionStatement(closureCall);
+    public PluginRequests getRequests() {
+        return new DefaultPluginRequests(pluginRequestCollector.getRequests());
     }
 
     public String formatErrorMessage(String message) {

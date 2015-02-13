@@ -53,7 +53,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginResolver = pluginResolver;
     }
 
-    public void applyPlugins(Collection<? extends PluginRequest> requests, final ScriptHandler scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(PluginRequests requests, final ScriptHandler scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
             return;
