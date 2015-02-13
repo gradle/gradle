@@ -73,6 +73,10 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.atState(path, state);
     }
 
+    public ModelNode atState(String path, ModelNode.State state) {
+        return atState(ModelPath.path(path), state);
+    }
+
     @Override
     @Nullable
     public ModelNode atStateOrLater(ModelPath path, ModelNode.State state) {

@@ -137,6 +137,11 @@ public class DelegatingCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
+    public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+        delegate.withType(type, rules);
+    }
+
+    @Override
     public void afterEach(Action<? super T> configAction) {
         delegate.afterEach(configAction);
     }

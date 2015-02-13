@@ -184,6 +184,11 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         }
 
         @Override
+        public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+            rawInstance.withType(type, rules);
+        }
+
+        @Override
         public void afterEach(Action<? super I> configAction) {
             assertNotClosed();
             rawInstance.afterEach(configAction);

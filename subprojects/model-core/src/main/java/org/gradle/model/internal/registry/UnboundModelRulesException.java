@@ -22,11 +22,15 @@ import org.gradle.model.internal.report.unbound.UnboundRulesReporter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 
 public class UnboundModelRulesException extends GradleException {
 
-    public UnboundModelRulesException(Iterable<? extends UnboundRule> rules) {
+    private final List<? extends UnboundRule> rules;
+
+    public UnboundModelRulesException(List<? extends UnboundRule> rules) {
         super(toMessage(rules));
+        this.rules = rules;
     }
 
     private static String toMessage(Iterable<? extends UnboundRule> rules) {
@@ -35,5 +39,9 @@ public class UnboundModelRulesException extends GradleException {
         writer.println("The following model rules are unbound:");
         new UnboundRulesReporter(writer, "  ").reportOn(rules);
         return string.toString();
+    }
+
+    public List<? extends UnboundRule> getRules() {
+        return rules;
     }
 }

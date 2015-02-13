@@ -317,6 +317,12 @@ class UnboundRulesProcessorTest extends Specification {
 
         }
 
+
+        @Override
+        def <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
+
+        }
+
         @Override
         void applyToLink(String name, Class<? extends RuleSource> rules) {
 

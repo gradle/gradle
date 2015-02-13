@@ -522,6 +522,10 @@ class DefaultCollectionBuilderTest extends Specification {
         String value
     }
 
+    class SpecialBean extends Bean {
+        String other
+    }
+
     def "sensible error is thrown when trying to apply a class that does not extend RuleSource as a scoped rule"() {
         def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(MutableValue))
         def iType = DefaultCollectionBuilder.instantiatorTypeOf(ModelType.of(MutableValue))
@@ -680,4 +684,159 @@ class DefaultCollectionBuilderTest extends Specification {
     Immutable:
       - <unspecified> ($String.name) parameter 2"""
     }
+
+    static class SetOther extends RuleSource {
+        @Mutate
+        void set(SpecialBean bean, String other) {
+            bean.other = other
+            bean.value = "changed"
+        }
+    }
+
+    def "can add rule source to all items of type"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+        NamedEntityInstantiator instantiator = { name, type ->
+            (type ?: Bean).newInstance(name: name)
+        }
+
+        registry
+                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
+                .collection("beans", Bean, iRef)
+                .createInstance("s", "other")
+                .mutate {
+            it.path("beans").type(cbType).action { c ->
+                c.create("b1", Bean)
+                c.create("b2", Bean)
+                c.create("sb1", SpecialBean)
+                c.create("sb2", SpecialBean)
+                c.withType(SpecialBean, SetOther)
+            }
+        }
+
+        expect:
+        registry.node("s").state == ModelNode.State.Known
+
+        when:
+        registry.atState("beans", ModelNode.State.SelfClosed)
+
+        then:
+        registry.node("s").state == ModelNode.State.Known
+        registry.get("beans.b1", Bean).value != "changed"
+        registry.node("s").state == ModelNode.State.Known
+
+        when:
+        def sb2 = registry.get("beans.sb2", SpecialBean)
+
+        then:
+        sb2.other == "other"
+        registry.node("s").state == ModelNode.State.GraphClosed
+
+        when:
+        def sb1 = registry.get("beans.sb1", SpecialBean)
+
+        then:
+        sb1.other == "other"
+    }
+
+    static class SetProp extends RuleSource {
+        @Mutate
+        void m(@Path("foo") Bean bean) {}
+    }
+
+    def "when targeting by type, paths are interpreted relative to item"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+        NamedEntityInstantiator instantiator = { name, type ->
+            (type ?: Bean).newInstance(name: name)
+        }
+
+        registry
+                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
+                .collection("beans", Bean, iRef)
+                .createInstance("s", "other")
+                .mutate {
+            it.path("beans").type(cbType).action { c ->
+                c.create("b1", Bean)
+                c.create("sb1", SpecialBean)
+                c.withType(SpecialBean, SetProp)
+            }
+        }
+
+        when:
+        registry.atState("beans", ModelNode.State.SelfClosed)
+        registry.get("beans.sb1", SpecialBean)
+        registry.bindAllReferences()
+
+        then:
+        UnboundModelRulesException e = thrown()
+        e.rules.size() == 1
+        e.rules.first().mutableInputs.first().path == "beans.sb1.foo"
+    }
+
+    static class SetValue extends RuleSource {
+        @Mutate
+        void set(Bean bean) {
+            bean.value = "changed"
+        }
+    }
+
+    def "when targeting by type, can have rule use more general type than target"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+        NamedEntityInstantiator instantiator = { name, type ->
+            (type ?: Bean).newInstance(name: name)
+        }
+
+        registry
+                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
+                .collection("beans", Bean, iRef)
+                .createInstance("s", "other")
+                .mutate {
+            it.path("beans").type(cbType).action { c ->
+                c.create("sb1", SpecialBean)
+                c.withType(SpecialBean, SetValue)
+            }
+        }
+
+        when:
+        registry.atState("beans", ModelNode.State.SelfClosed)
+
+        then:
+        registry.get("beans.sb1", SpecialBean).value == "changed"
+    }
+
+    def "when targeting by type, can have rule use more specific type than target"() {
+        given:
+        def cbType = DefaultCollectionBuilder.typeOf(ModelType.of(Bean))
+        def iType = DefaultCollectionBuilder.instantiatorTypeOf(Bean)
+        def iRef = ModelReference.of("instantiator", iType)
+        NamedEntityInstantiator instantiator = { name, type ->
+            (type ?: Bean).newInstance(name: name)
+        }
+
+        registry
+                .create(ModelCreators.bridgedInstance(iRef, instantiator).build())
+                .collection("beans", Bean, iRef)
+                .createInstance("s", "other")
+                .mutate {
+            it.path("beans").type(cbType).action { c ->
+                c.create("sb1", SpecialBean)
+                c.withType(Bean, SetOther)
+            }
+        }
+
+        when:
+        registry.atState("beans", ModelNode.State.SelfClosed)
+
+        then:
+        registry.get("beans.sb1", SpecialBean).other == "other"
+    }
+
 }

@@ -216,6 +216,11 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     @Override
+    public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+        modelNode.applyToLinks(type, rules);
+    }
+
+    @Override
     public void beforeEach(Action<? super T> configAction) {
         doBeforeEach(elementType, configAction);
     }

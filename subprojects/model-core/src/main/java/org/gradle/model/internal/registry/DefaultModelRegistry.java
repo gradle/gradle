@@ -714,6 +714,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
+        public <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void applyToSelf(Class<? extends RuleSource> rules) {
             throw new UnsupportedOperationException();
         }
@@ -888,6 +893,30 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public void applyToSelf(Class<? extends RuleSource> rules) {
             apply(rules, getPath());
+        }
+
+        @Override
+        public <T> void applyToLinks(Class<T> type, final Class<? extends RuleSource> rules) {
+            final ModelType<T> modelType = ModelType.of(type);
+            registerListener(new ModelCreationListener() {
+                @Nullable
+                @Override
+                public ModelPath matchParent() {
+                    return getPath();
+                }
+
+                @Nullable
+                @Override
+                public ModelType<?> matchType() {
+                    return modelType;
+                }
+
+                @Override
+                public boolean onCreate(ModelNodeInternal node) {
+                    node.applyToSelf(rules);
+                    return false;
+                }
+            });
         }
 
         public void apply(Class<? extends RuleSource> rules, ModelPath scope) {

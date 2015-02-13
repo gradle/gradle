@@ -199,6 +199,14 @@ public interface CollectionBuilder<T> {
     <S> void withType(Class<S> type, Action<? super S> configAction);
 
     /**
+     * Applies the given rules to all items of the collection of the given type.
+     *
+     * @param type the type that the item must be/implement to have the rules applied
+     * @param rules rules to apply
+     */
+    <S> void withType(Class<S> type, Class<? extends RuleSource> rules);
+
+    /**
      * Applies the given action to each item in the collection, as each item is required.
      *
      * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)}, {@link #create(String,

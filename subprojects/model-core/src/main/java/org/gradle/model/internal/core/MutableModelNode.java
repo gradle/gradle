@@ -69,6 +69,8 @@ public interface MutableModelNode extends ModelNode {
 
     void applyToSelf(Class<? extends RuleSource> rules);
 
+    <T> void applyToLinks(Class<T> type, Class<? extends RuleSource> rules);
+
     @Nullable
     MutableModelNode getLink(String name);
 
