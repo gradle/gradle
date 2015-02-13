@@ -216,7 +216,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCompileScriptToDirWithImperativeStatementsOnlyScript() throws Exception {
-        final ScriptSource scriptSource = scriptSource("plugins {}; buildscript {}");
+        final ScriptSource scriptSource = scriptSource("plugins {}; buildscript {}; model {}");
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();

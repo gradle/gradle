@@ -41,6 +41,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
+import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -256,7 +257,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private boolean hasImperativeStatements;
 
         private ImperativeStatementDetector(String classpathClosureName) {
-            scriptBlockNames = ImmutableList.of(classpathClosureName, PluginsAndBuildscriptTransformer.PLUGINS);
+            scriptBlockNames = ImmutableList.of(classpathClosureName, PluginsAndBuildscriptTransformer.PLUGINS, ModelBlockTransformer.MODEL);
         }
 
         @Override

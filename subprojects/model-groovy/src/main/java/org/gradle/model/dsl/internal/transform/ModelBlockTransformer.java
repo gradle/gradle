@@ -47,7 +47,7 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
         return MODEL;
     }
 
-    private static final String MODEL = "model";
+    public static final String MODEL = "model";
     private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
 
     public static final String NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE = "The top level model() method can only be called with a literal closure argument";
