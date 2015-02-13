@@ -19,13 +19,16 @@
 package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class RoutesCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
     def destinationDirPath = "build/playBinary/src/routesCompileRoutesSourcesPlayBinary"
     def destinationDir = file(destinationDirPath)
 
     def setup() {
+        settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile <<"""
 plugins {
     id 'play'
@@ -103,9 +106,76 @@ repositories{
         file(destinationDirPath, "routes_routing.scala").assertHasNotChangedSince(routingFirstCompileSnapshot);
     }
 
-    def withRoutesTemplate(String packageName = "") {
-        def routesFile = packageName.isEmpty() ? file("conf", "routes") : file("conf", packageName + ".routes")
-        def packageId = packageName.isEmpty() ? "" : ".$packageName"
+    def "compiles multiple Routes source sets as part of play application build" () {
+        withExtraSourceSets()
+        withRoutesTemplate()
+        withRoutesSource(file("extraRoutes", "some", "pkg", "some.pkg.routes"), ".some.pkg")
+        withRoutesSource(file("otherRoutes", "other", "other.routes"), ".other")
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":routesCompileRoutesSourcesPlayBinary",
+                ":routesCompileExtraRoutesPlayBinary",
+                ":routesCompileOtherRoutesPlayBinary"
+        )
+
+        and:
+        destinationDir.assertHasDescendants("controllers/routes.java", "routes_reverseRouting.scala", "routes_routing.scala")
+        destinationDir("extraRoutes").assertHasDescendants("controllers/some/pkg/routes.java", "some/pkg/routes_reverseRouting.scala", "some/pkg/routes_routing.scala")
+        destinationDir("otherRoutes").assertHasDescendants("controllers/other/routes.java", "other/routes_reverseRouting.scala", "other/routes_routing.scala")
+
+        and:
+        jar("build/playBinary/lib/routes-play-app.jar").containsDescendants("controllers/routes.class")
+        jar("build/playBinary/lib/routes-play-app.jar").containsDescendants("controllers/some/pkg/routes.class")
+        jar("build/playBinary/lib/routes-play-app.jar").containsDescendants("controllers/other/routes.class")
+    }
+
+    def "extra route sources appear in the components report" () {
+        withExtraSourceSets()
+
+        when:
+        succeeds "components"
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+Play Application 'play'
+-----------------------
+
+Source sets
+    Routes source 'play:extraRoutes'
+        extraRoutes
+    Java source 'play:java'
+        app
+        includes: **/*.java
+    JavaScript source 'play:javaScriptAssets'
+        app/assets
+        includes: **/*.js
+    Routes source 'play:otherRoutes'
+        otherRoutes
+    JVM resources 'play:resources'
+        conf
+    Routes source 'play:routesSources'
+        conf
+        includes: routes, *.routes
+    Scala source 'play:scala'
+        app
+        includes: **/*.scala
+    Twirl template source 'play:twirlTemplates'
+        app
+        includes: **/*.html
+
+Binaries
+"""))
+    }
+
+    def destinationDir(String sourceSetName) {
+        return file("build/playBinary/src/routesCompile${sourceSetName}PlayBinary")
+    }
+
+    def withRoutesSource(TestFile routesFile, String packageId) {
         routesFile.createFile()
         routesFile << """
 # Routes
@@ -114,11 +184,55 @@ repositories{
 
 # Home page
 GET     /                          controllers${packageId}.Application.index()
-
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
 """
-
+        withControllerSource(file("app/controllers/${packageId}/Application.scala"), packageId)
         return routesFile
+    }
+
+    def withControllerSource(TestFile file, String packageId) {
+        file.createFile()
+        file << """
+package controllers${packageId}
+
+
+import play.api._
+import play.api.mvc._
+import models._
+
+object Application extends Controller {
+  def index = Action {
+    Ok("Your new application is ready.")
+  }
+}
+"""
+    }
+
+    def withRoutesTemplate(String packageName = "") {
+        def routesFile = packageName.isEmpty() ? file("conf", "routes") : file("conf", packageName + ".routes")
+        def packageId = packageName.isEmpty() ? "" : ".$packageName"
+        withRoutesSource(routesFile, packageId)
+    }
+
+    def withExtraSourceSets() {
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            extraRoutes(RoutesSourceSet) {
+                                source.srcDir "extraRoutes"
+                            }
+                            otherRoutes(RoutesSourceSet) {
+                                source.srcDir "otherRoutes"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    JarTestFixture jar(String fileName) {
+        new JarTestFixture(file(fileName))
     }
 }
