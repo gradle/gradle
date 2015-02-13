@@ -50,6 +50,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.core.ModelCreatorFactory
+import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
@@ -167,6 +169,17 @@ class DefaultProjectTest {
             ignoring(modelRegistry)
             allowing(serviceRegistryMock).get((Type) ModelRegistry); will(returnValue(modelRegistry))
             allowing(serviceRegistryMock).get(ModelRegistry); will(returnValue(modelRegistry))
+
+            ModelSchemaStore modelSchemaStore = context.mock(ModelSchemaStore)
+            ignoring(modelSchemaStore)
+            allowing(serviceRegistryMock).get((Type) ModelSchemaStore); will(returnValue(modelSchemaStore))
+            allowing(serviceRegistryMock).get(ModelSchemaStore); will(returnValue(modelSchemaStore))
+
+            ModelCreatorFactory modelCreatorFactory = context.mock(ModelCreatorFactory)
+            ignoring(modelCreatorFactory)
+            allowing(serviceRegistryMock).get((Type) ModelCreatorFactory); will(returnValue(modelCreatorFactory))
+            allowing(serviceRegistryMock).get(ModelCreatorFactory); will(returnValue(modelCreatorFactory))
+
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();

@@ -887,13 +887,13 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     @Inject
-    public ModelSchemaStore getModelSchemaStore() {
+    protected ModelSchemaStore getModelSchemaStore() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    public ModelCreatorFactory getModelCreatorFactory() {
+    protected ModelCreatorFactory getModelCreatorFactory() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
