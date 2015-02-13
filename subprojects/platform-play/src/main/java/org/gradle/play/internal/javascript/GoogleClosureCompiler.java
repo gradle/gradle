@@ -49,7 +49,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         return Lists.newArrayList("com.google.javascript");
     }
 
-    public Object getDependencyNotation() {
+    public static Object getDependencyNotation() {
         return String.format("com.google.javascript:closure-compiler:%s", DEFAULT_GOOGLE_CLOSURE_VERSION);
     }
 

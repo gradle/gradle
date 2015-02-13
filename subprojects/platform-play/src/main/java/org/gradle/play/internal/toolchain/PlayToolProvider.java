@@ -17,8 +17,6 @@
 package org.gradle.play.internal.toolchain;
 
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
-import org.gradle.play.internal.run.PlayApplicationRunner;
 
 public interface PlayToolProvider extends ToolProvider {
-    public PlayApplicationRunner newApplicationRunner();
 }

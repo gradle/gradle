@@ -29,7 +29,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
 
         withCoffeeScriptSource('app/assets/test.coffee')
-        withCoffeeScriptSource('src/play/extra/test2.coffee')
+        withCoffeeScriptSource('src/play/extraCoffeeScriptAssets/test2.coffee')
         buildFile << """
             plugins {
                 id 'play'
@@ -48,7 +48,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
                 components {
                     play {
                         sources {
-                            extra(CoffeeScriptSourceSet)
+                            extraCoffeeScriptAssets(CoffeeScriptSourceSet)
                         }
                         binaries.all {
                             tasks.withType(PlayCoffeeScriptCompile) {
@@ -61,15 +61,11 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "createPlayBinaryAssetsJar"
+        succeeds "compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryExtraCoffeeScriptAssets"
 
         then:
         matchesExpectedRaw('test.js')
-        matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('ExtraJavaScript', 'test2.js'))
-        matchesExpected('test.min.js')
-        matchesExpected('ExtraJavaScript', 'test2.min.js')
+        matchesExpectedRaw('ExtraCoffeeScriptAssets', 'test2.js')
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -86,7 +82,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
                 components {
                     play {
                         sources {
-                            extra(CoffeeScriptSourceSet)
+                            extraCoffeeScriptAssets(CoffeeScriptSourceSet)
                         }
                         binaries.all {
                             tasks.withType(PlayCoffeeScriptCompile) {
@@ -99,14 +95,10 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "createPlayBinaryAssetsJar"
+        succeeds "compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryExtraCoffeeScriptAssets"
 
         then:
         matchesExpectedRaw('test.js')
-        matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('ExtraJavaScript', 'test2.js'))
-        matchesExpected('test.min.js')
-        matchesExpected('ExtraJavaScript', 'test2.min.js')
+        matchesExpectedRaw('ExtraCoffeeScriptAssets', 'test2.js')
     }
 }
