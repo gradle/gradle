@@ -20,5 +20,5 @@ import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptRunnerFactory {
-    <T extends Script> ScriptRunner<T> create(CompiledScript<T> scriptClass, ScriptSource source, ClassLoader contextClassLoader);
+    <T extends Script, M> ScriptRunner<T, M> create(CompiledScript<T, M> scriptClass, ScriptSource source, ClassLoader contextClassLoader);
 }

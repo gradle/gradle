@@ -39,5 +39,5 @@ public interface ScriptCompiler {
      * @returns a {@code ScriptRunner} for the script.
      * @throws ScriptCompilationException On compilation failure.
      */
-    <T extends Script> ScriptRunner<T> compile(Class<T> scriptType, MetadataExtractingTransformer<?> extractingTransformer);
+    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, MetadataExtractingTransformer<M> extractingTransformer);
 }

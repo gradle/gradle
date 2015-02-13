@@ -22,7 +22,7 @@ import org.gradle.groovy.scripts.internal.CompiledScript;
 /**
  * Executes a script of type T.
  */
-public interface ScriptRunner<T extends Script> extends Runnable {
+public interface ScriptRunner<T extends Script, M> extends Runnable {
     /**
      * Returns the script which will be executed by this runner.
      *
@@ -30,7 +30,7 @@ public interface ScriptRunner<T extends Script> extends Runnable {
      */
     T getScript();
 
-    CompiledScript<T> getCompiledScript();
+    CompiledScript<T, M> getCompiledScript();
 
     /**
      * Executes the script.

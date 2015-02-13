@@ -43,7 +43,7 @@ public class DefaultScriptRunnerFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final CompiledScript<? extends Script> compiledScriptMock = context.mock(CompiledScript.class);
+    private final CompiledScript<? extends Script, Void> compiledScriptMock = context.mock(CompiledScript.class);
     private final Script scriptMock = context.mock(Script.class, "<script-to-string>");
     private final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
     private final ClassLoader classLoaderDummy = context.mock(ClassLoader.class);
@@ -73,13 +73,13 @@ public class DefaultScriptRunnerFactoryTest {
 
     @Test
     public void createsScriptRunner() {
-        ScriptRunner<?> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
         assertThat(scriptRunner.getScript(), sameInstance(scriptRunner.getScript()));
     }
 
     @Test
     public void redirectsStandardOutputAndSetsContextClassLoaderWhenScriptIsRun() {
-        ScriptRunner<?> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
@@ -122,7 +122,7 @@ public class DefaultScriptRunnerFactoryTest {
     public void wrapsExecutionExceptionAndRestoresStateWhenScriptFails() {
         final RuntimeException failure = new RuntimeException();
 
-        ScriptRunner<?> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");

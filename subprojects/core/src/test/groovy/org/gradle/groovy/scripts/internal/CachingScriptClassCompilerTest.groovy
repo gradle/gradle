@@ -25,7 +25,7 @@ import spock.lang.Specification
 class CachingScriptClassCompilerTest extends Specification {
     private final ScriptClassCompiler target = Mock()
     private final CachingScriptClassCompiler compiler = new CachingScriptClassCompiler(target)
-    private final CompiledScript<?> compiledScript = Mock(CompiledScript)
+    private final CompiledScript<?, ?> compiledScript = Mock(CompiledScript)
     private final String classpathClosureName = "buildscript"
     final verifier = Mock(Action)
 

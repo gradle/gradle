@@ -130,7 +130,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClasspathClosureName(classpathClosureName);
 
-            ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(classpathScriptTransformer));
+            ScriptRunner<? extends BasicScript, Void> classPathScriptRunner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(classpathScriptTransformer));
             classPathScriptRunner.getScript().init(target, services);
             classPathScriptRunner.run();
 
@@ -145,7 +145,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
             compiler.setVerifier(new ClosureCreationInterceptingVerifier());
 
-            final ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(transformer));
+            final ScriptRunner<? extends BasicScript, Void> runner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(transformer));
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {

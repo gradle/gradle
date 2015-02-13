@@ -28,10 +28,10 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptRunnerFactory scriptRunnerFactory = Mock()
     final ScriptClassCompiler scriptClassCompiler = Mock()
     final ScriptSource source = Mock()
-    final ScriptRunner<TestScript> runner = Mock()
+    final ScriptRunner<TestScript, ?> runner = Mock()
     final ClassLoader classLoader = Mock()
     final MetadataExtractingTransformer<?> extractingTransformer = Mock()
-    final CompiledScript<TestScript> compiledScript = Mock() {
+    final CompiledScript<TestScript, ?> compiledScript = Mock() {
         loadClass() >> TestScript
     }
     final verifier = Mock(Action)

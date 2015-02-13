@@ -25,7 +25,7 @@ import org.gradle.internal.Cast;
 import java.util.*;
 
 public class CachingScriptClassCompiler implements ScriptClassCompiler {
-    private final Map<Collection<Object>, CompiledScript<?>> cachedCompiledScripts = Maps.newHashMap();
+    private final Map<Collection<Object>, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
     private final ScriptClassCompiler scriptClassCompiler;
 
     public CachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
@@ -33,9 +33,9 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script> CompiledScript<T> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<M> extractingTransformer, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         List<Object> key = Arrays.asList(source.getClassName(), classLoader, extractingTransformer.getTransformer().getId(), scriptBaseClass.getName());
-        CompiledScript<T> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
+        CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
             compiledScript = scriptClassCompiler.compile(source, classLoader, extractingTransformer, classpathClosureName, scriptBaseClass, verifier);
             cachedCompiledScripts.put(key, compiledScript);

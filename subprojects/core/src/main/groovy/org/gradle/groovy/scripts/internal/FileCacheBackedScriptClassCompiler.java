@@ -51,7 +51,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     @Override
-    public <T extends Script> CompiledScript<T> compile(final ScriptSource source, final ClassLoader classLoader, MetadataExtractingTransformer<?> transformer, String classpathClosureName, final Class<T> scriptBaseClass,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, MetadataExtractingTransformer<M> transformer, String classpathClosureName, final Class<T> scriptBaseClass,
                                                         Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
@@ -72,7 +72,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final File classesDir = classesDir(cache);
 
-        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
+        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, transformer, scriptBaseClass);
     }
 
     public void close() {

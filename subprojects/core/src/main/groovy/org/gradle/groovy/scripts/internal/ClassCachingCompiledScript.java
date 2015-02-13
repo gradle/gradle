@@ -18,12 +18,12 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 
-public class ClassCachingCompiledScript<T extends Script> implements CompiledScript<T> {
+public class ClassCachingCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
 
-    private final CompiledScript<T> delegate;
+    private final CompiledScript<T, M> delegate;
     private Class<? extends T> scriptClass;
 
-    public ClassCachingCompiledScript(CompiledScript<T> delegate) {
+    public ClassCachingCompiledScript(CompiledScript<T, M> delegate) {
         this.delegate = delegate;
     }
 
@@ -38,5 +38,10 @@ public class ClassCachingCompiledScript<T extends Script> implements CompiledScr
             scriptClass = delegate.loadClass();
         }
         return scriptClass;
+    }
+
+    @Override
+    public M getMetadata() {
+        return null;
     }
 }

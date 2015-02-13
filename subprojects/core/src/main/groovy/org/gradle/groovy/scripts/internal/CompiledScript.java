@@ -18,8 +18,10 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 
-public interface CompiledScript<T extends Script> {
+public interface CompiledScript<T extends Script, M> {
     boolean hasImperativeStatements();
 
     Class<? extends T> loadClass();
+
+    M getMetadata();
 }

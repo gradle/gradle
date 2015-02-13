@@ -31,17 +31,17 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         this.instantiator = instantiator;
     }
 
-    public <T extends Script> ScriptRunner<T> create(CompiledScript<T> script, ScriptSource source, ClassLoader contextClassLoader) {
-        return new ScriptRunnerImpl<T>(script, source, contextClassLoader);
+    public <T extends Script, M> ScriptRunner<T, M> create(CompiledScript<T, M> script, ScriptSource source, ClassLoader contextClassLoader) {
+        return new ScriptRunnerImpl<T, M>(script, source, contextClassLoader);
     }
 
-    private class ScriptRunnerImpl<T extends Script> implements ScriptRunner<T> {
+    private class ScriptRunnerImpl<T extends Script, M> implements ScriptRunner<T, M> {
         private final ScriptSource source;
         private final ClassLoader contextClassLoader;
         private T script;
-        private final CompiledScript<T> compiledScript;
+        private final CompiledScript<T, M> compiledScript;
 
-        public ScriptRunnerImpl(CompiledScript<T> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
+        public ScriptRunnerImpl(CompiledScript<T, M> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
             this.compiledScript = compiledScript;
             this.source = source;
             this.contextClassLoader= contextClassLoader;
@@ -58,7 +58,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
         }
 
         @Override
-        public CompiledScript<T> getCompiledScript() {
+        public CompiledScript<T, M> getCompiledScript() {
             return compiledScript;
         }
 

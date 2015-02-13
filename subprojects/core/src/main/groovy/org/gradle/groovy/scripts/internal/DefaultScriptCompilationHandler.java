@@ -155,11 +155,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public <T extends Script> CompiledScript<T> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
-                                                            final Class<T> scriptBaseClass) {
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
+                                                                  MetadataExtractingTransformer<M> transformer, final Class<T> scriptBaseClass) {
         final boolean hasImperativeStatements = new File(scriptCacheDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME).isFile();
 
-        return new ClassCachingCompiledScript<T>(new CompiledScript<T>() {
+        return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
 
             public boolean hasImperativeStatements() {
                 return hasImperativeStatements;
@@ -181,6 +181,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     }
                     throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
                 }
+            }
+
+            @Override
+            public M getMetadata() {
+                return null;
             }
         });
     }

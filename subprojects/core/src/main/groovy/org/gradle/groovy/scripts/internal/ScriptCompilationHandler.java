@@ -27,6 +27,6 @@ public interface ScriptCompilationHandler {
     void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, MetadataExtractingTransformer<?> transformer, String classpathClosureName,
                       Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
-    <T extends Script> CompiledScript<T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                                                     Class<T> scriptBaseClass);
+    <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+                                                           MetadataExtractingTransformer<M> transformer, Class<T> scriptBaseClass);
 }

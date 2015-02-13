@@ -133,8 +133,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -161,8 +161,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -177,8 +177,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -193,8 +193,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -209,8 +209,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -225,8 +225,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkScriptClassesInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
         Script script = compiledScript.loadClass().newInstance();
         assertThat(script, isA(expectedScriptClass));
@@ -240,8 +240,8 @@ public class DefaultScriptCompilationHandlerTest {
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -253,7 +253,7 @@ public class DefaultScriptCompilationHandlerTest {
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, Script.class, verifier);
         try {
             scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                    expectedScriptClass).loadClass();
+                    null, expectedScriptClass).loadClass();
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), containsString("Could not load compiled classes for script-display-name from cache."));
@@ -304,7 +304,7 @@ public class DefaultScriptCompilationHandlerTest {
         MetadataExtractingTransformer<?> transformer = new TransformationOnlyMetadataExtractingTransformer(visitor);
         ScriptSource source = scriptSource("transformMe()");
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, transformer, classpathClosureName, expectedScriptClass, verifier);
-        Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, expectedScriptClass).loadClass().newInstance();
+        Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, transformer, expectedScriptClass).loadClass().newInstance();
         evaluateScript(script);
     }
 
