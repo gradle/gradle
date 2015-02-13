@@ -31,7 +31,7 @@ public class DefaultToolResolver implements ToolResolver {
     @SuppressWarnings("rawtypes")
     private Set<ToolChainInternal> toolChains;
 
-    public DefaultToolResolver(ToolChainInternal... toolChains) {
+    public DefaultToolResolver(@SuppressWarnings("rawtypes") ToolChainInternal... toolChains) {
         this.toolChains = Sets.newHashSet(toolChains);
     }
 
