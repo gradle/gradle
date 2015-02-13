@@ -237,6 +237,11 @@ task variantsOldModelMultiproject(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
+task bigEmpty(type: ProjectGeneratorTask) {
+    projects = 10000
+    subProjectTemplates = ['empty']
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
