@@ -52,10 +52,10 @@ buildTypes {
     parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
 
     // Run the performance tests
-    performanceTest "performance:integTest", useIncomingDistributions: true
+    performanceTest "performance:performanceTest", useIncomingDistributions: true
 
-    // Run the performance tests
-    localPerformanceTest "performance:integTest"
+    // Run the performance experiments
+    performanceExperiments "performance:performanceExperiments", useIncomingDistributions: true
 
     // Used for cross version tests on CI
     crossVersionTest "crossVersionIntegTest", useIncomingDistributions: true

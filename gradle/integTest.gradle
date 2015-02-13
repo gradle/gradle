@@ -20,7 +20,7 @@ dependencies {
     //above can be removed when we implement the auto-apply plugins
 }
 
-ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+ext.integTestTasks = tasks.withType(Test).matching { it.name != 'test' }
 
 import org.gradle.util.GradleVersion
 

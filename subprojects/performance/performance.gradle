@@ -271,8 +271,23 @@ task report {
     }
 }
 
-integTest {
+task performanceTest(type: Test) {
     dependsOn prepareSamples
     finalizedBy report
     maxParallelForks = 1
+}
+
+task performanceExperiments(type: Test) {
+    dependsOn prepareSamples
+    finalizedBy report
+    maxParallelForks = 1
+    options {
+        includeCategories 'org.gradle.performance.Experiment'
+    }
+}
+
+integTest {
+    // TODO - use categories for this
+    exclude "**/*PerformanceTest.*"
+    exclude "**/*StressTest.*"
 }
