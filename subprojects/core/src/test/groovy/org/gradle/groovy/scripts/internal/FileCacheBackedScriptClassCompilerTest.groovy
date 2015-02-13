@@ -39,6 +39,8 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final Transformer transformer = Mock()
     final MetadataExtractingTransformer<?> extractingTransformer = Mock()
     final File cacheDir = new File("base-dir")
+    final File classesDir = new File(cacheDir, "classes")
+    final File metadataDir = new File(cacheDir, "metadata")
     final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
     final Action verifier = Stub()
     final String classpathClosureName = "buildscript"
@@ -74,7 +76,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), extractingTransformer, Script) >> compiledScript
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, extractingTransformer, Script) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
@@ -85,7 +87,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         cacheBuilder.withInitializer(!null) >> cacheBuilder
         cacheBuilder.withDisplayName(!null) >> cacheBuilder
         cacheBuilder.open() >> cache
-        scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), extractingTransformer, Script) >> compiledScript
+        scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, extractingTransformer, Script) >> compiledScript
 
         when:
         compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
@@ -98,6 +100,8 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     def "compiles classes to cache directory when cache is invalid"() {
         def initializer
+        def classesDir = classesDir
+        def metadataDir = new File(cacheDir, "metadata")
 
         when:
         def result = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier).loadClass()
@@ -110,8 +114,8 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> {args -> initializer = args[0]; return cacheBuilder}
         1 * cacheBuilder.open() >> {initializer.execute(cache); return cache}
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), extractingTransformer, classpathClosureName, Script, verifier)
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), extractingTransformer, Script) >> compiledScript
+        1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, extractingTransformer, classpathClosureName, Script, verifier)
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, extractingTransformer, Script) >> compiledScript
         0 * scriptCompilationHandler._
     }
 

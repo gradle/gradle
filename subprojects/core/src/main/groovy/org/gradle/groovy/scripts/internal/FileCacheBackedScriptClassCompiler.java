@@ -71,8 +71,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         caches.add(cache);
 
         final File classesDir = classesDir(cache);
+        final File metadataDir = metadataDir(cache);
 
-        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass);
     }
 
     public void close() {
@@ -81,6 +82,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     private File classesDir(PersistentCache cache) {
         return new File(cache.getBaseDir(), "classes");
+    }
+
+    private File metadataDir(PersistentCache cache) {
+        return new File(cache.getBaseDir(), "metadata");
     }
 
     private class CacheInitializer implements Action<PersistentCache> {
@@ -103,7 +108,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, classpathClosureName, scriptBaseClass, verifier);
+            File metadataDir = metadataDir(cache);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, transformer, classpathClosureName, scriptBaseClass, verifier);
         }
     }
 

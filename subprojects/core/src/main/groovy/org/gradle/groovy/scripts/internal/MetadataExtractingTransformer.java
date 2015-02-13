@@ -17,8 +17,15 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.messaging.serialize.Serializer;
 
 public interface MetadataExtractingTransformer<T> {
 
     Transformer getTransformer();
+
+    T getExtractedMetadata();
+
+    T getMetadataDefaultValue();
+
+    Serializer<T> getMetadataSerializer();
 }

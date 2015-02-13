@@ -30,7 +30,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<M> transformer, String classpathClosureName,
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, final MetadataExtractingTransformer<M> transformer, String classpathClosureName,
                                                         final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
@@ -45,7 +45,7 @@ public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
 
                 @Override
                 public M getMetadata() {
-                    return null;
+                    return transformer.getMetadataDefaultValue();
                 }
             });
         }

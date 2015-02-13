@@ -17,8 +17,9 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.messaging.serialize.Serializer;
 
-public class TransformationOnlyMetadataExtractingTransformer  implements MetadataExtractingTransformer<Void> {
+public class TransformationOnlyMetadataExtractingTransformer implements MetadataExtractingTransformer<Void> {
 
     private final Transformer transformer;
 
@@ -28,5 +29,20 @@ public class TransformationOnlyMetadataExtractingTransformer  implements Metadat
 
     public Transformer getTransformer() {
         return transformer;
+    }
+
+    @Override
+    public Void getExtractedMetadata() {
+        return null;
+    }
+
+    @Override
+    public Void getMetadataDefaultValue() {
+        return null;
+    }
+
+    @Override
+    public Serializer<Void> getMetadataSerializer() {
+        return null;
     }
 }

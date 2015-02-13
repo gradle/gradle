@@ -30,6 +30,7 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -37,12 +38,15 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.messaging.serialize.Serializer;
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.security.CodeSource;
 import java.util.List;
@@ -51,6 +55,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
     private static final String IMPERATIVE_STATEMENTS_MARKER_FILE_NAME = "hasImperativeStatements.txt";
+    private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
 
@@ -60,16 +65,15 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName,
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
         GFileUtils.mkdirs(classesDir);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
-        Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         try {
-            compileScript(source, classLoader, configuration, classesDir, transformer, verifier, classpathClosureName);
+            compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier, classpathClosureName);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
             throw e;
@@ -79,8 +83,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 clock.getTime());
     }
 
-    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
-                               File classesDir, final Transformer transformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
+    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File classesDir, File metadataDir,
+                               final MetadataExtractingTransformer<?> extractingTransformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
+        final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
@@ -120,9 +125,35 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         if (emptyScriptDetector.isEmptyScript()) {
             GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
         }
-        if(imperativeStatementDetector.hasImperativeStatements) {
+        if (imperativeStatementDetector.hasImperativeStatements) {
             GFileUtils.touch(new File(classesDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME));
         }
+        serializeMetadata(source, extractingTransformer, metadataDir);
+    }
+
+    private <M> void serializeMetadata(ScriptSource scriptSource, MetadataExtractingTransformer<M> extractingTransformer, File metadataDir) {
+        if (extractingTransformer == null || extractingTransformer.getMetadataSerializer() == null) {
+            return;
+        }
+        GFileUtils.mkdirs(metadataDir);
+        File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
+        FileOutputStream outputStream;
+        try {
+            outputStream = new FileOutputStream(metadataFile);
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException("Could not create or open build script metadata file " + metadataFile.getAbsolutePath(), e);
+        }
+        KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream);
+        Serializer<M> serializer = extractingTransformer.getMetadataSerializer();
+        try {
+            serializer.write(encoder, extractingTransformer.getExtractedMetadata());
+        } catch (Exception e) {
+            String transformerName = extractingTransformer.getTransformer().getClass().getName();
+            throw new IllegalStateException(String.format("Failed to serialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
+        } finally {
+            encoder.close();
+        }
+
     }
 
     private void wrapCompilationFailure(ScriptSource source, MultipleCompilationErrorsException e) {
@@ -156,8 +187,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
-                                                                  MetadataExtractingTransformer<M> transformer, final Class<T> scriptBaseClass) {
+                                                                  File metadataCacheDir, MetadataExtractingTransformer<M> transformer, final Class<T> scriptBaseClass) {
+
         final boolean hasImperativeStatements = new File(scriptCacheDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME).isFile();
+        final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
 
         return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
 
@@ -185,9 +218,36 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
             @Override
             public M getMetadata() {
-                return null;
+                return metadata;
             }
         });
+    }
+
+    private <M> M deserializeMetadata(ScriptSource scriptSource, MetadataExtractingTransformer<M> extractingTransformer, File metadataCacheDir) {
+        if (extractingTransformer == null || extractingTransformer.getMetadataSerializer() == null) {
+            return null;
+        }
+        File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
+        FileInputStream inputStream;
+        try {
+            inputStream = new FileInputStream(metadataFile);
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException("Could not open build script metadata file " + metadataFile.getAbsolutePath(), e);
+        }
+        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
+        Serializer<M> serializer = extractingTransformer.getMetadataSerializer();
+        try {
+            return serializer.read(decoder);
+        } catch (Exception e) {
+            String transformerName = extractingTransformer.getTransformer().getClass().getName();
+            throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
+        } finally {
+            try {
+                decoder.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to close script metadata file decoder backed by " + metadataFile.getAbsolutePath(), e);
+            }
+        }
     }
 
     private static class ImperativeStatementDetector extends CompilationUnit.SourceUnitOperation {

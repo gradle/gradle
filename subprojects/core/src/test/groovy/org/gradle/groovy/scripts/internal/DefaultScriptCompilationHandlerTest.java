@@ -63,6 +63,7 @@ public class DefaultScriptCompilationHandlerTest {
     private DefaultScriptCompilationHandler scriptCompilationHandler;
 
     private File scriptCacheDir;
+    private File metadataCacheDir;
     private File cachedFile;
 
     private ScriptSource scriptSource;
@@ -87,6 +88,7 @@ public class DefaultScriptCompilationHandlerTest {
         classLoader = getClass().getClassLoader();
         scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache());
         scriptCacheDir = new File(testProjectDir, "cache");
+        metadataCacheDir = new File(testProjectDir, "metadata");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
                 + "')";
 
@@ -128,13 +130,12 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCompileScriptToDir() throws Exception {
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -146,7 +147,7 @@ public class DefaultScriptCompilationHandlerTest {
         final ScriptSource scriptSource = scriptSource("package org.gradle.test\n" + scriptText);
 
         try {
-            scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+            scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
             fail();
         } catch (UnsupportedOperationException e) {
             assertThat(e.getMessage(), equalTo("Script-display-name should not contain a package statement."));
@@ -156,13 +157,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithWhitespaceOnly() throws Exception {
         final ScriptSource scriptSource = scriptSource("// ignore me\n");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -172,13 +172,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithEmptyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -188,13 +187,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithClassDefinitionOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("class SomeClass {}");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkEmptyScriptInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -204,13 +202,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithMethodOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("def method() { println 'hi' }");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -220,13 +217,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithImperativeStatementsOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("plugins {}; buildscript {}");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
         checkHasNoImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(false));
         Script script = compiledScript.loadClass().newInstance();
         assertThat(script, isA(expectedScriptClass));
@@ -235,13 +231,12 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithPropertiesOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("String a");
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
 
         checkScriptClassesInCache();
         checkHasImperativeStatementsMarkerInCache();
 
-        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                null, expectedScriptClass);
+        CompiledScript<? extends Script, Void> compiledScript = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass);
         assertThat(compiledScript.hasImperativeStatements(), is(true));
 
         Script script = compiledScript.loadClass().newInstance();
@@ -250,10 +245,9 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testLoadFromDirWhenNotAssignableToBaseClass() {
-        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, classpathClosureName, Script.class, verifier);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, Script.class, verifier);
         try {
-            scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
-                    null, expectedScriptClass).loadClass();
+            scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass).loadClass();
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), containsString("Could not load compiled classes for script-display-name from cache."));
@@ -265,7 +259,7 @@ public class DefaultScriptCompilationHandlerTest {
     public void testCompileToDirWithSyntaxError() {
         ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+            scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
             fail();
         } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -303,8 +297,8 @@ public class DefaultScriptCompilationHandlerTest {
         };
         MetadataExtractingTransformer<?> transformer = new TransformationOnlyMetadataExtractingTransformer(visitor);
         ScriptSource source = scriptSource("transformMe()");
-        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, transformer, classpathClosureName, expectedScriptClass, verifier);
-        Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, transformer, expectedScriptClass).loadClass().newInstance();
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, classpathClosureName, expectedScriptClass, verifier);
+        Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass).loadClass().newInstance();
         evaluateScript(script);
     }
 
@@ -316,7 +310,7 @@ public class DefaultScriptCompilationHandlerTest {
         }});
 
         ScriptSource source = scriptSource("transformMe()");
-        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, classpathClosureName, expectedScriptClass, verifier);
     }
 
     private void checkScriptClassesInCache() {

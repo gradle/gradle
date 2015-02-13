@@ -39,15 +39,18 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
 
     def "returns empty script object when script contains only whitespace"() {
         given:
+        def metadata = "metadata"
         _ * resource.text >> '  \n\t'
+        _ * extractingTransformer.metadataDefaultValue >> metadata
 
         when:
         def compiledScript = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
-        def result = compiledScript.loadClass()
+        def scriptClass = compiledScript.loadClass()
 
         then:
-        result == TestScript
+        scriptClass == TestScript
         !compiledScript.hasImperativeStatements()
+        compiledScript.metadata == metadata
         1 * emptyScriptGenerator.generate(Script) >> TestScript
         0 * emptyScriptGenerator._
         0 * target._
