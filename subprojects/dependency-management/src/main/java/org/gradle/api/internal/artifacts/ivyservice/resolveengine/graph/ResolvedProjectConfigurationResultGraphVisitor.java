@@ -29,6 +29,7 @@ public class ResolvedProjectConfigurationResultGraphVisitor implements Dependenc
 
     @Override
     public void start(DependencyGraphBuilder.ConfigurationNode root) {
+        builder.registerRoot(root.metaData.getComponent().getComponentId());
     }
 
     @Override

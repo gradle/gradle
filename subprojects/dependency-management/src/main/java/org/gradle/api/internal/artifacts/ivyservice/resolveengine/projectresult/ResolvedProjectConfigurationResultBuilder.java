@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 public interface ResolvedProjectConfigurationResultBuilder {
+    void registerRoot(ComponentIdentifier componentId);
     void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName);
     ResolvedProjectConfigurationResults complete();
 }
