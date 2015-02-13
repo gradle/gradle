@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -336,7 +337,7 @@ public class DefaultConfigurationTest {
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
         context.checking(new Expectations() {{
             ResolverResults result = new ResolverResults();
-            result.resolved(resolvedConfiguration, context.mock(ResolutionResult.class));
+            result.resolved(resolvedConfiguration, context.mock(ResolutionResult.class), context.mock(ResolvedProjectConfigurationResults.class));
             allowing(dependencyResolver).resolve(configuration);
             will(returnValue(result));
             allowing(resolvedConfiguration).hasError();

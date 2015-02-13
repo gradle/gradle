@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 
 public class ResolverResults {
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
+    private ResolvedProjectConfigurationResults resolvedProjectConfigurationResults;
 
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
@@ -40,6 +42,14 @@ public class ResolverResults {
         return resolutionResult;
     }
 
+    public ResolvedProjectConfigurationResults getResolvedProjectConfigurationResults() {
+        assertHasResult();
+        if (fatalFailure != null) {
+            throw fatalFailure;
+        }
+        return resolvedProjectConfigurationResults;
+    }
+
     private void assertHasResult() {
         if (resolvedConfiguration == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
@@ -50,9 +60,10 @@ public class ResolverResults {
         this.resolvedConfiguration = resolvedConfiguration;
     }
 
-    public void resolved(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult) {
+    public void resolved(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
         this.resolvedConfiguration = resolvedConfiguration;
         this.resolutionResult = resolutionResult;
+        this.resolvedProjectConfigurationResults = resolvedProjectConfigurationResults;
         this.fatalFailure = null;
     }
 

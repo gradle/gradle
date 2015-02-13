@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.specs.Spec;
 
@@ -51,7 +53,8 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         }
         ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
         ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.resolved(wrappedConfiguration, wrappedResult);
+        ResolvedProjectConfigurationResults wrappedProjectResults = new ErrorHandlingResolvedProjectConfigurationResults(results.getResolvedProjectConfigurationResults(), configuration);
+        results.resolved(wrappedConfiguration, wrappedResult, wrappedProjectResults);
     }
 
     private static ResolveException wrapException(Throwable e, Configuration configuration) {
@@ -251,6 +254,25 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
 
         public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
             throw wrapException(e, configuration);
+        }
+    }
+
+    private class ErrorHandlingResolvedProjectConfigurationResults implements ResolvedProjectConfigurationResults {
+        private final ResolvedProjectConfigurationResults results;
+        private final ConfigurationInternal configuration;
+
+        public ErrorHandlingResolvedProjectConfigurationResults(ResolvedProjectConfigurationResults results, ConfigurationInternal configuration) {
+            this.results = results;
+            this.configuration = configuration;
+        }
+
+        @Override
+        public Set<ResolvedProjectConfigurationResult> getAllProjectConfigurationResults() {
+            try {
+                return results.getAllProjectConfigurationResults();
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
         }
     }
 }

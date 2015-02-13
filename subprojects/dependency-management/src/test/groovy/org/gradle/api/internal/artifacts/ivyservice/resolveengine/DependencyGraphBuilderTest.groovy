@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyStore
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder
@@ -69,6 +70,7 @@ class DependencyGraphBuilderTest extends Specification {
     def metaDataResolver = Mock(ComponentMetaDataResolver)
     def artifactResolver = Mock(ArtifactResolver)
     def resultBuilder = Mock(ResolutionResultBuilder)
+    def projectModelBuilder = Mock(ResolvedProjectConfigurationResultBuilder)
     def TestMetaData root = revision('root')
     def moduleResolver = Mock(ModuleToComponentResolver)
     def dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver()
@@ -88,7 +90,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     private DefaultLenientConfiguration resolve() {
         def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
-        builder.resolve(configuration, resultBuilder, results)
+        builder.resolve(configuration, resultBuilder, results, projectModelBuilder)
         new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
     }
 

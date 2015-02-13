@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
@@ -72,10 +73,12 @@ public class DependencyGraphBuilder {
 
     public void resolve(ConfigurationInternal configuration,
                         ResolutionResultBuilder newModelBuilder,
-                        ResolvedConfigurationBuilder oldModelBuilder) throws ResolveException {
+                        ResolvedConfigurationBuilder oldModelBuilder,
+                        ResolvedProjectConfigurationResultBuilder projectModelBuilder) throws ResolveException {
         DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactResolver);
         DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
-        DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor);
+        DependencyGraphVisitor projectModelVisitor = new ResolvedProjectConfigurationResultGraphVisitor(projectModelBuilder);
+        DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
 
         resolveDependencyGraph(configuration, modelVisitor);
     }

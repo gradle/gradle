@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.listener.ListenerBroadcast
@@ -59,7 +60,7 @@ class DefaultConfigurationSpec extends Specification {
     ResolvedConfiguration resolvedConfiguration(Configuration config, ConfigurationResolver dependencyResolver = resolver) {
         ResolvedConfiguration resolvedConfiguration = Mock()
         def results = new ResolverResults()
-        results.resolved(resolvedConfiguration, Mock(ResolutionResult))
+        results.resolved(resolvedConfiguration, Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults))
         1 * dependencyResolver.resolve(config) >> results
         resolvedConfiguration
     }
@@ -308,7 +309,7 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
 
         when:
         def out = config.incoming.resolutionResult
