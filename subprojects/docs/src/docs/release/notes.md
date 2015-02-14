@@ -43,6 +43,8 @@ Gradle now supports S3 backed repositories. Here's an example on how to declare 
         }
     }
 
+S3 backed repositories can be used with both the `ivy-publish` and `maven-publish` plugins, as well as an Ivy repository associated with an `Upload` task.
+
 A big thank you goes to Adrian Kelly for implementing this feature.
 
 ### Improved performance with class loader caching
@@ -186,7 +188,8 @@ There still is a `getTarget()` method on `DefaultDependencyResolveDetails`, but 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Adrian Kelly](https://github.com/adrianbk)
-    - Adding support for AWS S3 backed maven repositories
+    - Support for resolving from AWS S3 backed Maven and Ivy repositories
+    - Support for publishing to AWS S3 backed Maven and Ivy repositories
     - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr) 
