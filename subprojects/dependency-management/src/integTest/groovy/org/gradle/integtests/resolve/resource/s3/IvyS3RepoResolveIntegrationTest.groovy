@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.ivy
+package org.gradle.integtests.resolve.resource.s3
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.s3.S3StubServer

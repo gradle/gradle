@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.resolve.aws.s3
+package org.gradle.integtests.resolve.resource.s3
 import org.gradle.util.TextUtil
 
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {

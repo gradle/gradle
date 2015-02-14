@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.resolve.resource.sftp
 
+import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer

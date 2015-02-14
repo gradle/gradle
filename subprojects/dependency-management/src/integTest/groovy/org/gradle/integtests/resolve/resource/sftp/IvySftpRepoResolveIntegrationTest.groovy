@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.ivy
+package org.gradle.integtests.resolve.resource.sftp
 
+import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule

@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.resolve.aws.s3
+package org.gradle.integtests.resolve.resource.s3
 
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.fixtures.server.s3.MavenS3Module

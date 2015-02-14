@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.aws.s3
+package org.gradle.integtests.resolve.resource.s3
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties

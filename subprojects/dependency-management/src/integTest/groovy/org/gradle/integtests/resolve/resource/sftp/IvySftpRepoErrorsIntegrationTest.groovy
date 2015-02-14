@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.ivy
-
-import org.gradle.integtests.fixtures.AbstractSftpDependencyResolutionTest
+package org.gradle.integtests.resolve.resource.sftp
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
     void "resolve missing dependencies from a SFTP Ivy repository"() {

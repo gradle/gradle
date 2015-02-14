@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.aws.s3
+package org.gradle.integtests.resolve.resource.s3
 
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
