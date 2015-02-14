@@ -15,12 +15,13 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Ignore
 
+// TODO:DAZ Enable this once we have SFTP transport wired into maven wagon
+@Ignore
 class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     final SFTPServer server = new SFTPServer(this)
@@ -29,8 +30,6 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         new MavenSftpRepository(server, '/repo')
     }
 
-    // TODO: Ben - probably need to register Wagon SSH dependencies
-    @Ignore
     def "can publish to a SFTP repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
@@ -66,6 +65,8 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
 
         then:
-        file('libs').assertHasDescendants 'publish-2.jar'
+        def module = mavenSftpRepo.module('org.gradle.test', 'publishS3Test', '1.0')
+        module.backingModule.assertPublishedAsJavaModule()
+        module.parsedPom.scopes.isEmpty()
     }
 }

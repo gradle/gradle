@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.s3
 
 import groovy.io.FileType
 import org.apache.commons.io.IOUtils
+import org.gradle.test.fixtures.file.TestFile
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
@@ -34,7 +35,7 @@ import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
 
 class S3FileBackedServer extends ExternalResource {
-    private File baseDir
+    public File baseDir
     private final Server server = new Server(0)
     private final HandlerCollection collection = new HandlerCollection()
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -51,6 +52,10 @@ class S3FileBackedServer extends ExternalResource {
         baseDir.mkdir()
         addHandlers()
         server.start()
+    }
+
+    TestFile getBackingDir(String path) {
+        return new TestFile(baseDir, path)
     }
 
     def addHandlers() {
@@ -179,7 +184,7 @@ class S3FileBackedServer extends ExternalResource {
         } finally {
             out.close()
         }
-        f
+        return f
     }
 
     File getFile(HttpServletRequest request) {
