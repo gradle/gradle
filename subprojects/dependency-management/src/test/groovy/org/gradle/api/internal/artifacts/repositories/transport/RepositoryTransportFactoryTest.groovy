@@ -33,7 +33,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "You may only specify 'file', 'http', 'https', 'sftp' and 's3' URLs for a repository."
+        e.message == "Not a supported repository protocol 'unsupported': valid protocols are [file, http, https, sftp, s3]"
     }
 
     def "cannot creates a transport for mixed url scheme"() {
