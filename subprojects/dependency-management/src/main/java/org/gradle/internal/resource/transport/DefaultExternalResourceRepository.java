@@ -79,21 +79,14 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return dest.endsWith(".sha1") || dest.endsWith(".md5");
     }
 
-    private byte[] createChecksumFile(File src, String algorithm, int checksumlength) {
+    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
         HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
+        String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
         try {
             return formattedHashString.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    private String formatHashString(String hashKey, int length) {
-        while (hashKey.length() < length) {
-            hashKey = "0" + hashKey;
-        }
-        return hashKey;
     }
 
     private void doPut(final File source, URI destination) throws IOException {
