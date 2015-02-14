@@ -16,16 +16,14 @@
 package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
-import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -36,7 +34,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-public class FileResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
+public class FileResourceConnector implements ExternalResourceConnector {
     public List<String> list(URI parent) throws IOException {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {

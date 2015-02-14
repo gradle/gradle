@@ -15,14 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.transport
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.credentials.DefaultAwsCredentials
-import org.gradle.internal.resource.transport.S3Transport
-import org.gradle.internal.resource.transport.HttpTransport
-import org.gradle.internal.resource.transport.SftpTransport
+import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -58,9 +55,9 @@ class RepositoryTransportFactoryTest extends Specification {
 
         where:
         scheme | credentials                                               || expected
-        's3'   | new DefaultAwsCredentials(accessKey: 'a', secretKey: 's') || S3Transport
-        'http' | Mock(DefaultPasswordCredentials)                          || HttpTransport
-        'sftp' | Mock(DefaultPasswordCredentials)                          || SftpTransport
+        's3'   | new DefaultAwsCredentials(accessKey: 'a', secretKey: 's') || ResourceConnectorRepositoryTransport
+        'http' | Mock(DefaultPasswordCredentials)                          || ResourceConnectorRepositoryTransport
+        'sftp' | Mock(DefaultPasswordCredentials)                          || ResourceConnectorRepositoryTransport
     }
 
     def "should throw when credentials types is invalid"(){
