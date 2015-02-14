@@ -44,6 +44,7 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
 
     public MavenDeployAction(File pomFile) {
         super(pomFile);
+        registerGradleWagons();
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {

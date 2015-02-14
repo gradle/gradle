@@ -17,7 +17,6 @@
 package org.gradle.api.publication.maven.internal;
 
 
-import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import static org.apache.maven.wagon.events.SessionEvent.*;
@@ -77,6 +77,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
             if (!delegate.getAndWriteFile(destination, resourceName)) {
                 throw new ResourceDoesNotExistException(String.format("'%s' does not exist", resourceName));
             }
+            signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
             this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_GET));
         } catch (IOException e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, TRANSFER_ERROR, REQUEST_GET));
@@ -91,7 +92,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
             delegate.putFile(file, resourceName);
-            signalMavenToGenerateChecksums(file, resource);
+            signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
         } catch (IOException e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
             throw new GradleException(String.format("Could not put file to remote location: %s", resourceName), e);
@@ -234,7 +235,9 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     private TransferEvent transferEvent(Resource resource, int eventType, int requestType) {
-        return new TransferEvent(this, resource, eventType, requestType);
+        TransferEvent transferEvent = new TransferEvent(this, resource, eventType, requestType);
+        transferEvent.setTimestamp(new Date().getTime());
+        return transferEvent;
     }
 
     private TransferEvent transferEvent(Resource resource, Exception e, int requestType) {
@@ -242,24 +245,33 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     /**
-     * Required to signal to maven that a file has been successfully uploaded (put) Without this event, incorrect checksums are generated e.g Artifactory: Sending HTTP error code 409: Checksum error
+     * Required to signal to maven that a file has been successfully uploaded (put) or retrieved (get)
+     * Without this event, incorrect checksums are generated (usually a sha1 or m5d of an empty string)
+     *
+     * e.g Artifactory: Sending HTTP error code 409: Checksum error
      * for 'org/group/name/publish/2.0/publish-2.0.jar.md5': received 'd41d8cd98f00b204e9800998ecf8427e' but actual is '2414d662325e5b4f912b68f9766d344a'.
      *
      * @param file - the file which has been uploaded
      * @param resource - the maven resource
      */
-    private void signalMavenToGenerateChecksums(File file, Resource resource) {
-        TransferEvent transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, REQUEST_PUT);
-        byte[] bytes = new byte[0];
+    private void signalMavenToGenerateChecksums(File file, Resource resource, int requestMethod) {
+        TransferEvent transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, requestMethod);
         FileInputStream in = null;
         try {
             in = new FileInputStream(file);
-            bytes = ByteStreams.toByteArray(in);
+            byte[] buffer = new byte[4096];
+            while (true) {
+                int nread = in.read(buffer);
+                if (nread < 0) {
+                    break;
+                }
+                this.transferEventSupport.fireTransferProgress(transferEvent, buffer, nread);
+            }
+            in.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
             IOUtils.closeQuietly(in);
         }
-        this.transferEventSupport.fireTransferProgress(transferEvent, bytes, bytes.length);
     }
 }
