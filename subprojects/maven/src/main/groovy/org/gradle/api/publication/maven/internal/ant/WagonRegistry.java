@@ -34,9 +34,11 @@ import java.util.Set;
 public class WagonRegistry {
     private static final String SINGLETON_INSTANTIATION_STRATEGY = "singleton";
     private static final String FAILED_TO_REGISTER_WAGON = "Failed to register wagon";
-    private final Set<String> wagonDeployments = new HashSet<String>();
+    private final Set<String> protocols = new HashSet<String>();
+    private PlexusContainer plexusContainer;
 
-    public WagonRegistry() {
+    public WagonRegistry(PlexusContainer plexusContainer) {
+        this.plexusContainer = plexusContainer;
         add("s3");
         //Add other transports here
 //        add("http");
@@ -45,16 +47,12 @@ public class WagonRegistry {
     }
 
     private void add(String protocol) {
-        this.wagonDeployments.add(protocol.toLowerCase());
+        this.protocols.add(protocol.toLowerCase());
     }
 
-    public void register(MavenDeployAction mavenDeploy, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        PlexusContainer container = mavenDeploy.getContainer();
-        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-        if (wagonDeployments.contains(protocol)) {
-            try {
-
-                WagonManager wagonManager = (WagonManager) container.lookup(WagonManager.ROLE);
+    public void registerAll() {
+        try {
+            for (String protocol : protocols) {
                 ComponentDescriptor componentDescriptor = new ComponentDescriptor();
                 componentDescriptor.setRole(Wagon.ROLE);
                 componentDescriptor.setRoleHint(protocol);
@@ -62,23 +60,41 @@ public class WagonRegistry {
 
                 //Must be a singleton so we can configure the wagon - otherwise plexus creates a new instance on every lookup
                 componentDescriptor.setInstantiationStrategy(SINGLETON_INSTANTIATION_STRATEGY);
-                container.addComponentDescriptor(componentDescriptor);
+                plexusContainer.addComponentDescriptor(componentDescriptor);
 
-                //Need to get the wagon so that plexus/maven creates it at this point - under the hood maven is using a reflective newInstance()
-                RepositoryTransportDeployWagon wagon = (RepositoryTransportDeployWagon) wagonManager.getWagon(protocol);
-                wagon.createDelegate(protocol, artifactRepository, repositoryTransportFactory);
-
-            } catch (ComponentLookupException e) {
-                throwWagonException(FAILED_TO_REGISTER_WAGON, e);
-            } catch (UnsupportedProtocolException e) {
-                throwWagonException(FAILED_TO_REGISTER_WAGON, e);
-            } catch (ComponentRepositoryException e) {
-                throwWagonException(FAILED_TO_REGISTER_WAGON, e);
+                //Get the wagon early
+                RepositoryTransportDeployWagon wagon = (RepositoryTransportDeployWagon) wagonManager().getWagon(protocol);
             }
+        } catch (UnsupportedProtocolException e) {
+            throwWagonException(FAILED_TO_REGISTER_WAGON, e);
+        } catch (ComponentRepositoryException e) {
+            throwWagonException(FAILED_TO_REGISTER_WAGON, e);
         }
     }
 
     private void throwWagonException(String message, Exception e) {
         throw new GradleException(message, e);
+    }
+
+    public void prepareForPublish(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
+        if (protocols.contains(protocol)) {
+            try {
+                RepositoryTransportDeployWagon wagon = (RepositoryTransportDeployWagon) wagonManager().getWagon(protocol);
+                wagon.createDelegate(protocol, artifactRepository, repositoryTransportFactory);
+            } catch (UnsupportedProtocolException e) {
+                throwWagonException("Failed to configure wagon for the protocol:" + protocol, e);
+            }
+        }
+
+    }
+
+    private WagonManager wagonManager() {
+        try {
+            return (WagonManager) plexusContainer.lookup(WagonManager.ROLE);
+        } catch (ComponentLookupException e) {
+            throwWagonException("Failed to lookup wagon manager", e);
+        }
+        return null;
     }
 }

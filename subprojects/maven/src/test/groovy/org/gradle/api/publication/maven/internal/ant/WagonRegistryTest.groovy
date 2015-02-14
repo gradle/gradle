@@ -25,12 +25,16 @@ import spock.lang.Specification
 
 class WagonRegistryTest extends Specification {
 
+
+    public static final String S3 = "s3"
+
     def "should contain an S3 wagon"() {
+        PlexusContainer plexusContainer = Mock()
         expect:
-        new WagonRegistry().wagonDeployments.contains('s3')
+        new WagonRegistry(plexusContainer).protocols.contains('s3')
     }
 
-    def "should create the deploy delegate for S3"() {
+    def "should register a wagon for the S3 protocol"() {
         given:
         RepositoryTransportDeployWagon wagon = Mock()
 
@@ -40,18 +44,15 @@ class WagonRegistryTest extends Specification {
         PlexusContainer container = Mock()
         container.lookup(WagonManager.ROLE) >> wagonManager
 
-        MavenDeployAction mavenDeploy = Mock()
-        mavenDeploy.getContainer() >> container
-
         MavenArtifactRepository artifactRepository = Mock()
         artifactRepository.getUrl() >> new URI(artifactUri)
 
-        WagonRegistry registry = new WagonRegistry()
+        WagonRegistry registry = new WagonRegistry(container)
         when:
-        registry.register(mavenDeploy, artifactRepository, Mock(RepositoryTransportFactory))
+        registry.registerAll()
 
         then:
-        1 * wagon.createDelegate(wagonProtocol, artifactRepository, _)
+        1 * container.addComponentDescriptor(_)
 
         where:
         artifactUri     | wagonProtocol
@@ -59,20 +60,47 @@ class WagonRegistryTest extends Specification {
         "S3://somerepo" | 's3'
     }
 
+    def "should create a deploy delegate when preparing for publication"() {
+        given:
+        RepositoryTransportDeployWagon wagon = Mock()
+        RepositoryTransportFactory repositoryTransportFactory = Mock()
+        WagonManager wagonManager = Mock()
+        wagonManager.getWagon(S3) >> wagon
+
+        PlexusContainer container = Mock()
+        container.lookup(WagonManager.ROLE) >> wagonManager
+
+        MavenArtifactRepository artifactRepository = Mock()
+        artifactRepository.getUrl() >> new URI("s3://somerepo")
+
+        when:
+        WagonRegistry registry = new WagonRegistry(container)
+        registry.prepareForPublish(artifactRepository, repositoryTransportFactory)
+
+        then:
+        1 * wagon.createDelegate(S3, artifactRepository, repositoryTransportFactory)
+    }
+
     def "should not create a deploy delegate when protocols do not match"() {
         given:
+        RepositoryTransportDeployWagon wagon = Mock()
+        RepositoryTransportFactory repositoryTransportFactory = Mock()
+        WagonManager wagonManager = Mock()
+        wagonManager.getWagon(S3) >> wagon
         PlexusContainer container = Mock()
-        container.lookup(WagonManager.ROLE) >> { throw new RuntimeException("should not happen") }
-
-        MavenDeployAction mavenDeploy = Mock()
-        mavenDeploy.getContainer() >> container
+        container.lookup(WagonManager.ROLE) >> wagonManager
 
         MavenArtifactRepository artifactRepository = Mock()
         artifactRepository.getUrl() >> new URI('testScheme://somerepo')
 
-        WagonRegistry registry = new WagonRegistry()
+        WagonRegistry registry = new WagonRegistry(container)
 
-        expect:
-        registry.register(mavenDeploy, artifactRepository, Mock(RepositoryTransportFactory))
+        when:
+        registry.registerAll()
+        registry.prepareForPublish(artifactRepository, Mock(RepositoryTransportFactory))
+
+        then:
+        1 * container.addComponentDescriptor(_)
+        0 * wagon.createDelegate(S3, artifactRepository, repositoryTransportFactory)
     }
 }

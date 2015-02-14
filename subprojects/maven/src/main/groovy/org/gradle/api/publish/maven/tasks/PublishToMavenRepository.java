@@ -23,12 +23,11 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.ant.WagonRegistry;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
+import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
@@ -48,11 +47,8 @@ public class PublishToMavenRepository extends DefaultTask {
 
     private MavenPublicationInternal publication;
     private MavenArtifactRepository repository;
-    private final WagonRegistry wagonRegistry;
 
     public PublishToMavenRepository() {
-
-        this.wagonRegistry = new WagonRegistry();
         // Allow the publication to participate in incremental build
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
@@ -143,7 +139,7 @@ public class PublishToMavenRepository extends DefaultTask {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new MavenRemotePublisher(getLoggingManagerFactory(), getMavenRepositoryLocator(), getTemporaryDirFactory(), getRepositoryTransportFactory(), wagonRegistry);
+                MavenPublisher antBackedPublisher = new MavenRemotePublisher(getLoggingManagerFactory(), getMavenRepositoryLocator(), getTemporaryDirFactory(), getRepositoryTransportFactory());
                 MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
                 validatingPublisher.publish(publication.asNormalisedPublication(), repository);
