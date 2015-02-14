@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
@@ -29,6 +29,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
@@ -85,11 +86,11 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return args;
     }
 
-    protected void addSourceArgs(List<String> args, File sourceFile) {
-        args.add(sourceFile.getAbsolutePath());
+    protected List<String> getSourceArgs(File sourceFile) {
+        return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract void addOutputArgs(List<String> args, File outputFile);
+    protected abstract List<String> getOutputArgs(File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -108,10 +109,13 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir) {
-        List<String> perFileArgs = Lists.newArrayList(genericArgs);
-        addSourceArgs(perFileArgs, sourceFile);
-        addOutputArgs(perFileArgs, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> sourceArgs = getSourceArgs(sourceFile);
+        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 
-        return invocationContext.createInvocation(objectDir, perFileArgs);
+        return invocationContext.createInvocation(objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs));
+    }
+
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
+        return Iterables.concat(genericArgs, sourceArgs, outputArgs);
     }
 }

@@ -29,5 +29,5 @@ public interface CommandLineToolInvocation extends BuildOperation  {
 
     File getWorkDirectory();
 
-    List<String> getArgs();
+    Iterable<String> getArgs();
 }

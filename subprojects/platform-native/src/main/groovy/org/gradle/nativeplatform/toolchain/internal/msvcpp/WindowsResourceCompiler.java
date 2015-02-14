@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
@@ -27,6 +28,11 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
 
     WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         super(buildOperationProcessor, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    }
+
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
+        // RC has position sensitive arguments, the output args need to appear before the source file
+        return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }
 
     private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {

@@ -29,11 +29,10 @@ abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
         given:
         def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
-        def args = []
         def outputFile = testDir.file("output.ext")
 
         when:
-        compiler.addOutputArgs(args, outputFile)
+        def args = compiler.getOutputArgs(outputFile)
 
         then:
         args == ['/Fo' + outputFile.absoluteFile.toString()]

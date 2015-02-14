@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
@@ -30,9 +31,9 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     }
 
     @Override
-    protected void addOutputArgs(List<String> args, File outputFile) {
+    protected List<String> getOutputArgs(File outputFile) {
         // MSVC doesn't allow a space between Fo and the file name
-        args.add("/Fo" + outputFile.getAbsolutePath());
+        return Collections.singletonList("/Fo" + outputFile.getAbsolutePath());
     }
 
     @Override

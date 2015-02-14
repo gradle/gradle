@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
@@ -30,9 +31,8 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
     }
 
     @Override
-    protected void addOutputArgs(List<String> args, File outputFile) {
-        args.add("-o");
-        args.add(outputFile.getAbsolutePath());
+    protected List<String> getOutputArgs(File outputFile) {
+        return Arrays.asList("-o", outputFile.getAbsolutePath());
     }
 
     @Override

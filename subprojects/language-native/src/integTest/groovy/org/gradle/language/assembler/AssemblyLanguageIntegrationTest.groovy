@@ -50,7 +50,7 @@ pushl
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':assembleMainExecutableMainAsm'.");
-        failure.assertHasCause("Assembler failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed; see the error output for details.")
     }
 
     def "can manually define Assembler source sets"() {

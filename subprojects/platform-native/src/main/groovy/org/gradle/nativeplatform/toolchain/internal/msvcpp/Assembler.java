@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
@@ -23,10 +24,19 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
+import java.util.List;
+
 class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
     Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    }
+
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
+        // ml/ml64 have position sensitive arguments,
+        // e.g., /Fo must appear before /c and /c must appear before the source file.
+
+        return Iterables.concat(outputArgs, genericArgs, sourceArgs);
     }
 
     private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {

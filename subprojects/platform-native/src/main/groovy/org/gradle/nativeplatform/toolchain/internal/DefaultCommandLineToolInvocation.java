@@ -21,16 +21,16 @@ import java.util.Map;
 
 class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
     private final File workDirectory;
-    private final List<String> args;
+    private final Iterable<String> args;
     private final CommandLineToolContext context;
 
-    DefaultCommandLineToolInvocation(File workDirectory, List<String> args, CommandLineToolContext context) {
+    DefaultCommandLineToolInvocation(File workDirectory, Iterable<String> args, CommandLineToolContext context) {
         this.workDirectory = workDirectory;
         this.args = args;
         this.context = context;
     }
 
-    public List<String> getArgs() {
+    public Iterable<String> getArgs() {
         return args;
     }
 

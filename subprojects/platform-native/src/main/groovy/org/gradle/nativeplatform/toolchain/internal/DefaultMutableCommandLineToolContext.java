@@ -58,11 +58,11 @@ public class DefaultMutableCommandLineToolContext implements MutableCommandLineT
         this.environment.put(key, value);
     }
 
-    public CommandLineToolInvocation createInvocation(File workDirectory, List<String> args) {
+    public CommandLineToolInvocation createInvocation(File workDirectory, Iterable<String> args) {
         return new DefaultCommandLineToolInvocation(workDirectory, args, this);
     }
 
-    public CommandLineToolInvocation createInvocation(List<String> args) {
+    public CommandLineToolInvocation createInvocation(Iterable<String> args) {
         return new DefaultCommandLineToolInvocation(null, args, this);
     }
 
