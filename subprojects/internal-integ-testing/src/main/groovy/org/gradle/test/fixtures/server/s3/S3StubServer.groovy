@@ -22,34 +22,69 @@ import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.stub.HttpStub
 import org.gradle.test.fixtures.server.stub.StubRequest
+import org.gradle.test.fixtures.server.stub.StubResponse
+import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class S3StubServer extends HttpServer implements RepositoryServer {
+class S3StubServer extends HttpServer implements RepositoryServer, LocalStorage {
 
     public static final String BUCKET_NAME = "tests3bucket"
     TestDirectoryProvider testDirectoryProvider
+    HttpServer.ActionSupport localStorageResponseAction
+    boolean logEnabled = false
+    def stubs = []
+    final S3StubResponses s3StubResponses
 
     S3StubServer(TestDirectoryProvider testDirectoryProvider) {
         super()
-        this.testDirectoryProvider = testDirectoryProvider;
+        this.testDirectoryProvider = testDirectoryProvider
+        localStorageResponseAction = localStorageResponseAction()
+        s3StubResponses = new S3StubResponses()
     }
 
     def expect(HttpStub httpStub) {
         add(httpStub, stubAction(httpStub))
+
     }
 
     HttpServer.ActionSupport stubAction(HttpStub httpStub) {
+        //HttpStub's without a response rely on the server having some behavior (getting and putting files)
+        httpStub.response ? stubbedResponseAction(httpStub) : localStorageResponseAction
+    }
+
+    private HttpServer.ActionSupport stubbedResponseAction(HttpStub httpStub) {
         new HttpServer.ActionSupport("Generic stub handler") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                httpStub.response?.headers?.each {
-                    response.addHeader(it.key, it.value)
-                }
-                response.setStatus(httpStub.response.status)
-                if (httpStub.response?.body) {
-                    response.outputStream.bytes = httpStub.response.body
+                handleResponse(response, request, httpStub.response)
+            }
+        }
+    }
+
+    private HttpServer.ActionSupport localStorageResponseAction() {
+        new HttpServer.ActionSupport("Storage backed stub handler") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                String path = request.pathInfo
+                String method = request.method.toUpperCase()
+                if (method == 'PUT') {
+                    def file = writeFileFromRequest(request)
+                    handleResponse(response, request, s3StubResponses.responseForPutFile(file))
+                } else if (method == 'GET') {
+                    def file = getFile(request)
+                    if (file.exists()) {
+                        handleResponse(response, request, s3StubResponses.responseForGetFile(file))
+                    } else {
+                        handleResponse(response, request, s3StubResponses.responseForGetFileNotFound(path))
+                    }
+                } else if (method == 'HEAD') {
+                    def file = getFile(request)
+                    if (file.exists()) {
+                        handleResponse(response, request, s3StubResponses.responseForHeadFile(file))
+                    } else {
+                        handleResponse(response, request, s3StubResponses.responseForHeadFileNotFound(path))
+                    }
                 }
             }
         }
@@ -60,24 +95,31 @@ class S3StubServer extends HttpServer implements RepositoryServer {
         expectations << expectation
         addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
                     if (expectation.run) {
                         return
                     }
-                    expectation.run = true
-                    action.handle(request, response)
-                    request.handled = true
+                    if (!((Request) request).isHandled()) {
+                        expectation.run = true
+                        action.handle(request, response)
+                        ((Request) request).setHandled(true)
+                    } else{
+                        log("The request[${request.method} :${request.pathInfo}] was already handeled.")
+                    }
                 }
             }
         })
+        stubs << httpStub
     }
 
     void assertRequest(HttpStub httpStub, HttpServletRequest request) {
         StubRequest stubRequest = httpStub.request
-        String path = stubRequest.path
-        assert path.startsWith('/')
-        assert path == request.pathInfo
+        String stubPath = stubRequest.path
+        assert stubPath.startsWith('/')
+        def incomingPath = request.pathInfo
+        assert doesPathMatch(incomingPath, stubPath)
         assert stubRequest.method == request.method
         if (stubRequest.body) {
             assert stubRequest.body == request.getInputStream().bytes
@@ -90,8 +132,23 @@ class S3StubServer extends HttpServer implements RepositoryServer {
     boolean requestMatches(HttpStub httpStub, HttpServletRequest request) {
         StubRequest stubRequest = httpStub.request
         String path = stubRequest.path
+        String incoming = request.pathInfo
         assert path.startsWith('/')
-        path == request.pathInfo && stubRequest.method == request.method
+        if (stubRequest.method == request.method) {
+            return doesPathMatch(incoming, path)
+        }
+        return false
+    }
+
+    boolean doesPathMatch(String inbound, String expected) {
+        if (inbound == expected) {
+            log("String equality path match:[inbound:$inbound|expected:$expected]")
+            return true
+        } else if (inbound ==~ /$expected/) {
+            log("Regular expression path match:[inbound:$inbound|expected:$expected]")
+            return true
+        }
+        return false
     }
 
     @Override
@@ -121,5 +178,38 @@ class S3StubServer extends HttpServer implements RepositoryServer {
             accessKey "someKey"
             secretKey "someSecret"
         }"""
+    }
+
+    @Override
+    File getStorageDirectory() {
+        return testDirectoryProvider.testDirectory
+    }
+
+    private void handleResponse(HttpServletResponse response, HttpServletRequest request, StubResponse stubResponse) {
+        stubResponse.headers?.each {
+            response.addHeader(it.key, it.value)
+        }
+        response.setStatus(stubResponse.status)
+
+        def body = stubResponse.body
+        if (body) {
+            response.outputStream.bytes = body
+        }
+    }
+
+    private log(String message) {
+        if (logEnabled) {
+            println "${new Date()} - $message"
+        }
+    }
+
+    @Override
+    def printHistory() {
+        println "Server requests:"
+        super.printHistory()
+        println "Stubbed requests:"
+        stubs.each {
+            println "${it.request.method}: ${it.request.path}"
+        }
     }
 }

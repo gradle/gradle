@@ -19,14 +19,12 @@ package org.gradle.test.fixtures.maven
 /**
  * http://maven.apache.org/ref/3.0.1/maven-repository-metadata/repository-metadata.html
  */
-class DefaultMavenMetaData implements MavenMetaData{
+class DefaultMavenMetaData implements MavenMetaData {
 
     String text
-
     String groupId
     String artifactId
     String version
-
     List<String> versions = []
     String lastUpdated
 
@@ -46,7 +44,4 @@ class DefaultMavenMetaData implements MavenMetaData{
             versions << it.text()
         }
     }
-
-
-
 }

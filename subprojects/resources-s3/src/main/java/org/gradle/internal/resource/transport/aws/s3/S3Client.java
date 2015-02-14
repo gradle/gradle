@@ -112,7 +112,7 @@ public class S3Client {
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
             s3Service.putObject(bucketName, object);
         } catch (S3ServiceException e) {
-            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
+            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getErrorMessage()), e);
         }
     }
 

@@ -62,26 +62,31 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     private void putChecksum(String algorithm, int checksumlength, File source, URI destination) throws IOException {
-        byte[] checksumFile = createChecksumFile(source, algorithm, checksumlength);
-        URI checksumDestination = URI.create(destination + "." + algorithm.toLowerCase());
-        doPut(checksumFile, checksumDestination);
+        if (!destinationIsAChecksum(destination)) {
+            byte[] checksumFile = createChecksumFile(source, algorithm, checksumlength);
+            URI checksumDestination = URI.create(destination + "." + algorithm.toLowerCase());
+            doPut(checksumFile, checksumDestination);
+        }
+    }
+
+    @Override
+    public void putWithoutChecksum(File source, URI destination) throws IOException {
+        doPut(source, destination);
+    }
+
+    private boolean destinationIsAChecksum(URI destination) {
+        String dest = destination.toString().toLowerCase();
+        return dest.endsWith(".sha1") || dest.endsWith(".md5");
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumlength) {
         HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
+        String formattedHashString = hash.asZeroPaddedHexString(checksumlength);
         try {
             return formattedHashString.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    private String formatHashString(String hashKey, int length) {
-        while (hashKey.length() < length) {
-            hashKey = "0" + hashKey;
-        }
-        return hashKey;
     }
 
     private void doPut(final File source, URI destination) throws IOException {
@@ -104,7 +109,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
             public InputStream create() {
                 return new ByteArrayInputStream(source);
             }
-        }, (long)source.length, destination);
+        }, (long) source.length, destination);
     }
 
     public List<String> list(URI parent) throws IOException {

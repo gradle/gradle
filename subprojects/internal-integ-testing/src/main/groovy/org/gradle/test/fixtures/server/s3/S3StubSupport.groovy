@@ -18,30 +18,18 @@ package org.gradle.test.fixtures.server.s3
 
 import groovy.xml.StreamingMarkupBuilder
 import org.gradle.test.fixtures.server.stub.HttpStub
-import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.tz.FixedDateTimeZone
-
-import java.security.MessageDigest
+import static org.gradle.test.fixtures.server.s3.S3StubResponses.*
 
 class S3StubSupport {
-    private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
-            .withLocale(Locale.US)
-            .withZone(GMT);
-
-    public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
-    public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
-    public static final String X_AMZ_ID_2 = 'nwUZ/n/F2/ZFRTZhtzjYe7mcXkxCaRjfrJSWirV50lN7HuvhF60JpphwoiX/sMnh'
-    public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
-    public static final String SERVER_AMAZON_S3 = 'AmazonS3'
     final URI endpoint
     final S3StubServer server
+    public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
+    final S3StubResponses s3StubResponses
 
     S3StubSupport(S3StubServer server) {
         this.server = server
-        this.endpoint = new URI(server.address)
+        this.endpoint = new URI(server.getAddress())
+        this.s3StubResponses = new S3StubResponses()
     }
 
     def stubPutFile(File file, String url) {
@@ -56,14 +44,20 @@ class S3StubSupport {
                 body = file.getBytes()
 
             }
-            response {
-                status = 200
+            response = s3StubResponses.responseForPutFile(file)
+        }
+        server.expect(httpStub)
+    }
+
+
+    def stubPutFile(String url) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'PUT'
+                path = url
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        "ETag"            : calculateEtag(file),
-                        'Server'          : SERVER_AMAZON_S3
+                        'Content-Type': 'application/octet-stream',
+                        'Connection'  : 'Keep-Alive'
                 ]
             }
         }
@@ -80,18 +74,19 @@ class S3StubSupport {
                         'Connection'  : 'Keep-Alive'
                 ]
             }
-            response {
-                status = 200
+            response = s3StubResponses.responseForHeadFile(file)
+        }
+        server.expect(httpStub)
+    }
+
+    def stubMetaData(String url) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'HEAD'
+                path = url
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : calculateEtag(file),
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "${file.length()}",
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                        'Connection'  : 'Keep-Alive'
                 ]
             }
         }
@@ -140,20 +135,20 @@ class S3StubSupport {
                         'Connection'  : 'Keep-Alive'
                 ]
             }
-            response {
-                status = 200
+            response = s3StubResponses.responseForGetFile(file)
+        }
+        server.expect(httpStub)
+    }
+
+    def stubGetFile(String url) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'GET'
+                path = url
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : calculateEtag(file),
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "${file.length()}",
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                        'Connection'  : 'Keep-Alive'
                 ]
-                body = file.getBytes()
             }
         }
         server.expect(httpStub)
@@ -223,7 +218,7 @@ class S3StubSupport {
                 params = [
                         'prefix'   : [prefix],
                         'delimiter': [delimiter],
-                        'max-keys': ["1000"]
+                        'max-keys' : ["1000"]
                 ]
             }
             response {
@@ -276,20 +271,21 @@ class S3StubSupport {
         server.expect(httpStub)
     }
 
-    def stubFileNotFound(String url) {
+
+    def stubPutFileAuthFailure(String url) {
         def xml = new StreamingMarkupBuilder().bind {
             Error() {
-                Code("NoSuchKey")
-                Message("The specified key does not exist.")
-                Key(url)
-                RequestId("stubbedRequestId")
-                HostId("stubbedHostId")
+                Code("InvalidAccessKeyId")
+                Message("The AWS Access Key Id you provided does not exist in our records.")
+                AWSAccessKeyId("notRelevant")
+                RequestId("stubbedAuthFailureRequestId")
+                HostId("stubbedAuthFailureHostId")
             }
         }
 
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'GET'
+                method = 'PUT'
                 path = url
                 headers = [
                         'Content-Type': 'application/octet-stream',
@@ -297,7 +293,7 @@ class S3StubSupport {
                 ]
             }
             response {
-                status = 404
+                status = 403
                 headers = [
                         'x-amz-id-2'      : X_AMZ_ID_2,
                         'x-amz-request-id': X_AMZ_REQUEST_ID,
@@ -307,6 +303,21 @@ class S3StubSupport {
                 ]
                 body = xml.toString()
             }
+        }
+        server.expect(httpStub)
+    }
+
+    def stubFileNotFound(String url) {
+        HttpStub httpStub = HttpStub.stubInteraction {
+            request {
+                method = 'GET'
+                path = url
+                headers = [
+                        'Content-Type': 'application/octet-stream',
+                        'Connection'  : 'Keep-Alive'
+                ]
+            }
+            response = s3StubResponses.responseForGetFileNotFound(url)
         }
         server.expect(httpStub)
     }
@@ -346,9 +357,5 @@ class S3StubSupport {
         server.expect(httpStub)
     }
 
-    def calculateEtag(File file) {
-        MessageDigest digest = MessageDigest.getInstance("MD5")
-        digest.update(file.bytes);
-        new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')
-    }
+
 }
