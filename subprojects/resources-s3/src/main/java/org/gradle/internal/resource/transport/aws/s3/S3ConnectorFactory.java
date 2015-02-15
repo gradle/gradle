@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.internal.resource.transport.aws.s3;
 
 import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transport.aws.s3.S3Client;
-import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties;
-import org.gradle.internal.resource.transport.aws.s3.S3ResourceConnector;
 
 import java.util.Collections;
 import java.util.Set;
 
-class S3ConnectorFactory implements ResourceConnectorFactory {
+public class S3ConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<String> getSupportedProtocols() {
         return Collections.singleton("s3");

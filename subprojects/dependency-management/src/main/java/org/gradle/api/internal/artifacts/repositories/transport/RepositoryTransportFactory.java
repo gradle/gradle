@@ -59,7 +59,6 @@ public class RepositoryTransportFactory {
         this.cacheLockingManager = cacheLockingManager;
 
         register(new HttpConnectorFactory());
-        register(new S3ConnectorFactory());
 
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);

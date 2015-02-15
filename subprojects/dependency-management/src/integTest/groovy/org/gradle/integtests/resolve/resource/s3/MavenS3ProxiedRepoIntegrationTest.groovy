@@ -22,8 +22,6 @@ import org.gradle.test.fixtures.server.s3.MavenS3Module
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
-import static org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.S3_ENDPOINT_PROPERTY
-
 class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
     @Rule
@@ -67,7 +65,7 @@ task retrieve(type: Sync) {
 
         when:
         executer.withArguments(
-                "-D${S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}",
+                "-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}",
                 "-Dhttp.proxyHost=localhost",
                 "-Dhttp.proxyPort=${proxyServer.port}",
                 "-Dhttp.nonProxyHosts=foo",
@@ -107,7 +105,7 @@ task retrieve(type: Sync) {
 
         when:
         executer.withArguments(
-                "-D${S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}",
+                "-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}",
                 "-Dhttp.proxyHost=localhost",
                 "-Dhttp.proxyPort=${proxyServer.port}",
                 "-Dhttp.nonProxyHosts=localhost",

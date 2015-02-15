@@ -15,9 +15,7 @@
  */
 
 package org.gradle.integtests.resolve.resource.s3
-
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.s3.*
 import org.junit.Rule
 
@@ -29,7 +27,7 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
 
     def setup() {
         executer.withArgument('-i')
-        executer.withArgument("-D${S3ConnectionProperties.S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
     }
 
     String getBucket() {
