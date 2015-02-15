@@ -275,4 +275,19 @@ class FilteringClassLoaderTest extends Specification {
         and:
         0 * parent._
     }
+
+    void "spec is copied correctly"() {
+        given:
+        def parent = Mock(ClassLoader, useObjenesis: false)
+        def spec = new FilteringClassLoader.Spec([ 'allow.ClassName' ], [ 'allowPackage' ], [ 'allowPackagePrefix' ], [ 'allowPackageResource' ], [ 'allowResource' ], [ 'disallow.ClassName' ], [ 'disallowPackage' ])
+        def filteringClassLoader = new FilteringClassLoader(parent, spec)
+        def visitor = Mock(ClassLoaderVisitor)
+
+        when:
+        filteringClassLoader.visit(visitor)
+
+        then:
+        1 * visitor.visitSpec(spec)
+        1 * visitor.visitParent(parent)
+    }
 }

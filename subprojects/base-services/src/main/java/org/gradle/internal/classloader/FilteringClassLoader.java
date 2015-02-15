@@ -58,8 +58,8 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         resourceNames.addAll(spec.resourceNames);
         resourcePrefixes.addAll(spec.resourcePrefixes);
         classNames.addAll(spec.classNames);
-        disallowedClassNames.addAll(spec.classNames);
-        disallowedPackagePrefixes.addAll(spec.disallowedClassNames);
+        disallowedClassNames.addAll(spec.disallowedClassNames);
+        disallowedPackagePrefixes.addAll(spec.disallowedPackagePrefixes);
     }
 
     public void visit(ClassLoaderVisitor visitor) {
@@ -244,7 +244,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         final Set<String> disallowedPackagePrefixes;
 
 
-        public Spec(Collection<String> classNames, Collection<String> packageNames, Collection<String> packagePrefixes, Collection<String> resourcePrefixes, Collection<String> resourceNames, Collection<String> disallowedClassNames, Set<String> disallowedPackagePrefixes) {
+        public Spec(Collection<String> classNames, Collection<String> packageNames, Collection<String> packagePrefixes, Collection<String> resourcePrefixes, Collection<String> resourceNames, Collection<String> disallowedClassNames, Collection<String> disallowedPackagePrefixes) {
             this.classNames = new HashSet<String>(classNames);
             this.packageNames = new HashSet<String>(packageNames);
             this.packagePrefixes = new HashSet<String>(packagePrefixes);
