@@ -79,8 +79,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
         groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
-        groovyCompilerClassLoader.disallowClass("groovy.servlet.GroovyServlet");
-        groovyCompilerClassLoader.disallowClass("groovy.servlet.ServletCategory");
+        groovyCompilerClassLoader.disallowPackage("groovy.servlet");
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
         final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);

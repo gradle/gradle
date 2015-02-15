@@ -74,8 +74,8 @@ class DefaultClassLoaderCacheTest extends Specification {
 
     def "filters are respected"() {
         def root = classLoader(classPath("root"))
-        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
-        def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [])
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], disallowedPackagePrefixes)
+        def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [], disallowedPackagePrefixes)
 
         expect:
         cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
@@ -86,7 +86,7 @@ class DefaultClassLoaderCacheTest extends Specification {
     def "non filtered classloaders are reused"() {
         expect:
         def root = classLoader(classPath("root"))
-        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [])
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], disallowedPackagePrefixes)
         cache.get(id1, classPath("c1"), root, f1)
         storage.size() == 2
         cache.get(id1, classPath("c1"), root, null)

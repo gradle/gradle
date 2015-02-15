@@ -169,6 +169,23 @@ class FilteringClassLoaderTest extends Specification {
         canSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
+    void "can disallow packages"() {
+        given:
+        classLoader.disallowPackage("org.junit")
+
+        expect:
+        cannotLoadClass(Test)
+    }
+
+    void "disallow wins over allow packages"() {
+        given:
+        classLoader.disallowPackage("org.junit")
+        classLoader.allowPackage("org.junit")
+
+        expect:
+        cannotLoadClass(Test)
+    }
+
     void "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
         given:
