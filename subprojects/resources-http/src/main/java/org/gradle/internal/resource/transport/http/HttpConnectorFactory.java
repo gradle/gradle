@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.Sets;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transport.http.*;
-import org.gradle.util.WrapUtil;
 
 import java.util.Set;
 
 class HttpConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<String> getSupportedProtocols() {
-        return WrapUtil.toSet("http", "https");
+        return Sets.newHashSet("http", "https");
     }
 
     @Override

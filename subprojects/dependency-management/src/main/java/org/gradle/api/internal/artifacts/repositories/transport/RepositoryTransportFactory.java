@@ -58,8 +58,6 @@ public class RepositoryTransportFactory {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        register(new HttpConnectorFactory());
-
         for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
             register(connectorFactory);
         }
