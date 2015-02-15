@@ -32,6 +32,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class RepositoryTransportFactory {
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      ResourceConnectorFactory resourceConnectorFactory,
+                                      Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -58,8 +59,11 @@ public class RepositoryTransportFactory {
         this.cacheLockingManager = cacheLockingManager;
 
         register(new HttpConnectorFactory());
-        register(resourceConnectorFactory);
         register(new S3ConnectorFactory());
+
+        for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
+            register(connectorFactory);
+        }
     }
 
     public void register(ResourceConnectorFactory resourceConnectorFactory) {

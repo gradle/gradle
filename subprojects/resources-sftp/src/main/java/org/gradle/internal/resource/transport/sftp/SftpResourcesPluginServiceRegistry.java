@@ -23,16 +23,16 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class SftpResourcesPluginServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalScopeServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeServices());
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
-    private static class BuildScopeServices {
+    private static class GlobalScopeServices {
         SftpClientFactory createSftpClientFactory() {
             return new SftpClientFactory();
         }
