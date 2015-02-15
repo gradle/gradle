@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.gradle.api.artifacts.repositories.AwsCredentials;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.aws.s3.S3Client;
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties;

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.repositories.transport;
 
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.*;

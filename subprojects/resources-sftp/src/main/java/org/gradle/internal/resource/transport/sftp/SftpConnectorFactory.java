@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.internal.resource.transport.sftp;
 
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
-import org.gradle.internal.resource.transport.sftp.SftpResourceAccessor;
-import org.gradle.internal.resource.transport.sftp.SftpResourceLister;
-import org.gradle.internal.resource.transport.sftp.SftpResourceUploader;
 
 import java.util.Collections;
 import java.util.Set;
 
-class SftpConnectorFactory implements ResourceConnectorFactory {
+public class SftpConnectorFactory implements ResourceConnectorFactory {
     private final SftpClientFactory sftpClientFactory;
 
-    SftpConnectorFactory(SftpClientFactory sftpClientFactory) {
+    public SftpConnectorFactory(SftpClientFactory sftpClientFactory) {
         this.sftpClientFactory = sftpClientFactory;
     }
 

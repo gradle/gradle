@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.transport;
+package org.gradle.internal.resource.connector;
 
-public interface ResourceConnectorRegistrar {
-    void register(ResourceConnectorFactory resourceConnectorFactory);
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+
+import java.util.Set;
+
+public interface ResourceConnectorFactory {
+    Set<String> getSupportedProtocols();
+
+    ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails);
 }
