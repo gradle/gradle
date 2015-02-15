@@ -36,7 +36,8 @@ class DefaultToolResolverTest extends Specification {
                     }
                 }
         ]
-        ToolResolver resolver = new DefaultToolResolver(toolChains as ToolChainInternal[])
+        DefaultToolResolver resolver = new DefaultToolResolver()
+        toolChains.each { resolver.registerToolChain(it) }
 
         expect:
         resolver.checkToolAvailability(Stub(Platform)).available == availability
@@ -62,7 +63,9 @@ class DefaultToolResolverTest extends Specification {
             select(_) >> provider2
         }
 
-        ToolResolver resolver = new DefaultToolResolver(toolChain1, toolChain2)
+        DefaultToolResolver resolver = new DefaultToolResolver()
+        resolver.registerToolChain(toolChain1)
+        resolver.registerToolChain(toolChain2)
         ToolSearchResult result = resolver.checkToolAvailability(Stub(Platform))
         TreeVisitor visitor = Stub(TreeVisitor)
 
@@ -82,7 +85,8 @@ class DefaultToolResolverTest extends Specification {
         def toolChain = Mock(ToolChainInternal) {
             select(_) >> provider
         }
-        ToolResolver resolver = new DefaultToolResolver(toolChain)
+        DefaultToolResolver resolver = new DefaultToolResolver()
+        resolver.registerToolChain(toolChain)
 
         when:
         ResolvedTool<Compiler<TestCompileSpec>> tool = resolver.resolveCompiler(TestCompileSpec.class, Stub(Platform))
@@ -104,7 +108,8 @@ class DefaultToolResolverTest extends Specification {
         def toolChain = Mock(ToolChainInternal) {
             select(_) >> provider
         }
-        ToolResolver resolver = new DefaultToolResolver(toolChain)
+        DefaultToolResolver resolver = new DefaultToolResolver()
+        resolver.registerToolChain(toolChain)
 
         when:
         ResolvedTool<String> tool = resolver.resolve(String.class, Stub(Platform))

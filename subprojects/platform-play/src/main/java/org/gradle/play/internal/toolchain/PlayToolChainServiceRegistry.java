@@ -23,8 +23,6 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.platform.base.internal.toolchain.DefaultToolResolver;
-import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
@@ -41,14 +39,9 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
-
     private static class ProjectScopeCompileServices {
         PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
             return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory);
-        }
-
-        ToolResolver createPlayToolResolver(PlayToolChainInternal playToolChain) {
-            return new DefaultToolResolver(playToolChain);
         }
     }
 }
