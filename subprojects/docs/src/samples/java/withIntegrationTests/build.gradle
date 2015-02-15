@@ -12,7 +12,7 @@ sourceSets {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
     integrationTestCompile 'commons-collections:commons-collections:3.2'
     integrationTestCompile sourceSets.main.output
     integrationTestCompile configurations.testCompile

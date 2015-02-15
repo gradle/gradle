@@ -14,7 +14,7 @@
     <artifact name="project1" type="source" ext="jar" conf="runtime" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
   </publications>
   <dependencies>
-    <dependency org="junit" name="junit" rev="4.11" conf="runtime-&gt;default"/>
+    <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;default"/>
     <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;default"/>
   </dependencies>
 </ivy-module>

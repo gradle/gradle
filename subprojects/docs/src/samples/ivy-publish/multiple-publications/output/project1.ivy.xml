@@ -12,6 +12,6 @@
     <artifact name="project1-sample" type="jar" ext="jar" conf="runtime"/>
   </publications>
   <dependencies>
-    <dependency org="junit" name="junit" rev="4.11" conf="runtime-&gt;default"/>
+    <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;default"/>
   </dependencies>
 </ivy-module>

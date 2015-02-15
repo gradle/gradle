@@ -4,7 +4,7 @@ subprojects {
             mavenCentral()
         }
         dependencies {
-            classpath 'junit:junit:4.11'
+            classpath 'junit:junit:4.12'
         }
     }
     apply plugin: 'java'

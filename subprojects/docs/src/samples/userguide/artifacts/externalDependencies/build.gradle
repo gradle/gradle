@@ -46,7 +46,7 @@ dependencies {
 
 //START SNIPPET dependencies-with-empty-attributes
 dependencies {
-    runtime ":junit:4.10", ":testng"
+    runtime ":junit:4.12", ":testng"
     runtime name: 'testng' 
 }
 //END SNIPPET dependencies-with-empty-attributes
