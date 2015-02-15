@@ -16,5 +16,5 @@
 
 package org.gradle.performance;
 
-public interface Experiment extends PerformanceTest {
+public interface PerformanceTest {
 }
