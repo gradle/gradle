@@ -78,6 +78,7 @@ public class ZipCopyAction implements CopyAction {
 
         public StreamAction(ZipOutputStream zipOutStr) {
             this.zipOutStr = zipOutStr;
+            this.zipOutStr.setEncoding("utf-8");
         }
 
         public void processFile(FileCopyDetailsInternal details) {
