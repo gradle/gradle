@@ -24,13 +24,10 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
-import org.gradle.internal.resource.connector.ResourceConnectorRegistrar;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
-import org.gradle.internal.resource.transfer.*;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
-import org.gradle.internal.resource.transport.sftp.SftpConnectorFactory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
@@ -39,7 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class RepositoryTransportFactory implements ResourceConnectorRegistrar {
+public class RepositoryTransportFactory {
     private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
 
     private final TemporaryFileProvider temporaryFileProvider;
@@ -52,7 +49,7 @@ public class RepositoryTransportFactory implements ResourceConnectorRegistrar {
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      SftpClientFactory sftpClientFactory,
+                                      ResourceConnectorFactory resourceConnectorFactory,
                                       CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -61,11 +58,10 @@ public class RepositoryTransportFactory implements ResourceConnectorRegistrar {
         this.cacheLockingManager = cacheLockingManager;
 
         register(new HttpConnectorFactory());
-        register(new SftpConnectorFactory(sftpClientFactory));
+        register(resourceConnectorFactory);
         register(new S3ConnectorFactory());
     }
 
-    @Override
     public void register(ResourceConnectorFactory resourceConnectorFactory) {
         registeredProtocols.add(resourceConnectorFactory);
     }
