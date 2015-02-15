@@ -46,11 +46,11 @@ public class RepositoryTransportFactory {
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
 
-    public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
+                                      ProgressLoggerFactory progressLoggerFactory,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;

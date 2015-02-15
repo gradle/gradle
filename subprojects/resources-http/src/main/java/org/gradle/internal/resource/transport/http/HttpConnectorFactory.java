@@ -25,7 +25,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
 import java.util.Set;
 
-class HttpConnectorFactory implements ResourceConnectorFactory {
+public class HttpConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<String> getSupportedProtocols() {
         return Sets.newHashSet("http", "https");

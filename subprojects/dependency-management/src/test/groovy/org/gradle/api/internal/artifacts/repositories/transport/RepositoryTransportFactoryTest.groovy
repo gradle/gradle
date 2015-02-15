@@ -15,17 +15,27 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.transport
+import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RepositoryTransportFactoryTest extends Specification {
 
-    def repositoryTransportFactory = new RepositoryTransportFactory(null, null, null, null, null, null)
+    def connectorFactory1 = Mock(ResourceConnectorFactory)
+    def connectorFactory2 = Mock(ResourceConnectorFactory)
+    def repositoryTransportFactory
+
+    def setup() {
+        connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
+        connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
+        List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null)
+    }
 
     def "cannot create a transport for url with unsupported scheme"() {
         when:
@@ -33,31 +43,26 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Not a supported repository protocol 'unsupported': valid protocols are [file, http, https, sftp, s3]"
+        e.message == "Not a supported repository protocol 'unsupported': valid protocols are [file, protocol1, protocol2a, protocol2b]"
     }
 
     def "cannot creates a transport for mixed url scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['file', 'http'] as Set, null, null)
+        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, null)
 
         then:
         InvalidUserDataException e = thrown()
         e.message == "You cannot mix different URL schemes for a single repository. Please declare separate repositories."
     }
 
-    @Unroll
-    def "should create a transport for [#scheme]"() {
+    def "should create a transport for known scheme"() {
+        def credentials = Mock(DefaultPasswordCredentials)
+
         when:
-        def transport = repositoryTransportFactory.createTransport([scheme] as Set, null, credentials)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials)
 
         then:
-        transport.class == expected
-
-        where:
-        scheme | credentials                                               || expected
-        's3'   | new DefaultAwsCredentials(accessKey: 'a', secretKey: 's') || ResourceConnectorRepositoryTransport
-        'http' | Mock(DefaultPasswordCredentials)                          || ResourceConnectorRepositoryTransport
-        'sftp' | Mock(DefaultPasswordCredentials)                          || ResourceConnectorRepositoryTransport
+        transport.class == ResourceConnectorRepositoryTransport
     }
 
     def "should throw when credentials types is invalid"(){

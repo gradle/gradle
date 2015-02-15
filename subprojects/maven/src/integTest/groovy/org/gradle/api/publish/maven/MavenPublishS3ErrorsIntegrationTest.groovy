@@ -16,9 +16,7 @@
 
 
 package org.gradle.api.publish.maven
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
 import org.junit.Rule
@@ -39,7 +37,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withArgument('-i')
-        executer.withArgument("-D${S3ConnectionProperties.S3_ENDPOINT_PROPERTY}=${s3StubSupport.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
     }
 
     def "should fail with an authentication error"() {

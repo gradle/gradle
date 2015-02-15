@@ -177,11 +177,11 @@ class DependencyManagementBuildScopeServices {
                                                                 CacheLockingManager cacheLockingManager,
                                                                 ServiceRegistry serviceRegistry) {
         return new RepositoryTransportFactory(
+                serviceRegistry.getAll(ResourceConnectorFactory.class),
                 progressLoggerFactory,
                 temporaryFileProvider,
                 externalResourceIndex,
                 buildCommencedTimeProvider,
-                serviceRegistry.getAll(ResourceConnectorFactory.class),
                 cacheLockingManager
         );
     }
