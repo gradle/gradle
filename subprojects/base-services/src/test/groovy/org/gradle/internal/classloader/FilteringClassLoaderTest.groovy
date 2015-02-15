@@ -175,6 +175,8 @@ class FilteringClassLoaderTest extends Specification {
 
         expect:
         cannotLoadClass(Test)
+        cannotSeePackage("org.junit")
+        cannotSeePackage("org.junit.subpackage")
     }
 
     void "disallow wins over allow packages"() {
