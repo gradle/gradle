@@ -17,12 +17,10 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.*;
 import org.gradle.api.Action;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +31,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final Action<? super T> worker;
 
     private final List<ListenableFuture> operations;
-    private final Set<Throwable> failures;
+    private final List<Throwable> failures;
     private final AtomicBoolean cancelled;
 
     private boolean waitingForCompletion;
@@ -42,7 +40,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         this.executor =  MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
-        this.failures = Sets.newConcurrentHashSet();
+        this.failures = Lists.newCopyOnWriteArrayList();
         this.cancelled = new AtomicBoolean(false);
     }
 

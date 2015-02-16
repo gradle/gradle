@@ -125,4 +125,25 @@ class DefaultOperationQueueTest extends Specification {
         new Success() | new Failure() | new Success()
         new Failure() | new Success() | new Success()
     }
+
+    def "all failures reported in order"() {
+        given:
+        operationQueue.add(Stub(Runnable) {
+            run() >> { throw new RuntimeException("first") }
+        })
+        operationQueue.add(Stub(Runnable) {
+            run() >> { throw new RuntimeException("second") }
+        })
+        operationQueue.add(Stub(Runnable) {
+            run() >> { throw new RuntimeException("third") }
+        })
+
+        when:
+        // assumes we don't fail early
+        operationQueue.waitForCompletion()
+
+        then:
+        MultipleBuildOperationFailures e = thrown()
+        e.getCauses()*.message == [ 'first', 'second', 'third' ]
+    }
 }
