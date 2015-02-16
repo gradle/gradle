@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.internal.hash.HashUtil
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +31,7 @@ class AssemblerTest extends Specification {
     def executable = new File("executable")
     def baseInvocation = Mock(CommandLineToolInvocation)
     def invocation = Mock(MutableCommandLineToolInvocation)
-    def commandLineTool = Mock(CommandLineTool)
+    def commandLineTool = Mock(CommandLineToolInvocationWorker)
     def assembler = new Assembler(commandLineTool, baseInvocation, ".o");
 
     def "assembles each source file independently"() {

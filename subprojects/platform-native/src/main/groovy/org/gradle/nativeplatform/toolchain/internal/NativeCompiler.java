@@ -32,7 +32,7 @@ import java.util.List;
 
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<T> argsTransformer;
     private final Transformer<T, T> specTransformer;
     private final CommandLineToolInvocation baseInvocation;
@@ -41,20 +41,20 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     private final BuildOperationProcessor buildOperationProcessor;
 
-    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
         this.baseInvocation = baseInvocation;
         this.objectFileSuffix = objectFileSuffix;
         this.useCommandFile = useCommandFile;
         this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
-        this.commandLineTool = commandLineTool;
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final OperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineTool);
+        final OperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
 
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {

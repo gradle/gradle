@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,7 +33,7 @@ class GccLinkerTest extends Specification {
 
     def executable = new File("executable")
     def invocation = Mock(MutableCommandLineToolInvocation)
-    CommandLineTool commandLineTool = Mock(CommandLineTool)
+    CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
     GccLinker linker = new GccLinker(commandLineTool, invocation, false);
 
     def "compiles all source files in a single execution"() {

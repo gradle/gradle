@@ -32,14 +32,14 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolInvocation baseInvocation;
 
-    public LinkExeLinker(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+    public LinkExeLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
         argsTransformer = new LinkerArgsTransformer();
-        this.commandLineTool = commandLineTool;
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.baseInvocation = invocation;
         this.specTransformer = specTransformer;
     }
@@ -48,7 +48,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
         invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
-        commandLineTool.execute(invocation);
+        commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }
 

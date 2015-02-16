@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.platform.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
@@ -33,16 +33,16 @@ import java.util.List;
 
 class GccLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolInvocation baseInvocation;
     private final boolean useCommandFile;
 
-    public GccLinker(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
+    public GccLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, boolean useCommandFile) {
         this.argsTransformer = new GccLinkerArgsTransformer();
         this.baseInvocation = baseInvocation;
         this.useCommandFile = useCommandFile;
-        this.commandLineTool = commandLineTool;
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
     }
 
     public WorkResult execute(LinkerSpec spec) {
@@ -51,7 +51,7 @@ class GccLinker implements Compiler<LinkerSpec> {
             invocation.addPostArgsAction(new GccOptionsFileArgsWriter(spec.getTempDir()));
         }
         invocation.setArgs(argsTransformer.transform(spec));
-        commandLineTool.execute(invocation);
+        commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }
 

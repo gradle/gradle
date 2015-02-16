@@ -37,7 +37,7 @@ public abstract class NativeCompilerTest extends Specification {
     protected abstract Class<? extends NativeCompileSpec> getCompileSpecType()
     protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
-    protected CommandLineTool commandLineTool = Mock(CommandLineTool)
+    protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
     protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), 1)
 
     def "arguments include source file"() {

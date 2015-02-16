@@ -89,10 +89,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         return new ArStaticLibraryArchiver(commandLineTool(staticLibArchiverTool), commandLineToolInvocation(staticLibArchiverTool));
     }
 
-    private CommandLineTool commandLineTool(GccCommandLineToolConfigurationInternal tool) {
+    private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
-        return new DefaultCommandLineTool(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
+        return new DefaultCommandLineToolInvocationWorker(key.getToolName(), toolSearchPath.locate(key, exeName).getTool(), execActionFactory);
     }
 
     private CommandLineToolInvocation commandLineToolInvocation(GccCommandLineToolConfigurationInternal toolConfiguration) {

@@ -18,14 +18,14 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
 
-    CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocation, new CppCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {

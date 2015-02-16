@@ -22,7 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
@@ -33,12 +33,12 @@ import java.util.List;
 
 class Assembler implements Compiler<AssembleSpec> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final CommandLineToolInvocation baseInvocation;
     private String outputFileSuffix;
 
-    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
-        this.commandLineTool = commandLineTool;
+    public Assembler(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.baseInvocation = baseInvocation;
         this.outputFileSuffix = outputFileSuffix;
     }
@@ -49,7 +49,7 @@ class Assembler implements Compiler<AssembleSpec> {
         for (File sourceFile : spec.getSourceFiles()) {
             ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
             invocation.setArgs(arguments.transform(spec));
-            commandLineTool.execute(invocation);
+            commandLineToolInvocationWorker.execute(invocation);
         }
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }

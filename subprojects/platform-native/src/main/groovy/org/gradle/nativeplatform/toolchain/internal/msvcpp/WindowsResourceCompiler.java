@@ -31,12 +31,12 @@ import java.util.List;
 
 public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileSpec> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
     private final CommandLineToolInvocation baseInvocation;
 
-    WindowsResourceCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
-        this.commandLineTool = commandLineTool;
+    WindowsResourceCompiler(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.specTransformer = specTransformer;
         this.baseInvocation = invocation;
     }
@@ -49,7 +49,7 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
             RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
             invocation.setArgs(argsTransformer.transform(spec));
             invocation.setWorkDirectory(spec.getObjectFileDir());
-            commandLineTool.execute(invocation);
+            commandLineToolInvocationWorker.execute(invocation);
         }
         return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
     }

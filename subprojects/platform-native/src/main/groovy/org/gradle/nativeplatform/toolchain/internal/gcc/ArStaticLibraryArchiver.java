@@ -22,7 +22,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
@@ -34,12 +34,12 @@ import java.util.List;
  * A static library archiver based on the GNU 'ar' utility
  */
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
     private final CommandLineToolInvocation baseInvocation;
 
-    public ArStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation) {
-        this.commandLineTool = commandLineTool;
+    public ArStaticLibraryArchiver(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation baseInvocation) {
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.baseInvocation = baseInvocation;
     }
 
@@ -48,7 +48,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
 
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.setArgs(arguments.transform(spec));
-        commandLineTool.execute(invocation);
+        commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }
 

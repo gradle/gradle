@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 
-public interface CommandLineTool extends Named, Action<CommandLineToolInvocation> {
+public interface CommandLineToolInvocationWorker extends Named, Action<CommandLineToolInvocation> {
     /**
      * Returns a human consumable name for this tool.
      */

@@ -29,13 +29,13 @@ import java.util.List;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<StaticLibraryArchiverSpec> args;
     private final CommandLineToolInvocation baseInvocation;
 
-    public LibExeStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation invocation) {
+    public LibExeStaticLibraryArchiver(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolInvocation invocation) {
         args = new LibExeSpecToArguments();
-        this.commandLineTool = commandLineTool;
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.baseInvocation = invocation;
     }
 
@@ -43,7 +43,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         MutableCommandLineToolInvocation invocation = baseInvocation.copy();
         invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
         invocation.setArgs(args.transform(spec));
-        commandLineTool.execute(invocation);
+        commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }
 

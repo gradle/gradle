@@ -26,12 +26,12 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
-public class DefaultCommandLineTool implements CommandLineTool {
+public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
     private final File executable;
     private final ExecActionFactory execActionFactory;
 
-    public DefaultCommandLineTool(String name, File executable, ExecActionFactory execActionFactory) {
+    public DefaultCommandLineToolInvocationWorker(String name, File executable, ExecActionFactory execActionFactory) {
         this.name = name;
         this.executable = executable;
         this.execActionFactory = execActionFactory;
