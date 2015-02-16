@@ -378,6 +378,96 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace client module dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                version = "1.6"
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile module(group: "org.utils", name: "api", version: "1.5") {
+                    }
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.6.jar"]
+                    assert files*.exists() == [ true ]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can replace client module's transitive dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+        mavenRepo.module("org.utils", "bela", '1.5').publish()
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                version = "1.6"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile module(group: "org.utils", name: "bela", version: "1.5") {
+                        dependencies group: "org.utils", name: "api", version: "1.5"
+                    }
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.6.jar", "bela-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
+
     void "can replace transitive external dependency with project dependency"()
     {
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
