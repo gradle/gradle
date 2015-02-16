@@ -65,12 +65,12 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               people {
-                create { it.name = "p0" }
+                create { name = "p0" }
               }
 
               tasks {
                 create("printPeople") {
-                  it.doLast {
+                  doLast {
                     def people = $("people")
                     def names = people*.name.sort().join(", ")
                     println "people: ${people.toString()}"
@@ -104,8 +104,8 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
-                people.create { it.name = "p1" }
-                people.create { it.name = "p2" }
+                people.create { name = "p1" }
+                people.create { name = "p2" }
               }
             }
 
@@ -114,7 +114,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             model {
               tasks {
                 create("printPeople") {
-                  it.doLast {
+                  doLast {
                     def names = $("people")*.name.sort().join(", ")
                     println "people: $names"
                   }
@@ -166,7 +166,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             model {
               tasks {
                 create("printGroup") {
-                  it.doLast {
+                  doLast {
                     def members = $("group").members*.name.sort().join(", ")
                     def name = $("group").name
                     println "$name: $members"
@@ -206,8 +206,8 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             class Rules extends RuleSource {
               @Model
               void people(ManagedSet<Person> people) {
-                people.create { it.name = "Ada Lovelace" }
-                people.create { it.name = "Grace Hooper" }
+                people.create { name = "Ada Lovelace" }
+                people.create { name = "Grace Hooper" }
               }
 
               @Model
@@ -227,7 +227,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             model {
               tasks {
                 create("printGroup") {
-                  it.doLast {
+                  doLast {
                     def members = $("group").members*.name.sort().join(", ")
                     def name = $("group").name
                     println "$name: $members"
@@ -280,7 +280,7 @@ class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
             model {
               tasks {
                 create("printPeople") {
-                  it.doLast {
+                  doLast {
                     def people = $("people")
                     println "people: $people"
                   }
@@ -347,7 +347,7 @@ finalize
 
               tasks {
                 create("printPeople") {
-                  it.doLast {
+                  doLast {
                     def names = $("people")*.name.sort().join(", ")
                     println "people: $names"
                   }

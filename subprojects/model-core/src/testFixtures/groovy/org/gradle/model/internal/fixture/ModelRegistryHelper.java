@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.*;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
@@ -52,7 +53,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     private final ModelRegistry modelRegistry;
 
     public ModelRegistryHelper() {
-        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultModelCreatorFactory(DefaultModelSchemaStore.getInstance())))));
+        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultModelCreatorFactory(DefaultModelSchemaStore.getInstance(), new DirectInstantiator())))));
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {

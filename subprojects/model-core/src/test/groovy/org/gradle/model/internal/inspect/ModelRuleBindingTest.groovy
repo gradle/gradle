@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect
 
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.*
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
@@ -31,7 +32,7 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance)))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance, new DirectInstantiator())))
     def modelRegistry = new DefaultModelRegistry(extractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {

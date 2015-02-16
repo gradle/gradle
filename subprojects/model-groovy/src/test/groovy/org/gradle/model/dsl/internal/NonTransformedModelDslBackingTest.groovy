@@ -16,6 +16,7 @@
 
 package org.gradle.model.dsl.internal
 
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.collection.ManagedSet
@@ -33,7 +34,7 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     def modelRegistry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    def creatorFactory = new DefaultModelCreatorFactory(schemaStore)
+    def creatorFactory = new DefaultModelCreatorFactory(schemaStore, new DirectInstantiator())
     def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore, creatorFactory)
 
     void register(String pathString, Object element) {
