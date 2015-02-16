@@ -34,17 +34,21 @@ public class BuildExperimentRunner {
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
+        System.out.println();
         System.out.println(String.format("%s ...", experiment.getDisplayName()));
+        System.out.println();
 
         GradleInvocationSpec buildSpec = experiment.getBuildSpec();
         gcCollector.useDaemon(buildSpec.getUseDaemon());
 
         for (int i = 0; i < experiment.getWarmUpCount(); i++) {
-            System.out.println(String.format("Executing warm-up #%s", i + 1));
+            System.out.println();
+            System.out.println(String.format("Warm-up #%s", i + 1));
             executerProvider.executer(buildSpec).run();
         }
         for (int i = 0; i < experiment.getInvocationCount(); i++) {
-            System.out.println(String.format("Executing test run #%s", i + 1));
+            System.out.println();
+            System.out.println(String.format("Test run #%s", i + 1));
             runOnce(buildSpec, results);
         }
         if (buildSpec.getUseDaemon()) {
