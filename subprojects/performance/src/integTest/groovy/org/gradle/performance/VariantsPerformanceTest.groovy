@@ -30,7 +30,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
-            forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(task).useDaemon()
+            Toggles.transformedDsl(forProject("${size}VariantsNewModel")).displayName("new model").tasksToRun(task).useDaemon()
         }
         runner.buildSpec {
             Toggles.transformedDsl(Toggles.modelReuse(it)).forProject("${size}VariantsNewModel").displayName("new model (reuse)").tasksToRun(task).useDaemon()

@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.collect.ImmutableList
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
@@ -47,9 +48,10 @@ class BuildSpecification {
     static class Builder {
         private String projectName
         private String displayName
-        private String[] tasksToRun
-        private String[] args
-        private String[] gradleOpts
+
+        private ImmutableList.Builder<String> tasksToRun = ImmutableList.builder()
+        private ImmutableList.Builder<String> args = ImmutableList.builder()
+        private ImmutableList.Builder<String> gradleOpts = ImmutableList.builder()
         private boolean useDaemon
 
         Builder(String projectName) {
@@ -66,18 +68,18 @@ class BuildSpecification {
             this
         }
 
-        Builder tasksToRun(String[] tasksToRun) {
-            this.tasksToRun = tasksToRun
+        Builder tasksToRun(String... tasksToRun) {
+            this.tasksToRun.add(tasksToRun)
             this
         }
 
-        Builder args(String[] args) {
-            this.args = args
+        Builder args(String... args) {
+            this.args.add(args)
             this
         }
 
-        Builder gradleOpts(String[] gradleOpts) {
-            this.gradleOpts = gradleOpts
+        Builder gradleOpts(String... gradleOpts) {
+            this.gradleOpts.add(gradleOpts)
             this
         }
 
@@ -87,7 +89,11 @@ class BuildSpecification {
         }
 
         BuildSpecification build() {
-            new BuildSpecification(projectName, displayName, tasksToRun ?: new String[0], args ?: new String[0], gradleOpts ?: new String[0], useDaemon)
+            String[] tasks = tasksToRun.build().toArray()
+            String[] gradleOpts = gradleOpts.build().toArray()
+            String[] args = args.build().toArray()
+
+            new BuildSpecification(projectName, displayName, tasks, args, gradleOpts, useDaemon)
         }
     }
 }
