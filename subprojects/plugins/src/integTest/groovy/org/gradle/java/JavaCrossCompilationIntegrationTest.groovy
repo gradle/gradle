@@ -64,7 +64,7 @@ public class Thing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.11' }
+dependencies { testCompile 'junit:junit:4.12' }
 """
 
         file("src/test/java/ThingTest.java") << """

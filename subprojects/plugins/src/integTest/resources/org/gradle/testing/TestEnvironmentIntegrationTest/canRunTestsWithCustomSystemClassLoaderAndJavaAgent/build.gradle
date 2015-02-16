@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compile "junit:junit:4.7"
+    compile "junit:junit:4.12"
 }
 
 jar {

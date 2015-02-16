@@ -161,7 +161,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.file('b/build.gradle') << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { compile 'junit:junit:4.7' }
+            dependencies { compile 'junit:junit:4.12' }
         '''
         testDirectory.file('b/src/main/java/org/gradle/AbstractTest.java') << '''
             package org.gradle;
@@ -196,7 +196,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.7' }
+            dependencies { testCompile 'junit:junit:4.12' }
             test { exclude '**/BaseTest.*' }
         '''
         testDirectory.file('src/test/java/org/gradle/BaseTest.java') << '''
@@ -249,7 +249,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.7' }"
+                "dependencies { compile 'junit:junit:4.12' }"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
                 "package org.gradle;",
@@ -284,7 +284,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.file('build.gradle').writelns(
                 "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.7' }",
+                "dependencies { compile 'junit:junit:4.12' }",
                 "test.forkEvery = 1"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
@@ -338,7 +338,7 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.file('build.gradle') << '''
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.7' }
+            dependencies { testCompile 'junit:junit:4.12' }
             def listener = new TestListenerImpl()
             test.addTestListener(listener)
             test.ignoreFailures = true

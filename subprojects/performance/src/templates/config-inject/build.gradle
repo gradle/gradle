@@ -20,7 +20,7 @@ dependencies {
     compile "org.slf4j:jcl-over-slf4j:1.7.7"
     compile "org.codehaus:groovy:groovy-all:2.0.5"
     compile "commons-codec:commons-codec:1.2"
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
     testCompile 'org.testng:testng:6.4'
     runtime 'com.googlecode:reflectasm:1.01'
 

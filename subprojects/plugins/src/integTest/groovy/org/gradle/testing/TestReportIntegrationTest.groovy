@@ -421,7 +421,7 @@ public class SubClassTests extends SuperClassTests {
         """
         apply plugin: 'java'
         repositories { mavenCentral() }
-        dependencies { testCompile 'junit:junit:4.11' }
+        dependencies { testCompile 'junit:junit:4.12' }
         """
     }
 

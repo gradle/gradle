@@ -95,7 +95,7 @@ public class BarTest {
         file("build.gradle") << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.10' }
+            dependencies { testCompile 'junit:junit:4.12' }
             test.beforeTest { println "executed " + it }
         """
 
