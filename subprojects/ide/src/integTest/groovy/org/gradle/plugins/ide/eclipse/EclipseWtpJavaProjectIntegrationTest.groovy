@@ -34,7 +34,7 @@ sourceCompatibility = 1.6
 
 dependencies {
     compile 'com.google.guava:guava:18.0'
-    testCompile "junit:junit:4.11"
+    testCompile "junit:junit:4.12"
 }
 """
 
@@ -49,9 +49,9 @@ dependencies {
 
         // Classpath
         def classpath = classpath
-        classpath.assertHasLibs('guava-18.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        classpath.assertHasLibs('guava-18.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
         classpath.lib('guava-18.0.jar').assertIsDeployedTo('../')
-        classpath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
+        classpath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         classpath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         // Facets

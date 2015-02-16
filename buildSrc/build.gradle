@@ -30,7 +30,7 @@ dependencies {
     compile 'com.google.guava:guava-jdk5:14.0.1@jar'
     compile 'commons-lang:commons-lang:2.6@jar'
     compile localGroovy()
-    testCompile 'junit:junit:4.11@jar'
+    testCompile 'junit:junit:4.12@jar'
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
 
     compile "org.pegdown:pegdown:1.1.0"

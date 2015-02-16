@@ -13,7 +13,7 @@ compile
 \--- org.codehaus.groovy:groovy-all:2.3.9
 
 testCompile
-\--- junit:junit:4.11
+\--- junit:junit:4.12
      \--- org.hamcrest:hamcrest-core:1.3
 
 ------------------------------------------------------------

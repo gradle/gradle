@@ -169,6 +169,25 @@ class FilteringClassLoaderTest extends Specification {
         canSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
+    void "can disallow packages"() {
+        given:
+        classLoader.disallowPackage("org.junit")
+
+        expect:
+        cannotLoadClass(Test)
+        cannotSeePackage("org.junit")
+        cannotSeePackage("org.junit.subpackage")
+    }
+
+    void "disallow wins over allow packages"() {
+        given:
+        classLoader.disallowPackage("org.junit")
+        classLoader.allowPackage("org.junit")
+
+        expect:
+        cannotLoadClass(Test)
+    }
+
     void "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
         given:
@@ -257,5 +276,20 @@ class FilteringClassLoaderTest extends Specification {
 
         and:
         0 * parent._
+    }
+
+    void "spec is copied correctly"() {
+        given:
+        def parent = Mock(ClassLoader, useObjenesis: false)
+        def spec = new FilteringClassLoader.Spec([ 'allow.ClassName' ], [ 'allowPackage' ], [ 'allowPackagePrefix' ], [ 'allowPackageResource' ], [ 'allowResource' ], [ 'disallow.ClassName' ], [ 'disallowPackage' ])
+        def filteringClassLoader = new FilteringClassLoader(parent, spec)
+        def visitor = Mock(ClassLoaderVisitor)
+
+        when:
+        filteringClassLoader.visit(visitor)
+
+        then:
+        1 * visitor.visitSpec(spec)
+        1 * visitor.visitParent(parent)
     }
 }
