@@ -17,9 +17,9 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.11/@SHA1@/junit-4.11-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.11/@SHA1@/junit-4.11.jar" exported="true">
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.12/@SHA1@/junit-4.12-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.12/@SHA1@/junit-4.12.jar" exported="true">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.11/@SHA1@/junit-4.11-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.12/@SHA1@/junit-4.12-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/org.hamcrest/hamcrest-core/1.3/@SHA1@/hamcrest-core-1.3-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/org.hamcrest/hamcrest-core/1.3/@SHA1@/hamcrest-core-1.3.jar" exported="true">
