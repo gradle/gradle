@@ -23,9 +23,7 @@ import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -38,7 +36,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-public class S3ResourceConnector implements ExternalResourceLister, ExternalResourceAccessor, ExternalResourceUploader {
+public class S3ResourceConnector implements ExternalResourceConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ResourceConnector.class);
     private final S3Client s3Client;

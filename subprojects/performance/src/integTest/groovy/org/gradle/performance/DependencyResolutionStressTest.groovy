@@ -33,7 +33,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import org.junit.experimental.categories.Category
 
+@Category(PerformanceTest)
 class DependencyResolutionStressTest extends Specification {
     @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()

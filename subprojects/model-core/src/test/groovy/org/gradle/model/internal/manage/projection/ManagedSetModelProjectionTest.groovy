@@ -16,20 +16,24 @@
 
 package org.gradle.model.internal.manage.projection
 
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
+import org.gradle.model.ModelViewClosedException
 import org.gradle.model.collection.ManagedSet
-import org.gradle.model.internal.core.ModelAction
-import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.inspect.DefaultModelCreatorFactory
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ManagedSetModelProjectionTest extends Specification {
     @Managed
@@ -37,13 +41,18 @@ class ManagedSetModelProjectionTest extends Specification {
         String getName()
 
         void setName(String name);
+
+        String getValue()
+
+        void setValue(String value)
     }
 
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ManagedSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
-    def factory = new DefaultModelCreatorFactory(schemaStore)
-    def registry = new DefaultModelRegistry(null)
+    def factory = new DefaultModelCreatorFactory(schemaStore, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()))
+    def registry = new ModelRegistryHelper()
+    private ModelReference<ManagedSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ManagedSet<NamedThing>>() {})
 
     def setup() {
         registry.create(
@@ -56,13 +65,8 @@ class ManagedSetModelProjectionTest extends Specification {
         )
     }
 
-    void mutate(@DelegatesTo(ManagedSet) Closure<? super ManagedSet<NamedThing>> action) {
-        def mutator = Stub(ModelAction)
-        mutator.subject >> ModelReference.of(collectionPath, new ModelType<ManagedSet<NamedThing>>() {})
-        mutator.descriptor >> new SimpleModelRuleDescriptor("mutate collection")
-        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
-
-        registry.configure(ModelActionRole.Mutate, mutator)
+    void mutate(@DelegatesTo(ManagedSet) Closure<?> action) {
+        registry.mutate(reference, new ClosureBackedAction<>(action))
         registry.realizeNode(collectionPath)
     }
 
@@ -124,6 +128,46 @@ class ManagedSetModelProjectionTest extends Specification {
         set.containsAll(set.findAll { it.name == '1' })
         !set.containsAll(["green"])
         !set.containsAll([{} as NamedThing])
+    }
+
+    def "can configure children"() {
+        when:
+        mutate {
+            afterEach {
+                value += " after"
+            }
+            create { name = '1' }
+            beforeEach {
+                value = "before"
+            }
+            create { name = '2' }
+        }
+
+        then:
+        def set = registry.realize(collectionPath, collectionType).toList()
+        set[0].value == "before after"
+        set[1].value == "before after"
+    }
+
+    @Unroll
+    def "cannot configure children when used as an input - #method"() {
+        when:
+        registry.createInstance("things", []).mutate {
+            it.path("things").action(reference.path, reference.type, { things, set ->
+                set."$method" {
+
+                }
+            })
+        }
+
+        registry.get("things")
+
+        then:
+        def e = thrown ModelRuleExecutionException
+        e.cause instanceof ModelViewClosedException
+
+        where:
+        method << ["afterEach", "beforeEach"]
     }
 
 }

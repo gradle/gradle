@@ -20,18 +20,23 @@ import spock.lang.Specification
 
 class PluginsProjectConfigureActionsTest extends Specification {
     final def pluginsClassLoader = Mock(ClassLoader)
-    final def evaluator = new PluginsProjectConfigureActions(pluginsClassLoader)
+
+    private PluginsProjectConfigureActions createActions() {
+        new PluginsProjectConfigureActions(pluginsClassLoader)
+    }
 
     def "executes all implicit configuration actions"() {
         def project = Mock(ProjectInternal)
 
         when:
+        def evaluator = createActions()
+        evaluator.execute(project)
         evaluator.execute(project)
 
         then:
         1 * pluginsClassLoader.getResources('META-INF/services/org.gradle.configuration.project.ProjectConfigureAction') >> resources()
         1 * pluginsClassLoader.loadClass('ConfigureActionClass') >> TestConfigureAction
-        1 * project.setVersion(12)
+        2 * project.setVersion(12)
         0 * _._
     }
 

@@ -15,58 +15,56 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.transport.S3Transport;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.resource.transport.HttpTransport;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
-import org.gradle.internal.resource.transport.SftpTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class RepositoryTransportFactory {
-    private static final String[] SUPPORTED_SCHEMES = new String[]{"http", "https", "file", "sftp", "s3"};
+    private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
+
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
-    private final SftpClientFactory sftpClientFactory;
     private final CacheLockingManager cacheLockingManager;
 
-    public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
+                                      ProgressLoggerFactory progressLoggerFactory,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      SftpClientFactory sftpClientFactory,
                                       CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
-        this.sftpClientFactory = sftpClientFactory;
         this.cacheLockingManager = cacheLockingManager;
+
+        for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
+            register(connectorFactory);
+        }
     }
 
-    private RepositoryTransport createHttpTransport(String name, Credentials credentials) {
-        return new HttpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager);
-    }
-
-    private RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name);
-    }
-
-    private RepositoryTransport createSftpTransport(String name, Credentials credentials) {
-        return new SftpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory, cacheLockingManager);
+    public void register(ResourceConnectorFactory resourceConnectorFactory) {
+        registeredProtocols.add(resourceConnectorFactory);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Credentials credentials) {
@@ -86,36 +84,54 @@ public class RepositoryTransportFactory {
         return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
-    private RepositoryTransport createS3Transport(String name, Credentials credentials) {
-        return new S3Transport(name,
-                (AwsCredentials) credentials,
-                progressLoggerFactory,
-                temporaryFileProvider,
-                cachedExternalResourceIndex,
-                timeProvider,
-                cacheLockingManager);
-    }
-
     public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials) {
         validateSchemes(schemes);
-        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return createHttpTransport(name, credentials);
-        }
+
+        // File resources are handled slightly differently at present.
         if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return createFileTransport(name);
+            return new FileTransport(name);
         }
-        if (WrapUtil.toSet("sftp").containsAll(schemes)) {
-            return createSftpTransport(name, credentials);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);
+        ExternalResourceConnector resourceConnector = findRegisteredProtocol(schemes).createResourceConnector(connectionDetails);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
+    }
+
+    private void validateSchemes(Set<String> schemes) {
+        Set<String> validSchemes = Sets.newLinkedHashSet();
+        validSchemes.add("file");
+        for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
+            validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }
-        if (WrapUtil.toSet("s3").containsAll(schemes)) {
-            return createS3Transport(name, credentials);
+        for (String scheme : schemes) {
+            if (!validSchemes.contains(scheme)) {
+                throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
+            }
+        }
+    }
+
+    private ResourceConnectorFactory findRegisteredProtocol(Set<String> schemes) {
+        for (ResourceConnectorFactory protocolRegistration : registeredProtocols) {
+            if (protocolRegistration.getSupportedProtocols().containsAll(schemes)) {
+                return protocolRegistration;
+            }
         }
         throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 
-    private void validateSchemes(Set<String> schemes) {
-        if (!WrapUtil.toSet(SUPPORTED_SCHEMES).containsAll(schemes)) {
-            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https', 'sftp' and 's3' URLs for a repository.");
+    private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
+        private final Credentials credentials;
+
+        private DefaultResourceConnectorSpecification(Credentials credentials) {
+            this.credentials = credentials;
+        }
+
+        @Override
+        public <T> T getCredentials(Class<T> type) {
+            if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {
+                return type.cast(convertPasswordCredentials(credentials));
+            }
+            return type.cast(credentials);
         }
     }
+
 }

@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -34,9 +35,11 @@ import java.util.List;
 public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
+    private final Instantiator instantiator;
 
-    public DefaultModelCreatorFactory(ModelSchemaStore schemaStore) {
+    public DefaultModelCreatorFactory(ModelSchemaStore schemaStore, Instantiator instantiator) {
         this.schemaStore = schemaStore;
+        this.instantiator = instantiator;
         this.proxyFactory = new ManagedProxyFactory();
     }
 
@@ -64,8 +67,9 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
         // TODO reuse pooled projections
         if (schema instanceof ModelCollectionSchema) {
             ModelCollectionSchema<T> collectionSchema = (ModelCollectionSchema<T>) schema;
+            ModelSchema<?> elementSchema = schemaStore.getSchema(collectionSchema.getElementType());
             return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
-                    .withProjection(ManagedSetModelProjection.of(collectionSchema.getElementType(), schemaStore, this))
+                    .withProjection(ManagedSetModelProjection.of(elementSchema, this, instantiator))
                     .descriptor(descriptor)
                     .build();
         }

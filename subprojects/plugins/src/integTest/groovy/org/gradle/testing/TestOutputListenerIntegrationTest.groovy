@@ -56,7 +56,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
@@ -109,7 +109,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.onOutput { descriptor, event ->
     logger.lifecycle("first: " + event.message)
@@ -152,7 +152,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.testLogging {
     showStandardStreams = true

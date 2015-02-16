@@ -31,6 +31,8 @@ dependencies {
     testCompile libraries.xmlunit
 
     integTestCompile project(":ear")
+    integTestRuntime project(":resourcesS3")
+    integTestRuntime project(":resourcesSftp")
 }
 
 useTestFixtures()

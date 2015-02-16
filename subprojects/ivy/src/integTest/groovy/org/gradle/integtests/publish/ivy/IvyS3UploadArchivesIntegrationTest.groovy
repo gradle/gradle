@@ -15,9 +15,7 @@
  */
 
 package org.gradle.integtests.publish.ivy
-
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
-import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.server.s3.S3FileBackedServer
 
 class IvyS3UploadArchivesIntegrationTest extends AbstractIvyPublishIntegTest {
@@ -28,7 +26,7 @@ class IvyS3UploadArchivesIntegrationTest extends AbstractIvyPublishIntegTest {
 
     def setup() {
         server = new S3FileBackedServer(file())
-        executer.withArgument("-D${S3ConnectionProperties.S3_ENDPOINT_PROPERTY}=${server.getUri()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
     def "can publish archives to ivy repository"() {

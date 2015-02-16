@@ -27,7 +27,9 @@ import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import org.junit.experimental.categories.Category
 
+@Category(PerformanceTest)
 class AbstractCrossVersionPerformanceTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossVersionResultsStore()

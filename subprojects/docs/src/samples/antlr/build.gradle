@@ -11,7 +11,7 @@ repositories {
 dependencies {
     antlr "org.antlr:antlr:3.5.2" // use ANTLR version 3
 // END SNIPPET declare-dependency
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 // START SNIPPET declare-dependency
 }
 // END SNIPPET declare-dependency

@@ -13,9 +13,7 @@ repositories {
 
 dependencies {
     compile project(":core")
-    compile project(":resourcesHttp")
-    compile project(":resourcesS3")
-    compile project(":resourcesSftp")
+    compile project(":resources")
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy
@@ -34,6 +32,9 @@ dependencies {
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
+    integTestRuntime project(":resourcesHttp")
+    integTestRuntime project(":resourcesS3")
+    integTestRuntime project(":resourcesSftp")
     //this dependency is necessary to run IvySFtpResolverIntegrationTest on ibm jdk
     //integTestRuntime "org.bouncycastle:bcprov-jdk15:1.46@jar"
 

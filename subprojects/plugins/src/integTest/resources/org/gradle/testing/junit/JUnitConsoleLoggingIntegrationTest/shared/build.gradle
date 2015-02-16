@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
     compile "org.codehaus.groovy:groovy:2.3.9"
-    testCompile "junit:junit:4.11"
+    testCompile "junit:junit:4.12"
 }
 
 test {

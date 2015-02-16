@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Model
 import org.gradle.model.Mutate
@@ -38,7 +39,7 @@ import spock.lang.Specification
 
 class ScopedRuleTest extends Specification {
 
-    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultModelCreatorFactory(DefaultModelSchemaStore.getInstance()))
+    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultModelCreatorFactory(DefaultModelSchemaStore.getInstance(), new DirectInstantiator()))
     def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {

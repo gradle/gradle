@@ -38,7 +38,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile "junit:junit:4.11" }
+            dependencies { testCompile "junit:junit:4.12" }
         """
 
         and:
@@ -86,7 +86,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle') << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.10' }
+            dependencies { testCompile 'junit:junit:4.12' }
         """
 
         when:
@@ -129,7 +129,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies {
-                testCompile 'junit:junit:4.10'
+                testCompile 'junit:junit:4.12'
             }
         """
 
@@ -158,7 +158,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile "junit:junit:4.11" }
+            dependencies { testCompile "junit:junit:4.12" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -200,7 +200,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "junit:junit:4.11"        | "org.junit.runner.Result"
+        "useJUnit"  | "junit:junit:4.12"        | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
@@ -219,7 +219,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies{
-	                othertestsCompile "junit:junit:4.11"
+	                othertestsCompile "junit:junit:4.12"
                 }
 
                 task othertestsTest(type:Test){
@@ -282,7 +282,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 last 'com.google.collections:google-collections:1.0'
                 compile configurations.first + configurations.last
 
-                testCompile 'junit:junit:4.11'
+                testCompile 'junit:junit:4.12'
             }
         """
 
@@ -318,7 +318,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
                 mavenCentral()
             }
             dependencies {
-                testCompile 'junit:junit:4.11'
+                testCompile 'junit:junit:4.12'
             }
             tasks.withType(JavaCompile) {
                 options.with {

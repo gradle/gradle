@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
@@ -56,10 +56,10 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaD
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -170,22 +170,18 @@ class DependencyManagementBuildScopeServices {
         return resolverStrategy.getVersionComparator();
     }
 
-    SftpClientFactory createSftpClientFactory() {
-        return new SftpClientFactory();
-    }
-
     RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 ByUrlCachedExternalResourceIndex externalResourceIndex,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                                                SftpClientFactory sftpClientFactory,
-                                                                CacheLockingManager cacheLockingManager) {
+                                                                CacheLockingManager cacheLockingManager,
+                                                                ServiceRegistry serviceRegistry) {
         return new RepositoryTransportFactory(
+                serviceRegistry.getAll(ResourceConnectorFactory.class),
                 progressLoggerFactory,
                 temporaryFileProvider,
                 externalResourceIndex,
                 buildCommencedTimeProvider,
-                sftpClientFactory,
                 cacheLockingManager
         );
     }

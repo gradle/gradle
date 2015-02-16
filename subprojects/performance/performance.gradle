@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    junit 'junit:junit:4.11'
+    junit 'junit:junit:4.12'
     reports "jquery:jquery.min:1.11.0@js"
     reports "flot:flot:0.8.1:min@js"
 
@@ -244,7 +244,7 @@ task bigEmpty(type: ProjectGeneratorTask) {
 
 task all(dependsOn: generators)
 
-task prepareSamples(dependsOn: [small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject])
@@ -275,6 +275,9 @@ task performanceTest(type: Test) {
     dependsOn prepareSamples
     finalizedBy report
     maxParallelForks = 1
+    options {
+        includeCategories 'org.gradle.performance.PerformanceTest'
+    }
 }
 
 task performanceExperiments(type: Test) {
@@ -287,7 +290,7 @@ task performanceExperiments(type: Test) {
 }
 
 integTest {
-    // TODO - use categories for this
-    exclude "**/*PerformanceTest.*"
-    exclude "**/*StressTest.*"
+    options {
+        excludeCategories 'org.gradle.performance.PerformanceTest'
+    }
 }

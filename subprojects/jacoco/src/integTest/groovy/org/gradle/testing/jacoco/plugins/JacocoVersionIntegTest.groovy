@@ -37,7 +37,7 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
         }
 
         dependencies {
-            testCompile 'junit:junit:4.10'
+            testCompile 'junit:junit:4.12'
         }
         jacoco {
             toolVersion = '$version'

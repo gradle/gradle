@@ -11,7 +11,7 @@ configurations {
 
 dependencies {
     jmockit "com.googlecode.jmockit:jmockit:0.999.13"
-    testCompile "junit:junit:4.7"
+    testCompile "junit:junit:4.12"
 }
 
 test {

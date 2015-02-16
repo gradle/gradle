@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal
 
 import org.gradle.api.Transformer
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking
@@ -37,7 +38,7 @@ class TransformedModelDslBackingTest extends Specification {
     Transformer<List<ModelReference<?>>, Closure<?>> referenceExtractor = Mock()
     Transformer<SourceLocation, Closure<?>> locationExtractor = Mock()
     def schemaStore = DefaultModelSchemaStore.instance
-    def creator = new DefaultModelCreatorFactory(schemaStore)
+    def creator = new DefaultModelCreatorFactory(schemaStore, new DirectInstantiator())
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), schemaStore, creator, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {

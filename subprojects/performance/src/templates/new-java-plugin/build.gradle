@@ -1,8 +1,112 @@
-apply plugin: 'jvm-component'
-apply plugin: 'java-lang'
+import org.gradle.model.*
+
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
 
 model {
     components {
         main(JvmLibrarySpec)
     }
+    tasks {
+        create("test", Test) {
+            dependsOn "jar", "compileTestJava", "processTestResources"
+        }
+        create("compileTestJava", JavaCompile) {
+            dependsOn "jar"
+        }
+        create("processTestResources", Copy) {
+
+        }
+        create("extraTask1", MyTaskClass) {
+            description = name
+            doLast {}
+        }
+        create("extraTask2", MyTaskClass) {
+            description = name
+            doLast {}
+        }
+        create("extraTask3", MyTaskClass) {
+            description = name
+            doLast {}
+        }
+        create("extraTask4", MyTaskClass) {
+            description = name
+            doLast {}
+        }
+    }
+    tasks.check {
+        dependsOn "test"
+    }
+    tasks.build {
+        // not quite parity with the old build, we have no way of expressing
+        // tasks.build.dependsOn tasks.withType(Checkstyle)
+        dependsOn \$("tasks.checkstyleMain"), \$("tasks.checkstyleTest")
+    }
+
+    checkstyle(CheckstyleExtension) {
+        ignoreFailures = true
+    }
+
+    tasks {
+        create("checkstyleMain", Checkstyle)
+        create("checkstyleTest", Checkstyle)
+        withType(Checkstyle, CheckstyleTaskDefaults)
+    }
+
+    custom(CustomExtension) {
+        action = { println "" }
+        value = "."
+    }
+
+    tasks {
+        withType(MyTaskClass, TaskWiring)
+    }
+
+}
+
+class CheckstyleTaskDefaults extends RuleSource {
+    @Defaults
+    void add(Checkstyle task, CheckstyleExtension extension) {
+        task.ignoreFailures = extension.ignoreFailures
+    }
+}
+
+@Managed
+interface CheckstyleExtension {
+    Boolean getIgnoreFailures()
+    void setIgnoreFailures(Boolean flag)
+}
+
+@Managed
+interface CustomExtension {
+    @Unmanaged
+    Closure<?> getAction()
+    void setAction(Closure<?> action)
+    String getValue()
+    void setValue(String value)
+}
+
+class TaskWiring extends RuleSource {
+    @Mutate
+    void wire(MyTaskClass task, CustomExtension custom) {
+        task.doLast(custom.action)
+        10.times {
+            task.description += custom.value
+        }
+    }
+}
+
+class MyTaskClass extends DefaultTask {
+
+    @InputFiles
+    FileCollection input
+
+    @OutputFiles
+    FileCollection output
+
+    @Input
+    boolean flag
+
 }

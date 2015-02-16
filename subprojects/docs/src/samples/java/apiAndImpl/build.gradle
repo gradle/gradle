@@ -30,7 +30,7 @@ dependencies {
     implCompile sourceSets.api.output
     implCompile 'commons-lang:commons-lang:2.6'
 
-    testCompile 'junit:junit:4.9'
+    testCompile 'junit:junit:4.12'
     testCompile sourceSets.api.output
     testCompile sourceSets.impl.output
     runtime configurations.apiRuntime

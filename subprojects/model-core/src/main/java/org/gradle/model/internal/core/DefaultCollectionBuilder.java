@@ -21,11 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.ErroringAction;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.internal.core.rule.describe.ActionModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -149,7 +147,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new Append(name)));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
 
         ModelCreators.Builder creatorBuilder = creatorFunction.apply(modelNode.getPath().child(name), type);
 
@@ -176,12 +174,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void named(final String name, Action<? super T> configAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("named(").append(name).append(")");
-            }
-        }));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "named(%s)", name);
         ModelReference<T> subject = ModelReference.of(modelNode.getPath().child(name), elementType);
         modelNode.applyToLink(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
     }
@@ -193,24 +186,14 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
 
     @Override
     public void all(final Action<? super T> configAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("all()");
-            }
-        }));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "all()");
         ModelReference<T> subject = ModelReference.of(elementType);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<T>(subject, descriptor, configAction));
     }
 
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("withType()");
-            }
-        }));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "withType()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Mutate, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
@@ -231,12 +214,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("beforeEach()");
-            }
-        }));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "beforeEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Defaults, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
@@ -252,12 +230,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     }
 
     private <S> void doFinalizeAll(ModelType<S> type, Action<? super S> configAction) {
-        ModelRuleDescriptor descriptor = new NestedModelRuleDescriptor(sourceDescriptor, ActionModelRuleDescriptor.from(new ErroringAction<Appendable>() {
-            @Override
-            protected void doExecute(Appendable thing) throws Exception {
-                thing.append("afterEach()");
-            }
-        }));
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "afterEach()");
         ModelReference<S> subject = ModelReference.of(type);
         modelNode.applyToAllLinks(ModelActionRole.Finalize, new ActionBackedModelAction<S>(subject, descriptor, configAction));
     }
@@ -338,16 +311,4 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         };
     }
 
-    private static class Append extends ErroringAction<Appendable> {
-        private final String name;
-
-        public Append(String name) {
-            this.name = name;
-        }
-
-        @Override
-        protected void doExecute(Appendable thing) throws Exception {
-            thing.append("create(").append(name).append(")");
-        }
-    }
 }

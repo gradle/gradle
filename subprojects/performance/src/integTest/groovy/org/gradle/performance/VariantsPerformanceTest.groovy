@@ -33,10 +33,10 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
             forProject("${size}VariantsNewModel").displayName("new model").tasksToRun(task).useDaemon()
         }
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}VariantsNewModel").displayName("new model (reuse)").tasksToRun(task).useDaemon()
+            Toggles.transformedDsl(Toggles.modelReuse(it)).forProject("${size}VariantsNewModel").displayName("new model (reuse)").tasksToRun(task).useDaemon()
         }
         runner.buildSpec {
-            Toggles.noDaemonLogging(it).forProject("${size}VariantsNewModel").displayName("new model (no client logging)").tasksToRun(task).useDaemon()
+            Toggles.transformedDsl(Toggles.noDaemonLogging(it)).forProject("${size}VariantsNewModel").displayName("new model (no client logging)").tasksToRun(task).useDaemon()
         }
         runner.baseline {
             forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(task).useDaemon()

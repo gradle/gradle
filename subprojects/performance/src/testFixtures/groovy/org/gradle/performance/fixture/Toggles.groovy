@@ -21,11 +21,15 @@ import org.gradle.model.persist.ReusingModelRegistryStore
 class Toggles {
 
     static BuildSpecification.Builder modelReuse(BuildSpecification.Builder spec) {
-        spec.gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true", "-Dorg.gradle.model.dsl=true", "-Dorg.gradle.daemon.performance.expire-at=0")
+        spec.gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true", "-Dorg.gradle.daemon.performance.expire-at=0")
     }
 
     static BuildSpecification.Builder noDaemonLogging(BuildSpecification.Builder spec) {
         spec.gradleOpts("-Dorg.gradle.daemon.disable-output=true")
+    }
+
+    static BuildSpecification.Builder transformedDsl(BuildSpecification.Builder spec) {
+        spec.gradleOpts("-Dorg.gradle.model.dsl=true")
     }
 
 }

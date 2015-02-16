@@ -25,21 +25,63 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.Platform;
 import org.gradle.util.TreeVisitor;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 
 public class DefaultToolResolver implements ToolResolver {
-    @SuppressWarnings("rawtypes")
-    private Set<ToolChainInternal> toolChains;
+    private Set<ToolChainInternal<? extends Platform>> toolChains;
 
-    public DefaultToolResolver(@SuppressWarnings("rawtypes") ToolChainInternal... toolChains) {
-        this.toolChains = Sets.newHashSet(toolChains);
+    public DefaultToolResolver() {
+        this.toolChains = Sets.newHashSet();
     }
 
-    @Override
-    public ToolSearchResult checkToolAvailability(Platform requirement) {
+    public void registerToolChain(ToolChainInternal<? extends Platform> toolChain) {
+        toolChains.add(toolChain);
+    }
+
+    /**
+     * Finds the most inherited Platform parameter type of the select method on a toolchain.  It assumes that
+     * a ToolChainInternal has only one public declared select method.
+     */
+    private Class<? extends Platform> getPlatformType(ToolChainInternal<? extends Platform> toolChain) {
+        //TODO Do we want to support ToolChains with select methods for multiple platform types?
+        Class<?> toolChainClass = toolChain.getClass();
+        Class<? extends Platform> platformType = null;
+        for (Method method : toolChainClass.getMethods()) {
+            if (method.getName().equals("select") && Modifier.isPublic(method.getModifiers())) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 1 && Platform.class.isAssignableFrom(parameterTypes[0])) {
+                    @SuppressWarnings("unchecked") Class<? extends Platform> converted = (Class<? extends Platform>) parameterTypes[0];
+                    // Check to see if this type is more inherited than what has already been found
+                    // This filters out any methods from parent classes/interfaces
+                    if (platformType == null || platformType.isAssignableFrom(converted)) {
+                        platformType = converted;
+                    }
+                }
+            }
+        }
+        return platformType;
+    }
+
+    /**
+     * Filters the list of toolchains for only those that support the given platform
+     */
+    private <P extends Platform> Set<ToolChainInternal<P>> filterToolChains(P platform) {
+        Set<ToolChainInternal<P>> platformToolChains = Sets.newHashSet();
+        for (ToolChainInternal<? extends Platform> raw : toolChains) {
+            if (getPlatformType(raw).isAssignableFrom(platform.getClass())) {
+                @SuppressWarnings("unchecked") ToolChainInternal<P> converted = (ToolChainInternal<P>) raw;
+                platformToolChains.add(converted);
+            }
+        }
+        return platformToolChains;
+    }
+
+    protected <P extends Platform> ToolSearchResult findToolChain(P requirement) {
         ToolSearchFailure notAvailableResult = new ToolSearchFailure("No tool chains can satisfy the requirement");
-        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
-            @SuppressWarnings("unchecked") ToolSearchResult result = toolChain.select(requirement);
+        for (ToolChainInternal<P> toolChain : filterToolChains(requirement)) {
+            ToolSearchResult result = toolChain.select(requirement);
             if (result.isAvailable()) {
                 return result;
             } else {
@@ -50,31 +92,32 @@ public class DefaultToolResolver implements ToolResolver {
     }
 
     @Override
-    public <T> ResolvedTool<T> resolve(Class<T> toolType, Platform requirement) {
-        ResolvedToolSearchFailure<T> notAvailableResult = new ResolvedToolSearchFailure<T>(String.format("No tool chains can provide a tool of type %s", toolType.getSimpleName()));
-        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
-            @SuppressWarnings("unchecked") ToolProvider provider = toolChain.select(requirement);
-            if (provider.isAvailable()) {
-                return new DefaultResolvedTool<T>(provider, toolType);
-            } else {
-                notAvailableResult.addResult(provider);
-            }
-        }
-        return notAvailableResult;
+    public <P extends Platform> ToolSearchResult checkToolAvailability(P requirement) {
+        return findToolChain(requirement);
     }
 
     @Override
-    public <C extends CompileSpec> ResolvedTool<Compiler<C>> resolveCompiler(Class<C> specType, Platform requirement) {
-        CompilerSearchFailure<C> notAvailableResult = new CompilerSearchFailure<C>(String.format("No tool chains can provide a compiler for type %s", specType.getSimpleName()));
-        for (@SuppressWarnings("rawtypes") ToolChainInternal toolChain : toolChains) {
-            @SuppressWarnings("unchecked") ToolProvider provider = toolChain.select(requirement);
-            if (provider.isAvailable()) {
-                return new DefaultResolvedCompiler<C>(provider, specType);
-            } else {
-                notAvailableResult.addResult(provider);
-            }
+    public <T, P extends Platform> ResolvedTool<T> resolve(Class<T> toolType, P requirement) {
+        ToolSearchResult toolProvider = findToolChain(requirement);
+        if (toolProvider.isAvailable()) {
+            return new DefaultResolvedTool<T>((ToolProvider)toolProvider, toolType);
+        } else {
+            ResolvedToolSearchFailure<T> notAvailableResult = new ResolvedToolSearchFailure<T>(String.format("No tool chains can provide a tool of type %s", toolType.getSimpleName()));
+            notAvailableResult.addResult(toolProvider);
+            return notAvailableResult;
         }
-        return notAvailableResult;
+    }
+
+    @Override
+    public <C extends CompileSpec, P extends Platform> ResolvedTool<Compiler<C>> resolveCompiler(Class<C> specType, P requirement) {
+        ToolSearchResult toolProvider = findToolChain(requirement);
+        if (toolProvider.isAvailable()) {
+            return new DefaultResolvedCompiler<C>((ToolProvider)toolProvider, specType);
+        } else {
+            CompilerSearchFailure<C> notAvailableResult = new CompilerSearchFailure<C>(String.format("No tool chains can provide a compiler for type %s", specType.getSimpleName()));
+            notAvailableResult.addResult(toolProvider);
+            return notAvailableResult;
+        }
     }
 
     private static class ResolvedToolSearchFailure<T> extends ToolSearchFailure implements ResolvedTool<T> {

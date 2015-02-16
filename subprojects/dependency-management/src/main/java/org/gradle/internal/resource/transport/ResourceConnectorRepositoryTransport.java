@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,29 @@
 
 package org.gradle.internal.resource.transport;
 
-import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
-import org.gradle.internal.resource.transport.aws.s3.S3Client;
-import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties;
-import org.gradle.internal.resource.transport.aws.s3.S3ResourceConnector;
+import org.gradle.internal.resource.transfer.*;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-public class S3Transport extends AbstractRepositoryTransport {
+public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTransport {
     private final ExternalResourceRepository repository;
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public S3Transport(String name, AwsCredentials awsCredentials,
-                          ProgressLoggerFactory progressLoggerFactory,
-                          TemporaryFileProvider temporaryFileProvider,
-                          CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                          BuildCommencedTimeProvider timeProvider,
-                          CacheLockingManager cacheLockingManager) {
+    public ResourceConnectorRepositoryTransport(String name,
+                                                ProgressLoggerFactory progressLoggerFactory,
+                                                TemporaryFileProvider temporaryFileProvider,
+                                                CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                                BuildCommencedTimeProvider timeProvider,
+                                                CacheLockingManager cacheLockingManager,
+                                                ExternalResourceConnector connector) {
         super(name);
-        S3ResourceConnector connector = new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
-        ProgressLoggingExternalResourceUploader uploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
+        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheLockingManager);
-        repository = new DefaultExternalResourceRepository(name, connector, uploader, connector);
+        repository = new DefaultExternalResourceRepository(name, connector, loggingUploader, connector);
     }
 
     public ExternalResourceRepository getRepository() {

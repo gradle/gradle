@@ -49,7 +49,6 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
 
         then:
         scriptClass == TestScript
-        !compiledScript.hasImperativeStatements()
         compiledScript.metadata == metadata
         1 * emptyScriptGenerator.generate(Script) >> TestScript
         0 * emptyScriptGenerator._

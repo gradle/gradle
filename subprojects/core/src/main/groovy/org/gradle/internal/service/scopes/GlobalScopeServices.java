@@ -195,8 +195,8 @@ public class GlobalScopeServices {
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
     }
 
-    private DefaultModelCreatorFactory createModelCreatorFactory(ModelSchemaStore modelSchemaStore) {
-        return new DefaultModelCreatorFactory(modelSchemaStore);
+    private DefaultModelCreatorFactory createModelCreatorFactory(ModelSchemaStore modelSchemaStore, Instantiator instantiator) {
+        return new DefaultModelCreatorFactory(modelSchemaStore, instantiator);
     }
 
     protected ModelSchemaStore createModelSchemaStore() {
