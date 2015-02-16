@@ -23,8 +23,6 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.util.concurrent.Executors
-
 class DefaultOperationQueueTest extends Specification {
 
     class Success implements Runnable {
@@ -49,8 +47,8 @@ class DefaultOperationQueueTest extends Specification {
         }
     }
 
-    // Tests assume a single worker thread
-    ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(1))
+    // Tests use calling thread for execution
+    ListeningExecutorService executor = MoreExecutors.listeningDecorator(MoreExecutors.sameThreadExecutor())
     OperationQueue operationQueue = new DefaultOperationQueue(executor, new SimpleWorker())
 
     @Unroll
