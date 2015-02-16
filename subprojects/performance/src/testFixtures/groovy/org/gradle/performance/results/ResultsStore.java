@@ -19,6 +19,9 @@ package org.gradle.performance.results;
 import java.util.List;
 
 public interface ResultsStore {
+    /**
+     * Returns the names of the test cases known to this store, in display order.
+     */
     List<String> getTestNames();
 
     TestExecutionHistory getTestResults(String testName);

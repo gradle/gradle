@@ -19,16 +19,23 @@ package org.gradle.performance.results;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.performance.fixture.*;
+import org.gradle.performance.fixture.BuildSpecification;
+import org.gradle.performance.fixture.CrossBuildPerformanceResults;
+import org.gradle.performance.fixture.DataReporter;
+import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
-public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossBuildPerformanceResults> {
+public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossBuildPerformanceResults>, Closeable {
 
     private final File dbFile;
     private final H2FileDb db;

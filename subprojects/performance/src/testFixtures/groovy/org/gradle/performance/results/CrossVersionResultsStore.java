@@ -17,12 +17,16 @@
 package org.gradle.performance.results;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.performance.fixture.*;
+import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.CrossVersionPerformanceResults;
+import org.gradle.performance.fixture.DataReporter;
+import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.*;
 import java.text.DateFormat;
@@ -33,7 +37,7 @@ import java.util.*;
 /**
  * A {@link org.gradle.performance.fixture.DataReporter} implementation that stores results in an H2 relational database.
  */
-public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
+public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
     private final File dbFile;
     private final long ignoreV17Before;
     private final H2FileDb db;
