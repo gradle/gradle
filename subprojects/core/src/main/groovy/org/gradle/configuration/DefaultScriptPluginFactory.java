@@ -133,7 +133,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
-            BuildScriptMetadataExtractingTransformer transformer = new BuildScriptMetadataExtractingTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(),
+            BuildScriptMetadataExtractingTransformer transformer = new BuildScriptMetadataExtractingTransformer(classpathScriptTransformer.getId(), classpathScriptTransformer.invert(),
                     classpathClosureName, scriptSource);
 
 
