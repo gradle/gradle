@@ -29,18 +29,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
     private final Lock lock = new ReentrantLock();
-    private final JavaHomeProvider currentJvmJavaHomeProvider;
-    private final JavaHomeProvider systemPropertiesJavaHomeProvider;
-    private final JavaCompilerProvider javaCompilerProvider;
+    private final Factory<File> currentJvmJavaHomeFactory;
+    private final Factory<File> systemPropertiesJavaHomeFactory;
+    private final Factory<JavaCompiler> systemJavaCompilerFactory;
 
     public JavaHomeBasedJavaCompilerFactory() {
-        this(new CurrentJvmJavaHomeProvider(), new SystemPropertiesJavaHomeProvider(), new ToolProviderJavaCompilerProvider());
+        this(new CurrentJvmJavaHomeFactory(), new SystemPropertiesJavaHomeFactory(), new SystemJavaCompilerFactory());
     }
 
-    JavaHomeBasedJavaCompilerFactory(JavaHomeProvider currentJvmJavaHomeProvider, JavaHomeProvider systemPropertiesJavaHomeProvider, JavaCompilerProvider javaCompilerProvider) {
-        this.currentJvmJavaHomeProvider = currentJvmJavaHomeProvider;
-        this.systemPropertiesJavaHomeProvider = systemPropertiesJavaHomeProvider;
-        this.javaCompilerProvider = javaCompilerProvider;
+    JavaHomeBasedJavaCompilerFactory(Factory<File> currentJvmJavaHomeFactory, Factory<File> systemPropertiesJavaHomeFactory, Factory<JavaCompiler> systemJavaCompilerFactory) {
+        this.currentJvmJavaHomeFactory = currentJvmJavaHomeFactory;
+        this.systemPropertiesJavaHomeFactory = systemPropertiesJavaHomeFactory;
+        this.systemJavaCompilerFactory = systemJavaCompilerFactory;
     }
 
     public JavaCompiler create() {
@@ -54,44 +54,36 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
     }
 
     private JavaCompiler findCompiler() {
-        File realJavaHome = currentJvmJavaHomeProvider.getDir();
-        File javaHomeFromToolProvidersPointOfView = systemPropertiesJavaHomeProvider.getDir();
+        File realJavaHome = currentJvmJavaHomeFactory.create();
+        File javaHomeFromToolProvidersPointOfView = systemPropertiesJavaHomeFactory.create();
         if (realJavaHome.equals(javaHomeFromToolProvidersPointOfView)) {
-            return javaCompilerProvider.getCompiler();
+            return systemJavaCompilerFactory.create();
         }
 
         lock.lock();
         SystemProperties.setJavaHomeDir(realJavaHome);
         try {
-            return javaCompilerProvider.getCompiler();
+            return systemJavaCompilerFactory.create();
         } finally {
             SystemProperties.setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
             lock.unlock();
         }
     }
 
-    public static interface JavaHomeProvider extends Serializable {
-        File getDir();
-    }
-
-    public static class CurrentJvmJavaHomeProvider implements JavaHomeProvider {
-        public File getDir() {
+    public static class CurrentJvmJavaHomeFactory implements Factory<File>, Serializable {
+        public File create() {
             return Jvm.current().getJavaHome();
         }
     }
 
-    public static class SystemPropertiesJavaHomeProvider implements JavaHomeProvider {
-        public File getDir() {
+    public static class SystemPropertiesJavaHomeFactory implements Factory<File>, Serializable {
+        public File create() {
             return SystemProperties.getJavaHomeDir();
         }
     }
 
-    public static interface JavaCompilerProvider extends Serializable {
-        JavaCompiler getCompiler();
-    }
-
-    public static class ToolProviderJavaCompilerProvider implements JavaCompilerProvider {
-        public JavaCompiler getCompiler() {
+    public static class SystemJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
+        public JavaCompiler create() {
             return ToolProvider.getSystemJavaCompiler();
         }
     }
