@@ -41,18 +41,23 @@ public class BuildExperimentRunner {
         GradleInvocationSpec buildSpec = experiment.getBuildSpec();
         gcCollector.useDaemon(buildSpec.getUseDaemon());
 
-        for (int i = 0; i < experiment.getWarmUpCount(); i++) {
-            System.out.println();
-            System.out.println(String.format("Warm-up #%s", i + 1));
-            executerProvider.executer(buildSpec).run();
-        }
-        for (int i = 0; i < experiment.getInvocationCount(); i++) {
-            System.out.println();
-            System.out.println(String.format("Test run #%s", i + 1));
-            runOnce(buildSpec, results);
-        }
-        if (buildSpec.getUseDaemon()) {
-            executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
+        executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
+
+        try {
+            for (int i = 0; i < experiment.getWarmUpCount(); i++) {
+                System.out.println();
+                System.out.println(String.format("Warm-up #%s", i + 1));
+                runOnce(buildSpec, new MeasuredOperationList());
+            }
+            for (int i = 0; i < experiment.getInvocationCount(); i++) {
+                System.out.println();
+                System.out.println(String.format("Test run #%s", i + 1));
+                runOnce(buildSpec, results);
+            }
+        } finally {
+            if (buildSpec.getUseDaemon()) {
+                executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
+            }
         }
     }
 
