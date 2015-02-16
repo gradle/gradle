@@ -90,8 +90,8 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         }
 
         public void onFailure(Throwable t) {
-            finished.countDown();
             failures.add(t);
+            finished.countDown();
         }
     }
 
