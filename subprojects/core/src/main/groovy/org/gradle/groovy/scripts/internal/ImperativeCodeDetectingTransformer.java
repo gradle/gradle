@@ -78,7 +78,9 @@ public class ImperativeCodeDetectingTransformer extends AbstractScriptTransforme
         }
 
         ImperativeCodeDetectingVisitor visitor = new ImperativeCodeDetectingVisitor(scriptBlockNames);
-        statementBlock.visit(visitor);
+        for (int i = 0; i < statements.size() && !visitor.isImperativeStatementDetected(); i++) {
+            statements.get(i).visit(visitor);
+        }
         imperativeStatementDetected = visitor.isImperativeStatementDetected();
     }
 
