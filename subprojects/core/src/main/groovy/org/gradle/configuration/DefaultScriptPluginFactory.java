@@ -154,7 +154,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             };
 
             if (!runner.getCompiledScript().getMetadata() && target instanceof ProjectInternal) {
-                ((ProjectInternal) target).setModelRulesBlockRunner(buildScriptRunner);
+                ((ProjectInternal) target).addModelRulesBlockRunner(buildScriptRunner);
             } else {
                 buildScriptRunner.run();
             }

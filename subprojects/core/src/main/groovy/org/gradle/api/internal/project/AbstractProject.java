@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Runnables;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
@@ -142,7 +142,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private final Path path;
 
-    private Runnable modelRulesBlockRunner = Runnables.doNothing();
+    private SingleRunCompositeRunnable modelRulesBlockRunner = new SingleRunCompositeRunnable();
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -968,9 +968,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
     }
 
-    @Override
-    public void setModelRulesBlockRunner(final Runnable modelRulesBlockRunner) {
-        this.modelRulesBlockRunner = new SingleRunRunnable(modelRulesBlockRunner);
+    public void addModelRulesBlockRunner(Runnable runnable) {
+        modelRulesBlockRunner.add(runnable);
     }
 
     @Override
@@ -978,19 +977,21 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRulesBlockRunner.run();
     }
 
-    private static class SingleRunRunnable implements Runnable {
-        private final Runnable runnable;
+    private static class SingleRunCompositeRunnable implements Runnable {
         private boolean hasRun;
-
-        public SingleRunRunnable(Runnable runnable) {
-            this.runnable = runnable;
-        }
+        private LinkedList<Runnable> runnables = Lists.newLinkedList();
 
         public void run() {
             if (!hasRun) {
                 hasRun = true;
-                runnable.run();
+                for (Runnable runnable : runnables) {
+                    runnable.run();
+                }
             }
+        }
+
+        public void add(Runnable runnable) {
+            runnables.add(runnable);
         }
     }
 }
