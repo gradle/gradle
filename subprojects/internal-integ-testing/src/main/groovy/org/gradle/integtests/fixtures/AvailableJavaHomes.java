@@ -186,7 +186,7 @@ abstract public class AvailableJavaHomes {
         public List<JvmInstallation> findJvms() {
             Set<File> javaHomes = new HashSet<File>();
             List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
-            for (File file : new File(SystemProperties.getUserHome()).listFiles()) {
+            for (File file : new File(SystemProperties.getInstance().getUserHome()).listFiles()) {
                 Matcher matcher = JDK_DIR.matcher(file.getName());
                 if (!matcher.matches()) {
                     continue;

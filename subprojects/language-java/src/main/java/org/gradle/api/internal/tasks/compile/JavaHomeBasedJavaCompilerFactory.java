@@ -61,11 +61,11 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
         }
 
         lock.lock();
-        SystemProperties.setJavaHomeDir(realJavaHome);
+        SystemProperties.getInstance().setJavaHomeDir(realJavaHome);
         try {
             return systemJavaCompilerFactory.create();
         } finally {
-            SystemProperties.setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
+            SystemProperties.getInstance().setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
             lock.unlock();
         }
     }
@@ -78,7 +78,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
 
     public static class SystemPropertiesJavaHomeFactory implements Factory<File>, Serializable {
         public File create() {
-            return SystemProperties.getJavaHomeDir();
+            return SystemProperties.getInstance().getJavaHomeDir();
         }
     }
 

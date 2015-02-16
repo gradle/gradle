@@ -111,7 +111,7 @@ public class SimpleMarkupWriter extends Writer {
         }
         maybeFinishStartTag();
         if (indent != null) {
-            writeRaw(SystemProperties.getLineSeparator());
+            writeRaw(SystemProperties.getInstance().getLineSeparator());
             for (int i = 0; i < elements.size(); i++) {
                 writeRaw(indent);
             }
@@ -135,7 +135,7 @@ public class SimpleMarkupWriter extends Writer {
             elements.removeLast();
         } else {
             if (context != Context.Text && indent != null) {
-                writeRaw(SystemProperties.getLineSeparator());
+                writeRaw(SystemProperties.getInstance().getLineSeparator());
                 for (int i = 1; i < elements.size(); i++) {
                     writeRaw(indent);
                 }
@@ -146,7 +146,7 @@ public class SimpleMarkupWriter extends Writer {
         }
         if (elements.isEmpty()) {
             if (indent != null) {
-                writeRaw(SystemProperties.getLineSeparator());
+                writeRaw(SystemProperties.getInstance().getLineSeparator());
             }
             output.flush();
             context = Context.Outside;

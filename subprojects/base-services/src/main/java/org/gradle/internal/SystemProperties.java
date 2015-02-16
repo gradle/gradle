@@ -60,36 +60,42 @@ public class SystemProperties {
             "java.runtime.version"
     );
 
+    private static final SystemProperties INSTANCE = new SystemProperties();
+
+    public static SystemProperties getInstance() {
+        return INSTANCE;
+    }
+
     @SuppressWarnings("unchecked")
-    public static Map<String, String> asMap() {
+    public Map<String, String> asMap() {
         return (Map) System.getProperties();
     }
 
-    public static String getLineSeparator() {
+    public String getLineSeparator() {
         return System.getProperty("line.separator");
     }
 
-    public static String getJavaIoTmpDir() {
+    public String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }
 
-    public static String getUserHome() {
+    public String getUserHome() {
         return System.getProperty("user.home");
     }
 
-    public static String getJavaVersion() {
+    public String getJavaVersion() {
         return System.getProperty("java.version");
     }
 
-    public static File getCurrentDir() {
+    public File getCurrentDir() {
         return new File(System.getProperty("user.dir"));
     }
 
-    public static File getJavaHomeDir() {
+    public File getJavaHomeDir() {
         return new File(System.getProperty("java.home"));
     }
 
-    public static void setJavaHomeDir(File javaHomeDir) {
+    public void setJavaHomeDir(File javaHomeDir) {
         System.setProperty("java.home", javaHomeDir.getAbsolutePath());
     }
 
@@ -97,7 +103,7 @@ public class SystemProperties {
      * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.
      */
-    public static Set<String> getStandardProperties() {
+    public Set<String> getStandardProperties() {
         return STANDARD_PROPERTIES;
     }
 
@@ -108,7 +114,7 @@ public class SystemProperties {
      * @return the set of keys of {@code System.getProperties()} which should not be adjusted
      *   by client code. This method never returns {@code null}.
      */
-    public static Set<String> getNonStandardImportantProperties() {
+    public Set<String> getNonStandardImportantProperties() {
         return IMPORTANT_NON_STANDARD_PROPERTIES;
     }
 }

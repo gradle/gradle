@@ -48,7 +48,7 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
     String getValue() {
         StringBuilder normalised = new StringBuilder()
 
-        String eol = SystemProperties.lineSeparator
+        String eol = SystemProperties.instance.lineSeparator
         boolean inStackTrace = false
         new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
             if (line == '\n') {

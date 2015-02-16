@@ -216,7 +216,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
         if (errors.size() > 0) {
             throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",
-                    metadata.getId(), Joiner.on(SystemProperties.getLineSeparator()).join(errors)));
+                    metadata.getId(), Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(errors)));
         }
     }
 

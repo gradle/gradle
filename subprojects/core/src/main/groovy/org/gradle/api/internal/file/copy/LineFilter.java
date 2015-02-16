@@ -66,7 +66,7 @@ public class LineFilter extends Reader {
         StringBuilder result = new StringBuilder();
         result.append(closure.call(line.toString()).toString());
         if (eol) {
-            result.append(SystemProperties.getLineSeparator());
+            result.append(SystemProperties.getInstance().getLineSeparator());
         }
         return result.toString();
     }

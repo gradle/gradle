@@ -164,7 +164,7 @@ public class NativeServices extends DefaultServiceRegistry {
         StringBuilder builder = new StringBuilder();
         builder.append(throwable.toString());
         for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
-            builder.append(SystemProperties.getLineSeparator());
+            builder.append(SystemProperties.getInstance().getLineSeparator());
             builder.append("caused by: ");
             builder.append(current.toString());
         }

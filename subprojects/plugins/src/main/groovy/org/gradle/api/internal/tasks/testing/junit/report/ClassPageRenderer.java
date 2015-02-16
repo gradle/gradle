@@ -73,7 +73,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             for (TestFailure failure : test.getFailures()) {
                 String message;
                 if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
-                    message = failure.getMessage() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator() + failure.getStackTrace();
+                    message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();
                 } else {
                     message = failure.getStackTrace();
                 }

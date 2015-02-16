@@ -78,7 +78,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         1 * systemPropertiesJavaHomeFactory.create() >> javaHomeFromToolProvidersPointOfView
         1 * systemJavaCompilerFactory.create() >> javaCompiler
         javaCompiler == expectedJavaCompiler
-        SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
+        SystemProperties.instance.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
@@ -97,7 +97,7 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         threadCount * currentJvmJavaHomeFactory.create() >> realJavaHome
         threadCount * systemPropertiesJavaHomeFactory.create() >> javaHomeFromToolProvidersPointOfView
         threadCount * systemJavaCompilerFactory.create() >> javaCompiler
-        assert SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
+        assert SystemProperties.instance.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
 
     def concurrent(int count, Closure closure) {

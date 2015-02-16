@@ -116,7 +116,7 @@ public class Jvm implements JavaInfo {
         if (userSupplied) {
             return "User-supplied java: " + javaBase;
         }
-        return String.format("%s (%s %s)", SystemProperties.getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+        return String.format("%s (%s %s)", SystemProperties.getInstance().getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
     private File findExecutable(String command) {
@@ -221,7 +221,7 @@ public class Jvm implements JavaInfo {
         if (os.isWindows()) {
             File jreDir;
             if (javaVersion.isJava5()) {
-                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getJavaVersion()));
+                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getInstance().getJavaVersion()));
             } else {
                 jreDir = new File(javaHome.getParentFile(), String.format("jre%s", javaVersion.getMajorVersion()));
             }
@@ -260,7 +260,7 @@ public class Jvm implements JavaInfo {
         }
 
         if (os.isWindows()) {
-            String version = SystemProperties.getJavaVersion();
+            String version = SystemProperties.getInstance().getJavaVersion();
             if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s", version))) {
                 javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", version));
                 toolsJar = new File(javaHome, "lib/tools.jar");

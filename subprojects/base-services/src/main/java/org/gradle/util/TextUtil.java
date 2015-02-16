@@ -43,7 +43,7 @@ public class TextUtil {
      * Returns the line separator for this platform.
      */
     public static String getPlatformLineSeparator() {
-        return SystemProperties.getLineSeparator();
+        return SystemProperties.getInstance().getLineSeparator();
     }
 
     /**

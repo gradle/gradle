@@ -145,11 +145,11 @@ public class RuleVisitor extends CodeVisitorSupport {
             } catch (ModelPath.InvalidPathException e) {
                 // TODO find a better way to present this information in the error message
                 // Attempt to mimic Gradle nested exception output
-                String message = "Invalid model path given as rule input." + SystemProperties.getLineSeparator()
+                String message = "Invalid model path given as rule input." + SystemProperties.getInstance().getLineSeparator()
                         + "  > " + e.getMessage();
                 if (e.getCause() != null) {
                     // if there is a cause, it's an invalid name exception
-                    message += SystemProperties.getLineSeparator() + "    > " + e.getCause().getMessage();
+                    message += SystemProperties.getInstance().getLineSeparator() + "    > " + e.getCause().getMessage();
                 }
                 error(argExpression, message);
                 return;

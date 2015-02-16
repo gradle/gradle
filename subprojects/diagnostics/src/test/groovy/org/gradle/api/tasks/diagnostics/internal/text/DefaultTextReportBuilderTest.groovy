@@ -27,7 +27,7 @@ class DefaultTextReportBuilderTest extends Specification {
     def output = new TestStyledTextOutput()
     def fileResolver = Stub(FileResolver)
     def builder = new DefaultTextReportBuilder(output, fileResolver)
-    def eol = SystemProperties.getLineSeparator()
+    def eol = SystemProperties.instance.getLineSeparator()
 
     def "formats heading"() {
         given:

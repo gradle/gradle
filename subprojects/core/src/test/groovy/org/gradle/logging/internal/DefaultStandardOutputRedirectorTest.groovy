@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultStandardOutputRedirectorTest extends Specification {
-    private static final String EOL = SystemProperties.lineSeparator
+    private static final String EOL = SystemProperties.instance.lineSeparator
 
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final DefaultStandardOutputRedirector redirector = new DefaultStandardOutputRedirector()

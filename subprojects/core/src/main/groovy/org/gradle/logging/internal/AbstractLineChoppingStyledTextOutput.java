@@ -25,7 +25,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private int seenCharsFromEol;
 
     protected AbstractLineChoppingStyledTextOutput() {
-        eol = SystemProperties.getLineSeparator().toCharArray();
+        eol = SystemProperties.getInstance().getLineSeparator().toCharArray();
     }
 
     @Override

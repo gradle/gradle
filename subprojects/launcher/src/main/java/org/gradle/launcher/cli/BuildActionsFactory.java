@@ -193,7 +193,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {
-        return new RunBuildAction(executer, startParameter, SystemProperties.getCurrentDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv());
+        return new RunBuildAction(executer, startParameter, SystemProperties.getInstance().getCurrentDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv());
     }
 
     private long getBuildStartTime() {

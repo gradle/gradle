@@ -271,7 +271,7 @@ public class Matchers {
         return new BaseMatcher<String>() {
             public boolean matches(Object o) {
                 String string = (String) o;
-                return matcher.matches(string.replace(SystemProperties.getLineSeparator(), "\n"));
+                return matcher.matches(string.replace(SystemProperties.getInstance().getLineSeparator(), "\n"));
             }
 
             public void describeTo(Description description) {

@@ -41,7 +41,7 @@ public class LineBufferingOutputStream extends OutputStream {
         bufferIncrement = bufferLength;
         buf = new byte[bufferLength];
         count = 0;
-        lineSeparator = SystemProperties.getLineSeparator().getBytes();
+        lineSeparator = SystemProperties.getInstance().getLineSeparator().getBytes();
     }
 
     /**

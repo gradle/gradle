@@ -137,7 +137,7 @@ public class GradlePluginLord {
 
         //create the queue that executes the commands. The contents of this interaction are where we actually launch gradle.
 
-        currentDirectory = SystemProperties.getCurrentDir();
+        currentDirectory = SystemProperties.getInstance().getCurrentDir();
 
         String gradleHomeProperty = System.getProperty("gradle.home");
         if (gradleHomeProperty != null) {

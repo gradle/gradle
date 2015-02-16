@@ -28,7 +28,7 @@ import static org.gradle.logging.StyledTextOutput.Style;
  * progress of operations.
  */
 public class ProgressLogEventGenerator implements OutputEventListener {
-    private static final String EOL = SystemProperties.getLineSeparator();
+    private static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;
     private final boolean deferHeader;

@@ -338,7 +338,7 @@ public class XmlTransformer implements Transformer<String, String> {
                     writer.write("\"");
                 }
                 writer.write("?>");
-                writer.write(SystemProperties.getLineSeparator());
+                writer.write(SystemProperties.getInstance().getLineSeparator());
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

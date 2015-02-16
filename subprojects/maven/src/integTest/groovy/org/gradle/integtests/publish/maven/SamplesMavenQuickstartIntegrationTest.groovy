@@ -52,7 +52,7 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = maven(new TestFile("$SystemProperties.instance.userHome/.m2/repository"))
         def module = repo.module('gradle', 'quickstart', '1.0')
         module.moduleDir.deleteDir()
 

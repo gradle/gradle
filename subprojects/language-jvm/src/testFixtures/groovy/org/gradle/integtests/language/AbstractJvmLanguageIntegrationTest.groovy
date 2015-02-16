@@ -167,7 +167,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     }
 
     def exluceStatementFor(List<String> fileExtensions) {
-        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.lineSeparator)
+        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
     def "can configure output directories for classes and resources"() {

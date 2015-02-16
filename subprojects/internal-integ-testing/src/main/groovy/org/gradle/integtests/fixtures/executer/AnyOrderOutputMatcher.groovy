@@ -25,7 +25,7 @@ import org.gradle.internal.SystemProperties
  * Checks that all lines contained in the expected output are present in the actual output, in any order.
  */
 class AnyOrderOutputMatcher extends SequentialOutputMatcher {
-    private static final String NL = SystemProperties.lineSeparator
+    private static final String NL = SystemProperties.instance.lineSeparator
 
     protected void assertOutputLinesMatch(List<String> expectedLines, List<String> actualLines, boolean ignoreExtraLines, String actual) {
         List<String> unmatchedLines = new ArrayList<String>(actualLines)

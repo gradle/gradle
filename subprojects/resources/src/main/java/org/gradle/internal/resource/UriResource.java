@@ -184,7 +184,7 @@ public class UriResource implements Resource {
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
         String javaVendor = System.getProperty("java.vendor");
-        String javaVersion = SystemProperties.getJavaVersion();
+        String javaVersion = SystemProperties.getInstance().getJavaVersion();
         String javaVendorVersion = System.getProperty("java.vm.version");
         return String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
                 GradleVersion.current().getVersion(),

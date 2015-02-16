@@ -37,7 +37,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
 
     public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
-                this.parameters.getEffectiveSystemProperties(), System.getenv(), SystemProperties.getCurrentDir(), actionParameters.getBuildLogLevel());
+                this.parameters.getEffectiveSystemProperties(), System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
         try {
             return executer.execute(action, cancellationToken, parameters);
         } catch (ReportedException e) {

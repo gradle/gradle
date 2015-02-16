@@ -287,7 +287,7 @@ public class Application implements AlternateUIInteraction {
      * @return the file that we save our settings to.
      */
     private File getSettingsFile() {
-        return new File(SystemProperties.getCurrentDir(), "gradle-app" + SETTINGS_EXTENSION);
+        return new File(SystemProperties.getInstance().getCurrentDir(), "gradle-app" + SETTINGS_EXTENSION);
     }
 
     private class SettingsImportInteraction implements DOM4JSerializer.ImportInteraction {

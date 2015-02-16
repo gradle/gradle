@@ -78,6 +78,6 @@ class LineFilterTest {
     }
 
     private String lines(String ... lines) {
-        (lines as List).join(SystemProperties.lineSeparator)
+        (lines as List).join(SystemProperties.instance.lineSeparator)
     }
 }

@@ -36,7 +36,7 @@ import org.junit.runner.notification.RunNotifier
 import java.util.regex.Pattern
 
 class UserGuideSamplesRunner extends Runner {
-    private static final String NL = SystemProperties.lineSeparator
+    private static final String NL = SystemProperties.instance.lineSeparator
 
     private Class<?> testClass
     private Description description

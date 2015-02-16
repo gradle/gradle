@@ -64,7 +64,7 @@ public class MavenProjectsCreator {
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
         MavenExecutionRequest executionRequest = new DefaultMavenExecutionRequest();
         final Properties properties = new Properties();
-        properties.putAll(SystemProperties.asMap());
+        properties.putAll(SystemProperties.getInstance().asMap());
         executionRequest.setSystemProperties(properties);
         MavenExecutionRequestPopulator populator = container.lookup(MavenExecutionRequestPopulator.class);
         populator.populateFromSettings(executionRequest, settings);

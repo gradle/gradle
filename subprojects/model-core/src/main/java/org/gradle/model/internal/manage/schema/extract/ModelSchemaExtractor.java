@@ -24,14 +24,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 import java.util.Queue;
-
-import static org.gradle.internal.SystemProperties.getLineSeparator;
 
 @ThreadSafe
 class ModelSchemaExtractor {
@@ -100,7 +99,7 @@ class ModelSchemaExtractor {
     }
 
     private String getSupportedTypesDescription() {
-        return Joiner.on(getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
+        return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
             public String apply(String input) {
                 return " - " + input;
             }

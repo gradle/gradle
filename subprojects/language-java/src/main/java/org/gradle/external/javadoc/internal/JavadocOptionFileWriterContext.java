@@ -24,8 +24,6 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 
-import static org.gradle.internal.SystemProperties.getLineSeparator;
-
 public class JavadocOptionFileWriterContext {
     private final Writer writer;
 
@@ -39,7 +37,7 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext newLine() throws IOException {
-        writer.write(SystemProperties.getLineSeparator());
+        writer.write(SystemProperties.getInstance().getLineSeparator());
         return this;
     }
 
@@ -71,7 +69,7 @@ public class JavadocOptionFileWriterContext {
                 //below does not help on windows environments. I was unable to get plain javadoc utility to work successfully with multiline options _in_ the options file.
                 //at least, it will work out of the box on linux or mac environments.
                 //on windows, the options file will have correct contents according to the javadoc spec but it may not work (the failure will be exactly the same as if we didn't replace line breaks)
-                .replaceAll(getLineSeparator(), "\\\\" + getLineSeparator()));
+                .replaceAll(SystemProperties.getInstance().getLineSeparator(), "\\\\" + SystemProperties.getInstance().getLineSeparator()));
         write("\'");
         return this;
     }

@@ -34,7 +34,7 @@ class AutoTestedSamplesUtil {
     }
 
     String findDir(String dir) {
-        def workDir = SystemProperties.currentDir
+        def workDir = SystemProperties.instance.currentDir
         def candidates = [
             "$workDir/$dir",        //when ran from IDEA
             "$workDir/../../$dir"  //when ran from command line
