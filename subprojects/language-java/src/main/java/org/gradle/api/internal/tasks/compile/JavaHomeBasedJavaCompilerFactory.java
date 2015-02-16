@@ -29,9 +29,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
     private final Lock lock = new ReentrantLock();
-    private JavaHomeProviderFacade currentJvmJavaHomeProviderFacade = new CurrentJvmJavaHomeProviderFacade();
-    private JavaHomeProviderFacade systemPropertiesJavaHomeProviderFacade = new SystemPropertiesJavaHomeProviderFacade();
-    private JavaCompilerProviderFacade javaCompilerProviderFacade = new ToolProviderJavaCompilerProviderFacade();
+    private JavaHomeProvider currentJvmJavaHomeProvider = new CurrentJvmJavaHomeProvider();
+    private JavaHomeProvider systemPropertiesJavaHomeProvider = new SystemPropertiesJavaHomeProvider();
+    private JavaCompilerProvider javaCompilerProvider = new ToolProviderJavaCompilerProvider();
 
     public JavaCompiler create() {
         JavaCompiler compiler = findCompiler();
@@ -44,43 +44,43 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
     }
 
     private JavaCompiler findCompiler() {
-        File realJavaHome = currentJvmJavaHomeProviderFacade.getDir();
-        File javaHomeFromToolProvidersPointOfView = systemPropertiesJavaHomeProviderFacade.getDir();
+        File realJavaHome = currentJvmJavaHomeProvider.getDir();
+        File javaHomeFromToolProvidersPointOfView = systemPropertiesJavaHomeProvider.getDir();
         if (realJavaHome.equals(javaHomeFromToolProvidersPointOfView)) {
-            return javaCompilerProviderFacade.getCompiler();
+            return javaCompilerProvider.getCompiler();
         }
 
         lock.lock();
         SystemProperties.setJavaHomeDir(realJavaHome);
         try {
-            return javaCompilerProviderFacade.getCompiler();
+            return javaCompilerProvider.getCompiler();
         } finally {
             SystemProperties.setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
             lock.unlock();
         }
     }
 
-    public static interface JavaHomeProviderFacade extends Serializable {
+    public static interface JavaHomeProvider extends Serializable {
         File getDir();
     }
 
-    public static class CurrentJvmJavaHomeProviderFacade implements JavaHomeProviderFacade {
+    public static class CurrentJvmJavaHomeProvider implements JavaHomeProvider {
         public File getDir() {
             return Jvm.current().getJavaHome();
         }
     }
 
-    public static class SystemPropertiesJavaHomeProviderFacade implements JavaHomeProviderFacade {
+    public static class SystemPropertiesJavaHomeProvider implements JavaHomeProvider {
         public File getDir() {
             return SystemProperties.getJavaHomeDir();
         }
     }
 
-    public static interface JavaCompilerProviderFacade extends Serializable {
+    public static interface JavaCompilerProvider extends Serializable {
         JavaCompiler getCompiler();
     }
 
-    public static class ToolProviderJavaCompilerProviderFacade implements JavaCompilerProviderFacade {
+    public static class ToolProviderJavaCompilerProvider implements JavaCompilerProvider {
         public JavaCompiler getCompiler() {
             return ToolProvider.getSystemJavaCompiler();
         }
