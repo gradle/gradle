@@ -124,8 +124,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         }
 
         public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
-            // TODO: Provide a valid BuildOperationProcessor?
-            return new UnavailablePlatformToolProvider(null, targetPlatform.getOperatingSystem(), failure);
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 
         public String getOutputType() {
