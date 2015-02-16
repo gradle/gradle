@@ -19,7 +19,6 @@ import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -71,28 +70,7 @@ class DefaultOperationQueueTest extends Specification {
         1    | _
         5    | _
     }
-
-    @Ignore("We want to keep going for now, but in the future we'll want to cancel early")
-    def "execution stops once failure occurs"() {
-        given:
-        def operationBefore = Mock(Runnable)
-        def failure = new Failure()
-        def operationAfter = Mock(Runnable)
-
-        when:
-        operationQueue.add(operationBefore)
-        operationQueue.add(failure)
-        operationQueue.add(operationAfter)
-
-        and:
-        operationQueue.waitForCompletion()
-
-        then:
-        1 * operationBefore.run()
-        thrown GradleException
-        0 * operationAfter.run()
-    }
-
+    
     def "cannot use operation queue once it has completed"() {
         given:
         operationQueue.waitForCompletion()
@@ -110,18 +88,26 @@ class DefaultOperationQueueTest extends Specification {
         operationQueue.add(firstOperation)
         operationQueue.add(secondOperation)
         operationQueue.add(thirdOperation)
+        def failureCount = [ firstOperation, secondOperation, thirdOperation ].findAll({it instanceof Failure}).size()
 
         when:
         operationQueue.waitForCompletion()
 
         then:
-        thrown MultipleBuildOperationFailures
+        // assumes we don't fail early
+        MultipleBuildOperationFailures e = thrown()
+        e.getCauses().every({ it instanceof GradleException })
+        e.getCauses().size() == failureCount
 
         where:
         firstOperation | secondOperation | thirdOperation
         new Success() | new Success() | new Failure()
         new Success() | new Failure() | new Success()
         new Failure() | new Success() | new Success()
+        new Failure() | new Failure() | new Failure()
+        new Failure() | new Failure() | new Success()
+        new Failure() | new Success() | new Failure()
+        new Success() | new Failure() | new Failure()
     }
 
     def "all failures reported in order"() {
@@ -137,10 +123,10 @@ class DefaultOperationQueueTest extends Specification {
         })
 
         when:
-        // assumes we don't fail early
         operationQueue.waitForCompletion()
 
         then:
+        // assumes we don't fail early
         MultipleBuildOperationFailures e = thrown()
         e.getCauses()*.message == [ 'first', 'second', 'third' ]
     }
