@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry
 
+import org.gradle.api.Transformer
 import org.gradle.internal.Factory
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -122,4 +123,25 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.node("things.bar").state == ModelNode.State.Known
     }
 
+    def "nodes with creators dependent on ephemeral nodes are reset"() {
+            when:
+            def val = "1"
+            registry.create("foo") { it.ephemeral(true).unmanaged(List, { [] } as Factory) }
+            registry.create("bar") { it.ephemeral(false).unmanaged(Queue, List, { it } as Transformer) }
+            registry.mutate(List) {
+                it.add val
+            }
+
+            then:
+            registry.get("foo") == ["1"]
+            registry.get("bar") == ["1"]
+
+            when:
+            val = "2"
+            registry.prepareForReuse()
+
+            then:
+            registry.get("foo") == ["2"]
+            registry.get("bar") == ["2"]
+    }
 }

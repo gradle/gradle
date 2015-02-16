@@ -393,6 +393,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 forceBind(creatorBinder);
             }
             doCreate(node, creatorBinder);
+            node.notifyFired(creatorBinder);
             node.setState(Created);
 
             if (desired == Created) {
