@@ -305,6 +305,21 @@ you may migrate your Gradle build to the new syntax.
 Note that this functionality is a work-in-progress, and in some cases it may be preferable to remain on an earlier version of Gradle until
 it has stabilised.
 
+### Gradle no long builds native binaries for all defined platforms
+
+For the new `jvm-component` plugins, the set of available Java platforms is not defined by the user. This is different from how the native language
+plugins worked, in that they assumed that the build script defined the entire set of known platforms.
+
+Going forward, we feel that the jvm model is better, where Gradle can resolve a platform from an unbounded set of platforms. 
+Platform definitions could come from a number of sources: downloaded via plugins, defined in a build script, or by inspecting the local environment.
+
+This version of Gradle takes a step in that direction, by changing the semantic of which platform variants will be built for a defined
+`NativeExecutableSpec` or `NativeLibrarySpec`. If no `targetPlatform` is specified, Gradle will make an attempt to build for the 'current'
+platform. If you wish to build for a different platform (or if Gradle gets the 'current' platform wrong), you will need to specify
+the `targetPlatform` for your native binary.
+
+Expect this mechanism to change further in future Gradle releases.
+
 ### AntlrTask has incremental task action
 
 The [`AntlrTask`](dsl/org.gradle.api.plugins.antlr.AntlrTask.html) now processes input files incrementally.
