@@ -31,18 +31,12 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
-    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory()
     JavaHomeBasedJavaCompilerFactory.JavaHomeProvider currentJvmJavaHomeProvider = Mock()
     JavaHomeBasedJavaCompilerFactory.JavaHomeProvider systemPropertiesJavaHomeProvider = Mock()
     JavaHomeBasedJavaCompilerFactory.JavaCompilerProvider javaCompilerProvider = Mock()
+    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory(currentJvmJavaHomeProvider, systemPropertiesJavaHomeProvider, javaCompilerProvider)
     JavaCompiler javaCompiler = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder
-
-    def setup() {
-        factory.currentJvmJavaHomeProvider = currentJvmJavaHomeProvider
-        factory.systemPropertiesJavaHomeProvider = systemPropertiesJavaHomeProvider
-        factory.javaCompilerProvider = javaCompilerProvider
-    }
 
     def "creates Java compiler for matching Java home directory"() {
         TestFile javaHome = temporaryFolder.file('my/test/java/home')

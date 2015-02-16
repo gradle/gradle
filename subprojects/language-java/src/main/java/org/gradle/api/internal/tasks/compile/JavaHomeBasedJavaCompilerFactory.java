@@ -29,9 +29,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
     private final Lock lock = new ReentrantLock();
-    private JavaHomeProvider currentJvmJavaHomeProvider = new CurrentJvmJavaHomeProvider();
-    private JavaHomeProvider systemPropertiesJavaHomeProvider = new SystemPropertiesJavaHomeProvider();
-    private JavaCompilerProvider javaCompilerProvider = new ToolProviderJavaCompilerProvider();
+    private final JavaHomeProvider currentJvmJavaHomeProvider;
+    private final JavaHomeProvider systemPropertiesJavaHomeProvider;
+    private final JavaCompilerProvider javaCompilerProvider;
+
+    public JavaHomeBasedJavaCompilerFactory() {
+        this(new CurrentJvmJavaHomeProvider(), new SystemPropertiesJavaHomeProvider(), new ToolProviderJavaCompilerProvider());
+    }
+
+    JavaHomeBasedJavaCompilerFactory(JavaHomeProvider currentJvmJavaHomeProvider, JavaHomeProvider systemPropertiesJavaHomeProvider, JavaCompilerProvider javaCompilerProvider) {
+        this.currentJvmJavaHomeProvider = currentJvmJavaHomeProvider;
+        this.systemPropertiesJavaHomeProvider = systemPropertiesJavaHomeProvider;
+        this.javaCompilerProvider = javaCompilerProvider;
+    }
 
     public JavaCompiler create() {
         JavaCompiler compiler = findCompiler();
