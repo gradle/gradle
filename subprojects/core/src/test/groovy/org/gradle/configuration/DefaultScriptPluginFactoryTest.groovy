@@ -93,6 +93,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
+        1 * compiledScript.metadata >> true
         1 * script.init(target, _ as ServiceRegistry)
         1 * scriptRunner.run()
 
@@ -119,6 +120,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
+        1 * compiledScript.metadata >> true
         1 * script.init(target, _ as ServiceRegistry)
         1 * scriptRunner.run()
 

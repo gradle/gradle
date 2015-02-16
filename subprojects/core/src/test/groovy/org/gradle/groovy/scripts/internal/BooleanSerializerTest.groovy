@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.scripts.internal;
+package org.gradle.groovy.scripts.internal
 
-import groovy.lang.Script;
+import org.gradle.messaging.serialize.SerializerSpec
 
-public interface CompiledScript<T extends Script, M> {
+class BooleanSerializerTest extends SerializerSpec {
 
-    Class<? extends T> loadClass();
+    def serializer = new BooleanSerializer()
 
-    M getMetadata();
+    def "serialization"() {
+        expect:
+        serialize(Boolean.TRUE, serializer) == true
+        serialize(Boolean.FALSE, serializer) == false
+    }
 }

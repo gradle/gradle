@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.collect.ImmutableList;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
@@ -41,7 +40,6 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
-import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -91,7 +89,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
-        final ImperativeStatementDetector imperativeStatementDetector = new ImperativeStatementDetector(classpathClosureName);
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
@@ -104,7 +101,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
                 compilationUnit.addPhaseOperation(packageDetector, Phases.CANONICALIZATION);
                 compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
-                compilationUnit.addPhaseOperation(imperativeStatementDetector, Phases.CANONICALIZATION);
                 return compilationUnit;
             }
         };
@@ -125,9 +121,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
         if (emptyScriptDetector.isEmptyScript()) {
             GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
-        }
-        if (imperativeStatementDetector.hasImperativeStatements) {
-            GFileUtils.touch(new File(classesDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME));
         }
         serializeMetadata(source, extractingTransformer, metadataDir);
     }
@@ -195,10 +188,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
 
-            public boolean hasImperativeStatements() {
-                return hasImperativeStatements;
-            }
-
             @Override
             public Class<? extends T> loadClass() {
                 if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
@@ -248,36 +237,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             } catch (IOException e) {
                 throw new UncheckedIOException("Failed to close script metadata file decoder backed by " + metadataFile.getAbsolutePath(), e);
             }
-        }
-    }
-
-    private static class ImperativeStatementDetector extends CompilationUnit.SourceUnitOperation {
-        private final List<String> scriptBlockNames;
-
-        private boolean hasImperativeStatements;
-
-        private ImperativeStatementDetector(String classpathClosureName) {
-            scriptBlockNames = ImmutableList.of(classpathClosureName, PluginsAndBuildscriptTransformer.PLUGINS, ModelBlockTransformer.MODEL);
-        }
-
-        @Override
-        public void call(SourceUnit source) throws CompilationFailedException {
-            hasImperativeStatements = hasImperativeStatements(source);
-        }
-
-        private boolean hasImperativeStatements(SourceUnit source) {
-            if (source.getAST().getMethods().isEmpty()) {
-                boolean hasImperativeStatements = false;
-                List<Statement> statements = source.getAST().getStatementBlock().getStatements();
-                if (statements.size() == 1) {
-                    return !AstUtils.isReturnNullStatement(statements.get(0));
-                }
-                for (int i = 0; i < statements.size() && !hasImperativeStatements; i++) {
-                    hasImperativeStatements = AstUtils.detectScriptBlock(statements.get(i), scriptBlockNames) == null;
-                }
-                return hasImperativeStatements;
-            }
-            return true;
         }
     }
 

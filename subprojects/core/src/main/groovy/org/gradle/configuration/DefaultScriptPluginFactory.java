@@ -133,12 +133,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(targetScope.getLocalClassLoader());
 
-            BuildScriptTransformer transformer = new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(), scriptSource);
+            BuildScriptMetadataExtractingTransformer transformer = new BuildScriptMetadataExtractingTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(),
+                    classpathClosureName, scriptSource);
+
 
             // TODO - find a less tangled way of getting this in here, see the verifier impl for why it's needed
             compiler.setVerifier(new ClosureCreationInterceptingVerifier());
 
-            final ScriptRunner<? extends BasicScript, Void> runner = compiler.compile(scriptType, new TransformationOnlyMetadataExtractingTransformer(transformer));
+            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, transformer);
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
@@ -151,7 +153,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 }
             };
 
-            if (!runner.getCompiledScript().hasImperativeStatements() && target instanceof ProjectInternal) {
+            if (!runner.getCompiledScript().getMetadata() && target instanceof ProjectInternal) {
                 ((ProjectInternal) target).setModelRulesBlockRunner(buildScriptRunner);
             } else {
                 buildScriptRunner.run();

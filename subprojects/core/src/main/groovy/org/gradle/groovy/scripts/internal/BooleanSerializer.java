@@ -16,27 +16,18 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import groovy.lang.Script;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
 
-public class ClassCachingCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
-
-    private final CompiledScript<T, M> delegate;
-    private Class<? extends T> scriptClass;
-
-    public ClassCachingCompiledScript(CompiledScript<T, M> delegate) {
-        this.delegate = delegate;
+public class BooleanSerializer implements Serializer<Boolean> {
+    @Override
+    public Boolean read(Decoder decoder) throws Exception {
+        return decoder.readBoolean();
     }
 
     @Override
-    public Class<? extends T> loadClass() {
-        if (scriptClass == null) {
-            scriptClass = delegate.loadClass();
-        }
-        return scriptClass;
-    }
-
-    @Override
-    public M getMetadata() {
-        return delegate.getMetadata();
+    public void write(Encoder encoder, Boolean value) throws Exception {
+        encoder.writeBoolean(value);
     }
 }
