@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceLocator;
 
-import java.util.List;
-
 public class PluginsProjectConfigureActions implements ProjectConfigureAction {
     private final Iterable<ProjectConfigureAction> actions;
 
