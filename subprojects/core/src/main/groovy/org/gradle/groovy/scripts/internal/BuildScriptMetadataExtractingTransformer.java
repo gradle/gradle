@@ -22,12 +22,12 @@ import org.gradle.messaging.serialize.Serializer;
 
 public class BuildScriptMetadataExtractingTransformer implements MetadataExtractingTransformer<Boolean> {
 
-    private final ImperativeCodeDetectingTransformer transformer;
+    private final ImperativeStatementDetectingTransformer transformer;
 
     public BuildScriptMetadataExtractingTransformer(String filteringTransformerId, Transformer filteringTransformer, String classpathClosureName, ScriptSource scriptSource) {
         String buildScriptTransformerId = "no_" + filteringTransformerId;
         BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(buildScriptTransformerId, filteringTransformer, scriptSource);
-        transformer = new ImperativeCodeDetectingTransformer("metadata_" + buildScriptTransformerId, buildScriptTransformer, classpathClosureName);
+        transformer = new ImperativeStatementDetectingTransformer("metadata_" + buildScriptTransformerId, buildScriptTransformer, classpathClosureName);
     }
 
     @Override

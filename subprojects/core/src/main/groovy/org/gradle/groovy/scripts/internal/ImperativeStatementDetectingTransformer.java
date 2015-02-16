@@ -30,7 +30,7 @@ import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
 import java.util.List;
 
-public class ImperativeCodeDetectingTransformer extends AbstractScriptTransformer {
+public class ImperativeStatementDetectingTransformer extends AbstractScriptTransformer {
 
     private final List<String> scriptBlockNames;
     private final Transformer buildScriptTransformer;
@@ -38,7 +38,7 @@ public class ImperativeCodeDetectingTransformer extends AbstractScriptTransforme
 
     private boolean imperativeStatementDetected;
 
-    public ImperativeCodeDetectingTransformer(String id, Transformer buildScriptTransformer, String classpathClosureName) {
+    public ImperativeStatementDetectingTransformer(String id, Transformer buildScriptTransformer, String classpathClosureName) {
         this.buildScriptTransformer = buildScriptTransformer;
         this.id = id;
         scriptBlockNames = ImmutableList.of(classpathClosureName, PluginsAndBuildscriptTransformer.PLUGINS, ModelBlockTransformer.MODEL);
@@ -77,19 +77,19 @@ public class ImperativeCodeDetectingTransformer extends AbstractScriptTransforme
             return;
         }
 
-        ImperativeCodeDetectingVisitor visitor = new ImperativeCodeDetectingVisitor(scriptBlockNames);
+        ImperativeStatementDetectingVisitor visitor = new ImperativeStatementDetectingVisitor(scriptBlockNames);
         for (int i = 0; i < statements.size() && !visitor.isImperativeStatementDetected(); i++) {
             statements.get(i).visit(visitor);
         }
         imperativeStatementDetected = visitor.isImperativeStatementDetected();
     }
 
-    private static class ImperativeCodeDetectingVisitor implements GroovyCodeVisitor {
+    private static class ImperativeStatementDetectingVisitor implements GroovyCodeVisitor {
 
         private final List<String> scriptBlockNames;
         private boolean imperativeStatementDetected;
 
-        public ImperativeCodeDetectingVisitor(List<String> scriptBlockNames) {
+        public ImperativeStatementDetectingVisitor(List<String> scriptBlockNames) {
             this.scriptBlockNames = scriptBlockNames;
         }
 
