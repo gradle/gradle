@@ -71,6 +71,7 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         runAllSpecifications(results)
 
         reporter.report(results)
+        results.assertEveryBuildSucceeds()
 
         return results
     }

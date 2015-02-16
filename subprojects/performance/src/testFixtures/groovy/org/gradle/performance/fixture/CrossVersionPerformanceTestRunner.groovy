@@ -92,7 +92,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         runVersion(current, projectDir, results.current)
 
         reporter.report(results)
-        results
+        results.assertEveryBuildSucceeds()
+
+        return results
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
