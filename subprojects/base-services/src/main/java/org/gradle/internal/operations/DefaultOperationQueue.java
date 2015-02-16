@@ -19,6 +19,7 @@ package org.gradle.internal.operations;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.*;
 import org.gradle.api.Action;
+import org.gradle.internal.UncheckedException;
 
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -64,7 +65,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         try {
             finished.await();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         // all operations are complete, check for errors
