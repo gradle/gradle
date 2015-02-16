@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.fixture;
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
 
-public interface BuildParametersSpecification {
-    GradleDistribution getGradleDistribution()
-    File getWorkingDirectory()
-    String[] getTasksToRun()
-    String[] getArgs()
-    String[] getGradleOpts()
-    boolean getUseDaemon()
+import java.io.File;
+
+public interface GradleInvocationSpec {
+    GradleDistribution getGradleDistribution();
+
+    File getWorkingDirectory();
+
+    String[] getTasksToRun();
+
+    String[] getArgs();
+
+    String[] getGradleOpts();
+
+    boolean getUseDaemon();
 }

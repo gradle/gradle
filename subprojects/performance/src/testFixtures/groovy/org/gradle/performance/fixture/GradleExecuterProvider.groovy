@@ -26,20 +26,20 @@ class GradleExecuterProvider {
         this.testDirectoryProvider = testDirectoryProvider
     }
 
-    GradleExecuter executer(BuildParametersSpecification buildSpecification) {
-        def executer = buildSpecification.gradleDistribution.executer(testDirectoryProvider).
+    GradleExecuter executer(GradleInvocationSpec buildSpec) {
+        def executer = buildSpec.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
                 withDeprecationChecksDisabled().
                 withStackTraceChecksDisabled().
                 withArgument('-u').
-                inDirectory(buildSpecification.workingDirectory).
-                withTasks(buildSpecification.tasksToRun).
-                withGradleOpts(buildSpecification.gradleOpts)
+                inDirectory(buildSpec.workingDirectory).
+                withTasks(buildSpec.tasksToRun).
+                withGradleOpts(buildSpec.gradleOpts)
 
-        buildSpecification.args.each { executer.withArgument(it) }
+        buildSpec.args.each { executer.withArgument(it) }
 
-        if (buildSpecification.useDaemon) {
+        if (buildSpec.useDaemon) {
             executer.withArgument('--daemon')
         }
         executer

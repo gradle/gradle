@@ -133,7 +133,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.add(operation)
     }
 
-    private static class RunnerBackedBuildParametersSpecification implements BuildParametersSpecification {
+    private static class RunnerBackedBuildParametersSpecification implements GradleInvocationSpec {
         final GradleDistribution distribution
         final CrossVersionPerformanceTestRunner runner
         final File workingDir

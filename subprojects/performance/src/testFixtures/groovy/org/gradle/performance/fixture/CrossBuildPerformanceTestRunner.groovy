@@ -104,22 +104,22 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         }
     }
 
-    void runOnce(BuildParametersSpecification buildParametersSpecification, MeasuredOperationList results) {
-        def executer = executerProvider.executer(buildParametersSpecification)
-        dataCollector.beforeExecute(buildParametersSpecification.workingDirectory, executer)
+    void runOnce(GradleInvocationSpec buildSpec, MeasuredOperationList results) {
+        def executer = executerProvider.executer(buildSpec)
+        dataCollector.beforeExecute(buildSpec.workingDirectory, executer)
 
         def operation = timer.measure { MeasuredOperation operation ->
             executer.run()
         }
 
         if (operation.exception == null) {
-            dataCollector.collect(buildParametersSpecification.workingDirectory, operation)
+            dataCollector.collect(buildSpec.workingDirectory, operation)
         }
 
         results.add(operation)
     }
 
-    static class BuildSpecificationBackedParametersSpecification implements BuildParametersSpecification {
+    static class BuildSpecificationBackedParametersSpecification implements GradleInvocationSpec {
         final BuildSpecification buildSpecification
         final GradleDistribution gradleDistribution
         final File workingDirectory
