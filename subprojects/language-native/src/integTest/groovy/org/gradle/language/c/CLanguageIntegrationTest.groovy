@@ -203,11 +203,43 @@ model {
 
         'broken
 """
-
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("A build operation failed; see the error output for details.")
+    }
+
+    def "build fails when multiple compilations fail"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+         """
+
+        and:
+        file("src/main/c/broken.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+        file("src/main/c/broken2.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+        file("src/main/c/broken3.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+        expect:
+        fails "mainExecutable"
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
+        failure.assertHasCause("Multiple build operations failed; see the error output for details.")
+        failure.assertHasCause("C compiler failed; see the error output for details.")
     }
 }
 

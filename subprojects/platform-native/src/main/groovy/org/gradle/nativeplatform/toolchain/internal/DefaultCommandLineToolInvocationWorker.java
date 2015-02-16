@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.GradleException;
+import org.gradle.internal.operations.OperationFailure;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -72,11 +72,10 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         toolExec.environment(invocation.getEnvironment());
 
-
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new GradleException(String.format("%s failed; see the error output for details.", getName()), e);
+            throw new OperationFailure(String.format("%s failed; see the error output for details.", getName()), e);
         }
     }
 }

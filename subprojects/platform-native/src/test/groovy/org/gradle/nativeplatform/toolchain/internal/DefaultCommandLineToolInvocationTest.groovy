@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal
 import org.gradle.api.Action
 import spock.lang.Specification
 
-public class DefaultCommandLineToolInvocationWorkerInvocationTest extends Specification {
+public class DefaultCommandLineToolInvocationTest extends Specification {
 
     def "copies and dereferences all fields"() {
         def pathEntry = Mock(File)

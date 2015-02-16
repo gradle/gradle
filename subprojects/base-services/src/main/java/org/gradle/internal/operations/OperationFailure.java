@@ -16,12 +16,20 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 @Contextual
-public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
-    public MultipleBuildOperationFailures(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes);
+public class OperationFailure extends GradleException {
+    public OperationFailure() {
+        super();
+    }
+
+    public OperationFailure(String message) {
+        super(message);
+    }
+
+    public OperationFailure(String message, Throwable cause) {
+        super(message, cause);
     }
 }
