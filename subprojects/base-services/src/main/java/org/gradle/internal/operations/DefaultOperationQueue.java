@@ -22,18 +22,14 @@ import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
     private final Action<? super T> worker;
 
     private final List<ListenableFuture> operations;
-    private final List<Throwable> failures;
-    private final AtomicBoolean cancelled;
 
     private boolean waitingForCompletion;
 
@@ -41,8 +37,6 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         this.executor =  MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
-        this.failures = Lists.newCopyOnWriteArrayList();
-        this.cancelled = new AtomicBoolean(false);
     }
 
     public void add(final T operation) {
@@ -50,7 +44,6 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
             throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
         }
         ListenableFuture<?> future = executor.submit(new Operation(operation));
-        Futures.addCallback(future, new FailuresCallback());
         operations.add(future);
     }
 
@@ -58,8 +51,10 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         waitingForCompletion = true;
 
         CountDownLatch finished = new CountDownLatch(operations.size());
+        List<Throwable> failures = Lists.newCopyOnWriteArrayList();
+
         for (ListenableFuture operation : operations) {
-            Futures.addCallback(operation, new CompletionCallback(finished));
+            Futures.addCallback(operation, new CompletionCallback(finished, failures));
         }
 
         try {
@@ -70,42 +65,24 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
 
         // all operations are complete, check for errors
         if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(getFailureMessage(), failures);
+            throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures);
         }
     }
 
-    private String getFailureMessage() {
+    private String getFailureMessage(List<Throwable> failures) {
         if (failures.size()==1) {
             return "A build operation failed; see the error output for details.";
         }
         return "Multiple build operations failed; see the error output for details.";
     }
 
-    private class FailuresCallback implements FutureCallback {
-        public void onSuccess(Object result) {
-            // don't care
-        }
-
-        public void onFailure(Throwable t) {
-            if (!ignoredException(t)) {
-                failures.add(t);
-            }
-            // TODO: Provide eager cancellation version of this too
-            // For now, we'll keep continuing when we encounter a failure
-            // cancel other operations ASAP
-            // cancelled.set(true);
-        }
-
-        private boolean ignoredException(Throwable t) {
-            return t instanceof CancellationException;
-        }
-    }
-
     private static class CompletionCallback implements FutureCallback {
         private final CountDownLatch finished;
+        private final List<Throwable> failures;
 
-        private CompletionCallback(CountDownLatch finished) {
+        private CompletionCallback(CountDownLatch finished, List<Throwable> failures) {
             this.finished = finished;
+            this.failures = failures;
         }
 
         public void onSuccess(Object result) {
@@ -114,6 +91,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
 
         public void onFailure(Throwable t) {
             finished.countDown();
+            failures.add(t);
         }
     }
 
@@ -125,11 +103,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         }
 
         public void run() {
-            if (!cancelled.get()) {
-                worker.execute(operation);
-            } else {
-                throw new CancellationException("Cancelled by some other operation failure");
-            }
+            worker.execute(operation);
         }
 
         public String toString() {
