@@ -24,24 +24,19 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
-import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.util.GradleVersion
 
 public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     GradleDistribution current
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     final DataReporter<CrossVersionPerformanceResults> reporter
-    OperationTimer timer = new OperationTimer()
     TestProjectLocator testProjectLocator = new TestProjectLocator()
+    final BuildExperimentRunner experimentRunner
 
     String testProject
     boolean useDaemon
 
     List<String> tasksToRun = []
-    final GCLoggingCollector gcCollector = new GCLoggingCollector()
-    DataCollector dataCollector = new CompositeDataCollector(
-            new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
-            gcCollector)
     List<String> args = []
     List<String> gradleOpts = []
 
@@ -49,19 +44,16 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
-    CrossVersionPerformanceResults results
-    final GradleExecuterProvider executerProvider
-
-    CrossVersionPerformanceTestRunner(GradleExecuterProvider executerProvider, DataReporter<CrossVersionPerformanceResults> reporter) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
         this.reporter = reporter
-        this.executerProvider = executerProvider
+        this.experimentRunner = experimentRunner
     }
 
     CrossVersionPerformanceResults run() {
         assert !targetVersions.empty
         assert testId
 
-        results = new CrossVersionPerformanceResults(
+        def results = new CrossVersionPerformanceResults(
                 testId: testId,
                 testProject: testProject,
                 tasks: tasksToRun,
@@ -94,11 +86,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
 
-            println "Gradle ${baselineVersion.version}..."
             runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
         }
 
-        println "Current Gradle..."
         runVersion(current, projectDir, results.current)
 
         reporter.report(results)
@@ -106,34 +96,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        warmUpRuns.times {
-            println "Executing warm-up run #${it + 1}"
-            runOnce(dist, projectDir, new MeasuredOperationList())
-        }
-        runs.times {
-            println "Executing test run #${it + 1}"
-            runOnce(dist, projectDir, results)
-        }
-        if (useDaemon) {
-            executerProvider.executer(new RunnerBackedBuildParametersSpecification(this, dist, projectDir)).withTasks("--stop").run()
-        }
+        experimentRunner.run(new RunnerBackedBuildParametersSpecification(this, dist, projectDir), results)
     }
 
-    private void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        gcCollector.useDaemon(useDaemon)
-        def executer = executerProvider.executer(new RunnerBackedBuildParametersSpecification(this, dist, projectDir))
-        dataCollector.beforeExecute(projectDir, executer)
-
-        def operation = timer.measure { MeasuredOperation operation ->
-            executer.run()
-        }
-        if (operation.exception == null) {
-            dataCollector.collect(projectDir, operation)
-        }
-        results.add(operation)
-    }
-
-    private static class RunnerBackedBuildParametersSpecification implements GradleInvocationSpec {
+    private class RunnerBackedBuildParametersSpecification implements GradleInvocationSpec, BuildExperimentSpec {
         final GradleDistribution distribution
         final CrossVersionPerformanceTestRunner runner
         final File workingDir
@@ -142,6 +108,26 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             this.runner = runner
             this.distribution = distribution
             this.workingDir = workingDir
+        }
+
+        @Override
+        GradleInvocationSpec getBuildSpec() {
+            return this
+        }
+
+        @Override
+        String getDisplayName() {
+            return distribution.version.version
+        }
+
+        @Override
+        int getWarmUpCount() {
+            return warmUpRuns
+        }
+
+        @Override
+        int getInvocationCount() {
+            return runs
         }
 
         @Override

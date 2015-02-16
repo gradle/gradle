@@ -24,10 +24,9 @@ import org.gradle.performance.measure.Duration
 import org.gradle.util.GradleVersion
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
-    final timer = Mock(OperationTimer)
+    final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
-    final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)
     final mostRecentRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
     final currentVersionBase = GradleVersion.current().baseVersion.version
@@ -66,11 +65,13 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
         and:
-        // warmup runs are discarded
-        3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), totalMemoryUsed: DataAmount.kbytes(100))
-        12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10))
+        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
         1 * reporter.report(_)
-        0 * timer._
         0 * reporter._
     }
 
@@ -99,11 +100,9 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(Stub(GradleExecuterProvider), reporter)
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter)
         runner.testId = 'some-test'
-        runner.timer = timer
         runner.testProjectLocator = testProjectLocator
-        runner.dataCollector = dataCollector
         runner.current = currentGradle
         return runner
     }

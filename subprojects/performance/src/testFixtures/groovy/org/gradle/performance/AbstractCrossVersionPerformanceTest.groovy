@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CompositeDataReporter
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleExecuterProvider
@@ -35,7 +36,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     static def resultStore = new CrossVersionResultsStore()
     static def textReporter = new TextFileDataReporter(new File("build/performance-tests/results.txt"))
 
-    final def runner = new CrossVersionPerformanceTestRunner(new GradleExecuterProvider(tmpDir), new CompositeDataReporter([textReporter, resultStore]))
+    final def runner = new CrossVersionPerformanceTestRunner(new BuildExperimentRunner(new GradleExecuterProvider(tmpDir)), new CompositeDataReporter([textReporter, resultStore]))
 
     def setup() {
         runner.current = new UnderDevelopmentGradleDistribution()

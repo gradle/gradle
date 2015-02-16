@@ -16,23 +16,15 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution;
-
-import java.io.File;
-
 /**
- * Defines how a build should be invoked.
+ * Defines some details for a build experiment.
  */
-public interface GradleInvocationSpec {
-    GradleDistribution getGradleDistribution();
+public interface BuildExperimentSpec {
+    String getDisplayName();
 
-    File getWorkingDirectory();
+    GradleInvocationSpec getBuildSpec();
 
-    String[] getTasksToRun();
+    int getWarmUpCount();
 
-    String[] getArgs();
-
-    String[] getGradleOpts();
-
-    boolean getUseDaemon();
+    int getInvocationCount();
 }
