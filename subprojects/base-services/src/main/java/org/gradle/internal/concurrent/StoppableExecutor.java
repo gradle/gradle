@@ -16,10 +16,10 @@
 
 package org.gradle.internal.concurrent;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public interface StoppableExecutor extends AsyncStoppable, Executor {
+public interface StoppableExecutor extends AsyncStoppable, ExecutorService {
     /**
      * Stops accepting new jobs and blocks until all currently executing jobs have been completed.
      */

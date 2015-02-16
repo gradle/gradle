@@ -17,6 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,7 +28,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
     @Unroll
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(maxThreads)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
         def operation = Mock(Runnable)
         def worker = new DefaultOperationQueueTest.SimpleWorker()
 
@@ -58,7 +59,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
         given:
         def amountOfWork = 10
         def worker = new DefaultOperationQueueTest.SimpleWorker()
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(maxThreads)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
         def queues = [
                 buildOperationProcessor.newQueue(worker),
                 buildOperationProcessor.newQueue(worker),
@@ -102,7 +103,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
         given:
         def amountOfWork = 10
         def maxThreads = 4
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(maxThreads)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
         def success = Stub(Runnable)
         def failure = Stub(Runnable) {
             run() >> { throw new Exception() }
@@ -132,7 +133,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
     @Unroll
     def "converts parallel-threads=#count into usable number of threads (#expected)"() {
         given:
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(count)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), count)
 
         expect:
         expected == buildOperationProcessor.actualThreadCount(count)
@@ -148,7 +149,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
     def "multiple failures get reported"() {
         given:
         def threadCount = 4
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(threadCount)
+        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), threadCount)
         def worker = new DefaultOperationQueueTest.SimpleWorker()
         def queue = buildOperationProcessor.newQueue(worker)
         def startLatch = new CountDownLatch(1)

@@ -21,6 +21,7 @@ import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -89,6 +90,11 @@ class ConcurrentTestUtil extends ExternalResource {
     ExecutorFactory getExecutorFactory() {
         return new ExecutorFactory() {
             StoppableExecutor create(String displayName) {
+                return new StoppableExecutorStub(ConcurrentTestUtil.this)
+            }
+
+            StoppableExecutor create(String displayName, int fixedSize) {
+                // Ignores size of thread pool
                 return new StoppableExecutorStub(ConcurrentTestUtil.this)
             }
         }
@@ -428,7 +434,7 @@ class CompositeTestParticipant extends AbstractTestParticipant {
     }
 }
 
-class StoppableExecutorStub implements StoppableExecutor {
+class StoppableExecutorStub extends AbstractExecutorService implements StoppableExecutor {
     final ConcurrentTestUtil owner
     final Set<TestThread> threads = new CopyOnWriteArraySet<TestThread>()
 
@@ -451,6 +457,26 @@ class StoppableExecutorStub implements StoppableExecutor {
 
     void execute(Runnable runnable) {
         threads.add(owner.startThread(runnable))
+    }
+
+    void shutdown() {
+        throw new UnsupportedOperationException()
+    }
+
+    List<Runnable> shutdownNow() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean isShutdown() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean isTerminated() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException()
     }
 }
 

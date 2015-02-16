@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.Factory
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,18 +32,12 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
-    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory()
-    JavaHomeBasedJavaCompilerFactory.JavaHomeProviderFacade currentJvmJavaHomeProviderFacade = Mock()
-    JavaHomeBasedJavaCompilerFactory.JavaHomeProviderFacade systemPropertiesJavaHomeProviderFacade = Mock()
-    JavaHomeBasedJavaCompilerFactory.JavaCompilerProviderFacade javaCompilerProviderFacade = Mock()
+    Factory<File> currentJvmJavaHomeFactory = Mock()
+    Factory<File> systemPropertiesJavaHomeFactory = Mock()
+    Factory<JavaCompiler> systemJavaCompilerFactory = Mock()
+    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory(currentJvmJavaHomeFactory, systemPropertiesJavaHomeFactory, systemJavaCompilerFactory)
     JavaCompiler javaCompiler = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder
-
-    def setup() {
-        factory.currentJvmJavaHomeProviderFacade = currentJvmJavaHomeProviderFacade
-        factory.systemPropertiesJavaHomeProviderFacade = systemPropertiesJavaHomeProviderFacade
-        factory.javaCompilerProviderFacade = javaCompilerProviderFacade
-    }
 
     def "creates Java compiler for matching Java home directory"() {
         TestFile javaHome = temporaryFolder.file('my/test/java/home')
@@ -51,9 +46,9 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         JavaCompiler expectedJavaCompiler = factory.create()
 
         then:
-        1 * currentJvmJavaHomeProviderFacade.dir >> javaHome
-        1 * systemPropertiesJavaHomeProviderFacade.dir >> javaHome
-        1 * javaCompilerProviderFacade.compiler >> javaCompiler
+        1 * currentJvmJavaHomeFactory.create() >> javaHome
+        1 * systemPropertiesJavaHomeFactory.create() >> javaHome
+        1 * systemJavaCompilerFactory.create() >> javaCompiler
         javaCompiler == expectedJavaCompiler
     }
 
@@ -64,9 +59,9 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         factory.create()
 
         then:
-        1 * currentJvmJavaHomeProviderFacade.dir >> javaHome
-        1 * systemPropertiesJavaHomeProviderFacade.dir >> javaHome
-        1 * javaCompilerProviderFacade.compiler >> null
+        1 * currentJvmJavaHomeFactory.create() >> javaHome
+        1 * systemPropertiesJavaHomeFactory.create() >> javaHome
+        1 * systemJavaCompilerFactory.create() >> null
         Throwable t = thrown(RuntimeException)
         t.message == 'Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.'
     }
@@ -79,9 +74,9 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         JavaCompiler expectedJavaCompiler = factory.create()
 
         then:
-        1 * currentJvmJavaHomeProviderFacade.dir >> realJavaHome
-        1 * systemPropertiesJavaHomeProviderFacade.dir >> javaHomeFromToolProvidersPointOfView
-        1 * javaCompilerProviderFacade.compiler >> javaCompiler
+        1 * currentJvmJavaHomeFactory.create() >> realJavaHome
+        1 * systemPropertiesJavaHomeFactory.create() >> javaHomeFromToolProvidersPointOfView
+        1 * systemJavaCompilerFactory.create() >> javaCompiler
         javaCompiler == expectedJavaCompiler
         SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
@@ -99,9 +94,9 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         }
 
         then:
-        threadCount * currentJvmJavaHomeProviderFacade.dir >> realJavaHome
-        threadCount * systemPropertiesJavaHomeProviderFacade.dir >> javaHomeFromToolProvidersPointOfView
-        threadCount * javaCompilerProviderFacade.compiler >> javaCompiler
+        threadCount * currentJvmJavaHomeFactory.create() >> realJavaHome
+        threadCount * systemPropertiesJavaHomeFactory.create() >> javaHomeFromToolProvidersPointOfView
+        threadCount * systemJavaCompilerFactory.create() >> javaCompiler
         assert SystemProperties.javaHomeDir.canonicalPath == javaHomeFromToolProvidersPointOfView.canonicalPath
     }
 

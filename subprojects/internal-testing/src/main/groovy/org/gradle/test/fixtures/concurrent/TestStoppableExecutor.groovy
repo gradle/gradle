@@ -18,12 +18,13 @@ package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.StoppableExecutor
 
+import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-class TestStoppableExecutor implements StoppableExecutor {
+class TestStoppableExecutor extends AbstractExecutorService implements StoppableExecutor {
     private final Lock lock = new ReentrantLock()
     private final Condition condition = lock.newCondition()
     private int count
@@ -71,6 +72,26 @@ class TestStoppableExecutor implements StoppableExecutor {
     }
 
     void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
+        throw new UnsupportedOperationException()
+    }
+
+    void shutdown() {
+        throw new UnsupportedOperationException()
+    }
+
+    List<Runnable> shutdownNow() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean isShutdown() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean isTerminated() {
+        throw new UnsupportedOperationException()
+    }
+
+    boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         throw new UnsupportedOperationException()
     }
 }
