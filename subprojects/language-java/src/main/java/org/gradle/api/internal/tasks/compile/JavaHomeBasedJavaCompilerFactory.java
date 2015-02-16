@@ -24,11 +24,8 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.Serializable;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
-    private final Lock lock = new ReentrantLock();
     private final Factory<File> currentJvmJavaHomeFactory;
     private final Factory<File> systemPropertiesJavaHomeFactory;
     private final Factory<JavaCompiler> systemJavaCompilerFactory;
@@ -60,14 +57,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
             return systemJavaCompilerFactory.create();
         }
 
-        lock.lock();
-        SystemProperties.getInstance().setJavaHomeDir(realJavaHome);
-        try {
-            return systemJavaCompilerFactory.create();
-        } finally {
-            SystemProperties.getInstance().setJavaHomeDir(javaHomeFromToolProvidersPointOfView);
-            lock.unlock();
-        }
+        return SystemProperties.getInstance().withJavaHome(realJavaHome, systemJavaCompilerFactory);
     }
 
     public static class CurrentJvmJavaHomeFactory implements Factory<File>, Serializable {

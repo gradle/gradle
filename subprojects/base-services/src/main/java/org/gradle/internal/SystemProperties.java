@@ -18,6 +18,8 @@ package org.gradle.internal;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.collect.ImmutableSet.of;
 
@@ -61,6 +63,7 @@ public class SystemProperties {
     );
 
     private static final SystemProperties INSTANCE = new SystemProperties();
+    private final Lock lock = new ReentrantLock();
 
     public static SystemProperties getInstance() {
         return INSTANCE;
@@ -97,6 +100,27 @@ public class SystemProperties {
 
     public void setJavaHomeDir(File javaHomeDir) {
         System.setProperty("java.home", javaHomeDir.getAbsolutePath());
+    }
+
+    /**
+     * Creates instance for Factory implementation with the provided Java home directory. Setting the "java.home" system property is thread-safe
+     * and is set back to the original value of "java.home" after the operation.
+     *
+     * @param javaHomeDir Java home directory
+     * @param factory Factory
+     * @return Instance created by Factory implementation
+     */
+    public <T> T withJavaHome(File javaHomeDir, Factory<T> factory) {
+        lock.lock();
+        File originalJavaHomeDir = getJavaHomeDir();
+        setJavaHomeDir(javaHomeDir);
+
+        try {
+            return factory.create();
+        } finally {
+            setJavaHomeDir(originalJavaHomeDir);
+            lock.unlock();
+        }
     }
 
     /**

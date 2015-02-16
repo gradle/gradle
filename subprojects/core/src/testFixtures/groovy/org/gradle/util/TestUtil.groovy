@@ -31,6 +31,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 
 import java.rmi.server.UID
+import java.util.concurrent.Callable
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class TestUtil {
      public static final Closure TEST_CLOSURE = {}
@@ -135,7 +139,30 @@ class TestUtil {
      static String createUniqueId() {
          return new UID().toString();
      }
- }
+
+    static concurrent(int count, Closure closure) {
+        def values = []
+        def futures = []
+
+        ExecutorService executor = Executors.newFixedThreadPool(count)
+        CyclicBarrier barrier = new CyclicBarrier(count)
+
+        (1..count).each {
+            futures.add(executor.submit(new Callable() {
+                Object call() throws Exception {
+                    barrier.await()
+                    closure.call()
+                }
+            }))
+        }
+
+        futures.each { future ->
+            values << future.get()
+        }
+
+        values
+    }
+}
 
 
 interface TestClosure {
