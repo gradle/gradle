@@ -18,21 +18,16 @@ package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.*;
 import org.gradle.api.Action;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- *
- */
 class DefaultOperationQueue<T> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
     private final Action<? super T> worker;
@@ -43,8 +38,8 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
 
     private boolean waitingForCompletion;
 
-    DefaultOperationQueue(ListeningExecutorService executor, Action<? super T> worker) {
-        this.executor = executor;
+    DefaultOperationQueue(ExecutorService executor, Action<? super T> worker) {
+        this.executor =  MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
         this.failures = Sets.newConcurrentHashSet();

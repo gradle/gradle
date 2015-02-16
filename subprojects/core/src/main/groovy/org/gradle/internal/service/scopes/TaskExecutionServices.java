@@ -97,7 +97,7 @@ public class TaskExecutionServices {
         return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
     }
 
-    BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter) {
-        return new DefaultBuildOperationProcessor(startParameter.getParallelThreadCount());
+    BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new DefaultBuildOperationProcessor(executorFactory, startParameter.getParallelThreadCount());
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,7 +38,7 @@ public abstract class NativeCompilerTest extends Specification {
     protected abstract List<String> getCompilerSpecificArguments(File includeDir)
 
     protected CommandLineTool commandLineTool = Mock(CommandLineTool)
-    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(1)
+    protected BuildOperationProcessor buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), 1)
 
     def "arguments include source file"() {
         given:

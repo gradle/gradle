@@ -24,4 +24,14 @@ public interface ExecutorFactory {
      * @return The executor.
      */
     StoppableExecutor create(String displayName);
+
+    /**
+     * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
+     *
+     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
+     * @param fixedSize The maximum number of threads allowed
+     *
+     * @return The executor.
+     */
+    StoppableExecutor create(String displayName, int fixedSize);
 }
