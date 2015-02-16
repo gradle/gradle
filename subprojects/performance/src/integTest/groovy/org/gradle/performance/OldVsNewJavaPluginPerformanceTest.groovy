@@ -32,10 +32,10 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
             forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon()
         }
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("${size}NewJava").displayName("new plugin (reuse)").tasksToRun(*tasks).useDaemon()
+            Toggles.transformedDsl(Toggles.modelReuse(it)).forProject("${size}NewJava").displayName("new plugin (reuse)").tasksToRun(*tasks).useDaemon()
         }
         runner.buildSpec {
-            Toggles.noDaemonLogging(it).forProject("${size}NewJava").displayName("new plugin (no client logging)").tasksToRun(*tasks).useDaemon()
+            Toggles.transformedDsl(Toggles.noDaemonLogging(it)).forProject("${size}NewJava").displayName("new plugin (no client logging)").tasksToRun(*tasks).useDaemon()
         }
         runner.baseline {
             forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon()
