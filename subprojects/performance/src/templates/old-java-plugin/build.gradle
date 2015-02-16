@@ -1,1 +1,76 @@
 apply plugin: 'java'
+
+class CheckstyleExtension {
+    boolean ignoreFailures
+}
+
+class CustomExtension {
+    Closure<?> action = { println "" }
+    String value = "."
+}
+
+class FakeCheckstylePlugin implements Plugin {
+
+    void apply(project) {
+        project.extensions.create("checkstyle", CheckstyleExtension)
+
+        project.checkstyle {
+            ignoreFailures = true
+        }
+
+        project.tasks.create("checkstyleMain", Checkstyle)
+        project.tasks.create("checkstyleTest", Checkstyle)
+
+        project.tasks.withType(Checkstyle) {
+            ignoreFailures = project.checkstyle.ignoreFailures
+        }
+
+        project.build.dependsOn project.tasks.withType(Checkstyle)
+    }
+}
+
+apply plugin: FakeCheckstylePlugin
+
+extensions.create("custom", CustomExtension)
+
+
+task extraTask1(type: MyTaskClass) {
+    description = name
+    doLast {}
+}
+
+task extraTask2(type: MyTaskClass) {
+    description = name
+    doLast {}
+}
+
+task extraTask3(type: MyTaskClass) {
+    description = name
+    doLast {}
+}
+
+task extraTask4(type: MyTaskClass) {
+    description = name
+    doLast {}
+}
+
+tasks.withType(MyTaskClass).all {
+    doLast(custom.action)
+    10.times {
+        description += custom.value
+    }
+}
+
+
+class MyTaskClass extends DefaultTask {
+
+    @InputFiles
+    FileCollection input
+
+    @OutputFiles
+    FileCollection output
+
+    @Input
+    boolean flag
+
+}
