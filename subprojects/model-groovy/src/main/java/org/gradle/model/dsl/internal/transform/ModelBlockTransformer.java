@@ -33,7 +33,7 @@ import java.util.List;
 @NotThreadSafe
 public class ModelBlockTransformer extends AbstractScriptTransformer {
 
-    private static boolean isEnabled() {
+    public static boolean isEnabled() {
         return Boolean.getBoolean("org.gradle.model.dsl");
     }
 

@@ -33,7 +33,7 @@ public class BuildScriptTransformer implements Transformer {
     }
 
     public String getId() {
-        return id;
+        return ModelBlockTransformer.isEnabled() ? "m_" + id : id;
     }
 
     public void register(CompilationUnit compilationUnit) {
