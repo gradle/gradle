@@ -71,9 +71,9 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
 
     private String getFailureMessage(List<Throwable> failures) {
         if (failures.size()==1) {
-            return "A build operation failed; see the error output for details.";
+            return "A build operation failed.";
         }
-        return "Multiple build operations failed; see the error output for details.";
+        return "Multiple build operations failed.";
     }
 
     private static class CompletionCallback implements FutureCallback {
