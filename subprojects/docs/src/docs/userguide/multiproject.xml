@@ -310,14 +310,6 @@
         <para>The path of a task is simply its project path plus the task name, like “<literal>:bluewhale:hello</literal>”. Within a project you can address a task of the same project just by its name.
             This is interpreted as a relative path.
         </para>
-        <para>Originally Gradle used the
-            <literal>'/'</literal>
-            character as a natural path separator. With the introduction of directory tasks (see <xref
-                    linkend='sec:directory_creation'/>) this was no longer possible, as the name of the directory task
-            contains the
-            <literal>'/'</literal>
-            character.
-        </para>
     </section>
     <section id='sec:dependencies_which_dependencies'>
         <title>Dependencies - Which dependencies?</title>

@@ -40,7 +40,6 @@
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='guiTutorial.xml'/>
     <xi:include href='writingBuildScripts.xml'/>
-    <xi:include href='thisAndThat.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='workingWithFiles.xml'/>
     <xi:include href='ant.xml'/>
