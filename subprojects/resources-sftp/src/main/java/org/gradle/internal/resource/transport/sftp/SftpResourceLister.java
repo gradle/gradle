@@ -39,6 +39,7 @@ public class SftpResourceLister implements ExternalResourceLister {
         LockableSftpClient client = sftpClientFactory.createSftpClient(parent, credentials);
 
         try {
+            @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(parent.getPath());
             List<String> list = new ArrayList<String>();
             for (ChannelSftp.LsEntry entry : entries) {

@@ -27,3 +27,4 @@ dependencies {
 
 useTestFixtures()
 useClassycle()
+strictCompile()
