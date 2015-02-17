@@ -165,6 +165,39 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 '''
     }
 
+    def reportsLocationAwareExceptionWithNestedMultiExceptionMoreThanMaxCauses() {
+        def causes = (1..15).collect { new RuntimeException("<cause1.$it>") }
+        def cause1 = nested("<cause1>", *causes)
+        Throwable exception = exception("<location>", new RuntimeException("<message>"), cause1);
+
+        expect:
+        reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+<location>
+
+* What went wrong:
+<message>
+{info}> {normal}<cause1>
+   {info}> {normal}<cause1.1>
+   {info}> {normal}<cause1.2>
+   {info}> {normal}<cause1.3>
+   {info}> {normal}<cause1.4>
+   {info}> {normal}<cause1.5>
+   {info}> {normal}<cause1.6>
+   {info}> {normal}<cause1.7>
+   {info}> {normal}<cause1.8>
+   {info}> {normal}<cause1.9>
+   {info}> {normal}<cause1.10>
+   {info}> {normal}... 5 more
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+'''
+    }
+
     def reportsLocationAwareExceptionWhenCauseHasNoMessage() {
         Throwable exception = exception("<location>", new RuntimeException("<message>"), new RuntimeException());
 

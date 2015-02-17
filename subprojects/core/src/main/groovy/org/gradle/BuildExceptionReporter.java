@@ -46,11 +46,13 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
+    private final int maxCauses;
 
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
+        this.maxCauses = 10;
     }
 
     public void buildFinished(BuildResult result) {
@@ -134,34 +136,60 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             }
             scriptException.visitReportableCauses(new TreeVisitor<Throwable>() {
                 int depth;
+                int causes;
 
                 @Override
                 public void node(final Throwable node) {
                     if (node == scriptException) {
                         details.details.text(getMessage(scriptException.getCause()));
                     } else {
-                        details.details.format("%n");
-                        StringBuilder prefix = new StringBuilder();
-                        for (int i = 1; i < depth; i++) {
-                            prefix.append("   ");
+                        if (shouldLimitNumberOfCauses()) {
+                            if (causes < maxCauses) {
+                                final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
+                                output.text(getMessage(node));
+                            }
+                        } else {
+                            final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
+                            output.text(getMessage(node));
                         }
-                        details.details.text(prefix);
-                        prefix.append("  ");
-                        details.details.style(Info).text("> ").style(Normal);
-
-                        final LinePrefixingStyledTextOutput output = new LinePrefixingStyledTextOutput(details.details, prefix);
-                        output.text(getMessage(node));
+                        causes++;
                     }
                 }
 
                 @Override
                 public void startChildren() {
                     depth++;
+                    causes = 0;
                 }
 
                 @Override
                 public void endChildren() {
+                    if (shouldLimitNumberOfCauses()) {
+                        int causesOverMaxCount = causes - maxCauses;
+                        if (causesOverMaxCount > 0) {
+                            final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
+                            output.text(String.format("... %d more", causesOverMaxCount));
+                        }
+                    }
                     depth--;
+                    causes = 0;
+                }
+
+                private boolean shouldLimitNumberOfCauses() {
+                    return loggingConfiguration.getLogLevel()!=LogLevel.DEBUG;
+                }
+
+                private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput() {
+                    details.details.format("%n");
+                    StringBuilder prefix = new StringBuilder();
+                    for (int i = 1; i < depth; i++) {
+                        prefix.append("   ");
+                    }
+                    details.details.text(prefix);
+                    prefix.append("  ");
+                    details.details.style(Info).text("> ").style(Normal);
+
+                    return new LinePrefixingStyledTextOutput(details.details, prefix);
                 }
             });
         } else {
