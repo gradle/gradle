@@ -29,7 +29,7 @@ public interface CommandLineToolContext {
 
     Action<List<String>> getArgAction();
 
-    CommandLineToolInvocation createInvocation(File workingDirectory, Iterable<String> args);
-    CommandLineToolInvocation createInvocation(Iterable<String> args);
+    CommandLineToolInvocation createInvocation(String description, File workingDirectory, Iterable<String> args);
+    CommandLineToolInvocation createInvocation(String description, Iterable<String> args);
 
 }

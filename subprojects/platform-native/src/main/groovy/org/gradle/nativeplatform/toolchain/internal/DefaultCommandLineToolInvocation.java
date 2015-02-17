@@ -20,11 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
+    private String description;
     private final File workDirectory;
     private final Iterable<String> args;
     private final CommandLineToolContext context;
 
-    DefaultCommandLineToolInvocation(File workDirectory, Iterable<String> args, CommandLineToolContext context) {
+    DefaultCommandLineToolInvocation(String description, File workDirectory, Iterable<String> args, CommandLineToolContext context) {
+        this.description = description;
         this.workDirectory = workDirectory;
         this.args = args;
         this.context = context;
@@ -46,8 +48,7 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
         return context.getEnvironment();
     }
 
-    @Override
-    public String getDisplayName() {
-        return "TODO";
+    public String getDescription() {
+        return description;
     }
 }

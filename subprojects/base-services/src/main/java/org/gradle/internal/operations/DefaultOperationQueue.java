@@ -106,7 +106,7 @@ class DefaultOperationQueue<T extends BuildOperation> implements OperationQueue<
         }
 
         public String toString() {
-            return String.format("Worker %s for operation %s", worker.getDisplayName(), operation.getDisplayName());
+            return String.format("Worker %s for operation %s", worker.getDisplayName(), operation.getDescription());
         }
     }
 }

@@ -112,7 +112,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 
-        return invocationContext.createInvocation(objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs));
+        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs));
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {

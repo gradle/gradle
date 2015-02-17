@@ -207,7 +207,7 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("C compiler failed; see the error output for details.")
+        failure.assertHasCause("C compiler failed while compiling broken.c; see the error output for details.")
     }
 
     def "build fails when multiple compilations fail"() {
@@ -240,7 +240,9 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("Multiple build operations failed.")
-        failure.assertHasCause("C compiler failed; see the error output for details.")
+        failure.assertHasCause("C compiler failed while compiling broken.c; see the error output for details.")
+        failure.assertHasCause("C compiler failed while compiling broken2.c; see the error output for details.")
+        failure.assertHasCause("C compiler failed while compiling broken3.c; see the error output for details.")
     }
 }
 

@@ -20,5 +20,5 @@ public interface BuildOperation {
     /**
      * Returns a human consumable name for this operation.
      */
-    String getDisplayName();
+    String getDescription();
 }

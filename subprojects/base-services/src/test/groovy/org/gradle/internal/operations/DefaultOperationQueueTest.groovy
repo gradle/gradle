@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class DefaultOperationQueueTest extends Specification {
 
     abstract static class TestBuildOperation implements BuildOperation, Runnable {
-        public String getDisplayName() { return toString() }
+        public String getDescription() { return toString() }
         public String toString() { return getClass().simpleName }
     }
 

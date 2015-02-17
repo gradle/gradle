@@ -51,7 +51,8 @@ class GccLinker implements Compiler<LinkerSpec> {
         if (useCommandFile) {
             new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         }
-        CommandLineToolInvocation invocation = invocationContext.createInvocation(args);
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+                String.format("linking %s", spec.getOutputFile().getName()), args);
         commandLineToolInvocationWorker.execute(invocation);
         return new SimpleWorkResult(true);
     }

@@ -51,7 +51,7 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
+        failure.assertHasCause("Windows resource compiler failed while compiling broken.rc; see the error output for details.")
     }
 
     def "can create resources-only shared library"() {

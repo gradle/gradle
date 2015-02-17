@@ -38,11 +38,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
     }
 
     public String getDisplayName() {
-        return String.format("command line tool '%s'", getName());
-    }
-
-    public String getName() {
-        return name;
+        return String.format("command line tool '%s'", name);
     }
 
     @Override
@@ -75,7 +71,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new OperationFailure(String.format("%s failed; see the error output for details.", getName()), e);
+            throw new OperationFailure(String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()), e);
         }
     }
 }

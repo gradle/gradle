@@ -32,8 +32,8 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
 
         def context = new DefaultMutableCommandLineToolContext()
         def executable = Mock(File)
-        def commandLineTool = new DefaultCommandLineToolInvocationWorker("test", executable, execActionFactory)
-        def invocation = new DefaultCommandLineToolInvocation(null, [], context)
+        def commandLineTool = new DefaultCommandLineToolInvocationWorker("Tool", executable, execActionFactory)
+        def invocation = new DefaultCommandLineToolInvocation("doing something", null, [], context)
 
         when:
         commandLineTool.execute(invocation)
@@ -41,7 +41,8 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         then:
         1 * execAction.executable(executable)
         1 * execAction.execute() >> { throw new ExecException("fail") }
-        thrown OperationFailure
+        OperationFailure e = thrown()
+        e.getMessage() == 'Tool failed while doing something; see the error output for details.'
 
     }
 }

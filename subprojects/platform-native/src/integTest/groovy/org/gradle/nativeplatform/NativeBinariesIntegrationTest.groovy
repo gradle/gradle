@@ -252,7 +252,8 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        def exeName = executable("build/binaries/mainExecutable/main").file.name
+        failure.assertHasCause("Linker failed while linking ${exeName}; see the error output for details.")
     }
 
     def "build fails when link library fails"() {
@@ -284,7 +285,8 @@ model {
         then:
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
+        failure.assertHasCause("Linker failed while linking ${libName}; see the error output for details.")
     }
 
     def "build fails when create static library fails"() {
@@ -314,7 +316,8 @@ binaries.withType(StaticLibraryBinarySpec) {
         then:
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("Static library archiver failed; see the error output for details.")
+        def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
+        failure.assertHasCause("Static library archiver failed while archiving ${libName}; see the error output for details.")
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
