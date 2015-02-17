@@ -59,8 +59,8 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         "full"    | "small"  | "allVariants"
         "full"    | "medium" | "allVariants"
         "full"    | "big"    | "allVariants"
-        "partial" | "medium" | "flavour1type1"
-        "partial" | "big"    | "flavour1type1"
+        "partial" | "medium" | "flavour1type1_t1"
+        "partial" | "big"    | "flavour1type1_t1"
     }
 
     @Unroll
