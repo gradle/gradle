@@ -26,7 +26,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "#size project using variants #scenario build"() {
-        given:
+        when:
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
@@ -45,11 +45,8 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
             Toggles.noDaemonLogging(it).forProject("${size}VariantsOldModel").displayName("old model (no client logging)").tasksToRun(task).useDaemon()
         }
 
-        when:
-        def result = runner.run()
-
         then:
-        result.assertEveryBuildSucceeds()
+        runner.run()
 
         where:
         scenario  | size     | task
@@ -65,7 +62,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "multiproject using variants #scenario build"() {
-        given:
+        when:
         runner.testGroup = "project using variants"
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
@@ -84,11 +81,8 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
             Toggles.noDaemonLogging(it).forProject("variantsOldModelMultiproject").displayName("old model (no client logging)").tasksToRun(*tasks).useDaemon()
         }
 
-        when:
-        def result = runner.run()
-
         then:
-        result.assertEveryBuildSucceeds()
+        runner.run()
 
         where:
         scenario                      | tasks

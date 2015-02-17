@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.internal.exceptions.DefaultMultiCauseException
+
 class CrossBuildPerformanceResults extends PerformanceTestResult {
     String testGroup
     String versionUnderTest
@@ -51,6 +53,8 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
     }
 
     void assertEveryBuildSucceeds() {
-        assert failures.empty
+        if (failures) {
+            throw new DefaultMultiCauseException("Performance test '$testId' failed", failures)
+        }
     }
 }

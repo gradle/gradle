@@ -19,7 +19,7 @@ package org.gradle.performance
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "test"() {
-        given:
+        when:
         runner.testId = "parallel builds"
         runner.testGroup = "parallel builds"
         runner.buildSpec {
@@ -29,11 +29,8 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
             it.forProject("multi").displayName("serial").tasksToRun("clean", "build")
         }
 
-        when:
-        def result = runner.run()
-
         then:
-        result.assertEveryBuildSucceeds()
+        runner.run()
     }
 
 }

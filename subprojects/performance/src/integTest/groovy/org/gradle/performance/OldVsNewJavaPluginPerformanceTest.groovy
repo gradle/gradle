@@ -25,7 +25,7 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
 
     @Unroll
     def "#size project old vs new java plugin #scenario build"() {
-        given:
+        when:
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpec {
@@ -44,11 +44,8 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
             Toggles.noDaemonLogging(it).forProject("${size}OldJava").displayName("old plugin (no client logging)").tasksToRun(*tasks).useDaemon()
         }
 
-        when:
-        def result = runner.run()
-
         then:
-        result.assertEveryBuildSucceeds()
+        runner.run()
 
         where:
         scenario  | size     | tasks
