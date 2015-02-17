@@ -39,12 +39,13 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
 
     public void buildSpec(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
         def builder = new BuildSpecification.Builder(null)
+        builder.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=512m")
         configureAction.delegate = builder
         configureAction.call(builder)
         def specification = builder.build()
 
-        if (buildSpecifications.find { it.displayName == specification.displayName }) {
-            throw new IllegalStateException("Multiple specifications with display name '${spec.displayName}.")
+        if (buildSpecifications.any { it.displayName == specification.displayName }) {
+            throw new IllegalStateException("Multiple specifications with display name '${specification.displayName}.")
         }
         buildSpecifications << specification
     }
