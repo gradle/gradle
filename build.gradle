@@ -85,7 +85,7 @@ ext {
         ext.useIncomingDistributions = false
     }
 
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
+    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
@@ -94,7 +94,7 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
-        'pluginDevelopment', 'pluginUse'
+        'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3'
     ].collect {
         project(it)
     }
