@@ -25,33 +25,38 @@ Faster compilation times.
 
 ### Implementation Details
 
-- Create `BuildOperationProcessor` to create work queues.
-- `BuildOperationProcessor` uses `StartParameter`'s getParallelThreadCount() to determine number of worker threads to use.
-- Create `OperationQueue` to submit operations to an executor and wait for completion/collect errors.
-- Change `NativeCompiler` to use `BuildOperationProcessor` to submit `CommandLineToolInvocation`s and use `CommandLineTool` as an operation worker.
-- ToolChain's withArguments is only processed once per overall "build" step (not on individual files).
+- ~~Create `BuildOperationProcessor` to create work queues.~~
+- ~~`BuildOperationProcessor` uses `StartParameter`'s getParallelThreadCount() to determine number of worker threads to use.~~
+- ~~Create `OperationQueue` to submit operations to an executor and wait for completion/collect errors.~~
+- ~~Change `NativeCompiler` to use `BuildOperationProcessor` to submit `CommandLineToolInvocation`s and use `CommandLineTool` as an operation worker.~~
+- ~~ToolChain's withArguments is only processed once per overall "build" step (not on individual files).~~
 
 ### Test Cases
 
-- All operations submitted to queue are processed.
-- On failure, all operations are still processed (do not fail eagerly).
-- On failure, all failures are collected into a single failure.
-- For tool chains that support it, options.txt is generated once per overall "build" step.
+- ~~All operations submitted to queue are processed.~~
+- ~~On failure, all operations are still processed (do not fail eagerly).~~
+- ~~On failure, all failures are collected into a single failure.~~
+- ~~For tool chains that support it, options.txt is generated once per overall "build" step.~~
+- Add concurrent tests for `BuildOperationProcessor`
+
+## Story: Add performance tests for native languages
 
 ## Story: Report build operation failures
 
-0. Show every build operation that fails
-1. Show 1st 10 files that fail compilation (and count of the rest)
+Show build operation that fails 
+  - Show 1st 10 files that fail compilation 
+  - Show count of the rest over 10
 
 ### User Visible Changes
 
 At the end of the build, instead of just saying "see the error output for details" we will also list the first 10 files that failed compilation and the number of total files that failed compilation.
 
-With -S, show all build operation failure causes.
+TODO: Sould this be -i/--info?
+With -d/--debug, will show all build operation failures.
 
 ### Implementation Details
 
-- Provide a named `Operation` type with a getDisplayName() that can be implemented by build `Operation`s.
+- ~~Provide a `Operation` type with a getDescription() that can be implemented by build `Operation`s.~~
 - TBD: CommandLineTool/NativeCompiler will need to include filename as part of build operation failure.
 - TBD: Currently OperationQueue collects Exceptions from individual operations, need to figure out how to put them together in a generic way.
 
@@ -59,9 +64,9 @@ With -S, show all build operation failure causes.
 
 - Check output of failed build includes failed filenames for 1, 10, >10 cases (should only show max of 10).
 - Check total count of failures == total number of operations that failed.
-- Check that -S prints all appropriate stacktraces.
+- Check that -d/--debug prints all failures.
 
-### Discussion 
+### Discussion (Daz)
 
 I'm not sure how we should treat the exceptions for each file. Is there any point keeping each exception? Is there ever a point in printing a stack trace for every file that fails compilation?  The only benefit I see to keeping all of the exceptions is that it's a general capability of BuildOperationProcessor.  Seems like collapsing would be specific to the type of operation? 
 

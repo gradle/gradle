@@ -2,10 +2,6 @@ This specification outlines the work that is required to use Gradle to create an
 
 It's a part of the overall effort of improving C/C++/native build support within Gradle.
 
-
-Support single file input for "precompiled header input"
-
-
 # Use of Precompiled Headers
 
 Precompiled headers can be used to speed up compilation time if a project uses large header libraries (e.g., Boost), uses header files that include many other header files or uses header files that are included by many source files.
@@ -19,18 +15,17 @@ Precompiled headers must have the same compiler options as the source unit they 
 There can only be one precompiled header per source unit compilation.  Some examples of using a precompiled header includes:
 
 - I have a single project with a single native component and want to use a PCH with it.
-- I have a single project with multiple native components and want to use the same PCH for multiple components.
-- I have multiple projects with native components and want to use a PCH defined in one project across project boundaries.
-
-## Uses Cases: Multiple Precompiled Headers
 
 Using multiple precompiled headers for a single .c or .cpp file is unsupported by MSVC/GCC/Clang; however, a single native component may have multiple sets of sources that each have their own precompiled header. 
 
-TODO: This seems very uncommon and may not fit with some IDE's view of a project.
+## Uses Cases: Not implemented
+
+- I have a single project with multiple native components and want to use the same PCH for multiple components.
+- I have multiple projects with native components and want to use a PCH defined in one project across project boundaries.
 
 # DSL (WIP)
 
-General idea is to include the PCH as a property on a native source set (C/C++)
+General idea is to include the PCH as a property on a native source set (C/C++).  precompiledHeader should be a `Buildable` so we could potentially generate it.
 
     model {
         components {
@@ -49,26 +44,24 @@ General idea is to include the PCH as a property on a native source set (C/C++)
 ## Test Cases
 
 - Build fails when developer defines precompiled header, but the precompiled header does not exist.  
-- Build fails when developer defines PCH, but the PCH cannot be generated.
+- Build fails when developer defines PCH, but the intermediate file cannot be generated.
 - Gradle warns when developer defines PCH, but the compiler cannot use it for some reason.
-- When any file included in PCH header changes, PCH is rebuilt.
-- Build produces a PCH for each variant and language combination (see Open Questions below).
+- When any file included in PCH header changes, intermediate file is rebuilt.
+- Build produces an intermediate file for each variant and language combination.
 - For GCC, build of PCH produces <precompiledHeader>.gch
 - For MSVC/Clang, build of PCH produces <precompiledHeader>.pch
-- For MSVC, Gradle looks for a <precompiledHeader>.cpp.  If it does not exist, we will generate one that #include's <precompiledHeader>.h
+- For MSVC, Gradle looks for a <precompiledHeader>.c/cpp.  If it does not exist, we will generate one that #include's <precompiledHeader>.h
 
-TODO: Flesh out steps for creating PCH for each toolchain.
+Steps for creating PCH for each toolchain are below.
 
 - For all, build of component using PCH inclues PCH-build directory ahead of normal include path.
 - For GCC, no other special arguments are needed.
 - For Clang, build of component using PCH adds -include-pch for source files that have a dependency on the PCH.
 - For MSVC, build of component using PCH adds /Yu<precompiledHeader>.pch for source files that have a dependency on the PCH.
 
-Should be covered by existing infrastructure:
-- Build of component using PCH executes when PCH changes.
-- Build of component using PCH does not execute when PCH has not changed.
-
 ## Compiler Implementation Details
+
+PCH intermediate files are machine and host specific.  Need to include this into any input snapshotting.
 
 ### GCC
 
@@ -121,17 +114,12 @@ TBD
 
 # Open Questions
 
-- Do we automatically add language source sets to a native component (i.e., applying c and cpp causes us to always generate a PCH for C and C++)?
-- Does this extend well to "lump" or "unity" builds?
 - Can we/should we try to generate precompiled header/source files given a list of headers to precompile? 
-- Should we make use of -include or /FI to include precompiled headers in a given source set compilation? (aka prefix headers)
-- What's the impact of the warning that "PCH files are machine dependant. Even with the same compiler, there is no way to package PCH for general use." that GCC and MSVC both have.
-- Should probably be easy to turn off PCH for testing/diagnosing a broken build
-
-# Other
-
-- At least GCC can tell us if the precompiled header is actually used.  Is this useful info (at least for testing)?
-- Not sure if we have all the info, but usage statistics on header files would give us some insight so we could provide recommendations for a PCH or automatic generation of a precompiled header.
+    - Not sure if we have all the info, but usage statistics on header files would give us some insight so we could provide recommendations for a PCH or automatic generation of a precompiled header.
+- At least GCC can tell us if the precompiled header is actually used.  Do the other compilers?
+- ~~Does this extend well to "lump" or "unity" builds? -- No, not really.~~
+- ~~Should we make use of -include or /FI to include precompiled headers in a given source set compilation? (aka prefix headers) -- No~~
+- ~~Should probably be easy to turn off PCH for testing/diagnosing a broken build? -- No~~
 
 # Out of Scope
 
