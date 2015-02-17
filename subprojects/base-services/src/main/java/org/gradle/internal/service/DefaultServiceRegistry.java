@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import com.google.common.collect.*;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
@@ -28,6 +27,7 @@ import org.gradle.internal.util.BiFunction;
 import java.io.Closeable;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -60,9 +60,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
-    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = Maps.newConcurrentMap();
-    private static final ConcurrentMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>> SERVICE_TYPE_PROVIDER_CACHE = Maps.newConcurrentMap();
-    private final Map<Type, ServiceProvider> providerCache = Maps.newHashMap();
+    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
+    private static final ConcurrentMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>> SERVICE_TYPE_PROVIDER_CACHE = new ConcurrentHashMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>>();
+    private final Map<Type, ServiceProvider> providerCache = new HashMap<Type, ServiceProvider>();
 
     private final Object lock = new Object();
     private final CompositeProvider allServices = new CompositeProvider();
@@ -120,11 +120,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     static class RelevantMethods {
-        final ImmutableList<Method> decorators;
-        final ImmutableList<Method> factories;
-        final ImmutableList<Method> configurers;
+        final List<Method> decorators;
+        final List<Method> factories;
+        final List<Method> configurers;
 
-        public RelevantMethods(ImmutableList<Method> decorators, ImmutableList<Method> factories, ImmutableList<Method> configurers) {
+        public RelevantMethods(List<Method> decorators, List<Method> factories, List<Method> configurers) {
             this.decorators = decorators;
             this.factories = factories;
             this.configurers = configurers;
@@ -134,21 +134,21 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     static class RelevantMethodsBuilder {
         final List<Method> remainingMethods;
         final Class<?> type;
-        final ImmutableList.Builder<Method> decorators = ImmutableList.builder();
-        final ImmutableList.Builder<Method> factories = ImmutableList.builder();
-        final ImmutableList.Builder<Method> configurers = ImmutableList.builder();
-        final Set<String> seen = Sets.newHashSet();
+        final LinkedList<Method> decorators = new LinkedList<Method>();
+        final LinkedList<Method> factories = new LinkedList<Method>();
+        final LinkedList<Method> configurers = new LinkedList<Method>();
+        final Set<String> seen = new HashSet<String>();
 
         public RelevantMethodsBuilder(Class<?> type) {
             this.type = type;
-            this.remainingMethods = Lists.newLinkedList();
+            this.remainingMethods = new LinkedList<Method>();
 
             for (Class<?> clazz = type; clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
                 remainingMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
             }
         }
 
-        void add(Iterator<Method> iterator, ImmutableCollection.Builder<Method> builder, Method method) {
+        void add(Iterator<Method> iterator, List<Method> builder, Method method) {
             if (seen.add(method.getName())) {
                 builder.add(method);
             }
@@ -156,7 +156,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         RelevantMethods build() {
-            return new RelevantMethods(decorators.build(), factories.build(), configurers.build());
+            return new RelevantMethods(decorators, factories, configurers);
         }
     }
 
