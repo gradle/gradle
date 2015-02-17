@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.Actions
+import org.gradle.internal.operations.BuildOperationProcessor
+import org.gradle.internal.operations.OperationQueue
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
@@ -36,7 +38,10 @@ class GccLinkerTest extends Specification {
     def invocationContext = Mock(CommandLineToolContext)
     def invocation = Mock(CommandLineToolInvocation)
     CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
-    GccLinker linker = new GccLinker(commandLineTool, invocationContext, false)
+    BuildOperationProcessor buildOperationProcessor = Mock(BuildOperationProcessor)
+    OperationQueue queue = Mock(OperationQueue)
+
+    GccLinker linker = new GccLinker(buildOperationProcessor, commandLineTool, invocationContext, false)
 
     def "links all object files in a single execution"() {
         given:
@@ -67,9 +72,11 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
+        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation(expectedArgs) >> invocation
-        1 * commandLineTool.execute(invocation)
+        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * queue.add(invocation)
+        1 * queue.waitForCompletion()
         0 * _
     }
 
@@ -112,9 +119,11 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
+        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation(expectedArgs) >> invocation
-        1 * commandLineTool.execute(invocation)
+        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * queue.add(invocation)
+        1 * queue.waitForCompletion()
         0 * _
     }
 
@@ -146,9 +155,11 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
+        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation(expectedArgs) >> invocation
-        1 * commandLineTool.execute(invocation)
+        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * queue.add(invocation)
+        1 * queue.waitForCompletion()
         0 * _
     }
 
@@ -181,9 +192,11 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
+        1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation(expectedArgs) >> invocation
-        1 * commandLineTool.execute(invocation)
+        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * queue.add(invocation)
+        1 * queue.waitForCompletion()
         0 * _
     }
 

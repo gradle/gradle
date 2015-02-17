@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.OperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.LinkerSpec;
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
@@ -37,8 +39,11 @@ class GccLinker implements Compiler<LinkerSpec> {
     private final ArgsTransformer<LinkerSpec> argsTransformer;
     private final CommandLineToolContext invocationContext;
     private final boolean useCommandFile;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    GccLinker(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
+
+    GccLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, boolean useCommandFile) {
+        this.buildOperationProcessor = buildOperationProcessor;
         this.argsTransformer = new GccLinkerArgsTransformer();
         this.invocationContext = invocationContext;
         this.useCommandFile = useCommandFile;
@@ -46,6 +51,8 @@ class GccLinker implements Compiler<LinkerSpec> {
     }
 
     public WorkResult execute(LinkerSpec spec) {
+        OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         if (useCommandFile) {
@@ -53,7 +60,8 @@ class GccLinker implements Compiler<LinkerSpec> {
         }
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("linking %s", spec.getOutputFile().getName()), args);
-        commandLineToolInvocationWorker.execute(invocation);
+        queue.add(invocation);
+        queue.waitForCompletion();
         return new SimpleWorkResult(true);
     }
 

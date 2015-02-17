@@ -19,6 +19,8 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.OperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
@@ -37,8 +39,10 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final ArgsTransformer<StaticLibraryArchiverSpec> argsTransformer = new ArchiverSpecToArguments();
     private final CommandLineToolContext invocationContext;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    ArStaticLibraryArchiver(CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
+    ArStaticLibraryArchiver(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
+        this.buildOperationProcessor = buildOperationProcessor;
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.invocationContext = invocationContext;
     }
@@ -46,11 +50,13 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
+        OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("archiving %s", spec.getOutputFile().getName()), args);
-        commandLineToolInvocationWorker.execute(invocation);
+        queue.add(invocation);
+        queue.waitForCompletion();
         return new SimpleWorkResult(true);
     }
 
