@@ -89,6 +89,12 @@ allows access to the `ComponentSelector` as well:
         }
     }
 
+### Parallel Native Compilation
+
+Gradle uses multiple concurrent compilation processes when compiling all supported native languages (Assembly, C, C++, Objective-C, Objective-C++).  
+You can enable this with the incubating `--parallel` and `--parallel-threads=#` command-line options.  
+Up until this release, Gradle compiled all native source files sequentially. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -182,6 +188,14 @@ will be ignored.
 ### DependencyResolveDetails.getTarget() is gone
 
 There still is a `getTarget()` method on `DefaultDependencyResolveDetails`, but it returns a `ComponentSelector` instead of a `ModuleVersionSelector`.
+
+### CommandLineToolConfiguration.withArguments() semantics have changed
+
+`withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.  
+The arguments passed to this would include the path to the source file and output file.  
+This hook was intended to capture "overall" arguments to the command-line tool instead of "per-file" arguments.  
+We've changed it so that `withArguments()` is called once per task execution and does not contain any specific file arguments.  
+Changes to arguments using this method will affect all source files.
 
 ## External contributions
 
