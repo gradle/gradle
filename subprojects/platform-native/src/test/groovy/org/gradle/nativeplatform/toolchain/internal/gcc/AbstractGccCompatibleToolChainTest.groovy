@@ -253,14 +253,14 @@ class AbstractGccCompatibleToolChainTest extends Specification {
             argsFor(platformToolChain.cCompiler) == [compilerArg]
             argsFor(platformToolChain.objcCompiler) == [compilerArg]
             argsFor(platformToolChain.objcppCompiler) == [compilerArg]
-            argsFor(platformToolChain.assembler) == [assemblerArg]
+            argsFor(platformToolChain.assembler) == [compilerArg]
             argsFor(platformToolChain.staticLibArchiver) == []
         }
 
         where:
-        arch     | linkerArg | compilerArg | assemblerArg
-        "i386"   | "-m32"    | "-m32"      | "--32"
-        "x86_64" | "-m64"    | "-m64"      | "--64"
+        arch     | linkerArg | compilerArg
+        "i386"   | "-m32"    | "-m32"
+        "x86_64" | "-m64"    | "-m64"
     }
 
     def "supplies args for supported architecture for os x platforms"() {

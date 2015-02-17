@@ -206,16 +206,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getObjcCompiler().withArguments(m32args);
             gccToolChain.getObjcppCompiler().withArguments(m32args);
             gccToolChain.getLinker().withArguments(m32args);
-            gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    // TODO - this should be 'if toolchain is XCode'
-                    if (operatingSystem.isMacOsX()) {
-                        args.addAll(asList("-arch", "i386"));
-                    } else {
-                        args.add("--32");
-                    }
-                }
-            });
+            gccToolChain.getAssembler().withArguments(m32args);
+
         }
     }
 
@@ -237,16 +229,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             gccToolChain.getObjcCompiler().withArguments(m64args);
             gccToolChain.getObjcppCompiler().withArguments(m64args);
             gccToolChain.getLinker().withArguments(m64args);
-            gccToolChain.getAssembler().withArguments(new Action<List<String>>() {
-                public void execute(List<String> args) {
-                    // TODO - this should be 'if toolchain is XCode'
-                    if (operatingSystem.isMacOsX()) {
-                        args.addAll(asList("-arch", "x86_64"));
-                    } else {
-                        args.add("--64");
-                    }
-                }
-            });
+            gccToolChain.getAssembler().withArguments(m64args);
         }
     }
 
