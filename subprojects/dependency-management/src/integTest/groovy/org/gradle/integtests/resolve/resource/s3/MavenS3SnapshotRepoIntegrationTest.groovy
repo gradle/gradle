@@ -118,7 +118,6 @@ task retrieve(type: Sync) {
         remoteModule.artifact.expectDownload()
 
         when:
-        executer.withArgument("--stacktrace")
         using m2Installation
         run 'retrieve'
 
