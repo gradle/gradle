@@ -88,4 +88,9 @@ public class DefaultCommandLineToolInvocation implements MutableCommandLineToolI
     public void addEnvironmentVar(String key, String value) {
         this.environment.put(key, value);
     }
+
+    @Override
+    public String getDisplayName() {
+        return "TODO";
+    }
 }

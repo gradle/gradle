@@ -18,22 +18,21 @@ package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.*;
-import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
-class DefaultOperationQueue<T> implements OperationQueue<T> {
+class DefaultOperationQueue<T extends BuildOperation> implements OperationQueue<T> {
     private final ListeningExecutorService executor;
-    private final Action<? super T> worker;
+    private final OperationWorker<T> worker;
 
     private final List<ListenableFuture> operations;
 
     private boolean waitingForCompletion;
 
-    DefaultOperationQueue(ExecutorService executor, Action<? super T> worker) {
+    DefaultOperationQueue(ExecutorService executor, OperationWorker<T> worker) {
         this.executor =  MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
@@ -43,7 +42,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         if (waitingForCompletion) {
             throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
         }
-        ListenableFuture<?> future = executor.submit(new Operation(operation));
+        ListenableFuture<?> future = executor.submit(new OperationHolder(operation));
         operations.add(future);
     }
 
@@ -95,10 +94,10 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         }
     }
 
-    class Operation implements Runnable {
+    class OperationHolder implements Runnable {
         private final T operation;
 
-        Operation(T operation) {
+        OperationHolder(T operation) {
             this.operation = operation;
         }
 
@@ -107,7 +106,7 @@ class DefaultOperationQueue<T> implements OperationQueue<T> {
         }
 
         public String toString() {
-            return String.format("Worker %s for operation %s", worker, operation);
+            return String.format("Worker %s for operation %s", worker.getDisplayName(), operation.getDisplayName());
         }
     }
 }

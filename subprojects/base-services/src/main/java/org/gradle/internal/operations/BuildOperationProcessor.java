@@ -17,8 +17,6 @@
 package org.gradle.internal.operations;
 
 
-import org.gradle.api.Action;
-
 /**
  * A processor for executing build operations.
  */
@@ -30,5 +28,5 @@ public interface BuildOperationProcessor {
      * @param <T> The type of operations the worker uses.
      * @return A queue to add operations to and wait for their completion.
      */
-    <T> OperationQueue<T> newQueue(Action<? super T> worker);
+    <T extends BuildOperation> OperationQueue<T> newQueue(OperationWorker<T> worker);
 }

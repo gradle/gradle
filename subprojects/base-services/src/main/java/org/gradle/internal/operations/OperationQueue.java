@@ -27,7 +27,7 @@ package org.gradle.internal.operations;
  *
  * @param <T> Type of build operations to hold.
  */
-public interface OperationQueue<T> {
+public interface OperationQueue<T extends BuildOperation> {
     /**
      * Adds an operation to be executed.
      *

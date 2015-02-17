@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -42,7 +41,7 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         return actualThreads;
     }
 
-    public <T> OperationQueue<T> newQueue(Action<? super T> worker) {
+    public <T extends BuildOperation> OperationQueue<T> newQueue(OperationWorker<T> worker) {
         return new DefaultOperationQueue<T>(fixedSizePool, worker);
     }
 

@@ -29,7 +29,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
-        def operation = Mock(Runnable)
+        def operation = Mock(DefaultOperationQueueTest.TestBuildOperation)
         def worker = new DefaultOperationQueueTest.SimpleWorker()
 
         when:
@@ -68,11 +68,11 @@ class DefaultBuildOperationProcessorTest extends Specification {
                 buildOperationProcessor.newQueue(worker),
         ]
         def operations = [
-                Mock(Runnable),
-                Mock(Runnable),
-                Mock(Runnable),
-                Mock(Runnable),
-                Mock(Runnable),
+                Mock(DefaultOperationQueueTest.TestBuildOperation),
+                Mock(DefaultOperationQueueTest.TestBuildOperation),
+                Mock(DefaultOperationQueueTest.TestBuildOperation),
+                Mock(DefaultOperationQueueTest.TestBuildOperation),
+                Mock(DefaultOperationQueueTest.TestBuildOperation),
         ]
 
         when:
@@ -104,8 +104,8 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def amountOfWork = 10
         def maxThreads = 4
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
-        def success = Stub(Runnable)
-        def failure = Stub(Runnable) {
+        def success = Stub(DefaultOperationQueueTest.TestBuildOperation)
+        def failure = Stub(DefaultOperationQueueTest.TestBuildOperation) {
             run() >> { throw new Exception() }
         }
         def worker = new DefaultOperationQueueTest.SimpleWorker()
@@ -153,7 +153,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def worker = new DefaultOperationQueueTest.SimpleWorker()
         def queue = buildOperationProcessor.newQueue(worker)
         def startLatch = new CountDownLatch(1)
-        def operation = Stub(Runnable) {
+        def operation = Stub(DefaultOperationQueueTest.TestBuildOperation) {
             run() >> {
                 startLatch.await()
                 throw new GradleException("always fails")

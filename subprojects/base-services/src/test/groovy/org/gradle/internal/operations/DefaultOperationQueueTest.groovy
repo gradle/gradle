@@ -17,32 +17,36 @@
 package org.gradle.internal.operations
 import com.google.common.util.concurrent.ListeningExecutorService
 import com.google.common.util.concurrent.MoreExecutors
-import org.gradle.api.Action
 import org.gradle.api.GradleException
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultOperationQueueTest extends Specification {
 
-    class Success implements Runnable {
+    abstract static class TestBuildOperation implements BuildOperation, Runnable {
+        public String getDisplayName() { return toString() }
+        public String toString() { return getClass().simpleName }
+    }
+
+    static class Success extends TestBuildOperation {
         void run() {
             // do nothing
         }
-
-        public String toString() { return "Success" }
     }
 
-    class Failure implements Runnable {
+    static class Failure extends TestBuildOperation {
         void run() {
-            throw new GradleException("always fails")
+            throw new OperationFailure("always fails")
+        }
+    }
+
+    static class SimpleWorker implements OperationWorker<TestBuildOperation> {
+        public void execute(TestBuildOperation run) {
+            run.run();
         }
 
-        public String toString() { return "Failure" }
-    }
-
-    class SimpleWorker implements Action<Runnable> {
-        public void execute(Runnable run) {
-            run.run();
+        String getDisplayName() {
+            return getClass().simpleName
         }
     }
 
@@ -53,7 +57,7 @@ class DefaultOperationQueueTest extends Specification {
     @Unroll
     def "executes all #runs operations"() {
         given:
-        def success = Mock(Runnable)
+        def success = Mock(TestBuildOperation)
 
         when:
         runs.times { operationQueue.add(success) }
@@ -76,7 +80,7 @@ class DefaultOperationQueueTest extends Specification {
         operationQueue.waitForCompletion()
 
         when:
-        operationQueue.add(Mock(Runnable))
+        operationQueue.add(Mock(TestBuildOperation))
 
         then:
         thrown IllegalStateException
@@ -112,13 +116,13 @@ class DefaultOperationQueueTest extends Specification {
 
     def "all failures reported in order"() {
         given:
-        operationQueue.add(Stub(Runnable) {
+        operationQueue.add(Stub(TestBuildOperation) {
             run() >> { throw new RuntimeException("first") }
         })
-        operationQueue.add(Stub(Runnable) {
+        operationQueue.add(Stub(TestBuildOperation) {
             run() >> { throw new RuntimeException("second") }
         })
-        operationQueue.add(Stub(Runnable) {
+        operationQueue.add(Stub(TestBuildOperation) {
             run() >> { throw new RuntimeException("third") }
         })
 
