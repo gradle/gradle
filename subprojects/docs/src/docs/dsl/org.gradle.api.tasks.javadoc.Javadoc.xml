@@ -49,7 +49,7 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
-                <td>toolChain</td>
+                <td>toolResolver</td>
                 <td></td>
             </tr>
         </table>

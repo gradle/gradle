@@ -23,6 +23,7 @@ import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.hamcrest.Matchers
 
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
@@ -172,6 +173,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         fails "myLibJar"
 
         and:
-        assert failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
+        failure.assertHasCause("No tool chains can provide a compiler for type DefaultJavaCompileSpec:")
+        failure.assertThatCause(Matchers.containsString("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'"))
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -35,11 +36,11 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -65,26 +66,22 @@ public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions = new CompileOptions();
 
     /**
-     * Returns the tool chain that will be used to compile the Java source.
+     * Returns the tool resolver that will be used to find the tool to compile the Java source.
      *
-     * @return The tool chain.
+     * @return The tool resolver.
      */
     @Incubating @Inject
-    public JavaToolChain getToolChain() {
-        // Implementation is generated
+    public ToolResolver getToolResolver() {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Sets the tool chain that should be used to compile the Java source.
+     * Sets the tool resolver that should be used to find the tool to compile the Java source.
      *
-     * @param toolChain The tool chain.
+     * @param toolResolver The tool resolver.
      */
     @Incubating
-    public void setToolChain(JavaToolChain toolChain) {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
-    }
+    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
@@ -146,12 +143,12 @@ public class JavaCompile extends AbstractCompile {
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
         // TODO:DAZ Supply the target platform to the task, using the compatibility flags as overrides
         // Or maybe split the legacy compile task from the new one
-        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
+        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(getToolResolver().resolveCompiler(spec.getClass(), getPlatform()).get());
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
     protected JavaPlatform getPlatform() {
-        return null;
+        return new DefaultJavaPlatform(JavaVersion.current());
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {

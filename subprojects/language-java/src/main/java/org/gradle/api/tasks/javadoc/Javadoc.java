@@ -18,14 +18,16 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
-import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.platform.base.Platform;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -137,26 +139,28 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
-        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(JavadocSpec.class);
+        Compiler<JavadocSpec> generator = getToolResolver().resolveCompiler(JavadocSpec.class, getPlatform()).get();
         generator.execute(spec);
     }
 
     /**
-     * Returns the tool chain that will be used to generate the Javadoc.
+     * <p>Returns the the tool resolver which will be used to find the tool to generate the documention.</p>
+     *
+     * @return the tool resolver
      */
     @Incubating @Inject
-    public JavaToolChain getToolChain() {
-        // Implementation is generated
+    public ToolResolver getToolResolver() {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Sets the tool chain to use to generate the Javadoc.
+     * Sets the tool resolver which will be used to find the tool to generate the Javadoc.
      */
     @Incubating
-    public void setToolChain(JavaToolChain toolChain) {
-        // Implementation is generated
-        throw new UnsupportedOperationException();
+    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
+
+    private Platform getPlatform() {
+        return new DefaultJavaPlatform(JavaVersion.current());
     }
 
     /**
