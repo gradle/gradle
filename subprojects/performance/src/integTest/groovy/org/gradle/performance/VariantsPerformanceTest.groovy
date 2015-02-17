@@ -105,7 +105,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
         where:
         scenario                      | tasks
-        "single variant"              | [":project1:flavour1type1"]
+        "single variant"              | [":project1:flavour1type1_t1"]
         "all variants single project" | [":project1:allVariants"]
         "all variants all projects"   | ["allVariants"]
     }
