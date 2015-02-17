@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -40,7 +39,7 @@ class GCLoggingCollectorTest extends Specification {
         resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
 
         when:
-        collector.beforeExecute(projectDir, Stub(GradleExecuter))
+        collector.getAdditionalGradleOpts(projectDir)
         collector.collect(operation, locale)
 
         then:

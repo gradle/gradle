@@ -16,8 +16,6 @@
 
 package org.gradle.performance.fixture;
 
-import com.google.common.base.Joiner;
-import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GFileUtils;
@@ -28,31 +26,25 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GCLoggingCollector implements DataCollector {
     private File logFile;
-    private boolean useDaemon;
 
-    public void useDaemon() {
-        useDaemon(true);
-    }
-
-    public void useDaemon(boolean useDaemon) {
-        this.useDaemon = useDaemon;
-    }
-
-    public void beforeExecute(File testProjectDir, GradleExecuter executer) {
-        logFile = new File(testProjectDir, "gc.txt");
-
-        String[] gradleOpts = new String[]{"-verbosegc", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-Xloggc:" + logFile.getAbsolutePath(), "-XX:-PrintGCTimeStamps"};
-        if (useDaemon) {
-            executer.withGradleOpts("-Dorg.gradle.jvmargs=" + Joiner.on(" ").join(gradleOpts));
-        } else {
-            executer.withGradleOpts(gradleOpts);
-        }
+    @Override
+    public List<String> getAdditionalGradleOpts(File workingDir) {
+        logFile = new File(workingDir, "gc.txt");
+        return Arrays.asList(
+                "-verbosegc",
+                "-XX:+PrintGCDetails",
+                "-XX:+PrintGCDateStamps",
+                "-Xloggc:" + logFile.getAbsolutePath(),
+                "-XX:-PrintGCTimeStamps"
+        );
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {

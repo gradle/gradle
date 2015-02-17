@@ -98,68 +98,21 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        experimentRunner.run(new RunnerBackedBuildParametersSpecification(this, dist, projectDir), results)
+        def spec = BuildExperimentSpec.builder()
+                .projectName(testId)
+                .displayName(dist.version.version)
+                .warmUpCount(warmUpRuns)
+                .invocationCount(runs)
+                .invocation {
+            workingDirectory(projectDir)
+            distribution(dist)
+            tasksToRun(this.tasksToRun as String[])
+            args(this.args as String[])
+            gradleOpts(this.gradleOpts as String[])
+            useDaemon(this.useDaemon)
+        }.build()
+
+        experimentRunner.run(spec, results)
     }
 
-    private class RunnerBackedBuildParametersSpecification implements GradleInvocationSpec, BuildExperimentSpec {
-        final GradleDistribution distribution
-        final CrossVersionPerformanceTestRunner runner
-        final File workingDir
-
-        RunnerBackedBuildParametersSpecification(CrossVersionPerformanceTestRunner runner, GradleDistribution distribution, File workingDir) {
-            this.runner = runner
-            this.distribution = distribution
-            this.workingDir = workingDir
-        }
-
-        @Override
-        GradleInvocationSpec getBuildSpec() {
-            return this
-        }
-
-        @Override
-        String getDisplayName() {
-            return distribution.version.version
-        }
-
-        @Override
-        int getWarmUpCount() {
-            return warmUpRuns
-        }
-
-        @Override
-        int getInvocationCount() {
-            return runs
-        }
-
-        @Override
-        GradleDistribution getGradleDistribution() {
-            return distribution
-        }
-
-        @Override
-        File getWorkingDirectory() {
-            return workingDir
-        }
-
-        @Override
-        String[] getTasksToRun() {
-            runner.tasksToRun as String[]
-        }
-
-        @Override
-        String[] getArgs() {
-            runner.args as String[]
-        }
-
-        @Override
-        String[] getGradleOpts() {
-            runner.gradleOpts as String[]
-        }
-
-        @Override
-        boolean getUseDaemon() {
-            runner.useDaemon
-        }
-    }
 }

@@ -104,6 +104,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.testId = 'some-test'
         runner.testProjectLocator = testProjectLocator
         runner.current = currentGradle
+        runner.runs = 1
         return runner
     }
 }

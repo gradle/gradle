@@ -17,7 +17,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.Toggles
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -30,19 +29,29 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
-            Toggles.transformedDsl(forProject("${size}VariantsNewModel")).displayName("new model").tasksToRun(task).useDaemon()
+            projectName("${size}VariantsNewModel").displayName("new model").invocation {
+                tasksToRun(task).useDaemon().enableTransformedModelDsl()
+            }
         }
         runner.buildSpec {
-            Toggles.transformedDsl(Toggles.modelReuse(it)).forProject("${size}VariantsNewModel").displayName("new model (reuse)").tasksToRun(task).useDaemon()
+            projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
+                tasksToRun(task).useDaemon().enableTransformedModelDsl().enableModelReuse()
+            }
         }
         runner.buildSpec {
-            Toggles.transformedDsl(Toggles.noDaemonLogging(it)).forProject("${size}VariantsNewModel").displayName("new model (no client logging)").tasksToRun(task).useDaemon()
+            projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
+                tasksToRun(task).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+            }
         }
         runner.baseline {
-            forProject("${size}VariantsOldModel").displayName("old model").tasksToRun(task).useDaemon()
+            projectName("${size}VariantsOldModel").displayName("old model").invocation {
+                tasksToRun(task).useDaemon()
+            }
         }
         runner.baseline {
-            Toggles.noDaemonLogging(it).forProject("${size}VariantsOldModel").displayName("old model (no client logging)").tasksToRun(task).useDaemon()
+            projectName("${size}VariantsOldModel").displayName("old model (no client logging)").invocation {
+                tasksToRun(task).useDaemon().disableDaemonLogging()
+            }
         }
 
         then:
@@ -66,19 +75,29 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testGroup = "project using variants"
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
-            forProject("variantsNewModelMultiproject").displayName("new model").tasksToRun(*tasks).useDaemon()
+            projectName("variantsNewModelMultiproject").displayName("new model").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+            }
         }
         runner.buildSpec {
-            Toggles.modelReuse(it).forProject("variantsNewModelMultiproject").displayName("new model (reuse)").tasksToRun(*tasks).useDaemon()
+            projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
+            }
         }
         runner.buildSpec {
-            Toggles.noDaemonLogging(it).forProject("variantsNewModelMultiproject").displayName("new model (no client logging)").tasksToRun(*tasks).useDaemon()
+            projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+            }
         }
         runner.baseline {
-            forProject("variantsOldModelMultiproject").displayName("old model").tasksToRun(*tasks).useDaemon()
+            projectName("variantsOldModelMultiproject").displayName("old model").invocation {
+                tasksToRun(*tasks).useDaemon()
+            }
         }
         runner.baseline {
-            Toggles.noDaemonLogging(it).forProject("variantsOldModelMultiproject").displayName("old model (no client logging)").tasksToRun(*tasks).useDaemon()
+            projectName("variantsOldModelMultiproject").displayName("old model (no client logging)").invocation {
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
+            }
         }
 
         then:

@@ -19,7 +19,7 @@ package org.gradle.performance.results;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.performance.fixture.BuildSpecification;
+import org.gradle.performance.fixture.BuildDisplayInfo;
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 import org.gradle.performance.fixture.DataReporter;
 import org.gradle.performance.fixture.MeasuredOperationList;
@@ -73,8 +73,8 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                     }
                     statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
-                        for (BuildSpecification specification : results.getBuildSpecifications()) {
-                            addOperations(statement, executionId, specification, results.buildResult(specification));
+                        for (BuildDisplayInfo displayInfo : results.getBuilds()) {
+                            addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
                         }
                     } finally {
                         statement.close();
@@ -87,13 +87,13 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
         }
     }
 
-    private void addOperations(PreparedStatement statement, long executionId, BuildSpecification specification, MeasuredOperationList operations) throws SQLException {
+    private void addOperations(PreparedStatement statement, long executionId, BuildDisplayInfo displayInfo, MeasuredOperationList operations) throws SQLException {
         for (MeasuredOperation operation : operations) {
             statement.setLong(1, executionId);
-            statement.setString(2, specification.getProjectName());
-            statement.setString(3, specification.getDisplayName());
-            statement.setObject(4, specification.getTasksToRun());
-            statement.setObject(5, specification.getArgs());
+            statement.setString(2, displayInfo.getProjectName());
+            statement.setString(3, displayInfo.getDisplayName());
+            statement.setObject(4, toArray(displayInfo.getTasksToRun()));
+            statement.setObject(5, toArray(displayInfo.getArgs()));
             statement.setBigDecimal(6, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
             statement.setBigDecimal(7, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(8, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
@@ -102,6 +102,10 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             statement.setBigDecimal(11, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.execute();
         }
+    }
+
+    private String[] toArray(List<String> list) {
+        return list.toArray(new String[list.size()]);
     }
 
     public void close() {
@@ -138,9 +142,9 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             return db.withConnection(new ConnectionAction<CrossBuildTestExecutionHistory>() {
                 public CrossBuildTestExecutionHistory execute(Connection connection) throws Exception {
                     List<CrossBuildPerformanceResults> results = Lists.newArrayList();
-                    Set<BuildSpecification> buildSpecifications = Sets.newTreeSet(new Comparator<BuildSpecification>() {
+                    Set<BuildDisplayInfo> builds = Sets.newTreeSet(new Comparator<BuildDisplayInfo>() {
                         @Override
-                        public int compare(BuildSpecification o1, BuildSpecification o2) {
+                        public int compare(BuildDisplayInfo o1, BuildDisplayInfo o2) {
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
@@ -163,32 +167,33 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         results.add(performanceResults);
 
                         operationsForExecution.setLong(1, id);
-                        ResultSet builds = operationsForExecution.executeQuery();
-                        while (builds.next()) {
-                            BuildSpecification specification = BuildSpecification.forProject(builds.getString(1))
-                                    .displayName(builds.getString(2))
-                                    .tasksToRun(toArray(builds.getObject(3)))
-                                    .args(toArray(builds.getObject(4)))
-                                    .build();
+                        ResultSet resultSet = operationsForExecution.executeQuery();
+                        while (resultSet.next()) {
+                            BuildDisplayInfo displayInfo = new BuildDisplayInfo(
+                                    resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    toList(resultSet.getObject(3)),
+                                    toList(resultSet.getObject(4))
+                            );
 
                             MeasuredOperation operation = new MeasuredOperation();
-                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(5)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(6)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(8)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(10)));
+                            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(5)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(6)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(7)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(8)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(9)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(10)));
 
-                            performanceResults.buildResult(specification).add(operation);
-                            buildSpecifications.add(specification);
+                            performanceResults.buildResult(displayInfo).add(operation);
+                            builds.add(displayInfo);
                         }
-                        builds.close();
+                        resultSet.close();
                     }
                     testExecutions.close();
                     operationsForExecution.close();
                     executionsForName.close();
 
-                    return new CrossBuildTestExecutionHistory(testName, ImmutableList.copyOf(buildSpecifications), results);
+                    return new CrossBuildTestExecutionHistory(testName, ImmutableList.copyOf(builds), results);
                 }
             });
         } catch (Exception e) {
@@ -196,13 +201,13 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
         }
     }
 
-    private String[] toArray(Object object) {
+    private List<String> toList(Object object) {
         Object[] value = (Object[]) object;
-        String[] result = new String[value.length];
-        for (int i = 0; i < value.length; i++) {
-            result[i] = value[i].toString();
+        List<String> list = Lists.newLinkedList();
+        for (Object aValue : value) {
+            list.add(aValue.toString());
         }
-        return result;
+        return list;
     }
 
     private class CrossBuildResultsSchemaInitializer implements ConnectionAction<Void> {

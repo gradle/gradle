@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.Toggles
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -29,19 +28,29 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testGroup = "old vs new java plugin"
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpec {
-            forProject("${size}NewJava").displayName("new plugin").tasksToRun(*tasks).useDaemon()
+            projectName("${size}NewJava").displayName("new plugin").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+            }
         }
         runner.buildSpec {
-            Toggles.transformedDsl(Toggles.modelReuse(it)).forProject("${size}NewJava").displayName("new plugin (reuse)").tasksToRun(*tasks).useDaemon()
+            projectName("${size}NewJava").displayName("new plugin (reuse)").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
+            }
         }
         runner.buildSpec {
-            Toggles.transformedDsl(Toggles.noDaemonLogging(it)).forProject("${size}NewJava").displayName("new plugin (no client logging)").tasksToRun(*tasks).useDaemon()
+            projectName("${size}NewJava").displayName("new plugin (no client logging)").invocation {
+                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+            }
         }
         runner.baseline {
-            forProject("${size}OldJava").displayName("old plugin").tasksToRun(*tasks).useDaemon()
+            projectName("${size}OldJava").displayName("old plugin").invocation {
+                tasksToRun(*tasks).useDaemon()
+            }
         }
         runner.baseline {
-            Toggles.noDaemonLogging(it).forProject("${size}OldJava").displayName("old plugin (no client logging)").tasksToRun(*tasks).useDaemon()
+            projectName("${size}OldJava").displayName("old plugin (no client logging)").invocation {
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
+            }
         }
 
         then:

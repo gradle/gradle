@@ -22,13 +22,14 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
-class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
+class CrossBuildPerformanceTestRunner {
     final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
     final BuildExperimentRunner experimentRunner
     final TestProjectLocator testProjectLocator = new TestProjectLocator()
 
+    String testId
     String testGroup
-    List<BuildSpecification> buildSpecifications = []
+    List<BuildExperimentSpec> specs = []
 
     final DataReporter<CrossBuildPerformanceResults> reporter
 
@@ -37,25 +38,34 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
         this.experimentRunner = experimentRunner
     }
 
-    public void buildSpec(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
-        def builder = new BuildSpecification.Builder(null)
-        builder.gradleOpts("-Xmx1024m", "-XX:MaxPermSize=512m")
-        configureAction.delegate = builder
-        configureAction.call(builder)
-        def specification = builder.build()
-
-        if (buildSpecifications.any { it.displayName == specification.displayName }) {
-            throw new IllegalStateException("Multiple specifications with display name '${specification.displayName}.")
-        }
-        buildSpecifications << specification
-    }
-
-    public void baseline(@DelegatesTo(BuildSpecification.Builder) Closure<?> configureAction) {
+    public void baseline(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
         buildSpec(configureAction)
     }
 
+    public void buildSpec(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
+        def builder = BuildExperimentSpec.builder()
+        defaultSpec(builder)
+        builder.with(configureAction)
+        finalizeSpec(builder)
+        def specification = builder.build()
+
+        if (specs.any { it.displayName == specification.displayName }) {
+            throw new IllegalStateException("Multiple specifications with display name '${specification.displayName}.")
+        }
+        specs << specification
+    }
+
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        builder.invocation.distribution(gradleDistribution)
+    }
+
+    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+        assert builder.projectName
+        builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+    }
+
     public CrossBuildPerformanceResults run() {
-        assert !buildSpecifications.empty
+        assert !specs.empty
         assert testId
 
         def results = new CrossBuildPerformanceResults(
@@ -78,62 +88,10 @@ class CrossBuildPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     void runAllSpecifications(CrossBuildPerformanceResults results) {
-        buildSpecifications.each { buildSpecification ->
-            def projectDir = testProjectLocator.findProjectDir(buildSpecification.projectName)
-            def operations = results.buildResult(buildSpecification)
-            experimentRunner.run(new BuildSpecificationBackedParametersSpecification(buildSpecification, gradleDistribution, projectDir), operations)
+        specs.each {
+            def operations = results.buildResult(it.displayInfo)
+            experimentRunner.run(it, operations)
         }
     }
 
-    class BuildSpecificationBackedParametersSpecification implements GradleInvocationSpec, BuildExperimentSpec {
-        final BuildSpecification buildSpecification
-        final GradleDistribution gradleDistribution
-        final File workingDirectory
-
-        BuildSpecificationBackedParametersSpecification(BuildSpecification buildSpecification, GradleDistribution gradleDistribution, File workingDir) {
-            this.buildSpecification = buildSpecification
-            this.gradleDistribution = gradleDistribution
-            this.workingDirectory = workingDir
-        }
-
-        @Override
-        int getWarmUpCount() {
-            return warmUpRuns
-        }
-
-        @Override
-        int getInvocationCount() {
-            return runs
-        }
-
-        @Override
-        String getDisplayName() {
-            return buildSpecification.displayName
-        }
-
-        @Override
-        GradleInvocationSpec getBuildSpec() {
-            return this
-        }
-
-        @Override
-        String[] getArgs() {
-            return buildSpecification.args
-        }
-
-        @Override
-        String[] getGradleOpts() {
-            return buildSpecification.gradleOpts
-        }
-
-        @Override
-        String[] getTasksToRun() {
-            return buildSpecification.tasksToRun
-        }
-
-        @Override
-        boolean getUseDaemon() {
-            return buildSpecification.useDaemon
-        }
-    }
 }

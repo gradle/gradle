@@ -23,10 +23,14 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "parallel builds"
         runner.testGroup = "parallel builds"
         runner.buildSpec {
-            it.forProject("multi").displayName("parallel").tasksToRun("clean", "build").args("--parallel-threads=2")
+            projectName("multi").displayName("parallel").invocation {
+                tasksToRun("clean", "build").args("--parallel-threads=2")
+            }
         }
         runner.baseline {
-            it.forProject("multi").displayName("serial").tasksToRun("clean", "build")
+            projectName("multi").displayName("serial").invocation {
+                tasksToRun("clean", "build")
+            }
         }
 
         then:

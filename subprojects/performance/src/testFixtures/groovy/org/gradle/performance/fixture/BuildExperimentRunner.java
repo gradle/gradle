@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.MeasuredOperation;
 
+import java.util.List;
+
 public class BuildExperimentRunner {
     private final GCLoggingCollector gcCollector = new GCLoggingCollector();
     private final DataCollector dataCollector;
@@ -38,8 +40,7 @@ public class BuildExperimentRunner {
         System.out.println(String.format("%s ...", experiment.getDisplayName()));
         System.out.println();
 
-        GradleInvocationSpec buildSpec = experiment.getBuildSpec();
-        gcCollector.useDaemon(buildSpec.getUseDaemon());
+        GradleInvocationSpec buildSpec = experiment.getInvocation();
 
         executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
 
@@ -62,9 +63,9 @@ public class BuildExperimentRunner {
     }
 
     private void runOnce(GradleInvocationSpec buildSpec, MeasuredOperationList results) {
-        final GradleExecuter executer = executerProvider.executer(buildSpec);
-
-        dataCollector.beforeExecute(buildSpec.getWorkingDirectory(), executer);
+        List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(buildSpec.getWorkingDirectory());
+        GradleInvocationSpec effectiveSpec = buildSpec.withAdditionalGradleOpts(additionalGradleOpts);
+        final GradleExecuter executer = executerProvider.executer(effectiveSpec);
 
         MeasuredOperation operation = timer.measure(new Action<MeasuredOperation>() {
             @Override

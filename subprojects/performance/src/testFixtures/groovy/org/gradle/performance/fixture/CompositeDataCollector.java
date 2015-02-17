@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter;
+import com.google.common.collect.Lists;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
@@ -30,10 +30,13 @@ public class CompositeDataCollector implements DataCollector {
         this.collectors = Arrays.asList(collectors);
     }
 
-    public void beforeExecute(File testProjectDir, GradleExecuter executer) {
+    @Override
+    public List<String> getAdditionalGradleOpts(File workingDir) {
+        List<String> additional = Lists.newLinkedList();
         for (DataCollector collector : collectors) {
-            collector.beforeExecute(testProjectDir, executer);
+            additional.addAll(collector.getAdditionalGradleOpts(workingDir));
         }
+        return additional;
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {

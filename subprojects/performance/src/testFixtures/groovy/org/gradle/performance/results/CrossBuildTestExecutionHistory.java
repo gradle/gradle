@@ -18,7 +18,7 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import org.gradle.performance.fixture.BuildSpecification;
+import org.gradle.performance.fixture.BuildDisplayInfo;
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 import org.gradle.performance.fixture.MeasuredOperationList;
 
@@ -28,18 +28,18 @@ import java.util.List;
 public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
     private final String name;
 
-    private final List<BuildSpecification> buildSpecifications;
+    private final List<BuildDisplayInfo> builds;
 
     private final List<CrossBuildPerformanceResults> newestFirst;
 
-    public CrossBuildTestExecutionHistory(String name, List<BuildSpecification> buildSpecifications, List<CrossBuildPerformanceResults> newestFirst) {
+    public CrossBuildTestExecutionHistory(String name, List<BuildDisplayInfo> builds, List<CrossBuildPerformanceResults> newestFirst) {
         this.name = name;
-        this.buildSpecifications = buildSpecifications;
+        this.builds = builds;
         this.newestFirst = newestFirst;
     }
 
-    public List<BuildSpecification> getBuildSpecifications() {
-        return buildSpecifications;
+    public List<BuildDisplayInfo> getBuilds() {
+        return builds;
     }
 
     public List<CrossBuildPerformanceResults> getResults() {
@@ -66,13 +66,13 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
 
     @Override
     public int getPerExecutionOperationsCount() {
-        return buildSpecifications.size();
+        return builds.size();
     }
 
     @Override
     public List<String> getOperationLabels() {
-        return Lists.transform(buildSpecifications, new Function<BuildSpecification, String>() {
-            public String apply(@Nullable BuildSpecification specification) {
+        return Lists.transform(builds, new Function<BuildDisplayInfo, String>() {
+            public String apply(@Nullable BuildDisplayInfo specification) {
                 return specification.getDisplayName();
             }
         });
@@ -107,9 +107,9 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
 
         @Override
         public List<MeasuredOperationList> getExecutionOperations() {
-            return Lists.transform(buildSpecifications, new Function<BuildSpecification, MeasuredOperationList>() {
+            return Lists.transform(builds, new Function<BuildDisplayInfo, MeasuredOperationList>() {
                 @Override
-                public MeasuredOperationList apply(@Nullable BuildSpecification specification) {
+                public MeasuredOperationList apply(@Nullable BuildDisplayInfo specification) {
                     return results.buildResult(specification);
                 }
             });

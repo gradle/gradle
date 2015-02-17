@@ -17,7 +17,7 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.fixture.BuildSpecification
+import org.gradle.performance.fixture.BuildDisplayInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -32,11 +32,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     def "persists reports"() {
         given:
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
-        def buildResults1 = results1.buildResult(BuildSpecification.forProject("simple")
-                .displayName("simple display")
-                .tasksToRun("build")
-                .args("-i")
-                .build()
+        def buildResults1 = results1.buildResult(
+                new BuildDisplayInfo(
+                        "simple",
+                        "simple display",
+                        ["build"],
+                        ["-i"]
+                )
         )
         buildResults1 << operation(executionTime: minutes(12),
                 totalMemoryUsed: kbytes(12.33),
@@ -45,18 +47,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                 maxUncollectedHeap: kbytes(45.22),
                 maxCommittedHeap: kbytes(200)
         )
-        def buildResults2 = results1.buildResult(BuildSpecification.forProject("complex").build())
+        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex", [], []))
         buildResults2 << operation()
         buildResults2 << operation()
 
         and:
         def results2 = crossBuildResults(testId: "test2", testGroup: "group2")
-        results2.buildResult(BuildSpecification.forProject("simple")
-                .displayName("simple display")
-                .tasksToRun("build")
-                .args("-i")
-                .build()
-        )
+        results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"]))
 
         when:
         def writeStore = new CrossBuildResultsStore(dbFile)
@@ -81,17 +78,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         history.id == "test1"
 
         and:
-        def firstSpecification = history.buildSpecifications[0]
-        firstSpecification == BuildSpecification.forProject("complex").displayName("complex").build()
+        def firstSpecification = history.builds[0]
+        firstSpecification == new BuildDisplayInfo("complex", "complex", [], [])
         history.results.first().buildResult(firstSpecification).size() == 2
 
         and:
-        def secondSpecification = history.buildSpecifications[1]
-        secondSpecification == BuildSpecification.forProject("simple")
-                .displayName("simple display")
-                .tasksToRun("build")
-                .args("-i")
-                .build()
+        def secondSpecification = history.builds[1]
+        secondSpecification == new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"])
         def crossBuildPerformanceResults = history.results.first()
         crossBuildPerformanceResults.testId == "test1"
         crossBuildPerformanceResults.jvm == "java 7"

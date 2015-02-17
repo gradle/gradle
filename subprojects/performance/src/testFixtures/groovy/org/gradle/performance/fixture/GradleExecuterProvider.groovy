@@ -34,8 +34,13 @@ class GradleExecuterProvider {
                 withStackTraceChecksDisabled().
                 withArgument('-u').
                 inDirectory(buildSpec.workingDirectory).
-                withTasks(buildSpec.tasksToRun).
-                withGradleOpts(buildSpec.gradleOpts)
+                withTasks(buildSpec.tasksToRun)
+
+        if (buildSpec.useDaemon) {
+            executer.withGradleOpts("-Dorg.gradle.jvmargs=" + buildSpec.gradleOpts.join(" "))
+        } else {
+            executer.withGradleOpts(buildSpec.gradleOpts as String[])
+        }
 
         buildSpec.args.each { executer.withArgument(it) }
 
