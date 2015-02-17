@@ -50,7 +50,8 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
-        failure.assertHasCause("A build operation failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed.")
+        failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
     }
 
     def "can create resources-only shared library"() {
