@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
@@ -33,6 +34,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
     private delegate = Mock(ArtifactDependencyResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
     private resolutionResult = Mock(ResolutionResult)
+    private projectConfigResult = Mock(ResolvedProjectConfigurationResults)
     private configuration = Mock(ConfigurationInternal.class, name: 'coolConf')
     private repositories = [Mock(ResolutionAwareRepository)]
     private metadataHandler = Stub(GlobalDependencyResolutionRules)
@@ -45,7 +47,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
 
         then:
         1 * delegate.resolve(configuration, repositories, metadataHandler, results) >> {
-            results.resolved(resolvedConfiguration, resolutionResult)
+            results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult)
         }
     }
 
@@ -78,7 +80,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
         resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
@@ -105,7 +107,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
@@ -125,7 +127,7 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
 
         resolutionResult.root >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
