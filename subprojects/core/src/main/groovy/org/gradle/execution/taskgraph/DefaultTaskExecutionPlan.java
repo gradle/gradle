@@ -472,6 +472,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         throw new RuntimeException(e);
                     }
                 } else {
+                    executionPlan.remove(nextMatching.getTask());
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
                         recordTaskStarted(nextMatching);
