@@ -15,29 +15,28 @@
  */
 package org.gradle.internal
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.IgnoreIf
-import spock.lang.Specification
 
-import static org.gradle.util.TestUtil.concurrent
-
-class SystemPropertiesIntegrationTest extends Specification {
+class SystemPropertiesIntegrationTest extends ConcurrentSpec {
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
     def "creates Java compiler for mismatching Java home directory for multiple threads concurrently"() {
-        int threadCount = 100
+        final int threadCount = 100
         Factory<String> factory = Mock()
         String factoryCreationResult = 'test'
         File originalJavaHomeDir = SystemProperties.instance.javaHomeDir
         File providedJavaHomeDir = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
-        concurrent(threadCount) {
-            String expectedString = SystemProperties.instance.withJavaHome(providedJavaHomeDir, factory)
-            assert factoryCreationResult == expectedString
+        async {
+            threadCount.times {
+                start {
+                    String expectedString = SystemProperties.instance.withJavaHome(providedJavaHomeDir, factory)
+                    assert factoryCreationResult == expectedString
+                }
+            }
         }
 
         then:
