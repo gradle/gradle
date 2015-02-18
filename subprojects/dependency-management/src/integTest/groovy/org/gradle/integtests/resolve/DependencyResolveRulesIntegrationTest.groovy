@@ -746,6 +746,72 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "replacing external module dependency with project dependency keeps the original configuration"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                version = "1.6"
+            }
+
+            project(":api") {
+                configurations {
+                    archives
+                    conf
+                }
+
+                artifacts {
+                    archives (file("archives.txt"))
+                    conf (file("conf.txt"))
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: "org.utils", name: "api", version: "1.5", configuration: "conf"
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == 'api') {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+                    assert deps[0].requested.group == "org.utils"
+                    assert deps[0].requested.module == "api"
+                    assert deps[0].requested.version == "1.5"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+                    assert deps[0].selected.componentId.projectPath == ":api"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["conf.txt"]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
