@@ -53,7 +53,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final ModelRuleExtractor ruleExtractor;
 
-    private final List<RuleBinder> binders = Lists.newLinkedList();
+    private final Set<RuleBinder> binders = Sets.newIdentityHashSet();
     private final List<MutatorRuleBinder<?>> pendingMutatorBinders = Lists.newLinkedList();
     private final List<MutatorRuleBinder<?>> unboundSubjectMutatorBinders = Lists.newLinkedList();
     private final LinkedHashMap<ModelRule, ModelBinding<?>> rulesWithInputsBeingClosed = Maps.newLinkedHashMap();
@@ -322,10 +322,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         boolean newInputsBound = true;
         while (!binders.isEmpty() && newInputsBound) {
             newInputsBound = false;
-            //`binders` is mutated during tryForceBind (removal and insert), can't use foreach
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < binders.size(); i++) {
-                RuleBinder binder = binders.get(i);
+            RuleBinder[] unboundBinders = binders.toArray(new RuleBinder[binders.size()]);
+            for (RuleBinder binder : unboundBinders) {
                 tryForceBind(binder);
                 newInputsBound = newInputsBound || binder.isBound();
             }
