@@ -369,7 +369,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public NavigableMap<String, T> asMap() {
-            return Collections.unmodifiableNavigableMap(map);
+            return map;
         }
 
         @Override
