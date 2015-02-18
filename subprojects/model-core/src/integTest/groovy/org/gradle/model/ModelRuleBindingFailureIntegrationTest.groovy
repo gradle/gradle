@@ -62,14 +62,14 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("""The following model rules are unbound:
-  MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)
-    Immutable:
-      - <unspecified> (MyPlugin\$MyThing2) parameter 1
   MyPlugin\$Rules#mutateThing2(MyPlugin\$MyThing2, MyPlugin\$MyThing3)
     Mutable:
       - <unspecified> (MyPlugin\$MyThing2) parameter 1
     Immutable:
-      - <unspecified> (MyPlugin\$MyThing3) parameter 2""")
+      - <unspecified> (MyPlugin\$MyThing3) parameter 2
+  MyPlugin\$Rules#thing1(MyPlugin\$MyThing2)
+    Immutable:
+      - <unspecified> (MyPlugin\$MyThing2) parameter 1""")
     }
 
     def "unbound dsl rules are reported"() {

@@ -330,7 +330,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         if (!binders.isEmpty()) {
-            throw unbound(binders);
+            SortedSet<RuleBinder> sortedBinders = new TreeSet<RuleBinder>(new Comparator<RuleBinder>() {
+                @Override
+                public int compare(RuleBinder o1, RuleBinder o2) {
+                    return o1.getDescriptor().toString().compareTo(o2.getDescriptor().toString());
+                }
+            });
+            sortedBinders.addAll(binders);
+            throw unbound(sortedBinders);
         }
     }
 
