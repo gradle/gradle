@@ -22,6 +22,7 @@ import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
@@ -32,6 +33,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
@@ -57,10 +59,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
+    private final List<String> defaultImportPackages;
 
-    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache) {
+    public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.emptyScriptGenerator = emptyScriptGenerator;
         this.classLoaderCache = classLoaderCache;
+        defaultImportPackages = importsReader.getImportPackages();
     }
 
     @Override
@@ -89,11 +93,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
+        final DefaultImportsAdder defaultImportsAdder = new DefaultImportsAdder();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
                 CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, source, this);
+
+                compilationUnit.addPhaseOperation(defaultImportsAdder, Phases.CONVERSION);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -308,6 +315,16 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     return super.toByteArray();
                 }
             };
+        }
+    }
+
+    private class DefaultImportsAdder extends CompilationUnit.SourceUnitOperation {
+        @Override
+        public void call(SourceUnit source) throws CompilationFailedException {
+            ModuleNode node = source.getAST();
+            for (String defaultImportPackage : defaultImportPackages) {
+                node.addStarImport(defaultImportPackage);
+            }
         }
     }
 }

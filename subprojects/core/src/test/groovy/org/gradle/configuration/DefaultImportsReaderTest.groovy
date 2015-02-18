@@ -16,29 +16,21 @@
  
 package org.gradle.configuration
 
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
 
-class ImportsReaderTest extends Specification {
+class DefaultImportsReaderTest extends Specification {
     @Rule public Resources resources = new Resources()
-    ImportsReader reader = new ImportsReader()
+    DefaultImportsReader reader = new DefaultImportsReader()
 
     public void testReadImportsFromResource() {
         expect:
         reader.imports.contains('import org.gradle.api.*')
     }
 
-    public void testCreatesScriptSource() {
-        def source = [:] as ScriptSource
-
-        when:
-        def importsSource = reader.withImports(source)
-
-        then:
-        importsSource instanceof ImportsScriptSource
-        importsSource.source == source
-        importsSource.importsReader == reader
+    public void testReadImportPackagesFromResource() {
+        expect:
+        reader.importPackages.contains('org.gradle.api.')
     }
 }

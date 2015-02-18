@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.project.ProjectScript
+import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +30,11 @@ class BuildScriptMetadataExtractingTransformerSpec extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache())
+    def importsReader = Mock(ImportsReader) {
+        getImportPackages() >> []
+    }
+
+    final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader)
     final String classpathClosureName = "buildscript"
 
     File scriptCacheDir
@@ -72,6 +77,10 @@ class BuildScriptMetadataExtractingTransformerSpec extends Specification {
     def "non-imperative script blocks are not considered imperative code"() {
         expect:
         !containsImperativeStatements("plugins {}; buildscript {}; model {}")
+    }
+
+    def "imports are not considered imperative code"() {
+        !containsImperativeStatements("import java.lang.String")
     }
 
     def "method declarations are considered imperative code"() {

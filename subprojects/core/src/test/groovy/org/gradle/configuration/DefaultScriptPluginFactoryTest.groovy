@@ -36,7 +36,6 @@ import spock.lang.Specification
 public class DefaultScriptPluginFactoryTest extends Specification {
 
     def scriptCompilerFactory = Mock(ScriptCompilerFactory)
-    def importsReader = Mock(ImportsReader)
     def scriptCompiler = Mock(ScriptCompiler)
     def scriptSource = Mock(ScriptSource)
     def scriptRunner = Mock(ScriptRunner)
@@ -46,14 +45,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def baseScope = Mock(ClassLoaderScope)
     def scopeClassLoader = Mock(ClassLoader)
     def baseChildClassLoader = Mock(ClassLoader)
-    def exportClassLoader = Mock(ClassLoader)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
     def scriptHandler = Mock(ScriptHandler)
     def classPathScriptRunner = Mock(ScriptRunner)
     def classPathScript = Mock(BasicScript)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
-    def sourceWithImports = Mock(ScriptSource)
     def loggingManager = Mock(LoggingManagerInternal)
     def fileLookup = Mock(FileLookup)
     def documentationRegistry = Mock(DocumentationRegistry)
@@ -61,7 +58,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def compiledScript = Mock(CompiledScript)
     def classpathCompiledScript = Mock(CompiledScript)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, importsReader, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
             documentationRegistry, new ModelRuleSourceDetector())
 
     def setup() {
@@ -80,8 +77,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         final Object target = new Object()
 
         1 * loggingManagerFactory.create() >> loggingManager
-        1 * importsReader.withImports(scriptSource) >> sourceWithImports
-        1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
+        1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
         1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner
@@ -107,8 +103,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         def target = Mock(ScriptAware)
 
         1 * loggingManagerFactory.create() >> loggingManager
-        1 * importsReader.withImports(scriptSource) >> sourceWithImports
-        1 * scriptCompilerFactory.createCompiler(sourceWithImports) >> scriptCompiler
+        1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
         1 * scriptCompiler.setClassloader(baseChildClassLoader)
         1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
         1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner

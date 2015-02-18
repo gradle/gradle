@@ -39,7 +39,6 @@ import org.gradle.plugin.use.internal.PluginRequests;
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
     private final ScriptCompilerFactory scriptCompilerFactory;
-    private final ImportsReader importsReader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final ScriptHandlerFactory scriptHandlerFactory;
@@ -49,7 +48,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                      ImportsReader importsReader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
@@ -58,7 +56,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector) {
         this.scriptCompilerFactory = scriptCompilerFactory;
-        this.importsReader = importsReader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
@@ -107,9 +104,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
 
-            ScriptSource withImports = importsReader.withImports(scriptSource);
-
-            final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
+            final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
             compiler.setClassloader(baseScope.getExportClassLoader());
 
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);

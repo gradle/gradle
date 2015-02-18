@@ -102,7 +102,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ImportsReader createImportsReader() {
-        return new ImportsReader();
+        return new DefaultImportsReader();
     }
 
     protected TimeProvider createTimeProvider() {
@@ -201,7 +201,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
             CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache) {
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -210,7 +210,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new FileCacheBackedScriptClassCompiler(
                 cacheRepository,
                 scriptCacheInvalidator,
-                new DefaultScriptCompilationHandler(emptyScriptGenerator, classLoaderCache),
+                new DefaultScriptCompilationHandler(emptyScriptGenerator, classLoaderCache, importsReader),
                 progressLoggerFactory
         );
     }
@@ -218,7 +218,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
         return new DefaultScriptPluginFactory(
                 get(ScriptCompilerFactory.class),
-                get(ImportsReader.class),
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(ScriptHandlerFactory.class),

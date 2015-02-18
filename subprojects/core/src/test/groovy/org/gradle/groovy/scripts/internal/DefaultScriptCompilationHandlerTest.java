@@ -30,6 +30,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache;
+import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -48,6 +49,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.isA;
@@ -78,6 +80,8 @@ public class DefaultScriptCompilationHandlerTest {
 
     private Class<? extends Script> expectedScriptClass;
 
+    private ImportsReader importsReader;
+
     private JUnit4Mockery context = new JUnit4Mockery();
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -86,7 +90,12 @@ public class DefaultScriptCompilationHandlerTest {
     public void setUp() throws IOException, ClassNotFoundException {
         File testProjectDir = tmpDir.createDir("projectDir");
         classLoader = getClass().getClassLoader();
-        scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache());
+        importsReader = context.mock(ImportsReader.class);
+        context.checking(new Expectations(){{
+            allowing(importsReader).getImportPackages();
+            will(returnValue(Collections.emptyList()));
+        }});
+        scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader);
         scriptCacheDir = new File(testProjectDir, "cache");
         metadataCacheDir = new File(testProjectDir, "metadata");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
