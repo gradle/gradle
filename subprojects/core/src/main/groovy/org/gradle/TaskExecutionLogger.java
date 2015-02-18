@@ -47,7 +47,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
         ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class, parentLoggerPovider.getLogger());
         String displayName = getDisplayName(task);
-        currentTask.setDescription(String.format("Execute %s", displayName));
+        currentTask.setDescription("Execute ".concat(displayName));
         currentTask.setShortDescription(displayName);
         currentTask.setLoggingHeader(displayName);
         currentTask.started();
