@@ -55,7 +55,6 @@ import java.util.List;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
-    private static final String IMPERATIVE_STATEMENTS_MARKER_FILE_NAME = "hasImperativeStatements.txt";
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
@@ -190,7 +189,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
                                                                   File metadataCacheDir, MetadataExtractingTransformer<M> transformer, final Class<T> scriptBaseClass) {
 
-        final boolean hasImperativeStatements = new File(scriptCacheDir, IMPERATIVE_STATEMENTS_MARKER_FILE_NAME).isFile();
         final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
 
         return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
