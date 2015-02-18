@@ -22,9 +22,11 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
@@ -36,9 +38,11 @@ class DefaultConfigurationSpec extends Specification {
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
     ResolutionStrategyInternal resolutionStrategy = Mock()
+    ProjectAccessListener projectAccessListener = Mock()
+    ProjectFinder projectFinder = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, null)
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, projectAccessListener, projectFinder)
     }
 
     DefaultPublishArtifact artifact(String name) {
@@ -192,6 +196,10 @@ class DefaultConfigurationSpec extends Specification {
         Task task = Mock()
         TaskDependency taskDep = Mock()
         def config = conf("conf")
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(resolvedConfiguration, Mock(ResolutionResult), projectConfigurationResults)
 
         given:
         config.dependencies.add(dependency)
@@ -203,6 +211,9 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolvedConfiguration.hasError() >> false
+        _ * resolver.resolve(config) >> resolverResults
+        _ * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
