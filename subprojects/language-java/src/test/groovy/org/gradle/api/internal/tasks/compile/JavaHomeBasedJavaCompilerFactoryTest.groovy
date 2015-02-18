@@ -26,9 +26,9 @@ import spock.lang.Specification
 import javax.tools.JavaCompiler
 
 class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
-    Factory<File> currentJvmJavaHomeFactory = Mock()
-    Factory<File> systemPropertiesJavaHomeFactory = Mock()
-    Factory<JavaCompiler> systemJavaCompilerFactory = Mock()
+    Factory<? extends File> currentJvmJavaHomeFactory = Mock()
+    Factory<? extends File> systemPropertiesJavaHomeFactory = Mock()
+    Factory<? extends JavaCompiler> systemJavaCompilerFactory = Mock()
     JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory(currentJvmJavaHomeFactory, systemPropertiesJavaHomeFactory, systemJavaCompilerFactory)
     JavaCompiler javaCompiler = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder

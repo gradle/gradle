@@ -26,15 +26,15 @@ import java.io.File;
 import java.io.Serializable;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
-    private final Factory<File> currentJvmJavaHomeFactory;
-    private final Factory<File> systemPropertiesJavaHomeFactory;
-    private final Factory<JavaCompiler> systemJavaCompilerFactory;
+    private final Factory<? extends File> currentJvmJavaHomeFactory;
+    private final Factory<? extends File> systemPropertiesJavaHomeFactory;
+    private final Factory<? extends JavaCompiler> systemJavaCompilerFactory;
 
     public JavaHomeBasedJavaCompilerFactory() {
         this(new CurrentJvmJavaHomeFactory(), new SystemPropertiesJavaHomeFactory(), new SystemJavaCompilerFactory());
     }
 
-    JavaHomeBasedJavaCompilerFactory(Factory<File> currentJvmJavaHomeFactory, Factory<File> systemPropertiesJavaHomeFactory, Factory<JavaCompiler> systemJavaCompilerFactory) {
+    JavaHomeBasedJavaCompilerFactory(Factory<? extends File> currentJvmJavaHomeFactory, Factory<? extends File> systemPropertiesJavaHomeFactory, Factory<? extends JavaCompiler> systemJavaCompilerFactory) {
         this.currentJvmJavaHomeFactory = currentJvmJavaHomeFactory;
         this.systemPropertiesJavaHomeFactory = systemPropertiesJavaHomeFactory;
         this.systemJavaCompilerFactory = systemJavaCompilerFactory;
