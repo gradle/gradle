@@ -64,10 +64,12 @@ public class ClasspathUtil {
             CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
             if (codeSource != null && codeSource.getLocation() != null) {
                 location = codeSource.getLocation().toURI();
-                if (!location.getScheme().equals("file")) {
-                    throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+                if (!location.getScheme().equals("jar")) {
+                    if (!location.getScheme().equals("file")) {
+                        throw new GradleException(String.format("Cannot determine classpath for %s from codebase '%s'.", targetClass.getName(), location));
+                    }
+                    return new File(location);
                 }
-                return new File(location);
             }
             String resourceName = targetClass.getName().replace(".", "/") + ".class";
             URL resource = targetClass.getClassLoader().getResource(resourceName);
