@@ -161,11 +161,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private boolean doAdd(T toAdd) {
         if (getStore().add(toAdd)) {
+            didAdd(toAdd);
             eventRegister.getAddAction().execute(toAdd);
             return true;
         } else {
             return false;
         }
+    }
+
+    protected void didAdd(T toAdd) {
     }
 
     public boolean addAll(Collection<? extends T> c) {
@@ -184,7 +188,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Object[] c = toArray();
         getStore().clear();
         for (Object o : c) {
-            eventRegister.getRemoveAction().execute((T)o);
+            eventRegister.getRemoveAction().execute((T) o);
         }
     }
 
@@ -207,11 +211,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private boolean doRemove(Object o) {
         if (getStore().remove(o)) {
-            eventRegister.getRemoveAction().execute((T)o);
+            @SuppressWarnings("unchecked") T cast = (T) o;
+            didRemove(cast);
+            eventRegister.getRemoveAction().execute(cast);
             return true;
         } else {
             return false;
         }
+    }
+
+    protected void didRemove(T t) {
     }
 
     public boolean removeAll(Collection<?> c) {
@@ -279,6 +288,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         public void remove() {
             assertMutable();
             iterator.remove();
+            didRemove(currentElement);
             getEventRegister().getRemoveAction().execute(currentElement);
             currentElement = null;
         }

@@ -33,7 +33,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, CollectionEventRegister<T> collectionEventRegister, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ArrayList<T>(), collectionEventRegister, instantiator, namer);
+        super(type, new ArrayList<T>(), collectionEventRegister, new UnfilteredIndex<T>(), instantiator, namer);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
@@ -44,6 +44,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         assertMutable();
         assertCanAdd(element);
         getStore().add(index, element);
+        didAdd(element);
         getEventRegister().getAddAction().execute(element);
     }
 
@@ -54,6 +55,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         for (T t : c) {
             if (!hasWithName(getNamer().determineName(t))) {
                 getStore().add(current, t);
+                didAdd(t);
                 getEventRegister().getAddAction().execute(t);
                 changed = true;
                 current++;
@@ -75,7 +77,11 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         assertMutable();
         assertCanAdd(element);
         T oldElement = getStore().set(index, element);
+        if (oldElement != null) {
+            didRemove(oldElement);
+        }
         getEventRegister().getRemoveAction().execute(oldElement);
+        didAdd(element);
         getEventRegister().getAddAction().execute(element);
         return oldElement;
     }
@@ -83,6 +89,9 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     public T remove(int index) {
         assertMutable();
         T element = getStore().remove(index);
+        if (element != null) {
+            didRemove(element);
+        }
         getEventRegister().getRemoveAction().execute(element);
         return element;
     }
@@ -139,7 +148,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         public ListIteratorImpl(ListIterator<T> iterator) {
             this.iterator = iterator;
         }
-        
+
         public boolean hasNext() {
             return iterator.hasNext();
         }
@@ -170,12 +179,14 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             assertMutable();
             assertCanAdd(t);
             iterator.add(t);
+            didAdd(t);
             getEventRegister().getAddAction().execute(t);
         }
 
         public void remove() {
             assertMutable();
             iterator.remove();
+            didRemove(lastElement);
             getEventRegister().getRemoveAction().execute(lastElement);
             lastElement = null;
         }
@@ -184,7 +195,9 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
             assertMutable();
             assertCanAdd(t);
             iterator.set(t);
+            didRemove(lastElement);
             getEventRegister().getRemoveAction().execute(lastElement);
+            didAdd(t);
             getEventRegister().getAddAction().execute(t);
             lastElement = null;
         }

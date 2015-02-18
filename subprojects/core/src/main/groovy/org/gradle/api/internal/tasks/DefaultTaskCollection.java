@@ -21,31 +21,26 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
-
-import java.util.Set;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
+    private static final Task.Namer NAMER = new Task.Namer();
+
     protected final ProjectInternal project;
 
     public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project) {
-        super(type, instantiator, new Task.Namer());
-        this.project = project;
-    }
-
-    protected DefaultTaskCollection(Class<? extends T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, ProjectInternal project) {
-        super(type, store, eventRegister, instantiator, new Task.Namer());
+        super(type, instantiator, NAMER);
         this.project = project;
     }
 
     public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), instantiator, project);
+        super(collection, filter, instantiator, NAMER);
+        this.project = project;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {

@@ -44,12 +44,12 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
      * Subclasses using this constructor must ensure that the {@code store} uses a name based equality strategy as per the contract on NamedDomainObjectContainer.
      */
     protected DefaultNamedDomainObjectSet(Class<? extends T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store, eventRegister, instantiator, namer);
+        super(type, store, eventRegister, new UnfilteredIndex<T>(), instantiator, namer);
     }
 
     // should be protected, but use of the class generator forces it to be public
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), instantiator, namer);
+        super(collection, filter, instantiator, namer);
     }
 
     @Override

@@ -24,7 +24,7 @@ class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends Spec
     Project project = TestUtil.createRootProject()
 
     def "cannot change the name of the repository after it has been added to a container"() {
-        def repo = new TestRepo()
+        def repo = new TestRepo(name: "name")
 
         given:
         project.repositories.add(repo)
