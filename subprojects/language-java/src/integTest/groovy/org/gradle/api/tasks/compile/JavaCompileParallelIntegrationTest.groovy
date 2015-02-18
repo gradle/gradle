@@ -16,40 +16,60 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.jvm.JavaInfo
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({GradleContextualExecuter.parallel})
-class JavaCompileParallelIntegrationTest extends AbstractHttpDependencyResolutionTest {
+@IgnoreIf({ GradleContextualExecuter.parallel })
+class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
+    RandomJdkPicker randomJdkPicker = new RandomJdkPicker()
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
-        def module = mavenHttpRepo.module('foo', 'bar')
-        module.publish()
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
-        file('settings.gradle') << "include ${projectNames.collect { "'$it'" }.join(', ')}"
-        file('build.gradle') << """
+        settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
+        buildFile << """
             subprojects {
                 apply plugin: 'java'
 
                 repositories {
-                    maven { url '${mavenHttpRepo.uri}' }
+                    mavenCentral()
                 }
 
                 dependencies {
-                    compile 'foo:bar:1.0'
+                    compile 'commons-lang:commons-lang:2.5'
                 }
             }
 """
 
         projectNames.each { projectName ->
-            file("${projectName}/src/main/java/Foo.java") << 'public class Foo { }'
+            buildFile << """
+project(':$projectName') {
+    tasks.withType(JavaCompile) {
+        options.with {
+            fork = true
+            forkOptions.executable = "$randomJdkPicker.javacExecutable"
+        }
+    }
+}
+"""
+            file("${projectName}/src/main/java/Foo.java") << """
+import org.apache.commons.lang.StringUtils;
+
+public class Foo {
+    public String capitalize(String str) {
+        return StringUtils.capitalize(str);
+    }
+}
+"""
         }
 
         when:
-        module.allowAll()
         args('--parallel-threads=4')
         run('compileJava')
 
@@ -58,6 +78,20 @@ class JavaCompileParallelIntegrationTest extends AbstractHttpDependencyResolutio
 
         projectNames.each { projectName ->
             file("${projectName}/build/classes/main/Foo.class").exists()
+        }
+    }
+
+    private static class RandomJdkPicker {
+        private final List<JavaInfo> availableJdks = AvailableJavaHomes.availableJdks.asImmutable()
+        private final Random random = new Random()
+
+        String getJavacExecutable() {
+            TextUtil.escapeString(target.javacExecutable)
+        }
+
+        private JavaInfo getTarget() {
+            int index = random.nextInt(availableJdks.size())
+            availableJdks[index]
         }
     }
 }

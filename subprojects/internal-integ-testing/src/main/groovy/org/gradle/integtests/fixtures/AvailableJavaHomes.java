@@ -61,6 +61,21 @@ abstract public class AvailableJavaHomes {
     }
 
     /**
+     * Provides all available JDK installations.
+     *
+     * @return empty list if no JDK can be found.
+     */
+    public static List<JavaInfo> getAvailableJdks() {
+        List<JavaInfo> availableJdks = new ArrayList<JavaInfo>();
+
+        for (JvmInstallation candidate : getJvms()) {
+            availableJdks.add(Jvm.forHome(candidate.getJavaHome()));
+        }
+
+        return availableJdks;
+    }
+
+    /**
      * Locates a JDK installation that is different to the current JVM, ie for which java.home is different.
      *
      * @return null if not found.

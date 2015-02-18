@@ -29,6 +29,12 @@ public interface JavaInfo {
      * @return the executable
      * @throws JavaHomeException when executable cannot be found
      */
+    File getJavacExecutable() throws JavaHomeException;
+
+    /**
+     * @return the executable
+     * @throws JavaHomeException when executable cannot be found
+     */
     File getJavadocExecutable() throws JavaHomeException;
 
     /**
