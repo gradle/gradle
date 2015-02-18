@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
@@ -82,8 +83,27 @@ public class Foo {
     }
 
     private static class RandomJdkPicker {
-        private final List<JavaInfo> availableJdks = AvailableJavaHomes.availableJdks.asImmutable()
+        private final List<JavaInfo> availableJdks
         private final Random random = new Random()
+
+        RandomJdkPicker() {
+            availableJdks = []
+            determineJdksWithResolvableJavac()
+            availableJdks.asImmutable()
+        }
+
+        private void determineJdksWithResolvableJavac() {
+            AvailableJavaHomes.availableJdks.each { jdk ->
+                try {
+                    if(jdk.javacExecutable) {
+                        availableJdks << jdk
+                    }
+                }
+                catch(JavaHomeException e) {
+                    // ignore
+                }
+            }
+        }
 
         String getJavacExecutable() {
             TextUtil.escapeString(target.javacExecutable)
