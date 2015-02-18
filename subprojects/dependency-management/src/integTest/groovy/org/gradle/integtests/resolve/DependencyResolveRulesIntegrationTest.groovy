@@ -378,6 +378,64 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace forced external dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                version = "1.6"
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile group: "org.utils", name: "api", version: "1.5"
+                }
+
+                configurations.compile.resolutionStrategy {
+                    force("org.utils:api:1.3")
+                    eachDependency {
+                        if (it.requested.name == 'api') {
+                            it.useTarget project(":api")
+                        }
+                    }
+                }
+
+                task checkIt {
+                    inputs.files configurations.compile
+                }
+
+                checkIt << {
+                    def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+                    assert deps[0].requested.group == "org.utils"
+                    assert deps[0].requested.module == "api"
+                    assert deps[0].requested.version == "1.5"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+                    assert deps[0].selected.componentId.projectPath == ":api"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-1.6.jar"]
+                    assert files*.exists() == [ true ]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can replace client module dependency with project dependency"()
     {
         settingsFile << 'include "api", "impl"'
