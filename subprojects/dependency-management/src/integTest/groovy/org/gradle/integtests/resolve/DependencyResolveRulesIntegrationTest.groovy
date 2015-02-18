@@ -693,6 +693,48 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("impl:check")
     }
 
+    void "replacing external module dependency with project dependency keeps the original configuration"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":api") {
+                configurations {
+                    archives
+                }
+
+                artifacts {
+                    archives file("archives.txt")
+                    conf file("conf.txt")
+                }
+            }
+
+            project(":impl") {
+                configurations {
+                    compile
+                }
+
+                dependencies {
+                    compile group: "org.utils", name: "api", version: "1.5", configuration: "conf"
+                }
+
+                configurations.compile.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
+                    it.useTarget project(":api")
+                }
+
+                task check << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["conf.txt"]
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
