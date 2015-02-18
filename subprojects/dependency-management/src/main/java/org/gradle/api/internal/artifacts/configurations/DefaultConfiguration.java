@@ -20,18 +20,17 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -278,38 +277,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void collectProjectDependencies(Set<ResolvedDependency> resolvedDependencies, Map<ModuleVersionIdentifier, Project> projectMapping, DefaultTaskDependency taskDependency) {
-        for (ResolvedDependency dependency : resolvedDependencies) {
-            if (dependency instanceof DefaultResolvedDependency) {
-                DefaultResolvedDependency resolvedDependency = (DefaultResolvedDependency) dependency;
-                ResolvedConfigurationIdentifier id = resolvedDependency.getId();
-                Project project = projectMapping.get(id.getId());
-
-                if (project != null) {
-                    Configuration targetConfig = project.getConfigurations().getByName(id.getConfiguration());
-                    taskDependency.add(targetConfig.getAllArtifacts());
-                }
-            }
-
-            // Handling transitive dependencies
-            collectProjectDependencies(dependency.getChildren(), projectMapping, taskDependency);
-        }
-    }
-
     public TaskDependency getBuildDependencies() {
         DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         taskDependency.add(allDependencies.getBuildDependencies());
 
-        final Map<ModuleVersionIdentifier, Project> projectMapping = new HashMap<ModuleVersionIdentifier, Project>();
-        for (ResolvedComponentResult resolvedComponentResult : getIncoming().getResolutionResult().getAllComponents()) {
-            if (resolvedComponentResult.getId() instanceof ProjectComponentIdentifier) {
-                ProjectComponentIdentifier projectId = (ProjectComponentIdentifier)resolvedComponentResult.getId();
-                Project project = projectFinder.getProject(projectId.getProjectPath());
-                projectMapping.put(resolvedComponentResult.getModuleVersion(), project);
+        resolveNow();
+        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
+            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            for (String targetConfigName : projectResult.getTargetConfigurations()) {
+                Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
+                taskDependency.add(targetConfig);
+                taskDependency.add(targetConfig.getAllArtifacts());
             }
         }
-
-        collectProjectDependencies(getResolvedConfiguration().getFirstLevelModuleDependencies(), projectMapping, taskDependency);
 
         return taskDependency;
     }
