@@ -65,6 +65,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
+    private final Queue<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -301,6 +302,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
         }
+        executionQueue.clear();
+        executionQueue.addAll(executionPlan.values());
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -421,6 +424,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             graph.clear();
             entryTasks.clear();
             executionPlan.clear();
+            executionQueue.clear();
             failures.clear();
             projectsWithRunningTasks.clear();
             projectsWithRunningNonParallelizableTasks.clear();
@@ -455,7 +459,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
-                for (TaskInfo taskInfo : executionPlan.values()) {
+                for (TaskInfo taskInfo : executionQueue) {
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
                     if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                         nextMatching = taskInfo;
@@ -472,7 +476,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    executionPlan.remove(nextMatching.getTask());
+                    executionQueue.remove(nextMatching);
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
                         recordTaskStarted(nextMatching);
