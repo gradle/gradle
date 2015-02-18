@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -102,35 +101,6 @@ class DefaultProjectDependencyTest extends Specification {
 
         when:
         projectDependency.resolve(context)
-
-        then:
-        0 * _
-    }
-
-    void "is Buildable"() {
-        def context = Mock(TaskDependencyResolveContext)
-
-        def conf = project.configurations.create('conf')
-        def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
-
-        when:
-        projectDependency.buildDependencies.resolve(context)
-
-        then:
-        1 * context.add(conf)
-        1 * context.add({it.is(conf.allArtifacts)})
-        1 * listener.beforeResolvingProjectDependency(project)
-        0 * _
-    }
-
-    void "does not build project dependencies if configured so"() {
-        def context = Mock(TaskDependencyResolveContext)
-        project.configurations.create('conf')
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
-
-        when:
-        projectDependency.buildDependencies.resolve(context)
 
         then:
         0 * _
