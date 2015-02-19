@@ -25,8 +25,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
-import spock.lang.Shared
-import spock.lang.Unroll
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=2.1")
