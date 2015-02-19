@@ -156,6 +156,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
+    @Unroll
     def "fails with reasonable error message for invalid metadata value" () {
         when:
         buildFile << """

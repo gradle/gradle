@@ -318,6 +318,8 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 assert status11 == 'release'
                 assert branch11 == 'master'
             }
+
+            // extra line to change file length
         """
 
         and:
