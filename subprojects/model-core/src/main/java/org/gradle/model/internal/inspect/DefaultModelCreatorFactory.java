@@ -19,7 +19,6 @@ package org.gradle.model.internal.inspect;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
