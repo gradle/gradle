@@ -16,19 +16,15 @@
 
 package org.gradle.performance.results;
 
-import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
@@ -38,7 +34,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
 
     @Override
     public void render(final TestExecutionHistory testHistory, Writer writer) throws IOException {
-        new Html(writer) {{
+        new MetricsHtml(writer) {{
             html();
                 head();
                     headSection(this);
@@ -116,32 +112,32 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
                                 td().text(results.getVcsCommit()).end();
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                                         return original.getExecutionTime();
                                     }
                                 });
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalMemoryUsed();
                                     }
                                 });
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxUncollectedHeap();
                                     }
                                 });
-                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxCommittedHeap();
                                     }
@@ -154,53 +150,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 end();
                 footer(this);
             endAll();
-        }
-
-            private <T> void renderMetricForVersions(Iterable<MeasuredOperationList> experiments, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
-                List<DataSeries<T>> values = new ArrayList<DataSeries<T>>();
-                Amount<T> min = null;
-                Amount<T> max = null;
-                for (MeasuredOperationList testExecution : experiments) {
-                    DataSeries<T> data = transformer.transform(testExecution);
-                    if (data.isEmpty()) {
-                        values.add(null);
-                    } else {
-                        Amount<T> value = data.getAverage();
-                        values.add(data);
-                        if (min == null || value.compareTo(min) < 0) {
-                            min = value;
-                        }
-                        if (max == null || value.compareTo(max) > 0) {
-                            max = value;
-                        }
-                    }
-                }
-                if (min != null && min.equals(max)) {
-                    min = null;
-                    max = null;
-                }
-
-                for (DataSeries<T> data : values) {
-                    if (data == null) {
-                        td().text("").end();
-                    } else {
-                        Amount<T> value = data.getAverage();
-                        String classAttr = "numeric";
-                        if (value.equals(min)) {
-                            classAttr += " min-value";
-                        }
-                        if (value.equals(max)) {
-                            classAttr += " max-value";
-                        }
-                        td()
-                            .classAttr(classAttr)
-                            .title("avg: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + data.getStddev() + ", values: " + data)
-                            .text(value.format())
-                        .end();
-                    }
-                }
-            }
-        };
+        }};
     }
 
 }

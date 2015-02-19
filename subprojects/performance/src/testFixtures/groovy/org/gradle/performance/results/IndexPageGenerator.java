@@ -16,8 +16,11 @@
 
 package org.gradle.performance.results;
 
-import com.googlecode.jatl.Html;
+import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
+import org.gradle.performance.measure.DataAmount;
+import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -27,7 +30,7 @@ import java.util.List;
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
-        new Html(writer) {{
+        new MetricsHtml(writer) {{
             html();
                 head();
                     headSection(this);
@@ -63,30 +66,23 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             }
                         end();
                         List<PerformanceResults> results = testHistory.getPerformanceResults();
-                        for (int i = 0; i < results.size(); i++) {
-                            PerformanceResults performanceResults = results.get(i);
+                        for (PerformanceResults performanceResults : results) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                for (MeasuredOperationList measuredExecution : performanceResults.getExperiments()) {
-                                    td().classAttr("numeric");
-                                    if (measuredExecution.isEmpty()) {
-                                        text("");
-                                    } else {
-                                        text(measuredExecution.getExecutionTime().getAverage().format());
+                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    @Override
+                                    public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
+                                        return measuredOperations.getExecutionTime();
                                     }
-                                    end();
-                                }
-                            for (MeasuredOperationList measuredExecution : performanceResults.getExperiments()) {
-                                    td().classAttr("numeric");
-                                    if (measuredExecution.isEmpty()) {
-                                        text("");
-                                    } else {
-                                        text(measuredExecution.getTotalMemoryUsed().getAverage().format());
+                                });
+                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    @Override
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
+                                        return measuredOperations.getTotalMemoryUsed();
                                     }
-                                    end();
-                                }
+                                });
                             end();
                         }
                         tr();
