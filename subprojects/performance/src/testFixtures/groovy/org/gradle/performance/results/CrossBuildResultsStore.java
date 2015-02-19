@@ -170,6 +170,10 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         performanceResults.setVcsCommit(testExecutions.getString(7));
                         performanceResults.setTestGroup(testExecutions.getString(8));
 
+                        if (ignore(performanceResults)) {
+                            continue;
+                        }
+
                         results.add(performanceResults);
 
                         operationsForExecution.setLong(1, id);
@@ -205,6 +209,12 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
         }
+    }
+
+    private boolean ignore(CrossBuildPerformanceResults performanceResults) {
+        return performanceResults.getVcsCommit().equals("be4e537ebdaab43fd1dae5c4b1d52a56987f5be2")
+                || performanceResults.getVcsCommit().equals("508ccbeb7633413609bd3be205c40f30a8c5f2bb")
+                || performanceResults.getVcsCommit().equals("fdd431387993e1d7e4d6d3aec31a43ec4b533567");
     }
 
     private List<String> toList(Object object) {
