@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.cache.internal.InMemoryNonExclusiveStore;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 
 import java.util.HashMap;
@@ -43,7 +46,8 @@ public class ClassLoaderCacheFactory {
 
     private void maybeInit() {
         if (instance == null) {
-            instance = newCache(new HashClassPathSnapshotter());
+            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new InMemoryNonExclusiveStore());
+            instance = newCache(new HashClassPathSnapshotter(fileSnapshotter));
         }
     }
 }

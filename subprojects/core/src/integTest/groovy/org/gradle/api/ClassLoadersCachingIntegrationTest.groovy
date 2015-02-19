@@ -118,10 +118,10 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply from: 'plugin.gradle'"
         file("plugin.gradle") << "task foo"
         run("foo")
-        file("plugin.gradle").text = "task bar"
+        file("plugin.gradle").text = "task foobar"
 
         then:
-        run("bar") //new task is detected
+        run("foobar") //new task is detected
         cached //main script loader cached
     }
 

@@ -17,8 +17,7 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.primitives.Bytes;
-import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.hash.Hasher;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.GFileUtils;
 
@@ -27,7 +26,11 @@ import java.util.*;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
-    private final Hasher hasher = new DefaultHasher();
+    private final FileSnapshotter fileSnapshotter;
+
+    public HashClassPathSnapshotter(FileSnapshotter fileSnapshotter) {
+        this.fileSnapshotter = fileSnapshotter;
+    }
 
     public ClassPathSnapshot snapshot(ClassPath classPath) {
         List<String> visitedFilePaths = new LinkedList<String>();
@@ -50,7 +53,7 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
                 //TODO SF Luke prefers keeping a list instead of merging arrays
-                combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
+                combinedHash = Bytes.concat(combinedHash, fileSnapshotter.snapshot(file).getHash());
             }
             //else an empty folder - a legit situation
         }
