@@ -22,7 +22,7 @@ public interface GradleSession {
 
     public abstract void prepare();
 
-    public abstract void run();
+    public abstract Runnable runner();
 
     public abstract void cleanup();
 

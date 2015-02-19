@@ -16,12 +16,14 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
+@CompileStatic
 class ToolingApiBackedGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
@@ -41,7 +43,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
     void prepare() {
         executerBackedSession.prepare()
 
-        DefaultGradleConnector connector = GradleConnector.newConnector()
+        DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
         projectConnection = connector
                 .daemonBaseDir(testDirectoryProvider.testDirectory.file("daemon"))
                 .forProjectDirectory(invocation.workingDirectory)
@@ -57,8 +59,8 @@ class ToolingApiBackedGradleSession implements GradleSession {
     }
 
     @Override
-    void run() {
-        buildLauncher.run()
+    Runnable runner() {
+        return { buildLauncher.run() }
     }
 
     @Override

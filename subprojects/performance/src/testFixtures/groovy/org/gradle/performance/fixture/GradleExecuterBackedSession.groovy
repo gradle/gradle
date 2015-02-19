@@ -26,12 +26,11 @@ class GradleExecuterBackedSession implements GradleSession {
     final GradleInvocationSpec invocation
 
     private final TestDirectoryProvider testDirectoryProvider
-    private final GradleExecuter runExecuter
 
     GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-        this.runExecuter = createExecuter(true)
+
     }
 
     @Override
@@ -40,8 +39,9 @@ class GradleExecuterBackedSession implements GradleSession {
     }
 
     @Override
-    void run() {
-        runExecuter.run()
+    Runnable runner() {
+        def runner = createExecuter(true)
+        return { runner.run() }
     }
 
     @Override

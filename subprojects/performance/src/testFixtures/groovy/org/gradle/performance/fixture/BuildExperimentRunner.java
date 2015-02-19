@@ -62,10 +62,12 @@ public class BuildExperimentRunner {
     }
 
     private void runOnce(final GradleSession session, MeasuredOperationList results) {
+        final Runnable runner = session.runner();
+
         MeasuredOperation operation = timer.measure(new Action<MeasuredOperation>() {
             @Override
             public void execute(MeasuredOperation measuredOperation) {
-                session.run();
+                runner.run();
             }
         });
 
