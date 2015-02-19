@@ -31,7 +31,7 @@ class BuildScriptMetadataExtractingTransformerSpec extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     def importsReader = Mock(ImportsReader) {
-        getImportPackages() >> []
+        getImportPackages() >> ([] as String[])
     }
 
     final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader)

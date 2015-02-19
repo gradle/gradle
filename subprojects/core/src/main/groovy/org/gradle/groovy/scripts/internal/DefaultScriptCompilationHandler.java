@@ -22,10 +22,10 @@ import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
@@ -58,7 +58,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
     private final ClassLoaderCache classLoaderCache;
-    private final List<String> defaultImportPackages;
+    private final String[] defaultImportPackages;
 
     public DefaultScriptCompilationHandler(EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.emptyScriptGenerator = emptyScriptGenerator;
@@ -92,14 +92,15 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
-        final DefaultImportsAdder defaultImportsAdder = new DefaultImportsAdder();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, source, this);
+                ImportCustomizer customizer = new ImportCustomizer();
+                customizer.addStarImports(defaultImportPackages);
+                compilerConfiguration.addCompilationCustomizers(customizer);
 
-                compilationUnit.addPhaseOperation(defaultImportsAdder, Phases.CONVERSION);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, source, this);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -313,16 +314,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     return super.toByteArray();
                 }
             };
-        }
-    }
-
-    private class DefaultImportsAdder extends CompilationUnit.SourceUnitOperation {
-        @Override
-        public void call(SourceUnit source) throws CompilationFailedException {
-            ModuleNode node = source.getAST();
-            for (String defaultImportPackage : defaultImportPackages) {
-                node.addStarImport(defaultImportPackage);
-            }
         }
     }
 }

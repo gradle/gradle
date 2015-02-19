@@ -17,16 +17,13 @@
 package org.gradle.configuration;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.List;
 
 public class DefaultImportsReader implements ImportsReader {
 
@@ -60,19 +57,13 @@ public class DefaultImportsReader implements ImportsReader {
         return importsText;
     }
 
-    @Override
-    public List<String> getImportPackages() {
-        String[] lines = getImports().split("\\r?\\n");
-        return ImmutableList.copyOf(
-                FluentIterable.from(Arrays.asList(lines)).filter(new Predicate<String>() {
-                    public boolean apply(String input) {
-                        return !input.isEmpty();
-                    }
-                }).transform(new Function<String, String>() {
-                    public String apply(String input) {
-                        return input.substring(7, input.length() - 1);
-                    }
-                })
-        );
+    public String[] getImportPackages() {
+        String[] lines = getImports().split("(?:\\r?\\n)+");
+        return FluentIterable.from(Arrays.asList(lines)).transform(new Function<String, String>() {
+            public String apply(String input) {
+                return input.substring(7, input.length() - 1);
+            }
+        }).toArray(String.class);
     }
+
 }

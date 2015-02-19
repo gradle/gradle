@@ -49,7 +49,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
 import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.isA;
@@ -93,7 +92,7 @@ public class DefaultScriptCompilationHandlerTest {
         importsReader = context.mock(ImportsReader.class);
         context.checking(new Expectations(){{
             allowing(importsReader).getImportPackages();
-            will(returnValue(Collections.emptyList()));
+            will(returnValue(new String[0]));
         }});
         scriptCompilationHandler = new DefaultScriptCompilationHandler(new AsmBackedEmptyScriptGenerator(), new DummyClassLoaderCache(), importsReader);
         scriptCacheDir = new File(testProjectDir, "cache");

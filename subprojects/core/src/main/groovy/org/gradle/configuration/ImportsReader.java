@@ -16,8 +16,6 @@
 
 package org.gradle.configuration;
 
-import java.util.List;
-
 public interface ImportsReader {
-    List<String> getImportPackages();
+    String[] getImportPackages();
 }
