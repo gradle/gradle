@@ -45,7 +45,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
                 .connect()
 
         buildLauncher = projectConnection.newBuild()
-                .withArguments(invocation.args as String[])
+                .withArguments(invocation.args + ["-u"] as String[])
                 .forTasks(invocation.tasksToRun as String[])
                 .setJvmArguments(invocation.gradleOpts as String[])
                 .setStandardOutput(System.out)
