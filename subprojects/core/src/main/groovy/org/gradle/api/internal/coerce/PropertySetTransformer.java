@@ -20,6 +20,6 @@ import groovy.lang.MetaProperty;
 
 public interface PropertySetTransformer {
 
-    Object transformValue(MetaProperty property, Object value);
+    Object transformValue(Object target, MetaProperty property, Object value);
 
 }

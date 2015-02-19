@@ -60,13 +60,23 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     }
 
     @Override
-    public Object transformValue(MetaProperty property, Object value) {
+    public Object transformValue(Object target, MetaProperty property, Object value) {
         if (value instanceof CharSequence && property.getType().isEnum()) {
-            @SuppressWarnings("unchecked") Class<? extends Enum> type = (Class<? extends Enum>) property.getType();
-            return toEnumValue(type, (CharSequence) value);
-        } else {
-            return value;
+            @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) property.getType();
+            final String setterName = MetaProperty.getSetterName(property.getName());
+            Method setter = JavaReflectionUtil.findMethod(target.getClass(), new Spec<Method>() {
+                @Override
+                public boolean isSatisfiedBy(Method element) {
+                    return element.getName().equals(setterName) && element.getParameters().length == 1;
+                }
+            });
+
+            if (setter == null || setter.getParameterTypes()[0].equals(enumType)) {
+                return toEnumValue(enumType, (CharSequence) value);
+            }
         }
+
+        return value;
     }
 
     static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {

@@ -190,7 +190,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 };
             }
             try {
-                value = propertySetTransformer.transformValue(property, value);
+                value = propertySetTransformer.transformValue(bean, property, value);
                 metaClass.setProperty(bean, name, value);
             } catch (InvokerInvocationException e) {
                 if (e.getCause() instanceof RuntimeException) {
