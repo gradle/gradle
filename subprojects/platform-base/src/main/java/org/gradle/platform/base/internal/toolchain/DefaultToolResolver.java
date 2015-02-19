@@ -78,7 +78,7 @@ public class DefaultToolResolver implements ToolResolver {
         return platformToolChains;
     }
 
-    protected <P extends Platform> ToolSearchResult findToolChain(P requirement) {
+    protected <P extends Platform> ToolSearchResult findToolProvider(P requirement) {
         ToolSearchFailure notAvailableResult = new ToolSearchFailure("No tool chains can satisfy the requirement");
         for (ToolChainInternal<P> toolChain : filterToolChains(requirement)) {
             ToolSearchResult result = toolChain.select(requirement);
@@ -93,12 +93,12 @@ public class DefaultToolResolver implements ToolResolver {
 
     @Override
     public <P extends Platform> ToolSearchResult checkToolAvailability(P requirement) {
-        return findToolChain(requirement);
+        return findToolProvider(requirement);
     }
 
     @Override
     public <T, P extends Platform> ResolvedTool<T> resolve(Class<T> toolType, P requirement) {
-        ToolSearchResult toolProvider = findToolChain(requirement);
+        ToolSearchResult toolProvider = findToolProvider(requirement);
         if (toolProvider.isAvailable()) {
             return new DefaultResolvedTool<T>((ToolProvider)toolProvider, toolType);
         } else {
@@ -110,7 +110,7 @@ public class DefaultToolResolver implements ToolResolver {
 
     @Override
     public <C extends CompileSpec, P extends Platform> ResolvedTool<Compiler<C>> resolveCompiler(Class<C> specType, P requirement) {
-        ToolSearchResult toolProvider = findToolChain(requirement);
+        ToolSearchResult toolProvider = findToolProvider(requirement);
         if (toolProvider.isAvailable()) {
             return new DefaultResolvedCompiler<C>((ToolProvider)toolProvider, specType);
         } else {

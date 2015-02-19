@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
 import java.io.File;
 
@@ -52,6 +53,13 @@ public interface JvmBinarySpec extends BinarySpec {
      * Sets the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this binary.
      */
     void setToolChain(JavaToolChain toolChain);
+
+    /**
+     * Returns the {@link org.gradle.jvm.toolchain.JavaToolChain} that will be used to build this binary.
+     */
+    ToolResolver getToolResolver();
+
+    void setToolResolver(ToolResolver toolResolver);
 
     /**
      * The classes directory for this binary.

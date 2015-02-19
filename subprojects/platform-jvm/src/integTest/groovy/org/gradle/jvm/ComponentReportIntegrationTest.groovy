@@ -163,7 +163,7 @@ Binaries
         platform: java9
         tool chain: $currentJdk
         Jar file: build/jars/java9MyLibJar/myLib.jar
-        Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
+        No tool chains can satisfy the requirement: Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
 
 JVM library 'myLib2'
 --------------------

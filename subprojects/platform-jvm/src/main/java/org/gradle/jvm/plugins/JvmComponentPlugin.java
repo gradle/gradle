@@ -37,6 +37,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -77,6 +78,11 @@ public class JvmComponentPlugin extends RuleSource {
         return new DefaultJavaToolChainRegistry(toolChain);
     }
 
+    @Model
+    ToolResolver toolResolver(ServiceRegistry serviceRegistry) {
+        return serviceRegistry.get(ToolResolver.class);
+    }
+
     @Mutate
     public void registerPlatformResolver(PlatformResolvers platformResolvers) {
         platformResolvers.register(new JavaPlatformResolver());
@@ -85,7 +91,7 @@ public class JvmComponentPlugin extends RuleSource {
     @ComponentBinaries
     public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
                                PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
-                               @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
+                               @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains, ToolResolver toolResolver) {
 
         final File binariesDir = new File(buildDir, "jars");
         final File classesDir = new File(buildDir, "classes");
@@ -94,7 +100,7 @@ public class JvmComponentPlugin extends RuleSource {
         for (final JavaPlatform platform : selectedPlatforms) {
             final JavaToolChainInternal toolChain = (JavaToolChainInternal) toolChains.getForPlatform(platform);
             final String binaryName = createBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
-            binaries.create(binaryName, new ConfigureJarBinary(jvmLibrary, toolChain, platform, classesDir, binariesDir, jvmComponentExtension));
+            binaries.create(binaryName, new ConfigureJarBinary(jvmLibrary, toolChain, platform, classesDir, binariesDir, jvmComponentExtension, toolResolver));
         }
     }
 
@@ -149,14 +155,16 @@ public class JvmComponentPlugin extends RuleSource {
         private final File classesDir;
         private final File binariesDir;
         private final JvmComponentExtension jvmComponentExtension;
+        private final ToolResolver toolResolver;
 
-        public ConfigureJarBinary(JvmLibrarySpec jvmLibrary, JavaToolChainInternal toolChain, JavaPlatform platform, File classesDir, File binariesDir, JvmComponentExtension jvmComponentExtension) {
+        public ConfigureJarBinary(JvmLibrarySpec jvmLibrary, JavaToolChainInternal toolChain, JavaPlatform platform, File classesDir, File binariesDir, JvmComponentExtension jvmComponentExtension, ToolResolver toolResolver) {
             this.jvmLibrary = jvmLibrary;
             this.toolChain = toolChain;
             this.platform = platform;
             this.classesDir = classesDir;
             this.binariesDir = binariesDir;
             this.jvmComponentExtension = jvmComponentExtension;
+            this.toolResolver = toolResolver;
         }
 
         public void execute(JarBinarySpec jarBinary) {
@@ -164,6 +172,7 @@ public class JvmComponentPlugin extends RuleSource {
             jarBinaryInternal.setBaseName(jvmLibrary.getName());
             jarBinary.setToolChain(toolChain);
             jarBinary.setTargetPlatform(platform);
+            jarBinary.setToolResolver(toolResolver);
 
             File outputDir = new File(classesDir, jarBinary.getName());
             jarBinary.setClassesDir(outputDir);

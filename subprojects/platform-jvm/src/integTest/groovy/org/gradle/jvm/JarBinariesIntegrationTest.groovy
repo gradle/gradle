@@ -16,6 +16,7 @@
 
 package org.gradle.jvm
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -80,9 +81,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':assemble'.")
         failure.assertThatCause(Matchers.<String>allOf(
                 Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("myJvmLib1Jar: Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("myJvmLib2Jar: Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("myJvmLib3Jar: Disabled by user")
+                Matchers.containsString("No tool chains can satisfy the requirement: Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})"),
+                Matchers.containsString("Disabled by user")
         ))
     }
 }

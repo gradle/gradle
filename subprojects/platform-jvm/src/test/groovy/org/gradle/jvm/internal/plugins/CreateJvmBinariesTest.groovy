@@ -36,6 +36,7 @@ import org.gradle.platform.base.component.BaseComponentSpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.platform.base.internal.toolchain.ToolResolver
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
@@ -48,6 +49,7 @@ class CreateJvmBinariesTest extends Specification {
     def instantiator = Mock(Instantiator)
     def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator(), Stub(ProjectSourceSet))
     def toolChainRegistry = Mock(JavaToolChainRegistry)
+    def toolResolver = Mock(ToolResolver)
 
     def serviceRegistry = ServiceRegistryBuilder.builder().provider(new Object() {
         Instantiator createInstantiator() {
@@ -66,7 +68,7 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.sources.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
+        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry, toolResolver)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
