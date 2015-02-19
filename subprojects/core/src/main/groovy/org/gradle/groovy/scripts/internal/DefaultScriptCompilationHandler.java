@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
+import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
@@ -49,11 +50,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
+    private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private final EmptyScriptGenerator emptyScriptGenerator;
@@ -110,7 +114,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
                 return compilationUnit;
             }
+
         };
+
+        groovyClassLoader.setResourceLoader(NO_OP_GROOVY_RESOURCE_LOADER);
         String scriptText = source.getResource().getText();
         String scriptName = source.getClassName();
         GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
@@ -280,6 +287,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         public boolean isEmptyScript() {
             return emptyScript;
+        }
+    }
+
+    private static class NoOpGroovyResourceLoader implements GroovyResourceLoader {
+        @Override
+        public URL loadGroovySource(String filename) throws MalformedURLException {
+            return null;
         }
     }
 

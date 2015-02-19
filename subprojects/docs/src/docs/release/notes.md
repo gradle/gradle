@@ -197,6 +197,10 @@ This hook was intended to capture "overall" arguments to the command-line tool i
 We've changed it so that `withArguments()` is called once per task execution and does not contain any specific file arguments.  
 Changes to arguments using this method will affect all source files.
 
+### On the fly compilation of Groovy classes located in external scripts when compiling build scripts has been disabled
+
+TBD
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
