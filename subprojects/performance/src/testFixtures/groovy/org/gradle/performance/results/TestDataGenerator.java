@@ -64,7 +64,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
         List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("  [");
-        List<String> labels = testHistory.getOperationLabels();
+        List<String> labels = testHistory.getExperimentLabels();
         for (int i = 0; i < labels.size(); i++) {
             if (i > 0) {
                 out.println(",");
@@ -75,7 +75,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
                 PerformanceResults results = sortedResults.get(j);
-                MeasuredOperationList measuredOperations = results.getExecutionOperations().get(i);
+                MeasuredOperationList measuredOperations = results.getExperiments().get(i);
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
                         out.print(", ");

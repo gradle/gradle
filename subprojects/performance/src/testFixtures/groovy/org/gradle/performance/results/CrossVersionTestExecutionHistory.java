@@ -96,12 +96,12 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
     }
 
     @Override
-    public int getPerExecutionOperationsCount() {
+    public int getExperimentCount() {
         return getKnownVersions().size();
     }
 
     @Override
-    public List<String> getOperationLabels() {
+    public List<String> getExperimentLabels() {
         return getKnownVersions();
     }
 
@@ -129,7 +129,7 @@ public class CrossVersionTestExecutionHistory implements TestExecutionHistory {
             return result.getVcsCommit();
         }
 
-        public List<MeasuredOperationList> getExecutionOperations() {
+        public List<MeasuredOperationList> getExperiments() {
             return Lists.transform(getKnownVersions(), new Function<String, MeasuredOperationList>() {
                 public MeasuredOperationList apply(String version) {
                     return result.version(version).getResults();

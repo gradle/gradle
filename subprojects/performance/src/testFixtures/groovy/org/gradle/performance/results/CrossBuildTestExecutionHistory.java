@@ -65,12 +65,12 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
     }
 
     @Override
-    public int getPerExecutionOperationsCount() {
+    public int getExperimentCount() {
         return builds.size();
     }
 
     @Override
-    public List<String> getOperationLabels() {
+    public List<String> getExperimentLabels() {
         return Lists.transform(builds, new Function<BuildDisplayInfo, String>() {
             public String apply(@Nullable BuildDisplayInfo specification) {
                 return specification.getDisplayName();
@@ -106,7 +106,7 @@ public class CrossBuildTestExecutionHistory implements TestExecutionHistory {
         }
 
         @Override
-        public List<MeasuredOperationList> getExecutionOperations() {
+        public List<MeasuredOperationList> getExperiments() {
             return Lists.transform(builds, new Function<BuildDisplayInfo, MeasuredOperationList>() {
                 @Override
                 public MeasuredOperationList apply(@Nullable BuildDisplayInfo specification) {

@@ -28,7 +28,10 @@ public interface PerformanceResults {
 
     String getVcsCommit();
 
-    List<MeasuredOperationList> getExecutionOperations();
+    /**
+     * Returns the results of the experiments executed as part of this performance test.
+     */
+    List<MeasuredOperationList> getExperiments();
 
     String getOperatingSystem();
 

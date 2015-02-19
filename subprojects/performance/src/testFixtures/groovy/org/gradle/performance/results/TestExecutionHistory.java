@@ -25,7 +25,13 @@ public interface TestExecutionHistory {
 
     List<PerformanceResults> getPerformanceResults();
 
-    int getPerExecutionOperationsCount();
+    /**
+     * Returns the number of experiments per performance test.
+     */
+    int getExperimentCount();
 
-    List<String> getOperationLabels();
+    /**
+     * Returns the labels of the experiments.
+     */
+    List<String> getExperimentLabels();
 }

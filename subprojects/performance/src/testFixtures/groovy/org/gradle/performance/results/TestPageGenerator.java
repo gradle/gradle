@@ -89,12 +89,12 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("4").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average heap usage (old measurement)").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average total heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max uncollected heap").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max committed heap").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max uncollected heap").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max committed heap").end();
                             th().colspan("4").text("Details").end();
                         end();
                         tr();
@@ -103,7 +103,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                             th().text("Branch").end();
                             th().text("Git commit").end();
                             for (int i = 0; i < 6; i++) {
-                                for (String label : testHistory.getOperationLabels()) {
+                                for (String label : testHistory.getExperimentLabels()) {
                                     th().classAttr("numeric").text(label).end();
                                 }
                             }
@@ -116,32 +116,32 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
                                 td().text(results.getVcsCommit()).end();
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                                         return original.getExecutionTime();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalMemoryUsed();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxUncollectedHeap();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderMetricForVersions(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxCommittedHeap();
                                     }
