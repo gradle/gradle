@@ -32,14 +32,16 @@ class GradleInvocationSpec {
     final List<String> args
     final List<String> gradleOpts
     final boolean useDaemon
+    final boolean useToolingApi
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> gradleOpts, boolean useDaemon) {
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> gradleOpts, boolean useDaemon, boolean useToolingApi) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.args = args
         this.gradleOpts = gradleOpts
         this.useDaemon = useDaemon
+        this.useToolingApi = useToolingApi
     }
 
     static Builder builder() {
@@ -47,7 +49,7 @@ class GradleInvocationSpec {
     }
 
     GradleInvocationSpec withAdditionalGradleOpts(List<String> additionalGradleOpts) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(gradleOpts).addAll(additionalGradleOpts).build(), useDaemon)
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(gradleOpts).addAll(additionalGradleOpts).build(), useDaemon, useToolingApi)
     }
 
     static class Builder {
@@ -57,6 +59,7 @@ class GradleInvocationSpec {
         List<String> args = []
         List<String> gradleOptions = []
         boolean useDaemon
+        boolean useToolingApi
 
         Builder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
@@ -92,6 +95,15 @@ class GradleInvocationSpec {
             this
         }
 
+        Builder useToolingApi() {
+            useToolingApi(true)
+        }
+
+        Builder useToolingApi(boolean flag) {
+            this.useToolingApi = flag
+            this
+        }
+
         Builder enableModelReuse() {
             gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true", "-Dorg.gradle.daemon.performance.expire-at=0")
         }
@@ -108,7 +120,7 @@ class GradleInvocationSpec {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), useDaemon)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), useDaemon, useToolingApi)
         }
 
     }

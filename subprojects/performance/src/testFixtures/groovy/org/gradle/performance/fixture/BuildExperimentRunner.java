@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
-import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.util.List;
@@ -25,10 +24,10 @@ import java.util.List;
 public class BuildExperimentRunner {
     private final GCLoggingCollector gcCollector = new GCLoggingCollector();
     private final DataCollector dataCollector;
-    private final GradleExecuterProvider executerProvider;
+    private final GradleSessionProvider executerProvider;
     private final OperationTimer timer = new OperationTimer();
 
-    public BuildExperimentRunner(GradleExecuterProvider executerProvider) {
+    public BuildExperimentRunner(GradleSessionProvider executerProvider) {
         this.executerProvider = executerProvider;
         MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
@@ -40,42 +39,38 @@ public class BuildExperimentRunner {
         System.out.println(String.format("%s ...", experiment.getDisplayName()));
         System.out.println();
 
-        GradleInvocationSpec buildSpec = experiment.getInvocation();
+        final List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(experiment.getInvocation().getWorkingDirectory());
 
-        executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
+        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalGradleOpts(additionalGradleOpts);
+        GradleSession session = executerProvider.session(buildSpec);
 
+        session.prepare();
         try {
             for (int i = 0; i < experiment.getWarmUpCount(); i++) {
                 System.out.println();
                 System.out.println(String.format("Warm-up #%s", i + 1));
-                runOnce(buildSpec, new MeasuredOperationList());
+                runOnce(session, new MeasuredOperationList());
             }
             for (int i = 0; i < experiment.getInvocationCount(); i++) {
                 System.out.println();
                 System.out.println(String.format("Test run #%s", i + 1));
-                runOnce(buildSpec, results);
+                runOnce(session, results);
             }
         } finally {
-            if (buildSpec.getUseDaemon()) {
-                executerProvider.executer(buildSpec).withTasks().withArgument("--stop").run();
-            }
+            session.cleanup();
         }
     }
 
-    private void runOnce(GradleInvocationSpec buildSpec, MeasuredOperationList results) {
-        List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(buildSpec.getWorkingDirectory());
-        GradleInvocationSpec effectiveSpec = buildSpec.withAdditionalGradleOpts(additionalGradleOpts);
-        final GradleExecuter executer = executerProvider.executer(effectiveSpec);
-
+    private void runOnce(final GradleSession session, MeasuredOperationList results) {
         MeasuredOperation operation = timer.measure(new Action<MeasuredOperation>() {
             @Override
             public void execute(MeasuredOperation measuredOperation) {
-                executer.run();
+                session.run();
             }
         });
 
         if (operation.getException() == null) {
-            dataCollector.collect(buildSpec.getWorkingDirectory(), operation);
+            dataCollector.collect(session.getInvocation().getWorkingDirectory(), operation);
         }
 
         results.add(operation);

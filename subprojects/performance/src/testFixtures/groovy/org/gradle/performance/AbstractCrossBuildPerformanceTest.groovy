@@ -19,7 +19,7 @@ package org.gradle.performance
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
-import org.gradle.performance.fixture.GradleExecuterProvider
+import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -32,7 +32,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossBuildResultsStore()
 
-    final def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleExecuterProvider(tmpDir)), resultStore) {
+    final def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             builder.invocationCount(5).warmUpCount(1)
