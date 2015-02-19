@@ -32,6 +32,11 @@ import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
+    protected int getDepth() {
+        return 1;
+    }
+
+    @Override
     public void render(final TestExecutionHistory testHistory, Writer writer) throws IOException {
         new Html(writer) {{
             html();

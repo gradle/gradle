@@ -25,23 +25,28 @@ import java.io.Writer;
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
     protected final FormatSupport format = new FormatSupport();
 
+    protected int getDepth() {
+        return 0;
+    }
+
     protected void headSection(Html html) {
+        String rootDir = getDepth() == 0 ? "" : "../";
         html.meta()
                 .httpEquiv("Content-Type")
                 .content("text/html; charset=utf-8");
         html.link()
                 .rel("stylesheet")
                 .type("text/css")
-                .href("css/style.css")
+                .href(rootDir + "css/style.css")
                 .end();
         html.script()
-                .src("js/jquery.min-1.11.0.js")
+                .src(rootDir + "js/jquery.min-1.11.0.js")
                 .end();
         html.script()
-                .src("js/flot-0.8.1-min.js")
+                .src(rootDir + "js/flot-0.8.1-min.js")
                 .end();
         html.script()
-                .src("js/report.js")
+                .src(rootDir + "js/report.js")
                 .end();
     }
 

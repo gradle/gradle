@@ -91,7 +91,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         }
                         tr();
                             td().colspan("6");
-                                String url = testHistory.getId() + ".html";
+                                String url = "tests/" + testHistory.getId() + ".html";
                                 a().href(url).text("details...").end();
                             end();
                         end();
