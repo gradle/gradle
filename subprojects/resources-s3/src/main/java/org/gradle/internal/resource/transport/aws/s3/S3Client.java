@@ -16,18 +16,18 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.*;
 import com.google.common.base.Optional;
 import org.gradle.api.artifacts.repositories.AwsCredentials;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
-import org.jets3t.service.Constants;
-import org.jets3t.service.Jets3tProperties;
-import org.jets3t.service.S3ServiceException;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.impl.rest.httpclient.RestS3Service;
-import org.jets3t.service.model.S3Object;
-import org.jets3t.service.model.StorageObject;
-import org.jets3t.service.security.AWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,106 +41,80 @@ import java.util.regex.Pattern;
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
     private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
-    public static final String S3SERVICE_S3_ENDPOINT = "s3service.s3-endpoint";
-    public static final String S3SERVICE_S3_ENDPOINT_HTTP_PORT = "s3service.s3-endpoint-http-port";
-    public static final String S3SERVICE_HTTPS_ONLY = "s3service.https-only";
-    public static final String S3SERVICE_DISABLE_DNS_BUCKETS = "s3service.disable-dns-buckets";
-    public static final String HTTPCLIENT_PROXY_AUTODETECT = "httpclient.proxy-autodetect";
-    public static final String HTTPCLIENT_PROXY_HOST = "httpclient.proxy-host";
-    public static final String HTTPCLIENT_PROXY_PORT = "httpclient.proxy-port";
-    public static final String HTTPCLIENT_PROXY_USER = "httpclient.proxy-user";
-    public static final String HTTPCLIENT_PROXY_PASSWORD = "httpclient.proxy-password";
-    public static final String STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX = "storage-service.internal-error-retry-max";
 
-    private RestS3Service s3Service;
+    private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
 
-    public S3Client(RestS3Service restS3Service, S3ConnectionProperties s3ConnectionProperties) {
+    public S3Client(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        this.s3Service = restS3Service;
+        this.amazonS3Client = amazonS3Client;
     }
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = awsCredentials == null ? null : new AWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
-        try {
-            s3Service = new RestS3Service(credentials, null, null, createConnectionProperties());
-        } catch (S3ServiceException e) {
-            throw new S3Exception("Could instantiate S3 Service", e);
-        }
+        AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        amazonS3Client = createAmazonS3Client(credentials);
     }
 
-    private Jets3tProperties createConnectionProperties() {
-        Jets3tProperties properties = Jets3tProperties.getInstance(Constants.JETS3T_PROPERTIES_FILENAME);
+    private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
 
+        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
+        S3ClientOptions clientOptions = new S3ClientOptions();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
-            URI uri = endpoint.get();
-            properties.setProperty(S3SERVICE_S3_ENDPOINT, uri.getHost());
-            properties.setProperty(S3SERVICE_S3_ENDPOINT_HTTP_PORT, Integer.toString(uri.getPort()));
-            properties.setProperty(S3SERVICE_HTTPS_ONLY, Boolean.toString(uri.getScheme().toUpperCase().equals("HTTPS")));
-            properties.setProperty(S3SERVICE_DISABLE_DNS_BUCKETS, "true");
-            properties.setProperty(STORAGE_SERVICE_INTERNAL_ERROR_RETRY_MAX, "0");
+            amazonS3Client.setEndpoint(endpoint.get().toString());
+            clientOptions.withPathStyleAccess(true);
         }
+        amazonS3Client.setS3ClientOptions(clientOptions);
+        return amazonS3Client;
+    }
+
+    private ClientConfiguration createConnectionProperties() {
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
         Optional<HttpProxySettings.HttpProxy> proxyOptional = s3ConnectionProperties.getProxy();
         if (proxyOptional.isPresent()) {
-            HttpProxySettings.HttpProxy proxy = proxyOptional.get();
-            properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT, "false");
-            properties.setProperty(HTTPCLIENT_PROXY_HOST, proxy.host);
-            properties.setProperty(HTTPCLIENT_PROXY_PORT, Integer.toString(proxy.port));
-
+            HttpProxySettings.HttpProxy proxy = s3ConnectionProperties.getProxy().get();
+            clientConfiguration.setProxyHost(proxy.host);
+            clientConfiguration.setProxyPort(proxy.port);
             PasswordCredentials credentials = proxy.credentials;
-
             if (credentials != null) {
-                properties.setProperty(HTTPCLIENT_PROXY_USER, credentials.getUsername());
-                properties.setProperty(HTTPCLIENT_PROXY_PASSWORD, credentials.getPassword());
+                clientConfiguration.setProxyUsername(credentials.getUsername());
+                clientConfiguration.setProxyPassword(credentials.getPassword());
             }
-        } else {
-            properties.setProperty(HTTPCLIENT_PROXY_AUTODETECT, "true");
         }
-        return properties;
+        Optional<Integer> maxErrorRetryCount = s3ConnectionProperties.getMaxErrorRetryCount();
+        if (maxErrorRetryCount.isPresent()) {
+            clientConfiguration.setMaxErrorRetry(maxErrorRetryCount.get());
+        }
+        return clientConfiguration;
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
-
         try {
             String bucketName = getBucketName(destination);
             String s3BucketKey = getS3BucketKey(destination);
-            S3Object object = new S3Object(s3BucketKey);
-            object.setContentLength(contentLength);
-            object.setDataInputStream(inputStream);
+
+            ObjectMetadata objectMetadata = new ObjectMetadata();
+            objectMetadata.setContentLength(contentLength);
+
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, s3BucketKey, inputStream, objectMetadata);
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
-            s3Service.putObject(bucketName, object);
-        } catch (S3ServiceException e) {
-            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getErrorMessage()), e);
+
+            amazonS3Client.putObject(putObjectRequest);
+        } catch (AmazonClientException e) {
+            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
         }
     }
 
-    public StorageObject getMetaData(URI uri) {
+    public S3Object getMetaData(URI uri) {
         LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
-        String bucketName = getBucketName(uri);
-        String s3Key = getS3BucketKey(uri);
-        try {
-            return s3Service.getObjectDetails(bucketName, s3Key);
-        } catch (ServiceException e) {
-            if(e.getResponseCode() == 404) {
-                return null;
-            }
-            throw new S3Exception(String.format("Could not get s3 meta-data: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
-        }
+        //Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
+        return doGetS3Object(uri, true);
     }
 
     public S3Object getResource(URI uri) {
         LOGGER.debug("Attempting to get s3 resource: [{}]", uri.toString());
-        try {
-            String bucketName = getBucketName(uri);
-            return s3Service.getObject(bucketName, getS3BucketKey(uri));
-        } catch (S3ServiceException e) {
-            if(e.getResponseCode() == 404) {
-                return null;
-            }
-            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
-        }
+        return doGetS3Object(uri, false);
     }
 
     private String getS3BucketKey(URI destination) {
@@ -148,32 +122,39 @@ public class S3Client {
         return path.startsWith("/") ? path.substring(1) : path;
     }
 
-    private String getBucketName(URI uri) {
-        return uri.getHost();
-    }
-
     public List<String> list(URI parent) {
         List<String> results = new ArrayList<String>();
         String bucketName = getBucketName(parent);
         String s3Key = getS3BucketKey(parent);
-        try {
-            S3Object[] s3Objects = s3Service.listObjects(bucketName, s3Key, "/");
-            results.addAll(resolveResourceNames(s3Objects));
-        } catch (S3ServiceException e) {
-            if(e.getResponseCode() != 404) {
-                throw new S3Exception(String.format("Could not list s3 resources for '%s'.", parent.toString()), e);
-            }
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(bucketName)
+                .withPrefix(s3Key)
+                .withMaxKeys(1000)
+                .withDelimiter("/");
+        ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
+        results.addAll(resolveResourceNames(objectListing));
+
+        while (objectListing.isTruncated()) {
+            objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
+            results.addAll(resolveResourceNames(objectListing));
         }
         return results;
     }
 
-    private List<String> resolveResourceNames(S3Object[] s3Objects) {
+    private String getBucketName(URI uri) {
+        return uri.getHost();
+    }
+
+    private List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
-        for (S3Object objectSummary : s3Objects) {
-            String key = objectSummary.getKey();
-            String fileName = extractResourceName(key);
-            if (null != fileName) {
-                results.add(fileName);
+        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
+        if (null != objectSummaries) {
+            for (S3ObjectSummary objectSummary : objectSummaries) {
+                String key = objectSummary.getKey();
+                String fileName = extractResourceName(key);
+                if (null != fileName) {
+                    results.add(fileName);
+                }
             }
         }
         return results;
@@ -186,5 +167,25 @@ public class S3Client {
             return group.contains(".") ? group : null;
         }
         return null;
+    }
+
+    private S3Object doGetS3Object(URI uri, boolean isLightWeight) {
+        String bucketName = getBucketName(uri);
+        String s3Key = getS3BucketKey(uri);
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, s3Key);
+        if (isLightWeight) {
+            //Skip content download
+            getObjectRequest.setRange(0, 0);
+        }
+
+        try {
+            return amazonS3Client.getObject(getObjectRequest);
+        } catch (AmazonServiceException e) {
+            String errorCode = e.getErrorCode();
+            if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
+                return null;
+            }
+            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
+        }
     }
 }

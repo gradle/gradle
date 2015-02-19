@@ -73,7 +73,7 @@ class S3StubSupport {
     def stubMetaData(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'HEAD'
+                method = 'GET'
                 path = url
                 headers = [
                         'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
@@ -90,7 +90,7 @@ class S3StubSupport {
                         'Server'          : SERVER_AMAZON_S3,
                         'Accept-Ranges'   : 'bytes',
                         'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "${file.length()}",
+                        'Content-Length'  : "0",
                         'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
                 ]
             }
@@ -99,17 +99,17 @@ class S3StubSupport {
     }
 
     def stubMetaDataBroken(String url) {
-        stubMetaDataHead(url, 500)
+        stubMetaDataLightWeightGet(url, 500)
     }
 
     def stubMetaDataMissing(String url) {
-        stubMetaDataHead(url, 404);
+        stubFileNotFound(url)
     }
 
-    private stubMetaDataHead(String url, int statusCode) {
+    private stubMetaDataLightWeightGet(String url, int statusCode) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
-                method = 'HEAD'
+                method = 'GET'
                 path = url
                 headers = [
                         'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
@@ -223,7 +223,7 @@ class S3StubSupport {
                 params = [
                         'prefix'   : [prefix],
                         'delimiter': [delimiter],
-                        'max-keys': ["1000"]
+                        'max-keys' : ["1000"]
                 ]
             }
             response {

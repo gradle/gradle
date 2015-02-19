@@ -175,12 +175,16 @@ libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:
     dependency libraries.bouncycastle_provider
 }
 
-libraries.joda = 'joda-time:joda-time:2.4@jar'
+libraries.joda = 'joda-time:joda-time:2.7@jar'
 
-libraries.jets3t = [
-        'net.java.dev.jets3t:jets3t:0.9.0@jar',
-        'com.jamesmurty.utils:java-xmlbuilder:1.0@jar'
-] + libraries.commons_httpclient
+libraries.awsS3 = [
+        'com.amazonaws:aws-java-sdk-s3:1.9.19@jar',
+        'com.amazonaws:aws-java-sdk-kms:1.9.19@jar',
+        'com.amazonaws:aws-java-sdk-core:1.9.19@jar',
+        'com.fasterxml.jackson.core:jackson-core:2.3.2@jar',
+        'com.fasterxml.jackson.core:jackson-annotations:2.3.2@jar',
+        'com.fasterxml.jackson.core:jackson-databind:2.3.2@jar'
+] + libraries.commons_httpclient + libraries.joda
 
 allprojects {
     configurations.all {

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.resource.s3
 
+import com.amazonaws.services.s3.model.S3Object
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -24,8 +25,6 @@ import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
-import org.jets3t.service.model.S3Object
-import org.jets3t.service.model.StorageObject
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -42,7 +41,8 @@ class S3ClientIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    @Shared DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
+    @Shared
+    DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
 
     @Rule
     public final S3StubServer server = new S3StubServer()
@@ -60,16 +60,12 @@ class S3ClientIntegrationTest extends Specification {
         File file = temporaryFolder.createFile(FILE_NAME)
         file << fileContents
 
-        s3StubSupport.with {
-            stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
-            stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
-            stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
-            stubListFile(temporaryFolder.testDirectory, bucketName)
-        }
+        s3StubSupport.stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
         S3ConnectionProperties s3SystemProperties = Mock {
             getEndpoint() >> Optional.of(s3StubSupport.endpoint)
             getProxy() >> Optional.fromNullable(null)
+            getMaxErrorRetryCount() >> Optional.absent()
         }
 
         S3Client s3Client = new S3Client(authenticationImpl, s3SystemProperties)
@@ -77,20 +73,34 @@ class S3ClientIntegrationTest extends Specification {
         when:
         def stream = new FileInputStream(file)
         def uri = new URI("s3://${bucketName}/maven/release/$FILE_NAME")
-        s3Client.put(stream, file.length(), uri)
 
         then:
-        StorageObject data = s3Client.getMetaData(uri)
-        data.getContentLength() == fileContents.length()
-        data.getETag() ==~ /\w{32}/
+        s3Client.put(stream, file.length(), uri)
 
-        and:
+        when:
+        s3StubSupport.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
+        S3Object data = s3Client.getMetaData(uri)
+        def metadata = data.getObjectMetadata()
+
+        then:
+        metadata.getContentLength() == 0
+        metadata.getETag() ==~ /\w{32}/
+
+        when:
+        s3StubSupport.stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
+
+        then:
         S3Object object = s3Client.getResource(uri)
+        object.metadata.getContentLength() == fileContents.length()
+        object.metadata.getETag() ==~ /\w{32}/
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-        IOUtils.copyLarge(object.getDataInputStream(), outStream);
+        IOUtils.copyLarge(object.getObjectContent(), outStream);
         outStream.toString() == fileContents
 
-        and:
+        when:
+        s3StubSupport.stubListFile(temporaryFolder.testDirectory, bucketName)
+
+        then:
         def files = s3Client.list(new URI("s3://${bucketName}/maven/release/"))
         !files.isEmpty()
         files.each {
@@ -98,9 +108,9 @@ class S3ClientIntegrationTest extends Specification {
         }
 
         where:
-        authenticationImpl  | authenticationType
-        awsCredentials      | "authenticated"
-        null                | "anonymous"
+        authenticationImpl | authenticationType
+        awsCredentials     | "authenticated"
+        null               | "anonymous"
     }
 
     /**
@@ -120,7 +130,7 @@ class S3ClientIntegrationTest extends Specification {
 
         expect:
         def stream = new FileInputStream(file)
-        def uri = new URI("s3://${bucketName}/maven/release/mavenTest.txt")
+        def uri = new URI("s3://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
         s3Client.put(stream, file.length(), uri)
         s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
     }

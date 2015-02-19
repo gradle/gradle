@@ -734,6 +734,30 @@
             <sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
             </sample>
+
+            <para>
+                The following system properties can be used to configure the interactions with s3 repositories
+            </para>
+
+            <table>
+                <title>S3 Configuration Properties</title>
+                <thead>
+                    <tr>
+                        <td>Property</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>org.gradle.s3.endpoint</td>
+                        <td>Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.</td>
+                    </tr>
+                    <tr>
+                        <td>org.gradle.s3.maxErrorRetry</td>
+                        <td>Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code.</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
         <section id='sub:maven_central'>

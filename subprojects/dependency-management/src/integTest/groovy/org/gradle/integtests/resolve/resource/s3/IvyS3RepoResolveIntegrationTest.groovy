@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resolve.resource.s3
+
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -35,6 +36,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
 
     protected ExecutionResult succeeds(String... tasks) {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
         result = executer.withTasks(*tasks).run()
     }
 }
