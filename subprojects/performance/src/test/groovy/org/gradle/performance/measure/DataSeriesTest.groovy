@@ -19,7 +19,7 @@ package org.gradle.performance.measure
 import spock.lang.Specification
 
 class DataSeriesTest extends Specification {
-    def "can calculate average and min and max"() {
+    def "can calculate statistics for samples"() {
         def v1 = DataAmount.kbytes(10)
         def v2 = DataAmount.kbytes(20)
         def v3 = DataAmount.kbytes(30)
@@ -29,6 +29,7 @@ class DataSeriesTest extends Specification {
         series.average == v2
         series.min == v1
         series.max == v3
+        series.stddev == DataAmount.bytes(8360.92)
     }
 
     def "ignores null values"() {
@@ -52,5 +53,6 @@ class DataSeriesTest extends Specification {
         series.average == null
         series.min == null
         series.max == null
+        series.stddev == null
     }
 }

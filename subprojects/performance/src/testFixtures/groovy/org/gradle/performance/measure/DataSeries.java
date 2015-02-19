@@ -16,6 +16,7 @@
 
 package org.gradle.performance.measure;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 /**
@@ -25,6 +26,7 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     private final Amount<Q> average;
     private final Amount<Q> max;
     private final Amount<Q> min;
+    private final Amount<Q> stddev;
 
     public DataSeries(Iterable<? extends Amount<Q>> values) {
         for (Amount<Q> value : values) {
@@ -37,6 +39,7 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
             average = null;
             max = null;
             min = null;
+            stddev = null;
             return;
         }
 
@@ -52,6 +55,21 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         average = total.div(size());
         this.min = min;
         this.max = max;
+
+        BigDecimal sumSquares = BigDecimal.ZERO;
+        Units<Q> baseUnits = average.getUnits().getBaseUnits();
+        BigDecimal averageValue = average.toUnits(baseUnits).getValue();
+        for (int i = 0; i < size(); i++) {
+            Amount<Q> amount = get(i);
+            BigDecimal diff = amount.toUnits(baseUnits).getValue();
+            diff = diff.subtract(averageValue);
+            diff = diff.multiply(diff);
+            sumSquares = sumSquares.add(diff);
+        }
+        // This isn't quite right, as we may lose precision when converting to a double
+        BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        stddev = Amount.valueOf(result, baseUnits);
     }
 
     public Amount<Q> getAverage() {
@@ -64,5 +82,9 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
     public Amount<Q> getMax() {
         return max;
+    }
+
+    public Amount<Q> getStddev() {
+        return stddev;
     }
 }

@@ -156,17 +156,17 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
             endAll();
         }
 
-            private <T> void renderMetricForVersions(Iterable<MeasuredOperationList> testExecutions, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
-                List<Amount<T>> values = new ArrayList<Amount<T>>();
+            private <T> void renderMetricForVersions(Iterable<MeasuredOperationList> experiments, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
+                List<DataSeries<T>> values = new ArrayList<DataSeries<T>>();
                 Amount<T> min = null;
                 Amount<T> max = null;
-                for (MeasuredOperationList testExecution : testExecutions) {
+                for (MeasuredOperationList testExecution : experiments) {
                     DataSeries<T> data = transformer.transform(testExecution);
                     if (data.isEmpty()) {
                         values.add(null);
                     } else {
                         Amount<T> value = data.getAverage();
-                        values.add(value);
+                        values.add(data);
                         if (min == null || value.compareTo(min) < 0) {
                             min = value;
                         }
@@ -180,10 +180,11 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     max = null;
                 }
 
-                for (Amount<?> value : values) {
-                    if (value == null) {
+                for (DataSeries<T> data : values) {
+                    if (data == null) {
                         td().text("").end();
                     } else {
+                        Amount<T> value = data.getAverage();
                         String classAttr = "numeric";
                         if (value.equals(min)) {
                             classAttr += " min-value";
@@ -191,7 +192,11 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         if (value.equals(max)) {
                             classAttr += " max-value";
                         }
-                        td().classAttr(classAttr).text(value.format()).end();
+                        td()
+                            .classAttr(classAttr)
+                            .title("avg: " + value + ", min: " + data.getMin() + ", max: " + data.getMax() + ", stddev: " + data.getStddev() + ", values: " + data)
+                            .text(value.format())
+                        .end();
                     }
                 }
             }
