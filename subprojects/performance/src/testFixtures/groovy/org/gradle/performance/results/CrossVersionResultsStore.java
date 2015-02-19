@@ -133,50 +133,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         }
     }
 
-    public List<String> getVersions() {
-        try {
-            return db.withConnection(new ConnectionAction<List<String>>() {
-                public List<String> execute(Connection connection) throws Exception {
-                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
-                        public int compare(String o1, String o2) {
-                            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
-                        }
-                    });
-                    PreparedStatement uniqueVersions = connection.prepareStatement("select distinct version from testOperation");
-                    ResultSet versions = uniqueVersions.executeQuery();
-                    while (versions.next()) {
-                        String version = versions.getString(1);
-                        if (version != null) {
-                            allVersions.add(version);
-                        }
-                    }
-                    versions.close();
-                    uniqueVersions.close();
-
-                    ArrayList<String> result = new ArrayList<String>();
-                    result.addAll(allVersions);
-
-                    PreparedStatement uniqueBranches = connection.prepareStatement("select distinct vcsBranch from testExecution");
-                    ResultSet branches = uniqueBranches.executeQuery();
-                    Set<String> allBranches = new TreeSet<String>();
-                    while (branches.next()) {
-                        allBranches.add(branches.getString(1).trim());
-                    }
-                    branches.close();
-                    uniqueBranches.close();
-
-                    result.addAll(allBranches);
-
-                    return result;
-                }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load version list from datastore '%s'.", dbFile), e);
-        }
+    @Override
+    public TestExecutionHistory getTestResults(String testName) {
+        return getTestResults(testName, Integer.MAX_VALUE);
     }
 
     @Override
-    public CrossVersionTestExecutionHistory getTestResults(final String testName) {
+    public TestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionTestExecutionHistory>() {
                 public CrossVersionTestExecutionHistory execute(Connection connection) throws Exception {
@@ -187,9 +150,10 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
-                    executionsForName.setString(1, testName);
+                    executionsForName.setInt(1, mostRecentN);
+                    executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);

@@ -40,7 +40,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("controls").end();
                     table().classAttr("history");
                     for (String testName : testNames) {
-                        TestExecutionHistory testHistory = store.getTestResults(testName);
+                        TestExecutionHistory testHistory = store.getTestResults(testName, 5);
                         tr();
                             th().colspan("6").classAttr("test-execution");
                                 text(testName);
@@ -63,7 +63,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             }
                         end();
                         List<PerformanceResults> results = testHistory.getPerformanceResults();
-                        for (int i = 0; i < results.size() && i < 5; i++) {
+                        for (int i = 0; i < results.size(); i++) {
                             PerformanceResults performanceResults = results.get(i);
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();

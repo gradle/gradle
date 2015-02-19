@@ -137,7 +137,12 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
         }
     }
 
-    public CrossBuildTestExecutionHistory getTestResults(final String testName) {
+    @Override
+    public CrossBuildTestExecutionHistory getTestResults(String testName) {
+        return getTestResults(testName, Integer.MAX_VALUE);
+    }
+
+    public CrossBuildTestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossBuildTestExecutionHistory>() {
                 public CrossBuildTestExecutionHistory execute(Connection connection) throws Exception {
@@ -148,9 +153,10 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
-                    executionsForName.setString(1, testName);
+                    executionsForName.setInt(1, mostRecentN);
+                    executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);

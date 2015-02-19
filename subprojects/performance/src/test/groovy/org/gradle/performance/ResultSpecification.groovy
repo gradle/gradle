@@ -42,6 +42,7 @@ abstract class ResultSpecification extends Specification {
     CrossBuildPerformanceResults crossBuildResults(Map<String, ?> options = [:]) {
         def results = new CrossBuildPerformanceResults(
                 testId: "test-id",
+                testGroup: "test-group",
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",

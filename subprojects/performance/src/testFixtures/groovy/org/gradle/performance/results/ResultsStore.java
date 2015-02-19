@@ -24,5 +24,13 @@ public interface ResultsStore {
      */
     List<String> getTestNames();
 
+    /**
+     * Returns the full history of the given test.
+     */
     TestExecutionHistory getTestResults(String testName);
+
+    /**
+     * Returns the n most recent instances of the given test.
+     */
+    TestExecutionHistory getTestResults(String testName, int mostRecentN);
 }

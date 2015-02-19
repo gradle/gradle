@@ -37,6 +37,11 @@ public class AllResultsStore implements ResultsStore, Closeable {
     }
 
     @Override
+    public TestExecutionHistory getTestResults(String testName, int mostRecentN) {
+        return store.getTestResults(testName, mostRecentN);
+    }
+
+    @Override
     public void close() {
         CompositeStoppable.stoppable(crossVersion, crossBuild).stop();
     }

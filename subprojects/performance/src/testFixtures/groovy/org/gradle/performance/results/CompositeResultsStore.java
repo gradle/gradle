@@ -34,11 +34,20 @@ public class CompositeResultsStore implements ResultsStore {
 
     @Override
     public TestExecutionHistory getTestResults(String testName) {
+        return getStoreForTest(testName).getTestResults(testName);
+    }
+
+    @Override
+    public TestExecutionHistory getTestResults(String testName, int mostRecentN) {
+        return getStoreForTest(testName).getTestResults(testName, mostRecentN);
+    }
+
+    private ResultsStore getStoreForTest(String testName) {
         buildTests();
         if (!tests.containsKey(testName)) {
             throw new IllegalArgumentException(String.format("Unknown test '%s'.", testName));
         }
-        return tests.get(testName).getTestResults(testName);
+        return tests.get(testName);
     }
 
     private void buildTests() {

@@ -47,7 +47,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                 maxUncollectedHeap: kbytes(45.22),
                 maxCommittedHeap: kbytes(200)
         )
-        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex", [], []))
+        def buildResults2 = results1.buildResult(new BuildDisplayInfo("complex", "complex display", [], []))
         buildResults2 << operation()
         buildResults2 << operation()
 
@@ -76,10 +76,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         then:
         history.id == "test1"
+        history.name == "test1"
+        history.experimentCount == 2
+        history.experimentLabels == ["complex display", "simple display"]
 
         and:
         def firstSpecification = history.builds[0]
-        firstSpecification == new BuildDisplayInfo("complex", "complex", [], [])
+        firstSpecification == new BuildDisplayInfo("complex", "complex display", [], [])
         history.results.first().buildResult(firstSpecification).size() == 2
 
         and:
@@ -102,5 +105,47 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         operation.maxHeapUsage == kbytes(124.01)
         operation.maxUncollectedHeap == kbytes(45.22)
         operation.maxCommittedHeap == kbytes(200)
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
+    def "returns top n results in descending date order"() {
+        given:
+        def results1 = crossBuildResults(testId: "test1", testTime: 1000)
+        results1.buildResult(new BuildDisplayInfo("simple1", "simple 1", ["build"], ["-i"]))
+
+        and:
+        def results2 = crossBuildResults(testId: "test1", testTime: 2000)
+        results2.buildResult(new BuildDisplayInfo("simple2", "simple 2", ["build"], ["-i"]))
+
+        and:
+        def results3 = crossBuildResults(testId: "test1", testTime: 3000)
+        results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"]))
+
+        and:
+        def writeStore = new CrossBuildResultsStore(dbFile)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.report(results1)
+        writeStore.close()
+
+        when:
+        def readStore = new CrossBuildResultsStore(dbFile)
+        def history = readStore.getTestResults("test1")
+
+        then:
+        history.results*.testTime == [3000, 2000, 1000]
+
+        when:
+        history = readStore.getTestResults("test1", 2)
+
+        then:
+        history.results*.testTime == [3000, 2000]
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
     }
 }
