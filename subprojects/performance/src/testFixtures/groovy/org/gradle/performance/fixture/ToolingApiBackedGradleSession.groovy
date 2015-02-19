@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
 class ToolingApiBackedGradleSession implements GradleSession {
 
@@ -39,7 +40,10 @@ class ToolingApiBackedGradleSession implements GradleSession {
     @Override
     void prepare() {
         executerBackedSession.prepare()
-        projectConnection = GradleConnector.newConnector()
+
+        DefaultGradleConnector connector = GradleConnector.newConnector()
+        projectConnection = connector
+                .daemonBaseDir(testDirectoryProvider.testDirectory.file("daemon"))
                 .forProjectDirectory(invocation.workingDirectory)
                 .useInstallation(invocation.gradleDistribution.gradleHomeDir)
                 .connect()
