@@ -78,11 +78,6 @@ public class JvmComponentPlugin extends RuleSource {
         return new DefaultJavaToolChainRegistry(toolChain);
     }
 
-    @Model
-    ToolResolver toolResolver(ServiceRegistry serviceRegistry) {
-        return serviceRegistry.get(ToolResolver.class);
-    }
-
     @Mutate
     public void registerPlatformResolver(PlatformResolvers platformResolvers) {
         platformResolvers.register(new JavaPlatformResolver());
@@ -91,10 +86,11 @@ public class JvmComponentPlugin extends RuleSource {
     @ComponentBinaries
     public void createBinaries(CollectionBuilder<JarBinarySpec> binaries, final JvmLibrarySpec jvmLibrary,
                                PlatformResolvers platforms, BinaryNamingSchemeBuilder namingSchemeBuilder, final JvmComponentExtension jvmComponentExtension,
-                               @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains, ToolResolver toolResolver) {
+                               @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, JavaToolChainRegistry toolChains) {
 
         final File binariesDir = new File(buildDir, "jars");
         final File classesDir = new File(buildDir, "classes");
+        ToolResolver toolResolver = serviceRegistry.get(ToolResolver.class);
 
         List<JavaPlatform> selectedPlatforms = resolvePlatforms(jvmLibrary, platforms);
         for (final JavaPlatform platform : selectedPlatforms) {

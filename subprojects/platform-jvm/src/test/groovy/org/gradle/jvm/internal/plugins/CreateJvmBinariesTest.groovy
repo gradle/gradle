@@ -55,7 +55,9 @@ class CreateJvmBinariesTest extends Specification {
         Instantiator createInstantiator() {
             instantiator
         }
-
+        ToolResolver createToolResolver() {
+            toolResolver
+        }
     }).build()
 
     def "adds a binary for each jvm library"() {
@@ -68,7 +70,7 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.sources.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry, toolResolver)
+        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, jvmExtension, buildDir, serviceRegistry, toolChainRegistry)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
