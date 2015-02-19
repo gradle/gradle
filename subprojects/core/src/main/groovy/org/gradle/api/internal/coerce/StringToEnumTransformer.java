@@ -67,7 +67,7 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
             Method setter = JavaReflectionUtil.findMethod(target.getClass(), new Spec<Method>() {
                 @Override
                 public boolean isSatisfiedBy(Method element) {
-                    return element.getName().equals(setterName) && element.getParameters().length == 1;
+                    return element.getName().equals(setterName) && element.getParameterTypes().length == 1;
                 }
             });
 
