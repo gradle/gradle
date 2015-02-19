@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
@@ -49,124 +50,144 @@ import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.junit.Test;
-import spock.lang.Shared;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
-    @Shared
-    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false));
+
+    private ServiceRegistry registry(boolean longLiving) {
+        return new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(longLiving));
+    }
+
+    private ServiceRegistry longLivingProcessRegistry() {
+        return registry(true);
+    }
+
+    private ServiceRegistry registry() {
+        return registry(false);
+    }
 
     @Test
     public void providesAGradleLauncherFactory() {
-        assertThat(registry.get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
+        assertThat(registry().get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
     }
 
     @Test
     public void providesCommandLineArgsConverter() {
-        assertThat(registry.get(CommandLineConverter.class), instanceOf(
+        assertThat(registry().get(CommandLineConverter.class), instanceOf(
                 DefaultCommandLineConverter.class));
     }
 
     @Test
     public void providesACacheFactory() {
-        assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+        assertThat(registry().get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
     }
 
     @Test
     public void providesAModuleRegistry() {
-        assertThat(registry.get(ModuleRegistry.class), instanceOf(DefaultModuleRegistry.class));
+        assertThat(registry().get(ModuleRegistry.class), instanceOf(DefaultModuleRegistry.class));
     }
 
     @Test
     public void providesAPluginModuleRegistry() {
-        assertThat(registry.get(PluginModuleRegistry.class), instanceOf(DefaultPluginModuleRegistry.class));
+        assertThat(registry().get(PluginModuleRegistry.class), instanceOf(DefaultPluginModuleRegistry.class));
     }
 
     @Test
     public void providesAClassPathRegistry() {
-        assertThat(registry.get(ClassPathRegistry.class), instanceOf(DefaultClassPathRegistry.class));
+        assertThat(registry().get(ClassPathRegistry.class), instanceOf(DefaultClassPathRegistry.class));
     }
 
     @Test
     public void providesAClassLoaderRegistry() {
-        assertThat(registry.get(ClassLoaderRegistry.class), instanceOf(DefaultClassLoaderRegistry.class));
+        assertThat(registry().get(ClassLoaderRegistry.class), instanceOf(DefaultClassLoaderRegistry.class));
     }
 
     @Test
     public void providesALoggingManagerFactory() {
-        assertThat(registry.getFactory(LoggingManagerInternal.class), instanceOf(DefaultLoggingManagerFactory.class));
+        assertThat(registry().getFactory(LoggingManagerInternal.class), instanceOf(DefaultLoggingManagerFactory.class));
     }
     
     @Test
     public void providesAListenerManager() {
-        assertThat(registry.get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
+        assertThat(registry().get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
     }
     
     @Test
     public void providesAProgressLoggerFactory() {
-        assertThat(registry.get(ProgressLoggerFactory.class), instanceOf(DefaultProgressLoggerFactory.class));
+        assertThat(registry().get(ProgressLoggerFactory.class), instanceOf(DefaultProgressLoggerFactory.class));
     }
     
     @Test
     public void providesAGradleDistributionLocator() {
-        assertThat(registry.get(GradleDistributionLocator.class), instanceOf(DefaultModuleRegistry.class));
+        assertThat(registry().get(GradleDistributionLocator.class), instanceOf(DefaultModuleRegistry.class));
     }
     
     @Test
     public void providesAClassLoaderFactory() {
-        assertThat(registry.get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
+        assertThat(registry().get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
     }
 
     @Test
     public void providesAMessagingServer() {
-        assertThat(registry.get(MessagingServer.class), instanceOf(MessagingServer.class));
+        assertThat(registry().get(MessagingServer.class), instanceOf(MessagingServer.class));
     }
 
     @Test
     public void providesAClassGenerator() {
-        assertThat(registry.get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
+        assertThat(registry().get(ClassGenerator.class), instanceOf(AsmBackedClassGenerator.class));
     }
 
     @Test
     public void providesAnInstantiator() {
-        assertThat(registry.get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
+        assertThat(registry().get(org.gradle.internal.reflect.Instantiator.class), instanceOf(ClassGeneratorBackedInstantiator.class));
     }
 
     @Test
     public void providesAnExecutorFactory() {
-        assertThat(registry.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
+        assertThat(registry().get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
     }
 
     @Test
     public void providesAFileLockManager() {
-        assertThat(registry.get(FileLockManager.class), instanceOf(DefaultFileLockManager.class));
+        assertThat(registry().get(FileLockManager.class), instanceOf(DefaultFileLockManager.class));
     }
 
     @Test
     public void providesAProcessEnvironment() {
-        assertThat(registry.get(ProcessEnvironment.class), notNullValue());
+        assertThat(registry().get(ProcessEnvironment.class), notNullValue());
     }
 
     @Test
     public void providesAFileSystem() {
-        assertThat(registry.get(FileSystem.class), notNullValue());
+        assertThat(registry().get(FileSystem.class), notNullValue());
     }
 
     @Test
     public void providesAFileResolver() {
-        assertThat(registry.get(FileResolver.class), instanceOf(IdentityFileResolver.class));
+        assertThat(registry().get(FileResolver.class), instanceOf(IdentityFileResolver.class));
     }
 
     @Test
     public void providesAFileLookup() {
-        assertThat(registry.get(FileLookup.class), instanceOf(DefaultFileLookup.class));
+        assertThat(registry().get(FileLookup.class), instanceOf(DefaultFileLookup.class));
     }
 
     @Test
     public void providesADocumentationRegistry() throws Exception {
-        assertThat(registry.get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
+        assertThat(registry().get(DocumentationRegistry.class), instanceOf(DocumentationRegistry.class));
     }
+
+    @Test
+    public void providesAClasspathSnapshotter() throws Exception {
+        assertThat(registry().get(ClassPathSnapshotter.class), instanceOf(FileClassPathSnapshotter.class));
+        assertThat(longLivingProcessRegistry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
+    }
+    @Test
+    public void providesAClassloaderCache() throws Exception {
+        assertThat(registry().get(ClassLoaderCache.class), instanceOf(DefaultClassLoaderCache.class));
+    }
+
 }

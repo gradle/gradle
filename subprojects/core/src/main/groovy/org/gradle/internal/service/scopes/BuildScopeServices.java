@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -304,11 +303,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(ClassLoaderRegistry classLoaderRegistry, ClassLoaderCache classLoaderCache) {
         return new DefaultClassLoaderScopeRegistry(classLoaderRegistry, classLoaderCache);
-    }
-
-    protected ClassLoaderCache createClassLoaderCache(ClassLoaderCacheFactory cacheFactory) {
-        //the factory is global and makes decision whether classloader cache is shared between builds in given daemon process
-        return cacheFactory.create();
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

@@ -19,13 +19,15 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.Iterables;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory;
+import org.gradle.api.internal.hash.DefaultHasher;
+import org.gradle.api.internal.initialization.loadercache.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.*;
@@ -61,6 +63,7 @@ import org.gradle.model.persist.AlwaysNewModelRegistryStore;
 import org.gradle.model.persist.ModelRegistryStore;
 import org.gradle.model.persist.ReusingModelRegistryStore;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -185,14 +188,23 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem);
     }
 
-    ClassLoaderCacheFactory createClassLoaderCacheFactory(GradleBuildEnvironment environment) {
-        return new ClassLoaderCacheFactory(environment);
-    }
-
     ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, ModelCreatorFactory modelCreatorFactory) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore, modelCreatorFactory);
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
+    }
+
+    ClassPathSnapshotter createClassPathSnapshotter(GradleBuildEnvironment environment) {
+        if (environment.isLongLivingProcess()) {
+            CachingFileSnapshotter fileSnapshotter = new CachingFileSnapshotter(new DefaultHasher(), new InMemoryNonExclusiveStore());
+            return new HashClassPathSnapshotter(fileSnapshotter);
+        } else {
+            return new FileClassPathSnapshotter();
+        }
+    }
+
+    ClassLoaderCache createClassLoaderCache(ClassPathSnapshotter classPathSnapshotter) {
+        return new DefaultClassLoaderCache(new HashMap<DefaultClassLoaderCache.Key, ClassLoader>(), classPathSnapshotter);
     }
 
     private DefaultModelCreatorFactory createModelCreatorFactory(ModelSchemaStore modelSchemaStore) {

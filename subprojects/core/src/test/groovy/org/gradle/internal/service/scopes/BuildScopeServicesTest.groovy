@@ -24,7 +24,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheFactory
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.*
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
@@ -86,8 +86,8 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(FileLookup) >> Stub(FileLookup)
         parent.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
         parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
-        parent.get(ClassLoaderCacheFactory) >> Stub(ClassLoaderCacheFactory)
         parent.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
+        parent.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
     }
 
     def delegatesToParentForUnknownService() {
