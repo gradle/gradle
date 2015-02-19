@@ -60,6 +60,11 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
             }
         }
         runner.baseline {
+            projectName("${size}OldJava").displayName("old plugin (tooling api)").invocation {
+                tasksToRun(*tasks).useToolingApi()
+            }
+        }
+        runner.baseline {
             projectName("${size}OldJava").displayName("old plugin (no client logging)").invocation {
                 tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
