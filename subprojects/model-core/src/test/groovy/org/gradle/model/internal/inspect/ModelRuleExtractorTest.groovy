@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect
 
 import org.codehaus.groovy.reflection.ClassInfo
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.*
 import org.gradle.model.collection.CollectionBuilder
 import org.gradle.model.internal.core.ExtractedModelRule
@@ -39,7 +38,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance, new DirectInstantiator())))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance)))
 
     static class ModelThing {
         final String name

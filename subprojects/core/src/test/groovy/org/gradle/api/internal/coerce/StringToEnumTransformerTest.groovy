@@ -21,9 +21,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @SuppressWarnings("GroovyUnusedDeclaration")
-class TypeCoercingMethodArgumentsTransformerTest extends Specification {
+class StringToEnumTransformerTest extends Specification {
 
-    def transformer = new TypeCoercingMethodArgumentsTransformer()
+    def transformer = new StringToEnumTransformer()
 
     static enum TestEnum {
         ABC, DEF

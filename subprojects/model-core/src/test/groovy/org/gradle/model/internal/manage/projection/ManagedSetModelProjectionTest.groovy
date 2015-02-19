@@ -16,11 +16,8 @@
 
 package org.gradle.model.internal.manage.projection
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Managed
 import org.gradle.model.ModelViewClosedException
 import org.gradle.model.collection.ManagedSet
@@ -50,7 +47,7 @@ class ManagedSetModelProjectionTest extends Specification {
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ManagedSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
-    def factory = new DefaultModelCreatorFactory(schemaStore, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()))
+    def factory = new DefaultModelCreatorFactory(schemaStore)
     def registry = new ModelRegistryHelper()
     private ModelReference<ManagedSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ManagedSet<NamedThing>>() {})
 

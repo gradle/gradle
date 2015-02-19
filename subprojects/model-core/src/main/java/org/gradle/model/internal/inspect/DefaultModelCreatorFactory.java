@@ -35,11 +35,9 @@ import java.util.List;
 public class DefaultModelCreatorFactory implements ModelCreatorFactory {
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
-    private final Instantiator instantiator;
 
-    public DefaultModelCreatorFactory(ModelSchemaStore schemaStore, Instantiator instantiator) {
+    public DefaultModelCreatorFactory(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.instantiator = instantiator;
         this.proxyFactory = new ManagedProxyFactory();
     }
 
@@ -69,7 +67,7 @@ public class DefaultModelCreatorFactory implements ModelCreatorFactory {
             ModelCollectionSchema<T> collectionSchema = (ModelCollectionSchema<T>) schema;
             ModelSchema<?> elementSchema = schemaStore.getSchema(collectionSchema.getElementType());
             return ModelCreators.of(modelReference, new ManagedSetInitializer<T>(initializer))
-                    .withProjection(ManagedSetModelProjection.of(elementSchema, this, instantiator))
+                    .withProjection(ManagedSetModelProjection.of(elementSchema, this))
                     .descriptor(descriptor)
                     .build();
         }

@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.projection;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.WriteOnlyModelViewException;
@@ -39,17 +38,15 @@ import java.util.Set;
 public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjectionSupport<ManagedSet<I>> {
     private final ModelCreatorFactory modelCreatorFactory;
     private final ModelSchema<I> elementSchema;
-    private final Instantiator instantiator;
 
-    private ManagedSetModelProjection(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory, Instantiator instantiator) {
+    private ManagedSetModelProjection(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
         super(typeOf(elementSchema.getType()), true, true);
         this.elementSchema = elementSchema;
-        this.instantiator = instantiator;
         this.modelCreatorFactory = modelCreatorFactory;
     }
 
-    public static <I> ManagedSetModelProjection<I> of(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory, Instantiator instantiator) {
-        return new ManagedSetModelProjection<I>(elementSchema, modelCreatorFactory, instantiator);
+    public static <I> ManagedSetModelProjection<I> of(ModelSchema<I> elementSchema, ModelCreatorFactory modelCreatorFactory) {
+        return new ManagedSetModelProjection<I>(elementSchema, modelCreatorFactory);
     }
 
     public static <I> ModelType<ManagedSet<I>> typeOf(ModelType<I> elementType) {
@@ -60,7 +57,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
 
     @Override
     protected ModelView<ManagedSet<I>> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
-        return new ManagedSetModelView<I>(getType(), elementSchema, modelNode, writable, ruleDescriptor, modelCreatorFactory, instantiator);
+        return new ManagedSetModelView<I>(getType(), elementSchema, modelNode, writable, ruleDescriptor, modelCreatorFactory);
     }
 
     private static class ManagedSetModelView<I> implements ModelView<ManagedSet<I>> {
@@ -70,19 +67,17 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
         private final boolean writable;
         private final ModelRuleDescriptor ruleDescriptor;
         private final ModelCreatorFactory modelCreatorFactory;
-        private final Instantiator instantiator;
         private boolean closed;
         private Set<I> elementViews;
         private final ModelReference<I> elementReference;
 
-        public ManagedSetModelView(ModelType<ManagedSet<I>> type, ModelSchema<I> elementSchema, MutableModelNode modelNode, boolean writable, ModelRuleDescriptor ruleDescriptor, ModelCreatorFactory modelCreatorFactory, Instantiator instantiator) {
+        public ManagedSetModelView(ModelType<ManagedSet<I>> type, ModelSchema<I> elementSchema, MutableModelNode modelNode, boolean writable, ModelRuleDescriptor ruleDescriptor, ModelCreatorFactory modelCreatorFactory) {
             this.type = type;
             this.elementSchema = elementSchema;
             this.modelNode = modelNode;
             this.writable = writable;
             this.ruleDescriptor = ruleDescriptor;
             this.modelCreatorFactory = modelCreatorFactory;
-            this.instantiator = instantiator;
             this.elementReference = ModelReference.of(elementSchema.getType());
         }
 
@@ -98,7 +93,7 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
 
         @Override
         public ManagedSet<I> getInstance() {
-            return Cast.uncheckedCast(instantiator.newInstance(ModelNodeBackedManagedSet.class, this));
+            return new ModelNodeBackedManagedSet();
         }
 
         @Override
@@ -233,8 +228,17 @@ public class ManagedSetModelProjection<I> extends TypeCompatibilityModelProjecti
 
             // TODO - mix this in using decoration. Also validate closure parameter types, if declared
             public void create(Closure<?> closure) {
-                create(new ClosureBackedAction<I>(closure));
+                create(ClosureBackedAction.of(closure));
             }
+
+            public void afterEach(Closure<?> closure) {
+                afterEach(ClosureBackedAction.of(closure));
+            }
+
+            public void beforeEach(Closure<?> closure) {
+                beforeEach(ClosureBackedAction.of(closure));
+            }
+
         }
     }
 

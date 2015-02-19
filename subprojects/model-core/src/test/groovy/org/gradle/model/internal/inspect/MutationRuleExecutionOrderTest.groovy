@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.Path
@@ -27,7 +26,7 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
 class MutationRuleExecutionOrderTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance, new DirectInstantiator())))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultModelCreatorFactory(DefaultModelSchemaStore.instance)))
     def modelRegistry = new ModelRegistryHelper(new DefaultModelRegistry(extractor))
 
     static class MutationRecorder {
