@@ -97,6 +97,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
 
+    // toString() of AbstractTask is called a lot, so precompute.
+    private final String toStringValue;
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -130,6 +133,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
+        toStringValue = "task '".concat(path).concat("'");
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
@@ -362,7 +366,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public String toString() {
-        return String.format("task '%s'", path);
+        return toStringValue;
     }
 
     public Logger getLogger() {
@@ -517,7 +521,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private ContextAwareTaskAction wrap(final Action<? super Task> action) {
         if (action instanceof ContextAwareTaskAction) {
-            return (ContextAwareTaskAction)action;
+            return (ContextAwareTaskAction) action;
         }
         return new TaskActionWrapper(action);
     }
@@ -719,7 +723,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         @Override
         public boolean remove(Object action) {
-            return super.remove(wrap((Action<? super Task>)action));
+            return super.remove(wrap((Action<? super Task>) action));
         }
 
         private Collection<ContextAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
