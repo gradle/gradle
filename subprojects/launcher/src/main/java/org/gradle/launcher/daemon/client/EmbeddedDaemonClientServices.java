@@ -82,7 +82,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices) {
         super(ServiceRegistryBuilder.builder().parent(loggingServices).parent(NativeServices.getInstance()).build(), System.in);
-        addProvider(new GlobalScopeServices(false));
+        addProvider(new GlobalScopeServices(true));
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
 

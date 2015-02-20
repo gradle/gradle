@@ -40,7 +40,7 @@ public class ConnectionScopeServices {
 
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(LoggingServiceRegistry.class, loggingServices);
-        serviceRegistration.addProvider(new GlobalScopeServices(false));
+        serviceRegistration.addProvider(new GlobalScopeServices(true));
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
