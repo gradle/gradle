@@ -65,7 +65,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
-    private final Queue<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
+    private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -450,6 +450,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public TaskInfo getTaskToExecute() {
         lock.lock();
+        int indexOfTaskToExecute = 0;
         try {
             while (true) {
                 if (cancellationToken.isCancellationRequested()) {
@@ -465,6 +466,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         nextMatching = taskInfo;
                         break;
                     }
+                    ++indexOfTaskToExecute;
                 }
                 if (allTasksComplete) {
                     return null;
@@ -476,7 +478,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    executionQueue.remove(nextMatching);
+                    executionQueue.remove(indexOfTaskToExecute);
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
                         recordTaskStarted(nextMatching);
