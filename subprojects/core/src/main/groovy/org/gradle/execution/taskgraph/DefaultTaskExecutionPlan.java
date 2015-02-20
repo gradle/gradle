@@ -450,7 +450,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public TaskInfo getTaskToExecute() {
         lock.lock();
-        int indexOfTaskToExecute = 0;
         try {
             while (true) {
                 if (cancellationToken.isCancellationRequested()) {
@@ -460,13 +459,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
-                for (TaskInfo taskInfo : executionQueue) {
+                Iterator<TaskInfo> iterator = executionQueue.iterator();
+                while (iterator.hasNext()) {
+                    TaskInfo taskInfo = iterator.next();
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
                     if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                         nextMatching = taskInfo;
+                        iterator.remove();
                         break;
                     }
-                    ++indexOfTaskToExecute;
                 }
                 if (allTasksComplete) {
                     return null;
@@ -478,7 +479,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    executionQueue.remove(indexOfTaskToExecute);
                     if (nextMatching.allDependenciesSuccessful()) {
                         nextMatching.startExecution();
                         recordTaskStarted(nextMatching);
