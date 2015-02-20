@@ -25,9 +25,11 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
+import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=2.1")
+@Ignore
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
 
     Integer counter = 1
