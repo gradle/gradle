@@ -319,7 +319,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 assert branch11 == 'master'
             }
 
-            // extra line to change file length
+            def var = "here to change length of the bytecode"
         """
 
         and:
