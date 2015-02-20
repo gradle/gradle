@@ -41,6 +41,19 @@ Faster compilation times.
 
 ## Story: Add performance tests for native languages
 
+- Project types
+  - small (20 sources, 1 function per source)
+  - medium (100 sources, 20 function per source)
+  - large (500 sources, 50 functions per source)
+  - multi (10 projects, 10 modules each, 20 sources each, 20 functions per source)
+
+- Experiments
+  - Parallel vs serial for small, medium, large, multi
+  - comparison to make?
+
+- Performance Tests
+  - 2.3 vs current for small, medium, large, multi
+
 ## Story: Report build operation failures
 
 Show build operation that fails 

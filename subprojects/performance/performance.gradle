@@ -242,12 +242,56 @@ task bigEmpty(type: ProjectGeneratorTask) {
     subProjectTemplates = ['empty']
 }
 
+task smallNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 20
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
+task mediumNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 100
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 20
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
+task bigNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 500
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 50
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
+task multiNative(type: ProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 20
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 10,
+            functionCount: 20
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
-                                variantsNewModelMultiproject, variantsOldModelMultiproject])
+                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")

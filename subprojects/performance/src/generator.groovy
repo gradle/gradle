@@ -40,6 +40,7 @@ class ProjectGeneratorTask extends DefaultTask {
     File destDir
     boolean groovyProject
     boolean scalaProject
+    boolean nativeProject
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
@@ -217,6 +218,14 @@ class ProjectGeneratorTask extends DefaultTask {
                     String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                     Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}", testClassName: "TestScala${it + 1}"]
                     generate("src/test/scala/${packageName.replace('.', '/')}/${classArgs.testClassName}.scala", 'Test.scala', classArgs)
+                }
+            }
+            if (nativeProject) {
+                testProject.sourceFiles.times { s ->
+                    args.moduleCount.times { m ->
+                        Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]
+                        generate("src/${classArgs.componentName}/c/${classArgs.functionName}.c", 'lib.c', classArgs)
+                    }
                 }
             }
         }
