@@ -30,38 +30,6 @@ import spock.lang.Specification
 class S3ClientTest extends Specification {
     final S3ConnectionProperties s3SystemProperties = Mock()
 
-    def "should resolve bucket name from uri"() {
-        given:
-        URI uri = new URI(uriStr)
-        def client = new S3Client(Mock(AmazonS3Client), s3SystemProperties)
-
-        expect:
-        client.getBucketName(uri) == expected
-
-        where:
-        uriStr                                              || expected
-        "s3://localhost"                                    || "localhost"
-        "s3://localhost.com/somePath/somePath/filename.txt" || "localhost.com"
-        "s3://myaws.com.au"                                 || "myaws.com.au"
-        "http://myaws.com.au"                               || "myaws.com.au"
-        "https://myaws.com.au"                              || "myaws.com.au"
-    }
-
-    def "should resolve s3 bucket key from uri"() {
-        given:
-        URI uri = new URI(uriStr)
-        def client = new S3Client(Mock(AmazonS3Client), s3SystemProperties)
-
-        expect:
-        client.getS3BucketKey(uri) == expected
-
-        where:
-        uriStr                                     || expected
-        's3://localhost/maven/release/myFile.txt'  || 'maven/release/myFile.txt'
-        's3://localhost/maven/snapshot/myFile.txt' || 'maven/snapshot/myFile.txt'
-        's3://localhost/maven/'                    || 'maven/'
-    }
-
     def "Should upload to s3"() {
         given:
         AmazonS3Client amazonS3Client = Mock()

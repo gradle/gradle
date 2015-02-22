@@ -57,7 +57,6 @@ public class S3Client {
     }
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
-
         AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
         S3ClientOptions clientOptions = new S3ClientOptions();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
@@ -91,8 +90,10 @@ public class S3Client {
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
         try {
-            String bucketName = getBucketName(destination);
-            String s3BucketKey = getS3BucketKey(destination);
+            S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
+            String bucketName = s3RegionalResource.getBucketName();
+            String s3BucketKey = s3RegionalResource.getKey();
+            configureClient(s3RegionalResource);
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(contentLength);
@@ -117,18 +118,17 @@ public class S3Client {
         return doGetS3Object(uri, false);
     }
 
-    private String getS3BucketKey(URI destination) {
-        String path = destination.getPath();
-        return path.startsWith("/") ? path.substring(1) : path;
-    }
-
     public List<String> list(URI parent) {
         List<String> results = new ArrayList<String>();
-        String bucketName = getBucketName(parent);
-        String s3Key = getS3BucketKey(parent);
+
+        S3RegionalResource s3RegionalResource = new S3RegionalResource(parent);
+        String bucketName = s3RegionalResource.getBucketName();
+        String s3BucketKey = s3RegionalResource.getKey();
+        configureClient(s3RegionalResource);
+
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
                 .withBucketName(bucketName)
-                .withPrefix(s3Key)
+                .withPrefix(s3BucketKey)
                 .withMaxKeys(1000)
                 .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
@@ -139,10 +139,6 @@ public class S3Client {
             results.addAll(resolveResourceNames(objectListing));
         }
         return results;
-    }
-
-    private String getBucketName(URI uri) {
-        return uri.getHost();
     }
 
     private List<String> resolveResourceNames(ObjectListing objectListing) {
@@ -170,9 +166,12 @@ public class S3Client {
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {
-        String bucketName = getBucketName(uri);
-        String s3Key = getS3BucketKey(uri);
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, s3Key);
+        S3RegionalResource s3RegionalResource = new S3RegionalResource(uri);
+        String bucketName = s3RegionalResource.getBucketName();
+        String s3BucketKey = s3RegionalResource.getKey();
+        configureClient(s3RegionalResource);
+
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, s3BucketKey);
         if (isLightWeight) {
             //Skip content download
             getObjectRequest.setRange(0, 0);
@@ -186,6 +185,14 @@ public class S3Client {
                 return null;
             }
             throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
+        }
+    }
+
+    private void configureClient(S3RegionalResource s3RegionalResource) {
+        if (!s3ConnectionProperties.getEndpoint().isPresent()) {
+            amazonS3Client.setRegion(s3RegionalResource.getRegion());
+        } else {
+            amazonS3Client.setEndpoint(s3ConnectionProperties.getEndpoint().get().toString());
         }
     }
 }

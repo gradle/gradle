@@ -16,12 +16,13 @@
 
 package org.gradle.integtests.resolve.resource.s3
 
-import com.amazonaws.services.s3.model.S3Object
+import com.amazonaws.services.s3.model.*
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
+import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.s3.S3StubServer
 import org.gradle.test.fixtures.server.s3.S3StubSupport
@@ -133,5 +134,58 @@ class S3ClientIntegrationTest extends Specification {
         def uri = new URI("s3://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
         s3Client.put(stream, file.length(), uri)
         s3Client.getResource(new URI("s3://${bucketName}/maven/release/idontExist.txt"))
+    }
+
+    @Ignore
+    def "should use region specific endpoints to interact with buckets in all regions"() {
+        setup:
+        String bucketPrefix = 'testv4signatures'
+        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
+        credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
+
+        S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
+
+        def fileContents = 'This is only a test'
+        File file = temporaryFolder.createFile(FILE_NAME)
+        file << fileContents
+
+        expect:
+        (Region.values() - [Region.US_GovCloud, Region.CN_Beijing]).each { Region region ->
+            String bucketName = "${bucketPrefix}-${region ?: region.name}"
+
+            String key = "/maven/release/test.txt"
+            String regionForUrl = region == Region.US_Standard ? "s3.amazonaws.com" : "s3-${region.getFirstRegionId()}.amazonaws.com"
+            def uri = new URI("s3://${bucketName}.${regionForUrl}${key}")
+
+            S3RegionalResource s3RegionalResource = new S3RegionalResource(uri)
+            s3Client.amazonS3Client.setRegion(s3RegionalResource.region)
+
+
+            println "Regional uri: ${uri}"
+            println("Creating bucket: ${bucketName}")
+            CreateBucketRequest createBucketRequest = new CreateBucketRequest(bucketName, region)
+            s3Client.amazonS3Client.createBucket(createBucketRequest)
+
+            println "-- uploading"
+            s3Client.put(new FileInputStream(file), file.length(), uri)
+
+            println "------Getting object"
+            s3Client.getResource(uri)
+
+            ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                    .withBucketName(bucketName)
+
+            ObjectListing objects = s3Client.amazonS3Client.listObjects(listObjectsRequest)
+            objects.objectSummaries.each { S3ObjectSummary summary ->
+                println "-- Deleting object ${summary.getKey()}"
+                DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, summary.getKey())
+                s3Client.amazonS3Client.deleteObject(deleteObjectRequest)
+            }
+
+            println("Deleting bucket: ${bucketName}")
+            DeleteBucketRequest deleteBucketRequest = new DeleteBucketRequest(bucketName)
+            s3Client.amazonS3Client.deleteBucket(deleteBucketRequest)
+        }
     }
 }

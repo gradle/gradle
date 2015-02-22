@@ -735,29 +735,104 @@
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
             </sample>
 
-            <para>
-                The following system properties can be used to configure the interactions with s3 repositories
-            </para>
+            <section id='sub:s3_configuration properties'>
+                <title>S3 configuration properties</title>
+                <para>
+                    The following system properties can be used to configure the interactions with s3 repositories:
+                </para>
+                <table>
+                    <title>S3 Configuration Properties</title>
+                    <thead>
+                        <tr>
+                            <td>Property</td>
+                            <td>Description</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>org.gradle.s3.endpoint</td>
+                            <td>Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.</td>
+                        </tr>
+                        <tr>
+                            <td>org.gradle.s3.maxErrorRetry</td>
+                            <td>Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code. When not specified a default value of 3
+                                is used.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
 
-            <table>
-                <title>S3 Configuration Properties</title>
-                <thead>
-                    <tr>
-                        <td>Property</td>
-                        <td>Description</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>org.gradle.s3.endpoint</td>
-                        <td>Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.</td>
-                    </tr>
-                    <tr>
-                        <td>org.gradle.s3.maxErrorRetry</td>
-                        <td>Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code.</td>
-                    </tr>
-                </tbody>
-            </table>
+            <section id='sub:s3_url_formats'>
+                <title>S3 URL formats</title>
+                <para>S3 URL's are 'virtual-hosted-style' and must be in the following format
+                    <literal>s3://&lt;bucketName>[.&lt;regionSpecificEndpoint>]/&lt;s3Key></literal>
+                </para>
+                <para>e.g.
+                    <literal>s3://myBucket.s3.eu-central-1.amazonaws.com/maven/release</literal>
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <literal>myBucket</literal>
+                        is the AWS S3 bucket name.
+                    </listitem>
+                    <listitem>
+                        <literal>s3.eu-central-1.amazonaws.com</literal>
+                        is the <emphasis>optional</emphasis> <ulink url='http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region'> region specific endpoint</ulink>.
+                    </listitem>
+                    <listitem>
+                        <literal>/maven/release</literal>
+                        is the AWS S3 key (unique identifier for an object within a bucket)
+                    </listitem>
+                </itemizedlist>
+            </section>
+
+            <section id='sub:s3_proxy_settings'>
+                <title>S3 proxy settings</title>
+                <para>A proxy for S3 can be configured using the following system properties:</para>
+                <itemizedlist>
+                    <listitem><literal>https.proxyHost</literal></listitem>
+                    <listitem><literal>https.proxyPort</literal></listitem>
+                    <listitem><literal>https.proxyUser</literal></listitem>
+                    <listitem><literal>https.proxyPassword</literal></listitem>
+                    <listitem><literal>https.nonProxyHosts</literal></listitem>
+                </itemizedlist>
+
+
+                <para>If the 'org.gradle.s3.endpoint' property has been specified with a http (not https) URI the following system proxy settings can be used:</para>
+                <itemizedlist>
+                    <listitem><literal>http.proxyHost</literal></listitem>
+                    <listitem><literal>http.proxyPort</literal></listitem>
+                    <listitem><literal>http.proxyUser</literal></listitem>
+                    <listitem><literal>http.proxyPassword</literal></listitem>
+                    <listitem><literal>http.nonProxyHosts</literal></listitem>
+                </itemizedlist>
+            </section>
+
+            <section id="s3_v4_signatures">
+                <title>AWS S3 V4 Signatures (AWS4-HMAC-SHA256)</title>
+                <para>
+                    Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's
+                    <ulink url="http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html">signature version 4</ulink>. It is recommended to specify
+                    S3 URL's containing the region specific endpoint when using buckets that require V4 signatures.
+                    e.g. <literal>s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release</literal>
+                </para>
+                <note><emphasis>NOTE:</emphasis> When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
+                    following warning will appear on the console:
+                    <para>
+                        Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in
+                        regions that require V4 signing.
+                    </para>
+                    <para>
+                        Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
+                    </para>
+                    <itemizedlist>
+                        <listitem><literal>3 round-trips to AWS, as opposed to one, for every file upload and download.</literal></listitem>
+                        <listitem><literal>Depending on location - increased network latencies and slower builds.</literal></listitem>
+                        <listitem><literal>Increased likelihood of transmission failures.</literal></listitem>
+                    </itemizedlist>
+                </note>
+            </section>
         </section>
 
         <section id='sub:maven_central'>
