@@ -82,7 +82,6 @@ class MavenPublishPluginTest extends Specification {
         expect:
         publishLocalTasks.size() == 1
         publishLocalTasks.first().name == "publishTestPublicationToMavenLocal"
-        publishLocalTasks.first().repository == null
     }
 
     def "can explicitly add mavenLocal as a publishing repository"() {
@@ -98,7 +97,6 @@ class MavenPublishPluginTest extends Specification {
         publishTasks.first().repository.is(mavenLocal)
 
         publishLocalTasks.size() == 1
-        publishLocalTasks.first().repository == null
     }
 
     def "tasks are created for compatible publication / repo"() {
