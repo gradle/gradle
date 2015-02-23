@@ -85,4 +85,15 @@ public interface ComponentResolveMetaData {
     String getStatus();
 
     List<String> getStatusScheme();
+
+    public static enum MetaDataOrigin {
+        Ivy, Maven, Gradle
+    }
+
+    /**
+     * Return the origin of the meta-data.
+     *
+     * @return Meta-data origin
+     */
+    MetaDataOrigin getOrigin();
 }

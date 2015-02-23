@@ -283,7 +283,7 @@ public class DependencyGraphBuilder {
 
         public ModuleResolutionFilter getSelector() {
             String[] configurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
-            ModuleResolutionFilter selector = DefaultModuleResolutionFilter.excludeAny(dependencyDescriptor.getExcludeRules(configurations));
+            ModuleResolutionFilter selector = from.moduleResolutionFilterFactory.excludeAny(dependencyDescriptor.getExcludeRules(configurations));
             return selector.intersect(resolutionFilter);
         }
 
@@ -629,6 +629,7 @@ public class DependencyGraphBuilder {
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
         public final ResolvedConfigurationIdentifier id;
+        public final ModuleResolutionFilterFactory moduleResolutionFilterFactory;
 
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
@@ -640,6 +641,7 @@ public class DependencyGraphBuilder {
             this.resolveState = resolveState;
             this.metaData = moduleRevision.metaData.getConfiguration(id.getConfiguration());
             this.id = id;
+            moduleResolutionFilterFactory = new DefaultModuleResolutionFilterFactory(metaData.getComponent().getOrigin());
             moduleRevision.addConfiguration(this);
         }
 
@@ -762,7 +764,7 @@ public class DependencyGraphBuilder {
         private ModuleResolutionFilter getSelector(List<DependencyEdge> transitiveEdges) {
             ModuleResolutionFilter resolutionFilter;
             if (transitiveEdges.isEmpty()) {
-                resolutionFilter = DefaultModuleResolutionFilter.all();
+                resolutionFilter = moduleResolutionFilterFactory.all();
             } else {
                 resolutionFilter = transitiveEdges.get(0).getSelector();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
@@ -770,7 +772,7 @@ public class DependencyGraphBuilder {
                     resolutionFilter = resolutionFilter.union(dependencyEdge.getSelector());
                 }
             }
-            resolutionFilter = resolutionFilter.intersect(DefaultModuleResolutionFilter.excludeAny(metaData.getExcludeRules()));
+            resolutionFilter = resolutionFilter.intersect(moduleResolutionFilterFactory.excludeAny(metaData.getExcludeRules()));
             return resolutionFilter;
         }
 

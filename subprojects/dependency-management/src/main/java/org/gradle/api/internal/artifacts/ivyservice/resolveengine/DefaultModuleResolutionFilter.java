@@ -38,7 +38,7 @@ import java.util.*;
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  */
-public abstract class DefaultModuleResolutionFilter implements ModuleResolutionFilter {
+abstract class DefaultModuleResolutionFilter implements ModuleResolutionFilter {
     private static final AcceptAllSpec ALL_SPEC = new AcceptAllSpec();
     private static final String WILDCARD = "*";
 
