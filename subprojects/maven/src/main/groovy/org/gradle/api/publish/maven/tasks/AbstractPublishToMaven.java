@@ -28,7 +28,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
-public class AbstractPublishToMaven extends DefaultTask {
+abstract public class AbstractPublishToMaven extends DefaultTask {
 
     private MavenPublicationInternal publication;
 
