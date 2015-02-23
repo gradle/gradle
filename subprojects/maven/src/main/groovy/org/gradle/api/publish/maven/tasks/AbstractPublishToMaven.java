@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -28,6 +29,12 @@ import org.gradle.logging.LoggingManagerInternal;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
+/**
+ * Abstract class for publishing a {@link org.gradle.api.publish.maven.MavenPublication}.
+ *
+ * @since 2.4
+ */
+@Incubating
 abstract public class AbstractPublishToMaven extends DefaultTask {
 
     private MavenPublicationInternal publication;
