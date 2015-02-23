@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
-
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.spockframework.util.TextUtil
@@ -59,6 +59,36 @@ uploadArchives {
         then:
         def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
+    }
+
+    def "upload status is logged on on info level"() {
+        given:
+        def resourceFile = file("src/main/resources/testfile.properties")
+        resourceFile << RandomStringUtils.random(5000)
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+group = 'group'
+version = '1.0'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+"""
+        when:
+        executer.withArgument("-i")
+        succeeds 'uploadArchives'
+
+        then:
+        output.contains("Uploading: group/root/1.0/root-1.0.jar to repository remote at ${mavenRepo.uri.toString()[0..-2]}")
+        output.contains("Transferring 12K from remote")
+        output.contains("Uploaded 12K")
     }
 
     @Issue("GRADLE-2456")
