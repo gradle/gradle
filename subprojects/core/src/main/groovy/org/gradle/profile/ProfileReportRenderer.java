@@ -23,6 +23,7 @@ import org.gradle.reporting.TabbedPageRenderer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 public class ProfileReportRenderer {
     private static final DurationFormatter DURATION_FORMAT = new DurationFormatter();
@@ -33,9 +34,16 @@ public class ProfileReportRenderer {
     }
 
     private static class ProfilePageRenderer extends TabbedPageRenderer<BuildProfile> {
+        private static final URL STYLE_URL = ProfilePageRenderer.class.getResource("style.css");
+
         @Override
         protected String getTitle() {
             return "Profile report";
+        }
+
+        @Override
+        protected URL getStyleUrl() {
+            return STYLE_URL;
         }
 
         @Override
