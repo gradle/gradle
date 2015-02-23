@@ -16,26 +16,19 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publish.internal.PublishOperation;
-import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.Factory;
-import org.gradle.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -43,64 +36,9 @@ import java.util.concurrent.Callable;
  * @since 1.4
  */
 @Incubating
-public class PublishToMavenRepository extends DefaultTask {
+public class PublishToMavenRepository extends AbstractPublishToMaven {
 
-    private MavenPublicationInternal publication;
     private MavenArtifactRepository repository;
-
-    public PublishToMavenRepository() {
-        // Allow the publication to participate in incremental build
-        getInputs().files(new Callable<FileCollection>() {
-            public FileCollection call() throws Exception {
-                MavenPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
-            }
-        });
-
-        // Should repositories be able to participate in incremental?
-        // At the least, they may be able to express themselves as output files
-        // They *might* have input files and other dependencies as well though
-        // Inputs: The credentials they need may be expressed in a file
-        // Dependencies: Can't think of a case here
-    }
-
-    /**
-     * The publication to be published.
-     *
-     * @return The publication to be published
-     */
-    public MavenPublication getPublication() {
-        return publication;
-    }
-
-    /**
-     * Sets the publication to be published.
-     *
-     * @param publication The publication to be published
-     */
-    public void setPublication(MavenPublication publication) {
-        this.publication = toPublicationInternal(publication);
-    }
-
-    protected MavenPublicationInternal getPublicationInternal() {
-        return toPublicationInternal(getPublication());
-    }
-
-    private static MavenPublicationInternal toPublicationInternal(MavenPublication publication) {
-        if (publication == null) {
-            return null;
-        } else if (publication instanceof MavenPublicationInternal) {
-            return (MavenPublicationInternal) publication;
-        } else {
-            throw new InvalidUserDataException(
-                    String.format(
-                            "publication objects must implement the '%s' interface, implementation '%s' does not",
-                            MavenPublicationInternal.class.getName(),
-                            publication.getClass().getName()
-                    )
-            );
-        }
-    }
 
     /**
      * The repository to publish to.
@@ -147,15 +85,6 @@ public class PublishToMavenRepository extends DefaultTask {
         }.run();
     }
 
-    @Inject
-    protected Factory<LoggingManagerInternal> getLoggingManagerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected LocalMavenRepositoryLocator getMavenRepositoryLocator() {
-        throw new UnsupportedOperationException();
-    }
 
     @Inject
     protected RepositoryTransportFactory getRepositoryTransportFactory() {
