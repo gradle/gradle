@@ -16,8 +16,6 @@
 
 package org.gradle.process.internal.child;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
@@ -94,20 +92,15 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             for (File file : processBuilder.getApplicationClasspath()) {
                 outstr.writeUTF(file.getAbsolutePath());
             }
+            GUtil.serialize(create(), outstr);
             outstr.close();
-            final InputStream originalStdin = execSpec.getStandardInput();
-            InputStream input = ByteStreams.join(ByteStreams.newInputStreamSupplier(bytes.toByteArray()), new InputSupplier<InputStream>() {
-                public InputStream getInput() throws IOException {
-                    return originalStdin;
-                }
-            }).getInput();
-            execSpec.setStandardInput(input);
+            execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public Callable<?> create() {
+    private Callable<?> create() {
         // Serialize the bootstrap worker, so it can be transported through the system ClassLoader
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
         ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),

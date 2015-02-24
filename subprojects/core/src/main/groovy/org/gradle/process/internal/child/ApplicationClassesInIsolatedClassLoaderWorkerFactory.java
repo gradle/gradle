@@ -22,7 +22,11 @@ import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.launcher.IsolatedGradleWorkerMain;
+import org.gradle.util.GUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
@@ -72,9 +76,14 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     public void prepareJavaCommand(JavaExecSpec execSpec) {
         execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        OutputStream encoded = new EncodedStream.EncodedOutput(bytes);
+        GUtil.serialize(create(), encoded);
+        ByteArrayInputStream stdinContent = new ByteArrayInputStream(bytes.toByteArray());
+        execSpec.setStandardInput(stdinContent);
     }
 
-    public Callable<?> create() {
+    private Callable<?> create() {
         Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
