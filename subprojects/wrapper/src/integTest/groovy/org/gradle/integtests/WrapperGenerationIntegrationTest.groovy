@@ -56,7 +56,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         run "wrapper", "--gradle-version", "2.2.1"
 
         then:
-        file("gradle/wrapper/gradle-wrapper.properties").text.split(TextUtil.unixLineSeparator).contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
     }
 
     def "generated wrapper scripts for given distribution URL from command-line"() {
@@ -64,6 +64,6 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         run "wrapper", "--gradle-distribution-url", "http://localhost:8080/gradlew/dist"
 
         then:
-        file("gradle/wrapper/gradle-wrapper.properties").text.split(TextUtil.unixLineSeparator).contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
     }
 }
