@@ -1,5 +1,9 @@
 ${original}
 
+dependencies {
+    testCompile 'org.testng:testng:6.4'
+}
+
 test {
     useTestNG()
     maxParallelForks = 2
