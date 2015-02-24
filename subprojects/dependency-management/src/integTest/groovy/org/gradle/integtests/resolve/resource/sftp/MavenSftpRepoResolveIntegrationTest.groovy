@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.maven
-
-import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
+package org.gradle.integtests.resolve.resource.sftp
 
 class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResolutionTest {
     void "can resolve dependencies from a SFTP Maven repository"() {
