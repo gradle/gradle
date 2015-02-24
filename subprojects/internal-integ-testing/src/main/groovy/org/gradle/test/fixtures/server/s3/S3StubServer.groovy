@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.stub.HttpStub
 import org.gradle.test.fixtures.server.stub.StubRequest
+import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
 
 import javax.servlet.http.HttpServletRequest
@@ -63,11 +64,14 @@ class S3StubServer extends HttpServer implements RepositoryServer {
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
                     if (expectation.run) {
+                        println("This expectation for the request [${request.method} :${request.pathInfo}] was already handeled - skipping")
                         return
                     }
-                    expectation.run = true
-                    action.handle(request, response)
-                    request.handled = true
+                    if (!((Request) request).isHandled()) {
+                        expectation.run = true
+                        action.handle(request, response)
+                        ((Request) request).setHandled(true)
+                    }
                 }
             }
         })
@@ -91,7 +95,8 @@ class S3StubServer extends HttpServer implements RepositoryServer {
         StubRequest stubRequest = httpStub.request
         String path = stubRequest.path
         assert path.startsWith('/')
-        path == request.pathInfo && stubRequest.method == request.method
+        boolean result = path == request.pathInfo && stubRequest.method == request.method
+        result
     }
 
     @Override

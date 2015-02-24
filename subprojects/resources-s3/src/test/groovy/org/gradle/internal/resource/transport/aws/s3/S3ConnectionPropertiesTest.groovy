@@ -17,8 +17,9 @@
 package org.gradle.internal.resource.transport.aws.s3
 
 import org.gradle.internal.resource.transport.http.HttpProxySettings
-import org.jets3t.service.Constants
 import spock.lang.Specification
+
+import static com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME
 
 class S3ConnectionPropertiesTest extends Specification {
 
@@ -54,10 +55,10 @@ class S3ConnectionPropertiesTest extends Specification {
         HttpProxySettings.HttpProxy secureProxy = Mock()
         HttpProxySettings secureHttpProxySettings = Mock()
 
-        1 * secureHttpProxySettings.getProxy(Constants.S3_DEFAULT_HOSTNAME) >> secureProxy
+        1 * secureHttpProxySettings.getProxy(S3_HOSTNAME) >> secureProxy
 
         when:
-        S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, null)
+        S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, null, null)
 
         then:
         properties.getProxy().get() == secureProxy
@@ -71,7 +72,7 @@ class S3ConnectionPropertiesTest extends Specification {
         1 * httpProxySettings.getProxy(_) >> proxy
 
         when:
-        S3ConnectionProperties properties = new S3ConnectionProperties(httpProxySettings, Mock(HttpProxySettings), new URI(endpoint))
+        S3ConnectionProperties properties = new S3ConnectionProperties(httpProxySettings, Mock(HttpProxySettings), new URI(endpoint), null)
 
         then:
         properties.getProxy().get() == proxy
@@ -85,9 +86,20 @@ class S3ConnectionPropertiesTest extends Specification {
         1 * secureHttpProxySettings.getProxy(_) >> secureProxy
 
         when:
-        S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, new URI(endpoint))
+        S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, new URI(endpoint), null)
 
         then:
         properties.getProxy().get() == secureProxy
+    }
+
+    def "should report invalid maxErrorRetryCount"() {
+        when:
+        s3ConnectionProperties.configureErrorRetryCount(value)
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "System property [org.gradle.s3.maxErrorRetry=$value]  must be a valid positive Integer"
+
+        where:
+        value << ['', 'w', '-1', "${Integer.MAX_VALUE + 1}"]
     }
 }

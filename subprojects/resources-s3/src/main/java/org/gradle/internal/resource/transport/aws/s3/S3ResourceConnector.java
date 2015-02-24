@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
@@ -24,9 +27,6 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.jets3t.service.ServiceException;
-import org.jets3t.service.model.S3Object;
-import org.jets3t.service.model.StorageObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +55,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         LOGGER.debug("Attempting to get resource: {}", location);
         try {
             S3Object s3Object = s3Client.getResource(location);
-            if(s3Object== null) {
+            if (s3Object == null) {
                 return null;
             }
             return new S3Resource(s3Object, location);
@@ -65,14 +65,15 @@ public class S3ResourceConnector implements ExternalResourceConnector {
     }
 
     public HashValue getResourceSha1(URI location) {
+        LOGGER.debug("Attempting to get resource sha1: {}", location);
         try {
             S3Object resource = s3Client.getResource(new URI(location.toString() + ".sha1"));
-            if(resource!= null) {
-                InputStream objectContent = resource.getDataInputStream();
+            if (resource != null) {
+                InputStream objectContent = resource.getObjectContent();
                 String sha = IOUtils.toString(objectContent);
                 return HashValue.parse(sha);
             }
-        } catch (ServiceException e) {
+        } catch (AmazonS3Exception e) {
             LOGGER.error("Could not get contents of resource sha", e);
         } catch (IOException e) {
             LOGGER.error("Could not get contents of resource sha", e);
@@ -85,14 +86,15 @@ public class S3ResourceConnector implements ExternalResourceConnector {
     public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
         try {
-            StorageObject metaData = s3Client.getMetaData(location);
-            if(metaData == null) {
+            S3Object s3Object = s3Client.getMetaData(location);
+            if (s3Object == null) {
                 return null;
             }
+            ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
             return new DefaultExternalResourceMetaData(location,
-                    metaData.getLastModifiedDate().getTime(),
-                    metaData.getContentLength(),
-                    metaData.getETag(),
+                    objectMetadata.getLastModified().getTime(),
+                    objectMetadata.getContentLength(),
+                    objectMetadata.getETag(),
                     null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
 
         } catch (S3Exception s3x) {
