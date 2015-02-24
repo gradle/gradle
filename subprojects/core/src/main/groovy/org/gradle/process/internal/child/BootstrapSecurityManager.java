@@ -56,6 +56,7 @@ public class BootstrapSecurityManager extends SecurityManager {
         System.setSecurityManager(null);
 
         URLClassLoader systemClassLoader = target != null ? target : (URLClassLoader) getClass().getClassLoader();
+        String securityManagerType;
         try {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
@@ -73,19 +74,19 @@ public class BootstrapSecurityManager extends SecurityManager {
                 classpathStr.append(file.toString());
             }
             System.setProperty("java.class.path", classpathStr.toString());
+            securityManagerType = inputStream.readUTF();
         } catch (Exception e) {
             throw new RuntimeException("Could not initialise system classpath.", e);
         }
 
-        String secManagerType = System.getProperty("org.gradle.security.manager");
-        if (secManagerType != null) {
-            System.setProperty("java.security.manager", secManagerType);
+        if (securityManagerType.length() > 0) {
+            System.setProperty("java.security.manager", securityManagerType);
             SecurityManager securityManager;
             try {
-                Class<?> aClass = systemClassLoader.loadClass(secManagerType);
+                Class<?> aClass = systemClassLoader.loadClass(securityManagerType);
                 securityManager = (SecurityManager) aClass.newInstance();
             } catch (Exception e) {
-                throw new RuntimeException("Could not create an instance of '" + secManagerType + "' specified for system SecurityManager.", e);
+                throw new RuntimeException("Could not create an instance of '" + securityManagerType + "' specified for system SecurityManager.", e);
             }
             System.setSecurityManager(securityManager);
         }

@@ -64,11 +64,10 @@ class BootstrapSecurityManagerTest extends Specification {
     }
 
     def "installs custom SecurityManager"() {
-        System.setProperty("org.gradle.security.manager", TestSecurityManager.class.name)
         URLClassLoader cl = new URLClassLoader([] as URL[], getClass().classLoader)
 
         given:
-        System.in = createStdInContent()
+        System.in = createStdInContent(TestSecurityManager.class)
 
         when:
         def securityManager = new BootstrapSecurityManager(cl)
@@ -78,11 +77,12 @@ class BootstrapSecurityManagerTest extends Specification {
         System.securityManager instanceof TestSecurityManager
     }
 
-    def createStdInContent(File... classpath) {
+    def createStdInContent(Class securityManager = null, File... classpath) {
         def out = new ByteArrayOutputStream()
         def dataOut = new DataOutputStream(new EncodedStream.EncodedOutput(out))
         dataOut.writeInt(classpath.length)
         classpath.each { dataOut.writeUTF(it.absolutePath) }
+        dataOut.writeUTF(securityManager ? securityManager.name : "")
         return new ByteArrayInputStream(out.toByteArray())
     }
 

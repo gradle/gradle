@@ -76,9 +76,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
-        if (requestedSecurityManager != null) {
-            execSpec.systemProperty("org.gradle.security.manager", requestedSecurityManager);
-        }
         execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
         Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
         ActionExecutionWorker worker = create();
@@ -96,6 +93,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             for (File file : applicationClasspath) {
                 outstr.writeUTF(file.getAbsolutePath());
             }
+            outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
 
             // Serialize the infrastructure classpath, this is consumed by GradleWorkerMain
             outstr.writeInt(workerClassPath.size());
