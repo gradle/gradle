@@ -101,6 +101,6 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
         return new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
-                processBuilder.getSharedPackages(), implementationClassPath, injectedWorker);
+                processBuilder.getSharedPackages(), implementationClassPath, GUtil.serialize(injectedWorker));
     }
 }

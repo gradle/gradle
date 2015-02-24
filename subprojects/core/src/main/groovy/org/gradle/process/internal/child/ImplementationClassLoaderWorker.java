@@ -26,7 +26,6 @@ import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.util.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
@@ -35,7 +34,7 @@ import java.net.URL;
 import java.util.Collection;
 
 /**
- * <p>A stage of the worker process start-up. Instantiated in the worker bootstrap ClassLoader and takes care of
+ * <p>A stage of the worker process start-up. Instantiated in the infrastructure ClassLoader and takes care of
  * creating the implementation ClassLoader and executing the next stage of start-up in that ClassLoader. </p>
  */
 public class ImplementationClassLoaderWorker implements Action<WorkerContext>, Serializable {
@@ -46,11 +45,11 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
 
     protected ImplementationClassLoaderWorker(LogLevel logLevel, Collection<String> sharedPackages,
                                               Collection<URL> implementationClassPath,
-                                              Action<WorkerContext> workerAction) {
+                                              byte[] serializedWorkerAction) {
         this.logLevel = logLevel;
         this.sharedPackages = sharedPackages;
         this.implementationClassPath = implementationClassPath;
-        serializedWorkerAction = GUtil.serialize(workerAction);
+        this.serializedWorkerAction = serializedWorkerAction;
     }
 
     public void execute(WorkerContext workerContext) {

@@ -18,6 +18,7 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -28,6 +29,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -38,7 +40,7 @@ import java.util.List;
  *                                 |
  *                +----------------+--------------+
  *                |                               |
- *            jvm system                      worker bootstrap
+ *            jvm system                     infrastructure
  *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
  *                |                   (ImplementationClassLoaderWorker)
  *                |                               |
@@ -79,8 +81,12 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         }
         execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
         Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
-        ImplementationClassLoaderWorker worker = create();
+        ActionExecutionWorker worker = create();
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
+        LogLevel logLevel = processBuilder.getLogLevel();
+        Set<String> sharedPackages = processBuilder.getSharedPackages();
+
+        // Serialize configuration for the worker process to it stdin
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try {
@@ -90,15 +96,31 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
             for (File file : applicationClasspath) {
                 outstr.writeUTF(file.getAbsolutePath());
             }
-            // Serialize the worker process classpath, this is consumed by GradleWorkerMain
+
+            // Serialize the infrastructure classpath, this is consumed by GradleWorkerMain
             outstr.writeInt(workerClassPath.size());
             for (URL entry : workerClassPath) {
                 outstr.writeUTF(entry.toString());
             }
+
+            // Serialize the worker configuration, this is consumed by GradleWorkerMain
+            outstr.writeInt(logLevel.ordinal());
+            outstr.writeInt(sharedPackages.size());
+            for (String str : sharedPackages) {
+                outstr.writeUTF(str);
+            }
+
+            // Serialize the worker implementation classpath, this is consumed by GradleWorkerMain
+            outstr.writeInt(implementationClassPath.size());
+            for (URL entry : implementationClassPath) {
+                outstr.writeUTF(entry.toString());
+            }
+
             // Serialize the worker, this is consumed by GradleWorkerMain
             byte[] serializedWorker = GUtil.serialize(worker);
             outstr.writeInt(serializedWorker.length);
             outstr.write(serializedWorker);
+
             outstr.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -106,10 +128,8 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
     }
 
-    private ImplementationClassLoaderWorker create() {
-        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
-        return new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
-                implementationClassPath, injectedWorker);
+    private ActionExecutionWorker create() {
+        return new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
     }
 
 }
