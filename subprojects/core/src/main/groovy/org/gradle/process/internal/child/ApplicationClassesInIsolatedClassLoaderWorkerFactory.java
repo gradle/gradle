@@ -21,7 +21,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
+import org.gradle.process.internal.launcher.IsolatedGradleWorkerMain;
 
 import java.net.URI;
 import java.net.URL;
@@ -70,7 +70,7 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     }
 
     public void prepareJavaCommand(JavaExecSpec execSpec) {
-        execSpec.setMain(GradleWorkerMain.class.getName());
+        execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
     }
 

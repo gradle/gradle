@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
 /**
- * The main entry point for a worker process, using system ClassLoader strategy. Reads a serialized Callable from stdin, and executes it.
+ * The main entry point for a worker process, using isolated ClassLoader strategy. Reads a serialized Callable from stdin, and executes it.
  */
-public class GradleWorkerMain {
+public class IsolatedGradleWorkerMain {
     public void run() throws Exception {
         // Read the main action from stdin and execute it
         ObjectInputStream instr = new ObjectInputStream(new EncodedStream.EncodedInput(System.in));
@@ -34,7 +34,7 @@ public class GradleWorkerMain {
 
     public static void main(String[] args) {
         try {
-            new GradleWorkerMain().run();
+            new IsolatedGradleWorkerMain().run();
             System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace(System.err);
