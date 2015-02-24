@@ -149,20 +149,16 @@ Note that `ModuleComponentSelector` has a `module` property to return the module
 ### Generate wrapper with specific version from command-line
 
 Previously to generate a Gradle wrapper with a specific version, or a custom distribution URL,
-you had to add a task in `build.gradle`:
+you had to change the `build.gradle` file to contain a wrapper task with a configured `gradleVersion` property.
 
-    task wrapper (type: Wrapper) {
-        gradleVersion = "2.3"
-    }
-
-Now you can specify the version or the distribution URL from the command-line, without having
-to add the task in `build.gradle`:
+Now the target gradle version or the distribution URL can be configured from the command-line, without having
+to add or modfify the task in `build.gradle`:
 
     gradle wrapper --gradle-version 2.3
 
 And with a distribution URL:
 
-    gradle wrapper --gradle-distribution-url https://services.gradle.org/distributions/gradle-2.3-bin.zip
+    gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip
 
 ## Potential breaking changes
 
