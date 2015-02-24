@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
-
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.api.artifacts.ComponentSelectionRules
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.Actions
+import org.gradle.internal.rules.NoInputsRuleAction
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
@@ -32,7 +34,7 @@ import static org.gradle.util.Assertions.assertThat
 public class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
-    def strategy = new DefaultResolutionStrategy(cachePolicy, [] as Set)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, new DefaultDomainObjectSet(Action))
 
     def "allows setting forced modules"() {
         expect:
@@ -193,5 +195,70 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then:
         1 * cachePolicy.cacheDynamicVersionsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
+    }
+
+    def "mutation is checked for public API"() {
+        def checker = Mock(Runnable)
+        strategy.beforeChange(checker)
+
+        when: strategy.failOnVersionConflict()
+        then: 1 * checker.run()
+
+        when: strategy.force("org.utils:api:1.3")
+        then: 1 * checker.run()
+
+        when: strategy.forcedModules = ["org.utils:api:1.4"]
+        then: (1.._) * checker.run()
+
+        when: strategy.forcedModules.clear()
+        then: 1 * checker.run()
+
+        when: strategy.eachDependency(Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: strategy.componentSelection.all(Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
+            @Override
+            void execute(ComponentSelectionRules componentSelectionRules) {
+                componentSelectionRules.all(Actions.doNothing())
+            }
+        })
+        then: 1 * checker.run()
+    }
+
+    def "mutation is not checked for copy"() {
+        given:
+        cachePolicy.copy() >> Mock(DefaultCachePolicy)
+        def checker = Mock(Runnable)
+        strategy.beforeChange(checker)
+        def copy = strategy.copy()
+
+        when: copy.failOnVersionConflict()
+        then: 0 * checker.run()
+
+        when: copy.force("org.utils:api:1.3")
+        then: 0 * checker.run()
+
+        when: copy.forcedModules = ["org.utils:api:1.4"]
+        then: 0 * checker.run()
+
+        when: copy.forcedModules.clear()
+        then: 0 * checker.run()
+
+        when: copy.eachDependency(Actions.doNothing())
+        then: 0 * checker.run()
+
+        when: copy.componentSelection.all(Actions.doNothing())
+        then: 0 * checker.run()
+
+        when: copy.componentSelection(new Action<ComponentSelectionRules>() {
+            @Override
+            void execute(ComponentSelectionRules componentSelectionRules) {
+                componentSelectionRules.all(Actions.doNothing())
+            }
+        })
+        then: 0 * checker.run()
     }
 }
