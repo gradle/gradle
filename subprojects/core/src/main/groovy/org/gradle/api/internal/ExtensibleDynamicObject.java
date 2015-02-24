@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Lists;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
@@ -22,7 +23,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +75,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     private void updateDelegates() {
-        List<DynamicObject> delegates = new ArrayList<DynamicObject>();
+        List<DynamicObject> delegates = Lists.newLinkedList();
         delegates.add(dynamicDelegate);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
@@ -87,12 +87,16 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         if (afterConvention != null) {
             delegates.add(afterConvention);
         }
+        boolean addedParent = false;
         if (parent != null) {
+            addedParent = true;
             delegates.add(parent);
         }
         setObjects(delegates.toArray(new DynamicObject[delegates.size()]));
 
-        delegates.remove(parent);
+        if (addedParent) {
+            delegates.remove(delegates.size() - 1);
+        }
         delegates.add(extraPropertiesDynamicObject);
         setObjectsForUpdate(delegates.toArray(new DynamicObject[delegates.size()]));
     }

@@ -29,8 +29,11 @@ import java.util.Map;
  * Can be used to provide a dynamic view of an object with enhancements.
  */
 public abstract class CompositeDynamicObject extends AbstractDynamicObject {
-    private DynamicObject[] objects = new DynamicObject[0];
-    private DynamicObject[] updateObjects = new DynamicObject[0];
+
+    private static final DynamicObject[] NONE = new DynamicObject[0];
+
+    private DynamicObject[] objects = NONE;
+    private DynamicObject[] updateObjects = NONE;
 
     protected void setObjects(DynamicObject... objects) {
         this.objects = objects;
