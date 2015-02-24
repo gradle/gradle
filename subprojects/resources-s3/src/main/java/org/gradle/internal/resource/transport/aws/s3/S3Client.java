@@ -189,10 +189,10 @@ public class S3Client {
     }
 
     private void configureClient(S3RegionalResource s3RegionalResource) {
-        if (!s3ConnectionProperties.getEndpoint().isPresent()) {
-            amazonS3Client.setRegion(s3RegionalResource.getRegion());
-        } else {
+        if (s3ConnectionProperties.getEndpoint().isPresent()) {
             amazonS3Client.setEndpoint(s3ConnectionProperties.getEndpoint().get().toString());
+        } else {
+            amazonS3Client.setRegion(s3RegionalResource.getRegion());
         }
     }
 }
