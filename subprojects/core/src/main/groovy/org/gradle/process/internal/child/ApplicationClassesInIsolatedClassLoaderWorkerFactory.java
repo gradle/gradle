@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.child;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.remote.Address;
@@ -26,11 +27,11 @@ import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.concurrent.Callable;
 
 /**
  * A factory for a worker process which loads application classes using an isolated ClassLoader.
@@ -76,19 +77,30 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
     public void prepareJavaCommand(JavaExecSpec execSpec) {
         execSpec.setMain(IsolatedGradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
+        Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
+
+        // Write configuration to stdin. This is consumed by IsolatedGradleWorkerMain
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        OutputStream encoded = new EncodedStream.EncodedOutput(bytes);
-        GUtil.serialize(create(), encoded);
-        ByteArrayInputStream stdinContent = new ByteArrayInputStream(bytes.toByteArray());
-        execSpec.setStandardInput(stdinContent);
+        try {
+            DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
+            // Write application classpath
+            outstr.writeInt(applicationClassPath.size());
+            for (URI entry : applicationClassPath) {
+                outstr.writeUTF(entry.toString());
+            }
+            // Write serialized worker
+            GUtil.serialize(create(), outstr);
+            outstr.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
     }
 
-    private Callable<?> create() {
-        Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
+    private ImplementationClassLoaderWorker create() {
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
-        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
+        return new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
                 processBuilder.getSharedPackages(), implementationClassPath, injectedWorker);
-        return new IsolatedApplicationClassLoaderWorker(applicationClassPath, worker);
     }
 }

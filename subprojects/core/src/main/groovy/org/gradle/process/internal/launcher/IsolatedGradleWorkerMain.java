@@ -16,20 +16,35 @@
 
 package org.gradle.process.internal.launcher;
 
+import org.gradle.api.Action;
 import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker;
+import org.gradle.process.internal.child.WorkerContext;
 
+import java.io.DataInputStream;
 import java.io.ObjectInputStream;
-import java.util.concurrent.Callable;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
- * The main entry point for a worker process, using isolated ClassLoader strategy. Reads a serialized Callable from stdin, and executes it.
+ * The main entry point for a worker process, using isolated ClassLoader strategy. Reads the application classpath and a serialized worker action from stdin, and delegates
+ * to {@link org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker} to create the appropriate ClassLoader and run the action.
  */
 public class IsolatedGradleWorkerMain {
     public void run() throws Exception {
         // Read the main action from stdin and execute it
-        ObjectInputStream instr = new ObjectInputStream(new EncodedStream.EncodedInput(System.in));
-        Callable<?> main = (Callable<?>) instr.readObject();
-        main.call();
+        DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
+        int applicationClassPathLength = instr.readInt();
+        Collection<URI> classpath = new ArrayList<URI>();
+        for (int i = 0; i < applicationClassPathLength; i++) {
+            String uri = instr.readUTF();
+            classpath.add(new URI(uri));
+        }
+        ObjectInputStream objectInputStream = new ObjectInputStream(instr);
+        Action<WorkerContext> worker = (Action<WorkerContext>) objectInputStream.readObject();
+
+        new IsolatedApplicationClassLoaderWorker(classpath, worker).call();
     }
 
     public static void main(String[] args) {
