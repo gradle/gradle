@@ -17,30 +17,31 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
-import org.gradle.internal.rules.*;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.rules.*;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
-import java.util.Set;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
 
-    private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
+    private final DefaultDomainObjectSet<SpecRuleAction> rules = new DefaultDomainObjectSet<SpecRuleAction>(SpecRuleAction.class);
 
     private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
@@ -52,6 +53,10 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter, NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser) {
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = moduleIdentifierNotationParser;
+    }
+
+    public void beforeChange(Runnable action) {
+        rules.beforeChange(action);
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
@@ -67,7 +72,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
-        return rules;
+        return (DomainObjectSet) rules;
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
