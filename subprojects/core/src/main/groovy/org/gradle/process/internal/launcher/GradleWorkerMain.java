@@ -18,17 +18,31 @@ package org.gradle.process.internal.launcher;
 
 import org.gradle.process.internal.child.EncodedStream;
 
-import java.io.ObjectInputStream;
+import java.io.DataInputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.concurrent.Callable;
 
 /**
- * The main entry point for a worker process, using system ClassLoader strategy. Reads a serialized Callable from stdin, and executes it.
+ * The main entry point for a worker process, using system ClassLoader strategy. Reads a worker classpath and serialized worker action from stdin, sets up the worker
+ * ClassLoader, and then delegates to {@link org.gradle.process.internal.child.SystemApplicationClassLoaderWorker} to deserialize and execute the action.
  */
 public class GradleWorkerMain {
     public void run() throws Exception {
-        // Read the main action from stdin and execute it
-        ObjectInputStream instr = new ObjectInputStream(new EncodedStream.EncodedInput(System.in));
-        Callable<?> main = (Callable<?>) instr.readObject();
+        DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
+        int classPathLength = instr.readInt();
+        URL[] workerClassPath = new URL[classPathLength];
+        for (int i = 0; i < classPathLength; i++) {
+            String url = instr.readUTF();
+            workerClassPath[i] = new URL(url);
+        }
+        int serializedWorkerLength = instr.readInt();
+        byte[] serializedWorker = new byte[serializedWorkerLength];
+        instr.readFully(serializedWorker);
+
+        URLClassLoader classLoader = new URLClassLoader(workerClassPath, ClassLoader.getSystemClassLoader().getParent());
+        Class<? extends Callable> workerClass = classLoader.loadClass("org.gradle.process.internal.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        Callable<Void> main = workerClass.getConstructor(byte[].class).newInstance(serializedWorker);
         main.call();
     }
 
