@@ -146,6 +146,24 @@ The `useVersion()` method is also deprecated. You can use the `useTarget()` meth
 
 Note that `ModuleComponentSelector` has a `module` property to return the module's name, while `ModuleVersionSelector` had a `name` property.
 
+### Generate wrapper with specific version from command-line
+
+Previously to generate a Gradle wrapper with a specific version, or a custom distribution URL,
+you had to add a task in `build.gradle`:
+
+    task wrapper (type: Wrapper) {
+        gradleVersion = "2.3"
+    }
+
+Now you can specify the version or the distribution URL from the command-line, without having
+to add the task in `build.gradle`:
+
+    gradle wrapper --gradle-version 2.3
+
+And with a distribution URL:
+
+    gradle wrapper --gradle-distribution-url https://services.gradle.org/distributions/gradle-2.3-bin.zip
+
 ## Potential breaking changes
 
 ### Model DSL changes
@@ -217,7 +235,8 @@ We would like to thank the following community members for making contributions 
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
 * [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
 * [Roman Donchenko](https://github.com/SpecLad) - fix a bug in `org.gradle.api.specs.OrSpecTest`
-* [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits),  - implement dependency substitution for projects
+* [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
+* [Lorant Pinter](https://github.com/lptr) - add setting wrapper version on command-line
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
