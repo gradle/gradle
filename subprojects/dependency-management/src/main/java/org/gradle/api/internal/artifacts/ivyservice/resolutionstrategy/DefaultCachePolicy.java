@@ -38,6 +38,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
     final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+    private final List<Runnable> mutateActions = new ArrayList<Runnable>();
 
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
@@ -55,15 +56,28 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
     }
 
+    public void beforeChange(Runnable action) {
+        mutateActions.add(action);
+    }
+
+    private void validateMutation() {
+        for (Runnable action : mutateActions) {
+            action.run();
+        }
+    }
+
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
+        validateMutation();
         dependencyCacheRules.add(0, rule);
     }
 
     public void eachModule(Action<? super ModuleResolutionControl> rule) {
+        validateMutation();
         moduleCacheRules.add(0, rule);
     }
 
     public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
+        validateMutation();
         artifactCacheRules.add(0, rule);
     }
 

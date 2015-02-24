@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
@@ -207,6 +208,27 @@ public class DefaultCachePolicySpec extends Specification {
         copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
         copy.moduleCacheRules == cachePolicy.moduleCacheRules
         copy.artifactCacheRules == cachePolicy.artifactCacheRules
+    }
+
+    def "mutation is checked"() {
+        def checker = Mock(Runnable)
+        given:
+        cachePolicy.beforeChange(checker)
+
+        when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then: (1.._) * checker.run()
+
+        when: cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then: 1 * checker.run()
+
+        when: cachePolicy.eachArtifact(Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: cachePolicy.eachDependency(Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: cachePolicy.eachModule(Actions.doNothing())
+        then: 1 * checker.run()
     }
 
     private def hasDynamicVersionTimeout(int timeout) {
