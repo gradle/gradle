@@ -231,6 +231,28 @@ public class DefaultCachePolicySpec extends Specification {
         then: 1 * checker.run()
     }
 
+    def "mutation is not checked for copy"() {
+        def checker = Mock(Runnable)
+        given:
+        cachePolicy.beforeChange(checker)
+        def copy = cachePolicy.copy()
+
+        when: copy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then: 0 * checker.run()
+
+        when: copy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then: 0 * checker.run()
+
+        when: copy.eachArtifact(Actions.doNothing())
+        then: 0 * checker.run()
+
+        when: copy.eachDependency(Actions.doNothing())
+        then: 0 * checker.run()
+
+        when: copy.eachModule(Actions.doNothing())
+        then: 0 * checker.run()
+    }
+
     private def hasDynamicVersionTimeout(int timeout) {
         def moduleId = moduleIdentifier('group', 'name', 'version')
         assert !cachePolicy.mustRefreshVersionList(null, [moduleId] as Set, 100)
