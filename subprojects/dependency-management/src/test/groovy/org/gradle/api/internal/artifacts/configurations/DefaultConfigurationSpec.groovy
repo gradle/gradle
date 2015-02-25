@@ -16,14 +16,17 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.Actions
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
@@ -331,5 +334,62 @@ class DefaultConfigurationSpec extends Specification {
         then:
         dep.taskName == "bar"
         dep.configurationName == "conf"
+    }
+
+    def "mutations are prohibited after resolution"() {
+        def listenerBroadcast = Mock(ListenerBroadcast) {
+            getSource() >> Mock(DependencyResolutionListener)
+        }
+        when:
+        def conf = new DefaultConfiguration(":conf", "conf", Mock(ConfigurationsProvider), resolver, listenerManager, Mock(DependencyMetaDataProvider), new DefaultResolutionStrategy())
+        then:
+        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcast
+
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        conf.resolveNow()
+        then:
+        1 * resolver.resolve(conf) >> resolverResults
+
+        when: conf.dependencies.add(Mock(Dependency))
+        then:
+        def ex = thrown(InvalidUserDataException);
+        ex.message == "Cannot change configuration ':conf' after it has been resolved."
+
+        when: conf.artifacts.add(Mock(PublishArtifact))
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.failOnVersionConflict()
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.force("org.utils:api:1.3")
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.forcedModules = ["org.utils:api:1.4"]
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.eachDependency(Actions.doNothing())
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.componentSelection.all(Actions.doNothing())
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.componentSelection.rules.clear()
+        then: thrown(InvalidUserDataException)
+
+        when: conf.resolutionStrategy.componentSelection {}
+        then: noExceptionThrown()
+
+        when: conf.resolutionStrategy.componentSelection { it.all(Actions.doNothing()) }
+        then: thrown(InvalidUserDataException)
     }
 }
