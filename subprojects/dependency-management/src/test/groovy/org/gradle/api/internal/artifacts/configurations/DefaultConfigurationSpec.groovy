@@ -330,6 +330,131 @@ class DefaultConfigurationSpec extends Specification {
         out == result
     }
 
+    def "resolving configuration for task dependencies puts it into the right state"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration puts it into the right state"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration for task dependencies, and then resolving it for results does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        0 * resolver.resolve(_)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration for results, and then resolving it for task dependencies does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        0 * resolver.resolve(_)
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "modified configuration is re-resolved"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        config.dependencies.add(Mock(Dependency))
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "copied configuration is not resolved"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        config.incoming.resolutionResult
+        def copy = config.copy()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
+        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.state == Configuration.State.UNRESOLVED
+    }
+
     def "provides task dependency from project dependency using 'needed'"() {
         def conf = conf("conf")
         when: def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
