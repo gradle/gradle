@@ -48,4 +48,18 @@ public interface PasswordCredentials extends Credentials {
      * @param password The password. May be null.
      */
     void setPassword(String password);
+
+    /**
+     * Returns true if preemptive authentication should always be used to login to this remote repository.
+     *  
+     * @return True if preemptive authentication should always be used to login to this remote repository.
+     */
+    boolean isPreemptive();
+
+    /**
+     * If true, always performs preemptive authentication to login to this remote repository.
+     *
+     * @param preemptive Whether or not to use preemptive authentication to login to this remote repository.
+     */
+    void setPreemptive(boolean preemptive);
 }

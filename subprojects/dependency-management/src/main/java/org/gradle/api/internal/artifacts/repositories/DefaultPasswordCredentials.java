@@ -20,13 +20,15 @@ import org.gradle.api.artifacts.repositories.PasswordCredentials;
 public class DefaultPasswordCredentials implements PasswordCredentials {
     private String username;
     private String password;
+    private boolean preemptive;
 
     public DefaultPasswordCredentials() {
     }
 
-    public DefaultPasswordCredentials(String username, String password) {
+    public DefaultPasswordCredentials(String username, String password, boolean preemptive) {
         this.username = username;
         this.password = password;
+        this.preemptive = preemptive;
     }
 
     public String getUsername() {
@@ -43,6 +45,16 @@ public class DefaultPasswordCredentials implements PasswordCredentials {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public boolean isPreemptive() {
+        return preemptive;
+    }
+
+    @Override
+    public void setPreemptive(boolean preemptive) {
+        this.preemptive = preemptive;
     }
 
     @Override

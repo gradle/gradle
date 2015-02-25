@@ -904,6 +904,13 @@
                 </sample>
                 <para>It is advisable to keep your username and password in <filename>gradle.properties</filename> rather than directly in the build file.
                 </para>
+                <para>In some cases a repository server will require preemptive authentication for all requests.  This is the case when hosting a repository on
+                    Github or BitBucket.  This can be configured by setting the <literal>preemptive</literal> flag to true on the credentials.  The following
+                    build script demonstrates how to enable preemptive authentication for a repository:
+                </para>
+                <sample id="mavenPreemptiveRepo" dir="userguide/artifacts/defineRepository" title="Enabling preemtive authentication for a Maven repository">
+                    <sourcefile file="build.gradle" snippet="preemptive-maven-repo"/>
+                </sample>
             </section>
         </section>
 

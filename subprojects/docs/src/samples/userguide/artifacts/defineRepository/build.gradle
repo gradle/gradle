@@ -115,6 +115,19 @@ repositories {
 }
 //END SNIPPET authenticated-maven-repo
 
+//START SNIPPET preemptive-maven-repo
+repositories {
+    maven {
+        credentials {
+            username 'user'
+            password 'password'
+            preemptive true
+        }
+        url "https://repo.mycompany.com/maven2"
+    }
+}
+//END SNIPPET preemptive-maven-repo
+
 //START SNIPPET flat-dir
 //START SNIPPET flat-dir-multi
 repositories {

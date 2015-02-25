@@ -15,9 +15,14 @@
  */
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.HttpRequest
 import org.apache.http.auth.AuthScope
+import org.apache.http.auth.AuthState
+import org.apache.http.client.methods.HttpHead
+import org.apache.http.client.protocol.ClientContext
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.params.HttpProtocolParams
+import org.apache.http.protocol.HttpContext
 import org.gradle.internal.resource.PasswordCredentials
 import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
@@ -28,6 +33,8 @@ public class HttpClientConfigurerTest extends Specification {
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
+    HttpRequest httpRequest = Mock()
+    HttpContext httpContext = Mock()
 
     def "configures http client with no credentials or proxy"() {
         httpSettings.credentials >> credentials
@@ -97,5 +104,26 @@ public class HttpClientConfigurerTest extends Specification {
 
         then:
         HttpProtocolParams.getUserAgent(httpClient.params) == UriResource.userAgentString
+    }
+    
+    def "configures http client with preemptive auth for HEAD requests"() {
+        httpSettings.credentials >> credentials
+        credentials.username >> "username"
+        credentials.password >> "password"
+        credentials.preemptive >> true
+        httpRequest.requestLine >> Mock()
+        httpRequest.requestLine.method >> HttpHead.METHOD_NAME
+        
+        when:
+        configurer.configure(httpClient)
+        
+        then:
+        httpClient.getRequestInterceptor(0) instanceof HttpClientConfigurer.PreemptiveAuth
+        
+        and:
+        httpClient.getRequestInterceptor(0).process(httpRequest, httpContext)
+        def authState = (AuthState) httpContext.getAttribute(ClientContext.TARGET_AUTH_STATE)
+        authState.getCredentials().userPrincipal.name == "username"
+        authState.getCredentials().password == "password"
     }
 }

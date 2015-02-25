@@ -15,10 +15,7 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.*;
 import org.apache.http.auth.*;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -64,7 +61,7 @@ public class HttpClientConfigurer {
                 useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
 
                 // Use preemptive authorisation if no other authorisation has been established
-                httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
+                httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), credentials.isPreemptive()), 0);
             }
         }
     }
@@ -101,9 +98,11 @@ public class HttpClientConfigurer {
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
         private final AuthScheme authScheme;
+        private final boolean alwaysPreemptive;
 
-        PreemptiveAuth(AuthScheme authScheme) {
+        PreemptiveAuth(AuthScheme authScheme, boolean alwaysPreemptive) {
             this.authScheme = authScheme;
+            this.alwaysPreemptive = alwaysPreemptive;
         }
 
         public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
@@ -116,7 +115,7 @@ public class HttpClientConfigurer {
 
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
-            if (requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
+            if (alwaysPreemptive || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
                 CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));

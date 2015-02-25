@@ -81,7 +81,7 @@ public class RepositoryTransportFactory {
             throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
         }
         PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
-        return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
+        return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword(), passwordCredentials.isPreemptive());
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials) {

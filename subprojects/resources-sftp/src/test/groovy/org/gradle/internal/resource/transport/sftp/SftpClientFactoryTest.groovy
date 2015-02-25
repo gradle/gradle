@@ -33,7 +33,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
 
         when:
         LockableSftpClient actualClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -59,7 +59,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
 
         when:
         LockableSftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -82,7 +82,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
 
         when:
         LockableSftpClient initialClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -115,8 +115,8 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         given:
         URI uri1 = new URI('http://localhost:22/repo1')
         URI uri2 = new URI('http://localhost:22/repo2')
-        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1')
-        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2')
+        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1', false)
+        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2', false)
 
         when:
         LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri1, credentials1)
@@ -148,7 +148,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
 
         when:
         LockableSftpClient actualClient = sftpClientFactory.createSftpClient(uri, credentials)
@@ -171,8 +171,8 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         given:
         URI uri1 = new URI('http://localhost:22/repo1')
         URI uri2 = new URI('http://localhost:22/repo2')
-        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1')
-        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2')
+        PasswordCredentials credentials1 = new PasswordCredentials('sftp1', 'sftp1', false)
+        PasswordCredentials credentials2 = new PasswordCredentials('sftp2', 'sftp2', false)
 
         when:
         LockableSftpClient client1 = sftpClientFactory.createSftpClient(uri1, credentials1)
@@ -198,7 +198,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
 
         when:
         async {
@@ -223,7 +223,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
 
         given:
         URI uri = new URI('http://localhost:22/repo')
-        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp')
+        PasswordCredentials credentials = new PasswordCredentials('sftp', 'sftp', false)
         LockableSftpClient actualClient1
         LockableSftpClient actualClient2
 

@@ -20,14 +20,16 @@ public class PasswordCredentials {
 
     private final String username;
     private final String password;
+    private final boolean preemptive;
 
     public PasswordCredentials() {
-        this(null, null);
+        this(null, null, false);
     }
 
-    public PasswordCredentials(String username, String password) {
+    public PasswordCredentials(String username, String password, boolean preemptive) {
         this.username = username;
         this.password = password;
+        this.preemptive = preemptive;
     }
 
     public String getUsername() {
@@ -38,4 +40,7 @@ public class PasswordCredentials {
         return password;
     }
 
+    public boolean isPreemptive() {
+        return preemptive;
+    }
 }
