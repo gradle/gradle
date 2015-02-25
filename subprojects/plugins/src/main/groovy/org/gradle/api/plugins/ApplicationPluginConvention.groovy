@@ -22,9 +22,12 @@ import org.gradle.api.file.CopySpec
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  */
 class ApplicationPluginConvention {
+
     /**
-     * The name of the application.
+     * Application name to use in generated run scripts
+     * Defaults to project.name
      */
+
     String applicationName
 
     /**
@@ -54,6 +57,21 @@ class ApplicationPluginConvention {
      * into the "{@code lib}" directory.
      */
     CopySpec applicationDistribution
+
+    /**
+     * Allows you to customize name of the lib directory inside the distribution
+     * Making it blank or '.' will mean to put them under root of the distribution
+     *
+     */
+
+    String applicationLibDir = 'lib'
+
+    /**
+     * Allows you to customize name of the bin directory inside the distribution
+     * Making it blank or '.' will mean to put them under root of the distribution
+     *
+     */
+    String applicationBinDir = 'bin'
 
     final Project project
 
