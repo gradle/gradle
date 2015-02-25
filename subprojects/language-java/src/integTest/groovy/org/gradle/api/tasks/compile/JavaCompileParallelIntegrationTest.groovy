@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import com.google.common.collect.Iterators
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -25,9 +26,9 @@ import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@IgnoreIf({ GradleContextualExecuter.parallel || JdkExecutor.singleJdk() })
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
-    RandomJdkPicker randomJdkPicker = new RandomJdkPicker()
+    private final CyclingJdkPicker cyclingJdkPicker = new CyclingJdkPicker()
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
@@ -54,7 +55,7 @@ project(':$projectName') {
     tasks.withType(JavaCompile) {
         options.with {
             fork = true
-            forkOptions.executable = "$randomJdkPicker.javacExecutable"
+            forkOptions.executable = "$cyclingJdkPicker.javacExecutable"
         }
     }
 }
@@ -82,36 +83,42 @@ public class Foo {
         }
     }
 
-    private static class RandomJdkPicker {
-        private final List<JavaInfo> availableJdks
-        private final Random random = new Random()
+    private class JdkExecutor {
+        static final List<JavaInfo> JDKS
 
-        RandomJdkPicker() {
-            availableJdks = []
-            determineJdksWithResolvableJavac()
-            availableJdks.asImmutable()
+        static  {
+            JDKS = determineJdksWithResolvableJavac()
         }
 
-        private void determineJdksWithResolvableJavac() {
-            AvailableJavaHomes.availableJdks.each { jdk ->
+        private static List<JavaInfo> determineJdksWithResolvableJavac() {
+            AvailableJavaHomes.availableJdks.findAll { jdk ->
                 try {
                     if(jdk.javacExecutable) {
-                        availableJdks << jdk
+                        return true
                     }
                 }
                 catch(JavaHomeException e) {
                     // ignore
                 }
-            }
+
+                false
+            }.asImmutable()
         }
+
+        static boolean singleJdk() {
+            JDKS.isEmpty() || JDKS.size() == 1
+        }
+    }
+
+    private class CyclingJdkPicker {
+        private final Iterator<JavaInfo> iterator = Iterators.cycle(JdkExecutor.JDKS)
 
         String getJavacExecutable() {
             TextUtil.escapeString(target.javacExecutable)
         }
 
         private JavaInfo getTarget() {
-            int index = random.nextInt(availableJdks.size())
-            availableJdks[index]
+            iterator.next()
         }
     }
 }
