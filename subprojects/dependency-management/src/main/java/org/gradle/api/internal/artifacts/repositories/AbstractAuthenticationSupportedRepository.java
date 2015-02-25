@@ -33,12 +33,21 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         this.instantiator = instantiator;
     }
 
+    @Override
     public PasswordCredentials getCredentials() {
-        if(credentials != null && !(credentials instanceof PasswordCredentials)) {
-            throw new IllegalStateException(String.format("Requested credentials must be of type '%s'.", PasswordCredentials.class.getName()));
-        }
-        return (PasswordCredentials) credentials;
+        return getCredentials(PasswordCredentials.class);
     }
+
+    @Override
+    public <T extends Credentials> T getCredentials(Class<T> clazz) {
+        if (credentials == null) {
+            credentials = newCredentials(clazz);
+        } else if (!(clazz.isAssignableFrom(credentials.getClass()))) {
+            throw new IllegalStateException(String.format("Credentials already configured. Requested credentials must be of type '%s'.", credentials.getClass().getName()));
+        }
+        return (T) credentials;
+    }
+
 
     public void credentials(Closure closure) {
         credentials(new ClosureBackedAction<PasswordCredentials>(closure));
@@ -48,20 +57,23 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         if (credentials != null) {
             throw new IllegalStateException("Cannot overwrite already configured credentials.");
         }
-        credentials = instantiator.newInstance(DefaultPasswordCredentials.class);
-        action.execute((PasswordCredentials)credentials);
+        credentials = newCredentials(PasswordCredentials.class);
+        action.execute((PasswordCredentials) credentials);
     }
 
     public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
-        if(credentials != null) {
-            throw new IllegalStateException("Cannot overwrite already configured credentials.");
-        }
-        if (clazz == AwsCredentials.class) {
-            credentials = instantiator.newInstance(DefaultAwsCredentials.class);
-        } else if (clazz == PasswordCredentials.class) {
-            credentials= instantiator.newInstance(DefaultPasswordCredentials.class);
-        }
+        credentials = getCredentials(clazz);
         action.execute((T) credentials);
+    }
+
+    private <T extends Credentials> T newCredentials(Class<T> clazz) {
+        if (clazz == AwsCredentials.class) {
+            return (T) instantiator.newInstance(DefaultAwsCredentials.class);
+        } else if (clazz == PasswordCredentials.class) {
+            return (T) instantiator.newInstance(DefaultPasswordCredentials.class);
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s'.", clazz.getName()));
+        }
     }
 
     public Credentials getAlternativeCredentials() {

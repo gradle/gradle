@@ -27,12 +27,23 @@ public interface AuthenticationSupported {
 
     /**
      * Returns the standard username and password credentials used to authenticate to this repository.
+     *
      * @return The PasswordCredentials
      */
     PasswordCredentials getCredentials();
 
     /**
+     * Returns the credentials of the specified type used to authenticate with this repository.
+     * Instantiates Credentials if not done already.
+     *
+     * @return The Credentials
+     */
+    @Incubating
+    public <T extends Credentials> T getCredentials(Class<T> clazz);
+
+    /**
      * Returns the alternative credentials used to authenticate with this repository.
+     *
      * @return The Credentials
      */
     @Incubating
@@ -41,49 +52,23 @@ public interface AuthenticationSupported {
     /**
      * Configures the {@link PasswordCredentials} for this repository using the supplied Closure.
      *
-     * <pre autoTested=''>
-     * repositories {
-     *     maven {
-     *         credentials {
-     *             username = 'joe'
-     *             password = 'secret'
-     *         }
-     *     }
-     * }
-     * </pre>
+     * <pre autoTested=''> repositories { maven { credentials { username = 'joe' password = 'secret' } } } </pre>
      */
     void credentials(Closure closure);
 
     /**
      * Configure the credentials for this repository using the supplied action.
      *
-     * <pre autoTested=''>
-     * repositories {
-     *     maven {
-     *         credentials {
-     *             username = 'joe'
-     *             password = 'secret'
-     *         }
-     *     }
-     * }
-     * </pre>
+     * <pre autoTested=''> repositories { maven { credentials { username = 'joe' password = 'secret' } } } </pre>
      */
     void credentials(Action<? super PasswordCredentials> action);
 
     /**
      * Configures strongly typed credentials for this repository using the supplied action.
      *
-     * repositories {
-     *    maven {
-     *        url "${url}"
-     *        credentials(AwsCredentials) {
-     *            accessKey "myAccessKey"
-     *            secretKey "mySecret"
-     *        }
-     *    }
-     *  }
+     * repositories { maven { url "${url}" credentials(AwsCredentials) { accessKey "myAccessKey" secretKey "mySecret" } } }
      *
-     *  @throws IllegalStateException if explicit credentials have been already set.
+     * @throws IllegalStateException if explicit credentials have been already set.
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException;
