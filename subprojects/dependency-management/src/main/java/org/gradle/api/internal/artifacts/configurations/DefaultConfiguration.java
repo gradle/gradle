@@ -87,7 +87,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
-        VetoContainerChangeAction veto = new VetoContainerChangeAction();
+        RunnableMutationValidator veto = new RunnableMutationValidator(false) {
+            @Override
+            public void validateMutation(boolean lenient) {
+                DefaultConfiguration.this.validateMutation(lenient);
+            }
+        };
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(veto);
@@ -124,7 +129,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setVisible(boolean visible) {
-        validateMutation();
+        validateMutation(false);
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -134,7 +139,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        validateMutation();
+        validateMutation(false);
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -147,7 +152,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation();
+        validateMutation(false);
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -166,7 +171,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setTransitive(boolean transitive) {
-        validateMutation();
+        validateMutation(false);
         this.transitive = transitive;
         return this;
     }
@@ -300,12 +305,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        validateMutation();
+        validateMutation(false);
         this.excludeRules = excludeRules;
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        validateMutation();
+        validateMutation(false);
         excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
@@ -399,11 +404,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private void validateMutation() {
+    private void validateMutation(boolean lenient) {
+        boolean userAlreadyNagged = false;
         if (getState() != State.UNRESOLVED) {
-            throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+            if (!lenient) {
+                throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+            } else {
+                userAlreadyNagged = true;
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
+            }
         }
-        if (includedInResult) {
+        if (!userAlreadyNagged && includedInResult) {
             DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
         }
     }
@@ -500,12 +511,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         return reply.toString();
-    }
-
-    private class VetoContainerChangeAction implements Runnable {
-        public void run() {
-            validateMutation();
-        }
     }
 
     private class ConfigurationResolvableDependencies implements ResolvableDependencies {

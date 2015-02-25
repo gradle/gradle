@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.*;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
@@ -38,7 +39,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
     final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
-    private final List<Runnable> mutateActions = new ArrayList<Runnable>();
+    private final List<MutationValidator> mutationValidators = new ArrayList<MutationValidator>();
 
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
@@ -56,28 +57,28 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
     }
 
-    public void beforeChange(Runnable action) {
-        mutateActions.add(action);
+    public void beforeChange(MutationValidator validator) {
+        mutationValidators.add(validator);
     }
 
-    private void validateMutation() {
-        for (Runnable action : mutateActions) {
-            action.run();
+    private void validateMutation(boolean lenient) {
+        for (MutationValidator validator : mutationValidators) {
+            validator.validateMutation(lenient);
         }
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
-        validateMutation();
+        validateMutation(true);
         dependencyCacheRules.add(0, rule);
     }
 
     public void eachModule(Action<? super ModuleResolutionControl> rule) {
-        validateMutation();
+        validateMutation(true);
         moduleCacheRules.add(0, rule);
     }
 
     public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
-        validateMutation();
+        validateMutation(true);
         artifactCacheRules.add(0, rule);
     }
 

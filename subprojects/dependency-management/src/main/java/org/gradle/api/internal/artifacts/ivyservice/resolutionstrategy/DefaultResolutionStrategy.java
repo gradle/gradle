@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.MutationValidator;
+import org.gradle.api.internal.artifacts.RunnableMutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.Actions;
@@ -41,7 +43,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     final Set<Action> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
-    private final List<Runnable> mutateActions = new ArrayList<Runnable>();
+    private final List<MutationValidator> mutateActions = new ArrayList<MutationValidator>();
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDomainObjectSet<Action>(Action.class));
@@ -57,25 +59,26 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.componentSelectionRules = componentSelectionRules;
 
         // Make sure we check if mutation is valid if any of these change
-        Runnable subMutateAction = new Runnable() {
+        RunnableMutationValidator subValidator = new RunnableMutationValidator(true) {
             @Override
-            public void run() {
-                validateMutation();
+            public void validateMutation(boolean lenient) {
+                DefaultResolutionStrategy.this.validateMutation(lenient);
             }
         };
-        cachePolicy.beforeChange(subMutateAction);
-        dependencyResolveRules.beforeChange(subMutateAction);
-        forcedModules.beforeChange(subMutateAction);
-        componentSelectionRules.beforeChange(subMutateAction);
+        cachePolicy.beforeChange(subValidator);
+        dependencyResolveRules.beforeChange(subValidator);
+        forcedModules.beforeChange(subValidator);
+        componentSelectionRules.beforeChange(subValidator);
     }
 
-    public void beforeChange(Runnable action) {
-        mutateActions.add(action);
+    @Override
+    public void beforeChange(MutationValidator validator) {
+        mutateActions.add(validator);
     }
 
-    private void validateMutation() {
-        for (Runnable action : mutateActions) {
-            action.run();
+    private void validateMutation(boolean lenient) {
+        for (MutationValidator validator : mutateActions) {
+            validator.validateMutation(lenient);
         }
     }
 
@@ -84,7 +87,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public ResolutionStrategy failOnVersionConflict() {
-        validateMutation();
+        validateMutation(true);
         this.conflictResolution = new StrictConflictResolution();
         return this;
     }

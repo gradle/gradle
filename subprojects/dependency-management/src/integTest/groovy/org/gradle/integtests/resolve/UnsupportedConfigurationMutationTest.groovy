@@ -48,7 +48,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
     }
 
-    def "does not allow changing a configuration that has been resolved"() {
+    def "does not allow changing excludes on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
             configurations.a.resolve()
@@ -56,6 +56,66 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
         when: fails()
         then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+    }
+
+    def "warns about changing conflict resolution on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.failOnVersionConflict()
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    def "warns about changing forced versions on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.force "org.utils:api:1.3"
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    def "warns about changing cache policy on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    def "warns about changing resolution rules on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.eachDependency {}
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    def "warns about changing component selection rules on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.componentSelection.all {}
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")

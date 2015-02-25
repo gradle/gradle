@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
@@ -63,5 +64,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * Adds an action which is executed before mutation. Any exception thrown by the action will veto the mutation.
      */
-    void beforeChange(Runnable action);
+    void beforeChange(MutationValidator action);
 }

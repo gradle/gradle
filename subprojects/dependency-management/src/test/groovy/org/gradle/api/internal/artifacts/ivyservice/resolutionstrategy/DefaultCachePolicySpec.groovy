@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.MutationValidator
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -211,46 +212,46 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     def "mutation is checked"() {
-        def checker = Mock(Runnable)
+        def validator = Mock(MutationValidator)
         given:
-        cachePolicy.beforeChange(checker)
+        cachePolicy.beforeChange(validator)
 
         when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
-        then: (1.._) * checker.run()
+        then: (1.._) * validator.validateMutation(true)
 
         when: cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: cachePolicy.eachArtifact(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: cachePolicy.eachDependency(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: cachePolicy.eachModule(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
     }
 
     def "mutation is not checked for copy"() {
-        def checker = Mock(Runnable)
+        def validator = Mock(MutationValidator)
         given:
-        cachePolicy.beforeChange(checker)
+        cachePolicy.beforeChange(validator)
         def copy = cachePolicy.copy()
 
         when: copy.cacheChangingModulesFor(0, TimeUnit.HOURS)
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.eachArtifact(Actions.doNothing())
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.eachDependency(Actions.doNothing())
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.eachModule(Actions.doNothing())
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
     }
 
     private def hasDynamicVersionTimeout(int timeout) {

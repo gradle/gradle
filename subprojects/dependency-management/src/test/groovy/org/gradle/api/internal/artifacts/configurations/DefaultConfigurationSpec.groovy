@@ -22,11 +22,9 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.Actions
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
@@ -291,6 +289,7 @@ class DefaultConfigurationSpec extends Specification {
         def copied = child.copyRecursive()
         
         then:
+        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
         copied.excludeRules.size() == 2
         copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
     }
@@ -337,14 +336,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def "mutations are prohibited after resolution"() {
-        def listenerBroadcast = Mock(ListenerBroadcast) {
-            getSource() >> Mock(DependencyResolutionListener)
-        }
-        when:
-        def conf = new DefaultConfiguration(":conf", "conf", Mock(ConfigurationsProvider), resolver, listenerManager, Mock(DependencyMetaDataProvider), new DefaultResolutionStrategy())
-        then:
-        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcast
-
+        def conf = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
         resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
@@ -356,40 +348,12 @@ class DefaultConfigurationSpec extends Specification {
 
         when: conf.dependencies.add(Mock(Dependency))
         then:
-        def ex = thrown(InvalidUserDataException);
-        ex.message == "Cannot change configuration ':conf' after it has been resolved."
+        def exDependency = thrown(InvalidUserDataException);
+        exDependency.message == "Cannot change configuration ':conf' after it has been resolved."
 
         when: conf.artifacts.add(Mock(PublishArtifact))
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.failOnVersionConflict()
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.force("org.utils:api:1.3")
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.forcedModules = ["org.utils:api:1.4"]
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.eachDependency(Actions.doNothing())
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.componentSelection.all(Actions.doNothing())
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.componentSelection.rules.clear()
-        then: thrown(InvalidUserDataException)
-
-        when: conf.resolutionStrategy.componentSelection {}
-        then: noExceptionThrown()
-
-        when: conf.resolutionStrategy.componentSelection { it.all(Actions.doNothing()) }
-        then: thrown(InvalidUserDataException)
+        then:
+        def exArtifact = thrown(InvalidUserDataException);
+        exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
     }
 }

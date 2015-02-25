@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -138,6 +139,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         def copy = strategy.copy()
 
         then:
+        1 * cachePolicy.copy() >> Mock(DefaultCachePolicy)
         !copy.is(strategy)
         assertThat(copy).doesNotShareStateWith(strategy)
     }
@@ -198,26 +200,26 @@ public class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "mutation is checked for public API"() {
-        def checker = Mock(Runnable)
-        strategy.beforeChange(checker)
+        def validator = Mock(MutationValidator)
+        strategy.beforeChange(validator)
 
         when: strategy.failOnVersionConflict()
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: strategy.force("org.utils:api:1.3")
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: strategy.forcedModules = ["org.utils:api:1.4"]
-        then: (1.._) * checker.run()
+        then: (1.._) * validator.validateMutation(true)
 
         when: strategy.forcedModules.clear()
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: strategy.componentSelection.all(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
 
         when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
@@ -225,33 +227,33 @@ public class DefaultResolutionStrategySpec extends Specification {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 1 * checker.run()
+        then: 1 * validator.validateMutation(true)
     }
 
     def "mutation is not checked for copy"() {
         given:
         cachePolicy.copy() >> Mock(DefaultCachePolicy)
-        def checker = Mock(Runnable)
-        strategy.beforeChange(checker)
+        def validator = Mock(MutationValidator)
+        strategy.beforeChange(validator)
         def copy = strategy.copy()
 
         when: copy.failOnVersionConflict()
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.force("org.utils:api:1.3")
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.forcedModules.clear()
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.eachDependency(Actions.doNothing())
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.componentSelection.all(Actions.doNothing())
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
 
         when: copy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
@@ -259,6 +261,6 @@ public class DefaultResolutionStrategySpec extends Specification {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 0 * checker.run()
+        then: 0 * validator.validateMutation(_)
     }
 }
