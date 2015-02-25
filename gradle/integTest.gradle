@@ -158,17 +158,14 @@ Output: ${killOutput}
     }
 }
 
-tasks.check {
-    dependsOn "integTest"
+
+task integTest(type: Test) {
+    def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    systemProperties['org.gradle.integtest.executer'] = defaultExecuter
 }
+check.dependsOn(integTest)
 
 model {
-    tasks {
-        create("integTest", Test) {
-            def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
-            systemProperties['org.gradle.integtest.executer'] = defaultExecuter
-        }
-    }
     tasks {
         withType(Test) {
             integTestTasks.all { Test task ->

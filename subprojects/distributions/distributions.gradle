@@ -130,8 +130,6 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-model {
-    tasks.integTest {
-        inputs.files allZip, binZip, srcZip
-    }
+integTest {
+    inputs.files allZip, binZip, srcZip
 }
