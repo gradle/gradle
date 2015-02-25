@@ -97,10 +97,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(new VetoContainerChangeAction());
+        ownArtifacts.beforeChange(veto);
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
+
+        resolutionStrategy.beforeChange(veto);
     }
 
     public String getName() {

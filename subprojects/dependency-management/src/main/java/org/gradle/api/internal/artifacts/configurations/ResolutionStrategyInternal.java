@@ -59,4 +59,9 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return copy of this resolution strategy. See the contract of {@link org.gradle.api.artifacts.Configuration#copy()}.
      */
     ResolutionStrategyInternal copy();
+
+    /**
+     * Adds an action which is executed before mutation. Any exception thrown by the action will veto the mutation.
+     */
+    void beforeChange(Runnable action);
 }
