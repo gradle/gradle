@@ -342,7 +342,7 @@ class DefaultConfigurationSpec extends Specification {
         resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
 
         when:
-        conf.resolveNow()
+        conf.incoming.getResolutionResult()
         then:
         1 * resolver.resolve(conf) >> resolverResults
 
