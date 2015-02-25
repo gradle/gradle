@@ -511,7 +511,7 @@ public class DefaultConfigurationTest {
             allowing(otherConfiguration).getAllDependencies();
             will(returnValue(inherited));
 
-            allowing(otherConfiguration).includedInResolveResult();
+            allowing(otherConfiguration).markAsObserved();
 
             allowing(fileCollectionDependencyStub).getBuildDependencies();
             will(returnValue(dependencyTaskDependencyStub));
