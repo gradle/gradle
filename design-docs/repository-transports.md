@@ -30,18 +30,18 @@ This would involve adding support for dependency resolution, as well as for publ
 
 ### Implementation plan
 
-- Basic support for `Credentials` other than `PasswordCredentials`: `AwsCredentials`
-    - `AuthenticationSupported.getCredentials(Class<? extends Credentials>)` provides a credentials instance of the appropriate type
-         - Instantiates a new credentials of that type if no credentials is configured
-            - Hard coded factory method can create only `AwsCredentials` and `PasswordCredentials`
-         - Returns existing credentials of that type
-         - Fails if existing credentials is of a different type
-         - Fails for credentials of unknown type
-    - `AuthenticationSupported.credentials(Class<T extends Credentials>, Action<? super T>)` configures credentials of the specified type
-         - Creates credentials on demand if required
-         - Fails if existing credentials have a different type
-         - Fails for credentials of unknown type
-    - Existing untyped credentials methods on `AuthenticationSupported` simply call the typed methods with `PasswordCredentials.class`
+~~- Basic support for `Credentials` other than `PasswordCredentials`: `AwsCredentials`~~
+~~    - `AuthenticationSupported.getCredentials(Class<? extends Credentials>)` provides a credentials instance of the appropriate type~~
+~~         - Instantiates a new credentials of that type if no credentials is configured~~
+~~            - Hard coded factory method can create only `AwsCredentials` and `PasswordCredentials`~~
+~~         - Returns existing credentials of that type~~
+~~         - Fails if existing credentials is of a different type~~
+~~         - Fails for credentials of unknown type~~
+    - `AuthenticationSupported.credentials(Class<T extends Credentials>, Action<? super T>)` configures credentials of the specified type~~
+~~         - Creates credentials on demand if required~~
+~~         - Fails if existing credentials have a different type~~
+~~         - Fails for credentials of unknown type~~
+~~    - Existing untyped credentials methods on `AuthenticationSupported` simply call the typed methods with `PasswordCredentials.class`~~
 - `RepositoryTransport` implementation backed by AWS S3
 - Add ability to create `S3RepositoryTransport` in `RepositoryTransportFactory`
     
@@ -50,7 +50,7 @@ This would involve adding support for dependency resolution, as well as for publ
 - Resolve from Maven & Ivy repositories
 - Reasonable error message produced when resolving:
     - S3 Repository with empty credentials
-    - S3 Repository with `PasswordCredentials` (error may be when configuring repository)
+    - S3 Repository with `PasswordCredentials` (error may be thrown when configuring repository)
     - S3 Repository with incorrect credentials
     - Resource not found
 
