@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
-import org.gradle.api.internal.artifacts.MutationValidator
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
 import org.gradle.internal.rules.NoInputsRuleAction

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.configurations;
 
 /**
  * Used to validate mutation of an object and its sub-parts.

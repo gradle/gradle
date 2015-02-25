@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {

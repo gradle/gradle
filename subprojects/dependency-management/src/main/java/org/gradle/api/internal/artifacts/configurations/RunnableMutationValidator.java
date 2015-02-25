@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.configurations;
 
 /**
  * A {@link MutationValidator} that can be used as a {@link Runnable} to be passed to
