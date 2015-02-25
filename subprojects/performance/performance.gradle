@@ -328,8 +328,11 @@ task performanceExperiments(type: Test) {
     }
 }
 
-integTest {
-    options {
-        excludeCategories 'org.gradle.performance.PerformanceTest'
+model {
+    tasks.integTest {
+        options {
+            excludeCategories 'org.gradle.performance.PerformanceTest'
+        }
     }
 }
+
