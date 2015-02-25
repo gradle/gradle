@@ -47,7 +47,7 @@ public class Configurations {
     }
 
     public static String uploadTaskName(String configurationName) {
-        return String.format("upload%s", getCapitalName(configurationName));
+        return "upload".concat(getCapitalName(configurationName));
     }
 
     private static String getCapitalName(String configurationName) {

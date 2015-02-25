@@ -39,9 +39,11 @@ public class UploadRule extends AbstractRule {
     }
 
     public void apply(String taskName) {
-        for (Configuration configuration :  project.getConfigurations()) {
-            if (taskName.equals(configuration.getUploadTaskName())) {
-                createUploadTask(configuration.getUploadTaskName(), configuration, project);
+        if (taskName.startsWith(PREFIX)) {
+            for (Configuration configuration : project.getConfigurations()) {
+                if (taskName.equals(configuration.getUploadTaskName())) {
+                    createUploadTask(configuration.getUploadTaskName(), configuration, project);
+                }
             }
         }
     }
