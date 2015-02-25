@@ -37,9 +37,7 @@ configurations {
     dists
 }
 
-model {
-    tasks.daemonIntegTest { enabled = false }
-}
+daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
 

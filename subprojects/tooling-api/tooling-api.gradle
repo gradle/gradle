@@ -30,10 +30,8 @@ integTestTasks.all {
     }
 }
 
-model {
-    tasks.daemonIntegTest {
-        enabled = false //tooling integ tests use daemon anyway, don't rerun
-    }
+daemonIntegTest {
+    enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
 task jarjarJar(type: JarJarJar) {

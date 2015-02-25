@@ -28,11 +28,11 @@ import java.util.regex.Pattern
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
-        for (File cacheDir : dir.listFiles()) {
+        for (File cacheDir: dir.listFiles()) {
             if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
                 continue
             }
-            for (String name : ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
                 def stateDir = new File(cacheDir, name)
                 if (stateDir.directory) {
                     println "Removing old cache directory : ${stateDir}"
@@ -46,7 +46,7 @@ def removeDodgyCacheFiles(File dir) {
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
-        for (File cacheDir : dir.listFiles()) {
+        for (File cacheDir: dir.listFiles()) {
             if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
                 continue
             }
@@ -158,6 +158,42 @@ Output: ${killOutput}
     }
 }
 
+integTestTasks.all { Test task ->
+    dependsOn ':intTestImage', ':cleanUpCaches'
+    finalizedBy ':cleanUpDaemons'
+    shouldRunAfter 'test'
+    
+    testClassesDir = sourceSets.integTest.output.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+    testSrcDirs = []
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+
+    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+    systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
+
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
+
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
+
+    dependsOn project.task("configure${task.name.capitalize()}") << {
+        configure(task) {
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+            systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
+            systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
+            systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+            
+            // If the projects int test need the distributions, they should add:
+            // inputs.files rootProject.buildDists
+            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+
+            // The user home dir is not wiped out by clean
+            // Move the daemon working space underneath the build dir so they don't pile up on CI
+            systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+        }
+    }
+}
 
 task integTest(type: Test) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
@@ -165,70 +201,24 @@ task integTest(type: Test) {
 }
 check.dependsOn(integTest)
 
-model {
-    tasks {
-        withType(Test) {
-            integTestTasks.all { Test task ->
-                if (task.name == "test") {
-                    return
-                }
-                dependsOn ':intTestImage', ':cleanUpCaches'
-                finalizedBy ':cleanUpDaemons'
-                shouldRunAfter 'test'
-
-                testClassesDir = sourceSets.integTest.output.classesDir
-                classpath = sourceSets.integTest.runtimeClasspath
-                testSrcDirs = []
-                jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-
-                reports.junitXml.destination = file("${project.testResultsDir}/$name")
-
-                // use -PtestVersions=all or -PtestVersions=1.2,1.3…
-                systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
-
-                systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
-
-                systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
-
-                reports.html.destination = file("${project.reporting.baseDir}/$name")
-                systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-                systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-                systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-
-                // If the projects int test need the distributions, they should add:
-                // inputs.files rootProject.buildDists
-                systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
-
-                // The user home dir is not wiped out by clean
-                // Move the daemon working space underneath the build dir so they don't pile up on CI
-                systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
-            }
-        }
+['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
+    def taskName = "${mode}IntegTest"
+    tasks.create(taskName, Test).configure {
+        systemProperties['org.gradle.integtest.executer'] = mode
     }
-    tasks {
-        create("crossVersionIntegTest") {
-            description "Runs the cross version tests against all Gradle versions"
-        }
-    }
-    tasks { tasks ->
-        ['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
-            def taskName = "${mode}IntegTest"
-            tasks.create(taskName, Test) {
-                systemProperties['org.gradle.integtest.executer'] = mode
-            }
-        }
+}
 
-        releasedVersions.allVersions.each { targetVersion ->
-            tasks.create("gradle${targetVersion}IntegTest", Test) {
-                description "Runs the cross version tests against Gradle ${targetVersion}"
-                systemProperties['org.gradle.integtest.versions'] = targetVersion
-                systemProperties['org.gradle.integtest.executer'] = 'forking'
-                include '**/*CrossVersion*'
+task crossVersionIntegTest {
+    description "Runs the cross version tests against all Gradle versions"
+}
 
-                // Note: breaking immutability rules
-                tasks.get("crossVersionIntegTest").dependsOn path
-            }
-        }
+releasedVersions.allVersions.each { targetVersion ->
+    tasks.create("gradle${targetVersion}IntegTest", Test).configure {
+        crossVersionIntegTest.dependsOn path
+        description "Runs the cross version tests against Gradle ${targetVersion}"
+        systemProperties['org.gradle.integtest.versions'] = targetVersion
+        systemProperties['org.gradle.integtest.executer'] = 'forking'
+        include '**/*CrossVersion*'
     }
 }
 

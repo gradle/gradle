@@ -75,13 +75,11 @@ class StartScriptGenerator extends DefaultTask {
     }
 }
 
-model {
-    tasks.daemonIntegTest {
-        //those tests are always using the daemon, they use exclusive daemons and they are a part of a regular check-in build anyway.
-        //since they are using exclusive daemons they don't contribute to the daemonIntegTest stress/load test.
-        //excluding to avoid unnecessary re-running and stealing resources.
-        exclude "org/gradle/launcher/daemon/**/*"
-    }
+daemonIntegTest {
+    //those tests are always using the daemon, they use exclusive daemons and they are a part of a regular check-in build anyway.
+    //since they are using exclusive daemons they don't contribute to the daemonIntegTest stress/load test.
+    //excluding to avoid unnecessary re-running and stealing resources.
+    exclude "org/gradle/launcher/daemon/**/*"
 }
 
 useClassycle()
