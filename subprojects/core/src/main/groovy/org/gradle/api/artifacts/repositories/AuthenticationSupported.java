@@ -52,21 +52,48 @@ public interface AuthenticationSupported {
     /**
      * Configures the {@link PasswordCredentials} for this repository using the supplied Closure.
      *
-     * <pre autoTested=''> repositories { maven { credentials { username = 'joe' password = 'secret' } } } </pre>
+     * <pre autoTested=''>
+     * repositories {
+     *     maven {
+     *         credentials {
+     *              username = 'joe'
+     *              password = 'secret'
+     *         }
+     *     }
+     * }
+     * </pre>
      */
     void credentials(Closure closure);
 
     /**
      * Configure the credentials for this repository using the supplied action.
      *
-     * <pre autoTested=''> repositories { maven { credentials { username = 'joe' password = 'secret' } } } </pre>
+     * <pre autoTested=''>
+     *     repositories {
+     *         maven {
+     *             url "${url}"
+     *             credentials {
+     *                 username = 'joe'
+     *                 password = 'secret'
+     *             }
+     *         }
+     *     }
+     * </pre>
      */
     void credentials(Action<? super PasswordCredentials> action);
 
     /**
      * Configures strongly typed credentials for this repository using the supplied action.
      *
-     * repositories { maven { url "${url}" credentials(AwsCredentials) { accessKey "myAccessKey" secretKey "mySecret" } } }
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         credentials(AwsCredentials) {
+     *             accessKey "myAccessKey"
+     *             secretKey "mySecret"
+     *         }
+     *     }
+     * }
      *
      * @throws IllegalStateException if explicit credentials have been already set.
      */
