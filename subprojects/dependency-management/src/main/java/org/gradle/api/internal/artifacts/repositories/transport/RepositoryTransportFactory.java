@@ -73,10 +73,10 @@ public class RepositoryTransportFactory {
         return createTransport(schemes, name, credentials);
     }
 
+    /**
+     * TODO René: why do we have two different PasswordCredentials
+     * */
     private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(Credentials credentials) {
-        if(credentials == null) {
-            return null;
-        }
         if (!(credentials instanceof PasswordCredentials)) {
             throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
         }
@@ -127,11 +127,17 @@ public class RepositoryTransportFactory {
 
         @Override
         public <T> T getCredentials(Class<T> type) {
+            if(credentials == null){
+                return null;
+            }
             if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {
                 return type.cast(convertPasswordCredentials(credentials));
             }
-            return type.cast(credentials);
+            if (type.isAssignableFrom(credentials.getClass())) {
+                return type.cast(credentials);
+            } else {
+                throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
+            }
         }
     }
-
 }

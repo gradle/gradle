@@ -16,6 +16,7 @@
 
 
 package org.gradle.integtests.resolve.resource.s3
+
 import org.gradle.util.TextUtil
 
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
@@ -52,6 +53,40 @@ task retrieve(type: Sync) {
                 "The AWS Access Key Id you provided does not exist in our records.")
     }
 
+    def "fails when providing PasswordCredentials with decent error"() {
+        setup:
+        buildFile << """
+repositories {
+    maven {
+        url "s3://${getBucket()}${getRepositoryPath()}"
+        credentials {
+            username "someUserName"
+            password "someSecret"
+        }
+    }
+}
+
+configurations { compile }
+
+dependencies{
+    compile 'org.gradle:test:$artifactVersion'
+}
+
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+
+        when:
+        fails 'retrieve'
+        then:
+        //TODO would be good to have a reference of the wrong configured repository in the error message
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause("Credentials must be an instance of 'org.gradle.api.artifacts.repositories.AwsCredentials'.")
+
+    }
+
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenAwsRepoDsl()
@@ -75,8 +110,8 @@ task retrieve(type: Sync) {
 
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                errorOutput.contains(TextUtil.toPlatformLineSeparators(
-"""Could not find org.gradle:test:1.85.
+        errorOutput.contains(TextUtil.toPlatformLineSeparators(
+                """Could not find org.gradle:test:1.85.
 Searched in the following locations:
     s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.pom
     s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar"""))

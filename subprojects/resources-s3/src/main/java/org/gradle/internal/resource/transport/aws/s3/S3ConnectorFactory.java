@@ -32,6 +32,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        return new S3ResourceConnector(new S3Client(connectionDetails.getCredentials(AwsCredentials.class), new S3ConnectionProperties()));
+        AwsCredentials credentials = connectionDetails.getCredentials(AwsCredentials.class);
+        return new S3ResourceConnector(new S3Client(credentials, new S3ConnectionProperties()));
     }
 }
