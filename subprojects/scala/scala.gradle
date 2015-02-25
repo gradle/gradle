@@ -30,6 +30,11 @@ dependencies {
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
 
-configure([integTest, daemonIntegTest]) {
-    jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+model {
+    tasks.integTest {
+        jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+    }
+    tasks.daemonIntegTest {
+        jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+    }
 }

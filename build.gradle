@@ -109,6 +109,10 @@ ext {
     ]
 }
 
+task intTestImage(type: Sync) {
+    into file("$buildDir/integ test")
+}
+
 apply from: "gradle/buildReceipt.gradle"
 apply from: "gradle/incomingDistributions.gradle"
 apply from: "gradle/versioning.gradle"

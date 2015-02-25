@@ -33,8 +33,10 @@ integTestTasks.all {
     systemProperty "org.gradle.userguide.samples.filter", System.getProperty("org.gradle.userguide.samples.filter")
 }
 
-parallelIntegTest {
-    systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
+model {
+    tasks.parallelIntegTest {
+        systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
+    }
 }
 
 useClassycle()

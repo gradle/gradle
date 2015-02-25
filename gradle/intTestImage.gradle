@@ -17,10 +17,6 @@
 evaluationDependsOn ":distributions"
 evaluationDependsOn ":docs"
 
-task intTestImage(type: Sync) {
-    into file("$buildDir/integ test")
-}
-
 if (useIncomingDistributions) {
     task unpackIncomingAllDistribution(type: Sync) {
         from zipTree(incomingAllDistribution)
