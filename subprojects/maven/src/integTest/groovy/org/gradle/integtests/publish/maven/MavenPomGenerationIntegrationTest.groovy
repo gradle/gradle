@@ -17,8 +17,12 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
+
 // this spec documents the status quo, not a desired behavior
 class MavenPomGenerationIntegrationTest extends AbstractIntegrationSpec {
+
+    @Unroll
     def "how configuration of archive task affects generated POM"() {
         buildFile << """
 apply plugin: "java"
@@ -60,6 +64,7 @@ uploadArchives {
         "myBaseName" | "2.3"      | "war"        | null          | "myBaseName"  | "1.9"      | "war"
     }
 
+    @Unroll
     def "how configuration of mavenDeployer.pom object affects generated POM"() {
         buildFile << """
 apply plugin: "java"
