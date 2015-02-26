@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,29 @@
 
 package org.gradle.logging
 
-import ch.qos.logback.core.AppenderBase
+import org.gradle.logging.internal.LogEvent
+import org.gradle.logging.internal.OutputEvent
+import org.gradle.logging.internal.OutputEventListener
 
-class TestAppender<LoggingEvent> extends AppenderBase<LoggingEvent> {
+class TestOutputEventListener implements OutputEventListener {
     final StringWriter writer = new StringWriter()
-
-    synchronized void doAppend(LoggingEvent e) {
-        append(e)
-    }
 
     @Override
     String toString() {
         return writer.toString()
     }
 
-    protected void append(LoggingEvent e) {
+    void reset() {
+        writer
+    }
+
+    @Override
+    synchronized void onOutput(OutputEvent event) {
+        LogEvent logEvent = event as LogEvent
         writer.append("[")
-        writer.append(e.level.toString())
+        writer.append(logEvent.logLevel.toString())
         writer.append(' ')
-        writer.append(e.formattedMessage)
+        writer.append(logEvent.message)
         writer.append("]")
     }
 }

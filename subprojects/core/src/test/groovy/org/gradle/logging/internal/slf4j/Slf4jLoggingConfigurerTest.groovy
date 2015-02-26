@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal.logback
+package org.gradle.logging.internal.slf4j
 
-import ch.qos.logback.classic.LoggerContext
-import ch.qos.logback.classic.Level
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.logging.internal.OutputEventListener
@@ -24,13 +22,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Specification
 
-class LogbackLoggingConfigurerTest extends Specification {
+class Slf4jLoggingConfigurerTest extends Specification {
     Logger logger = LoggerFactory.getLogger("cat1")
     OutputEventListener listener = Mock()
-    LogbackLoggingConfigurer configurer = new LogbackLoggingConfigurer(listener)
+    Slf4jLoggingConfigurer configurer = new Slf4jLoggingConfigurer(listener)
     
     def cleanup() {
-        def context = (LoggerContext) LoggerFactory.getILoggerFactory()
+        def context = (OutputEventListenerBackedLoggerContext) LoggerFactory.getILoggerFactory()
         context.reset()
     }
 
@@ -197,9 +195,9 @@ class LogbackLoggingConfigurerTest extends Specification {
         0 * _
     }
 
-    def "respects per-logger log level if either logger log level or event log level is one of OFF, ERROR, DEBUG, TRACE"() {
+    def "respects per-logger log level if either logger log level or event log level is one of ERROR, INFO, TRACE"() {
         configurer.configure(LogLevel.INFO)
-        logger.level = Level.DEBUG
+        logger.level = LogLevel.DEBUG
 
         when:
         logger.debug("message")
@@ -208,7 +206,7 @@ class LogbackLoggingConfigurerTest extends Specification {
         1 * listener._
 
         when:
-        logger.level = Level.ERROR
+        logger.level = LogLevel.ERROR
         logger.warn("message")
 
         then:
@@ -217,33 +215,12 @@ class LogbackLoggingConfigurerTest extends Specification {
 
     def "respects per-logger log level if both logger log level and event log level are WARN"() {
         configurer.configure(LogLevel.ERROR)
-        logger.level = Level.WARN
+        logger.level = LogLevel.WARN
 
         when:
         logger.warn("message")
 
         then:
         1 * listener._
-    }
-
-    // More a limitation than a feature, although it might not matter much for Gradle, where individual
-    // loggers usually don't have a log level set.
-    def "does not respect per-logger log level if either logger log level or event log level is one of INFO, LIFECYCLE, WARN, QUIET"() {
-        configurer.configure(LogLevel.INFO)
-        logger.level = Level.WARN
-
-        when:
-        logger.info("message")
-
-        then:
-        1 * listener._
-
-        when:
-        configurer.configure(LogLevel.WARN)
-        logger.level = Level.INFO
-        logger.info("message")
-
-        then:
-        0 * listener._
     }
 }

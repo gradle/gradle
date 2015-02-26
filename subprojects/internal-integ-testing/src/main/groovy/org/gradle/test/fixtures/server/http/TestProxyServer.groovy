@@ -15,12 +15,12 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import ch.qos.logback.classic.Level
+import org.gradle.api.logging.LogLevel
 import org.gradle.util.AvailablePortFinder
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource
-import org.slf4j.LoggerFactory
 import org.littleshoot.proxy.*
+import org.slf4j.LoggerFactory
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
@@ -45,7 +45,7 @@ class TestProxyServer extends ExternalResource {
 
     void start() {
         // Ignore warnings from this class
-        LoggerFactory.getLogger(HttpRequestHandler).level = Level.ERROR
+        LoggerFactory.getLogger(HttpRequestHandler).level = LogLevel.ERROR
 
         port = AvailablePortFinder.createPrivate().nextAvailable
         String remote = "localhost:${httpServer.port}"

@@ -23,7 +23,7 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
-import org.gradle.logging.internal.logback.LogbackLoggingConfigurer;
+import org.gradle.logging.internal.slf4j.Slf4jLoggingConfigurer;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -44,7 +44,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Replaces System.out and System.err with implementations that route output through the logging system.</li>
-     *     <li>Configures slf4j, logback, log4j and java util logging to route log messages through the logging system.</li>
+     *     <li>Configures slf4j, log4j and java util logging to route log messages through the logging system.</li>
      *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
      * </ul>
      *
@@ -61,7 +61,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
-     *     <li>Configures slf4j, logback and log4j to route log messages through the logging system.</li>
+     *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
      * </ul>
      *
      * <p>Does not:</p>
@@ -118,12 +118,12 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class CommandLineLogging extends LoggingServiceRegistry {
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            // Configure logback and java util logging, and capture stdout and stderr
+            // Configure slf4j and java util logging, and capture stdout and stderr
             LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
             LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
             return new DefaultLoggingManagerFactory(
                     new DefaultLoggingConfigurer(renderer,
-                            new LogbackLoggingConfigurer(renderer),
+                            new Slf4jLoggingConfigurer(renderer),
                             new JavaUtilLoggingConfigurer()),
                     renderer,
                     stdout,
@@ -140,10 +140,10 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class EmbeddedLogging extends LoggingServiceRegistry {
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            // Configure logback only
+            // Configure slf4j only
             return new DefaultLoggingManagerFactory(
                     new DefaultLoggingConfigurer(renderer,
-                            new LogbackLoggingConfigurer(renderer)),
+                            new Slf4jLoggingConfigurer(renderer)),
                     renderer,
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem());

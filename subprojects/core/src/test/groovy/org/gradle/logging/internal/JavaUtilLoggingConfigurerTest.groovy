@@ -18,15 +18,15 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.logging.Logger
 
 class JavaUtilLoggingConfigurerTest extends Specification {
-    final TestAppender appender = new TestAppender()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+    final TestOutputEventListener outputEventListener = new TestOutputEventListener()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     private final JavaUtilLoggingConfigurer configurer = new JavaUtilLoggingConfigurer()
 
     def routesJulToSlf4j() {
@@ -35,6 +35,6 @@ class JavaUtilLoggingConfigurerTest extends Specification {
         Logger.getLogger('test').info('info message')
 
         then:
-        appender.toString() == '[INFO info message]'
+        outputEventListener.toString() == '[INFO info message]'
     }
 }

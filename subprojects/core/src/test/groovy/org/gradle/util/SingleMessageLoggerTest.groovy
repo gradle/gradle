@@ -18,13 +18,13 @@ package org.gradle.util
 
 import org.gradle.internal.Factory
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.junit.Rule
 
 class SingleMessageLoggerTest extends ConcurrentSpec {
-    final TestAppender appender = new TestAppender()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+    final TestOutputEventListener outputEventListener = new TestOutputEventListener()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def cleanup() {
         SingleMessageLogger.reset()
@@ -36,14 +36,14 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        appender.toString() == '[WARN nag]'
+        outputEventListener.toString() == '[WARN nag]'
 
         when:
         SingleMessageLogger.reset()
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        appender.toString() == '[WARN nag][WARN nag]'
+        outputEventListener.toString() == '[WARN nag][WARN nag]'
     }
 
     def "does not log warning while disabled with factory"() {
@@ -63,7 +63,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        appender.toString().length() == 0
+        outputEventListener.toString().length() == 0
     }
 
     def "does not log warning while disabled with action"() {
@@ -77,7 +77,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        appender.toString().length() == 0
+        outputEventListener.toString().length() == 0
     }
 
     def "warnings are disabled for the current thread only"() {
@@ -98,7 +98,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         }
 
         then:
-        appender.toString() == '[WARN nag]'
+        outputEventListener.toString() == '[WARN nag]'
     }
 
     def "deprecation message has next major version"() {
@@ -109,6 +109,6 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
 
         then:
-        appender.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.]"
+        outputEventListener.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.]"
     }
 }

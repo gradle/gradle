@@ -63,8 +63,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             classpath = classpath.plus(moduleRegistry.getModule("gradle-native").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-messaging").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-classic").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-core").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("guava-jdk5").getClasspath());
             return classpath;
