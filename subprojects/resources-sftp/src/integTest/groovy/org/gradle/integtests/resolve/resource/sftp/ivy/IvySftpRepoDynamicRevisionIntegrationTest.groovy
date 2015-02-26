@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.resource.sftp
+package org.gradle.integtests.resolve.resource.sftp.ivy
+
+import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyResolutionTest {
     def "uses latest version from version range and latest status"() {
