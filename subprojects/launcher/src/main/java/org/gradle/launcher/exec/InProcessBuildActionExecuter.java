@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.*;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.util.Clock;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -36,6 +37,31 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             return action.run(buildController);
         } finally {
             buildController.stop();
+        }
+    }
+
+    private static class DefaultBuildRequestContext implements BuildRequestContext {
+        private final BuildCancellationToken token;
+        private final BuildRequestMetaData metaData;
+
+        public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token) {
+            this.metaData = metaData;
+            this.token = token;
+        }
+
+        @Override
+        public BuildCancellationToken getCancellationToken() {
+            return token;
+        }
+
+        @Override
+        public BuildClientMetaData getClient() {
+            return metaData.getClient();
+        }
+
+        @Override
+        public Clock getBuildTimeClock() {
+            return metaData.getBuildTimeClock();
         }
     }
 
@@ -66,7 +92,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
             }
             if (state == State.NotStarted) {
-                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, cancellationToken, actionParameters.getBuildRequestMetaData());
+                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, new DefaultBuildRequestContext(actionParameters.getBuildRequestMetaData(), cancellationToken));
                 state = State.Created;
             }
             return gradleLauncher;

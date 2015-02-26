@@ -25,13 +25,16 @@ public interface GradleLauncherFactory {
     /**
      * Creates a new {@link GradleLauncher} instance for the given parameters.
      * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
+     *
+     * @param startParameter The settings for the build.
+     * @param requestContext The context in which the build is running.
      */
-    GradleLauncher newInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData);
+    GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext);
 
     /**
      * Creates a new {@link GradleLauncher} instance for the given parameters.
      * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
      */
-    GradleLauncher newInstance(StartParameter startParameter, BuildCancellationToken cancellationToken);
+    GradleLauncher newInstance(StartParameter startParameter);
 
 }

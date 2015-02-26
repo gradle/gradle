@@ -28,41 +28,49 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
 
     def newInstanceWithStartParameterAndRequestMetaData() {
-        StartParameter startParameter = new StartParameter()
-        BuildCancellationToken cancellationToken = Mock()
-        BuildRequestMetaData metaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
+        def startParameter = new StartParameter()
+        def cancellationToken = Stub(BuildCancellationToken)
+        def requestContext = Stub(BuildRequestContext) {
+            getCancellationToken() >> cancellationToken
+        }
 
         expect:
-        def launcher = factory.newInstance(startParameter, cancellationToken, metaData)
+        def launcher = factory.newInstance(startParameter, requestContext)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
-        launcher.gradle.services.get(BuildRequestMetaData) == metaData
+        launcher.gradle.services.get(BuildRequestMetaData) == requestContext
+        launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
     }
 
     def newInstanceWithStartParameterWhenNoBuildRunning() {
-        StartParameter startParameter = new StartParameter()
-        BuildCancellationToken cancellationToken = Mock()
+        def startParameter = new StartParameter()
 
         expect:
-        def launcher = factory.newInstance(startParameter, cancellationToken)
+        def launcher = factory.newInstance(startParameter)
         launcher.gradle.parent == null
         launcher.gradle.services.get(BuildRequestMetaData) instanceof DefaultBuildRequestMetaData
+        launcher.gradle.services.get(BuildCancellationToken) instanceof FixedBuildCancellationToken
     }
 
     def newInstanceWithStartParameterWhenBuildRunning() {
-        StartParameter startParameter = new StartParameter()
-        BuildCancellationToken cancellationToken = Mock()
-        BuildClientMetaData clientMetaData = Mock()
-        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(clientMetaData, 90)
-        DefaultGradleLauncher parent = factory.newInstance(startParameter, cancellationToken, requestMetaData);
+        def startParameter = new StartParameter()
+        def cancellationToken = Stub(BuildCancellationToken)
+        def clientMetaData = Stub(BuildClientMetaData)
+        def requestContext = Stub(BuildRequestContext) {
+            getCancellationToken() >> cancellationToken
+            getClient() >> clientMetaData
+        }
+
+        DefaultGradleLauncher parent = factory.newInstance(startParameter, requestContext);
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = factory.newInstance(startParameter, cancellationToken)
+        def launcher = factory.newInstance(startParameter)
         launcher.gradle.parent == parent.gradle
         def request = launcher.gradle.services.get(BuildRequestMetaData)
         request instanceof DefaultBuildRequestMetaData
-        request != requestMetaData
+        request != requestContext
         request.client == clientMetaData
+        launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
     }
 }

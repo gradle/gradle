@@ -61,7 +61,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * action.run(!null) >> { BuildController controller ->
             assert controller.launcher == launcher
             return '<result>'
@@ -80,7 +80,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(startParam, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(startParam, _) >> launcher
         1 * action.run(!null) >> { BuildController controller ->
             controller.startParameter = startParam
             assert controller.launcher == launcher
@@ -98,7 +98,7 @@ class InProcessBuildActionExecuterTest extends Specification {
             controller.launcher
             controller.startParameter = startParam
         }
-        _ * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        _ * factory.newInstance(!null, _) >> launcher
 
         when:
         executer.execute(action, cancellationToken, param)
@@ -121,7 +121,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * launcher.getGradle() >> gradle
         1 * action.run(!null) >> { BuildController controller ->
             assert controller.getGradle() == gradle
@@ -140,7 +140,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * launcher.run() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
@@ -161,7 +161,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * launcher.getBuildAnalysis() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
@@ -189,7 +189,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * launcher.run() >> buildResult
         1 * launcher.stop()
     }
@@ -209,7 +209,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         e.cause == failure
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(!null, _) >> launcher
         1 * launcher.run() >> buildResult
         1 * action.run(!null) >> { BuildController controller ->
             controller.run()
