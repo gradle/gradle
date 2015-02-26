@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -63,6 +64,10 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
     public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
         operationParamsBuilder.setLaunchables(launchables);
         return this;
+    }
+
+    public BuildLauncher addTestProgressListener(TestProgressListener listener) {
+        throw new UnsupportedOperationException("Not yet implemented.");
     }
 
     public void run() {
