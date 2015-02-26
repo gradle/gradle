@@ -16,7 +16,6 @@
 
 package org.gradle.listener;
 
-import groovy.lang.Closure;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
@@ -52,10 +51,6 @@ public class DefaultListenerManager implements ListenerManager {
                 }
             }
         }
-    }
-
-    public void addListener(Class<?> listenerType, String method, Closure listenerClosure) {
-        addListener(new ClosureListener(listenerType, method, listenerClosure));
     }
 
     public void removeListener(Object listener) {
@@ -134,30 +129,13 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     private void maybeAddToDispatcher(BroadcastDispatch broadcaster, Object listener) {
-        if (listener instanceof ClosureListener) {
-            ClosureListener closureListener = (ClosureListener) listener;
-            if (broadcaster.getType().isAssignableFrom(closureListener.listenerType)) {
-                broadcaster.add(new ClosureBackedMethodInvocationDispatch(closureListener.method, closureListener.closure));
-            }
-        } else if (broadcaster.getType().isInstance(listener)) {
+        if (broadcaster.getType().isInstance(listener)) {
             broadcaster.add(listener);
         }
     }
 
     public ListenerManager createChild() {
         return new DefaultListenerManager(this);
-    }
-
-    private static class ClosureListener {
-        final Class<?> listenerType;
-        final String method;
-        final Closure closure;
-
-        private ClosureListener(Class<?> listenerType, String method, Closure closure) {
-            this.listenerType = listenerType;
-            this.method = method;
-            this.closure = closure;
-        }
     }
 
     private static class LoggerDispatch implements Dispatch<MethodInvocation> {

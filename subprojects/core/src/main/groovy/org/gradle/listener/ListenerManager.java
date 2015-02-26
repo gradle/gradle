@@ -16,8 +16,6 @@
 
 package org.gradle.listener;
 
-import groovy.lang.Closure;
-
 /**
  * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the
  * system.
@@ -34,17 +32,6 @@ public interface ListenerManager {
      * @param listener the listener to add.
      */
     void addListener(Object listener);
-
-    /**
-     * Added a listener implemented via a Groovy closure.  The closure can implement a single method of the given
-     * listenerType class.  There is no order dependency: if a broadcaster has already been made for listenerType, the
-     * closure will be registered with it.
-     *
-     * @param listenerType The class of the listener type for which the closure is a method implementation.
-     * @param method The name of the method in the listenerType class for which the closure is an implementation.
-     * @param listenerClosure The closure containing the implementation of the listener method.
-     */
-    void addListener(Class<?> listenerType, String method, Closure listenerClosure);
 
     /**
      * Removes a listener.  A single object can implement multiple interfaces, and all interfaces are unregistered by a
