@@ -35,7 +35,7 @@ import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.messaging.serialize.DefaultSerializerRegistry;
 import org.gradle.messaging.serialize.SerializerRegistry;
 

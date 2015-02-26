@@ -29,7 +29,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 

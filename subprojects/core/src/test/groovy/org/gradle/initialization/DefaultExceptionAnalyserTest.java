@@ -22,7 +22,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

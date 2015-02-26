@@ -40,8 +40,8 @@ import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.DefaultListenerManager
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer

@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 
 import java.io.InputStream;
 

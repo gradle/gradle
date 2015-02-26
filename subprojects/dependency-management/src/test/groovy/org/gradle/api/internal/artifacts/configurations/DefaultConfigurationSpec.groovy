@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.listener.ListenerBroadcast
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class DefaultConfigurationSpec extends Specification {

@@ -45,7 +45,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 

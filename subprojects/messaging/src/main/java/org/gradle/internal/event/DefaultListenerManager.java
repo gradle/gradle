@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.listener;
+package org.gradle.internal.event;
 
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;

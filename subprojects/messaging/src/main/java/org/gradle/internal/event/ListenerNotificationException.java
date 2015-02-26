@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.event;
 
-package org.gradle.tooling.internal.consumer;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.Contextual;
 
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.logging.ProgressLoggerFactory;
-
-public interface LoggingProvider {
-    ListenerManager getListenerManager();
-    ProgressLoggerFactory getProgressLoggerFactory();
+/**
+ * A {@code ListenerNotificationException} is thrown when a listener cannot be notified of an event.
+ */
+@Contextual
+public class ListenerNotificationException extends DefaultMultiCauseException {
+    public ListenerNotificationException(String message, Iterable<? extends Throwable> causes) {
+        super(message, causes);
+    }
 }

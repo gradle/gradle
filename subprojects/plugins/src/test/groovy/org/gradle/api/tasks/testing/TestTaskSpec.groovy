@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

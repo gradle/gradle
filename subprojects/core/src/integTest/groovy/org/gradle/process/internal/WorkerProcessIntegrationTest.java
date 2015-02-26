@@ -32,7 +32,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnectionBuilder;
 import org.gradle.messaging.remote.internal.MessagingServices;

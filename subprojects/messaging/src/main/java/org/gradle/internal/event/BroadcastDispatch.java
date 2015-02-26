@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.listener;
+package org.gradle.internal.event;
 
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;

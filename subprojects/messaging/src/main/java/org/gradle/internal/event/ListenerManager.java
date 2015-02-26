@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.listener;
+package org.gradle.internal.event;
 
 /**
  * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the

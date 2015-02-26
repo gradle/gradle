@@ -32,7 +32,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 
 import java.util.LinkedList;
 import java.util.List;

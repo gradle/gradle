@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 public class DefaultConfigurationContainerSpec extends Specification {

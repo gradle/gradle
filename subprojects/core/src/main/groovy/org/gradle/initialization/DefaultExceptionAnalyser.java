@@ -24,7 +24,7 @@ import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 
 import java.util.HashMap;
 import java.util.Map;

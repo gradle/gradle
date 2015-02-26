@@ -30,7 +30,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProcessor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class TaskExecutionServicesTest extends Specification {

@@ -23,8 +23,8 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.listener.ListenerBroadcast
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerBroadcast
+import org.gradle.internal.event.ListenerManager
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 

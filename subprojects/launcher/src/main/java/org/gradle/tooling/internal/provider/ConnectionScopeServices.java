@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;

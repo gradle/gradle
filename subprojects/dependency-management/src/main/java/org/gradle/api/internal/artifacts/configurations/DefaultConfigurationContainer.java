@@ -25,7 +25,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 
 import java.util.Collection;
 import java.util.Set;

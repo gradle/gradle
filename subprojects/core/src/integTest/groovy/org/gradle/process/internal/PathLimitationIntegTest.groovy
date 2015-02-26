@@ -31,7 +31,7 @@ import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.messaging.remote.internal.MessagingServices
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider
