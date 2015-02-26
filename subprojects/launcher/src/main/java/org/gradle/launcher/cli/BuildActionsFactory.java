@@ -147,7 +147,7 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return daemonBuildAction(startParameter, daemonParameters, client);
+        return runBuild(startParameter, daemonParameters, client);
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
@@ -163,7 +163,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .provider(new GlobalScopeServices(false))
                 .build();
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
-        return daemonBuildAction(startParameter, daemonParameters, executer);
+        return runBuild(startParameter, daemonParameters, executer);
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
@@ -180,7 +180,7 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return daemonBuildAction(startParameter, daemonParameters, client);
+        return runBuild(startParameter, daemonParameters, client);
     }
 
     private ServiceRegistry createGlobalClientServices() {
@@ -192,7 +192,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .build();
     }
 
-    private Runnable daemonBuildAction(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {
+    private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {
         return new RunBuildAction(executer, startParameter, SystemProperties.getInstance().getCurrentDir(), clientMetaData(), getBuildStartTime(), daemonParameters.getEffectiveSystemProperties(), System.getenv());
     }
 
