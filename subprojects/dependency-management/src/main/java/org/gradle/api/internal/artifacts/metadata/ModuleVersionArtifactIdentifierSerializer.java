@@ -20,14 +20,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.MapSerializer;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ModuleVersionArtifactIdentifierSerializer implements Serializer<ModuleComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();

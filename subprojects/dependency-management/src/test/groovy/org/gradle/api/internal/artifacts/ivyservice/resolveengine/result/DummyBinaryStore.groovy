@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.internal.cache.BinaryStore
-import org.gradle.messaging.serialize.Decoder
-import org.gradle.messaging.serialize.Encoder
-import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.OutputStreamBackedEncoder
 
 public class DummyBinaryStore implements BinaryStore {
 

@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.internal.resource.cached.CachedItem;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.SerializerSpec
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 

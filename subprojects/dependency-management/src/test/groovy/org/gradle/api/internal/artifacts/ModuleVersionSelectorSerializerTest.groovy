@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 

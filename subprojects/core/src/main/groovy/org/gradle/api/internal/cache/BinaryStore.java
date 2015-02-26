@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.cache;
 
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 import java.io.Closeable;
 import java.io.IOException;

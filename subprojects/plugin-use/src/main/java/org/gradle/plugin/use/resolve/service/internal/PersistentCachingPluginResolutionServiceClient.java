@@ -23,9 +23,9 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 import java.io.IOException;
@@ -192,7 +192,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
             return result;
         }
 
-        private static class Serializer implements org.gradle.messaging.serialize.Serializer<PluginRequestKey> {
+        private static class Serializer implements org.gradle.internal.serialize.Serializer<PluginRequestKey> {
 
             public PluginRequestKey read(Decoder decoder) throws Exception {
                 return new PluginRequestKey(decoder.readString(), decoder.readString(), decoder.readString());
@@ -215,7 +215,7 @@ public class PersistentCachingPluginResolutionServiceClient implements PluginRes
             this.portalUrl = portalUrl;
         }
 
-        public static class Serializer implements org.gradle.messaging.serialize.Serializer<ClientStatusKey> {
+        public static class Serializer implements org.gradle.internal.serialize.Serializer<ClientStatusKey> {
             public ClientStatusKey read(Decoder decoder) throws Exception {
                 return new ClientStatusKey(decoder.readString());
             }

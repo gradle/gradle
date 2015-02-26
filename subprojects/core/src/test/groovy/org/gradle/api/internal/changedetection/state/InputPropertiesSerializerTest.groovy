@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.GradleException
-import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.MapSerializer
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.MapSerializer
+import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
 

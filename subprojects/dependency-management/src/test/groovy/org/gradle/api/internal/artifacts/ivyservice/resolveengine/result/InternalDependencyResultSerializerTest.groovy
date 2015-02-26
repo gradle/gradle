@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId

@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
-import org.gradle.messaging.serialize.Serializer
+import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.gradle.util.BuildCommencedTimeProvider

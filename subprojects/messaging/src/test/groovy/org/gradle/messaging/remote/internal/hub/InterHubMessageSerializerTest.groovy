@@ -20,7 +20,7 @@ import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
-import org.gradle.messaging.serialize.kryo.JavaSerializer
+import org.gradle.internal.serialize.kryo.JavaSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {

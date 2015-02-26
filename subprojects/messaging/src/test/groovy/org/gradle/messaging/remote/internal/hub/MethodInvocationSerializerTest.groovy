@@ -17,9 +17,9 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.messaging.dispatch.MethodInvocation
-import org.gradle.messaging.serialize.kryo.JavaSerializer
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.serialize.kryo.JavaSerializer
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class MethodInvocationSerializerTest extends Specification {

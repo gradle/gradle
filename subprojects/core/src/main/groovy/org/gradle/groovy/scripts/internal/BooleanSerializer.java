@@ -16,9 +16,9 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 public class BooleanSerializer implements Serializer<Boolean> {
     @Override

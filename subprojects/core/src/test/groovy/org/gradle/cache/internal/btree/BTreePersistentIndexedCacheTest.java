@@ -15,8 +15,8 @@
  */
 package org.gradle.cache.internal.btree;
 
-import org.gradle.messaging.serialize.DefaultSerializer;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;

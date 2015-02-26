@@ -24,10 +24,10 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.FlushableEncoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.process.internal.child.EncodedStream;
 
 import java.io.*;

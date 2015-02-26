@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
 

@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 public class InMemoryNonExclusiveStore implements PersistentStore {
 

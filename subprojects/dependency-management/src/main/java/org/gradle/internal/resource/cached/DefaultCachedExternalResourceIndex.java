@@ -19,7 +19,7 @@ package org.gradle.internal.resource.cached;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.internal.resource.cached.ivy.AbstractCachedIndex;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;

@@ -22,9 +22,9 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.DefaultCachedArtifact;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;

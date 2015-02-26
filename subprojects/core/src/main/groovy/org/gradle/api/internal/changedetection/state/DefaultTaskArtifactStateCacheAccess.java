@@ -23,7 +23,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
 

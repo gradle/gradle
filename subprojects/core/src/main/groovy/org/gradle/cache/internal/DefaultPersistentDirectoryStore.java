@@ -20,7 +20,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

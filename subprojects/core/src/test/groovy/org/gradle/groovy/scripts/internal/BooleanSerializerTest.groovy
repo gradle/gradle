@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts.internal
 
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
 
 class BooleanSerializerTest extends SerializerSpec {
 

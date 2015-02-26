@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.use.internal.DefaultPluginRequests;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.internal.PluginRequests;

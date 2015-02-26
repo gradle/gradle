@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.util.HashMap;
 import java.util.Map;

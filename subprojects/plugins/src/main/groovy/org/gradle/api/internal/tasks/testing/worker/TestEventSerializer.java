@@ -20,9 +20,9 @@ import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.serialize.*;
 import org.gradle.messaging.remote.internal.Message;
-import org.gradle.messaging.serialize.*;
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.kryo.StatefulSerializer;
 
 public class TestEventSerializer implements StatefulSerializer<Object[]> {
     private final Serializer<Object> paramSerializer;

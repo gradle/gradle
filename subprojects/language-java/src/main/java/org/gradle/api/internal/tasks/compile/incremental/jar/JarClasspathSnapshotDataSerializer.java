@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.messaging.serialize.*;
+import org.gradle.internal.serialize.*;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.*;
+import static org.gradle.internal.serialize.BaseSerializerFactory.*;
 
 public class JarClasspathSnapshotDataSerializer implements Serializer<JarClasspathSnapshotData> {
 

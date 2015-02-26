@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
-import org.gradle.messaging.serialize.Serializer
+import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

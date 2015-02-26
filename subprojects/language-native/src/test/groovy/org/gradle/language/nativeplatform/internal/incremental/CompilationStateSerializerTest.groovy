@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
 
 class CompilationStateSerializerTest extends SerializerSpec {
     def state = new CompilationState()

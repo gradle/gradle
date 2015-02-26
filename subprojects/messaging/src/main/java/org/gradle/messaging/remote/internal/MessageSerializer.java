@@ -16,8 +16,8 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
 
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.messaging.serialize.Serializer
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.serialize.SerializerSpec
 
 class OutputFilesSnapshotSerializerTest extends SerializerSpec {
     def targetSerializer = Mock(Serializer)

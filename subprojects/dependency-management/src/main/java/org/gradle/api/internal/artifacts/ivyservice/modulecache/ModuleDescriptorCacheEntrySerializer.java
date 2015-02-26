@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.DefaultSerializer;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.math.BigInteger;
 

@@ -17,15 +17,15 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.MapSerializer;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
-import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class JarSnapshotDataSerializer implements Serializer<JarSnapshotData> {
 

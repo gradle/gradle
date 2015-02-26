@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
-import org.gradle.messaging.serialize.*;
+import org.gradle.internal.serialize.*;
 
 import java.util.Map;
 

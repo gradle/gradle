@@ -23,8 +23,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.*;
 import java.nio.charset.Charset;

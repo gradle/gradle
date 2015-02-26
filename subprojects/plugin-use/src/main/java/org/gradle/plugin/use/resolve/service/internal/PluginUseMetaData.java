@@ -16,9 +16,9 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.messaging.serialize.BaseSerializerFactory;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 
 import java.util.Map;
 
@@ -83,7 +83,7 @@ public class PluginUseMetaData {
         return result;
     }
 
-    public static class Serializer implements org.gradle.messaging.serialize.Serializer<PluginUseMetaData> {
+    public static class Serializer implements org.gradle.internal.serialize.Serializer<PluginUseMetaData> {
         public PluginUseMetaData read(Decoder decoder) throws Exception {
             return new PluginUseMetaData(
                     decoder.readString(),

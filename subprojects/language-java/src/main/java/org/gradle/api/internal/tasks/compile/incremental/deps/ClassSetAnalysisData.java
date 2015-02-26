@@ -16,15 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.MapSerializer;
-import org.gradle.messaging.serialize.SetSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.SetSerializer;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClassSetAnalysisData {
 
@@ -38,7 +38,7 @@ public class ClassSetAnalysisData {
         return dependents.get(className);
     }
 
-    public static class Serializer implements org.gradle.messaging.serialize.Serializer<ClassSetAnalysisData> {
+    public static class Serializer implements org.gradle.internal.serialize.Serializer<ClassSetAnalysisData> {
 
         private final MapSerializer<String, DependentsSet> serializer = new MapSerializer<String, DependentsSet>(
                 STRING_SERIALIZER, new DependentsSetSerializer());
@@ -53,7 +53,7 @@ public class ClassSetAnalysisData {
             serializer.write(encoder, value.dependents);
         }
 
-        private static class DependentsSetSerializer implements org.gradle.messaging.serialize.Serializer<DependentsSet> {
+        private static class DependentsSetSerializer implements org.gradle.internal.serialize.Serializer<DependentsSet> {
 
             private SetSerializer<String> setSerializer = new SetSerializer<String>(STRING_SERIALIZER, false);
 

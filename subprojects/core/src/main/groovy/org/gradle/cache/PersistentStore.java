@@ -16,7 +16,7 @@
 
 package org.gradle.cache;
 
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Represents some persistent store.

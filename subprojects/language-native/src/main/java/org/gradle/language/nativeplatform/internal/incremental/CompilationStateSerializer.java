@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.messaging.serialize.*;
+import org.gradle.internal.serialize.*;
 
 import java.io.File;
 import java.util.Set;

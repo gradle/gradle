@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
 
 public class ComponentSelectorSerializerTest extends SerializerSpec {
     ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()

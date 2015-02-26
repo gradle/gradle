@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 

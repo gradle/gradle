@@ -17,9 +17,9 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.internal.PluginId;
 
 import java.util.ArrayList;

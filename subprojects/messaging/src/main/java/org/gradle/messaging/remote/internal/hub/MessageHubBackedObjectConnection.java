@@ -28,9 +28,9 @@ import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
-import org.gradle.messaging.serialize.kryo.JavaSerializer;
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
-import org.gradle.messaging.serialize.kryo.TypeSafeSerializer;
+import org.gradle.internal.serialize.kryo.JavaSerializer;
+import org.gradle.internal.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

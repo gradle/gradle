@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote;
 
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.kryo.StatefulSerializer;
 
 public interface ObjectConnectionBuilder {
     /**

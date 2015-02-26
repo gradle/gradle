@@ -20,7 +20,7 @@ import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;

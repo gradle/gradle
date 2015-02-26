@@ -21,11 +21,11 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-import static org.gradle.messaging.serialize.BaseSerializerFactory.LONG_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 import static org.gradle.util.GUtil.toCamelCase;
 
 public class SingleOperationPersistentStore<V> {

@@ -22,8 +22,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.internal.MessageIOException;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.RemoteConnection;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
 
 import java.io.EOFException;
 import java.io.IOException;

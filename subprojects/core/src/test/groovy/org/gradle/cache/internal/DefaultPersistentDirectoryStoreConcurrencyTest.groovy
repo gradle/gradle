@@ -19,7 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.messaging.serialize.NullSafeStringSerializer
+import org.gradle.internal.serialize.NullSafeStringSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
