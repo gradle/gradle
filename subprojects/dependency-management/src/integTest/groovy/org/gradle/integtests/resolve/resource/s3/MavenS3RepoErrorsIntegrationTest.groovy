@@ -27,9 +27,7 @@ class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTes
         return '/maven/release/'
     }
 
-    def "should fail with an AWS S3 authentication error"() {
-        setup:
-        buildFile << mavenAwsRepoDsl()
+    def setup() {
         buildFile << """
 configurations { compile }
 
@@ -42,6 +40,12 @@ task retrieve(type: Sync) {
     into 'libs'
 }
 """
+    }
+
+    def "should fail with an AWS S3 authentication error"() {
+        setup:
+        buildFile << mavenAwsRepoDsl()
+
         when:
         s3StubSupport.stubGetFileAuthFailure("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
         then:
@@ -65,17 +69,6 @@ repositories {
         }
     }
 }
-
-configurations { compile }
-
-dependencies{
-    compile 'org.gradle:test:$artifactVersion'
-}
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
 """
 
         when:
@@ -84,24 +77,29 @@ task retrieve(type: Sync) {
         //TODO would be good to have a reference of the wrong configured repository in the error message
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause("Credentials must be an instance of 'org.gradle.api.artifacts.repositories.AwsCredentials'.")
+    }
+
+    def "fails when no credentials provided"() {
+        setup:
+        buildFile << """
+repositories {
+    maven {
+        url "s3://${getBucket()}${getRepositoryPath()}"
+    }
+}
+"""
+
+        when:
+        fails 'retrieve'
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause("AwsCredentials must be set for S3 backed repository.")
 
     }
 
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenAwsRepoDsl()
-        buildFile << """
-configurations { compile }
-
-dependencies{
-    compile 'org.gradle:test:$artifactVersion'
-}
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
-"""
         when:
         s3StubSupport.stubFileNotFound("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
         s3StubSupport.stubMetaDataMissing("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.jar")
