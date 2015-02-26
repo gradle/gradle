@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.listener;
-
-import org.gradle.messaging.dispatch.ContextClassLoaderDispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-import org.gradle.messaging.dispatch.ReflectionDispatch;
+package org.gradle.messaging.dispatch;
 
 /**
  * Creates a proxy object which sets the context ClassLoader when invoking methods on the target object.
