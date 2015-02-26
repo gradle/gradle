@@ -286,12 +286,43 @@ task multiNative(type: ProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
+task smallScenarioNative(type: ProjectGeneratorTask) {
+    projects = 1
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-source', 'native-scenario']
+}
+
+task mediumScenarioNative(type: ProjectGeneratorTask) {
+    projects = 25
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 20
+    ]
+    subProjectTemplates = ['native-source', 'native-scenario']
+}
+
+task bigScenarioNative(type: ProjectGeneratorTask) {
+    projects = 500
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 50
+    ]
+    subProjectTemplates = ['native-source', 'native-scenario']
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
-                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative])
+                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative,
+                                smallScenarioNative, mediumScenarioNative, bigScenarioNative])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
