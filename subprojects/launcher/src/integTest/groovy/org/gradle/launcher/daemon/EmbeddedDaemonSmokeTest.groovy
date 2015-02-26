@@ -15,15 +15,15 @@
  */
 package org.gradle.launcher.daemon
 
+import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.FixedBuildCancellationToken
+import org.gradle.launcher.cli.ExecuteBuildAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.ConfiguringBuildAction
-import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -41,15 +41,12 @@ class EmbeddedDaemonSmokeTest extends Specification {
 
     def "run build"() {
         given:
-        def providerParams = Stub(ProviderOperationParameters) {
-            getProjectDir() >> temp.testDirectory
-            getSearchUpwards() >> false
-            getTasks() >> ['echo']
-            getLaunchables(_) >> null
-            getArguments(_) >> []
-            getGradleUserHomeDir() >> temp.createDir("user-home")
-        }
-        def action = new ConfiguringBuildAction(providerParams, new ExecuteBuildAction(), [:])
+        def startParams = new StartParameter()
+        startParams.projectDir = temp.testDirectory
+        startParams.searchUpwards = false
+        startParams.taskNames = ['echo']
+        startParams.gradleUserHomeDir = temp.createDir("user-home")
+        def action = new ExecuteBuildAction(startParams)
         def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), new Date().time, System.properties, System.getenv(), temp.testDirectory, LogLevel.LIFECYCLE)
         
         and:
