@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+
 public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
     def "publishes nothing without defined publication"() {

@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+
 import javax.xml.namespace.QName
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll

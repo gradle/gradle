@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+
 class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
     def project1 = ivyRepo.module("org.gradle.test", "project1", "1.0")
     def project2 = ivyRepo.module("org.gradle.test", "project2", "2.0")

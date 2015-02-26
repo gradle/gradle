@@ -15,6 +15,8 @@
  */
 
 package org.gradle.api.publish.maven
+
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 

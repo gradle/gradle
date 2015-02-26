@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 

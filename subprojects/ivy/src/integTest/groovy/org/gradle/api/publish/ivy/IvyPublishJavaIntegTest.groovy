@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 

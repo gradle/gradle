@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {

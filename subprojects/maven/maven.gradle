@@ -33,6 +33,8 @@ dependencies {
     integTestCompile project(":ear")
     integTestRuntime project(":resourcesS3")
     integTestRuntime project(":resourcesSftp")
+
+    testFixturesCompile project(":internalIntegTesting")
 }
 
 useTestFixtures()

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
 import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
 class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTest {

@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+
 public class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can publish single jar with specified coordinates"() {
