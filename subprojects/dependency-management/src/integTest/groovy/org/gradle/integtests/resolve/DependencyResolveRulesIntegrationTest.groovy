@@ -813,6 +813,56 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test:check")
     }
 
+    void "external dependency substituted for a project dependency participates in conflict resolution"()
+    {
+        mavenRepo.module("org.utils", "api", '2.0').publish()
+
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":impl") {
+                dependencies {
+                    conf project(":api")
+                    conf "org.utils:api:2.0"
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
+                    it.useTarget "org.utils:api:1.6"
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 2
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(projectId(":api")) &&
+                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
+                        !it.selected.selectionReason.forced &&
+                        !it.selected.selectionReason.selectedByRule &&
+                        it.selected.selectionReason.conflictResolution
+                    }
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
+                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
+                        !it.selected.selectionReason.forced &&
+                        !it.selected.selectionReason.selectedByRule &&
+                        it.selected.selectionReason.conflictResolution
+                    }
+
+                    def resolvedDeps = configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
+                    resolvedDeps.size() == 1
+                    resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
