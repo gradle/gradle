@@ -169,6 +169,25 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
+    def "allows changing any lenient property of a configuration whose child has been resolved"() {
+        buildFile << """
+            configurations {
+                a
+                b.extendsFrom a
+                c.extendsFrom b
+            }
+            configurations.c.resolve()
+            configurations.a.resolutionStrategy.failOnVersionConflict()
+            configurations.a.resolutionStrategy.force "org.utils:api:1.3"
+            configurations.a.resolutionStrategy.forcedModules = [ "org.utils:api:1.4" ]
+            configurations.a.resolutionStrategy.eachDependency {}
+            configurations.a.resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+            configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+            configurations.a.resolutionStrategy.componentSelection.all {}
+        """
+        expect: succeeds()
+    }
+
     def "warning is upgraded to an error when configuration is resolved"() {
         buildFile << """
             configurations {
