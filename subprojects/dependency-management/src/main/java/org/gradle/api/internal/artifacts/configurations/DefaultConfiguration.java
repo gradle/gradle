@@ -475,7 +475,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // The public result for the configuration has been calculated. It is an
                 // error to change non-lenient properties, and deprecated to change anything else
                 // about the configuration.
-                // TODO Add logic from PR#409 for deprecated changes
                 if (lenient) {
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
                 } else {
