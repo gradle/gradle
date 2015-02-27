@@ -456,7 +456,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         switch (state) {
             case UNOBSERVED:
                 // Nothing from the configuration has been observed yet, can change anything.
-                return;
+                break;
             case OBSERVED:
                 // The configuration has been used in a resolution, and it is deprecated for
                 // build logic to change any dependencies, artifacts, exclude rules or parent
