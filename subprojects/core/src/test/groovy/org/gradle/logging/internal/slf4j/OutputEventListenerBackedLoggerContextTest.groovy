@@ -19,13 +19,13 @@ package org.gradle.logging.internal.slf4j
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.logging.LogLevel.INFO
+import static org.gradle.api.logging.LogLevel.LIFECYCLE
 import static org.slf4j.Logger.ROOT_LOGGER_NAME
 
 @Unroll
 class OutputEventListenerBackedLoggerContextTest extends Specification {
 
-    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(null);
+    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err);
 
     private OutputEventListenerBackedLogger logger(String name) {
         context.getLogger(name)
@@ -49,7 +49,7 @@ class OutputEventListenerBackedLoggerContextTest extends Specification {
 
     def "default log level is INFO"() {
         expect:
-        logger(name).effectiveLevel == INFO
+        logger(name).effectiveLevel == LIFECYCLE
 
         where:
         name << [ROOT_LOGGER_NAME, "foo", "foo.bar"]

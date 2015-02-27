@@ -59,6 +59,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
+            from rootProject.configurations.distributionOnly
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }

@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.logging.internal.LogEvent
 import org.gradle.logging.internal.OutputEventListener
-import org.gradle.util.TextUtil
 import org.slf4j.Marker
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -35,7 +34,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
     OutputEventListenerBackedLoggerContext context
 
     def setup() {
-        context = new OutputEventListenerBackedLoggerContext(null)
+        context = new OutputEventListenerBackedLoggerContext(System.out, System.err)
         context.outputEventListener = Mock(OutputEventListener) {
             onOutput(_) >> { LogEvent event -> events << event }
         }
@@ -126,8 +125,8 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
     def "log level propagates when it's set on ancestor"() {
         expect:
-        logger().effectiveLevel == INFO
-        child().effectiveLevel == INFO
+        logger().effectiveLevel == LIFECYCLE
+        child().effectiveLevel == LIFECYCLE
 
         when:
         parent().level = WARN
@@ -792,43 +791,5 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         def stream = new ByteArrayOutputStream()
         e.printStackTrace(new PrintStream(stream))
         stream.toString()
-    }
-
-    def "prints messages to the stream provided at context construction time if no listener has been set"() {
-        given:
-        def stream = new ByteArrayOutputStream()
-        context = new OutputEventListenerBackedLoggerContext(new PrintStream(stream))
-
-        when:
-        logger("foo.Bar").info("message")
-
-        then:
-        stream.toString() == TextUtil.toPlatformLineSeparators("""INFO foo.Bar - message
-""")
-
-        when:
-        stream.reset()
-        def fizzLogger = logger("foo.bar.Fizz")
-        def exception = new Exception("Exception message")
-        def stacktrace = stacktrace(exception)
-
-        and:
-        fizzLogger.level = WARN
-        fizzLogger.warn("message", exception)
-
-        then:
-        stream.toString() == TextUtil.toPlatformLineSeparators("""WARN foo.bar.Fizz - message
-""" + stacktrace)
-
-        when:
-        stream.reset()
-        def buzzLogger = logger("foo.bar.Buzz")
-
-        and:
-        buzzLogger.level = ERROR
-        buzzLogger.error(null, exception)
-
-        then:
-        stream.toString() == "ERROR foo.bar.Buzz - " + stacktrace
     }
 }

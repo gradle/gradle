@@ -488,7 +488,7 @@ public class OutputEventListenerBackedLogger implements Logger {
 
     public void reset() {
         level = null;
-        effectiveLevel = LogLevel.INFO;
+        effectiveLevel = null;
         disabled = false;
         if (childrenList != null) {
             for (OutputEventListenerBackedLogger child : childrenList) {
