@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildAction
 import org.gradle.initialization.BuildController
-import org.gradle.initialization.FixedBuildCancellationToken
+import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
@@ -42,7 +42,7 @@ import spock.lang.Specification
 class DaemonServerExceptionHandlingTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def cancellationToken = new FixedBuildCancellationToken()
+    def buildRequestContext = Stub(BuildRequestContext)
     def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
@@ -62,7 +62,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, cancellationToken, parameters)
+        client.execute(action, buildRequestContext, parameters)
 
         then:
         def ex = thrown(MessageIOException)
@@ -98,7 +98,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
 
         then:
         def ex = thrown(Throwable)
@@ -114,7 +114,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
 
         then:
         def ex = thrown(OutOfMemoryError)

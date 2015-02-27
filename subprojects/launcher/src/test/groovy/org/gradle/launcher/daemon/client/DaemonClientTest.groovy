@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.client
 import org.gradle.api.BuildCancelledException
 import org.gradle.initialization.BuildAction
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
@@ -36,7 +37,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def executesAction() {
         when:
-        def result = client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        def result = client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         result == '[result]'
@@ -54,7 +55,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         RuntimeException e = thrown()
@@ -70,10 +71,13 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "throws an exception when build is cancelled and daemon is forcefully stopped"() {
-        BuildCancellationToken cancellationToken = Mock()
+        def cancellationToken = Mock(BuildCancellationToken)
+        def buildRequestContext = Stub(BuildRequestContext) {
+            getCancellationToken() >> cancellationToken
+        }
 
         when:
-        client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters))
 
         then:
         BuildCancelledException gce = thrown()
@@ -96,11 +100,14 @@ class DaemonClientTest extends ConcurrentSpecification {
     }
 
     def "throws an exception when build is cancelled and correctly finishes build"() {
-        BuildCancellationToken cancellationToken = Mock()
-        BuildCancelledException cancelledException = Mock()
+        def cancellationToken = Mock(BuildCancellationToken)
+        def cancelledException = new BuildCancelledException()
+        def buildRequestContext = Stub(BuildRequestContext) {
+            getCancellationToken() >> cancellationToken
+        }
 
         when:
-        client.execute(Stub(BuildAction), cancellationToken, Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters))
 
         then:
         BuildCancelledException gce = thrown()
@@ -127,7 +134,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -143,7 +150,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -161,7 +168,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -180,7 +187,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildCancellationToken), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
 
         then:
         thrown(NoUsableDaemonFoundException)

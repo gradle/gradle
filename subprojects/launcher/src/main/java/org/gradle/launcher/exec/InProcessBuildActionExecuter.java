@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.*;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.util.Clock;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -31,37 +30,12 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters actionParameters) {
-        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, cancellationToken, actionParameters);
+    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
+        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, buildRequestContext, actionParameters);
         try {
             return action.run(buildController);
         } finally {
             buildController.stop();
-        }
-    }
-
-    private static class DefaultBuildRequestContext implements BuildRequestContext {
-        private final BuildCancellationToken token;
-        private final BuildRequestMetaData metaData;
-
-        public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token) {
-            this.metaData = metaData;
-            this.token = token;
-        }
-
-        @Override
-        public BuildCancellationToken getCancellationToken() {
-            return token;
-        }
-
-        @Override
-        public BuildClientMetaData getClient() {
-            return metaData.getClient();
-        }
-
-        @Override
-        public Clock getBuildTimeClock() {
-            return metaData.getBuildTimeClock();
         }
     }
 
@@ -70,13 +44,13 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         private State state = State.NotStarted;
         private final BuildActionParameters actionParameters;
         private final GradleLauncherFactory gradleLauncherFactory;
-        private final BuildCancellationToken cancellationToken;
+        private final BuildRequestContext buildRequestContext;
         private DefaultGradleLauncher gradleLauncher;
         private StartParameter startParameter = new StartParameter();
 
-        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildCancellationToken cancellationToken, BuildActionParameters actionParameters) {
+        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
             this.gradleLauncherFactory = gradleLauncherFactory;
-            this.cancellationToken = cancellationToken;
+            this.buildRequestContext = buildRequestContext;
             this.actionParameters = actionParameters;
         }
 
@@ -92,7 +66,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
             }
             if (state == State.NotStarted) {
-                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, new DefaultBuildRequestContext(actionParameters.getBuildRequestMetaData(), cancellationToken));
+                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, buildRequestContext);
                 state = State.Created;
             }
             return gradleLauncher;

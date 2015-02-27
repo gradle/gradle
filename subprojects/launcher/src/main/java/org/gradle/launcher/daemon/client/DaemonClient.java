@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -107,14 +108,14 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @param action The action
      * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters parameters) {
+    public <T> T execute(BuildAction<T> action, BuildRequestContext requestContext, BuildActionParameters parameters) {
         Object buildId = idGenerator.generateId();
         Build build = new Build(buildId, action, parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
-                return (T) executeBuild(build, connection, cancellationToken);
+                return (T) executeBuild(build, connection, requestContext.getCancellationToken());
             } catch (DaemonInitialConnectException e) {
                 //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");

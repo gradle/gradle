@@ -22,7 +22,7 @@ import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -45,12 +45,12 @@ public class SingleUseDaemonClient extends DaemonClient {
     }
 
     @Override
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters parameters) {
+    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, BuildActionParameters parameters) {
         LOGGER.lifecycle("{} Please consider using the daemon: {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
         Build build = new BuildAndStop(getIdGenerator().generateId(), action, parameters);
 
         DaemonClientConnection daemonConnection = getConnector().startDaemon(ExplainingSpecs.<DaemonContext>satisfyAll());
 
-        return (T) executeBuild(build, daemonConnection, cancellationToken);
+        return (T) executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken());
     }
 }

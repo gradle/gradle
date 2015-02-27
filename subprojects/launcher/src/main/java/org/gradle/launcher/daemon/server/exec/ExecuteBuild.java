@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
@@ -45,7 +46,7 @@ public class ExecuteBuild extends BuildCommandOnly {
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
-            Object result = actionExecuter.execute(build.getAction(), cancellationToken, build.getParameters());
+            Object result = actionExecuter.execute(build.getAction(), new DefaultBuildRequestContext(build.getParameters().getBuildRequestMetaData(), cancellationToken), build.getParameters());
             execution.setResult(result);
         } catch (ReportedException e) {
             /*
