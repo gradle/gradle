@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
@@ -288,6 +289,7 @@ class DefaultConfigurationSpec extends Specification {
         def copied = child.copyRecursive()
         
         then:
+        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
         copied.excludeRules.size() == 2
         copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
     }
@@ -331,5 +333,27 @@ class DefaultConfigurationSpec extends Specification {
         then:
         dep.taskName == "bar"
         dep.configurationName == "conf"
+    }
+
+    def "mutations are prohibited after resolution"() {
+        def conf = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        conf.incoming.getResolutionResult()
+        then:
+        1 * resolver.resolve(conf) >> resolverResults
+
+        when: conf.dependencies.add(Mock(Dependency))
+        then:
+        def exDependency = thrown(InvalidUserDataException);
+        exDependency.message == "Cannot change configuration ':conf' after it has been resolved."
+
+        when: conf.artifacts.add(Mock(PublishArtifact))
+        then:
+        def exArtifact = thrown(InvalidUserDataException);
+        exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
     }
 }

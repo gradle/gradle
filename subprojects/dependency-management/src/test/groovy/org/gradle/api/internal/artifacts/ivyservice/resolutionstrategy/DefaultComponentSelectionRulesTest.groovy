@@ -15,15 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
-import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.specs.Specs
+import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
@@ -36,7 +37,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     static final MODULE = "module"
     RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
     NotationParser<Object, String> notationParser = Mock(NotationParser)
-    ComponentSelectionRulesInternal rules = new DefaultComponentSelectionRules(adapter, notationParser)
+    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(adapter, notationParser)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)
     def ruleSource = new Object()
@@ -261,6 +262,29 @@ class DefaultComponentSelectionRulesTest extends Specification {
         "org.gradle" | "api" | true
         "org.gradle" | "lib" | false
         "com.gradle" | "api" | false
+    }
+
+    def "mutation is checked for public API"() {
+        def checker = Mock(Runnable)
+        rules.beforeChange(checker)
+
+        when: rules.all(Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: rules.all(Closure.IDENTITY)
+        then: 1 * checker.run()
+
+        when: rules.all(ruleSource)
+        then: 1 * checker.run()
+
+        when: rules.withModule("something", Actions.doNothing())
+        then: 1 * checker.run()
+
+        when: rules.withModule("something", Closure.IDENTITY)
+        then: 1 * checker.run()
+
+        when: rules.withModule("something", ruleSource)
+        then: 1 * checker.run()
     }
 
     private class TestComponentSelectionAction implements Action<ComponentSelection> {

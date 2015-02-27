@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
-
+package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.api.artifacts.ComponentSelectionRules
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.Actions
+import org.gradle.internal.rules.NoInputsRuleAction
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
@@ -32,7 +35,7 @@ import static org.gradle.util.Assertions.assertThat
 public class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
-    def strategy = new DefaultResolutionStrategy(cachePolicy, [] as Set)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, new DefaultDomainObjectSet(Action))
 
     def "allows setting forced modules"() {
         expect:
@@ -136,6 +139,7 @@ public class DefaultResolutionStrategySpec extends Specification {
         def copy = strategy.copy()
 
         then:
+        1 * cachePolicy.copy() >> Mock(DefaultCachePolicy)
         !copy.is(strategy)
         assertThat(copy).doesNotShareStateWith(strategy)
     }
@@ -193,5 +197,70 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then:
         1 * cachePolicy.cacheDynamicVersionsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
+    }
+
+    def "mutation is checked for public API"() {
+        def validator = Mock(MutationValidator)
+        strategy.beforeChange(validator)
+
+        when: strategy.failOnVersionConflict()
+        then: 1 * validator.validateMutation(true)
+
+        when: strategy.force("org.utils:api:1.3")
+        then: 1 * validator.validateMutation(true)
+
+        when: strategy.forcedModules = ["org.utils:api:1.4"]
+        then: (1.._) * validator.validateMutation(true)
+
+        when: strategy.forcedModules.clear()
+        then: 1 * validator.validateMutation(true)
+
+        when: strategy.eachDependency(Actions.doNothing())
+        then: 1 * validator.validateMutation(true)
+
+        when: strategy.componentSelection.all(Actions.doNothing())
+        then: 1 * validator.validateMutation(true)
+
+        when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
+            @Override
+            void execute(ComponentSelectionRules componentSelectionRules) {
+                componentSelectionRules.all(Actions.doNothing())
+            }
+        })
+        then: 1 * validator.validateMutation(true)
+    }
+
+    def "mutation is not checked for copy"() {
+        given:
+        cachePolicy.copy() >> Mock(DefaultCachePolicy)
+        def validator = Mock(MutationValidator)
+        strategy.beforeChange(validator)
+        def copy = strategy.copy()
+
+        when: copy.failOnVersionConflict()
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.force("org.utils:api:1.3")
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.forcedModules = ["org.utils:api:1.4"]
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.forcedModules.clear()
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.eachDependency(Actions.doNothing())
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.componentSelection.all(Actions.doNothing())
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.componentSelection(new Action<ComponentSelectionRules>() {
+            @Override
+            void execute(ComponentSelectionRules componentSelectionRules) {
+                componentSelectionRules.all(Actions.doNothing())
+            }
+        })
+        then: 0 * validator.validateMutation(_)
     }
 }
