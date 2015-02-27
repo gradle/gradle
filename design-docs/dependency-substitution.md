@@ -81,14 +81,10 @@ This section is to keep track of assumptions and things we haven't figured out y
    - Set of exclude rules changes
    - Calls to `ResolvableDependencies.beforeResolve` and `afterResolve`
    - Any mutation to parent configuration (even if that configuration has not been explicitly resolved)
-- When a previously-resolved Configuration is set to a 'mutable' state and not mutated:
+- When a Configuration is resolved but is still mutable (resolved only for task dependencies), and then resolved as immutable (getting the public results):
    - Use of `FileCollection` API uses previous resolution result
    - New and existing `ResolvedConfiguration` instances use previous resolution result
    - New and existing `ResolvableDependencies` instances use previous resolution result
-- When a previously-resolved Configuration is set to a 'mutable' state and is mutated:
-   - Use of `FileCollection` API forces re-resolve and uses new resolution result
-   - Use of new and existing `ResolvedConfiguration` instances forces re-resolve and uses new resolution result
-   - Use of new and existing `ResolvableDependencies` instances forces re-resolve and uses new resolution result
 
 ### Open issues
 
