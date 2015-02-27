@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -367,24 +366,12 @@ public class DefaultConfigurationTest {
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
         return new DefaultConfiguration(confName, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(),
-                new ProjectFinder() {
-                    @Override
-                    public ProjectInternal getProject(String path) {
-                        return null;
-                    }
-                });
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), context.mock(ProjectFinder.class));
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
         return new DefaultConfiguration(path, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(),
-                new ProjectFinder() {
-                    @Override
-                    public ProjectInternal getProject(String path) {
-                        return null;
-                    }
-                });
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), context.mock(ProjectFinder.class));
     }
 
     @SuppressWarnings("unchecked")
