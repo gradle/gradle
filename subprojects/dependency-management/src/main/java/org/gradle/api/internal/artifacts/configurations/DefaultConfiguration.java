@@ -481,6 +481,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 } else {
                     throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
                 }
+                break;
         }
         modified = true;
     }
