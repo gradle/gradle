@@ -417,27 +417,43 @@ class DefaultConfigurationSpec extends Specification {
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
         def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolvedFiles = Mock(Set)
+        resolverResults.resolved(resolvedConfiguration, result, projectConfigurationResults)
 
         when:
+        def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult
         def previousResolvedConfiguration = config.resolvedConfiguration
 
         then:
         1 * resolver.resolve(config) >> resolverResults
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
 
         when:
+        def nextFiles = config.files
         def nextResolutionResult = config.incoming.resolutionResult
         def nextResolvedConfiguration = config.resolvedConfiguration
 
         then:
         0 * resolver.resolve(_)
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
-        previousResolutionResult == nextResolutionResult
-        previousResolvedConfiguration == nextResolvedConfiguration
+
+        // We get back the same resolution results
+        previousResolutionResult == result
+        nextResolutionResult == result
+
+        // We get back the same resolved configuration
+        previousResolvedConfiguration == resolvedConfiguration
+        nextResolvedConfiguration == resolvedConfiguration
+
+        // And the same files
+        previousFiles == resolvedFiles
+        nextFiles == resolvedFiles
     }
 
     def "copied configuration is not resolved"() {
