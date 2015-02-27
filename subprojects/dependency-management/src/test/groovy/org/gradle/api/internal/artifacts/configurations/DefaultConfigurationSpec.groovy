@@ -412,7 +412,7 @@ class DefaultConfigurationSpec extends Specification {
         config.state == Configuration.State.RESOLVED
     }
 
-    def "modified configuration is re-resolved"() {
+    def "resolving configuration twice returns the same result objects"() {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
@@ -420,22 +420,24 @@ class DefaultConfigurationSpec extends Specification {
         resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
 
         when:
-        config.getBuildDependencies()
-
-        then:
-        1 * resolver.resolve(config) >> resolverResults
-        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
-        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
-        config.state == Configuration.State.RESOLVED
-
-        when:
-        config.dependencies.add(Mock(Dependency))
-        config.incoming.getResolutionResult()
+        def previousResolutionResult = config.incoming.resolutionResult
+        def previousResolvedConfiguration = config.resolvedConfiguration
 
         then:
         1 * resolver.resolve(config) >> resolverResults
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
+
+        when:
+        def nextResolutionResult = config.incoming.resolutionResult
+        def nextResolvedConfiguration = config.resolvedConfiguration
+
+        then:
+        0 * resolver.resolve(_)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+        previousResolutionResult == nextResolutionResult
+        previousResolvedConfiguration == nextResolvedConfiguration
     }
 
     def "copied configuration is not resolved"() {
