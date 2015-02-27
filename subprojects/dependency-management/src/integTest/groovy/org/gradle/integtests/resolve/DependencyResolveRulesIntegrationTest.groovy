@@ -748,61 +748,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Ignore("Still unsure about what would be the expected behavior here")
-    void "can replace transitive project dependency with external dependency"()
-    {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
-        settingsFile << 'include "api", "impl", "test"'
-
-        buildFile << """
-            allprojects {
-                apply plugin: "java"
-                group "org.utils"
-                version = "1.6"
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-            }
-
-            project(":api") {
-                jar << {
-                    throw new RuntimeException("External artifact should be used instead")
-                }
-            }
-
-            project(":impl") {
-                dependencies {
-                    compile project(":api")
-                }
-            }
-
-            project(":test") {
-                dependencies {
-                    compile project(":impl")
-                }
-
-                configurations.compile.resolutionStrategy.eachDependency {
-                    if (it.requested.name == 'api') {
-                        it.useTarget group: "org.utils", name: "api", version: "1.5"
-                    }
-                }
-
-                task checkIt(dependsOn: configurations.compile) << {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["api-1.5.jar", "impl-1.6.jar"]
-                    assert files*.exists() == [ true, true ]
-                }
-            }
-"""
-
-        when:
-        run("test:checkIt")
-
-        then:
-        noExceptionThrown()
-    }
-
     void "replacing external module dependency with project dependency keeps the original configuration"()
     {
         settingsFile << 'include "api", "impl"'
