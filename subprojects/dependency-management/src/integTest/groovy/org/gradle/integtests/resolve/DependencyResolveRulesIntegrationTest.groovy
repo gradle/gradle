@@ -345,11 +345,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -403,11 +399,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -459,11 +451,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-1.6.jar"]
                     assert files*.exists() == [ true ]
@@ -505,11 +493,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-2.0.jar"]
                     assert files*.exists() == [ true ]
@@ -552,11 +536,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-1.6.jar", "bela-1.5.jar"]
                     assert files*.exists() == [ true, true ]
@@ -598,11 +578,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-1.6.jar", "impl-1.5.jar"]
                     assert files*.exists() == [ true, true ]
@@ -644,12 +620,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                    inputs.files configurations.testCompile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: [configurations.compile, configurations.testCompile]) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-1.5.jar"]
                     assert files*.exists() == [ true ]
@@ -700,11 +671,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -773,11 +740,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def files = configurations.compile.files
                     assert files*.name.sort() == ["api-1.5.jar", "impl-1.6.jar"]
                     assert files*.exists() == [ true, true ]
@@ -826,11 +789,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt {
-                    inputs.files configurations.compile
-                }
-
-                checkIt << {
+                task checkIt(dependsOn: configurations.compile) << {
                     def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
