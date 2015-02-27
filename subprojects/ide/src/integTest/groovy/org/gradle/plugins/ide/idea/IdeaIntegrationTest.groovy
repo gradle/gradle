@@ -364,6 +364,17 @@ idea.project {
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"])
     }
 
+    @Test
+    void canDetectSubstitutedProjectDependency() {
+        executer.withTasks('idea').run()
+
+        assertHasExpectedContents('root.ipr')
+        assertHasExpectedContents('root.iws')
+        assertHasExpectedContents('root.iml')
+        assertHasExpectedContents('api/api.iml')
+        assertHasExpectedContents('impl/impl.iml')
+    }
+
     private void assertHasExpectedContents(String path) {
         TestFile file = testDirectory.file(path).assertIsFile()
         TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()
