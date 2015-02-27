@@ -16,14 +16,11 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildRequestMetaData;
 
 import java.io.File;
 import java.util.Map;
 
 public interface BuildActionParameters {
-    BuildRequestMetaData getBuildRequestMetaData();
-
     Map<String, String> getSystemProperties();
 
     Map<String, String> getEnvVariables();

@@ -44,8 +44,7 @@ class RunBuildActionTest extends Specification {
             assert action.startParameter == startParameter
             assert context.cancellationToken instanceof FixedBuildCancellationToken
             assert context.client == clientMetaData
-            assert build.clientMetaData == clientMetaData
-            assert build.startTime == startTime
+            assert context.buildTimeClock.startTime == startTime
             assert build.systemProperties == systemProperties
         }
         0 * _._

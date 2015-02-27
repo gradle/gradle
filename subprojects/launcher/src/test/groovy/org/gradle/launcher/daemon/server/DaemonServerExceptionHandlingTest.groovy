@@ -42,8 +42,10 @@ import spock.lang.Specification
 class DaemonServerExceptionHandlingTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def buildRequestContext = Stub(BuildRequestContext)
-    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
+    def buildRequestContext = Stub(BuildRequestContext) {
+        getClient() >> new GradleLauncherMetaData()
+    }
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         Object someState

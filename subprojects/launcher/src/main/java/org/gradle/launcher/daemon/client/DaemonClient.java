@@ -110,7 +110,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      */
     public <T> T execute(BuildAction<T> action, BuildRequestContext requestContext, BuildActionParameters parameters) {
         Object buildId = idGenerator.generateId();
-        Build build = new Build(buildId, action, parameters);
+        Build build = new Build(buildId, action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);

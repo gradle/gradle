@@ -38,8 +38,8 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
     }
 
     public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(buildRequestContext.getClient(), actionParameters.getStartTime(),
-                this.parameters.getEffectiveSystemProperties(), System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
+        BuildActionParameters parameters = new DefaultBuildActionParameters(this.parameters.getEffectiveSystemProperties(),
+                System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
         try {
             return executer.execute(action, buildRequestContext, parameters);
         } catch (ReportedException e) {
