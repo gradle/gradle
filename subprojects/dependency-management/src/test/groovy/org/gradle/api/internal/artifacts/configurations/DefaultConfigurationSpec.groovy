@@ -347,8 +347,16 @@ class DefaultConfigurationSpec extends Specification {
         config.state == Configuration.State.RESOLVED
     }
 
-    def "resolving configuration puts it into the right state"() {
+    def "resolving configuration puts it into the right state and broadcasts events"() {
+        def listenerBroadcaster = Mock(ListenerBroadcast)
+
+        when:
         def config = conf("conf")
+
+        then:
+        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcaster
+
+        def listener = Mock(DependencyResolutionListener)
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
         resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
@@ -357,7 +365,10 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
+        1 * listenerBroadcaster.getSource() >> listener
+        1 * listener.beforeResolve(config.incoming)
         1 * resolver.resolve(config) >> resolverResults
+        1 * listener.afterResolve(config.incoming)
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
     }
