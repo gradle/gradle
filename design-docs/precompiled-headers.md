@@ -32,7 +32,7 @@ General idea is to include the PCH as a property on a native source set (C/C++).
             mainExe(NativeExecutableSpec) {
                 sources {
                     cpp {
-                        precompiledHeader = file("path/to/my_pch.h")
+                        precompiledHeader file("path/to/my_pch.h")
                         source { }
                         headers { }
                     }
@@ -40,6 +40,70 @@ General idea is to include the PCH as a property on a native source set (C/C++).
             }
         }
     }
+
+## Implementation
+Basically, the approach is to generate a new source set for any precompiled header that gets defined, then add the compiled header
+as a NativeDependencySet of the source set that uses it.
+
+Add a method to DependentSourceSet that allows the user to define a precompiled header file.
+
+    public interface DependentSourceSet extends LanguageSourceSet {
+        void preCompiledHeader(Object headerFile);
+    }
+
+headerFile will be interpreted as in project.files().
+
+Add a method to NativeBinarySpecInternal to track precompiled header source sets and the mapping to their "consuming" source sets.
+
+    public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
+        Map<LanguageSourceSet, DependentSourceSet> getPrecompiledHeaderMappings();
+    }
+
+Add a method to NativeDependencySet to specify a precompiled header dependency.
+
+    public interface NativeDependencySet {
+        FileCollection getPreCompiledHeader();
+    }
+
+Then, for every source set that defines a precompiled header, we generate a source set and set it on the "consuming" source set.
+When we are configuring the compile task for the PCH source set, we create a NativeDependencySet on the consuming source set
+that returns a buildable file collection for getPreCompiledHeader().  This would get set on the consuming source set via
+DependentSourceSet.lib().
+
+We potentially have to produce different compiler arguments when compiling a precompiled header (MSVC), so we need to specify on the compiletask that
+it is compiling a PCH instead of a "normal" source.  So, in NativeCompileSpec:
+
+    public interface NativeCompileSpec extends BinaryToolSpec {
+        boolean isPrecompiledHeader();
+        void setPrecompiledHeader(boolean true);
+    }
+
+Then in NativeCompiler, instead of constructing with a single args transformer, we construct with an args transformer factory.
+
+    public interface ArgsTransformerFactory<T extends BinaryToolSpec> {
+        ArgsTransformer<T extends BinaryToolSpec> create(T spec);
+    }
+
+Each subclass of NativeCompiler would call the super constructor with a factory that produces the appropriate args transformer for the spec.
+For the gcc/clang compilers they probably just produce the same args transformer, but for MSVC, it would probably be different.
+
+For the consuming source set, we also need to know if it should be compiled with a precompiled header.  We add this to AbstractNativeCompileTask:
+
+    public abstract class AbstractNativeCompileTask extends DefaultTask {
+        private ConfigurableFileCollection precompiledHeader;
+        public void preCompiledHeader(Object header) {
+            precompiledHeader.from(header);
+        }
+    }
+
+Then in NativeCompileSpec, we add the reference to the precompiled header:
+
+    public interface NativeCompileSpec extends BinaryToolSpec {
+        File getPrecompiledHeader()
+    }
+
+In AbstractNativeCompileTask, we resolve the file collection to a single file (throwing error if >1?) and set it on the spec.
+In NativeCompiler, if we find a non-null precompiledHeader, we add the appropriate args to the compile operation.
 
 ## Test Cases
 
