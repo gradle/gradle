@@ -508,6 +508,54 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "project dependency substituted for an external dependency participates in conflict resolution"()
+    {
+        mavenRepo.module("org.utils", "api", '2.0').publish()
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                group "org.utils"
+                version = "1.6"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":api") {
+                jar << {
+                    throw new RuntimeException("External artifact should be used instead")
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile "org.utils:api:1.5"
+                    compile "org.utils:api:2.0"
+                }
+
+                configurations.compile.resolutionStrategy.eachDependency {
+                    if (it.requested.name == "api" && it.requested.version == "1.5") {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task checkIt(dependsOn: configurations.compile) << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api-2.0.jar"]
+                    assert files*.exists() == [ true ]
+                }
+            }
+"""
+
+        when:
+        run("impl:checkIt")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can replace client module's transitive dependency with project dependency"()
     {
         settingsFile << 'include "api", "impl"'
