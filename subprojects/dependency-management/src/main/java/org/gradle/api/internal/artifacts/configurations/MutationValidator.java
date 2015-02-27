@@ -23,8 +23,13 @@ public interface MutationValidator {
     /**
      * Check if mutation is allowed.
      *
-     * @param lenient <code>false</code> if mutation should be completely forbidden,
-     * or <code>true</code> if mutation is allowed, but a deprecation warning should be shown.
+     * @param lenient <code>false</code> if mutation should be completely forbidden, or <code>true</code> if mutation is allowed, but a deprecation warning should be shown.
      */
     void validateMutation(boolean lenient);
+
+    static final MutationValidator IGNORE = new MutationValidator() {
+        @Override
+        public void validateMutation(boolean lenient) {
+        }
+    };
 }

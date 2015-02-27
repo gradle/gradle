@@ -39,7 +39,7 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
     final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
-    private final List<MutationValidator> mutationValidators = new ArrayList<MutationValidator>();
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
@@ -57,28 +57,25 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
     }
 
+    /**
+     * Sets the validator to invoke prior to each mutation.
+     */
     public void beforeChange(MutationValidator validator) {
-        mutationValidators.add(validator);
-    }
-
-    private void validateMutation(boolean lenient) {
-        for (MutationValidator validator : mutationValidators) {
-            validator.validateMutation(lenient);
-        }
+        this.mutationValidator = validator;
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
-        validateMutation(true);
+        mutationValidator.validateMutation(true);
         dependencyCacheRules.add(0, rule);
     }
 
     public void eachModule(Action<? super ModuleResolutionControl> rule) {
-        validateMutation(true);
+        mutationValidator.validateMutation(true);
         moduleCacheRules.add(0, rule);
     }
 
     public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
-        validateMutation(true);
+        mutationValidator.validateMutation(true);
         artifactCacheRules.add(0, rule);
     }
 

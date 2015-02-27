@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal
 import org.gradle.api.internal.artifacts.DefaultComponentSelection
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -265,26 +266,26 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "mutation is checked for public API"() {
-        def checker = Mock(Runnable)
+        def checker = Mock(MutationValidator)
         rules.beforeChange(checker)
 
         when: rules.all(Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
 
         when: rules.all(Closure.IDENTITY)
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
 
         when: rules.all(ruleSource)
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
 
         when: rules.withModule("something", Actions.doNothing())
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
 
         when: rules.withModule("something", Closure.IDENTITY)
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
 
         when: rules.withModule("something", ruleSource)
-        then: 1 * checker.run()
+        then: 1 * checker.validateMutation(true)
     }
 
     private class TestComponentSelectionAction implements Action<ComponentSelection> {

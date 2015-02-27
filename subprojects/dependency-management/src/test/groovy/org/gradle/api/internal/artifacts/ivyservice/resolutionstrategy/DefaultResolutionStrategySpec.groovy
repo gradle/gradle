@@ -30,7 +30,6 @@ import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.util.Assertions.assertThat
 
 public class DefaultResolutionStrategySpec extends Specification {
 
@@ -141,7 +140,8 @@ public class DefaultResolutionStrategySpec extends Specification {
         then:
         1 * cachePolicy.copy() >> Mock(DefaultCachePolicy)
         !copy.is(strategy)
-        assertThat(copy).doesNotShareStateWith(strategy)
+        !copy.cachePolicy.is(strategy.cachePolicy)
+        !copy.componentSelection.is(strategy.componentSelection)
     }
 
     def "provides a copy"() {
@@ -212,9 +212,6 @@ public class DefaultResolutionStrategySpec extends Specification {
         when: strategy.forcedModules = ["org.utils:api:1.4"]
         then: (1.._) * validator.validateMutation(true)
 
-        when: strategy.forcedModules.clear()
-        then: 1 * validator.validateMutation(true)
-
         when: strategy.eachDependency(Actions.doNothing())
         then: 1 * validator.validateMutation(true)
 
@@ -244,9 +241,6 @@ public class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
 
         when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * validator.validateMutation(_)
-
-        when: copy.forcedModules.clear()
         then: 0 * validator.validateMutation(_)
 
         when: copy.eachDependency(Actions.doNothing())

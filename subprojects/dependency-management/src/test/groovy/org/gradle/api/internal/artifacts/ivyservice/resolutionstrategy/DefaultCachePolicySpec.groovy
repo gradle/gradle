@@ -30,8 +30,6 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.util.Assertions.assertThat
-
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
     private static final int MINUTE = SECOND * 60;
@@ -204,7 +202,9 @@ public class DefaultCachePolicySpec extends Specification {
         def copy = cachePolicy.copy()
 
         !copy.is(cachePolicy)
-        assertThat(copy).doesNotShareStateWith(cachePolicy)
+        !copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
+        !copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
+        !copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
 
         copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
         copy.moduleCacheRules == cachePolicy.moduleCacheRules

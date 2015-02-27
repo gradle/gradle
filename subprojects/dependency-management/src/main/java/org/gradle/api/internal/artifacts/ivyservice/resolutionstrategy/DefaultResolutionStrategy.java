@@ -19,75 +19,54 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.configurations.RunnableMutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.gradle.util.GUtil.flattenElements;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
-
-    private Set<ModuleVersionSelector> forcedModules;
+    private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private ComponentSelectionRulesInternal componentSelectionRules;
+    private final DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
 
-    final Set<Action> dependencyResolveRules;
+    private final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
-    private final List<MutationValidator> mutateActions = new ArrayList<MutationValidator>();
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultResolutionStrategy() {
-        this(new DefaultCachePolicy(), new DefaultDomainObjectSet<Action>(Action.class));
+        this(new DefaultCachePolicy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>());
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DefaultDomainObjectSet<Action> dependencyResolveRules) {
-        DefaultDomainObjectSet<ModuleVersionSelector> forcedModules = new DefaultDomainObjectSet<ModuleVersionSelector>(ModuleVersionSelector.class);
-        DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
-
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, Set<Action<? super DependencyResolveDetails>> dependencyResolveRules) {
         this.cachePolicy = cachePolicy;
         this.dependencyResolveRules = dependencyResolveRules;
-        this.forcedModules = forcedModules;
-        this.componentSelectionRules = componentSelectionRules;
-
-        // Make sure we check if mutation is valid if any of these change
-        RunnableMutationValidator subValidator = new RunnableMutationValidator(true) {
-            @Override
-            public void validateMutation(boolean lenient) {
-                DefaultResolutionStrategy.this.validateMutation(lenient);
-            }
-        };
-        cachePolicy.beforeChange(subValidator);
-        dependencyResolveRules.beforeChange(subValidator);
-        forcedModules.beforeChange(subValidator);
-        componentSelectionRules.beforeChange(subValidator);
     }
 
     @Override
     public void beforeChange(MutationValidator validator) {
-        mutateActions.add(validator);
-    }
-
-    private void validateMutation(boolean lenient) {
-        for (MutationValidator validator : mutateActions) {
-            validator.validateMutation(lenient);
-        }
+        mutationValidator = validator;
+        cachePolicy.beforeChange(validator);
+        componentSelectionRules.beforeChange(validator);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
-        return forcedModules;
+        return Collections.unmodifiableSet(forcedModules);
     }
 
     public ResolutionStrategy failOnVersionConflict() {
-        validateMutation(true);
+        mutationValidator.validateMutation(true);
         this.conflictResolution = new StrictConflictResolution();
         return this;
     }
@@ -101,24 +80,29 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
+        mutationValidator.validateMutation(true);
         Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.addAll(modules);
         return this;
     }
 
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
+        mutationValidator.validateMutation(true);
         dependencyResolveRules.add(rule);
         return this;
     }
 
     public Action<DependencyResolveDetailsInternal> getDependencyResolveRule() {
-        Collection allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
+        Collection<Action<DependencyResolveDetailsInternal>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
         return Actions.composite(allRules);
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
+        mutationValidator.validateMutation(true);
+        Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.clear();
-        return force(moduleVersionSelectorNotations);
+        this.forcedModules.addAll(modules);
+        return this;
     }
 
     public DefaultCachePolicy getCachePolicy() {
@@ -153,8 +137,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(),
-                new DefaultDomainObjectSet<Action>(Action.class, new LinkedHashSet<Action>(dependencyResolveRules)));
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveRules));
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();
