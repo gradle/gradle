@@ -49,7 +49,7 @@ class IncrementalReverseTask extends DefaultTask {
                                    : "ALL inputs considered out of date"
         // START SNIPPET handle-non-incremental-inputs
         if (!inputs.incremental)
-            outputDir.deleteDir()
+            project.delete(outputDir.listFiles())
         // END SNIPPET handle-non-incremental-inputs
 
         // START SNIPPET out-of-date-inputs
