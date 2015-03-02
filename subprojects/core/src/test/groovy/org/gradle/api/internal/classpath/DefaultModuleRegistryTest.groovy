@@ -32,6 +32,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
+        distDir.createDir("lib/distributionOnly")
         runtimeDep = distDir.createZip("lib/dep-1.2.jar")
 
         resourcesDir = tmpDir.createDir("classes")
@@ -232,6 +233,20 @@ class DefaultModuleRegistryTest extends Specification {
         expect:
         def module = registry.getExternalModule("dep")
         module.implementationClasspath.asFiles == [runtimeDep]
+        module.runtimeClasspath.empty
+    }
+
+    def "also looks in the 'distributionOnly' directory when searching for external modules"() {
+        given:
+        def cl = new URLClassLoader([] as URL[])
+        def registry = new DefaultModuleRegistry(cl, distDir)
+
+        when:
+        def additionalDep = distDir.createZip("lib/distributionOnly/not-on-classpath-1.2.jar")
+
+        then:
+        def module = registry.getExternalModule("not-on-classpath")
+        module.implementationClasspath.asFiles == [additionalDep]
         module.runtimeClasspath.empty
     }
 }
