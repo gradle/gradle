@@ -18,15 +18,17 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.DefaultCompilerArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
 
     CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new GccCompilerArgsTransformerFactory<CppCompileSpec>(new CppCompileArgsTransformer()), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, getArgsTransformerFactory(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
@@ -35,4 +37,16 @@ class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
         }
     }
 
+    private static class CppPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
+        protected String getLanguage() {
+            return "c++-header";
+        }
+    }
+
+    private static ArgsTransformerFactory<CppCompileSpec> getArgsTransformerFactory() {
+        return new DefaultCompilerArgsTransformerFactory<CppCompileSpec>(
+                new CppCompileArgsTransformer(),
+                new CppPCHCompileArgsTransformer()
+        );
+    }
 }

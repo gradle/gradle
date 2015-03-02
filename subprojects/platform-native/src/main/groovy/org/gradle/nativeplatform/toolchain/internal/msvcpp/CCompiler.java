@@ -18,15 +18,17 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.DefaultCompilerArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
 
     CCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CCompileSpec, CCompileSpec> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new VisualCppCompilerArgsTransformerFactory<CCompileSpec>(new CCompilerArgsTransformer()), specTransformer, objectFileExtensionCalculator, useCommandFile);
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, getArgsTransformerFactory(), specTransformer, objectFileExtensionCalculator, useCommandFile);
     }
 
     private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
@@ -35,4 +37,16 @@ class CCompiler extends VisualCppNativeCompiler<CCompileSpec> {
         }
     }
 
+    private static class CPCHCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
+        protected String getLanguageOption() {
+            return "/TC";
+        }
+    }
+
+    private static ArgsTransformerFactory<CCompileSpec> getArgsTransformerFactory() {
+        return new DefaultCompilerArgsTransformerFactory<CCompileSpec>(
+                new CCompilerArgsTransformer(),
+                new CPCHCompilerArgsTransformer()
+        );
+    }
 }

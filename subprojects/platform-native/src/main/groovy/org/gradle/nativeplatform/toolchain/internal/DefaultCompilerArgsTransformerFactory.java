@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc;
+package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+public class DefaultCompilerArgsTransformerFactory<T extends NativeCompileSpec> implements ArgsTransformerFactory<T> {
+    private final ArgsTransformer<T> objectArgsTransformer;
+    private final ArgsTransformer<T> pchArgsTransformer;
 
-public class GccCompilerArgsTransformerFactory<T extends NativeCompileSpec> implements ArgsTransformerFactory<T> {
-    private final ArgsTransformer<T> argsTransformer;
-
-    public GccCompilerArgsTransformerFactory(ArgsTransformer<T> argsTransformer) {
-        this.argsTransformer = argsTransformer;
+    public DefaultCompilerArgsTransformerFactory(ArgsTransformer<T> objectArgsTransformer, ArgsTransformer<T> pchArgsTransformer) {
+        this.objectArgsTransformer = objectArgsTransformer;
+        this.pchArgsTransformer = pchArgsTransformer;
     }
 
     @Override
     public ArgsTransformer<T> create(T spec) {
-        return argsTransformer;
+        if (spec.isPreCompiledHeader()) {
+            return pchArgsTransformer;
+        } else {
+            return objectArgsTransformer;
+        }
     }
 }

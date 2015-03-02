@@ -18,15 +18,17 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.DefaultCompilerArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec;
 
 class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSpec> {
 
     ObjectiveCCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new GccCompilerArgsTransformerFactory<ObjectiveCCompileSpec>(new ObjectiveCCompileArgsTransformer()), Transformers.<ObjectiveCCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, getArgsTransformerFactory(), Transformers.<ObjectiveCCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
     }
 
     private static class ObjectiveCCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
@@ -35,4 +37,16 @@ class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSp
         }
     }
 
+    private static class ObjectiveCPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCCompileSpec> {
+        protected String getLanguage() {
+            return "objective-c-header";
+        }
+    }
+
+    private static ArgsTransformerFactory<ObjectiveCCompileSpec> getArgsTransformerFactory() {
+        return new DefaultCompilerArgsTransformerFactory<ObjectiveCCompileSpec>(
+                new ObjectiveCCompileArgsTransformer(),
+                new ObjectiveCPCHCompileArgsTransformer()
+        );
+    }
 }
