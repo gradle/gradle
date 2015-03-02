@@ -19,7 +19,7 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.plugins.sonar.model.SonarRootModel
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.GFileUtils
 import org.sonar.batch.bootstrapper.Bootstrapper
@@ -49,7 +49,8 @@ class SonarAnalyze extends ConventionTask {
 
         def pluginClassLoaderAllowedPackages = ["groovy", "org.codehaus.groovy", "org.apache.log4j", "org.apache.commons.logging", "org.gradle.api.plugins.sonar.model"]
 
-        def filteringPluginClassLoader = new FilteringClassLoader(SonarAnalyze.classLoader)
+        def classloaderFactory = new DefaultClassLoaderFactory()
+        def filteringPluginClassLoader = classloaderFactory.createFilteringClassLoader(SonarAnalyze.classLoader)
         pluginClassLoaderAllowedPackages.each { filteringPluginClassLoader.allowPackage(it) }
         filteringPluginClassLoader.allowResource("logback.xml")
         def pluginAndLoggingClassLoader = new MutableURLClassLoader(filteringPluginClassLoader, getLogbackAndSlf4jUrls())
