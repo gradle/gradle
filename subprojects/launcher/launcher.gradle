@@ -9,6 +9,7 @@ dependencies {
     compile project(':ui')
     compile project(':toolingApi')
     compile project(':native')
+    compile project(':plugins')
 
     compile libraries.slf4j_api
 
