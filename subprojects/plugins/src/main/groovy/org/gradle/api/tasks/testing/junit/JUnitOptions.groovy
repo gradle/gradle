@@ -48,4 +48,7 @@ public class JUnitOptions extends TestFrameworkOptions {
         this.excludeCategories.addAll(Arrays.asList(excludeCategories));
         this;
     }
+
+    @Incubating
+    Set<String> listeners = new HashSet<String>();
 }

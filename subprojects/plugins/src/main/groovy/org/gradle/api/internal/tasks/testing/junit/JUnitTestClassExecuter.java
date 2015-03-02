@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -82,6 +83,22 @@ public class JUnitTestClassExecuter {
         //Will be fixed with adding class filters
         if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
             RunNotifier notifier = new RunNotifier();
+            for (Object listenerClass : options.getListeners()) {
+              try {
+                  RunListener rl = null;
+
+                  if (listenerClass instanceof RunListener) {
+                      rl = (RunListener) listenerClass;
+                  } else {
+                      Class runListenerClass = applicationClassLoader.loadClass(listenerClass.toString());
+                      rl = (RunListener) runListenerClass.getConstructor(null).newInstance();
+                  }
+
+                notifier.addListener(rl);
+              } catch (Throwable e) {
+                  throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
+              }
+            }
             notifier.addListener(listener);
             runner.run(notifier);
         }
