@@ -31,7 +31,8 @@ sourceSets {
 }
 
 dependencies {
-    outputDirs sourceSets.testFixtures.output, sourceSets.main.output
+    outputDirs sourceSets.testFixtures.output
+    testFixturesUsageCompile project(project.path)
     testFixturesCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
