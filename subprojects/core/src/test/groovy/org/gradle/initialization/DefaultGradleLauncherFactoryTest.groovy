@@ -27,11 +27,13 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final ServiceRegistry sharedServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false))
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
 
-    def newInstanceWithStartParameterAndRequestMetaData() {
+    def "makes services from build context available as build scoped services"() {
         def startParameter = new StartParameter()
         def cancellationToken = Stub(BuildCancellationToken)
+        def eventConsumer = Stub(BuildEventConsumer)
         def requestContext = Stub(BuildRequestContext) {
             getCancellationToken() >> cancellationToken
+            getEventConsumer() >> eventConsumer
         }
 
         expect:
@@ -40,9 +42,10 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
+        launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def newInstanceWithStartParameterWhenNoBuildRunning() {
+    def "provides default build context when no outer build is running"() {
         def startParameter = new StartParameter()
 
         expect:
@@ -50,18 +53,21 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.parent == null
         launcher.gradle.services.get(BuildRequestMetaData) instanceof DefaultBuildRequestMetaData
         launcher.gradle.services.get(BuildCancellationToken) instanceof FixedBuildCancellationToken
+        launcher.gradle.services.get(BuildEventConsumer) instanceof NoOpBuildEventConsumer
     }
 
-    def newInstanceWithStartParameterWhenBuildRunning() {
+    def "reuses build context services for nested build"() {
         def startParameter = new StartParameter()
         def cancellationToken = Stub(BuildCancellationToken)
         def clientMetaData = Stub(BuildClientMetaData)
+        def eventConsumer = Stub(BuildEventConsumer)
         def requestContext = Stub(BuildRequestContext) {
             getCancellationToken() >> cancellationToken
             getClient() >> clientMetaData
+            getEventConsumer() >> eventConsumer
         }
 
-        DefaultGradleLauncher parent = factory.newInstance(startParameter, requestContext);
+        def parent = factory.newInstance(startParameter, requestContext);
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
@@ -72,5 +78,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         request != requestContext
         request.client == clientMetaData
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
+        launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 }

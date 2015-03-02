@@ -103,7 +103,8 @@ public class ProviderConnection {
     private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<BuildActionResult> configuringAction = new ConfiguringBuildAction<BuildActionResult>(operationParameters, action, properties);
-        BuildActionResult result = executer.execute(configuringAction, new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken), operationParameters);
+        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, new NoOpBuildEventConsumer());
+        BuildActionResult result = executer.execute(configuringAction, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }

@@ -20,11 +20,18 @@ import org.gradle.util.Clock;
 
 public class DefaultBuildRequestContext implements BuildRequestContext {
     private final BuildCancellationToken token;
+    private final BuildEventConsumer buildEventConsumer;
     private final BuildRequestMetaData metaData;
 
-    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token) {
+    public DefaultBuildRequestContext(BuildRequestMetaData metaData, BuildCancellationToken token, BuildEventConsumer buildEventConsumer) {
         this.metaData = metaData;
         this.token = token;
+        this.buildEventConsumer = buildEventConsumer;
+    }
+
+    @Override
+    public BuildEventConsumer getEventConsumer() {
+        return buildEventConsumer;
     }
 
     @Override
