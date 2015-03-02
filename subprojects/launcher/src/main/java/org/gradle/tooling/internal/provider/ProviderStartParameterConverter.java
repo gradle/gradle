@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class ConfiguringBuildAction {
+class ProviderStartParameterConverter {
 
     private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that

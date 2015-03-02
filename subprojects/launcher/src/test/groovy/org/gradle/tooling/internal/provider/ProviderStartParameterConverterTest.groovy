@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.junit.Rule
 import spock.lang.Specification
 
-class ConfiguringBuildActionTest extends Specification {
+class ProviderStartParameterConverterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
     def params = Stub(ProviderOperationParameters)
 
@@ -30,7 +30,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-PextraProperty=foo', '-m']
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -44,7 +44,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-p', 'otherDir']
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -59,7 +59,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-g', 'otherDir']
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
@@ -70,7 +70,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-u']
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         !start.searchUpwards
@@ -82,7 +82,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.isSearchUpwards() >> true
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.searchUpwards
@@ -90,7 +90,7 @@ class ConfiguringBuildActionTest extends Specification {
 
     def "the start parameter is configured from properties"() {
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, ['org.gradle.configureondemand': true])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, ['org.gradle.configureondemand': true])
 
         then:
         start.configureOnDemand
@@ -107,7 +107,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getLaunchables(_) >> [selector]
 
         when:
-        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
+        def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
 
         then:
         start.taskRequests.size() == 1

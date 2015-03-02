@@ -90,7 +90,7 @@ public class ProviderConnection {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
-        StartParameter startParameter = new ConfiguringBuildAction().toStartParameter(providerParameters, params.properties);
+        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         BuildAction<BuildActionResult> action = new BuildModelAction(startParameter, modelName, tasks != null);
         return run(action, cancellationToken, providerParameters, params);
     }
@@ -98,7 +98,7 @@ public class ProviderConnection {
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        StartParameter startParameter = new ConfiguringBuildAction().toStartParameter(providerParameters, params.properties);
+        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(startParameter, serializedAction);
         return run(action, cancellationToken, providerParameters, params);
     }
