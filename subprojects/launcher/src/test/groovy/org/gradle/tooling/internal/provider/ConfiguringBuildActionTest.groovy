@@ -13,33 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
-import org.gradle.initialization.BuildAction
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.util.Matchers.isSerializable
-import static org.hamcrest.MatcherAssert.assertThat
-
 class ConfiguringBuildActionTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp
-    def action = Stub(BuildAction)
     def params = Stub(ProviderOperationParameters)
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments(_) >> ['-PextraProperty=foo', '-m']
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -53,8 +44,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-p', 'otherDir']
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -69,8 +59,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-g', 'otherDir']
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
@@ -81,8 +70,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getArguments(_) >> ['-u']
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         !start.searchUpwards
@@ -94,8 +82,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.isSearchUpwards() >> true
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         start.searchUpwards
@@ -103,16 +90,10 @@ class ConfiguringBuildActionTest extends Specification {
 
     def "the start parameter is configured from properties"() {
         when:
-        def action = new ConfiguringBuildAction(params, action, ['org.gradle.configureondemand': true])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, ['org.gradle.configureondemand': true])
 
         then:
         start.configureOnDemand
-    }
-
-    def "is serializable"() {
-        expect:
-        assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 
     abstract class LaunchableExecutionRequest implements InternalLaunchable, TaskExecutionRequest {}
@@ -126,8 +107,7 @@ class ConfiguringBuildActionTest extends Specification {
         params.getLaunchables(_) >> [selector]
 
         when:
-        def action = new ConfiguringBuildAction(params, action, [:])
-        def start = action.startParameter
+        def start = new ConfiguringBuildAction().toStartParameter(params, [:])
 
         then:
         start.taskRequests.size() == 1

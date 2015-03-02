@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,14 +32,17 @@ import java.io.Serializable;
 
 public class BuildModelAction implements BuildAction<BuildActionResult>, Serializable {
     private final boolean runTasks;
+    private final StartParameter startParameter;
     private final String modelName;
 
-    public BuildModelAction(String modelName, boolean runTasks) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks) {
+        this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
     }
 
     public BuildActionResult run(BuildController buildController) {
+        buildController.setStartParameter(startParameter);
         GradleInternal gradle = buildController.getGradle();
 
 // TODO - wire this up to test events

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.StartParameter;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
@@ -30,12 +31,15 @@ import java.io.Serializable;
 
 class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Serializable {
     private final SerializedPayload action;
+    private final StartParameter startParameter;
 
-    public ClientProvidedBuildAction(SerializedPayload action) {
+    public ClientProvidedBuildAction(StartParameter startParameter, SerializedPayload action) {
+        this.startParameter = startParameter;
         this.action = action;
     }
 
     public BuildActionResult run(final BuildController buildController) {
+        buildController.setStartParameter(startParameter);
         GradleInternal gradle = buildController.getGradle();
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);

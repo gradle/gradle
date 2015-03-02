@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.ProjectConfigurer
@@ -28,6 +29,7 @@ import spock.lang.Specification
 
 class ClientProvidedBuildActionTest extends Specification {
     def action = Mock(SerializedPayload)
+    def startParameter = Mock(StartParameter)
     def payloadSerializer = Mock(PayloadSerializer)
     def projectConfigurer = Mock(ProjectConfigurer)
     def buildController = Stub(BuildController) {
@@ -38,7 +40,7 @@ class ClientProvidedBuildActionTest extends Specification {
             }
         }
     }
-    def clientProvidedBuildAction = new ClientProvidedBuildAction(action)
+    def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action)
 
     def "can run action and returns result when completed"() {
         given:

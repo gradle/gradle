@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
@@ -27,27 +25,12 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * This is the action serialized from the tooling API provider across to the daemon. It takes care of setting up the start parameters on the daemon
- * side and then delegating to some other action to do the real work.
- *
- * @param <T> The result type.
- */
-class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
-    private final BuildAction<? extends T> action;
-
-    final StartParameter startParameter;
-
-    public ConfiguringBuildAction(ProviderOperationParameters parameters, BuildAction<? extends T> action, Map<String, String> properties) {
-        this.action = action;
-        startParameter = configureStartParameter(parameters, properties);
-    }
+class ConfiguringBuildAction {
 
     private List<TaskExecutionRequest> unpack(final List<InternalLaunchable> launchables) {
         // Important that the launchables are unpacked on the client side, to avoid sending back any additional internal state that
@@ -68,7 +51,7 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         return requests;
     }
 
-    private StartParameter configureStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
+    public StartParameter toStartParameter(ProviderOperationParameters parameters, Map<String, String> properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameter startParameter = new StartParameter();
 
@@ -112,10 +95,5 @@ class ConfiguringBuildAction<T> implements BuildAction<T>, Serializable {
         }
 
         return startParameter;
-    }
-
-    public T run(BuildController buildController) {
-        buildController.setStartParameter(startParameter);
-        return action.run(buildController);
     }
 }

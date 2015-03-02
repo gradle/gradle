@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
@@ -89,31 +90,31 @@ public class ProviderConnection {
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
-        BuildAction<BuildActionResult> action = new BuildModelAction(modelName, tasks != null);
-        return run(action, cancellationToken, providerParameters, params.properties);
+        StartParameter startParameter = new ConfiguringBuildAction().toStartParameter(providerParameters, params.properties);
+        BuildAction<BuildActionResult> action = new BuildModelAction(startParameter, modelName, tasks != null);
+        return run(action, cancellationToken, providerParameters, params);
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(serializedAction);
-        return run(action, cancellationToken, providerParameters, params.properties);
+        StartParameter startParameter = new ConfiguringBuildAction().toStartParameter(providerParameters, params.properties);
+        BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(startParameter, serializedAction);
+        return run(action, cancellationToken, providerParameters, params);
     }
 
-    private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Map<String, String> properties) {
-        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
-        ConfiguringBuildAction<BuildActionResult> configuringAction = new ConfiguringBuildAction<BuildActionResult>(operationParameters, action, properties);
+    private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
+        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
         BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, new NoOpBuildEventConsumer());
-        BuildActionResult result = executer.execute(configuringAction, buildRequestContext, operationParameters);
+        BuildActionResult result = executer.execute(action, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }
         return payloadSerializer.deserialize(result.result);
     }
 
-    private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters) {
+    private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingServiceRegistry loggingServices;
-        Parameters params = initParams(operationParameters);
         BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingServices = this.loggingServices;
