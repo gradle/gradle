@@ -18,12 +18,10 @@ package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 
-import java.io.Serializable;
-
 /**
  * Returned when the daemon starts a build command, signifying that it has begun processing it.
  */
-public class BuildStarted implements Serializable {
+public class BuildStarted extends Message {
 
     private final DaemonDiagnostics diagnostics;
 

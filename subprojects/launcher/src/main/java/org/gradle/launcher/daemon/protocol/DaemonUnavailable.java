@@ -16,12 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
 /**
  * Returned when the daemon is busy running a different command.
  */
-public class DaemonUnavailable implements Serializable {
+public class DaemonUnavailable extends Message {
     private final String reason;
 
     public DaemonUnavailable(String reason) {

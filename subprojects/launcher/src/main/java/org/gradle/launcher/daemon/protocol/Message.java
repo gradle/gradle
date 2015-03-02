@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.protocol;
 
-public class Command extends Message {
-    private final Object identifier;
+import java.io.Serializable;
 
-    public Command(Object identifier) {
-        this.identifier = identifier;
-    }
-
-    /**
-     * @return an id that is guaranteed to be unique in the same process
-     */
-    public Object getIdentifier() {
-        return identifier;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s[id=%s]", getClass().getSimpleName(), identifier);
-    }
+/**
+ * A message sent between daemon client and daemon server.
+ */
+public class Message implements Serializable {
 }
