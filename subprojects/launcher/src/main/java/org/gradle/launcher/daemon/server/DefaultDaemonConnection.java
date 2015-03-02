@@ -120,6 +120,11 @@ public class DefaultDaemonConnection implements DaemonConnection {
         connection.dispatch(logEvent);
     }
 
+    @Override
+    public void event(Object event) {
+        connection.dispatch(new BuildEvent(event));
+    }
+
     public void completed(Result result) {
         connection.dispatch(result);
     }
