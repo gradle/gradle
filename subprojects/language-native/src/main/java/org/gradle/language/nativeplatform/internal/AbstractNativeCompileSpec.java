@@ -31,6 +31,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private boolean positionIndependentCode;
+    private boolean preCompiledHeader;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -108,6 +109,16 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
 
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
+    }
+
+    @Override
+    public boolean isPreCompiledHeader() {
+        return preCompiledHeader;
+    }
+
+    @Override
+    public void setPreCompiledHeader(boolean preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
     }
 
     private void addAll(List<File> list, Iterable<File> iterable) {

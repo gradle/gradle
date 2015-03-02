@@ -32,7 +32,6 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolRegistry toolRegistry;
     private final ExecActionFactory execActionFactory;
     private final boolean useCommandFile;
-    private final String outputFileSuffix;
 
     GccPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal targetOperatingSystem, ToolSearchPath toolSearchPath, ToolRegistry toolRegistry, ExecActionFactory execActionFactory, boolean useCommandFile) {
         super(buildOperationProcessor, targetOperatingSystem);
@@ -40,41 +39,40 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         this.toolSearchPath = toolSearchPath;
         this.useCommandFile = useCommandFile;
         this.execActionFactory = execActionFactory;
-        this.outputFileSuffix = "." + getObjectFileExtension();
     }
 
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool(cppCompilerTool), context(cppCompilerTool), outputFileSuffix, useCommandFile);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
+        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool(cCompilerTool), context(cCompilerTool), outputFileSuffix, useCommandFile);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
+        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
-        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(buildOperationProcessor, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), outputFileSuffix, useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, outputFileSuffix);
+        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(buildOperationProcessor, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
-        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(buildOperationProcessor, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), outputFileSuffix, useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, outputFileSuffix);
+        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(buildOperationProcessor, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), outputFileSuffix, useCommandFile);
+        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), getObjectFileExtensionCalculator(), useCommandFile);
     }
 
     @Override

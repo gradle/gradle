@@ -20,6 +20,7 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.util.CollectionUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +32,7 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
         implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
     private final List<Object> libs = new ArrayList<Object>();
+    private File preCompiledHeaderFile;
 
     public Collection<?> getLibs() {
         return libs;
@@ -43,5 +45,15 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
         } else {
             libs.add(library);
         }
+    }
+
+    @Override
+    public void setPreCompiledHeader(File headerFile) {
+        this.preCompiledHeaderFile = headerFile;
+    }
+
+    @Override
+    public File getPreCompiledHeader() {
+        return preCompiledHeaderFile;
     }
 }

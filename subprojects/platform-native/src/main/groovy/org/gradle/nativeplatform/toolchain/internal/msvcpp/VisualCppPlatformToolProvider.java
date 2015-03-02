@@ -42,7 +42,6 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     private final WindowsSdk sdk;
     private final NativePlatformInternal targetPlatform;
     private final ExecActionFactory execActionFactory;
-    private final String outputFileSuffix;
 
     VisualCppPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal operatingSystem, Map<ToolType, CommandLineToolConfigurationInternal> commandLineToolConfigurations, VisualCppInstall visualCpp, WindowsSdk sdk, NativePlatformInternal targetPlatform, ExecActionFactory execActionFactory) {
         super(buildOperationProcessor, operatingSystem);
@@ -50,7 +49,6 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         this.visualCpp = visualCpp;
         this.sdk = sdk;
         this.targetPlatform = targetPlatform;
-        this.outputFileSuffix = "." + getObjectFileExtension();
         this.execActionFactory = execActionFactory;
     }
 
@@ -62,21 +60,21 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), outputFileSuffix, true);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, outputFileSuffix);
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), getObjectFileExtensionCalculator(), true);
+        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), outputFileSuffix, true);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, outputFileSuffix);
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), getObjectFileExtensionCalculator(), true);
+        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-        return new Assembler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), outputFileSuffix, false);
+        return new Assembler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), getObjectFileExtensionCalculator(), false);
     }
 
     @Override
@@ -92,9 +90,14 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-        String resOutputFileName = ".res";
-        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), resOutputFileName, false);
-        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, resOutputFileName);
+        ObjectFileExtensionCalculator windowsResourceOutputFileCalculator = new ObjectFileExtensionCalculator() {
+            @Override
+            public String transform(NativeCompileSpec nativeCompileSpec) {
+                return ".res";
+            }
+        };
+        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), windowsResourceOutputFileCalculator, false);
+        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, windowsResourceOutputFileCalculator);
     }
 
     @Override

@@ -64,4 +64,8 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     boolean isIncrementalCompile();
 
     void setIncrementalCompile(boolean flag);
+
+    boolean isPreCompiledHeader();
+
+    void setPreCompiledHeader(boolean flag);
 }

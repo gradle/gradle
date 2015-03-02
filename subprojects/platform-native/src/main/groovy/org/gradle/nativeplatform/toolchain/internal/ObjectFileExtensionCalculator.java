@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.api.Transformer;
 
-public interface PlatformToolProvider extends ToolProvider {
-    ObjectFileExtensionCalculator getObjectFileExtensionCalculator();
+public interface ObjectFileExtensionCalculator extends Transformer<String, NativeCompileSpec> {
 
-    String getExecutableName(String executablePath);
-
-    String getSharedLibraryName(String libraryPath);
-
-    String getSharedLibraryLinkFileName(String libraryPath);
-
-    String getStaticLibraryName(String libraryPath);
 }

@@ -104,6 +104,10 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
             task.setCompilerArgs(tool.getArgs());
         }
 
+        if (binary.getPreCompiledHeaderMappings().containsKey(sourceSet)) {
+            task.setPreCompiledHeader(true);
+        }
+
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
     }
 }

@@ -35,19 +35,19 @@ import java.util.List;
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformer<T> argsTransformer;
+    private final ArgsTransformerFactory<T> argsTransformerFactory;
     private final Transformer<T, T> specTransformer;
     private final CommandLineToolContext invocationContext;
-    private final String objectFileSuffix;
+    private final ObjectFileExtensionCalculator objectFileExtensionCalculator;
     private final boolean useCommandFile;
 
     private final BuildOperationProcessor buildOperationProcessor;
 
-    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformerFactory<T> argsTransformerFactory, Transformer<T, T> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
         this.invocationContext = invocationContext;
-        this.objectFileSuffix = objectFileSuffix;
+        this.objectFileExtensionCalculator = objectFileExtensionCalculator;
         this.useCommandFile = useCommandFile;
-        this.argsTransformer = argsTransformer;
+        this.argsTransformerFactory = argsTransformerFactory;
         this.specTransformer = specTransformer;
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.buildOperationProcessor = buildOperationProcessor;
@@ -61,7 +61,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {
             CommandLineToolInvocation perFileInvocation =
-                    createPerFileInvocation(genericArgs, sourceFile, objectDir);
+                    createPerFileInvocation(genericArgs, sourceFile, objectDir, objectFileExtensionCalculator.transform(spec));
             buildQueue.add(perFileInvocation);
         }
 
@@ -72,6 +72,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected List<String> getArguments(T spec) {
+        ArgsTransformer<T> argsTransformer = argsTransformerFactory.create(spec);
         List<String> args = argsTransformer.transform(spec);
 
         Action<List<String>> userArgTransformer = invocationContext.getArgAction();
@@ -108,7 +109,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
-    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir) {
+    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, String objectFileSuffix) {
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 

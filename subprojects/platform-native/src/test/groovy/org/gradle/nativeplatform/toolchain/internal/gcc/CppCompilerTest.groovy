@@ -18,13 +18,14 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
+import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 
 class CppCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
-    protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
-        new CppCompiler(buildOperationProcessor, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
+    protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, ObjectFileExtensionCalculator calculator, boolean useCommandFile) {
+        new CppCompiler(buildOperationProcessor, commandLineTool, invocationContext, calculator, useCommandFile)
     }
 
     @Override

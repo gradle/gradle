@@ -25,6 +25,7 @@ import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider
@@ -193,6 +194,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform2.getName() >> "platform2"
         toolSearchPath.locate(_, _) >> tool
         metaDataProvider.getGccMetaData(_, _) >> correctCompiler
+        def spec = Stub(NativeCompileSpec) {
+            isPreCompiledHeader() >> false
+        }
 
         toolChain.target(platform1.getName())
         toolChain.target(platform2.getName())
@@ -201,13 +205,13 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         PlatformToolProvider selected = toolChain.select(platform1)
 
         then:
-        selected.outputFileSuffix == ".obj"
+        selected.objectFileExtensionCalculator.transform(spec) == ".obj"
 
         when:
         selected = toolChain.select(platform2)
 
         then:
-        selected.outputFileSuffix == ".o"
+        selected.objectFileExtensionCalculator.transform(spec) == ".o"
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {

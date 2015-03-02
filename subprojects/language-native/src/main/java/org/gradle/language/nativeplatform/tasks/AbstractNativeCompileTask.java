@@ -49,6 +49,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
+    private boolean preCompiledHeader;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -79,6 +80,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
+        spec.setPreCompiledHeader(isPreCompiledHeader());
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
@@ -188,4 +190,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         this.compilerArgs = compilerArgs;
     }
 
+    /**
+     * Is this a compile task for a pre-compiled header?
+     */
+    public boolean isPreCompiledHeader() {
+        return preCompiledHeader;
+    }
+
+    public void setPreCompiledHeader(boolean preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
+    }
 }
