@@ -47,11 +47,4 @@ public interface TestDescriptor {
      */
     TestDescriptor getParent();
 
-    /**
-     * Returns whether this test is a composite.
-     *
-     * @return {@code true} if this test is a composite
-     */
-    boolean isComposite();
-
 }
