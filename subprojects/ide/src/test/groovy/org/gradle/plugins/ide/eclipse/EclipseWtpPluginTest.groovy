@@ -184,6 +184,22 @@ class EclipseWtpPluginTest extends Specification {
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo')]
     }
 
+    def "web app dir should not disappear while manually adding a wb resource"() {
+        when:
+        project.apply(plugin: 'war')
+        wtpPlugin.apply(project)
+        project.webAppDirName = 'foo'
+
+        project.eclipse.wtp {
+            component {
+                resource sourcePath: "common", deployPath: "/common"
+            }
+        }
+
+        then:
+        project.eclipse.wtp.component.resources == [new WbResource('/', 'foo'), new WbResource('/common', 'common')]
+    }
+
     @Unroll
     def 'applyToEarProject in order #plugs should have web project and classpath task'() {
         when:
