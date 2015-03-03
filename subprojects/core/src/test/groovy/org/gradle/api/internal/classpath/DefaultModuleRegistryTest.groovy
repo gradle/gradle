@@ -32,7 +32,7 @@ class DefaultModuleRegistryTest extends Specification {
 
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
-        distDir.createDir("lib/distributionOnly")
+        distDir.createDir("lib/plugins/sonar")
         runtimeDep = distDir.createZip("lib/dep-1.2.jar")
 
         resourcesDir = tmpDir.createDir("classes")
@@ -236,17 +236,17 @@ class DefaultModuleRegistryTest extends Specification {
         module.runtimeClasspath.empty
     }
 
-    def "also looks in the 'distributionOnly' directory when searching for external modules"() {
+    def "also looks in sonar subdirectory of plugins directory when searching for external modules"() {
         given:
         def cl = new URLClassLoader([] as URL[])
         def registry = new DefaultModuleRegistry(cl, distDir)
 
         when:
-        def additionalDep = distDir.createZip("lib/distributionOnly/not-on-classpath-1.2.jar")
+        def sonarDependency = distDir.createZip("lib/plugins/sonar/sonar-dependency-1.2.jar")
 
         then:
-        def module = registry.getExternalModule("not-on-classpath")
-        module.implementationClasspath.asFiles == [additionalDep]
+        def module = registry.getExternalModule("sonar-dependency")
+        module.implementationClasspath.asFiles == [sonarDependency]
         module.runtimeClasspath.empty
     }
 }

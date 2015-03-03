@@ -154,7 +154,7 @@ subprojects {
 }
 
 configurations {
-    distributionOnly {
+    sonar {
         visible = false
     }
     runtime {
@@ -172,7 +172,7 @@ configurations {
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
-    distributionOnly libraries.logback_classic
+    sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
 }
