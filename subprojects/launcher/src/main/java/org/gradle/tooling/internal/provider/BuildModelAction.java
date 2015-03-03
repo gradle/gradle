@@ -41,8 +41,12 @@ public class BuildModelAction implements BuildAction, Serializable {
         this.runTasks = runTasks;
     }
 
+    @Override
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
+
     public BuildActionResult run(BuildController buildController) {
-        buildController.setStartParameter(startParameter);
         GradleInternal gradle = buildController.getGradle();
 
 // TODO - wire this up to test events

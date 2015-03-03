@@ -16,18 +16,12 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 
 /**
  * This is intended to eventually replace {@link GradleLauncher} internally. It's pretty rough at the moment.
  */
 public interface BuildController {
-    /**
-     * Specifies the start parameter to use to run the build. This method cannot be called after any other methods have been called on this controller.
-     */
-    void setStartParameter(StartParameter startParameter);
-
     /**
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */

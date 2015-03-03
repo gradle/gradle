@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
+
 /**
  * An object that performs some action with a {@link BuildController} and produces a “result” object (e.g. the output).
  * <p>
@@ -22,6 +24,8 @@ package org.gradle.initialization;
  * <p>
  */
 public interface BuildAction {
+    StartParameter getStartParameter();
+
     /**
      * Executes the action with the given controller.
      * <p>

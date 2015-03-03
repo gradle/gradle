@@ -17,11 +17,8 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.*;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -33,41 +30,27 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
-        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, buildRequestContext);
+        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext);
         try {
+            DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
             return buildActionRunner.run(action, buildController);
         } finally {
-            buildController.stop();
+            gradleLauncher.stop();
         }
     }
 
-    private static class DefaultBuildController implements BuildController, Stoppable {
-        private enum State { NotStarted, Created, Completed }
-        private State state = State.NotStarted;
-        private final GradleLauncherFactory gradleLauncherFactory;
-        private final BuildRequestContext buildRequestContext;
-        private DefaultGradleLauncher gradleLauncher;
-        private StartParameter startParameter = new StartParameter();
+    private static class DefaultBuildController implements BuildController {
+        private enum State { Created, Completed }
+        private State state = State.Created;
+        private final DefaultGradleLauncher gradleLauncher;
 
-        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildRequestContext buildRequestContext) {
-            this.gradleLauncherFactory = gradleLauncherFactory;
-            this.buildRequestContext = buildRequestContext;
-        }
-
-        public void setStartParameter(StartParameter startParameter) {
-            if (state != State.NotStarted) {
-                throw new IllegalStateException("Cannot change start parameter after build has started.");
-            }
-            this.startParameter = startParameter;
+        public DefaultBuildController(DefaultGradleLauncher gradleLauncher) {
+            this.gradleLauncher = gradleLauncher;
         }
 
         public DefaultGradleLauncher getLauncher() {
             if (state == State.Completed) {
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
-            }
-            if (state == State.NotStarted) {
-                gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(startParameter, buildRequestContext);
-                state = State.Created;
             }
             return gradleLauncher;
         }
@@ -90,10 +73,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 throw new ReportedException(buildResult.getFailure());
             }
             return (GradleInternal) buildResult.getGradle();
-        }
-
-        public void stop() {
-            CompositeStoppable.stoppable(gradleLauncher).stop();
         }
     }
 }

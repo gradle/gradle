@@ -38,8 +38,12 @@ class ClientProvidedBuildAction implements BuildAction, Serializable {
         this.action = action;
     }
 
+    @Override
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
+
     public BuildActionResult run(final BuildController buildController) {
-        buildController.setStartParameter(startParameter);
         GradleInternal gradle = buildController.getGradle();
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);

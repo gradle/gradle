@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server
 
+import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildAction
@@ -47,6 +48,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
     def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
+        StartParameter startParameter
         Object someState
         Object run(BuildController buildController) { null }
     }

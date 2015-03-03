@@ -28,8 +28,12 @@ public class ExecuteBuildAction implements BuildAction, Serializable {
         this.startParameter = startParameter;
     }
 
+    @Override
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
+
     public Void run(BuildController buildController) {
-        buildController.setStartParameter(startParameter);
         buildController.run();
         return null;
     }
