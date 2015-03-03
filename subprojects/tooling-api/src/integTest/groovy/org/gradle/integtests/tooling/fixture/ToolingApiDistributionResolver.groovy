@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.ServiceRegistry
@@ -38,10 +39,12 @@ class ToolingApiDistributionResolver {
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false;
     private CompositeStoppable stopLater = new CompositeStoppable()
+    private final ClassLoader slf4jClassLoader
 
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
         resolutionServices.resolveRepositoryHandler.maven { url buildContext.libsRepo.toURI().toURL() }
+        slf4jClassLoader = createSlf4jClassLoader()
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
@@ -60,10 +63,17 @@ class ToolingApiDistributionResolver {
             } else {
                 Dependency toolingApiDep = resolutionServices.dependencyHandler.create("org.gradle:gradle-tooling-api:$toolingApiVersion")
                 Configuration toolingApiConfig = resolutionServices.configurationContainer.detachedConfiguration(toolingApiDep)
-                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, toolingApiConfig.files)
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, toolingApiConfig.files, slf4jClassLoader)
             }
         }
         distributions[toolingApiVersion]
+    }
+
+    private ClassLoader createSlf4jClassLoader() {
+        def factory = new DefaultClassLoaderFactory()
+        def classLoader = factory.createFilteringClassLoader(getClass().classLoader)
+        classLoader.allowPackage("org.slf4j")
+        classLoader
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {

@@ -16,16 +16,18 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.GradleVersion
 
 class ExternalToolingApiDistribution implements ToolingApiDistribution {
     private final GradleVersion version
     private final Collection<File> classpath
+    private final ClassLoader slf4jClassLoader
 
-    ExternalToolingApiDistribution(String version, Collection<File> classpath) {
+    ExternalToolingApiDistribution(String version, Collection<File> classpath, ClassLoader slf4jClassLoader) {
         this.version = GradleVersion.version(version)
         this.classpath = classpath
+        this.slf4jClassLoader = slf4jClassLoader;
     }
 
     GradleVersion getVersion() {
@@ -37,8 +39,7 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
     }
     
     ClassLoader getClassLoader() {
-        def classLoaderFactory = new DefaultClassLoaderFactory()
-        classLoaderFactory.createIsolatedClassLoader(classpath.collect { it.toURI() })
+        new MutableURLClassLoader(slf4jClassLoader, classpath*.toURI()*.toURL())
     }
     
     String toString() {
