@@ -16,23 +16,38 @@
 
 package org.gradle.api.tasks.compile
 
-import com.google.common.collect.Iterators
+import com.google.common.collect.Iterables
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.jvm.JavaInfo
-import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel || JdkExecutor.singleJdk() })
+@IgnoreIf({ //noinspection UnnecessaryQualifiedReference
+    GradleContextualExecuter.parallel || JavaCompileParallelIntegrationTest.availableJdksWithJavac().size() < 2
+})
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
-    private final CyclingJdkPicker cyclingJdkPicker = new CyclingJdkPicker()
+
+    static List<JavaInfo> availableJdksWithJavac() {
+        AvailableJavaHomes.availableJdks.findAll {
+            try {
+                if (it.javacExecutable) {
+                    return true
+                }
+            }
+            catch (JavaHomeException ignore) {
+                // ignore
+            }
+            false
+        }
+    }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        def jdks = Iterables.cycle(availableJdksWithJavac()*.javacExecutable).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """
@@ -55,7 +70,7 @@ project(':$projectName') {
     tasks.withType(JavaCompile) {
         options.with {
             fork = true
-            forkOptions.executable = "$cyclingJdkPicker.javacExecutable"
+            forkOptions.executable = "${jdks.next()}"
         }
     }
 }
@@ -80,45 +95,6 @@ public class Foo {
 
         projectNames.each { projectName ->
             file("${projectName}/build/classes/main/Foo.class").exists()
-        }
-    }
-
-    private class JdkExecutor {
-        static final List<JavaInfo> JDKS
-
-        static  {
-            JDKS = determineJdksWithResolvableJavac()
-        }
-
-        private static List<JavaInfo> determineJdksWithResolvableJavac() {
-            AvailableJavaHomes.availableJdks.findAll { jdk ->
-                try {
-                    if(jdk.javacExecutable) {
-                        return true
-                    }
-                }
-                catch(JavaHomeException e) {
-                    // ignore
-                }
-
-                false
-            }.asImmutable()
-        }
-
-        static boolean singleJdk() {
-            JDKS.isEmpty() || JDKS.size() == 1
-        }
-    }
-
-    private class CyclingJdkPicker {
-        private final Iterator<JavaInfo> iterator = Iterators.cycle(JdkExecutor.JDKS)
-
-        String getJavacExecutable() {
-            TextUtil.escapeString(target.javacExecutable)
-        }
-
-        private JavaInfo getTarget() {
-            iterator.next()
         }
     }
 }
