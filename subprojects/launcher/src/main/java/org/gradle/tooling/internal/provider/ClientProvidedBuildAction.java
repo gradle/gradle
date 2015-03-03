@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 import java.io.Serializable;
 
-class ClientProvidedBuildAction implements BuildAction, Serializable {
+public class ClientProvidedBuildAction implements BuildAction, Serializable {
     private final SerializedPayload action;
     private final StartParameter startParameter;
 

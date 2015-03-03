@@ -25,11 +25,4 @@ import org.gradle.StartParameter;
  */
 public interface BuildAction {
     StartParameter getStartParameter();
-
-    /**
-     * Executes the action with the given controller.
-     * <p>
-     * The state of the build is not defined as part of this contract, it is highly context specific.
-     */
-    Object run(BuildController buildController);
 }

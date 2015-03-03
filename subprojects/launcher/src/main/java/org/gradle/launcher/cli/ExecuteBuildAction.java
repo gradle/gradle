@@ -17,7 +17,6 @@ package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
 
 import java.io.Serializable;
 
@@ -31,10 +30,5 @@ public class ExecuteBuildAction implements BuildAction, Serializable {
     @Override
     public StartParameter getStartParameter() {
         return startParameter;
-    }
-
-    public Void run(BuildController buildController) {
-        buildController.run();
-        return null;
     }
 }

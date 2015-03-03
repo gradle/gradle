@@ -18,10 +18,26 @@ package org.gradle.launcher.exec;
 
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
+import org.gradle.launcher.cli.ExecuteBuildAction;
+import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
 
 public class DefaultBuildActionRunner implements BuildActionRunner {
     @Override
     public Object run(BuildAction action, BuildController buildController) {
-        return action.run(buildController);
+        if (action instanceof ExecuteBuildAction) {
+            buildController.run();
+            return null;
+        }
+        if (action instanceof BuildModelAction) {
+            BuildModelAction buildModelAction = (BuildModelAction) action;
+            return buildModelAction.run(buildController);
+        }
+        if (action instanceof ClientProvidedBuildAction) {
+            ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
+            return clientProvidedBuildAction.run(buildController);
+        }
+
+        throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
     }
 }
