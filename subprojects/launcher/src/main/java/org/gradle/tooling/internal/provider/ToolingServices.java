@@ -21,7 +21,6 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.exec.DefaultBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
 public class ToolingServices implements PluginServiceRegistry {

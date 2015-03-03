@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.launcher.cli.ExecuteBuildAction;
-import org.gradle.tooling.internal.provider.BuildModelAction;
-import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
+import org.gradle.launcher.exec.BuildActionRunner;
 
 public class DefaultBuildActionRunner implements BuildActionRunner {
     @Override
