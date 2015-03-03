@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
+import org.gradle.tooling.internal.protocol.TestProgressListenerVersion1;
 
 import java.io.File;
 import java.io.InputStream;
@@ -63,6 +63,8 @@ public interface ProviderOperationParameters {
     File getDaemonBaseDir(File defaultDaemonBaseDir);
 
     ProgressListenerVersion1 getProgressListener();
+
+    TestProgressListenerVersion1 getTestProgressListener();
 
     List<String> getArguments(List<String> defaultArguments);
 

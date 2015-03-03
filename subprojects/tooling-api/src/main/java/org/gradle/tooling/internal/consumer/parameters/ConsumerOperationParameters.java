@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.consumer.parameters;
 
 import com.google.common.collect.Lists;
@@ -21,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -46,6 +46,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public static class Builder {
         private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
+        private final TestProgressListenerAdapter testProgressListener = new TestProgressListenerAdapter();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -59,10 +60,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<InternalLaunchable> launchables;
 
         private Builder() {
-        }
-
-        public void setCancellationToken(CancellationToken cancellationToken) {
-            this.cancellationToken = cancellationToken;
         }
 
         public Builder setParameters(ConnectionParameters parameters) {
@@ -139,13 +136,22 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             progressListener.add(listener);
         }
 
+        public void addTestProgressListener(TestProgressListener listener) {
+            testProgressListener.add(listener);
+        }
+
+        public void setCancellationToken(CancellationToken cancellationToken) {
+            this.cancellationToken = cancellationToken;
+        }
+
         public ConsumerOperationParameters build() {
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin,
-                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, cancellationToken);
+                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, testProgressListener, cancellationToken);
         }
     }
 
     private final ProgressListenerAdapter progressListener;
+    private final TestProgressListenerAdapter testProgressListener;
     private final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
@@ -163,7 +169,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
-                                        List<InternalLaunchable> launchables, ProgressListenerAdapter listener, CancellationToken cancellationToken) {
+                                        List<InternalLaunchable> launchables, ProgressListenerAdapter progressListener, TestProgressListenerAdapter testProgressListener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -174,7 +180,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
-        this.progressListener = listener;
+        this.progressListener = progressListener;
+        this.testProgressListener = testProgressListener;
         this.cancellationToken = cancellationToken;
     }
 
@@ -189,10 +196,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
-    }
-
-    public BuildCancellationToken getCancellationToken() {
-        return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 
     public long getStartTime() {
@@ -243,10 +246,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return colorOutput;
     }
 
-    public ProgressListenerVersion1 getProgressListener() {
-        return progressListener;
-    }
-
     public InputStream getStandardInput() {
         return stdin;
     }
@@ -269,5 +268,17 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<InternalLaunchable> getLaunchables() {
         return launchables;
+    }
+
+    public ProgressListenerVersion1 getProgressListener() {
+        return progressListener;
+    }
+
+    public TestProgressListenerVersion1 getTestProgressListener() {
+        return testProgressListener;
+    }
+
+    public BuildCancellationToken getCancellationToken() {
+        return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 }
