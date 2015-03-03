@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.connection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressListenerVersion1;
+import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 
 import java.io.File;
 import java.io.InputStream;
@@ -64,7 +64,7 @@ public interface ProviderOperationParameters {
 
     ProgressListenerVersion1 getProgressListener();
 
-    TestProgressListenerVersion1 getTestProgressListener();
+    BuildProgressListenerVersion1 getBuildProgressListener();
 
     List<String> getArguments(List<String> defaultArguments);
 

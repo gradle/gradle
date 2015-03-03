@@ -20,17 +20,27 @@ import org.gradle.tooling.TestDescriptor;
 import org.gradle.tooling.TestProgressEvent;
 import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.TestResult;
+import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
-import org.gradle.tooling.internal.protocol.TestProgressListenerVersion1;
 
-class TestProgressListenerAdapter implements TestProgressListenerVersion1 {
+/**
+ * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
+ * matching progress listeners. This adapter handles all the different incoming progress event types.
+ */
+class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
-    private final ListenerBroadcast<TestProgressListener> listeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
+    private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
 
     @Override
-    public void onEvent(final TestProgressEventVersion1 event) {
-        listeners.getSource().statusChanged(new TestProgressEvent() {
+    public void onEvent(final Object event) {
+        if (event instanceof TestProgressEventVersion1) {
+            broadcastTestProgressEvent((TestProgressEventVersion1) event);
+        }
+    }
+
+    private void broadcastTestProgressEvent(final TestProgressEventVersion1 event) {
+        testProgressListeners.getSource().statusChanged(new TestProgressEvent() {
             @Override
             public int getEventTypeId() {
                 return -1;
@@ -70,8 +80,8 @@ class TestProgressListenerAdapter implements TestProgressListenerVersion1 {
         };
     }
 
-    public void add(TestProgressListener listener) {
-        listeners.add(listener);
+    public void addTestProgressListener(TestProgressListener listener) {
+        testProgressListeners.add(listener);
     }
 
 }

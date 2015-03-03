@@ -18,8 +18,15 @@ package org.gradle.tooling.internal.protocol;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface TestProgressListenerVersion1 {
+public interface BuildProgressListenerVersion1 {
 
-    void onEvent(TestProgressEventVersion1 event);
+    /**
+     * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
+     *
+     * The event types implemented in Gradle 2.4 are: <ul> <li>{@link org.gradle.tooling.internal.protocol.TestProgressEventVersion1}</li> </ul>
+     *
+     * @param event The issued progress event
+     */
+    void onEvent(Object event);
 
 }

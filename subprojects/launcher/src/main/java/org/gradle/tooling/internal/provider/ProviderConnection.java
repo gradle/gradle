@@ -104,7 +104,7 @@ public class ProviderConnection {
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
-        BuildEventConsumer buildEventConsumer = new TestProgressBuildEventConsumer(operationParameters.getTestProgressListener());
+        BuildEventConsumer buildEventConsumer = new ListenerInvokingBuildEventConsumer(operationParameters.getBuildProgressListener());
         BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, buildEventConsumer);
         BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, operationParameters);
         if (result.failure != null) {
@@ -172,20 +172,17 @@ public class ProviderConnection {
         }
     }
 
-    private static final class TestProgressBuildEventConsumer implements BuildEventConsumer {
+    private static final class ListenerInvokingBuildEventConsumer implements BuildEventConsumer {
 
-        private final TestProgressListenerVersion1 testProgressListener;
+        private final BuildProgressListenerVersion1 buildProgressListener;
 
-        private TestProgressBuildEventConsumer(TestProgressListenerVersion1 testProgressListener) {
-            this.testProgressListener = testProgressListener;
+        private ListenerInvokingBuildEventConsumer(BuildProgressListenerVersion1 buildProgressListener) {
+            this.buildProgressListener = buildProgressListener;
         }
 
         @Override
-        public void dispatch(Object message) {
-            if (message instanceof TestProgressEventVersion1) {
-                TestProgressEventVersion1 testProgressEvent = (TestProgressEventVersion1) message;
-                this.testProgressListener.onEvent(testProgressEvent);
-            }
+        public void dispatch(Object event) {
+            this.buildProgressListener.onEvent(event);
         }
 
     }

@@ -46,7 +46,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public static class Builder {
         private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
-        private final TestProgressListenerAdapter testProgressListener = new TestProgressListenerAdapter();
+        private final BuildProgressListenerAdapter buildProgressListener = new BuildProgressListenerAdapter();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -98,7 +98,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setArguments(String [] arguments) {
+        public Builder setArguments(String[] arguments) {
             this.arguments = rationalizeInput(arguments);
             return this;
         }
@@ -137,7 +137,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public void addTestProgressListener(TestProgressListener listener) {
-            testProgressListener.add(listener);
+            buildProgressListener.addTestProgressListener(listener);
         }
 
         public void setCancellationToken(CancellationToken cancellationToken) {
@@ -146,12 +146,12 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
         public ConsumerOperationParameters build() {
             return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin,
-                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, testProgressListener, cancellationToken);
+                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, buildProgressListener, cancellationToken);
         }
     }
 
     private final ProgressListenerAdapter progressListener;
-    private final TestProgressListenerAdapter testProgressListener;
+    private final BuildProgressListenerAdapter buildProgressListener;
     private final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
@@ -168,8 +168,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<InternalLaunchable> launchables;
 
     private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
-                                        List<InternalLaunchable> launchables, ProgressListenerAdapter progressListener, TestProgressListenerAdapter testProgressListener, CancellationToken cancellationToken) {
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables,
+                                        ProgressListenerAdapter progressListener, BuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -181,7 +181,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.tasks = tasks;
         this.launchables = launchables;
         this.progressListener = progressListener;
-        this.testProgressListener = testProgressListener;
+        this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
     }
 
@@ -274,8 +274,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return progressListener;
     }
 
-    public TestProgressListenerVersion1 getTestProgressListener() {
-        return testProgressListener;
+    public BuildProgressListenerVersion1 getBuildProgressListener() {
+        return buildProgressListener;
     }
 
     public BuildCancellationToken getCancellationToken() {
