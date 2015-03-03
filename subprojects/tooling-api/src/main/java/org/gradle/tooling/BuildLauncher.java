@@ -123,16 +123,6 @@ public interface BuildLauncher extends LongRunningOperation {
     BuildLauncher addProgressListener(ProgressListener listener);
 
     /**
-     * Adds a test progress listener which will receive test progress events as the build runs.
-     *
-     * @param listener The listener
-     * @return this
-     * @since 2.4
-     */
-    @Incubating
-    BuildLauncher addTestProgressListener(TestProgressListener listener);
-
-    /**
      * {@inheritDoc}
      * @since 2.3
      */

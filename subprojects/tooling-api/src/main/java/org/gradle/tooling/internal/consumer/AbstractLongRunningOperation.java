@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.io.File;
@@ -80,6 +80,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     public T addProgressListener(ProgressListener listener) {
         operationParamsBuilder.addProgressListener(listener);
+        return getThis();
+    }
+
+    public T addTestProgressListener(TestProgressListener listener) {
+        operationParamsBuilder.addTestProgressListener(listener);
         return getThis();
     }
 
