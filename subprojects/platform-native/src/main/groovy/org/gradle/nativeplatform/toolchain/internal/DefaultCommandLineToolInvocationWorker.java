@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.internal.operations.OperationFailure;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -48,6 +47,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
     public void execute(CommandLineToolInvocation invocation) {
         ExecAction toolExec = execActionFactory.newExecAction();
+
         toolExec.executable(executable);
         if (invocation.getWorkDirectory() != null) {
             GFileUtils.mkdirs(invocation.getWorkDirectory());
@@ -71,7 +71,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new OperationFailure(String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()), e);
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()), e);
         }
     }
 }

@@ -17,19 +17,26 @@
 package org.gradle.internal.operations;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
 
-@Contextual
-public class OperationFailure extends GradleException {
-    public OperationFailure() {
+public class BuildOperationFailure extends GradleException {
+    private final BuildOperation operation;
+
+    protected BuildOperationFailure(BuildOperation operation) {
         super();
+        this.operation = operation;
     }
 
-    public OperationFailure(String message) {
+    protected BuildOperationFailure(BuildOperation operation, String message) {
         super(message);
+        this.operation = operation;
     }
 
-    public OperationFailure(String message, Throwable cause) {
+    protected BuildOperationFailure(BuildOperation operation, String message, Throwable cause) {
         super(message, cause);
+        this.operation = operation;
+    }
+
+    public BuildOperation getOperation() {
+        return operation;
     }
 }

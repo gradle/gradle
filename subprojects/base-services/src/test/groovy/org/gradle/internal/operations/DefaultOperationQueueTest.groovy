@@ -36,7 +36,7 @@ class DefaultOperationQueueTest extends Specification {
 
     static class Failure extends TestBuildOperation {
         void run() {
-            throw new OperationFailure("always fails")
+            throw new BuildOperationFailure(this, "always fails")
         }
     }
 

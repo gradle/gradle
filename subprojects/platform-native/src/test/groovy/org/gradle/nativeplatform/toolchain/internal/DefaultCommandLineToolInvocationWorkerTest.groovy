@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import org.gradle.internal.operations.OperationFailure
+import org.gradle.internal.operations.BuildOperationFailure
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
@@ -41,7 +41,7 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         then:
         1 * execAction.executable(executable)
         1 * execAction.execute() >> { throw new ExecException("fail") }
-        OperationFailure e = thrown()
+        BuildOperationFailure e = thrown()
         e.getMessage() == 'Tool failed while doing something; see the error output for details.'
 
     }
