@@ -48,7 +48,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             assert pluginManager.hasPlugin("$detectedBy")
             assert pluginManager.findPlugin("$detectedBy").id == "$detectedBy"
 
-            task verify << { assert operations == ['applying', 'withPlugin', 'withId for JavaPlugin', 'applied'] }
+            task verify << { assert operations == ['applying', 'withId for JavaPlugin', 'withPlugin', 'applied'] }
         """
 
         expect:
@@ -97,4 +97,86 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         run("verify")
     }
+
+    def "plugin manager with id is fired after the plugin is applied for imperative plugins"() {
+        when:
+        buildFile << """
+            pluginManager.withPlugin("java") {
+              assert tasks.jar
+            }
+
+            apply plugin: "java"
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "plugin manager with id is fired after the plugin is applied for hybrid plugins"() {
+        when:
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Task
+            import org.gradle.model.*
+
+            class MyPlugin implements Plugin {
+                void apply(project) {
+                  project.tasks.create("imperative-sentinel")
+                }
+
+                static class Rules extends RuleSource {
+                    @Model String thing() {
+                        "foo"
+                    }
+                }
+            }
+        """
+
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=MyPlugin"
+
+        buildFile << """
+            import org.gradle.model.internal.core.ModelPath
+
+            pluginManager.withPlugin("my") {
+              assert tasks."imperative-sentinel"
+              // note: modelRegistry property is internal on project
+              assert modelRegistry.node(ModelPath.path("thing")) != null
+            }
+
+            pluginManager.apply(MyPlugin)
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "plugin manager with id is fired after the plugin is applied for rule plugins"() {
+        when:
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.model.*
+
+            class Rules extends RuleSource {
+                @Model String thing() {
+                    "foo"
+                }
+            }
+        """
+
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my.properties") << "implementation-class=Rules"
+
+        buildFile << """
+            import org.gradle.model.internal.core.ModelPath
+
+            pluginManager.withPlugin("my") {
+              // note: modelRegistry property is internal on project
+              assert modelRegistry.node(ModelPath.path("thing")) != null
+            }
+
+            pluginManager.apply("my")
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
 }

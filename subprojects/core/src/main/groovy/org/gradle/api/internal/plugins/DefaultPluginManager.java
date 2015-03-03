@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.plugins.*;
@@ -71,18 +72,24 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return addImperativePlugin(pluginRegistry.inspect(type));
     }
 
-    private boolean addPluginInternal(PluginImplementation<?> plugin) {
-        Class<?> pluginClass = plugin.asClass();
+    @Nullable // if the plugin has already been added
+    private Runnable addPluginInternal(final PluginImplementation<?> plugin) {
+        final Class<?> pluginClass = plugin.asClass();
         if (plugins.containsKey(pluginClass)) {
-            return false;
+            return null;
         }
+
         plugins.put(pluginClass, plugin);
-        for (PluginId id : idMappings.keySet()) {
-            if (plugin.isAlsoKnownAs(id)) {
-                idMappings.get(id).add(new PluginWithId(id, pluginClass));
+        return new Runnable() {
+            @Override
+            public void run() {
+                for (PluginId id : idMappings.keySet()) {
+                    if (plugin.isAlsoKnownAs(id)) {
+                        idMappings.get(id).add(new PluginWithId(id, pluginClass));
+                    }
+                }
             }
-        }
-        return true;
+        };
     }
 
     public PluginContainer getPluginContainer() {
@@ -115,7 +122,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
                 boolean imperative = plugin.isImperative();
-                if (addPluginInternal(plugin)) {
+                Runnable adder = addPluginInternal(plugin);
+                if (adder != null) {
                     if (imperative) {
                         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
                         // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
@@ -139,6 +147,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
                     } else {
                         applicator.applyRules(pluginIdStr, pluginClass);
                     }
+
+                    adder.run();
                 }
             }
         } catch (PluginApplicationException e) {
