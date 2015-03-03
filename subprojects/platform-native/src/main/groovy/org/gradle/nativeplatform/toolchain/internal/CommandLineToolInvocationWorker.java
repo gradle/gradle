@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.internal.operations.OperationWorker;
+import org.gradle.internal.operations.BuildOperationWorker;
 
-public interface CommandLineToolInvocationWorker extends OperationWorker<CommandLineToolInvocation> {
+public interface CommandLineToolInvocationWorker extends BuildOperationWorker<CommandLineToolInvocation> {
     /**
      * Returns a human consumable name for this tool.
      */

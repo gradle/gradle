@@ -24,15 +24,15 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
-class DefaultOperationQueue<T extends BuildOperation> implements OperationQueue<T> {
+class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
     private final ListeningExecutorService executor;
-    private final OperationWorker<T> worker;
+    private final BuildOperationWorker<T> worker;
 
     private final List<ListenableFuture> operations;
 
     private boolean waitingForCompletion;
 
-    DefaultOperationQueue(ExecutorService executor, OperationWorker<T> worker) {
+    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
         this.executor =  MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();

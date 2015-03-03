@@ -28,5 +28,5 @@ public interface BuildOperationProcessor {
      * @param <T> The type of operations the worker uses.
      * @return A queue to add operations to and wait for their completion.
      */
-    <T extends BuildOperation> OperationQueue<T> newQueue(OperationWorker<T> worker);
+    <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker);
 }

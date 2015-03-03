@@ -18,7 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 
-public interface OperationWorker<T extends BuildOperation> extends Action<T> {
+public interface BuildOperationWorker<T extends BuildOperation> extends Action<T> {
     /**
      * Returns a human consumable name for this tool.
      */

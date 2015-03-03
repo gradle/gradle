@@ -21,7 +21,7 @@ import org.gradle.api.GradleException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultOperationQueueTest extends Specification {
+class DefaultBuildOperationQueueTest extends Specification {
 
     abstract static class TestBuildOperation implements BuildOperation, Runnable {
         public String getDescription() { return toString() }
@@ -40,7 +40,7 @@ class DefaultOperationQueueTest extends Specification {
         }
     }
 
-    static class SimpleWorker implements OperationWorker<TestBuildOperation> {
+    static class SimpleWorker implements BuildOperationWorker<TestBuildOperation> {
         public void execute(TestBuildOperation run) {
             run.run();
         }
@@ -52,7 +52,7 @@ class DefaultOperationQueueTest extends Specification {
 
     // Tests use calling thread for execution
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(MoreExecutors.sameThreadExecutor())
-    OperationQueue operationQueue = new DefaultOperationQueue(executor, new SimpleWorker())
+    BuildOperationQueue operationQueue = new DefaultBuildOperationQueue(executor, new SimpleWorker())
 
     @Unroll
     def "executes all #runs operations"() {

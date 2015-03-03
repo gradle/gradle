@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.Actions
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.OperationQueue
+import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
@@ -39,7 +39,7 @@ class GccLinkerTest extends Specification {
     def invocation = Mock(CommandLineToolInvocation)
     CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
     BuildOperationProcessor buildOperationProcessor = Mock(BuildOperationProcessor)
-    OperationQueue queue = Mock(OperationQueue)
+    BuildOperationQueue queue = Mock(BuildOperationQueue)
 
     GccLinker linker = new GccLinker(buildOperationProcessor, commandLineTool, invocationContext, false)
 
