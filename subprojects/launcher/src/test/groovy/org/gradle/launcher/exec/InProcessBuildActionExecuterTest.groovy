@@ -30,7 +30,8 @@ class InProcessBuildActionExecuterTest extends Specification {
     final BuildRequestMetaData metaData = Mock()
     final BuildResult buildResult = Mock()
     final GradleInternal gradle = Mock()
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory)
+    final BuildActionRunner actionRunner = Mock()
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
@@ -46,7 +47,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * action.run(!null) >> { BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             return '<result>'
         }
     }
@@ -62,7 +63,7 @@ class InProcessBuildActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
-        1 * action.run(!null) >> { BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             assert controller.launcher == launcher
             return '<result>'
         }
@@ -81,7 +82,7 @@ class InProcessBuildActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(startParam, buildRequestContext) >> launcher
-        1 * action.run(!null) >> { BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             controller.startParameter = startParam
             assert controller.launcher == launcher
             return '<result>'
@@ -94,7 +95,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         def startParam = new StartParameter()
 
         given:
-        _ * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             controller.launcher
             controller.startParameter = startParam
         }
@@ -123,7 +124,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
         1 * launcher.getGradle() >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             assert controller.getGradle() == gradle
             return '<result>'
         }
@@ -144,7 +145,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * launcher.run() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             assert controller.run() == gradle
             return '<result>'
         }
@@ -165,7 +166,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * launcher.getBuildAnalysis() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             assert controller.configure() == gradle
             return '<result>'
         }
@@ -176,7 +177,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         BuildAction<String> action = Mock()
 
         given:
-        action.run(!null) >> { BuildController controller ->
+        actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             controller.run()
             controller.configure()
         }
@@ -211,7 +212,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
         1 * launcher.run() >> buildResult
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
             controller.run()
         }
         1 * launcher.stop()

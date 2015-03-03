@@ -17,9 +17,12 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.cache.CacheRepository;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.exec.DefaultBuildActionRunner;
+import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
 public class ToolingServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -34,6 +37,10 @@ public class ToolingServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
+        InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
+            return new InProcessBuildActionExecuter(gradleLauncherFactory, new DefaultBuildActionRunner());
+        }
+
         ClassLoaderCache createClassLoaderCache() {
             return new ClassLoaderCache();
         }

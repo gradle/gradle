@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -83,7 +82,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultDaemonHealthServices();
     }
 
-    protected Daemon createDaemon() {
+    protected Daemon createDaemon(InProcessBuildActionExecuter buildActionExecuter) {
         return new Daemon(
                 new DaemonTcpServerConnector(
                     get(ExecutorFactory.class),
@@ -93,8 +92,7 @@ public class DaemonServices extends DefaultServiceRegistry {
                 "password",
                 new StopHandlingCommandExecuter(
                         new DefaultDaemonCommandExecuter(
-                                new InProcessBuildActionExecuter(
-                                        get(GradleLauncherFactory.class)),
+                                buildActionExecuter,
                                 get(ProcessEnvironment.class),
                                 loggingManager,
                                 getDaemonLogFile(),

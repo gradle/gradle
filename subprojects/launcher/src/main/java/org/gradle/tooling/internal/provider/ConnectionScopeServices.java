@@ -16,14 +16,13 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -50,12 +49,12 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory, DaemonClientFactory daemonClientFactory,
+    ProviderConnection createProviderConnection(InProcessBuildActionExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
                                                 ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache, ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 loggingServices,
                 daemonClientFactory,
-                new InProcessBuildActionExecuter(gradleLauncherFactory),
+                buildActionExecuter,
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(

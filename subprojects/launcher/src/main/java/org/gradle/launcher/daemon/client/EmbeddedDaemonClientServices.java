@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -72,8 +71,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         LoggingManagerInternal mgr = newInstance(LoggingManagerInternal.class);
         return new StopHandlingCommandExecuter(
                 new DefaultDaemonCommandExecuter(
-                        new InProcessBuildActionExecuter(
-                                get(GradleLauncherFactory.class)),
+                        get(InProcessBuildActionExecuter.class),
                         get(ProcessEnvironment.class),
                         mgr,
                         new File("dummy"),

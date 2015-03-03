@@ -25,15 +25,17 @@ import org.gradle.internal.concurrent.Stoppable;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
+    private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
+    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner) {
         this.gradleLauncherFactory = gradleLauncherFactory;
+        this.buildActionRunner = buildActionRunner;
     }
 
     public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
-        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, buildRequestContext, actionParameters);
+        DefaultBuildController buildController = new DefaultBuildController(gradleLauncherFactory, buildRequestContext);
         try {
-            return action.run(buildController);
+            return buildActionRunner.run(action, buildController);
         } finally {
             buildController.stop();
         }
@@ -42,16 +44,14 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     private static class DefaultBuildController implements BuildController, Stoppable {
         private enum State { NotStarted, Created, Completed }
         private State state = State.NotStarted;
-        private final BuildActionParameters actionParameters;
         private final GradleLauncherFactory gradleLauncherFactory;
         private final BuildRequestContext buildRequestContext;
         private DefaultGradleLauncher gradleLauncher;
         private StartParameter startParameter = new StartParameter();
 
-        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
+        private DefaultBuildController(GradleLauncherFactory gradleLauncherFactory, BuildRequestContext buildRequestContext) {
             this.gradleLauncherFactory = gradleLauncherFactory;
             this.buildRequestContext = buildRequestContext;
-            this.actionParameters = actionParameters;
         }
 
         public void setStartParameter(StartParameter startParameter) {

@@ -23,7 +23,6 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -162,7 +161,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .parent(NativeServices.getInstance())
                 .provider(new GlobalScopeServices(false))
                 .build();
-        InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
+        InProcessBuildActionExecuter executer = globalServices.get(InProcessBuildActionExecuter.class);
         return runBuild(startParameter, daemonParameters, executer);
     }
 
