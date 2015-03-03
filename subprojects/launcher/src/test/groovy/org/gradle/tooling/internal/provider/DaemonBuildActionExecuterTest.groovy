@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class DaemonBuildActionExecuterTest extends Specification {
     final DaemonClient client = Mock()
-    final BuildAction<String> action = Mock()
+    final BuildAction action = Mock()
     final BuildRequestContext buildRequestContext = Mock()
     final ProviderOperationParameters parameters = Mock()
     final DaemonParameters daemonParameters = Mock()

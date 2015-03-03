@@ -28,7 +28,7 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
     final BuildActionExecuter<ProviderOperationParameters> target = Mock()
     final Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final BuildAction<String> action = Mock()
+    final BuildAction action = Mock()
     final BuildRequestContext buildRequestContext = Mock()
     final ProviderOperationParameters parameters = Mock()
 

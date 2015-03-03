@@ -22,12 +22,12 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class Build extends Command {
-    private final BuildAction<?> action;
+    private final BuildAction action;
     private final BuildClientMetaData buildClientMetaData;
     private final long startTime;
     private final BuildActionParameters parameters;
 
-    public Build(Object identifier, BuildAction<?> action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
+    public Build(Object identifier, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
         super(identifier);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
@@ -39,7 +39,7 @@ public class Build extends Command {
         return new DefaultBuildRequestMetaData(buildClientMetaData, startTime);
     }
 
-    public BuildAction<?> getAction() {
+    public BuildAction getAction() {
         return action;
     }
 

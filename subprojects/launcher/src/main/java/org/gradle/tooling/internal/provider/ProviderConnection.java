@@ -91,7 +91,7 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        BuildAction<BuildActionResult> action = new BuildModelAction(startParameter, modelName, tasks != null);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null);
         return run(action, cancellationToken, providerParameters, params);
     }
 
@@ -99,14 +99,14 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        BuildAction<BuildActionResult> action = new ClientProvidedBuildAction(startParameter, serializedAction);
+        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction);
         return run(action, cancellationToken, providerParameters, params);
     }
 
-    private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
+    private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
         BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, new NoOpBuildEventConsumer());
-        BuildActionResult result = executer.execute(action, buildRequestContext, operationParameters);
+        BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }

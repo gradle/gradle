@@ -21,7 +21,7 @@ import org.gradle.initialization.BuildController;
 
 public class DefaultBuildActionRunner implements BuildActionRunner {
     @Override
-    public <T> T run(BuildAction<T> action, BuildController buildController) {
+    public Object run(BuildAction action, BuildController buildController) {
         return action.run(buildController);
     }
 }

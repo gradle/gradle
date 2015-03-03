@@ -37,7 +37,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.parameters = parameters;
     }
 
-    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(this.parameters.getEffectiveSystemProperties(),
                 System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
         try {

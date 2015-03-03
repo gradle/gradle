@@ -23,8 +23,7 @@ public interface BuildActionExecuter<P> {
      * Executes the given action, and returns the result.
      *
      * @param action The action
-     * @param <T> The result type
      * @return The result.
      */
-    <T> T execute(BuildAction<T> action, BuildRequestContext requestContext, P actionParameters);
+    Object execute(BuildAction action, BuildRequestContext requestContext, P actionParameters);
 }

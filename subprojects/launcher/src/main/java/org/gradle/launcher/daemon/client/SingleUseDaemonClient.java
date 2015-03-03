@@ -45,12 +45,12 @@ public class SingleUseDaemonClient extends DaemonClient {
     }
 
     @Override
-    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, BuildActionParameters parameters) {
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters parameters) {
         LOGGER.lifecycle("{} Please consider using the daemon: {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
         Build build = new BuildAndStop(getIdGenerator().generateId(), action, buildRequestContext.getClient(), buildRequestContext.getBuildTimeClock().getStartTime(), parameters);
 
         DaemonClientConnection daemonConnection = getConnector().startDaemon(ExplainingSpecs.<DaemonContext>satisfyAll());
 
-        return (T) executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
+        return executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
     }
 }

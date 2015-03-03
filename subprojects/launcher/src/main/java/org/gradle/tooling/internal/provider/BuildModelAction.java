@@ -30,7 +30,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 
 import java.io.Serializable;
 
-public class BuildModelAction implements BuildAction<BuildActionResult>, Serializable {
+public class BuildModelAction implements BuildAction, Serializable {
     private final boolean runTasks;
     private final StartParameter startParameter;
     private final String modelName;

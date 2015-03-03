@@ -38,7 +38,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "does nothing when action does not use the build"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         when:
         def result = executer.execute(action, buildRequestContext, param)
@@ -47,13 +47,13 @@ class InProcessBuildActionExecuterTest extends Specification {
         result == '<result>'
 
         and:
-        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             return '<result>'
         }
     }
 
     def "creates a launcher using a default StartParameter when the action does not specify any"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         when:
         def result = executer.execute(action, buildRequestContext, param)
@@ -63,7 +63,7 @@ class InProcessBuildActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
-        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.launcher == launcher
             return '<result>'
         }
@@ -71,7 +71,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "creates a launcher using StartParameter specified by the action"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
         def startParam = new StartParameter()
 
         when:
@@ -82,7 +82,7 @@ class InProcessBuildActionExecuterTest extends Specification {
 
         and:
         1 * factory.newInstance(startParam, buildRequestContext) >> launcher
-        1 * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.startParameter = startParam
             assert controller.launcher == launcher
             return '<result>'
@@ -91,11 +91,11 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "cannot set start parameters after launcher created"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
         def startParam = new StartParameter()
 
         given:
-        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.launcher
             controller.startParameter = startParam
         }
@@ -113,7 +113,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "creates launcher when Gradle instance is requested"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         when:
         def result = executer.execute(action, buildRequestContext, param)
@@ -124,7 +124,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
         1 * launcher.getGradle() >> gradle
-        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.getGradle() == gradle
             return '<result>'
         }
@@ -132,7 +132,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "runs build when requested by action"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         when:
         def result = executer.execute(action, buildRequestContext, param)
@@ -145,7 +145,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * launcher.run() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.run() == gradle
             return '<result>'
         }
@@ -153,7 +153,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "configures build when requested by action"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         when:
         def result = executer.execute(action, buildRequestContext, param)
@@ -166,7 +166,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * launcher.getBuildAnalysis() >> buildResult
         _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.configure() == gradle
             return '<result>'
         }
@@ -174,10 +174,10 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "cannot request configuration after build has been run"() {
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         given:
-        actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.run()
             controller.configure()
         }
@@ -197,7 +197,7 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "wraps build failure"() {
         def failure = new RuntimeException()
-        BuildAction<String> action = Mock()
+        BuildAction action = Mock()
 
         given:
         buildResult.failure >> failure
@@ -212,7 +212,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(!null, buildRequestContext) >> launcher
         1 * launcher.run() >> buildResult
-        _ * actionRunner.run(action, !null) >> { BuildAction<String> a, BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.run()
         }
         1 * launcher.stop()
