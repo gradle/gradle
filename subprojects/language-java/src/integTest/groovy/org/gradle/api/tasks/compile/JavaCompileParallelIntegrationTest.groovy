@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.JavaHomeException
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -47,7 +48,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-        def jdks = Iterables.cycle(availableJdksWithJavac()*.javacExecutable).iterator()
+        def jdks = Iterables.cycle(availableJdksWithJavac()*.javacExecutable.collect(TextUtil.&escapeString)).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """
