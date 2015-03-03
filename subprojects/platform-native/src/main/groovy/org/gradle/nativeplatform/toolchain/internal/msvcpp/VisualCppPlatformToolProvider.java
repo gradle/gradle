@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.jvm.Jvm;
@@ -34,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigu
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
@@ -60,14 +62,14 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), getObjectFileExtensionCalculator(), true);
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), allSpecTransforms(CppCompileSpec.class), getObjectFileExtensionCalculator(), true);
         return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtensionCalculator());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), getObjectFileExtensionCalculator(), true);
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), allSpecTransforms(CCompileSpec.class), getObjectFileExtensionCalculator(), true);
         return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtensionCalculator());
     }
 
@@ -139,6 +141,23 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
                 invocation.addEnvironmentVar(name, "");
             }
         }
+    }
+
+    private <T extends NativeCompileSpec> Transformer<T, T> allSpecTransforms(final Class<T> type) {
+        return new Transformer<T, T>() {
+            @Override
+            public T transform(T original) {
+                List<Transformer<T, T>> transformers = Lists.newArrayList();
+                transformers.add(new VisualCppPCHSourceFileTransformer<T>());
+                transformers.add(addIncludePathAndDefinitions(type));
+
+                T next = original;
+                for (Transformer<T, T> transformer :  transformers) {
+                    next = transformer.transform(next);
+                }
+                return next;
+            }
+        };
     }
 
     // TODO:DAZ These should be modelled properly, not hidden in a compile spec transformation

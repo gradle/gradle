@@ -37,16 +37,10 @@ class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
         }
     }
 
-    private static class CppPCHCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
-        protected String getLanguageOption() {
-            return "/TP";
-        }
-    }
-
     private static ArgsTransformerFactory<CppCompileSpec> getArgsTransformerFactory() {
         return new DefaultCompilerArgsTransformerFactory<CppCompileSpec>(
                 new CppCompilerArgsTransformer(),
-                new CppPCHCompilerArgsTransformer()
+                new VisualCppPCHCompilerArgsTransformer<CppCompileSpec>()
         );
     }
 }

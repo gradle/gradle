@@ -61,7 +61,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {
             CommandLineToolInvocation perFileInvocation =
-                    createPerFileInvocation(genericArgs, sourceFile, objectDir, objectFileExtensionCalculator.transform(spec));
+                    createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
             buildQueue.add(perFileInvocation);
         }
 
@@ -91,7 +91,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract List<String> getOutputArgs(File outputFile);
+    protected abstract List<String> getOutputArgs(T spec, File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -109,9 +109,10 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
-    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, String objectFileSuffix) {
+    protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
+        String objectFileSuffix = objectFileExtensionCalculator.transform(spec);
         List<String> sourceArgs = getSourceArgs(sourceFile);
-        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 
         return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs));
     }
