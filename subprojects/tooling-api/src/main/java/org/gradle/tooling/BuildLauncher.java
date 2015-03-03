@@ -124,6 +124,13 @@ public interface BuildLauncher extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.4
+     */
+    @Incubating
+    BuildLauncher addTestProgressListener(TestProgressListener listener);
+
+    /**
+     * {@inheritDoc}
      * @since 2.3
      */
     @Incubating

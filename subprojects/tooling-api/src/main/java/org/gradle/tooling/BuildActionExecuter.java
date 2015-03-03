@@ -82,6 +82,13 @@ public interface BuildActionExecuter<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.4
+     */
+    @Incubating
+    BuildActionExecuter<T> addTestProgressListener(TestProgressListener listener);
+
+    /**
+     * {@inheritDoc}
      * @since 2.3
      */
     @Incubating

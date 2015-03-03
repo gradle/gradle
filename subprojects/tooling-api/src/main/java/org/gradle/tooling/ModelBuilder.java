@@ -119,6 +119,13 @@ public interface ModelBuilder<T> extends LongRunningOperation {
 
     /**
      * {@inheritDoc}
+     * @since 2.4
+     */
+    @Incubating
+    ModelBuilder<T> addTestProgressListener(TestProgressListener listener);
+
+    /**
+     * {@inheritDoc}
      * @since 2.3
      */
     @Incubating
