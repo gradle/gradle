@@ -36,9 +36,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -106,7 +104,8 @@ public class ProviderConnection {
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
-        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, new NoOpBuildEventConsumer());
+        BuildEventConsumer buildEventConsumer = new TestProgressBuildEventConsumer(operationParameters.getTestProgressListener());
+        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, buildEventConsumer);
         BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
@@ -171,6 +170,24 @@ public class ProviderConnection {
             this.properties = properties;
             this.gradleUserhome = gradleUserhome;
         }
+    }
+
+    private static final class TestProgressBuildEventConsumer implements BuildEventConsumer {
+
+        private final TestProgressListenerVersion1 testProgressListener;
+
+        private TestProgressBuildEventConsumer(TestProgressListenerVersion1 testProgressListener) {
+            this.testProgressListener = testProgressListener;
+        }
+
+        @Override
+        public void dispatch(Object message) {
+            if (message instanceof TestProgressEventVersion1) {
+                TestProgressEventVersion1 testProgressEvent = (TestProgressEventVersion1) message;
+                this.testProgressListener.onEvent(testProgressEvent);
+            }
+        }
+
     }
 
 }
