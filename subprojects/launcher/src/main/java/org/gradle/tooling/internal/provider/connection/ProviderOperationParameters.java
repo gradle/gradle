@@ -64,7 +64,7 @@ public interface ProviderOperationParameters {
 
     ProgressListenerVersion1 getProgressListener();
 
-    BuildProgressListenerVersion1 getBuildProgressListener();
+    BuildProgressListenerVersion1 getBuildProgressListener(BuildProgressListenerVersion1 defaultListener);
 
     List<String> getArguments(List<String> defaultArguments);
 

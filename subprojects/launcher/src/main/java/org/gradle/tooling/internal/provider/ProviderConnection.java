@@ -36,7 +36,10 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -104,13 +107,19 @@ public class ProviderConnection {
 
     private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
-        BuildEventConsumer buildEventConsumer = new ListenerInvokingBuildEventConsumer(operationParameters.getBuildProgressListener());
+        BuildEventConsumer buildEventConsumer = createBuildEventConsumer(operationParameters);
         BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, buildEventConsumer);
         BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }
         return payloadSerializer.deserialize(result.result);
+    }
+
+    private BuildEventConsumer createBuildEventConsumer(ProviderOperationParameters operationParameters) {
+        // handle the case where the consumer is an older Gradle version that does not know about build progress listeners
+        BuildProgressListenerVersion1 buildProgressListener = operationParameters.getBuildProgressListener(null);
+        return buildProgressListener == null ? new NoOpBuildEventConsumer() : new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
@@ -172,11 +181,11 @@ public class ProviderConnection {
         }
     }
 
-    private static final class ListenerInvokingBuildEventConsumer implements BuildEventConsumer {
+    private static final class BuildProgressListenerInvokingBuildEventConsumer implements BuildEventConsumer {
 
         private final BuildProgressListenerVersion1 buildProgressListener;
 
-        private ListenerInvokingBuildEventConsumer(BuildProgressListenerVersion1 buildProgressListener) {
+        private BuildProgressListenerInvokingBuildEventConsumer(BuildProgressListenerVersion1 buildProgressListener) {
             this.buildProgressListener = buildProgressListener;
         }
 
