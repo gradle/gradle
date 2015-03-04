@@ -51,7 +51,24 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
         1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
-            return '<result>'
+            controller.result = '<result>'
+        }
+        1 * launcher.stop()
+    }
+
+    def "can have null result"() {
+        when:
+        def result = executer.execute(action, buildRequestContext, param)
+
+        then:
+        result == null
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext) >> launcher
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+            assert !controller.hasResult()
+            controller.result = null
+            assert controller.hasResult()
         }
         1 * launcher.stop()
     }
@@ -70,7 +87,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * buildResult.gradle >> gradle
         _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.run() == gradle
-            return '<result>'
+            controller.result = '<result>'
         }
         1 * launcher.stop()
     }
@@ -89,7 +106,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * buildResult.gradle >> gradle
         _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.configure() == gradle
-            return '<result>'
+            controller.result = '<result>'
         }
         1 * launcher.stop()
     }

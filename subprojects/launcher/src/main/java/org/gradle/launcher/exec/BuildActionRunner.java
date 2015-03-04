@@ -23,5 +23,8 @@ import org.gradle.initialization.BuildController;
  * Responsible for executing a {@link BuildAction} and generating the result.
  */
 public interface BuildActionRunner {
-    Object run(BuildAction action, BuildController buildController);
+    /**
+     * Runs the given action, and attaches the result, if any, to the provided controller.
+     */
+    void run(BuildAction action, BuildController buildController);
 }

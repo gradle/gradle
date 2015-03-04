@@ -23,20 +23,20 @@ import org.gradle.launcher.exec.BuildActionRunner;
 
 public class DefaultBuildActionRunner implements BuildActionRunner {
     @Override
-    public Object run(BuildAction action, BuildController buildController) {
+    public void run(BuildAction action, BuildController buildController) {
         if (action instanceof ExecuteBuildAction) {
             buildController.run();
-            return null;
-        }
-        if (action instanceof BuildModelAction) {
+            buildController.setResult(null);
+        } else if (action instanceof BuildModelAction) {
             BuildModelAction buildModelAction = (BuildModelAction) action;
-            return buildModelAction.run(buildController);
-        }
-        if (action instanceof ClientProvidedBuildAction) {
+            BuildActionResult result = buildModelAction.run(buildController);
+            buildController.setResult(result);
+        } else if (action instanceof ClientProvidedBuildAction) {
             ClientProvidedBuildAction clientProvidedBuildAction = (ClientProvidedBuildAction) action;
-            return clientProvidedBuildAction.run(buildController);
+            BuildActionResult result = clientProvidedBuildAction.run(buildController);
+            buildController.setResult(result);
+        } else {
+            throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
         }
-
-        throw new UnsupportedOperationException(String.format("Don't know how to run a build action of type %s.", action.getClass().getSimpleName()));
     }
 }

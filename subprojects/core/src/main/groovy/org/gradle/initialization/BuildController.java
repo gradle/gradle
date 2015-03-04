@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 
 /**
@@ -40,4 +41,20 @@ public interface BuildController {
      * @return The {@link org.gradle.api.internal.GradleInternal} object that represents the build invocation.
      */
     GradleInternal configure();
+
+    /**
+     * Returns true if a result (possibly null) has been specified.
+     */
+    boolean hasResult();
+
+    /**
+     * Returns the result for the build action.
+     */
+    @Nullable
+    Object getResult();
+
+    /**
+     * Sets the result for the build action.
+     */
+    void setResult(@Nullable Object result);
 }

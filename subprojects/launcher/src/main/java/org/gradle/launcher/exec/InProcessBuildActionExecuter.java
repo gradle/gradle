@@ -33,7 +33,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext);
         try {
             DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
-            return buildActionRunner.run(action, buildController);
+            buildActionRunner.run(action, buildController);
+            return buildController.result;
         } finally {
             gradleLauncher.stop();
         }
@@ -42,6 +43,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     private static class DefaultBuildController implements BuildController {
         private enum State { Created, Completed }
         private State state = State.Created;
+        private boolean hasResult;
+        private Object result;
         private final DefaultGradleLauncher gradleLauncher;
 
         public DefaultBuildController(DefaultGradleLauncher gradleLauncher) {
@@ -53,6 +56,22 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 throw new IllegalStateException("Cannot use launcher after build has completed.");
             }
             return gradleLauncher;
+        }
+
+        @Override
+        public boolean hasResult() {
+            return hasResult;
+        }
+
+        @Override
+        public Object getResult() {
+            return result;
+        }
+
+        @Override
+        public void setResult(Object result) {
+            this.hasResult = true;
+            this.result = result;
         }
 
         public GradleInternal getGradle() {
