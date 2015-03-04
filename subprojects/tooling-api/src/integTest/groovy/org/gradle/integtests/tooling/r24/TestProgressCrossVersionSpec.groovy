@@ -52,7 +52,7 @@ public class MyTest {
         }
 
         when:
-        def result = []
+        List<TestProgressEvent> result = []
         withConnection { ProjectConnection connection ->
             connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                 @Override
@@ -66,11 +66,9 @@ public class MyTest {
         result.size() % 2 == 0 // same number of start events as finish events
         result.size() == 8     // root suite, test process suite, test class suite, test method (each with a start and finish event)
         result.findAll { def event ->
-            event.eventTypeId == -1 &&
             event.descriptor.name == 'foo' &&
             event.descriptor.className == 'MyTest' &&
-            event.descriptor.parent == null &&
-            event.result == null
+            event.descriptor.parent == null
         }.size() == 2          // test method start and finish event
     }
 

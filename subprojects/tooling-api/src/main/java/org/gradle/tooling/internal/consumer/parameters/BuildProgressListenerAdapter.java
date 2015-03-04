@@ -16,10 +16,7 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.tooling.TestDescriptor;
-import org.gradle.tooling.TestProgressEvent;
-import org.gradle.tooling.TestProgressListener;
-import org.gradle.tooling.TestResult;
+import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
@@ -40,21 +37,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private void broadcastTestProgressEvent(final TestProgressEventVersion1 event) {
-        testProgressListeners.getSource().statusChanged(new TestProgressEvent() {
-            @Override
-            public int getEventTypeId() {
-                return -1;
-            }
+        testProgressListeners.getSource().statusChanged(new TestStartedEvent() {
 
             @Override
             public TestDescriptor getDescriptor() {
                 return toTestDescriptor(event.getDescriptor());
             }
 
-            @Override
-            public TestResult getResult() {
-                return null;
-            }
         });
     }
 
