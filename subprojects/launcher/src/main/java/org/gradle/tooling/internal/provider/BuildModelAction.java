@@ -21,14 +21,16 @@ import org.gradle.internal.invocation.BuildAction;
 import java.io.Serializable;
 
 public class BuildModelAction implements BuildAction, Serializable {
-    private final boolean runTasks;
     private final StartParameter startParameter;
     private final String modelName;
+    private final boolean runTasks;
+    private final boolean sendProgressEvents;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, boolean sendProgressEvents) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
+        this.sendProgressEvents = sendProgressEvents;
     }
 
     @Override
@@ -42,5 +44,9 @@ public class BuildModelAction implements BuildAction, Serializable {
 
     public boolean isRunTasks() {
         return runTasks;
+    }
+
+    public boolean isSendTestProgressEvents() {
+        return sendProgressEvents;
     }
 }

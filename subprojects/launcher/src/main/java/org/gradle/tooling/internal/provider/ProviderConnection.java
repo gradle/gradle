@@ -93,23 +93,24 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null);
-        return run(action, cancellationToken, providerParameters, params);
+        BuildEventConsumer buildEventConsumer = createBuildEventConsumer(providerParameters);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, !(buildEventConsumer instanceof NoOpBuildEventConsumer));
+        return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
     }
 
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        NoOpBuildEventConsumer buildEventConsumer = new NoOpBuildEventConsumer();
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction);
-        return run(action, cancellationToken, providerParameters, params);
+        return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
     }
 
-    private Object run(BuildAction action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Parameters parameters) {
-        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters, parameters);
-        BuildEventConsumer buildEventConsumer = createBuildEventConsumer(operationParameters);
-        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, buildEventConsumer);
-        BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, operationParameters);
+    private Object run(BuildAction action, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer, ProviderOperationParameters providerParameters, Parameters parameters) {
+        BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
+        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, buildEventConsumer);
+        BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }
