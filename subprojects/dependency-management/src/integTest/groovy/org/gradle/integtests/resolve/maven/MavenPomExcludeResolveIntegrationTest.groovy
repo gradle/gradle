@@ -15,13 +15,10 @@
  */
 
 package org.gradle.integtests.resolve.maven
-
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenPomExcludeResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3243")
     def "Wildcard exclude of groupId and artifactId does not exclude itself"() {
         given:
