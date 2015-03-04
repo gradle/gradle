@@ -38,7 +38,7 @@ public class PluginRequestsSerializer implements Serializer<PluginRequests> {
             int lineNumber = decoder.readInt();
             String scriptDisplayName = decoder.readString();
 
-            requests.set(i, new DefaultPluginRequest(pluginId, version, lineNumber, scriptDisplayName));
+            requests.add(i, new DefaultPluginRequest(pluginId, version, lineNumber, scriptDisplayName));
         }
         return new DefaultPluginRequests(requests);
     }
