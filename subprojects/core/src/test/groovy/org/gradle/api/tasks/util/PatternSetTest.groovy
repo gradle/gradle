@@ -16,9 +16,11 @@
  
 package org.gradle.api.tasks.util
 
+import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.junit.After
 import org.junit.Test
 import spock.lang.Issue
 
@@ -28,6 +30,10 @@ import static org.junit.Assert.*
 
 class PatternSetTest extends AbstractTestForPatternSet {
     PatternSet patternSet = new PatternSet()
+
+    @After void resetDefaultExcludes() {
+        DirectoryScanner.resetDefaultExcludes()
+    }
 
     @Test void testConstructionFromMap() {
         Map map = [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
@@ -66,151 +72,151 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     @Test void createsSpecForEmptyPatternSet() {
-        Spec<FileTreeElement> spec = patternSet.asSpec
+        included file('a')
+        included file('b')
+    }
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertTrue(spec.isSatisfiedBy(file('b')))
+    @Test void usesDefaultGlobalExcludes() {
+        excluded dir('.svn')
+        excluded file('.svn', 'abc')
+        excluded dir('a', 'b', '.svn')
+        excluded file('a', 'b', '.svn', 'c')
+        excluded file('foo', '.DS_Store')
+    }
+
+    @Test void takesGlobalExcludesFromAnt() {
+        DirectoryScanner.defaultExcludes.each {
+            DirectoryScanner.removeDefaultExclude(it)
+        }
+        included dir('.svn')
+        included file('.svn', 'abc')
+        included file('foo', '.DS_Store')
+
+        DirectoryScanner.addDefaultExclude('*X*')
+
+        excluded file('X')
     }
 
     @Test void createsSpecForIncludePatterns() {
         patternSet.include '*a*'
         patternSet.include '*b*'
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertTrue(spec.isSatisfiedBy(file('b')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
+        included file('a')
+        included file('b')
+        excluded file('c')
     }
 
     @Test void createsSpecForExcludePatterns() {
         patternSet.exclude '*b*'
         patternSet.exclude '*c*'
-        Spec<FileTreeElement> spec = patternSet.asSpec
-
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
+        
+        included file('a')
+        excluded file('b')
+        excluded file('c')
     }
 
     @Test void createsSpecForIncludeAndExcludePatterns() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('ab')))
-        assertFalse(spec.isSatisfiedBy(file('ba')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
+        included file('a')
+        excluded file('ab')
+        excluded file('ba')
+        excluded file('c')
+        excluded file('b')
     }
 
     @Test void createsSpecForIncludeSpecs() {
         patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
+        included file('a')
+        excluded file('b')
     }
 
     @Test void createsSpecForExcludeSpecs() {
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
+        included file('a')
+        excluded file('b')
     }
 
     @Test void createsSpecForIncludeAndExcludeSpecs() {
         patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
         patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('ab')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
+        included file('a')
+        excluded file('ab')
+        excluded file('b')
+        excluded file('c')
     }
 
     @Test void createsSpecForIncludeClosure() {
         patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
+        included file('a')
+        excluded file('b')
     }
 
     @Test void createsSpecForExcludeClosure() {
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('b')))
+        included file('a')
+        excluded file('b')
     }
 
     @Test void createsSpecForIncludeAndExcludeClosures() {
         patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
         patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('ab')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
+        included file('a')
+        excluded file('ab')
+        excluded file('c')
     }
 
     @Test void isCaseSensitiveByDefault() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
-        Spec<FileTreeElement> spec = patternSet.asSpec
-
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('A')))
-        assertFalse(spec.isSatisfiedBy(file('Ab')))
-        assertTrue(spec.isSatisfiedBy(file('aB')))
+        
+        included file('a')
+        excluded file('A')
+        excluded file('Ab')
+        included file('aB')
     }
 
     @Test void createsSpecForCaseInsensitivePatternSet() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
         patternSet.caseSensitive = false
-        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(file('A')))
-        assertTrue(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('AB')))
-        assertFalse(spec.isSatisfiedBy(file('bA')))
+        included file('A')
+        included file('a')
+        excluded file('AB')
+        excluded file('bA')
     }
 
     @Test void createIntersectPatternSet() {
-        patternSet.include '*a*'
-        patternSet.include { FileTreeElement element -> element.file.name.contains('1') }
-        patternSet.exclude '*b*'
-        patternSet.exclude { FileTreeElement element -> element.file.name.contains('2') }
-        PatternSet intersection = patternSet.intersect()
-        intersection.include '*c*'
-        intersection.include { FileTreeElement element -> element.file.name.contains('3') }
-        intersection.exclude '*d*'
-        intersection.exclude { FileTreeElement element -> element.file.name.contains('4') }
-        Spec<FileTreeElement> spec = intersection.asSpec
+        PatternSet basePatternSet = new PatternSet()
+        basePatternSet.include '*a*'
+        basePatternSet.include { FileTreeElement element -> element.file.name.contains('1') }
+        basePatternSet.exclude '*b*'
+        basePatternSet.exclude { FileTreeElement element -> element.file.name.contains('2') }
 
-        assertTrue(spec.isSatisfiedBy(file('ac')))
-        assertTrue(spec.isSatisfiedBy(file('13')))
-        assertFalse(spec.isSatisfiedBy(file('a')))
-        assertFalse(spec.isSatisfiedBy(file('1')))
-        assertFalse(spec.isSatisfiedBy(file('c')))
-        assertFalse(spec.isSatisfiedBy(file('3')))
-        assertFalse(spec.isSatisfiedBy(file('acb')))
-        assertFalse(spec.isSatisfiedBy(file('acd')))
-        assertFalse(spec.isSatisfiedBy(file('132')))
-        assertFalse(spec.isSatisfiedBy(file('132')))
-    }
+        patternSet = basePatternSet.intersect()
+        patternSet.include '*c*'
+        patternSet.include { FileTreeElement element -> element.file.name.contains('3') }
+        patternSet.exclude '*d*'
+        patternSet.exclude { FileTreeElement element -> element.file.name.contains('4') }
 
-    @Test void globalExcludes() {
-        Spec<FileTreeElement> spec = patternSet.asSpec
-
-        assertFalse(spec.isSatisfiedBy(dir('.svn')))
-        assertFalse(spec.isSatisfiedBy(file('.svn', 'abc')))
-        assertFalse(spec.isSatisfiedBy(dir('a', 'b', '.svn')))
-        assertFalse(spec.isSatisfiedBy(file('a', 'b', '.svn', 'c')))
+        included file('ac')
+        included file('13')
+        excluded file('a')
+        excluded file('1')
+        excluded file('c')
+        excluded file('3')
+        excluded file('acb')
+        excluded file('acd')
+        excluded file('132')
+        excluded file('132')
     }
 
     @Issue("GRADLE-2566")
@@ -221,11 +227,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.includes = ["$a"]
         patternSet.include("$b")
 
-        Spec<FileTreeElement> spec = patternSet.asSpec
-
-        assertTrue(spec.isSatisfiedBy(file("aaa")))
-        assertTrue(spec.isSatisfiedBy(file("bbb")))
-        assertFalse(spec.isSatisfiedBy(file("ccc")))
+        included file("aaa")
+        included file("bbb")
+        excluded file("ccc")
     }
 
     @Issue("GRADLE-2566")
@@ -236,11 +240,17 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet.excludes = ["${a}*"]
         patternSet.exclude("${b}*")
 
-        Spec<FileTreeElement> spec = patternSet.asSpec
+        excluded file("aaa")
+        excluded file("bbb")
+        included file("ccc")
+    }
 
-        assertFalse(spec.isSatisfiedBy(file("aaa")))
-        assertFalse(spec.isSatisfiedBy(file("bbb")))
-        assertTrue(spec.isSatisfiedBy(file("ccc")))
+    void included(FileTreeElement file) {
+        assertTrue(patternSet.asSpec.isSatisfiedBy(file))
+    }
+
+    void excluded(FileTreeElement file) {
+        assertFalse(patternSet.asSpec.isSatisfiedBy(file))
     }
 
     private FileTreeElement element(boolean isFile, String... elements) {
