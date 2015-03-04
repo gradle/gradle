@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -24,16 +26,23 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
     private final File workDirectory;
     private final Iterable<String> args;
     private final CommandLineToolContext context;
+    private final BuildOperationLogger oplogger;
 
-    DefaultCommandLineToolInvocation(String description, File workDirectory, Iterable<String> args, CommandLineToolContext context) {
+    DefaultCommandLineToolInvocation(String description, File workDirectory, Iterable<String> args, CommandLineToolContext context, BuildOperationLogger oplogger) {
         this.description = description;
         this.workDirectory = workDirectory;
         this.args = args;
         this.context = context;
+        this.oplogger = oplogger;
     }
 
     public Iterable<String> getArgs() {
         return args;
+    }
+
+    @Override
+    public BuildOperationLogger getLogger() {
+        return oplogger;
     }
 
     public File getWorkDirectory() {

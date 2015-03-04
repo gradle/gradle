@@ -59,7 +59,7 @@ class GccLinker implements Compiler<LinkerSpec> {
             new GccOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         }
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                String.format("linking %s", spec.getOutputFile().getName()), args);
+                String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
         queue.add(invocation);
         queue.waitForCompletion();
         return new SimpleWorkResult(true);

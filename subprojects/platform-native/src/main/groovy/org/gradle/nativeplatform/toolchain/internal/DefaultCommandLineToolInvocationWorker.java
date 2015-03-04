@@ -23,7 +23,9 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStream;
 
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
@@ -68,10 +70,21 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         toolExec.environment(invocation.getEnvironment());
 
+        ByteArrayOutputStream errOutput = new ByteArrayOutputStream();
+        ByteArrayOutputStream stdOutput = new ByteArrayOutputStream();
+        toolExec.setErrorOutput(errOutput);
+        toolExec.setStandardOutput(stdOutput);
+
         try {
             toolExec.execute();
+            invocation.getLogger().operationSuccess(invocation.getDescription(), combineOutput(stdOutput, errOutput));
         } catch (ExecException e) {
+            invocation.getLogger().operationFailed(invocation.getDescription(), combineOutput(stdOutput, errOutput));
             throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()));
         }
+    }
+
+    private String combineOutput(OutputStream stdOutput, OutputStream errOutput) {
+        return stdOutput.toString() + errOutput.toString();
     }
 }

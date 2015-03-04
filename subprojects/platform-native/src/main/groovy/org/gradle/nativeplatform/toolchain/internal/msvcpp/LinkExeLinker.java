@@ -55,7 +55,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         invocationContext.getArgAction().execute(args);
         new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                String.format("linking %s", spec.getOutputFile().getName()), args);
+                String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
         queue.add(invocation);
         queue.waitForCompletion();
         return new SimpleWorkResult(true);

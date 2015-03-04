@@ -44,6 +44,8 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -184,4 +186,5 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ComponentRegistry createComponentRegistry() {
         return new ComponentRegistry();
     }
+
 }

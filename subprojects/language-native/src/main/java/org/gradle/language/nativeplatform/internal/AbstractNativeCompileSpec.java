@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
@@ -32,6 +33,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File objectFileDir;
     private boolean positionIndependentCode;
     private boolean preCompiledHeader;
+    private BuildOperationLogger oplogger;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -125,5 +127,13 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         for (File file : iterable) {
             list.add(file);
         }
+    }
+
+    public BuildOperationLogger getOperationLogger() {
+        return oplogger;
+    }
+
+    public void setOperationLogger(BuildOperationLogger oplogger) {
+        this.oplogger = oplogger;
     }
 }

@@ -212,7 +212,7 @@ model {
 
     def "build fails when multiple compilations fail"() {
         given:
-        def brokenFileCount = 15
+        def brokenFileCount = 5
         buildFile << """
             model {
                 components {

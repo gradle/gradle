@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.*;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.language.rc.internal.DefaultWindowsResourceCompileSpec;
@@ -70,8 +72,15 @@ public class WindowsResourceCompile extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void compile(IncrementalTaskInputs inputs) {
+        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir(), 10);
+
         NativeCompileSpec spec = new DefaultWindowsResourceCompileSpec();
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(getOutputDir());
@@ -80,10 +89,16 @@ public class WindowsResourceCompile extends DefaultTask {
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs());
         spec.setIncrementalCompile(inputs.isIncremental());
+        spec.setOperationLogger(operationLogger);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
-        setDidWork(result.getDidWork());
+        operationLogger.start();
+        try {
+            WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
+            setDidWork(result.getDidWork());
+        } finally {
+            operationLogger.done();
+        }
     }
 
     /**

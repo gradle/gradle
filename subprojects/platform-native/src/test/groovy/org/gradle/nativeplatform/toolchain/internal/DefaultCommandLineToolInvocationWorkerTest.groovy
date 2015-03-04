@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.internal.operations.BuildOperationFailure
+import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
@@ -33,7 +34,7 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         def context = new DefaultMutableCommandLineToolContext()
         def executable = Mock(File)
         def commandLineTool = new DefaultCommandLineToolInvocationWorker("Tool", executable, execActionFactory)
-        def invocation = new DefaultCommandLineToolInvocation("doing something", null, [], context)
+        def invocation = new DefaultCommandLineToolInvocation("doing something", null, [], context, Mock(BuildOperationLogger))
 
         when:
         commandLineTool.execute(invocation)

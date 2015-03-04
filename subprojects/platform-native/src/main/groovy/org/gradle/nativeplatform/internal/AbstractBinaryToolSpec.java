@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
@@ -26,6 +27,7 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     private List<String> systemArgs = new ArrayList<String>();
     private File tempDir;
     private NativePlatform platform;
+    private BuildOperationLogger oplogger;
 
     public NativePlatform getTargetPlatform() {
         return platform;
@@ -66,5 +68,13 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
         allArgs.addAll(systemArgs);
         allArgs.addAll(args);
         return allArgs;
+    }
+
+    public BuildOperationLogger getOperationLogger() {
+        return oplogger;
+    }
+
+    public void setOperationLogger(BuildOperationLogger oplogger) {
+        this.oplogger = oplogger;
     }
 }
