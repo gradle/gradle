@@ -107,7 +107,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         public Spec<FileTreeElement> getAsSpec() {
-            return new AndSpec<FileTreeElement>(super.getAsSpec(), other.getAsSpec());
+            return Specs.and(super.getAsSpec(), other.getAsSpec());
         }
 
         public Object addToAntBuilder(Object node, String childNodeName) {
@@ -121,7 +121,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public Spec<FileTreeElement> getAsSpec() {
-        return new AndSpec<FileTreeElement>(getAsIncludeSpec(), new NotSpec<FileTreeElement>(getAsExcludeSpec()));
+        return Specs.and(getAsIncludeSpec(), Specs.not(getAsExcludeSpec()));
     }
 
     public Spec<FileTreeElement> getAsIncludeSpec() {
@@ -132,7 +132,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         matchers.addAll(includeSpecs);
-        return new OrSpec<FileTreeElement>(matchers);
+        return Specs.or(matchers);
     }
 
     public Spec<FileTreeElement> getAsExcludeSpec() {
@@ -146,7 +146,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
 
         matchers.addAll(excludeSpecs);
-        return new OrSpec<FileTreeElement>(matchers);
+        return Specs.or(false, matchers);
     }
 
     public Set<String> getIncludes() {
