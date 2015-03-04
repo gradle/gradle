@@ -76,35 +76,42 @@ This section is to keep track of assumptions and things we haven't figured out y
 
 ## Story: Option to re-resolve Configuration when modified after resolution
 
-- Detect and track _all_ changes made to a Configuration after resolution
-- After resolution, the configuration should be in a 'closed' state.
-    - Warning emitted on any subsequent mutation
-    - Changes made after this point will be ignored
-- Provide an internal mechanism, set configuration to a 'mutable' state.
-    - No warnings on subsequent mutation.
-    - When resolved configuration is next required, the configuration is re-resolved, and state set to 'closed'
+- Finer-grained tracking of state of Configuration
+    - After inclusion in a result: state == 'Observed'
+    - After task dependencies calculated: state == 'TaskDependenciesResolved'
+    - After complete resolution: state == 'Resolved'
+- Detect _all_ changes made to a Configuration after resolution. Changes are of 2 types:
+    - Changes to the `Strategy` (how the configuration is resolved): ResolutionStrategy, Caching
+    - Changes to the `Content` (actual dependencies included in the configuration): Dependencies, Artifacts
+- When in 'Observed' state:
+    - Changes to the Strategy are OK
+    - Changes to the Content are deprecated
+- When in 'TaskDependenciesResolved' state
+    - Changes to the Strategy are deprecated
+    - Changes to the Content are deprecated
+    - Requesting the resolve result without an intervening change: re-use the previous result
+    - Requesting the resolve result after an intervening change: recalculate the result
+- When in 'Resolved' state
+    - Changes to the Strategy are deprecated
+    - Changes to the Content will fail
+    - Any changes to the strategy after resolve will be ignored
     
 ### Test coverage
 
-- Warning emitted and change ignored when Configuration mutated after resolution:
-   - Dependency added/replaced/removed
-   - Set of parent configurations changes
-   - ResolutionStrategy modified
-   - Set of exclude rules changes
-   - Calls to `ResolvableDependencies.beforeResolve` and `afterResolve`
-   - Any mutation to parent configuration (even if that configuration has not been explicitly resolved)
-- When a previously-resolved Configuration is set to a 'mutable' state and not mutated:
+- Warning emitted and change honoured when configuration _content_ is mutated after configuration is 'observed'
+    - No warning for changes to configuration _strategy_
+- Warning emitted and change honoured when configuration _content_ or _strategy_ is mutated after configuration has it's task dependencies resolved
+- Attempting to change the _content_ of a 'resolved' configuration will fail
+- Warning emitted and change ignored for change to _strategy_ of a 'resolved' configuration
+
+- When the task dependencies of a Configuration are calculated, and the configuration is resolved without modification
    - Use of `FileCollection` API uses previous resolution result
    - New and existing `ResolvedConfiguration` instances use previous resolution result
    - New and existing `ResolvableDependencies` instances use previous resolution result
-- When a previously-resolved Configuration is set to a 'mutable' state and is mutated:
+- When the task dependencies of a Configuration are calculated, and the configuration is resolved after modification
    - Use of `FileCollection` API forces re-resolve and uses new resolution result
    - Use of new and existing `ResolvedConfiguration` instances forces re-resolve and uses new resolution result
    - Use of new and existing `ResolvableDependencies` instances forces re-resolve and uses new resolution result
-
-### Open issues
-
-- Permit a user to set a configuration back to 'mutable' state, to avoid warnings and permit re-resolve?
 
 ## Task graph includes correct tasks for replaced project dependencies
 
@@ -118,18 +125,13 @@ external dependency, the correct tasks are included for execution:
 
 ### Implementation
 
-- Perform full resolution of task input configurations when building the task graph
-- For now, assume that all configurations are modified during task execution, 
-  and must be re-resolved when preparing the inputs for a particular task execution
-
 ### Test coverage
+
+- TBD
 
 ### Open issues
 
 ## Story: Use dependency substitution rule to replace project dependency with external dependency
-
-- Dependency substitution rules already apply when resolving project dependencies as well as external dependencies.
-- `DependencyResolveDetails.getRequested()` should return `ComponentSelector`
 
 ### Test coverage
 
