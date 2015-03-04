@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
+import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -50,7 +51,7 @@ class BuildScriptTransformerSpec extends Specification {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
-        def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BooleanSerializer.INSTANCE)
+        def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BaseSerializerFactory.BOOLEAN_SERIALIZER)
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, classpathClosureName, ProjectScript, Actions.doNothing())
         scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript).data
     }

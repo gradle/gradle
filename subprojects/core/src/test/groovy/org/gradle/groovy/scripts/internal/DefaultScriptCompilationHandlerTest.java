@@ -37,6 +37,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resource.Resource;
+import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
@@ -293,7 +294,7 @@ public class DefaultScriptCompilationHandlerTest {
 
             @Override
             public Serializer<Boolean> getDataSerializer() {
-                return BooleanSerializer.INSTANCE;
+                return BaseSerializerFactory.BOOLEAN_SERIALIZER;
             }
         };
 

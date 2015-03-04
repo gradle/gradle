@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
+    public static final Serializer<Boolean> BOOLEAN_SERIALIZER = new BooleanSerializer();
     public static final Serializer<Long> LONG_SERIALIZER = new LongSerializer();
     public static final Serializer<File> FILE_SERIALIZER = new FileSerializer();
     public static final Serializer<byte[]> BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
@@ -43,6 +44,9 @@ public class BaseSerializerFactory {
         }
         if (type.isEnum()) {
             return new EnumSerializer(type);
+        }
+        if (type.equals(Boolean.class)) {
+            return (Serializer<T>) BOOLEAN_SERIALIZER;
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
@@ -119,6 +123,18 @@ public class BaseSerializerFactory {
                 encoder.writeString(entry.getKey());
                 encoder.writeString(entry.getValue());
             }
+        }
+    }
+
+    private static class BooleanSerializer implements Serializer<Boolean> {
+        @Override
+        public Boolean read(Decoder decoder) throws Exception {
+            return decoder.readBoolean();
+        }
+
+        @Override
+        public void write(Encoder encoder, Boolean value) throws Exception {
+            encoder.writeBoolean(value);
         }
     }
 }

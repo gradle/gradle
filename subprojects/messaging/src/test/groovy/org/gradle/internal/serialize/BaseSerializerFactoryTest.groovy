@@ -116,4 +116,10 @@ class BaseSerializerFactoryTest extends SerializerSpec {
     }
 
     class Thing {}
+
+    def "serialize booleans"() {
+        expect:
+        serialize(true, factory.getSerializerFor(Boolean))
+        !serialize(false, factory.getSerializerFor(Boolean))
+    }
 }

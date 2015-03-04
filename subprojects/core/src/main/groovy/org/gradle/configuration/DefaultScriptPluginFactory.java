@@ -30,6 +30,7 @@ import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
@@ -133,7 +134,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             if (ModelBlockTransformer.isEnabled()) {
                 operationId = "m_".concat(operationId);
             }
-            CompileOperation<Boolean> operation = new FactoryBackedCompileOperation<Boolean>(operationId, buildScriptTransformer, buildScriptTransformer, BooleanSerializer.INSTANCE);
+            CompileOperation<Boolean> operation = new FactoryBackedCompileOperation<Boolean>(operationId, buildScriptTransformer, buildScriptTransformer, BaseSerializerFactory.BOOLEAN_SERIALIZER);
 
             final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE);
 
