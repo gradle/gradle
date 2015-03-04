@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.event.ListenerManager
@@ -32,20 +31,19 @@ public class DefaultConfigurationContainerSpec extends Specification {
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
-    private ProjectFinder projectFinder = Mock()
 
     def ConfigurationInternal conf = Mock()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
             resolver, instantiator, domainObjectContext,
-            listenerManager, metaDataProvider, projectFinder);
+            listenerManager, metaDataProvider);
 
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, _ as ProjectFinder) >> conf
+                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
 
         when:
         def compile = configurationContainer.create("compile")
@@ -65,7 +63,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
         1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
-                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, _ as ProjectFinder) >> conf
+                resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal) >> conf
 
         when:
         def compile = configurationContainer.create("compile") {

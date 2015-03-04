@@ -90,14 +90,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
-                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectFinder projectFinder) {
+                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
                     domainObjectContext,
                     listenerManager,
-                    metaDataProvider,
-                    projectFinder);
+                    metaDataProvider);
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,

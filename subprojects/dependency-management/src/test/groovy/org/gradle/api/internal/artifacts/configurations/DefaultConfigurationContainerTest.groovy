@@ -23,7 +23,6 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.MissingMethodException
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.event.ListenerManager
@@ -47,7 +46,7 @@ class DefaultConfigurationContainerTest {
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, context.mock(ProjectFinder))
+            listenerManager, metaDataProvider)
 
     @Before
     public void setup() {

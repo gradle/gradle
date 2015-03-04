@@ -26,15 +26,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -66,22 +64,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
     private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
-    private final ProjectFinder projectFinder;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
-    private boolean modified;
-    private boolean resolvedWithFailures;
 
     // This lock only protects the following fields
     private final Object lock = new Object();
-    private InternalState state = InternalState.UNOBSERVED;
+    private State state = State.UNRESOLVED;
+    private boolean includedInResult;
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy,
-                                ProjectFinder projectFinder) {
+                                ResolutionStrategyInternal resolutionStrategy) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -89,7 +84,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
         this.resolutionStrategy = resolutionStrategy;
-        this.projectFinder = projectFinder;
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -120,24 +114,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return name;
     }
 
-    @Override
-    public InternalState getInternalState() {
-        synchronized (lock) {
-            return state;
-        }
-    }
-
     public State getState() {
         synchronized (lock) {
-            if (state == InternalState.RESULTS_RESOLVED || state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-                if (resolvedWithFailures) {
-                    return State.RESOLVED_WITH_FAILURES;
-                } else {
-                    return State.RESOLVED;
-                }
-            } else {
-                return State.UNRESOLVED;
-            }
+            return state;
         }
     }
 
@@ -258,66 +237,40 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
-    public void markAsObserved() {
-        synchronized (lock) {
-            if (state == InternalState.UNOBSERVED) {
-                state = InternalState.OBSERVED;
-            }
-        }
+    public void includedInResolveResult() {
+        includedInResult = true;
         for (Configuration configuration : extendsFrom) {
-            ((ConfigurationInternal) configuration).markAsObserved();
+            ((ConfigurationInternal) configuration).includedInResolveResult();
         }
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
-        resolveNow(InternalState.RESULTS_RESOLVED);
+        resolveNow();
         return cachedResolverResults.getResolvedConfiguration();
     }
 
-    private void resolveNow(InternalState requestedState) {
+    private void resolveNow() {
         synchronized (lock) {
-            boolean needsResolve = state == InternalState.UNOBSERVED || state == InternalState.OBSERVED || modified;
-            if (needsResolve) {
+            if (state == State.UNRESOLVED) {
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 cachedResolverResults = resolver.resolve(this);
                 for (Configuration configuration : extendsFrom) {
-                    ((ConfigurationInternal) configuration).markAsObserved();
+                    ((ConfigurationInternal) configuration).includedInResolveResult();
                 }
-                resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
-                modified = false;
-                markAsResolved(requestedState);
+                if (cachedResolverResults.getResolvedConfiguration().hasError()) {
+                    state = State.RESOLVED_WITH_FAILURES;
+                } else {
+                    state = State.RESOLVED;
+                }
                 broadcast.afterResolve(incoming);
-            } else {
-                markAsResolved(requestedState);
             }
-        }
-    }
-
-    private void markAsResolved(InternalState requestedState) {
-        // We can't move back from resolved for results state
-        if (state != InternalState.RESULTS_RESOLVED) {
-            state = requestedState;
         }
     }
 
     public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-        taskDependency.add(allDependencies.getBuildDependencies());
-        resolveNow(InternalState.TASK_DEPENDENCIES_RESOLVED);
-/*
-
-        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
-            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-            for (String targetConfigName : projectResult.getTargetConfigurations()) {
-                Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
-                taskDependency.add(targetConfig);
-                taskDependency.add(targetConfig.getAllArtifacts());
-            }
-        }
-*/
-        return taskDependency;
+        return allDependencies.getBuildDependencies();
     }
 
     /**
@@ -374,7 +327,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvableDependencies;
     }
 
-    public ConfigurationInternal copy() {
+    public Configuration copy() {
         return createCopy(getDependencies(), false);
     }
 
@@ -393,7 +346,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectFinder);
+                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -452,36 +405,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void validateMutation(boolean lenient) {
-        switch (state) {
-            case UNOBSERVED:
-                // Nothing from the configuration has been observed yet, can change anything.
-                break;
-            case OBSERVED:
-                // The configuration has been used in a resolution, and it is deprecated for
-                // build logic to change any dependencies, artifacts, exclude rules or parent
-                // configurations (non-lenient properties).
-                if (!lenient) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
-                }
-                break;
-            case TASK_DEPENDENCIES_RESOLVED:
-                // The task dependencies for the configuration have been calculated using
-                // Configuration.getBuildDependencies(). It is deprecated for build logic to
-                // change anything about the configuration.
+        boolean userAlreadyNagged = false;
+        if (getState() != State.UNRESOLVED) {
+            if (!lenient) {
+                throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+            } else {
+                userAlreadyNagged = true;
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
-                break;
-            case RESULTS_RESOLVED:
-                // The public result for the configuration has been calculated. It is an
-                // error to change non-lenient properties, and deprecated to change anything else
-                // about the configuration.
-                if (lenient) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
-                } else {
-                    throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
-                }
-                break;
+            }
         }
-        modified = true;
+        if (!userAlreadyNagged && includedInResult) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
+        }
     }
 
     class ConfigurationFileCollection extends AbstractFileCollection {
@@ -617,7 +552,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            DefaultConfiguration.this.resolveNow(InternalState.RESULTS_RESOLVED);
+            DefaultConfiguration.this.resolveNow();
             return DefaultConfiguration.this.cachedResolverResults.getResolutionResult();
         }
     }
