@@ -18,9 +18,7 @@ package org.gradle.integtests.tooling.r24
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.TestProgressEvent
-import org.gradle.tooling.TestProgressListener
+import org.gradle.tooling.*
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
@@ -63,13 +61,18 @@ public class MyTest {
         }
 
         then:
-        result.size() % 2 == 0 // same number of start events as finish events
-        result.size() == 8     // root suite, test process suite, test class suite, test method (each with a start and finish event)
-        result.findAll { def event ->
-            event.descriptor.name == 'foo' &&
-            event.descriptor.className == 'MyTest' &&
-            event.descriptor.parent == null
-        }.size() == 2          // test method start and finish event
+        result.size() % 2 == 0          // same number of start events as finish events
+        result.size() == 8              // root suite, test process suite, test class suite, test method (each with a start and finish event)
+        def testStartedEvent = result[3]
+        testStartedEvent instanceof TestStartedEvent &&
+                testStartedEvent.descriptor.name == 'foo' &&
+                testStartedEvent.descriptor.className == 'MyTest' &&
+                testStartedEvent.descriptor.parent == null
+        def testSucceededEvent = result[4]
+        testSucceededEvent instanceof TestSucceededEvent &&
+                testSucceededEvent.descriptor.name == 'foo' &&
+                testSucceededEvent.descriptor.className == 'MyTest' &&
+                testSucceededEvent.descriptor.parent == null
     }
 
 }

@@ -36,15 +36,58 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private void broadcastTestProgressEvent(final TestProgressEventVersion1 event) {
-        testProgressListeners.getSource().statusChanged(new TestStartedEvent() {
+    private void broadcastTestProgressEvent(TestProgressEventVersion1 event) {
+        TestProgressEvent testProgressEvent = toTestProgressEvent(event);
+        if (testProgressEvent != null) {
+            testProgressListeners.getSource().statusChanged(testProgressEvent);
+        }
+    }
 
-            @Override
-            public TestDescriptor getDescriptor() {
-                return toTestDescriptor(event.getDescriptor());
-            }
+    private TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
+        final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor());
 
-        });
+        String eventType = event.getEventType();
+        if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
+            return new TestStartedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_SKIPPED.equals(eventType)) {
+            return new TestSkippedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_SUCCEEDED.equals(eventType)) {
+            return new TestSucceededEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+
+                @Override
+                public TestSuccess getResult() {
+                    return null;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_FAILED.equals(eventType)) {
+            return new TestFailedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+
+                @Override
+                public TestFailure getResult() {
+                    return null;
+                }
+            };
+        } else {
+            return null;
+        }
     }
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor) {

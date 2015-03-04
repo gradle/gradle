@@ -20,6 +20,23 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface TestProgressEventVersion1 {
 
+    String TEST_STARTED = "TEST_STARTED";
+    String TEST_SKIPPED = "TEST_SKIPPED";
+    String TEST_SUCCEEDED = "TEST_SUCCEEDED";
+    String TEST_FAILED = "TEST_FAILED";
+
+    /**
+     * The specific type of test progress. See the constants on this interface for the supported types.
+     *
+     * @return The type of test progress (started, skipped, etc.)
+     */
+    String getEventType();
+
+    /**
+     * The description of the test for which progress is reported.
+     *
+     * @return The test description
+     */
     TestDescriptorVersion1 getDescriptor();
 
 }
