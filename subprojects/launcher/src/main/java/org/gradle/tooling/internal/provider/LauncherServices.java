@@ -16,15 +16,20 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.logging.StyledTextOutputFactory;
+
+import java.util.List;
 
 public class LauncherServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -40,7 +45,11 @@ public class LauncherServices implements PluginServiceRegistry {
 
     static class ToolingGlobalScopeServices {
         InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
-            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(services.getAll(BuildActionRunner.class)));
+            List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
+            GradleBuildEnvironment buildEnvironment = services.get(GradleBuildEnvironment.class);
+            DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
+            StyledTextOutputFactory textOutputFactory = services.get(StyledTextOutputFactory.class);
+            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners), textOutputFactory, buildEnvironment, documentationRegistry);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

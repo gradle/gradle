@@ -30,18 +30,18 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final BuildActionExecuter<BuildActionParameters> executer;
-    private final DaemonParameters parameters;
+    private final DaemonParameters daemonParameters;
 
-    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, DaemonParameters parameters) {
+    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, DaemonParameters daemonParameters) {
         this.executer = executer;
-        this.parameters = parameters;
+        this.daemonParameters = daemonParameters;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(this.parameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
+                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isUsageConfiguredExplicitly());
         try {
-            return executer.execute(action, buildRequestContext, parameters);
+            return executer.execute(action, buildRequestContext, actionParameters);
         } catch (ReportedException e) {
             Throwable t = e.getCause();
             while (t != null) {

@@ -28,4 +28,6 @@ public interface BuildActionParameters {
     File getCurrentDir();
 
     LogLevel getLogLevel();
+
+    boolean isDaemonUsageConfiguredExplicitly();
 }

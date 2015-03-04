@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
@@ -55,6 +56,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
+        _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
     }
 
     def "executes build"() {

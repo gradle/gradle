@@ -31,8 +31,8 @@ class RunBuildActionTest extends Specification {
     final File currentDir = new File('current-dir')
     final long startTime = 90
     final Map<String, String> systemProperties = [key: 'value']
-    final Map<String, String> envVariables = [key2: 'value2']
-    final RunBuildAction action = new RunBuildAction(client, startParameter, currentDir, clientMetaData, startTime, systemProperties, envVariables)
+    final BuildActionParameters parameters = Mock()
+    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters)
 
     def runsBuildUsingDaemon() {
         when:
@@ -45,7 +45,7 @@ class RunBuildActionTest extends Specification {
             assert context.cancellationToken instanceof FixedBuildCancellationToken
             assert context.client == clientMetaData
             assert context.buildTimeClock.startTime == startTime
-            assert build.systemProperties == systemProperties
+            assert build == parameters
         }
         0 * _._
     }

@@ -21,27 +21,22 @@ import spock.lang.Specification
 import static java.lang.Boolean.parseBoolean
 
 class DaemonParametersTest extends Specification {
-    final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters())
+    final DaemonParameters parameters = parameters()
+
+    private DaemonParameters parameters() {
+        new DaemonParameters(new BuildLayoutParameters())
+    }
 
     def "has reasonable default values"() {
         expect:
-        assertDefaultValues()
-    }
-
-    def "uses default values when no specific gradle properties provided"() {
-        expect:
-        assertDefaultValues()
-    }
-
-    void assertDefaultValues() {
-        assert !parameters.enabled
-        assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
-        def baseDir = new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
-        assert parameters.baseDir == baseDir
-        assert parameters.systemProperties.isEmpty()
-        assert parameters.effectiveJvmArgs.containsAll(parameters.DEFAULT_JVM_ARGS)
-        assert parameters.effectiveJvmArgs.size() == parameters.DEFAULT_JVM_ARGS.size() + 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
-        assert parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+        !parameters.enabled
+        !parameters.usageConfiguredExplicitly
+        parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
+        parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
+        parameters.systemProperties.isEmpty()
+        parameters.effectiveJvmArgs.containsAll(parameters.DEFAULT_JVM_ARGS)
+        parameters.effectiveJvmArgs.size() == parameters.DEFAULT_JVM_ARGS.size() + 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
+        parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
     }
 
     def "configuring jvmargs replaces the defaults"() {
@@ -62,5 +57,23 @@ class DaemonParametersTest extends Specification {
 
         where:
         flag << ["true", "false"]
+    }
+
+    def "can enable the daemon"() {
+        when:
+        def parametersWithEnabledDaemon = parameters().setEnabled(true)
+
+        then:
+        parametersWithEnabledDaemon.usageConfiguredExplicitly
+        parametersWithEnabledDaemon.enabled
+    }
+
+    def "can explicitly disable the daemon"() {
+        when:
+        def parametersWithDisabledDaemon = parameters().setEnabled(false)
+
+        then:
+        parametersWithDisabledDaemon.usageConfiguredExplicitly
+        !parametersWithDisabledDaemon.enabled
     }
 }

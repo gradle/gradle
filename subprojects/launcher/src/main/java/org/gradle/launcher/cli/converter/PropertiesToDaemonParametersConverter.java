@@ -62,7 +62,10 @@ public class PropertiesToDaemonParametersConverter {
             target.setBaseDir(new File(prop));
         }
 
-        target.setEnabled(isTrue(properties.get(DAEMON_ENABLED_PROPERTY)));
+        String daemonEnabledPropertyValue = properties.get(DAEMON_ENABLED_PROPERTY);
+        if (daemonEnabledPropertyValue != null) {
+            target.setEnabled(isTrue(daemonEnabledPropertyValue));
+        }
         target.setDebug(isTrue(properties.get(DEBUG_MODE_PROPERTY)));
     }
 }

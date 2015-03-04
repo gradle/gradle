@@ -19,37 +19,27 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.*;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.util.GUtil;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RunBuildAction implements Runnable {
     private final BuildActionExecuter<BuildActionParameters> executer;
     private final StartParameter startParameter;
-    private final File currentDir;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
-    private final Map<String, String> systemProperties;
-    private final Map<String, String> envVariables;
+    private final BuildActionParameters buildActionParameters;
 
-    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, BuildClientMetaData clientMetaData, long startTime,
+                          BuildActionParameters buildActionParameters) {
         this.executer = executer;
         this.startParameter = startParameter;
-        this.currentDir = currentDir;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
-        this.systemProperties = new HashMap<String, String>();
-        GUtil.addToMap(this.systemProperties, systemProperties);
-        this.envVariables = envVariables;
+        this.buildActionParameters = buildActionParameters;
     }
 
     public void run() {
         executer.execute(
                 new ExecuteBuildAction(startParameter),
                 new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new FixedBuildCancellationToken(), new NoOpBuildEventConsumer()),
-                new DefaultBuildActionParameters(systemProperties, envVariables, currentDir, startParameter.getLogLevel()));
+                buildActionParameters);
     }
 }

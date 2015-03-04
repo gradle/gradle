@@ -28,8 +28,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final LogLevel logLevel;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
+    private final boolean daemonUsageConfiguredExplicitly;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean daemonUsageConfiguredExplicitly) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         assert systemProperties != null;
@@ -37,6 +38,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
+        this.daemonUsageConfiguredExplicitly = daemonUsageConfiguredExplicitly;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -53,6 +55,11 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public LogLevel getLogLevel() {
         return logLevel;
+    }
+
+    @Override
+    public boolean isDaemonUsageConfiguredExplicitly() {
+        return daemonUsageConfiguredExplicitly;
     }
 
     @Override

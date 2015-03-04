@@ -45,7 +45,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, false)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter

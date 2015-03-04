@@ -37,7 +37,7 @@ public class DaemonParameters {
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-    private boolean enabled;
+    private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private File javaHome;
 
     public DaemonParameters(BuildLayoutParameters layout) {
@@ -52,12 +52,16 @@ public class DaemonParameters {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return daemonUsage.enabled;
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        daemonUsage = enabled ? DaemonUsage.EXPLICITLY_ENABLED : DaemonUsage.EXPLICITLY_DISABLED;
         return this;
+    }
+
+    public boolean isUsageConfiguredExplicitly() {
+        return daemonUsage.explicitlySet;
     }
 
     public String getUid() {
@@ -131,5 +135,19 @@ public class DaemonParameters {
 
     public boolean getDebug() {
         return jvmOptions.getDebug();
+    }
+
+    private static enum DaemonUsage {
+        IMPLICITLY_DISABLED(false, false),
+        EXPLICITLY_DISABLED(true, false),
+        EXPLICITLY_ENABLED(true, true);
+
+        private final boolean explicitlySet;
+        private final boolean enabled;
+
+        DaemonUsage(boolean explicitlySet, boolean enabled) {
+            this.explicitlySet = explicitlySet;
+            this.enabled = enabled;
+        }
     }
 }
