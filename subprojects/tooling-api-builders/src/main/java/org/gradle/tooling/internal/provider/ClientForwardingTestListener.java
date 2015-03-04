@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -25,13 +24,13 @@ import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 
 /**
- * Test listener that forwards all receiving events to the given {@code BuildEventConsumer} instance.
+ * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
  */
-class ForwardingTestListener implements TestListener {
+class ClientForwardingTestListener implements TestListener {
 
     private final BuildEventConsumer eventConsumer;
 
-    ForwardingTestListener(BuildEventConsumer eventConsumer) {
+    ClientForwardingTestListener(BuildEventConsumer eventConsumer) {
         this.eventConsumer = eventConsumer;
     }
 

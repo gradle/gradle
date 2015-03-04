@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -39,9 +40,10 @@ public class BuildModelActionRunner implements BuildActionRunner {
         BuildModelAction buildModelAction = (BuildModelAction) action;
         GradleInternal gradle = buildController.getGradle();
 
-// TODO - wire this up to test events
-//        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
-//        eventConsumer.dispatch(someEvent);
+        // register a TestListener that dispatches all test progress via the registered BuildEventConsumer instance
+        // this allows to short-cut sending events back to the DaemonClient
+        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+        gradle.addListener(new ClientForwardingTestListener(eventConsumer));
 
         if (buildModelAction.isRunTasks()) {
             buildController.run();
