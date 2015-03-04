@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.TestResultVersion1;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
@@ -46,6 +47,11 @@ class ClientForwardingTestListener implements TestListener {
             @Override
             public TestDescriptorVersion1 getDescriptor() {
                 return new TestDescriptorImpl(suite);
+            }
+
+            @Override
+            public TestResultVersion1 getResult() {
+                return null;
             }
 
         });
@@ -75,6 +81,11 @@ class ClientForwardingTestListener implements TestListener {
                 return new TestDescriptorImpl(suite);
             }
 
+            @Override
+            public TestResultVersion1 getResult() {
+                return new TestResultImpl(result);
+            }
+
         });
     }
 
@@ -90,6 +101,11 @@ class ClientForwardingTestListener implements TestListener {
             @Override
             public TestDescriptorVersion1 getDescriptor() {
                 return new TestDescriptorImpl(test);
+            }
+
+            @Override
+            public TestResultVersion1 getResult() {
+                return null;
             }
 
         });
@@ -117,6 +133,11 @@ class ClientForwardingTestListener implements TestListener {
             @Override
             public TestDescriptorVersion1 getDescriptor() {
                 return new TestDescriptorImpl(test);
+            }
+
+            @Override
+            public TestResultVersion1 getResult() {
+                return new TestResultImpl(result);
             }
 
         });
@@ -148,6 +169,26 @@ class ClientForwardingTestListener implements TestListener {
         @Override
         public TestDescriptorVersion1 getParent() {
             return null;
+        }
+
+    }
+
+    private static class TestResultImpl implements TestResultVersion1 {
+
+        private final TestResult result;
+
+        private TestResultImpl(TestResult result) {
+            this.result = result;
+        }
+
+        @Override
+        public long getStartTime() {
+            return result.getStartTime();
+        }
+
+        @Override
+        public long getEndTime() {
+            return result.getEndTime();
         }
 
     }

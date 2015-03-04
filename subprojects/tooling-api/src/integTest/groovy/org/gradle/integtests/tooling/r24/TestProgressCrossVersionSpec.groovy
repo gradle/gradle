@@ -82,22 +82,30 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         testSucceededEvent instanceof TestSucceededEvent &&
                 testSucceededEvent.descriptor.name == 'foo' &&
                 testSucceededEvent.descriptor.className == 'example.MyTest' &&
-                testSucceededEvent.descriptor.parent == null
+                testSucceededEvent.descriptor.parent == null &&
+                ((TestSucceededEvent) testSucceededEvent).result.startTime > 0 &&
+                ((TestSucceededEvent) testSucceededEvent).result.endTime > ((TestSucceededEvent) testSucceededEvent).result.startTime
         def testClassSucceededEvent = result[5]
         testClassSucceededEvent instanceof TestSuiteSucceededEvent &&
                 testClassSucceededEvent.descriptor.name == 'example.MyTest' &&
                 testClassSucceededEvent.descriptor.className == 'example.MyTest' &&
-                testClassSucceededEvent.descriptor.parent == null
+                testClassSucceededEvent.descriptor.parent == null &&
+                ((TestSuiteSucceededEvent) testClassSucceededEvent).result.startTime > 0 &&
+                ((TestSuiteSucceededEvent) testClassSucceededEvent).result.endTime > ((TestSuiteSucceededEvent) testClassSucceededEvent).result.startTime
         def testProcessSucceededEvent = result[6]
         testProcessSucceededEvent instanceof TestSuiteSucceededEvent &&
                 testProcessSucceededEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessSucceededEvent.descriptor.className == null &&
-                testProcessSucceededEvent.descriptor.parent == null
+                testProcessSucceededEvent.descriptor.parent == null &&
+                ((TestSuiteSucceededEvent) testProcessSucceededEvent).result.startTime > 0 &&
+                ((TestSuiteSucceededEvent) testProcessSucceededEvent).result.endTime > ((TestSuiteSucceededEvent) testProcessSucceededEvent).result.startTime
         def rootSucceededEvent = result[7]
         rootSucceededEvent instanceof TestSuiteSucceededEvent &&
                 rootSucceededEvent.descriptor.name == 'Test Run' &&
                 rootSucceededEvent.descriptor.className == null &&
-                rootSucceededEvent.descriptor.parent == null
+                rootSucceededEvent.descriptor.parent == null &&
+                ((TestSuiteSucceededEvent) rootSucceededEvent).result.startTime > 0 &&
+                ((TestSuiteSucceededEvent) rootSucceededEvent).result.endTime > ((TestSuiteSucceededEvent) rootSucceededEvent).result.startTime
     }
 
 }

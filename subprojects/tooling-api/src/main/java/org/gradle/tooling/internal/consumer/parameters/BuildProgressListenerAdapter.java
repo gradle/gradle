@@ -20,6 +20,10 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.protocol.TestResultVersion1;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -70,7 +74,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestSuccess getResult() {
-                    return null;
+                    return toTestSuccess(event.getResult());
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_FAILED.equals(eventType)) {
@@ -82,7 +86,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestFailure getResult() {
-                    return null;
+                    return toTestFailure(event.getResult());
                 }
             };
         } else if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
@@ -108,7 +112,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestSuccess getResult() {
-                    return null;
+                    return toTestSuccess(event.getResult());
                 }
             };
         } else if (TestProgressEventVersion1.TEST_FAILED.equals(eventType)) {
@@ -120,7 +124,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestFailure getResult() {
-                    return null;
+                    return toTestFailure(event.getResult());
                 }
             };
         } else {
@@ -145,6 +149,48 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             public TestDescriptor getParent() {
                 TestDescriptorVersion1 parent = testDescriptor.getParent();
                 return parent != null ? toTestDescriptor(testDescriptor) : null;
+            }
+
+        };
+    }
+
+    private TestSuccess toTestSuccess(final TestResultVersion1 testResult) {
+        return new TestSuccess() {
+
+            @Override
+            public long getStartTime() {
+                return testResult.getStartTime();
+            }
+
+            @Override
+            public long getEndTime() {
+                return testResult.getEndTime();
+            }
+
+        };
+    }
+
+    private TestFailure toTestFailure(final TestResultVersion1 testResult) {
+        return new TestFailure() {
+
+            @Override
+            public long getStartTime() {
+                return testResult.getStartTime();
+            }
+
+            @Override
+            public long getEndTime() {
+                return testResult.getEndTime();
+            }
+
+            @Override
+            public Throwable getException() {
+                return null;
+            }
+
+            @Override
+            public List<Throwable> getExceptions() {
+                return Collections.emptyList();
             }
 
         };
