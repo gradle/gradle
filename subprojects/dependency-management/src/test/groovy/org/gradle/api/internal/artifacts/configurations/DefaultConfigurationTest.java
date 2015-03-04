@@ -164,6 +164,13 @@ public class DefaultConfigurationTest {
         configuration.extendsFrom(otherConfiguration);
     }
 
+    @Test
+    public void extendsFromTheSameConfigurationOnlyExtendsItOnce() {
+        Configuration configuration1 = createNamedConfiguration("otherConf1");
+        configuration.extendsFrom(configuration1, configuration1);
+        assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1)));
+    }
+
     @Test(expected = InvalidUserDataException.class)
     public void extendsFromWithIndirectCycleShouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration1 = createNamedConfiguration("otherConf1");

@@ -183,9 +183,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
                         configuration, configuration.getHierarchy()));
             }
-            this.extendsFrom.add(configuration);
-            inheritedArtifacts.addCollection(configuration.getAllArtifacts());
-            inheritedDependencies.addCollection(configuration.getAllDependencies());
+            if (this.extendsFrom.add(configuration)) {
+                inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+                inheritedDependencies.addCollection(configuration.getAllDependencies());
+            }
         }
         return this;
     }
