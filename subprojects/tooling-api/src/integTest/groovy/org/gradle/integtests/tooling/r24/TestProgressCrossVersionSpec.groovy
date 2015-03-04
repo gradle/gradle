@@ -63,6 +63,22 @@ public class MyTest {
         then:
         result.size() % 2 == 0          // same number of start events as finish events
         result.size() == 8              // root suite, test process suite, test class suite, test method (each with a start and finish event)
+
+        def rootStartedEvent = result[0]
+        rootStartedEvent instanceof TestSuiteStartedEvent &&
+                rootStartedEvent.descriptor.name == 'Test Run' &&
+                rootStartedEvent.descriptor.className == null &&
+                rootStartedEvent.descriptor.parent == null
+        def testProcessStartedEvent = result[1]
+        testProcessStartedEvent instanceof TestSuiteStartedEvent &&
+                testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 1' &&
+                testProcessStartedEvent.descriptor.className == null &&
+                testProcessStartedEvent.descriptor.parent == null
+        def testClassStartedEvent = result[2]
+        testClassStartedEvent instanceof TestSuiteStartedEvent &&
+                testClassStartedEvent.descriptor.name == 'MyTest' &&
+                testClassStartedEvent.descriptor.className == 'MyTest' &&
+                testClassStartedEvent.descriptor.parent == null
         def testStartedEvent = result[3]
         testStartedEvent instanceof TestStartedEvent &&
                 testStartedEvent.descriptor.name == 'foo' &&
@@ -73,6 +89,21 @@ public class MyTest {
                 testSucceededEvent.descriptor.name == 'foo' &&
                 testSucceededEvent.descriptor.className == 'MyTest' &&
                 testSucceededEvent.descriptor.parent == null
+        def testClassSucceededEvent = result[5]
+        testClassSucceededEvent instanceof TestSuiteSucceededEvent &&
+                testClassSucceededEvent.descriptor.name == 'MyTest' &&
+                testClassSucceededEvent.descriptor.className == 'MyTest' &&
+                testClassSucceededEvent.descriptor.parent == null
+        def testProcessSucceededEvent = result[6]
+        testProcessSucceededEvent instanceof TestSuiteSucceededEvent &&
+                testProcessSucceededEvent.descriptor.name == 'Gradle Test Executor 1' &&
+                testProcessSucceededEvent.descriptor.className == null &&
+                testProcessSucceededEvent.descriptor.parent == null
+        def rootSucceededEvent = result[7]
+        rootSucceededEvent instanceof TestSuiteSucceededEvent &&
+                rootSucceededEvent.descriptor.name == 'Test Run' &&
+                rootSucceededEvent.descriptor.className == null &&
+                rootSucceededEvent.descriptor.parent == null
     }
 
 }

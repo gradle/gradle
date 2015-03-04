@@ -47,7 +47,45 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor());
 
         String eventType = event.getEventType();
-        if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
+        if (TestProgressEventVersion1.TEST_SUITE_STARTED.equals(eventType)) {
+            return new TestSuiteStartedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_SUITE_SKIPPED.equals(eventType)) {
+            return new TestSuiteSkippedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_SUITE_SUCCEEDED.equals(eventType)) {
+            return new TestSuiteSucceededEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+
+                @Override
+                public TestSuccess getResult() {
+                    return null;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_SUITE_FAILED.equals(eventType)) {
+            return new TestSuiteFailedEvent() {
+                @Override
+                public TestDescriptor getDescriptor() {
+                    return testDescriptor;
+                }
+
+                @Override
+                public TestFailure getResult() {
+                    return null;
+                }
+            };
+        } else if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
             return new TestStartedEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {

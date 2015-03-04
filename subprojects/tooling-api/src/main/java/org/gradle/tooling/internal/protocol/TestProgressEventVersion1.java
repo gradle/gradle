@@ -20,6 +20,11 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface TestProgressEventVersion1 {
 
+    String TEST_SUITE_STARTED = "TEST_SUITE_STARTED";
+    String TEST_SUITE_SKIPPED = "TEST_SUITE_SKIPPED";
+    String TEST_SUITE_SUCCEEDED = "TEST_SUITE_SUCCEEDED";
+    String TEST_SUITE_FAILED = "TEST_SUITE_FAILED";
+
     String TEST_STARTED = "TEST_STARTED";
     String TEST_SKIPPED = "TEST_SKIPPED";
     String TEST_SUCCEEDED = "TEST_SUCCEEDED";
