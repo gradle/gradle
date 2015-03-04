@@ -118,6 +118,42 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
+    def "warns about changing a configuration that has been resolved for task dependencies"() {
+        mavenRepo.module("org.utils", "extra", '1.5').publish()
+
+        settingsFile << "include 'api', 'impl'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+
+                task addDependency << {
+                    dependencies {
+                        compile "org.utils:extra:1.5"
+                    }
+                }
+
+                task checkIt(dependsOn: [addDependency, configurations.compile]) << {
+                    def files = configurations.compile.files
+                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+            }
+"""
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds("impl:checkIt")
+        then: output.contains("Attempting to change configuration ':impl:compile' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
     @Issue("GRADLE-3155")
     def "warns about adding dependencies to a configuration whose child has been resolved"() {
         buildFile << """
