@@ -24,14 +24,24 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
     private final TestResultsProvider resultsProvider;
+    private File classesBaseUrl;
 
-    public ClassPageRenderer(TestResultsProvider provider) {
+    private List<IAdditionalTestResultResource> additionalResources = new ArrayList<IAdditionalTestResultResource>();
+
+    public ClassPageRenderer(TestResultsProvider provider, File classesBaseUrl) {
         this.resultsProvider = provider;
+        this.classesBaseUrl = classesBaseUrl;
     }
 
     @Override
@@ -56,10 +66,25 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
 
         for (TestResult test : getResults().getTestResults()) {
             htmlWriter.startElement("tr")
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getName()).endElement()
-                .startElement("td").characters(test.getFormattedDuration()).endElement()
-                .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
-            .endElement();
+                    .startElement("td").attribute("class", test.getStatusClass()).characters(test.getName()).endElement()
+                    .startElement("td").characters(test.getFormattedDuration()).endElement()
+                    .startElement("td").attribute("class", test.getStatusClass()).characters(test.getFormattedResultType()).endElement()
+                    .endElement();
+            List<File> additionalFiles = new ArrayList<File>();
+            for (IAdditionalTestResultResource additionalResource : additionalResources) {
+                additionalFiles.addAll(additionalResource.findResources(test));
+            }
+            if (!additionalFiles.isEmpty()) {
+                htmlWriter.startElement("tr").startElement("td").attribute("colspan", "3").startElement("table");
+                for (File additionalFile : additionalFiles) {
+                    Files.copy(additionalFile.toPath(), Paths.get(classesBaseUrl.getAbsolutePath(), additionalFile.getName()), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+                    htmlWriter.startElement("tr");
+                    htmlWriter.startElement("td");
+                    htmlWriter.startElement("a").attribute("href", additionalFile.getName()).attribute("style", "font-size:small").characters(additionalFile.getName()).endElement();
+                    htmlWriter.endElement();
+                    htmlWriter.endElement();
+                }
+            }
         }
         htmlWriter.endElement();
     }
@@ -118,5 +143,9 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 }
             });
         }
+    }
+
+    public void addAdditionalResources(List<IAdditionalTestResultResource> additionalResources) {
+        this.additionalResources.addAll(additionalResources);
     }
 }
