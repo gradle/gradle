@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.9', '2.4.0'])
@@ -140,6 +142,16 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         expect:
         fails("compileGroovy")
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
+    }
+
+    @Requires([TestPrecondition.JDK_ORACLE, TestPrecondition.JDK8_OR_LATER])
+    def "compileJavaFx8Code"() {
+        if (versionLowerThan("2.0")) {
+            return
+        }
+
+        expect:
+        succeeds("compileGroovy")
     }
 
     protected ExecutionResult run(String... tasks) {

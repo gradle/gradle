@@ -106,6 +106,9 @@ enum TestPrecondition {
     NOT_JDK_IBM({
         System.getProperty('java.vm.vendor') != 'IBM Corporation'
     }),
+    JDK_ORACLE({
+        System.getProperty('java.vm.vendor') == 'Oracle Corporation'
+    }),
     ONLINE({
         try {
             new URL("http://google.com").openConnection().getInputStream().close()

@@ -69,7 +69,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
-        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
@@ -178,4 +178,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
+    private ClassLoader getExtClassLoader() {
+        return ClassLoader.getSystemClassLoader().getParent();
+    }
 }
