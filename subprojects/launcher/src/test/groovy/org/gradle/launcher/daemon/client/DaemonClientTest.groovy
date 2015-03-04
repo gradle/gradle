@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.BuildCancelledException
-import org.gradle.initialization.BuildAction
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.id.IdGenerator

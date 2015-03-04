@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
 
 import java.io.Serializable;
 

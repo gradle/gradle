@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into
- * {@link org.gradle.initialization.BuildController}.
+ * {@link org.gradle.internal.invocation.BuildController}.
  */
 public abstract class GradleLauncher implements Stoppable {
 

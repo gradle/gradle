@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.launcher.cli.ExecuteBuildAction;
-import org.gradle.launcher.exec.BuildActionRunner;
+import org.gradle.internal.invocation.BuildActionRunner;
 
 public class ExecuteBuildActionRunner implements BuildActionRunner {
     @Override

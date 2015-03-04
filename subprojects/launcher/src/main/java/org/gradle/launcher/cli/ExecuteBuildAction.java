@@ -16,7 +16,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
 
 import java.io.Serializable;
 

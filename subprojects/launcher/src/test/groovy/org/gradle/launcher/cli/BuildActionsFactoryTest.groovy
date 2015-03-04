@@ -28,7 +28,7 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.exec.BuildActionRunner
+import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.internal.OutputEventListener

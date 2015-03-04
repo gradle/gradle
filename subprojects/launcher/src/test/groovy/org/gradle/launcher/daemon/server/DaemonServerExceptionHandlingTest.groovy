@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon.server
 import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.initialization.BuildAction
-import org.gradle.initialization.BuildController
+import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.invocation.BuildController
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient

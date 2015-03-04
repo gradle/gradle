@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
 
 public interface BuildActionExecuter<P> {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.invocation;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 
 /**
- * This is intended to eventually replace {@link GradleLauncher} internally. It's pretty rough at the moment.
+ * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
  */
 public interface BuildController {
     /**

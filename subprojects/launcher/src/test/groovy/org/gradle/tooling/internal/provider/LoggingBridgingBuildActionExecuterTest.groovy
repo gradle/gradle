@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.BuildAction
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.Factory
 import org.gradle.launcher.exec.BuildActionExecuter

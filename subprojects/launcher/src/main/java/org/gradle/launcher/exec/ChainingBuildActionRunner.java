@@ -16,8 +16,9 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
 
 import java.util.List;
 

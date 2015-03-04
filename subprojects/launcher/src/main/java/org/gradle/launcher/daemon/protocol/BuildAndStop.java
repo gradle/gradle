@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.invocation;
 
-package org.gradle.launcher.exec;
-
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
+import org.gradle.StartParameter;
 
 /**
- * Responsible for executing a {@link BuildAction} and generating the result.
+ * An object that performs some action with a {@link BuildController} and produces a “result” object (e.g. the output).
+ * <p>
+ * Implementations of this are typically composed to bootstrap a build in a certain environment.
+ * <p>
  */
-public interface BuildActionRunner {
-    /**
-     * Runs the given action, and attaches the result, if any, to the provided controller.
-     */
-    void run(BuildAction action, BuildController buildController);
+public interface BuildAction {
+    StartParameter getStartParameter();
 }

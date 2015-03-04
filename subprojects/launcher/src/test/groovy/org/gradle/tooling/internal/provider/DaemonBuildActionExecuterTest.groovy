@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.provider
 
-import org.gradle.initialization.BuildAction
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
