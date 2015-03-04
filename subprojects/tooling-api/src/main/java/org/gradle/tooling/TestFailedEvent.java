@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
-public interface TestFailedEvent {
+public interface TestFailedEvent extends TestProgressEvent {
 
     /**
      * The description of the test having failed.

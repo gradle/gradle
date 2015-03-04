@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
-public interface TestSucceededEvent {
+public interface TestSucceededEvent extends TestProgressEvent {
 
     /**
      * The description of the test having finished successfully.

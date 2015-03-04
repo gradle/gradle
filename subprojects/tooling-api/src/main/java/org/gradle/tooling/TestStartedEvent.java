@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
-public interface TestStartedEvent {
+public interface TestStartedEvent extends TestProgressEvent{
 
     /**
      * The description of the test being started.

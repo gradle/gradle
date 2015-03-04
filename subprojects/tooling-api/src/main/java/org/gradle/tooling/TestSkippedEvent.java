@@ -23,7 +23,7 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
-public interface TestSkippedEvent {
+public interface TestSkippedEvent extends TestProgressEvent {
 
     /**
      * The description of the test being skipped.
