@@ -26,31 +26,21 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.4")
     def "receive 'test started' progress event"() {
         given:
-        projectDir.file("build.gradle").text = '''
-apply plugin: 'java'
-repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.12" }
-task foo(type:Test)
-'''
-        projectDir.create {
-            src {
-                test {
-                    java {
-                        example {
-                            file('MyTest.java').text = '''
-package example;
-public class MyTest {
-  @org.junit.Test
-  public void foo() {
-     org.junit.Assert.assertEquals(1, 1);
-  }
-}
-'''
-                        }
-                    }
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true
+        """
+
+        file("src/test/java/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() {
+                     org.junit.Assert.assertEquals(1, 1);
                 }
             }
-        }
+        """
 
         when:
         List<TestProgressEvent> result = []
@@ -75,7 +65,7 @@ public class MyTest {
                 rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
         testProcessStartedEvent instanceof TestSuiteStartedEvent &&
-                testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 1' &&
+                testProcessStartedEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessStartedEvent.descriptor.className == null &&
                 testProcessStartedEvent.descriptor.parent == null
         def testClassStartedEvent = result[2]
@@ -100,7 +90,7 @@ public class MyTest {
                 testClassSucceededEvent.descriptor.parent == null
         def testProcessSucceededEvent = result[6]
         testProcessSucceededEvent instanceof TestSuiteSucceededEvent &&
-                testProcessSucceededEvent.descriptor.name == 'Gradle Test Executor 1' &&
+                testProcessSucceededEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessSucceededEvent.descriptor.className == null &&
                 testProcessSucceededEvent.descriptor.parent == null
         def rootSucceededEvent = result[7]
