@@ -20,19 +20,31 @@ This is similar to the current situation when a project dependency is added to a
 ### User visible changes
 
 ```
+class DependencySubstitution<T extends ComponentSelector> {
+    T getRequested()
+    void useTarget(Object notation)
+}
+    
 configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        assert details.target instanceOf ModuleComponentSelector
-        if (details.requested.group == 'org.gradle' && details.requested.name == 'mylib') {
-            details.useTarget project: 'foo'
+    resolutionStrategy {
+        dependencySubstitution {
+            all { DependencySubstitution dependency ->
+                if (dependency.requested instanceof ModuleComponentSelector) {
+                    if (dependency.requested.group == 'org.gradle' && dependency.requested.name == 'mylib') {
+                        dependency.useTarget project(":foo")
+                    }
+                }
+            }
+            withModule("org.gradle:mylib") { DependencySubstitution<ModuleComponentSelector> dependency ->
+                dependency.useTarget project(":foo")
+            }
+            withProject(":bar") { DependencySubstitution<ProjectComponentSelector> dependency ->
+                dependency.useTarget "org.gradle:another:1.+"
+            }
         }
-        assert details.target instanceOf ProjectComponentSelector
     }
 }
 ```
-
-- `DependencyResolveDetails.getTarget()` now returns `ComponentSelector`
-    - This is a breaking change and should be noted in the release notes.
 
 ### Implementation
 
@@ -127,28 +139,6 @@ external dependency, the correct tasks are included for execution:
 ## Story: IDE plugins include correct set of projects based on dependency substitution
 
 # Feature: Improve the dependency substitution rule DSL
-
-## Story: Make the DSL for dependency substitution rules more consistent with component selection rules
-
-### User visible changes
-
-```
-configurations.all {
-    resolutionStrategy {
-        dependencies {
-            all { DependencyResolveDetails details -> ... }
-            withModule('org.gradle:foo') { DependencyResolveDetails  details -> ... }
-        }
-    }
-}
-```
-
-### Open issues
-
-- Provide `ModuleDependencyResolveDetails` and `ProjectDependencyResolveDetails` subtypes that allow declaring rules that apply 
-  to only external or project dependencies respectively
-     - For these types, `getRequested()` would be typed for the correct `ComponentSelector` subtype.
-
 
 ## Story: Declare substitution rules that apply to all resolution for a project
 
