@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.plugin.internal.PluginId;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class PluginRequestsSerializer implements Serializer<PluginRequests> {
 
@@ -31,14 +31,14 @@ public class PluginRequestsSerializer implements Serializer<PluginRequests> {
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
         int requestCount = decoder.readInt();
-        ArrayList<PluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
+        List<PluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
             PluginId pluginId = PluginId.unvalidated(decoder.readString());
             String version = decoder.readNullableString();
             int lineNumber = decoder.readInt();
             String scriptDisplayName = decoder.readString();
 
-            requests.add(i, new DefaultPluginRequest(pluginId, version, lineNumber, scriptDisplayName));
+            requests.set(i, new DefaultPluginRequest(pluginId, version, lineNumber, scriptDisplayName));
         }
         return new DefaultPluginRequests(requests);
     }
