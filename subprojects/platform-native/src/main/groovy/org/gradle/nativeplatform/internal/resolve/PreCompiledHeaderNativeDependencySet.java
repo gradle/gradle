@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,31 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 
-public class DefaultNativeDependencySet implements NativeDependencySet {
-    private final NativeLibraryBinary binary;
+public class PreCompiledHeaderNativeDependencySet implements NativeDependencySet {
+    final FileCollection preCompiledHeaders;
 
-    public DefaultNativeDependencySet(NativeLibraryBinary binary) {
-        this.binary = binary;
+    public PreCompiledHeaderNativeDependencySet(FileCollection preCompiledHeaders) {
+        this.preCompiledHeaders = preCompiledHeaders;
     }
 
+    @Override
     public FileCollection getIncludeRoots() {
-        return binary.getHeaderDirs();
-    }
-
-    public FileCollection getLinkFiles() {
-        return binary.getLinkFiles();
-    }
-
-    public FileCollection getRuntimeFiles() {
-        return binary.getRuntimeFiles();
-    }
-
-    public FileCollection getPreCompiledHeader() {
         return new SimpleFileCollection();
+    }
+
+    @Override
+    public FileCollection getLinkFiles() {
+        return new SimpleFileCollection();
+    }
+
+    @Override
+    public FileCollection getRuntimeFiles() {
+        return new SimpleFileCollection();
+    }
+
+    @Override
+    public FileCollection getPreCompiledHeader() {
+        return preCompiledHeaders;
     }
 }

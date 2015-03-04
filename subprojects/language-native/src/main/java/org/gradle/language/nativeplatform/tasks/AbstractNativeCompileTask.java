@@ -49,11 +49,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private boolean preCompiledHeader;
+    private boolean isPreCompiledHeader;
+    private ConfigurableFileCollection includePreCompiledHeader;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        includePreCompiledHeader = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -194,10 +196,17 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Is this a compile task for a pre-compiled header?
      */
     public boolean isPreCompiledHeader() {
-        return preCompiledHeader;
+        return isPreCompiledHeader;
     }
 
-    public void setPreCompiledHeader(boolean preCompiledHeader) {
-        this.preCompiledHeader = preCompiledHeader;
+    public void setIsPreCompiledHeader(boolean isPreCompiledHeader) {
+        this.isPreCompiledHeader = isPreCompiledHeader;
+    }
+
+    /**
+     * Set the pre-compiled header the compiler should use.
+     */
+    public void includePreCompiledHeader(Object preCompiledHeader) {
+        includePreCompiledHeader.from(preCompiledHeader);
     }
 }
