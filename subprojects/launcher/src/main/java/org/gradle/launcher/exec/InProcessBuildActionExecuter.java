@@ -65,6 +65,9 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
         @Override
         public Object getResult() {
+            if (!hasResult) {
+                throw new IllegalStateException("No result has been provided for this build action.");
+            }
             return result;
         }
 
