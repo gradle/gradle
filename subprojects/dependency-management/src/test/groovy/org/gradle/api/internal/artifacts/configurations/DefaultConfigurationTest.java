@@ -387,7 +387,7 @@ public class DefaultConfigurationTest {
     public void buildArtifacts() {
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
         final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
-        final Configuration otherConfiguration = context.mock(ConfigurationInternal.class);
+        final ConfigurationInternal otherConfiguration = context.mock(ConfigurationInternal.class);
         final TaskDependency otherArtifactTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
         final PublishArtifactSet inheritedArtifacts = new DefaultPublishArtifactSet("artifacts", toDomainObjectSet(PublishArtifact.class, otherArtifact));
@@ -404,13 +404,15 @@ public class DefaultConfigurationTest {
 
             allowing(otherConfiguration).getAllDependencies();
 
+            allowing(otherConfiguration).addMutationValidator(with(any(MutationValidator.class)));
+
             allowing(otherArtifact).getBuildDependencies();
             will(returnValue(otherArtifactTaskDependencyMock));
             
             allowing(otherArtifactTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
         }});
-        configuration.setExtendsFrom(toSet(otherConfiguration));
+        configuration.setExtendsFrom(toSet((Configuration) otherConfiguration));
         assertThat((Set<Task>) configuration.getAllArtifacts().getBuildDependencies().getDependencies(context.mock(Task.class, "caller")),
                 equalTo(toSet(artifactTaskMock, otherConfTaskMock)));
     }
@@ -419,7 +421,7 @@ public class DefaultConfigurationTest {
     public void getAllArtifactFiles() {
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
         final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
-        final Configuration otherConfiguration = context.mock(ConfigurationInternal.class);
+        final ConfigurationInternal otherConfiguration = context.mock(ConfigurationInternal.class);
         final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
         final File artifactFile1 = new File("artifact1");
@@ -439,6 +441,8 @@ public class DefaultConfigurationTest {
 
             allowing(otherConfiguration).getExtendsFrom();
             will(returnValue(toSet()));
+
+            allowing(otherConfiguration).addMutationValidator(with(any(MutationValidator.class)));
 
             allowing(otherConfiguration).getArtifacts();
             will(returnValue(toSet(otherArtifact)));
@@ -463,7 +467,7 @@ public class DefaultConfigurationTest {
         }});
 
         configuration.getArtifacts().add(artifact);
-        configuration.setExtendsFrom(toSet(otherConfiguration));
+        configuration.setExtendsFrom(toSet((Configuration) otherConfiguration));
 
         FileCollection files = configuration.getAllArtifacts().getFiles();
         assertThat(files.getFiles(), equalTo(toSet(artifactFile1, artifactFile2)));
@@ -511,6 +515,8 @@ public class DefaultConfigurationTest {
 
             allowing(otherConfiguration).getAllDependencies();
             will(returnValue(inherited));
+
+            allowing(otherConfiguration).addMutationValidator(with(any(MutationValidator.class)));
 
             allowing(otherConfiguration).markAsObserved();
 

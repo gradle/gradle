@@ -36,9 +36,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -81,6 +81,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolverResults cachedResolverResults;
     private final ResolutionStrategyInternal resolutionStrategy;
     private final ProjectFinder projectFinder;
+    private final Set<MutationValidator> mutationValidators = new LinkedHashSet<MutationValidator>();
+    private final MutationValidator parentMutationValidator = new MutationValidator() {
+        @Override
+        public void validateMutation(MutationType type) {
+            DefaultConfiguration.this.validateParentMutation(type);
+        }
+    };
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -171,6 +178,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
+            ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
         }
         this.extendsFrom = new HashSet<Configuration>();
         for (Configuration configuration : extendsFrom) {
@@ -190,6 +198,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (this.extendsFrom.add(configuration)) {
                 inheritedArtifacts.addCollection(configuration.getAllArtifacts());
                 inheritedDependencies.addCollection(configuration.getAllDependencies());
+                ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
             }
         }
         return this;
@@ -476,6 +485,38 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Override
+    public void addMutationValidator(MutationValidator validator) {
+        mutationValidators.add(validator);
+    }
+
+    @Override
+    public void removeMutationValidator(MutationValidator validator) {
+        mutationValidators.remove(validator);
+    }
+
+    private void validateParentMutation(MutationType type) {
+        // Strategy changes in a parent configuration do not affect this configuration, or any of its children, in any way
+        if (type == MutationType.STRATEGY) {
+            return;
+        }
+
+        switch (state) {
+            case UNOBSERVED:
+                // Nothing from the configuration has been observed yet, can change anything.
+                break;
+            case OBSERVED:
+                // The configuration has been observed, but we'll be notifying the observers later anyway
+                break;
+            case TASK_DEPENDENCIES_RESOLVED:
+            case RESULTS_RESOLVED:
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s via changing a parent configuration after it has been resolved", getDisplayName()));
+                break;
+        }
+
+        markAsModifiedAndNotifyChildren(type);
+    }
+
     private void validateMutation(MutationType type) {
         switch (state) {
             case UNOBSERVED:
@@ -505,6 +546,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
                 }
                 break;
+        }
+
+        markAsModifiedAndNotifyChildren(type);
+    }
+
+    private void markAsModifiedAndNotifyChildren(MutationType type) {
+        // Notify child configurations
+        for (MutationValidator validator : mutationValidators) {
+            validator.validateMutation(type);
         }
         modified = true;
     }

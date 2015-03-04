@@ -27,4 +27,8 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
     String getPath();
 
     void markAsObserved();
+
+    void addMutationValidator(MutationValidator validator);
+
+    void removeMutationValidator(MutationValidator validator);
 }
