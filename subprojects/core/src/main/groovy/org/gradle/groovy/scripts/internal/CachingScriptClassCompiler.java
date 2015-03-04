@@ -22,10 +22,10 @@ import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
-import java.util.*;
+import java.util.Map;
 
 public class CachingScriptClassCompiler implements ScriptClassCompiler {
-    private final Map<Collection<Object>, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
+    private final Map<Key, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
     private final ScriptClassCompiler scriptClassCompiler;
 
     public CachingScriptClassCompiler(ScriptClassCompiler scriptClassCompiler) {
@@ -34,13 +34,53 @@ public class CachingScriptClassCompiler implements ScriptClassCompiler {
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<M> extractingTransformer, String classpathClosureName, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
-        List<Object> key = Arrays.asList(source.getClassName(), classLoader, extractingTransformer.getTransformer().getId(), scriptBaseClass.getName());
+        Key key = new Key(source.getClassName(), classLoader, extractingTransformer.getTransformer().getId(), scriptBaseClass.getName());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
             compiledScript = scriptClassCompiler.compile(source, classLoader, extractingTransformer, classpathClosureName, scriptBaseClass, verifier);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;
+    }
+
+    private static class Key {
+        private final String className;
+        private final ClassLoader classLoader;
+        private final String transformerId;
+        private final String baseClassName;
+
+        public Key(String className, ClassLoader classLoader, String transformerId, String baseClassName) {
+            this.className = className;
+            this.classLoader = classLoader;
+            this.transformerId = transformerId;
+            this.baseClassName = baseClassName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Key key = (Key) o;
+
+            return baseClassName.equals(key.baseClassName)
+                    && classLoader.equals(key.classLoader)
+                    && className.equals(key.className)
+                    && transformerId.equals(key.transformerId);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = className.hashCode();
+            result = 31 * result + classLoader.hashCode();
+            result = 31 * result + transformerId.hashCode();
+            result = 31 * result + baseClassName.hashCode();
+            return result;
+        }
     }
 
 }
