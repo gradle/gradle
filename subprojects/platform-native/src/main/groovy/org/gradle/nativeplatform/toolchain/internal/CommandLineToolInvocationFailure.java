@@ -22,7 +22,7 @@ import org.gradle.internal.operations.BuildOperationFailure;
 
 @Contextual
 class CommandLineToolInvocationFailure extends BuildOperationFailure {
-    CommandLineToolInvocationFailure(BuildOperation operation, String message, Throwable cause) {
-        super(operation, message, cause);
+    CommandLineToolInvocationFailure(BuildOperation operation, String message) {
+        super(operation, message);
     }
 }

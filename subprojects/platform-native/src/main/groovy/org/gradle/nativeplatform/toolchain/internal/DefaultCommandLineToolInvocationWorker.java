@@ -71,7 +71,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         try {
             toolExec.execute();
         } catch (ExecException e) {
-            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()), e);
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()));
         }
     }
 }
