@@ -237,6 +237,9 @@ We would like to thank the following community members for making contributions 
 * [Roman Donchenko](https://github.com/SpecLad) - fix a bug in `org.gradle.api.specs.OrSpecTest`
 * [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
 * [Lorant Pinter](https://github.com/lptr) - add setting wrapper version on command-line
+* [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
+* [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
+* [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
