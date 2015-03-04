@@ -26,7 +26,7 @@ import org.gradle.launcher.exec.BuildActionRunner;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
-public class ToolingServices implements PluginServiceRegistry {
+public class LauncherServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingGlobalScopeServices());
     }
