@@ -36,7 +36,9 @@ task foo(type:Test)
             src {
                 test {
                     java {
-                        file('MyTest.java').text = '''
+                        example {
+                            file('MyTest.java').text = '''
+package example;
 public class MyTest {
   @org.junit.Test
   public void foo() {
@@ -44,6 +46,7 @@ public class MyTest {
   }
 }
 '''
+                        }
                     }
                 }
             }
@@ -51,13 +54,14 @@ public class MyTest {
 
         when:
         List<TestProgressEvent> result = []
-        withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
-                @Override
-                void statusChanged(TestProgressEvent event) {
-                    result << event
-                }
-            }).run()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result << event
+                    }
+                }).run()
         }
 
         then:
@@ -76,23 +80,23 @@ public class MyTest {
                 testProcessStartedEvent.descriptor.parent == null
         def testClassStartedEvent = result[2]
         testClassStartedEvent instanceof TestSuiteStartedEvent &&
-                testClassStartedEvent.descriptor.name == 'MyTest' &&
-                testClassStartedEvent.descriptor.className == 'MyTest' &&
+                testClassStartedEvent.descriptor.name == 'example.MyTest' &&
+                testClassStartedEvent.descriptor.className == 'example.MyTest' &&
                 testClassStartedEvent.descriptor.parent == null
         def testStartedEvent = result[3]
         testStartedEvent instanceof TestStartedEvent &&
                 testStartedEvent.descriptor.name == 'foo' &&
-                testStartedEvent.descriptor.className == 'MyTest' &&
+                testStartedEvent.descriptor.className == 'example.MyTest' &&
                 testStartedEvent.descriptor.parent == null
         def testSucceededEvent = result[4]
         testSucceededEvent instanceof TestSucceededEvent &&
                 testSucceededEvent.descriptor.name == 'foo' &&
-                testSucceededEvent.descriptor.className == 'MyTest' &&
+                testSucceededEvent.descriptor.className == 'example.MyTest' &&
                 testSucceededEvent.descriptor.parent == null
         def testClassSucceededEvent = result[5]
         testClassSucceededEvent instanceof TestSuiteSucceededEvent &&
-                testClassSucceededEvent.descriptor.name == 'MyTest' &&
-                testClassSucceededEvent.descriptor.className == 'MyTest' &&
+                testClassSucceededEvent.descriptor.name == 'example.MyTest' &&
+                testClassSucceededEvent.descriptor.className == 'example.MyTest' &&
                 testClassSucceededEvent.descriptor.parent == null
         def testProcessSucceededEvent = result[6]
         testProcessSucceededEvent instanceof TestSuiteSucceededEvent &&
