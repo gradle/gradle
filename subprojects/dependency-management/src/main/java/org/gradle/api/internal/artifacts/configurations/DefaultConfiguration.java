@@ -279,7 +279,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveNow(InternalState requestedState) {
         synchronized (lock) {
-            boolean needsResolve = state == InternalState.UNOBSERVED || state == InternalState.OBSERVED || modified;
+            boolean needsResolve = false;
+            switch (state) {
+                case UNOBSERVED:
+                case OBSERVED:
+                    needsResolve = true;
+                    break;
+                case TASK_DEPENDENCIES_RESOLVED:
+                    needsResolve = modified && requestedState == InternalState.RESULTS_RESOLVED;
+                    break;
+                case RESULTS_RESOLVED:
+                    break;
+            }
             if (needsResolve) {
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
@@ -289,10 +300,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     ((ConfigurationInternal) configuration).markAsObserved();
                 }
                 resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
-                modified = false;
                 markAsResolved(requestedState);
                 broadcast.afterResolve(incoming);
             } else {
+                if (modified) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
+                }
                 markAsResolved(requestedState);
             }
         }
@@ -303,6 +316,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (state != InternalState.RESULTS_RESOLVED) {
             state = requestedState;
         }
+        modified = false;
     }
 
     public TaskDependency getBuildDependencies() {
