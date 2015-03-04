@@ -25,19 +25,10 @@ import org.gradle.groovy.scripts.internal.MetadataExtractingTransformer;
 public interface ScriptCompiler {
 
     /**
-     * Sets the parent classloader for the script. Can be null, defaults to the context classloader.
-     */
-    ScriptCompiler setClassloader(ClassLoader classloader);
-
-    ScriptCompiler setVerifier(Action<? super ClassNode> verifier);
-
-    ScriptCompiler setClasspathClosureName(String classpathClosureName);
-
-    /**
      * Compiles the script into a {@code Script} object of the given type.
      *
-     * @returns a {@code ScriptRunner} for the script.
+     * @return a {@code ScriptRunner} for the script.
      * @throws ScriptCompilationException On compilation failure.
      */
-    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, MetadataExtractingTransformer<M> extractingTransformer);
+    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, MetadataExtractingTransformer<M> extractingTransformer, ClassLoader classloader, String classpathClosureName, Action<? super ClassNode> verifier);
 }

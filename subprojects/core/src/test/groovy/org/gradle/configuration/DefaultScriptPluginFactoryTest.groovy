@@ -29,6 +29,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
@@ -78,15 +79,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
 
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.setClassloader(baseChildClassLoader)
-        1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer, baseChildClassLoader, classpathClosureName, _) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
-        1 * scriptCompiler.setClassloader(scopeClassLoader)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * compiledScript.metadata >> true
@@ -104,15 +102,12 @@ public class DefaultScriptPluginFactoryTest extends Specification {
 
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.setClassloader(baseChildClassLoader)
-        1 * scriptCompiler.setClasspathClosureName(classpathClosureName)
-        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, _ as PluginsAndBuildscriptMetadataExtractingTransformer, baseChildClassLoader, classpathClosureName, _) >> classPathScriptRunner
         1 * classPathScriptRunner.getScript() >> classPathScript
         1 * classPathScript.init(target, _ as ServiceRegistry)
         1 * classPathScriptRunner.run()
         1 * classPathScriptRunner.getCompiledScript() >> classpathCompiledScript
-        1 * scriptCompiler.setClassloader(scopeClassLoader)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, scopeClassLoader, classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE) >> scriptRunner
         1 * scriptRunner.getScript() >> script
         1 * scriptRunner.compiledScript >> compiledScript
         1 * compiledScript.metadata >> true
