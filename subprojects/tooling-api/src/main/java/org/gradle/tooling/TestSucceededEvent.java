@@ -28,14 +28,14 @@ public interface TestSucceededEvent extends TestProgressEvent {
     /**
      * The description of the test having finished successfully.
      *
-     * @return The test description
+     * @return The description
      */
     TestDescriptor getDescriptor();
 
     /**
      * The result of running the test successfully.
      *
-     * @return The test result
+     * @return The result
      */
     TestSuccess getResult();
 

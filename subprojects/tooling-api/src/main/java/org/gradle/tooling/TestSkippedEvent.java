@@ -28,7 +28,7 @@ public interface TestSkippedEvent extends TestProgressEvent {
     /**
      * The description of the test being skipped.
      *
-     * @return The test description
+     * @return The description
      */
     TestDescriptor getDescriptor();
 

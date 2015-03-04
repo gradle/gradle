@@ -28,7 +28,7 @@ public interface TestStartedEvent extends TestProgressEvent{
     /**
      * The description of the test being started.
      *
-     * @return The test description
+     * @return The description
      */
     TestDescriptor getDescriptor();
 

@@ -29,14 +29,14 @@ public interface TestFailedEvent extends TestProgressEvent {
     /**
      * The description of the test having failed.
      *
-     * @return The test description
+     * @return The description
      */
     TestDescriptor getDescriptor();
 
     /**
      * The result of running the test with a failure.
      *
-     * @return The test result
+     * @return The result
      */
     TestFailure getResult();
 
