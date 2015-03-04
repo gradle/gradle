@@ -27,28 +27,28 @@ public interface TestDescriptorVersion1 {
     /**
      * Returns the id that uniquely identifies the test.
      *
-     * @return the unique id of the test
+     * @return The unique id of the test, never null
      */
     Object getId();
 
     /**
      * Returns the name of the test.
      *
-     * @return the name of the test, never null
+     * @return The name of the test, never null
      */
     String getName();
 
     /**
      * Returns the name of the test class, if any.
      *
-     * @return the name of the test class, can be null
+     * @return The name of the test class, can be null
      */
     String getClassName();
 
     /**
      * Returns the parent of this test, if any.
      *
-     * @return the parent of this test, can be null
+     * @return The parent of this test, can be null
      */
     TestDescriptorVersion1 getParent();
 
