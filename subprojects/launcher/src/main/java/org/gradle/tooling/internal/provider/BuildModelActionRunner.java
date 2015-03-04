@@ -16,17 +16,68 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildController;
 import org.gradle.launcher.exec.BuildActionRunner;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
     public void run(BuildAction action, BuildController buildController) {
-        if (action instanceof BuildModelAction) {
-            BuildModelAction buildModelAction = (BuildModelAction) action;
-            BuildActionResult result = buildModelAction.run(buildController);
-            buildController.setResult(result);
+        if (!(action instanceof BuildModelAction)) {
+            return;
         }
+
+        BuildModelAction buildModelAction = (BuildModelAction) action;
+        GradleInternal gradle = buildController.getGradle();
+
+// TODO - wire this up to test events
+//        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+//        eventConsumer.dispatch(someEvent);
+
+        if (buildModelAction.isRunTasks()) {
+            buildController.run();
+        } else {
+            buildController.configure();
+            // Currently need to force everything to be configured
+            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                projectInternal.getTasks().discoverTasks();
+                projectInternal.bindAllModelRules();
+            }
+        }
+
+        String modelName = buildModelAction.getModelName();
+        ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
+        ToolingModelBuilder builder;
+        try {
+            builder = builderRegistry.getBuilder(modelName);
+        } catch (UnknownModelException e) {
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+        }
+
+        Object result;
+        if (builder instanceof ProjectSensitiveToolingModelBuilder) {
+            result = ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
+        } else {
+            result = builder.buildAll(modelName, gradle.getDefaultProject());
+        }
+
+        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
+        BuildActionResult buildActionResult = new BuildActionResult(payloadSerializer.serialize(result), null);
+        buildController.setResult(buildActionResult);
+    }
+
+    private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
+        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }
 }

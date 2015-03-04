@@ -17,15 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 
 import java.io.Serializable;
 
@@ -43,29 +35,7 @@ public class ClientProvidedBuildAction implements BuildAction, Serializable {
         return startParameter;
     }
 
-    public BuildActionResult run(final BuildController buildController) {
-        GradleInternal gradle = buildController.getGradle();
-        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
-
-        buildController.configure();
-        // Currently need to force everything to be configured
-        gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-
-        InternalBuildController internalBuildController = new DefaultBuildController(gradle);
-        Object model = null;
-        Throwable failure = null;
-        try {
-            model = action.execute(internalBuildController);
-        } catch (BuildCancelledException e) {
-            failure = new InternalBuildCancelledException(e);
-        } catch (RuntimeException e) {
-            failure = new InternalBuildActionFailureException(e);
-        }
-
-        if (failure != null) {
-            return new BuildActionResult(null, payloadSerializer.serialize(failure));
-        }
-        return new BuildActionResult(payloadSerializer.serialize(model), null);
+    public SerializedPayload getAction() {
+        return action;
     }
 }

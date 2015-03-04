@@ -27,12 +27,12 @@ import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import spock.lang.Specification
 
-class ClientProvidedBuildActionTest extends Specification {
+class ClientProvidedBuildActionRunnerTest extends Specification {
     def action = Mock(SerializedPayload)
     def startParameter = Mock(StartParameter)
     def payloadSerializer = Mock(PayloadSerializer)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def buildController = Stub(BuildController) {
+    def buildController = Mock(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getServices() >> Stub(ServiceRegistry) {
                 get(PayloadSerializer) >> payloadSerializer
@@ -41,23 +41,25 @@ class ClientProvidedBuildActionTest extends Specification {
         }
     }
     def clientProvidedBuildAction = new ClientProvidedBuildAction(startParameter, action)
+    def runner = new ClientProvidedBuildActionRunner()
 
     def "can run action and returns result when completed"() {
         given:
         def model = new Object()
         def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
-        1 * payloadSerializer.deserialize(action) >> internalAction
 
         when:
-        def result = clientProvidedBuildAction.run(buildController)
+        runner.run(clientProvidedBuildAction, buildController)
 
         then:
         1 * internalAction.execute(_) >> model
+        1 * payloadSerializer.deserialize(action) >> internalAction
         1 * payloadSerializer.serialize(model) >> output
-        result != null
-        result.failure == null
-        result.result == output
+        1 * buildController.setResult(_) >> { BuildActionResult result ->
+            assert result.failure == null
+            assert result.result == output
+        }
     }
 
     def "can run action and reports failure"() {
@@ -65,21 +67,22 @@ class ClientProvidedBuildActionTest extends Specification {
         def failure = new RuntimeException()
         def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
-        1 * payloadSerializer.deserialize(action) >> internalAction
 
         when:
-        def result = clientProvidedBuildAction.run(buildController)
+        runner.run(clientProvidedBuildAction, buildController)
 
         then:
+        1 * payloadSerializer.deserialize(action) >> internalAction
         1 * internalAction.execute(_) >> { throw failure }
         1 * payloadSerializer.serialize(_) >> { Throwable t ->
             assert t instanceof InternalBuildActionFailureException
             assert t.cause == failure
             return output
         }
-        result != null
-        result.failure == output
-        result.result == null
+        1 * buildController.setResult(_) >> { BuildActionResult result ->
+            assert result.failure == output
+            assert result.result == null
+        }
     }
 
     def "can run action and propagate cancellation exception"() {
@@ -87,20 +90,21 @@ class ClientProvidedBuildActionTest extends Specification {
         def cancellation = new BuildCancelledException()
         def output = Mock(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
-        1 * payloadSerializer.deserialize(action) >> internalAction
 
         when:
-        def result = clientProvidedBuildAction.run(buildController)
+        runner.run(clientProvidedBuildAction, buildController)
 
         then:
+        1 * payloadSerializer.deserialize(action) >> internalAction
         1 * internalAction.execute(_) >> { throw cancellation }
         1 * payloadSerializer.serialize(_) >> { Throwable t ->
             assert t instanceof InternalBuildCancelledException
             assert t.cause == cancellation
             return output
         }
-        result != null
-        result.failure == output
-        result.result == null
+        1 * buildController.setResult(_) >> { BuildActionResult result ->
+            assert result.failure == output
+            assert result.result == null
+        }
     }
 }
