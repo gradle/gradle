@@ -1,7 +1,0 @@
-apply plugin: "groovy"
-
-repositories {
-    mavenCentral()
-}
-
-// jfxrt.jar added here as dependency during test execution

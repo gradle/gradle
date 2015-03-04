@@ -144,7 +144,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
-    @Requires([TestPrecondition.JVM_ORACLE, TestPrecondition.JDK8_OR_LATER])
+    @Requires([TestPrecondition.JDK_ORACLE, TestPrecondition.JDK8_OR_LATER])
     def "compileJavaFx8Code"() {
         if (versionLowerThan("2.0")) {
             return
@@ -152,24 +152,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         succeeds("compileGroovy")
-    }
-
-    @Requires([TestPrecondition.JVM_ORACLE, TestPrecondition.JDK7])
-    def "compileJavaFx2Code"() {
-        if (versionLowerThan("2.0")) {
-            return
-        }
-
-        expect:
-        fails("compileGroovy")
-        errorOutput.contains('unable to resolve class javafx.application.Application')
-
-        when:
-        buildFile << "dependencies { compile files( \"${System.properties['java.home']}/lib/jfxrt.jar\" ) }"
-
-        then:
-        succeeds("compileGroovy")
-        !errorOutput
     }
 
     protected ExecutionResult run(String... tasks) {

@@ -19,6 +19,8 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -119,6 +121,24 @@ compileJava.options.debug = false
         !noDebug.debugIncludesSourceFile
         !noDebug.debugIncludesLineNumbers
         !noDebug.debugIncludesLocalVariables
+    }
+
+
+    @Requires([TestPrecondition.JDK_ORACLE, TestPrecondition.JDK8_OR_LATER])
+    def "compileJavaFx8Code"() {
+        given:
+        file("src/main/java/compile/test/FxApp.java") << '''
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+public class FxApp extends Application {
+    public void start(Stage stage) {
+    }
+}
+'''
+
+        expect:
+        succeeds("compileJava")
     }
 
     def getCompilerErrorOutput() {

@@ -88,9 +88,6 @@ enum TestPrecondition {
     JDK6_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_6
     }),
-    JDK7({
-        JavaVersion.current() == JavaVersion.VERSION_1_7
-    }),
     JDK7_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_7
     }),
@@ -109,14 +106,8 @@ enum TestPrecondition {
     NOT_JDK_IBM({
         System.getProperty('java.vm.vendor') != 'IBM Corporation'
     }),
-    JVM_ORACLE({
-        System.getProperty('java.vm.name').startsWith('Java HotSpot(TM)')
-    }),
-    JVM_OPENJDK({
-        System.getProperty('java.vm.name').startsWith('OpenJDK')
-    }),
-    JVM_IBM({
-        System.getProperty('java.vm.name').startsWith('IBM J9')
+    JDK_ORACLE({
+        System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
     ONLINE({
         try {

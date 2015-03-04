@@ -178,17 +178,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
-    // returns the Extension Classloader needed to compile JavaFX programs
-    // or null on platforms where JavaFX must be explicitly added to the classpath.
     private ClassLoader getExtClassLoader() {
-        try {
-            // javafx.application.Application is the most visible class available the ExtClassLoader
-            Class<?> jfxClass = Class.forName("javafx.application.Application");
-            return jfxClass.getClassLoader();
-        } catch (Exception ignored) {
-            // This can happen on Oracle JDK 7 and OpenJDK builds without OpenJFX
-            // In these cases jfxrt.jar must be added manually to the compile classpath
-        }
-        return null;
+        return ClassLoader.getSystemClassLoader().getParent();
     }
 }
