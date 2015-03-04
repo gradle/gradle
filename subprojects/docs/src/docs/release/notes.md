@@ -240,6 +240,7 @@ We would like to thank the following community members for making contributions 
 * [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
+* [Роман Донченко](https://github.com/SpecLad) - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
