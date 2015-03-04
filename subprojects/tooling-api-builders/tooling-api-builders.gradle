@@ -1,0 +1,7 @@
+dependencies {
+    compile project(':launcher')
+    compile project(':plugins')
+}
+
+useClassycle()
+strictCompile()

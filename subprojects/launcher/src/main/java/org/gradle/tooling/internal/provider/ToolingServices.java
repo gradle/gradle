@@ -20,11 +20,11 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.exec.BuildActionRunner;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
-
-import java.util.Arrays;
 
 public class ToolingServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -39,13 +39,12 @@ public class ToolingServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory) {
-            return new InProcessBuildActionExecuter(gradleLauncherFactory,
-                    new ChainingBuildActionRunner(
-                            Arrays.asList(
-                                    new ExecuteBuildActionRunner(),
-                                    new BuildModelActionRunner(),
-                                    new ClientProvidedBuildActionRunner())));
+        InProcessBuildActionExecuter createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
+            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(services.getAll(BuildActionRunner.class)));
+        }
+
+        ExecuteBuildActionRunner createExecuteBuildActionRunner() {
+            return new ExecuteBuildActionRunner();
         }
 
         ClassLoaderCache createClassLoaderCache() {
