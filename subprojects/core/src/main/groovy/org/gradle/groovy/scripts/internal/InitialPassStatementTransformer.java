@@ -20,17 +20,17 @@ import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Factory;
 import org.gradle.plugin.use.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class PluginsAndBuildscriptTransformer implements StatementTransformer {
+public class InitialPassStatementTransformer implements StatementTransformer, Factory<PluginRequests> {
 
-    static final String PLUGINS = "plugins";
+    public static final String PLUGINS = "plugins";
 
     private final String classpathBlockName;
     private final String pluginsBlockMessage;
@@ -39,14 +39,9 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
     private final List<String> scriptBlockNames;
-    private final Spec<Statement> statementSpec = new Spec<Statement>() {
-        public boolean isSatisfiedBy(Statement statement) {
-            return AstUtils.detectScriptBlock(statement, scriptBlockNames) != null;
-        }
-    };
 
-    public PluginsAndBuildscriptTransformer(String classpathBlockName, String pluginsBlockMessage,
-                                            ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
+    public InitialPassStatementTransformer(String classpathBlockName, String pluginsBlockMessage,
+                                           ScriptSource scriptSource, DocumentationRegistry documentationRegistry) {
         this.classpathBlockName = classpathBlockName;
         this.scriptBlockNames = Arrays.asList(classpathBlockName, PLUGINS);
         this.pluginsBlockMessage = pluginsBlockMessage;
@@ -54,7 +49,6 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
-        // TODO - detecting script block twice, wasteful
         ScriptBlock scriptBlock = AstUtils.detectScriptBlock(statement, scriptBlockNames);
         if (scriptBlock == null) {
             seenNonClasspathStatement = true;
@@ -101,11 +95,9 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
         }
     }
 
-    public Spec<Statement> getSpec() {
-        return statementSpec;
-    }
-
-    public PluginRequests getRequests() {
+    @Override
+    public PluginRequests create() {
         return pluginBlockMetadataExtractor.getRequests();
     }
+
 }

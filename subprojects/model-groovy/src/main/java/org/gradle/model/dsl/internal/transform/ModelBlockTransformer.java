@@ -37,14 +37,9 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
         return Boolean.getBoolean("org.gradle.model.dsl");
     }
 
-
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
-    }
-
-    public String getId() {
-        return MODEL;
     }
 
     public static final String MODEL = "model";

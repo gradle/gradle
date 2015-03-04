@@ -19,13 +19,29 @@ package org.gradle.groovy.scripts.internal;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.serialize.Serializer;
 
-public interface MetadataExtractingTransformer<T> {
+/**
+ * A stateful “backing” for a compilation operation.
+ * <p>
+ * The compilation may extract data from the source under compilation, made available after compilation by {@link #getExtractedData()}.
+ * The exposed transformer typically gathers the data while transforming.
+ * <p>
+ * As these objects are stateful, they can only be used for a single compile operation.
+ *
+ * @param <T> the type of data extracted by this operation
+ */
+public interface CompileOperation<T> {
+
+    /**
+     * A unique id for this operations.
+     * <p>
+     * Used to distinguish between the classes compiled from the same script with different transformers, so should be a valid java identifier.
+     */
+    String getId();
 
     Transformer getTransformer();
 
-    T getExtractedMetadata();
+    T getExtractedData();
 
-    T getMetadataDefaultValue();
+    Serializer<T> getDataSerializer();
 
-    Serializer<T> getMetadataSerializer();
 }

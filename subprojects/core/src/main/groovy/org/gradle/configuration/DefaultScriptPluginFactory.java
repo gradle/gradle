@@ -26,19 +26,18 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
-import org.gradle.groovy.scripts.internal.BuildScriptMetadataExtractingTransformer;
-import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptMetadataExtractingTransformer;
-import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
-import org.gradle.groovy.scripts.internal.StatementFilteringScriptTransformer;
+import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
+import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequests;
+import org.gradle.plugin.use.internal.PluginRequestsSerializer;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
@@ -110,27 +109,33 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             final ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
+            // Pass 1, extract plugin requests and execute buildscript {}, ignoring (i.e. not even compiling) anything else
+
             boolean supportsPluginsBlock = ProjectScript.class.isAssignableFrom(scriptType);
             String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
 
-            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
+            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
+            SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
+            CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(classpathClosureName, initialTransformer, initialPassStatementTransformer, PluginRequestsSerializer.INSTANCE);
 
-            StatementFilteringScriptTransformer classpathScriptTransformer = new StatementFilteringScriptTransformer(classpathClosureName, scriptBlockTransformer);
+            ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), classpathClosureName, Actions.doNothing());
+            initialRunner.getScript().init(target, services);
+            initialRunner.run();
 
-            PluginsAndBuildscriptMetadataExtractingTransformer extractingTransformer = new PluginsAndBuildscriptMetadataExtractingTransformer(scriptBlockTransformer, classpathScriptTransformer);
-
-            ScriptRunner<? extends BasicScript, PluginRequests> classPathScriptRunner = compiler.compile(scriptType, extractingTransformer, baseScope.getExportClassLoader(), classpathClosureName, Actions.doNothing());
-            classPathScriptRunner.getScript().init(target, services);
-            classPathScriptRunner.run();
-
-            PluginRequests pluginRequests = classPathScriptRunner.getCompiledScript().getMetadata();
+            PluginRequests pluginRequests = initialRunner.getCompiledScript().getData();
             PluginManagerInternal pluginManager = target instanceof PluginAwareInternal ? ((PluginAwareInternal) target).getPluginManager() : null;
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
-            BuildScriptMetadataExtractingTransformer transformer = new BuildScriptMetadataExtractingTransformer(classpathScriptTransformer.getId(), classpathScriptTransformer.invert(),
-                    classpathClosureName, scriptSource);
+            // Pass 2, compile everything except buildscript {} and plugin requests, then run
 
-            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, transformer, targetScope.getLocalClassLoader(), classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE);
+            BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(classpathClosureName, scriptSource);
+            String operationId = "no_" + classpathClosureName;
+            if (ModelBlockTransformer.isEnabled()) {
+                operationId = "m_".concat(operationId);
+            }
+            CompileOperation<Boolean> operation = new FactoryBackedCompileOperation<Boolean>(operationId, buildScriptTransformer, buildScriptTransformer, BooleanSerializer.INSTANCE);
+
+            final ScriptRunner<? extends BasicScript, Boolean> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), classpathClosureName, ClosureCreationInterceptingVerifier.INSTANCE);
 
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
@@ -143,7 +148,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 }
             };
 
-            if (!runner.getCompiledScript().getMetadata() && target instanceof ProjectInternal) {
+            Boolean hasImperativeStatements = runner.getCompiledScript().getData();
+            if (!hasImperativeStatements && target instanceof ProjectInternal) {
                 ((ProjectInternal) target).addModelRulesBlockRunner(buildScriptRunner);
             } else {
                 buildScriptRunner.run();

@@ -18,9 +18,9 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 
-public interface CompiledScript<T extends Script, M> {
+public interface CompiledScript<T extends Script, D> {
 
     Class<? extends T> loadClass();
 
-    M getMetadata();
+    D getData();
 }

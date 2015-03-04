@@ -21,6 +21,9 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 public class BooleanSerializer implements Serializer<Boolean> {
+
+    public static final Serializer<Boolean> INSTANCE = new BooleanSerializer();
+
     @Override
     public Boolean read(Decoder decoder) throws Exception {
         return decoder.readBoolean();

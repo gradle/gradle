@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,33 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.stmt.Statement;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.specs.Spec;
 
-public class FilteringStatementTransformer implements StatementTransformer {
+import java.util.ListIterator;
+
+public class FilteringScriptTransformer extends AbstractScriptTransformer {
 
     private final Spec<? super Statement> spec;
 
-    public FilteringStatementTransformer(Spec<? super Statement> spec) {
+    public FilteringScriptTransformer(Spec<? super Statement> spec) {
         this.spec = spec;
     }
 
-    public Statement transform(SourceUnit sourceUnit, Statement statement) {
-        if (spec.isSatisfiedBy(statement)) {
-            return statement;
-        } else {
-            return null;
+    @Override
+    protected int getPhase() {
+        return Phases.CONVERSION;
+    }
+
+    @Override
+    public void call(SourceUnit source) throws CompilationFailedException {
+        ListIterator<Statement> iterator = source.getAST().getStatementBlock().getStatements().listIterator();
+        while (iterator.hasNext()) {
+            if (spec.isSatisfiedBy(iterator.next())) {
+                iterator.remove();
+            }
         }
     }
-
-    public Spec<? super Statement> getSpec() {
-        return spec;
-    }
-
 }

@@ -20,13 +20,9 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Field;
@@ -35,21 +31,16 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes. <p> *All* other kinds of constructs are filtered, including:
- * classes, methods etc.
+ * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes.
+ * <p>
+ * All other kinds of constructs are filtered, including classes and methods etc.
  */
-public class StatementFilteringScriptTransformer extends AbstractScriptTransformer {
+public class SubsetScriptTransformer extends AbstractScriptTransformer {
 
-    private final String id;
     private final StatementTransformer transformer;
 
-    public StatementFilteringScriptTransformer(String id, StatementTransformer transformer) {
-        this.id = id;
+    public SubsetScriptTransformer(StatementTransformer transformer) {
         this.transformer = transformer;
-    }
-
-    public String getId() {
-        return id;
     }
 
     protected int getPhase() {
@@ -113,33 +104,6 @@ public class StatementFilteringScriptTransformer extends AbstractScriptTransform
         }
 
         source.getAST().getMethods().clear();
-    }
-
-    public Transformer invert() {
-        return new Inverse("no_" + StatementFilteringScriptTransformer.this.getId(), Specs.not(transformer.getSpec()));
-    }
-
-    private static class Inverse extends AbstractScriptTransformer {
-        private final String id;
-        private final Spec<? super Statement> spec;
-
-        private Inverse(String id, Spec<? super Statement> spec) {
-            this.id = id;
-            this.spec = spec;
-        }
-
-        protected int getPhase() {
-            return Phases.CANONICALIZATION;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public void call(SourceUnit source) throws CompilationFailedException {
-            AstUtils.filterAndTransformStatements(source, new FilteringStatementTransformer(spec));
-        }
     }
 
 }

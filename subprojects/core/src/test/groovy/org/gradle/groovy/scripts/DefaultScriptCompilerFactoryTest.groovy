@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.Action
 import org.gradle.groovy.scripts.internal.CompiledScript
-import org.gradle.groovy.scripts.internal.MetadataExtractingTransformer
+import org.gradle.groovy.scripts.internal.CompileOperation
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -30,7 +30,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptSource source = Mock()
     final ScriptRunner<TestScript, ?> runner = Mock()
     final ClassLoader classLoader = Mock()
-    final MetadataExtractingTransformer<?> extractingTransformer = Mock()
+    final CompileOperation<?> extractingTransformer = Mock()
     final CompiledScript<TestScript, ?> compiledScript = Mock() {
         loadClass() >> TestScript
     }

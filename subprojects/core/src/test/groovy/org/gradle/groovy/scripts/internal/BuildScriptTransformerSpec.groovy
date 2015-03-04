@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class BuildScriptMetadataExtractingTransformerSpec extends Specification {
+class BuildScriptTransformerSpec extends Specification {
 
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
@@ -49,15 +49,10 @@ class BuildScriptMetadataExtractingTransformerSpec extends Specification {
     private boolean containsImperativeStatements(String script) {
         def source = new StringScriptSource("test script", script)
         def loader = getClass().getClassLoader()
-
-        PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName, null, source, null);
-
-        StatementFilteringScriptTransformer classpathScriptTransformer = new StatementFilteringScriptTransformer(classpathClosureName, scriptBlockTransformer);
-
-        def transformer = new BuildScriptMetadataExtractingTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert(), classpathClosureName, source);
-
-        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, transformer, classpathClosureName, ProjectScript, Actions.doNothing())
-        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, transformer, ProjectScript).metadata
+        def transformer = new BuildScriptTransformer(classpathClosureName, source)
+        def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BooleanSerializer.INSTANCE)
+        scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, classpathClosureName, ProjectScript, Actions.doNothing())
+        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript).data
     }
 
     def "empty script does not contain imperative code"() {
@@ -94,4 +89,5 @@ class BuildScriptMetadataExtractingTransformerSpec extends Specification {
         containsImperativeStatements("foo")
         containsImperativeStatements("println 'hi!'")
     }
+
 }

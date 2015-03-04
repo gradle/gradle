@@ -15,33 +15,47 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.Factory;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
-public class BuildScriptTransformer implements Transformer {
+import java.util.Arrays;
+import java.util.List;
 
-    private final String id;
-    private final Transformer filteringTransformer;
+public class BuildScriptTransformer implements Transformer, Factory<Boolean> {
+
+    private final Spec<? super Statement> filter;
     private final ScriptSource scriptSource;
 
-    public BuildScriptTransformer(String id, Transformer filteringTransformer, ScriptSource scriptSource) {
-        this.id = id;
-        this.filteringTransformer = filteringTransformer;
+    private final ImperativeStatementDetectingTransformer imperativeStatementDetectingTransformer = new ImperativeStatementDetectingTransformer();
+
+    public BuildScriptTransformer(String classpathClosureName, ScriptSource scriptSource) {
+        final List<String> blocksToIgnore = Arrays.asList(classpathClosureName, InitialPassStatementTransformer.PLUGINS);
+        this.filter = new Spec<Statement>() {
+            @Override
+            public boolean isSatisfiedBy(Statement statement) {
+                return AstUtils.detectScriptBlock(statement, blocksToIgnore) != null;
+            }
+        };
         this.scriptSource = scriptSource;
     }
 
-    public String getId() {
-        return ModelBlockTransformer.isEnabled() ? "m_" + id : id;
-    }
-
     public void register(CompilationUnit compilationUnit) {
-        filteringTransformer.register(compilationUnit);
+        new FilteringScriptTransformer(filter).register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
         new StatementLabelsScriptTransformer().register(compilationUnit);
         new ScriptSourceDescriptionTransformer(scriptSource.getDisplayName()).register(compilationUnit);
         new ModelBlockTransformer().register(compilationUnit);
+        imperativeStatementDetectingTransformer.register(compilationUnit);
+    }
+
+    @Override
+    public Boolean create() {
+        return imperativeStatementDetectingTransformer.create();
     }
 }

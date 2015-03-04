@@ -36,7 +36,7 @@ public class ClassCachingCompiledScript<T extends Script, M> implements Compiled
     }
 
     @Override
-    public M getMetadata() {
-        return delegate.getMetadata();
+    public M getData() {
+        return delegate.getData();
     }
 }

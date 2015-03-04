@@ -21,6 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptClassCompiler {
-    <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, MetadataExtractingTransformer<M> transformer, String classpathClosureName, Class<T> scriptBaseClass,
+    <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, CompileOperation<M> transformer, String classpathClosureName, Class<T> scriptBaseClass,
                                                  Action<? super ClassNode> verifier);
 }

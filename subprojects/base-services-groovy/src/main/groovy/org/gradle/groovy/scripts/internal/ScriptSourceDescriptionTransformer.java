@@ -23,8 +23,6 @@ import org.codehaus.groovy.control.SourceUnit;
 public class ScriptSourceDescriptionTransformer extends AbstractScriptTransformer {
     public final static String AST_NODE_METADATA_KEY = ScriptSourceDescriptionTransformer.class.getName();
 
-    private final static String SCRIPT_SOURCE_DESCRIPTION = "scriptSourceDescription";
-
     private final String scriptSourceDescription;
 
     ScriptSourceDescriptionTransformer(String scriptSourceDescription) {
@@ -40,7 +38,4 @@ public class ScriptSourceDescriptionTransformer extends AbstractScriptTransforme
         source.getAST().setNodeMetaData(AST_NODE_METADATA_KEY, scriptSourceDescription);
     }
 
-    public String getId() {
-        return SCRIPT_SOURCE_DESCRIPTION;
-    }
 }

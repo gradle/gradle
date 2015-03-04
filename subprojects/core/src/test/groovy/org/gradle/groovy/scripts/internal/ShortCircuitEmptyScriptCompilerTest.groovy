@@ -28,7 +28,7 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
     final ScriptSource source = Mock()
     final Resource resource = Mock()
     final ClassLoader classLoader = Mock()
-    final MetadataExtractingTransformer<?> extractingTransformer = Mock()
+    final CompileOperation<?> operation = Mock()
     final Action verifier = Mock()
     final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
     String classpathClosureName = "buildscript"
@@ -41,15 +41,15 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         given:
         def metadata = "metadata"
         _ * resource.text >> '  \n\t'
-        _ * extractingTransformer.metadataDefaultValue >> metadata
+        _ * operation.extractedData >> metadata
 
         when:
-        def compiledScript = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
+        def compiledScript = compiler.compile(source, classLoader, operation, classpathClosureName, Script, verifier)
         def scriptClass = compiledScript.loadClass()
 
         then:
         scriptClass == TestScript
-        compiledScript.metadata == metadata
+        compiledScript.data == metadata
         1 * emptyScriptGenerator.generate(Script) >> TestScript
         0 * emptyScriptGenerator._
         0 * target._
@@ -61,11 +61,11 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
         CompiledScript<?> compiledScript = Mock()
 
         when:
-        def result = compiler.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier)
+        def result = compiler.compile(source, classLoader, operation, classpathClosureName, Script, verifier)
 
         then:
         result == compiledScript
-        1 * target.compile(source, classLoader, extractingTransformer, classpathClosureName, Script, verifier) >> compiledScript
+        1 * target.compile(source, classLoader, operation, classpathClosureName, Script, verifier) >> compiledScript
         0 * emptyScriptGenerator._
         0 * target._
     }

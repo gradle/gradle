@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.groovy.scripts.internal.MetadataExtractingTransformer;
+import org.gradle.groovy.scripts.internal.CompileOperation;
 
 /**
  * Compiles a script into a {@code Script} object.
@@ -30,5 +30,5 @@ public interface ScriptCompiler {
      * @return a {@code ScriptRunner} for the script.
      * @throws ScriptCompilationException On compilation failure.
      */
-    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, MetadataExtractingTransformer<M> extractingTransformer, ClassLoader classloader, String classpathClosureName, Action<? super ClassNode> verifier);
+    <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, CompileOperation<M> extractingTransformer, ClassLoader classloader, String classpathClosureName, Action<? super ClassNode> verifier);
 }

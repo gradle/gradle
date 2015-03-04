@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.groovy.scripts.internal.CompiledScript;
-import org.gradle.groovy.scripts.internal.MetadataExtractingTransformer;
+import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 
@@ -43,7 +43,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         }
 
         @Override
-        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, MetadataExtractingTransformer<M> extractingTransformer, ClassLoader classloader, String classpathClosureName, Action<? super ClassNode> verifier) {
+        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, CompileOperation<M> extractingTransformer, ClassLoader classloader, String classpathClosureName, Action<? super ClassNode> verifier) {
             CompiledScript<T, M> scriptClass = scriptClassCompiler.compile(source, classloader, extractingTransformer, classpathClosureName, scriptType, verifier);
             return scriptRunnerFactory.create(scriptClass, source, classloader);
         }

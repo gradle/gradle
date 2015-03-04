@@ -17,32 +17,40 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
-public class TransformationOnlyMetadataExtractingTransformer implements MetadataExtractingTransformer<Void> {
+public class FactoryBackedCompileOperation<T> implements CompileOperation<T> {
 
+    private final String id;
     private final Transformer transformer;
+    private final Factory<T> dataFactory;
+    private final Serializer<T> serializer;
 
-    public TransformationOnlyMetadataExtractingTransformer(Transformer transformer) {
+    public FactoryBackedCompileOperation(String id, Transformer transformer, Factory<T> dataFactory, Serializer<T> serializer) {
+        this.id = id;
         this.transformer = transformer;
+        this.dataFactory = dataFactory;
+        this.serializer = serializer;
     }
 
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
     public Transformer getTransformer() {
         return transformer;
     }
 
     @Override
-    public Void getExtractedMetadata() {
-        return null;
+    public T getExtractedData() {
+        return dataFactory.create();
     }
 
     @Override
-    public Void getMetadataDefaultValue() {
-        return null;
-    }
-
-    @Override
-    public Serializer<Void> getMetadataSerializer() {
-        return null;
+    public Serializer<T> getDataSerializer() {
+        return serializer;
     }
 }

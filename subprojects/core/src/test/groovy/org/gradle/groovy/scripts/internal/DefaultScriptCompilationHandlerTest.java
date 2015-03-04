@@ -37,6 +37,7 @@ import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resource.Resource;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -90,7 +91,7 @@ public class DefaultScriptCompilationHandlerTest {
         File testProjectDir = tmpDir.createDir("projectDir");
         classLoader = getClass().getClassLoader();
         importsReader = context.mock(ImportsReader.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(importsReader).getImportPackages();
             will(returnValue(new String[0]));
         }});
@@ -114,7 +115,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     private ScriptSource scriptSource(final String scriptText) {
         final ScriptSource source = context.mock(ScriptSource.class, scriptText);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             Resource resource = context.mock(Resource.class, scriptText + "resource");
 
             allowing(source).getClassName();
@@ -255,10 +256,6 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCanVisitAndTransformScriptClass() throws Exception {
         final Transformer visitor = new AbstractScriptTransformer() {
-            public String getId() {
-                return "id";
-            }
-
             protected int getPhase() {
                 return Phases.CANONICALIZATION;
             }
@@ -277,7 +274,29 @@ public class DefaultScriptCompilationHandlerTest {
                 });
             }
         };
-        MetadataExtractingTransformer<?> transformer = new TransformationOnlyMetadataExtractingTransformer(visitor);
+
+        CompileOperation<?> transformer = new CompileOperation<Boolean>() {
+            @Override
+            public String getId() {
+                return "id";
+            }
+
+            @Override
+            public Transformer getTransformer() {
+                return visitor;
+            }
+
+            @Override
+            public Boolean getExtractedData() {
+                return true;
+            }
+
+            @Override
+            public Serializer<Boolean> getDataSerializer() {
+                return BooleanSerializer.INSTANCE;
+            }
+        };
+
         ScriptSource source = scriptSource("transformMe()");
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, classpathClosureName, expectedScriptClass, verifier);
         Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, metadataCacheDir, transformer, expectedScriptClass).loadClass().newInstance();

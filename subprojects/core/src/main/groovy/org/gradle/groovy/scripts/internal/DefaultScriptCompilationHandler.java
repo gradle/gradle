@@ -71,7 +71,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, MetadataExtractingTransformer<?> extractingTransformer, String classpathClosureName,
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer, String classpathClosureName,
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(classesDir);
@@ -90,7 +90,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File classesDir, File metadataDir,
-                               final MetadataExtractingTransformer<?> extractingTransformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
+                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier, String classpathClosureName) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
@@ -139,8 +139,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         serializeMetadata(source, extractingTransformer, metadataDir);
     }
 
-    private <M> void serializeMetadata(ScriptSource scriptSource, MetadataExtractingTransformer<M> extractingTransformer, File metadataDir) {
-        if (extractingTransformer == null || extractingTransformer.getMetadataSerializer() == null) {
+    private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir) {
+        if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
             return;
         }
         GFileUtils.mkdirs(metadataDir);
@@ -152,9 +152,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new UncheckedIOException("Could not create or open build script metadata file " + metadataFile.getAbsolutePath(), e);
         }
         KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream);
-        Serializer<M> serializer = extractingTransformer.getMetadataSerializer();
+        Serializer<M> serializer = extractingTransformer.getDataSerializer();
         try {
-            serializer.write(encoder, extractingTransformer.getExtractedMetadata());
+            serializer.write(encoder, extractingTransformer.getExtractedData());
         } catch (Exception e) {
             String transformerName = extractingTransformer.getTransformer().getClass().getName();
             throw new IllegalStateException(String.format("Failed to serialize script metadata extracted using %s for %s", transformerName, scriptSource.getDisplayName()), e);
@@ -195,7 +195,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
-                                                                  File metadataCacheDir, MetadataExtractingTransformer<M> transformer, final Class<T> scriptBaseClass) {
+                                                                  File metadataCacheDir, CompileOperation<M> transformer, final Class<T> scriptBaseClass) {
 
         final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
 
@@ -220,14 +220,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
 
             @Override
-            public M getMetadata() {
+            public M getData() {
                 return metadata;
             }
         });
     }
 
-    private <M> M deserializeMetadata(ScriptSource scriptSource, MetadataExtractingTransformer<M> extractingTransformer, File metadataCacheDir) {
-        if (extractingTransformer == null || extractingTransformer.getMetadataSerializer() == null) {
+    private <M> M deserializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataCacheDir) {
+        if (extractingTransformer == null || extractingTransformer.getDataSerializer() == null) {
             return null;
         }
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
@@ -238,7 +238,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new UncheckedIOException("Could not open build script metadata file " + metadataFile.getAbsolutePath(), e);
         }
         KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
-        Serializer<M> serializer = extractingTransformer.getMetadataSerializer();
+        Serializer<M> serializer = extractingTransformer.getDataSerializer();
         try {
             return serializer.read(decoder);
         } catch (Exception e) {
