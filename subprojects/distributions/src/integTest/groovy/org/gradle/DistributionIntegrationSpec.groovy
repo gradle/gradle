@@ -52,6 +52,20 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         dupesWithCount.isEmpty()
     }
 
+    def "all files under lib directory are jars"() {
+        given:
+        ZipFile zipFile = new ZipFile(zip)
+
+
+        when:
+        def entries = zipFile.entries().toList()
+        def libFiles = entries.findAll { !it.isDirectory() && it.name.tokenize("/")[1] == "lib" }
+        def nonJarLibFiles = libFiles.findAll { !it.name.endsWith(".jar") }
+
+        then:
+        nonJarLibFiles.isEmpty()
+    }
+
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
         TestFile zip = getZip(type)
         zip.usingNativeTools().unzipTo(testDirectory)
