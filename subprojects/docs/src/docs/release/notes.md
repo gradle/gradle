@@ -112,6 +112,20 @@ However, some popular annotation processing tools, notably [Project Lombok](http
 
 This feature was contributed by [Will Erickson](https://github.com/Sarev0k). 
 
+### Generate wrapper with specific version from command-line
+
+Previously to generate a Gradle wrapper with a specific version, or a custom distribution URL,
+you had to change the `build.gradle` file to contain a wrapper task with a configured `gradleVersion` property.
+
+Now the target gradle version or the distribution URL can be configured from the command-line, without having
+to add or modfify the task in `build.gradle`:
+
+    gradle wrapper --gradle-version 2.3
+
+And with a distribution URL:
+
+    gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -166,20 +180,6 @@ The `useVersion()` method is also deprecated. You can use the `useTarget()` meth
     }
 
 Note that `ModuleComponentSelector` has a `module` property to return the module's name, while `ModuleVersionSelector` had a `name` property.
-
-### Generate wrapper with specific version from command-line
-
-Previously to generate a Gradle wrapper with a specific version, or a custom distribution URL,
-you had to change the `build.gradle` file to contain a wrapper task with a configured `gradleVersion` property.
-
-Now the target gradle version or the distribution URL can be configured from the command-line, without having
-to add or modfify the task in `build.gradle`:
-
-    gradle wrapper --gradle-version 2.3
-
-And with a distribution URL:
-
-    gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip
 
 ## Potential breaking changes
 
