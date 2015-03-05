@@ -25,13 +25,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
-import spock.lang.Shared
 
 @ToolingApiVersion(">=2.2")
 @TargetGradleVersion(">=2.1")
 class CancellationCrossVersionSpec extends ToolingApiSpecification {
-
-    @Shared Integer counter = 1
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def setup() {
@@ -380,8 +377,6 @@ cancellationToken.addCallback {
 
 new URL("${server.uri}").text
 latch.await()
-
-"${"a" * (counter++)}" // ensure different compiled file length
 """
 
         projectDir.file('sub/build.gradle') << """

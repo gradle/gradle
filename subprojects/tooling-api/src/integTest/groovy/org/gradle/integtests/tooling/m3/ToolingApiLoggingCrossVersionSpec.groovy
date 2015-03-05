@@ -32,13 +32,12 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "logging is live"() {
-        String uuid = UUID.randomUUID().toString()
         file("build.gradle") << """
 task log << {
-    println "waiting-${uuid}"
+    println "waiting"
     println "connecting to ${server.uri}"
     new URL("${server.uri}").text
-    println "finished-${uuid}"
+    println "finished"
 }
 """
 
@@ -54,15 +53,15 @@ task log << {
             server.waitFor()
             ConcurrentTestUtil.poll {
                 // Need to poll, as logging output is delivered asynchronously to client
-                assert output.toString().contains("waiting-" + uuid)
+                assert output.toString().contains("waiting")
             }
-            assert !output.toString().contains("finished-" + uuid)
+            assert !output.toString().contains("finished")
             server.release()
             resultHandler.finished()
         }
 
         then:
-        output.toString().contains("waiting-" + uuid)
-        output.toString().contains("finished-" + uuid)
+        output.toString().contains("waiting")
+        output.toString().contains("finished")
     }
 }

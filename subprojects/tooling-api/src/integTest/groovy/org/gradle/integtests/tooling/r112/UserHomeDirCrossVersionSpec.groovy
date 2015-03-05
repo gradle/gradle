@@ -32,7 +32,6 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.withConnector { connector ->
             connector.useGradleUserHomeDir(userHomeDir)
         }
-        // TODO radim: consider using smaller heap and shorter timeout when applicable to all supported versions
         toolingApi.withConnection { connection ->
             BuildLauncher build = connection.newBuild();
             build.forTasks("gradleBuild");
