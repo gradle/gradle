@@ -18,7 +18,7 @@ The new information presented in the build log helps getting better understandin
     Starting 3rd build in daemon [uptime: 15 mins, performance: 92%, memory: 65% of 1.1 GB]
 
 The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gradle.properties file:
-
+˛
     org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
 
 ### Support for AWS S3 backed repositories
@@ -94,6 +94,23 @@ allows access to the `ComponentSelector` as well:
 Gradle uses multiple concurrent compilation processes when compiling all supported native languages. You can enable this 
 with the incubating `--parallel` and `--parallel-threads=#` command-line options. Up until this release, Gradle compiled 
 all native source files sequentially. 
+
+### Support for “annotation processing” of Groovy code
+
+It is now possible to use Java's [“annotation processing”](https://docs.oracle.com/javase/7/docs/api/javax/annotation/processing/Processor.html) with Groovy code.
+This, for example, allows using the [Dagger](http://square.github.io/dagger) dependency injection library, that relies on annotation processing, with Groovy code.
+
+Annotation processing is a Java centric feature.
+Support for Groovy is achieved by having annotation processors process the Java “stubs” that are generated from Groovy code.
+The stubs convey the structure of the class, which is typically used to allow Java code to compile against the Groovy code in “one pass”.
+Annotations on structural elements (i.e. classes/methods/fields) will be present in the generated stubs.
+Annotation processors will detect such annotations on stubs as they would with “normal” Java code.
+
+The support for annotation processing of Groovy code is limited to annotation processors that generate new classes, and not to processors that modify annotated classes.
+The official and supported annotation processing mechanisms _do not_ support modifying classes, so almost all annotation processors will work.
+However, some popular annotation processing tools, notably [Project Lombok](http://projectlombok.org), that use unofficial API to modify classes will not work.
+
+This feature was contributed by [Will Erickson](https://github.com/Sarev0k). 
 
 ## Promoted features
 
@@ -218,6 +235,16 @@ task execution and does not contain any specific file arguments.  Changes to arg
 
 TBD
 
+### Changes to Groovy compilation when annotation processors are present
+
+When annotation processors are “present” for a Groovy compilation operation, all generated stubs are now compiled regardless of whether they are required or not.
+This change was required in order to have annotation processors process the stubs.
+Previously the stubs were made available to the Java code under compilation via the source path, which meant that only classes actually referenced by Java code were compiled.
+The implication is that more compilation is now required for Groovy code when annotation processors are present, which means longer compile times.
+
+This is unlikely to be noticeable unless the code base contains a lot of Groovy code.
+If this is problematic for your build, the solution is to separate the code that requires annotation processing from the code that does not to some degree.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -241,6 +268,7 @@ We would like to thank the following community members for making contributions 
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
 * [Роман Донченко](https://github.com/SpecLad) - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
+* [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
