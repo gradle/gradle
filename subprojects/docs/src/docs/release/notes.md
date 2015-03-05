@@ -89,6 +89,10 @@ allows access to the `ComponentSelector` as well:
         }
     }
 
+### Unique snapshots
+
+TODO
+
 ### Parallel Native Compilation
 
 Gradle uses multiple concurrent compilation processes when compiling all supported native languages. You can enable this 
@@ -269,6 +273,7 @@ We would like to thank the following community members for making contributions 
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
 * [Роман Донченко](https://github.com/SpecLad) - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
+* [Noam Y. Tenne](https://github.com/noamt) - Declare a dependency on a specific timestamped Maven snapshot
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
