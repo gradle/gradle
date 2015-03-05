@@ -37,12 +37,15 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MavenResolver extends ExternalResourceResolver {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
     private final MetaDataParser metaDataParser;
+    private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
@@ -70,10 +73,17 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
-        if (isSnapshotVersion(moduleComponentIdentifier)) {
+        if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
                 resolveUniqueSnapshotDependency(dependency, moduleComponentIdentifier, result, uniqueSnapshotVersion);
+                return;
+            }
+        } else if (isUniqueSnapshot(moduleComponentIdentifier)) {
+            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
+            if (uniqueSnapshotVersion != null) {
+                ModuleComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
                 return;
             }
         }
@@ -87,7 +97,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     @Override
     protected MutableModuleComponentResolveMetaData processMetaData(MutableModuleComponentResolveMetaData metaData) {
-        if (metaData.getId().getVersion().endsWith("-SNAPSHOT")) {
+        if (isNonUniqueSnapshot(metaData.getComponentId())) {
             metaData.setChanging(true);
         }
         return metaData;
@@ -98,10 +108,6 @@ public class MavenResolver extends ExternalResourceResolver {
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             result.getMetaData().setSource(snapshotSource);
         }
-    }
-
-    private boolean isSnapshotVersion(ModuleComponentIdentifier module) {
-        return module.getVersion().endsWith("-SNAPSHOT");
     }
 
     @Override
@@ -151,6 +157,14 @@ public class MavenResolver extends ExternalResourceResolver {
             return new MavenUniqueSnapshotModuleSource(timestamp);
         }
         return null;
+    }
+
+    private MavenUniqueSnapshotModuleSource composeUniqueSnapshotVersion(ModuleComponentIdentifier moduleComponentIdentifier) {
+        Matcher matcher = UNIQUE_SNAPSHOT.matcher(moduleComponentIdentifier.getVersion());
+        if (!matcher.matches()) {
+            return null;
+        }
+        return new MavenUniqueSnapshotModuleSource(matcher.group(1));
     }
 
     private MavenMetadata parseMavenMetadata(URI metadataLocation) {
@@ -236,5 +250,22 @@ public class MavenResolver extends ExternalResourceResolver {
         protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
+    }
+
+    private boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
+    }
+
+    private boolean isUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
+        String version = moduleComponentIdentifier.getVersion();
+        Matcher matcher = UNIQUE_SNAPSHOT.matcher(version);
+        return matcher.matches();
+    }
+
+    private ModuleComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
+        String existingUniqueVersion = moduleComponentIdentifier.getVersion();
+        String newNonUniqueVersion =  existingUniqueVersion.replaceAll(uniqueSnapshotVersion.getTimestamp(), "SNAPSHOT");
+        return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
+                moduleComponentIdentifier.getModule(), newNonUniqueVersion, uniqueSnapshotVersion.getTimestamp());
     }
 }
