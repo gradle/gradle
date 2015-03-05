@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
+import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
 import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -33,8 +34,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope root
     ClassLoaderScope scope
 
-    Map<DefaultClassLoaderCache.Key, ClassLoader> backingCache = [:]
-    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(backingCache)
+    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new FileClassPathSnapshotter())
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()

@@ -25,6 +25,8 @@ import org.gradle.internal.classpath.ClassPath;
  */
 public interface ClassLoaderCache {
 
+    int size();
+
     /**
      * Creates new instance of the class loader or returns a cached instance of an existing class loader
      *

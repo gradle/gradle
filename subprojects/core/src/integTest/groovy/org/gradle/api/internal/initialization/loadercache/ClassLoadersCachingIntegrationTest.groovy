@@ -38,7 +38,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
                 println project.path + " cached: " + !StaticState.set.add(project.path)
             }
             def cache = project.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
-            gradle.buildFinished { println "### cache size: " + cache.size }
+            gradle.buildFinished { println "### cache size: " + cache.size() }
         """
     }
 

@@ -17,21 +17,22 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URLClassLoader;
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
-    public int getSize() {
+    @Override
+    public int size() {
         return storage.size();
     }
 
-    public static class Key {
+    private static class Key {
         private final ClassLoader parent;
         private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
@@ -69,17 +70,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
     }
 
-    private final Map<Key, ClassLoader> storage;
-    private final Map<ClassLoaderId, Key> idCache = new HashMap<ClassLoaderId, Key>(); //needed for correct invalidation of stale classloaders
-    final ClassPathSnapshotter snapshotter;
+    private final Map<Key, ClassLoader> storage = Maps.newHashMap();
+    private final Map<ClassLoaderId, Key> idCache = Maps.newHashMap();
+    private final ClassPathSnapshotter snapshotter;
     private final Object lock = new Object();
 
-    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage) {
-        this(storage, new FileClassPathSnapshotter());
-    }
-
-    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage, ClassPathSnapshotter snapshotter) {
-        this.storage = storage;
+    public DefaultClassLoaderCache(ClassPathSnapshotter snapshotter) {
         this.snapshotter = snapshotter;
     }
 

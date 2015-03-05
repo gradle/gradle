@@ -63,7 +63,6 @@ import org.gradle.model.persist.AlwaysNewModelRegistryStore;
 import org.gradle.model.persist.ModelRegistryStore;
 import org.gradle.model.persist.ReusingModelRegistryStore;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -204,7 +203,7 @@ public class GlobalScopeServices {
     }
 
     ClassLoaderCache createClassLoaderCache(ClassPathSnapshotter classPathSnapshotter) {
-        return new DefaultClassLoaderCache(new HashMap<DefaultClassLoaderCache.Key, ClassLoader>(), classPathSnapshotter);
+        return new DefaultClassLoaderCache(classPathSnapshotter);
     }
 
     private DefaultModelCreatorFactory createModelCreatorFactory(ModelSchemaStore modelSchemaStore) {

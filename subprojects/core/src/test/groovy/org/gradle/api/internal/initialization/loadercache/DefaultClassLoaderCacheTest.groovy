@@ -26,12 +26,12 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def storage = [:]
-    def cache = new DefaultClassLoaderCache(storage)
+    def cache = new DefaultClassLoaderCache(new FileClassPathSnapshotter())
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
 
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     TestFile file(String path) {
         testDirectoryProvider.testDirectory.file(path)
@@ -80,7 +80,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
         !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
-        storage.size() == 2
+        cache.size() == 2
     }
 
     def "non filtered classloaders are reused"() {
@@ -88,9 +88,9 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
         cache.get(id1, classPath("c1"), root, f1)
-        storage.size() == 2
+        cache.size() == 2
         cache.get(id1, classPath("c1"), root, null)
-        storage.size() == 2
+        cache.size() == 2
     }
 
     def "removes stale classloader"() {
@@ -98,7 +98,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, null)
         def c2 = cache.get(id1, classPath("c2"), root, null)
         expect:
-        storage.size() == 1
+        cache.size() == 1
         c2.is cache.get(id1, classPath("c2"), root, null)
     }
 }
