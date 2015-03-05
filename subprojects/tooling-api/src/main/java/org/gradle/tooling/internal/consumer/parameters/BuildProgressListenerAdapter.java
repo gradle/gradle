@@ -70,6 +70,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_SUCCEEDED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            final TestSuccess testSuccess = toTestSuccess(event.getResult());
             return new TestSuiteSucceededEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {
@@ -78,11 +79,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestSuccess getResult() {
-                    return toTestSuccess(event.getResult());
+                    return testSuccess;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_FAILED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            final TestFailure testFailure = toTestFailure(event.getResult());
             return new TestSuiteFailedEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {
@@ -91,7 +93,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestFailure getResult() {
-                    return toTestFailure(event.getResult());
+                    return testFailure;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
@@ -112,6 +114,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             };
         } else if (TestProgressEventVersion1.TEST_SUCCEEDED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            final TestSuccess testSuccess = toTestSuccess(event.getResult());
             return new TestSucceededEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {
@@ -120,11 +123,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestSuccess getResult() {
-                    return toTestSuccess(event.getResult());
+                    return testSuccess;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_FAILED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+            final TestFailure testFailure = toTestFailure(event.getResult());
             return new TestFailedEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {
@@ -133,7 +137,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public TestFailure getResult() {
-                    return toTestFailure(event.getResult());
+                    return testFailure;
                 }
             };
         } else {
