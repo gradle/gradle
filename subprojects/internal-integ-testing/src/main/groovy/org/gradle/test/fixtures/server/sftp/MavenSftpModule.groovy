@@ -67,6 +67,11 @@ class MavenSftpModule implements MavenModule {
         backingModule.hasPackaging(type)
     }
 
+    @Override
+    String getPublishArtifactVersion() {
+        return backingModule.publishArtifactVersion
+    }
+
     TestFile getPomFile() {
         backingModule.getPomFile()
     }

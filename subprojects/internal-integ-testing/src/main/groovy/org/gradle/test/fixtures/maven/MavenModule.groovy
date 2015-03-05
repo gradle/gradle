@@ -51,6 +51,8 @@ interface MavenModule extends Module {
      */
     MavenModule hasType(String type)
 
+    String getPublishArtifactVersion()
+
     TestFile getPomFile()
 
     TestFile getArtifactFile()

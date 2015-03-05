@@ -103,6 +103,11 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return this
     }
 
+    @Override
+    String getPublishArtifactVersion() {
+        return backingModule.publishArtifactVersion
+    }
+
     MavenHttpModule withNoMetaData() {
         backingModule.withNoMetaData()
         return this
