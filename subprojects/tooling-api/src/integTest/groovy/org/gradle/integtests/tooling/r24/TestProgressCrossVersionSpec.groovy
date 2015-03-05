@@ -33,7 +33,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 
-        file("src/test/java/MyTest.java") << """
+        file("src/test/java/example/MyTest.java") << """
             package example;
             public class MyTest {
                 @org.junit.Test public void foo() throws Exception {
