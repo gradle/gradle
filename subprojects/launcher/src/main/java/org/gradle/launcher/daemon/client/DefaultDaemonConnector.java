@@ -25,6 +25,8 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -40,12 +42,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, ProgressLoggerFactory progressLoggerFactory) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -102,7 +106,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
+        ProgressLogger startupProgress = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
+                .start("Starting up a daemon", "Starting up a daemon, subsequent builds should be faster");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
+        startupProgress.completed();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
         do {
