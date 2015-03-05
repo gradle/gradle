@@ -36,7 +36,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         file("src/test/java/MyTest.java") << """
             package example;
             public class MyTest {
-                @org.junit.Test public void foo() {
+                @org.junit.Test public void foo() throws Exception {
+                     Thread.sleep(100);  // sleep for a moment to ensure test duration is > 0 (due to limited clock resolution)
                      org.junit.Assert.assertEquals(1, 1);
                 }
             }
