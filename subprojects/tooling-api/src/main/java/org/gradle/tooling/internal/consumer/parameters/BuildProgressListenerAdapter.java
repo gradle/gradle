@@ -151,6 +151,10 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             if (cachedTestDescriptor == null) {
                 throw new IllegalStateException(String.format("Test descriptor %s not available.", testDescriptor.getId()));
             } else {
+                // when we access the test descriptor from the cache, it is because we have received a test finished event
+                // once the test has finished, we can remove the test from the cache since no child will access it anymore
+                // (all children have already finished before)
+                this.testDescriptorCache.remove(testDescriptor.getId());
                 return cachedTestDescriptor;
             }
         } else {
