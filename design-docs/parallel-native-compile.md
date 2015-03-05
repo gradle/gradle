@@ -64,13 +64,12 @@ Show build operation that fails
 
 At the end of the build, instead of just saying "see the error output for details" we will also list the first 10 files that failed compilation and the number of total files that failed compilation.
 
-TODO: Sould this be -i/--info?
 With -d/--debug, will show all build operation failures.
 
 ### Implementation Details
 
 - ~~Provide a `Operation` type with a getDescription() that can be implemented by build `Operation`s.~~
-- TBD: CommandLineTool/NativeCompiler will need to include filename as part of build operation failure.
+- ~~CommandLineTool/NativeCompiler will need to include filename as part of build operation failure.~~
 - TBD: Currently OperationQueue collects Exceptions from individual operations, need to figure out how to put them together in a generic way.
 
 ### Test Cases
@@ -79,29 +78,21 @@ With -d/--debug, will show all build operation failures.
 - Check total count of failures == total number of operations that failed.
 - Check that -d/--debug prints all failures.
 
-### Discussion (Daz)
-
-I'm not sure how we should treat the exceptions for each file. Is there any point keeping each exception? Is there ever a point in printing a stack trace for every file that fails compilation?  The only benefit I see to keeping all of the exceptions is that it's a general capability of BuildOperationProcessor.  Seems like collapsing would be specific to the type of operation? 
-
-I guess it would be a good idea to have a special exception type, and put the logic for rendering with the logic for rendering MultipleBuildFailures. We have -s and -S, so we can do something clever, I think. Maybe collapsing the common stack trace for each cause?  
-
-The question is whether we keep all of the exceptions or throw them away.  Chucking them is probably ok for now, but long term I think we'll want to keep them and just do better rendering.
-
-Not sure if memory is an issue for 1000 exceptions reporting 'compilation failed'.  Maybe we can only keep the 1st N exceptions: this would mean that we could later abort after that many failures.  So instead of just displaying the first 10: we actually throw the others away early.
-
 ## Story: Improve output of build operation failures
 
-2. Show stderr from 1st 10 files that fail compilation
-3. Buffer output so that parallel doesn’t interleave, and integrate with log levels
+- ~~Save build operation output to "report"~~
+- ~~Show stderr from 1st 10 files that fail compilation~~
+- ~~Buffer output so that parallel doesn’t interleave, and integrate with log levels~~
 
 ### User Visible Changes
 
-Stderr and Stdout from command line tools are no longer interleaved.  stderr/stdout is included as part of failure message at the end of the build.
+- Stderr and Stdout from command line tools are no longer interleaved. 
+- Full build log from command line tools are available in a report file.
 
 ### Implementation Details
 
-- Start capturing stdout/stderr from CommandLineTool execute()
-- At the end of the operation, print stdout/stderr.
+- ~~Start capturing stdout/stderr from CommandLineTool execute()~~
+- ~~At the end of the operation, print stdout/stderr.~~
 - TBD: Attach stdout/stderr to Gradle log levels (always show stderr, hide stdout, initially?)
 - TBD: Do we combine stdout/stderr into one buffer (maybe they would only make sense in order?)
 - TBD: Consider making logging-level a task level configuration option?
@@ -115,21 +106,6 @@ Stderr and Stdout from command line tools are no longer interleaved.  stderr/std
     - Stderr from failing operation (up to 10)
     - Filename (up to 10)
     - Total number of operation failures
-
-## Story: Save build operation output to "report"
-4. Ability to redirect compiler output to file
-
-### User Visible Changes
-
-Full build log from command line tools are available in a report file.
-
-### Implementation Details
-
-- TBD
-
-### Test Cases
-
-- TBD
 
 ## Story: Extend command line tool support to understand output
 5. Parse the compiler output to determine number of failures per file
