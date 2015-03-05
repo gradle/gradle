@@ -90,7 +90,38 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, f1)
         cache.size() == 2
         cache.get(id1, classPath("c1"), root, null)
+        cache.size() == 1
+    }
+
+    def "filtered classloaders are reused if they have multiple ids"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
+        cache.get(id1, classPath("c1"), root, f1)
+        cache.get(id2, classPath("c1"), root, f1)
         cache.size() == 2
+        cache.get(id1, classPath("c1"), root, null)
+        cache.size() == 2
+    }
+
+    def "unfiltered base is released when there are no more references to it"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
+        def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [], [])
+        def cp1 = classPath("c1")
+        def cp2 = classPath("c2")
+
+        cache.get(id1, cp1, root, f1)
+        cache.get(id2, cp1, root, f2)
+        cache.size() == 3
+        cache.get(id1, cp2, root, f1)
+        cache.size() == 4
+        cache.get(id1, cp1, root, null)
+        cache.size() == 2
+        cache.get(id1, cp2, root, null)
+        cache.get(id2, cp2, root, null)
+        cache.size() == 1
     }
 
     def "removes stale classloader"() {
