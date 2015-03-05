@@ -27,9 +27,51 @@ import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
+    private final Object lock = new Object();
+    private final Map<Key, ClassLoader> storage = Maps.newHashMap();
+    private final Map<ClassLoaderId, Key> idCache = Maps.newHashMap();
+    private final ClassPathSnapshotter snapshotter;
+
+    public DefaultClassLoaderCache(ClassPathSnapshotter snapshotter) {
+        this.snapshotter = snapshotter;
+    }
+
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+        ClassPathSnapshot s = snapshotter.snapshot(classPath);
+        Key key = new Key(parent, s, filterSpec);
+
+        synchronized (lock) {
+            //if the classloader with given id is already cached
+            //invalidate it when the key does not match (e.g. when the classpath or parent has changed)
+            invalidateStaleEntries(id, key);
+
+            ClassLoader existingLoader = storage.get(key);
+            if (existingLoader != null) {
+                idCache.put(id, key);
+                return existingLoader;
+            } else {
+                ClassLoader newLoader = (filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
+                storage.put(key, newLoader);
+                return newLoader;
+            }
+        }
+    }
+
     @Override
     public int size() {
         return storage.size();
+    }
+
+    private void invalidateStaleEntries(ClassLoaderId id, Key key) {
+        Key existingKey = idCache.get(id);
+        if (existingKey == null) {
+            //we haven't yet served classloader with this identifier (or it was previously invalidated)
+            idCache.put(id, key); //remember the id
+        } else if (!existingKey.equals(key)) {
+            //we have already served classloader with this id but the key has changed - invalidate this classloader
+            idCache.put(id, key); //refresh the id
+            storage.remove(existingKey); //invalidate stale entry
+        }
     }
 
     private static class Key {
@@ -67,48 +109,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             result = 31 * result + classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             return result;
-        }
-    }
-
-    private final Map<Key, ClassLoader> storage = Maps.newHashMap();
-    private final Map<ClassLoaderId, Key> idCache = Maps.newHashMap();
-    private final ClassPathSnapshotter snapshotter;
-    private final Object lock = new Object();
-
-    public DefaultClassLoaderCache(ClassPathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
-    }
-
-    public ClassLoader get(final ClassLoaderId id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
-        ClassPathSnapshot s = snapshotter.snapshot(classPath);
-        Key key = new Key(parent, s, filterSpec);
-
-        synchronized (lock) {
-            //if the classloader with given id is already cached
-            //invalidate it when the key does not match (e.g. when the classpath or parent has changed)
-            invalidateStaleEntries(id, key);
-
-            ClassLoader existingLoader = storage.get(key);
-            if (existingLoader != null) {
-                idCache.put(id, key);
-                return existingLoader;
-            } else {
-                ClassLoader newLoader = (filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
-                storage.put(key, newLoader);
-                return newLoader;
-            }
-        }
-    }
-
-    private void invalidateStaleEntries(ClassLoaderId id, Key key) {
-        Key existingKey = idCache.get(id);
-        if (existingKey == null) {
-            //we haven't yet served classloader with this identifier (or it was previously invalidated)
-            idCache.put(id, key); //remember the id
-        } else if (!existingKey.equals(key)) {
-            //we have already served classloader with this id but the key has changed - invalidate this classloader
-            idCache.put(id, key); //refresh the id
-            storage.remove(existingKey); //invalidate stale entry
         }
     }
 }
