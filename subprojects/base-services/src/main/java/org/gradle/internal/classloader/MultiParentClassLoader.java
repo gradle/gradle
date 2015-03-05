@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -30,9 +30,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
 public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+
+    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
+    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
+
     private final List<ClassLoader> parents;
-    private final JavaMethod<ClassLoader, Package[]> getPackagesMethod;
-    private final JavaMethod<ClassLoader, Package> getPackageMethod;
 
     public MultiParentClassLoader(ClassLoader... parents) {
         this(Arrays.asList(parents));
@@ -41,8 +43,6 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     public MultiParentClassLoader(Collection<? extends ClassLoader> parents) {
         super(null);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(parents);
-        getPackagesMethod = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
-        getPackageMethod = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
     }
 
     public void addParent(ClassLoader parent) {
@@ -71,7 +71,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {
-            Package p = getPackageMethod.invoke(parent, name);
+            Package p = GET_PACKAGE_METHOD.invoke(parent, name);
             if (p != null) {
                 return p;
             }
@@ -83,7 +83,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
     protected Package[] getPackages() {
         Set<Package> packages = new LinkedHashSet<Package>();
         for (ClassLoader parent : parents) {
-            Package[] parentPackages = getPackagesMethod.invoke(parent);
+            Package[] parentPackages = GET_PACKAGES_METHOD.invoke(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
         return packages.toArray(new Package[packages.size()]);
@@ -135,11 +135,7 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
         MultiParentClassLoader that = (MultiParentClassLoader) o;
 
-        if (!parents.equals(that.parents)) {
-            return false;
-        }
-
-        return true;
+        return parents.equals(that.parents);
     }
 
     @Override
