@@ -48,8 +48,10 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     private String maybeSubstituteTimestamp(ModuleComponentArtifactMetaData artifact, String pattern) {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
-            String timestampedVersion = ((MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId()).getTimestampedVersion();
-            pattern = pattern.replaceFirst("\\-\\[revision\\]", "-" + timestampedVersion);
+            MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
+            pattern = pattern
+                    .replaceFirst("\\-\\[revision\\]", "-" + snapshotId.getTimestampedVersion())
+                    .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;
     }

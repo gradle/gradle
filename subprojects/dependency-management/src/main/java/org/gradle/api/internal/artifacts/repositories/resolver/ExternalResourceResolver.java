@@ -166,7 +166,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(repositoryChain);
         MutableModuleComponentResolveMetaData metaData = parseMetaDataFromResource(metaDataResource, context);
-        metaData = processMetaData(metaData);
 
         checkMetadataConsistency(moduleVersionIdentifier, metaData);
 
@@ -176,8 +175,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private MutableModuleComponentResolveMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleVersionIdentifier, DependencyMetaData dependency, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         for (IvyArtifactName artifact : getDependencyArtifactNames(dependency)) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetaData(moduleVersionIdentifier, artifact), result)) {
-                MutableModuleComponentResolveMetaData metaData = createMetaDataForDependency(dependency);
-                return processMetaData(metaData);
+                return createMetaDataForDependency(dependency);
             }
         }
         return null;
@@ -197,10 +195,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         return artifactSet;
-    }
-
-    protected MutableModuleComponentResolveMetaData processMetaData(MutableModuleComponentResolveMetaData metaData) {
-        return metaData;
     }
 
     private void checkMetadataConsistency(ModuleComponentIdentifier expectedId, ModuleComponentResolveMetaData metadata) throws MetaDataParseException {

@@ -96,8 +96,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return artifactType == ArtifactType.MAVEN_POM;
     }
 
-    @Override
-    protected MutableModuleComponentResolveMetaData processMetaData(MutableModuleComponentResolveMetaData metaData) {
+    private MutableModuleComponentResolveMetaData processMetaData(MutableModuleComponentResolveMetaData metaData) {
         if (isNonUniqueSnapshot(metaData.getComponentId())) {
             metaData.setChanging(true);
         }
@@ -192,11 +191,11 @@ public class MavenResolver extends ExternalResourceResolver {
 
     @Override
     protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return new DefaultMavenModuleResolveMetaData(dependency);
+        return processMetaData(new DefaultMavenModuleResolveMetaData(dependency));
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        return metaDataParser.parseMetaData(context, cachedResource);
+        return processMetaData(metaDataParser.parseMetaData(context, cachedResource));
     }
 
     protected static MavenModuleResolveMetaData mavenMetaData(ModuleComponentResolveMetaData metaData) {
@@ -259,9 +258,9 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     private ModuleComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
-        String existingUniqueVersion = moduleComponentIdentifier.getVersion();
-        String newNonUniqueVersion =  existingUniqueVersion.replaceAll(uniqueSnapshotVersion.getTimestamp(), "SNAPSHOT");
         return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-                moduleComponentIdentifier.getModule(), newNonUniqueVersion, uniqueSnapshotVersion.getTimestamp());
+                moduleComponentIdentifier.getModule(),
+                moduleComponentIdentifier.getVersion(),
+                uniqueSnapshotVersion.getTimestamp());
     }
 }
