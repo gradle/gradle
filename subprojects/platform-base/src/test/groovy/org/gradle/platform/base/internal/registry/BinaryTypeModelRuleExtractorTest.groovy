@@ -35,7 +35,7 @@ import java.lang.annotation.Annotation
 
 class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
-    Instantiator instantiator = new DirectInstantiator()
+    Instantiator instantiator = DirectInstantiator.INSTANCE
 
     BinaryTypeModelRuleExtractor ruleHandler = new BinaryTypeModelRuleExtractor(instantiator)
 

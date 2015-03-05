@@ -27,7 +27,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<String> list = new DefaultNamedDomainObjectList<String>(String, new DirectInstantiator(), toStringNamer)
+    final DefaultNamedDomainObjectList<String> list = new DefaultNamedDomainObjectList<String>(String, DirectInstantiator.INSTANCE, toStringNamer)
 
     def "can add element at given index"() {
         given:

@@ -31,7 +31,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class IvyArtifactNotationParserFactoryTest extends Specification {
-    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def fileNotationParser = Mock(NotationParser)
     def taskDependency = Mock(TaskDependency)
     def publishArtifact = Stub(PublishArtifact) {

@@ -46,7 +46,7 @@ public class DefaultCopySpecResolutionTest {
     private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
-    private final Instantiator instantiator = new DirectInstantiator()
+    private final Instantiator instantiator = DirectInstantiator.INSTANCE
     private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, instantiator)
 
     @Test

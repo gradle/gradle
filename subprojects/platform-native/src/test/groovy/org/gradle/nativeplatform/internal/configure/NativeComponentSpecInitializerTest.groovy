@@ -35,7 +35,7 @@ import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class NativeComponentSpecInitializerTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def toolChains = Mock(NativeToolChainRegistryInternal)
     def toolChain = Mock(NativeToolChainInternal)
     def toolProvider = Mock(PlatformToolProvider)
@@ -48,7 +48,7 @@ class NativeComponentSpecInitializerTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator(), Stub(ProjectSourceSet));
+    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
     def component = BaseComponentSpec.create(DefaultNativeExecutableSpec, id, mainSourceSet, instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {

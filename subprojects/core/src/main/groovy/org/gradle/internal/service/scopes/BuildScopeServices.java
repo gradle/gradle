@@ -189,7 +189,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 ),
                 new DefaultScriptRunnerFactory(
                         scriptExecutionListener,
-                        new DirectInstantiator()
+                        DirectInstantiator.INSTANCE
                 )
         );
     }

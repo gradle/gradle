@@ -29,7 +29,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class MavenArtifactNotationParserFactoryTest extends Specification {
-    Instantiator instantiator = new DirectInstantiator()
+    Instantiator instantiator = DirectInstantiator.INSTANCE
     def taskDependency = Mock(TaskDependency)
     def fileNotationParser = Mock(NotationParser)
     def publishArtifact = Stub(PublishArtifact) {

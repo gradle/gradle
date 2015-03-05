@@ -25,7 +25,7 @@ public class ReflectiveNamedDomainObjectFactory<T> implements NamedDomainObjectF
     private final Instantiator instantiator;
 
     public ReflectiveNamedDomainObjectFactory(Class<? extends T> type, Object... extraArgs) {
-        this(type, new DirectInstantiator(), extraArgs);
+        this(type, DirectInstantiator.INSTANCE, extraArgs);
     }
     
     public ReflectiveNamedDomainObjectFactory(Class<? extends T> type, Instantiator instantiator, Object... extraArgs) {

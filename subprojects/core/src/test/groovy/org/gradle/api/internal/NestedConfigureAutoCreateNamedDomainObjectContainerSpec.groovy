@@ -20,13 +20,13 @@ import org.gradle.internal.reflect.DirectInstantiator
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 
-    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
 
     static class Container extends FactoryNamedDomainObjectContainer {
         String parentName
         String name
         Container(String parentName, String name, Closure factory) {
-            super(Object, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator()), new DynamicPropertyNamer(), factory)
+            super(Object, new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE), new DynamicPropertyNamer(), factory)
             this.parentName = parentName
             this.name = name
         }

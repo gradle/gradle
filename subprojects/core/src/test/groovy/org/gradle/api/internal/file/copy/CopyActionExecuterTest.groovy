@@ -36,7 +36,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
         }
 
         def resolver = TestFiles.resolver(testDirectory)
-        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, new DirectInstantiator()))
+        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, DirectInstantiator.INSTANCE))
         copySpec.with {
             into "out"
             from "a", {
@@ -56,7 +56,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
                 new SimpleWorkResult(workResult)
             }
         }
-        def executer = new CopyActionExecuter(new DirectInstantiator(), TestFiles.fileSystem())
+        def executer = new CopyActionExecuter(DirectInstantiator.INSTANCE, TestFiles.fileSystem())
 
         when:
         executer.execute(copySpec, copyAction)

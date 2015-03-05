@@ -38,7 +38,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(
             fileResolver, transportFactory, locallyAvailableResourceFinder,
-            new DirectInstantiator(), resolverStrategy, artifactIdentifierFileStore
+            DirectInstantiator.INSTANCE, resolverStrategy, artifactIdentifierFileStore
     )
 
     def "default values"() {

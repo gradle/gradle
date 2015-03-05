@@ -35,7 +35,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final MetaDataParser pomParser = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
+            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser)
 
     def "creates local repository"() {
         given:

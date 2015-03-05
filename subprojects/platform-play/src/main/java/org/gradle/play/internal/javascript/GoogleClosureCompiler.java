@@ -83,7 +83,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         Object sourceFile = fromFileJavaMethod.invokeStatic(javascriptFile.getFile());
 
         // Construct a new CompilerOptions class
-        Factory<?> compilerOptionsFactory = JavaReflectionUtil.factory(new DirectInstantiator(), compilerOptionsClass);
+        Factory<?> compilerOptionsFactory = JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, compilerOptionsClass);
         Object compilerOptions = compilerOptionsFactory.create();
 
         // Get the CompilationLevel.SIMPLE_OPTIMIZATIONS class and set it on the CompilerOptions class
@@ -92,7 +92,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
         setOptionsForCompilationLevelMethod.invoke(simpleLevel, compilerOptions);
 
         // Construct a new Compiler class
-        Factory<?> compilerFactory = JavaReflectionUtil.factory(new DirectInstantiator(), compilerClass, getDummyPrintStream());
+        Factory<?> compilerFactory = JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, compilerClass, getDummyPrintStream());
         Object compiler = compilerFactory.create();
 
         // Compile the javascript file with the options we've created

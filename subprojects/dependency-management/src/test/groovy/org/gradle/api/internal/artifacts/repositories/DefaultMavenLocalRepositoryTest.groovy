@@ -36,7 +36,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final MetaDataParser pomParser = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-            resolver, transportFactory, locallyAvailableResourceFinder, new DirectInstantiator(), artifactIdentifierFileStore, pomParser)
+            resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser)
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {

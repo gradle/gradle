@@ -33,7 +33,7 @@ import spock.lang.Specification
 class VisualStudioSolutionFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def fileResolver = Mock(FileResolver)
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def solutionFile = new VisualStudioSolutionFile()
     def binary1 = binary("one")
 

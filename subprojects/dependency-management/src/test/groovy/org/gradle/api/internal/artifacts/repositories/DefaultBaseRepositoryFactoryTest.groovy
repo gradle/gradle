@@ -40,7 +40,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final MetaDataParser pomParser = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
+            localMavenRepoLocator, fileResolver, DirectInstantiator.INSTANCE, transportFactory, locallyAvailableResourceFinder,
             resolverStrategy, artifactIdentifierFileStore, pomParser
     )
 

@@ -155,7 +155,7 @@ public class GlobalScopeServices {
     }
 
     Instantiator createInstantiator(ClassGenerator classGenerator) {
-        return new ClassGeneratorBackedInstantiator(classGenerator, new DirectInstantiator());
+        return new ClassGeneratorBackedInstantiator(classGenerator, DirectInstantiator.INSTANCE);
     }
 
     ExecutorFactory createExecutorFactory() {

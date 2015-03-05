@@ -25,12 +25,12 @@ import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
 
 class BaseComponentSpecTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def componentId = Mock(ComponentSpecIdentifier)
     FunctionalSourceSet functionalSourceSet;
 
     def setup() {
-        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", new DirectInstantiator(), Stub(ProjectSourceSet));
+        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
     }
 
     def "cannot instantiate directly"() {

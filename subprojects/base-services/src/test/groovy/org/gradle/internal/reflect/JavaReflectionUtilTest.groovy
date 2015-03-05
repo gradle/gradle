@@ -273,7 +273,7 @@ class JavaReflectionUtilTest extends Specification {
     }
 
     def "new instance"() {
-        def instantiator = new DirectInstantiator()
+        def instantiator = DirectInstantiator.INSTANCE
 
         expect:
         factory(instantiator, Thing).create().name == null

@@ -48,7 +48,7 @@ class LanguageBasePluginTest extends Specification {
 
     def "copies binary tasks into task container"() {
         def tasks = Mock(TaskContainer)
-        def binaries = new DefaultBinaryContainer(new DirectInstantiator())
+        def binaries = new DefaultBinaryContainer(DirectInstantiator.INSTANCE)
         def binary = Mock(BinarySpecInternal)
         def binaryTasks = new DefaultBinaryTasksCollection(binary, Mock(ITaskFactory))
         def someTask = Mock(Task) { getName() >> "someTask" }

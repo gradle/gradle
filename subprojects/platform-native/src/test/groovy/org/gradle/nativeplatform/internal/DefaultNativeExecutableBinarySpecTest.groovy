@@ -36,7 +36,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, Mock(ITaskFactory)))
 

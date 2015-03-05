@@ -42,7 +42,7 @@ import spock.lang.Specification
 class DefaultIvyPublicationTest extends Specification {
 
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def projectIdentity = Mock(IvyPublicationIdentity)
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)

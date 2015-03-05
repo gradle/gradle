@@ -43,7 +43,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
     public ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet> implementationTypeDetermer = new ImplementationTypeDetermer<LanguageSourceSet, BaseLanguageSourceSet>("language", BaseLanguageSourceSet.class);
 
     public LanguageTypeModelRuleExtractor() {
-        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultLanguageTypeBuilder.class));
+        super("language", LanguageSourceSet.class, BaseLanguageSourceSet.class, LanguageTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultLanguageTypeBuilder.class));
     }
 
     @Override

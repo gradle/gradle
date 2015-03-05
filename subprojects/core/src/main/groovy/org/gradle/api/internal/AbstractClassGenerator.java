@@ -55,8 +55,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Collection<String> SKIP_PROPERTIES = Arrays.asList("class", "metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
-        Instantiator instantiator = new DirectInstantiator();
-        return instantiator.newInstance(generate(type), parameters);
+        return DirectInstantiator.instantiate(generate(type), parameters);
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {

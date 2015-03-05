@@ -34,7 +34,7 @@ import spock.lang.Specification
 class ClangToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    final Instantiator instantiator = new DirectInstantiator()
+    final Instantiator instantiator = DirectInstantiator.INSTANCE
     final toolChain = new ClangToolChain("clang", Stub(BuildOperationProcessor), Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory), instantiator)
 
     def "provides default tools"() {

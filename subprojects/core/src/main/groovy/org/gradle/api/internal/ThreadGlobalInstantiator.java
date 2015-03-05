@@ -57,7 +57,7 @@ public abstract class ThreadGlobalInstantiator {
         if (instantiator != null) {
             return instantiator;
         } else {
-            return new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator());
+            return new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE);
         }
     }
 }

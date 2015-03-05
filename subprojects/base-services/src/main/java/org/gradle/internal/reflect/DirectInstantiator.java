@@ -22,6 +22,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DirectInstantiator implements Instantiator {
+
+    public static final Instantiator INSTANCE = new DirectInstantiator();
+
+    public static <T> T instantiate(Class<? extends T> type, Object... params) {
+        return INSTANCE.newInstance(type, params);
+    }
+
+    private DirectInstantiator() {
+    }
+
     public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
             List<Constructor<?>> matches = new ArrayList<Constructor<?>>();

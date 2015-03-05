@@ -319,7 +319,7 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, new DirectInstantiator(), projectDependencyResolver)
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver)
         publication.setPomFile(new SimpleFileCollection(pomFile))
         return publication;
     }

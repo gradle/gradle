@@ -39,7 +39,7 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinariesFactory.create
 
 class NativeBinarySpecTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))

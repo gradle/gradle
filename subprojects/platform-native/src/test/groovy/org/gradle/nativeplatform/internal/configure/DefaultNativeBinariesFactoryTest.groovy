@@ -47,7 +47,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
     def id = new DefaultComponentSpecIdentifier("project", "name")
 
     def namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder().withComponentName("test")
-    def instantiator = new DirectInstantiator();
+    def instantiator = DirectInstantiator.INSTANCE;
     def factory = new DefaultNativeBinariesFactory(instantiator, configAction, resolver, Mock(ITaskFactory))
     def mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet));
 
@@ -74,7 +74,7 @@ class DefaultNativeBinariesFactoryTest extends Specification {
 
     def "creates binaries for library"() {
         given:
-        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, mainSourceSet, new DirectInstantiator())
+        def library = BaseComponentSpec.create(DefaultNativeLibrarySpec.class, id, mainSourceSet, DirectInstantiator.INSTANCE)
 
         when:
         2 * configAction.execute(_)

@@ -52,7 +52,7 @@ class RuleAwarePolymorphicDomainObjectContainerTest extends Specification {
 
     class DummyContainer extends RuleAwarePolymorphicDomainObjectContainer<Object> {
         DummyContainer() {
-            super(Dummy.class, new DirectInstantiator())
+            super(Dummy.class, DirectInstantiator.INSTANCE)
         }
     }
 

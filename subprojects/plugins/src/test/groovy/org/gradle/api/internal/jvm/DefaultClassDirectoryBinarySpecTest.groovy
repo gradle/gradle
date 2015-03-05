@@ -86,6 +86,6 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain, platform, new DirectInstantiator(), Mock(ITaskFactory), Mock(ToolResolver))
+        new DefaultClassDirectoryBinarySpec(name, toolChain, platform, DirectInstantiator.INSTANCE, Mock(ITaskFactory), Mock(ToolResolver))
     }
 }
