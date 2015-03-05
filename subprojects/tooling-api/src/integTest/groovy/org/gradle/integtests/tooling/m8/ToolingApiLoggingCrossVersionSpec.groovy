@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.junit.Assume
 
@@ -86,7 +89,7 @@ project.logger.info ("info logging");
 project.logger.debug("debug logging");
 """
         when:
-        def commandLineResult = targetDist.executer(temporaryFolder).run();
+        def commandLineResult = runUsingCommandLine();
 
         and:
         def op = withBuild()
@@ -107,6 +110,15 @@ project.logger.debug("debug logging");
         out.count("quiet logging") == 1
         out.count("info") == 0
         out.count("debug") == 0
+    }
+
+    private ExecutionResult runUsingCommandLine() {
+        def executer = targetDist.executer(temporaryFolder)
+        if (!GradleContextualExecuter.longLivingProcess) {
+            //suppress daemon usage suggestions
+            executer.withArgument("--no-daemon")
+        }
+        executer.run()
     }
 
     String normaliseOutput(String output) {
