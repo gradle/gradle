@@ -1,0 +1,17 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':SimpleAnnotationProcessor')
+}
+
+compileGroovy {
+    options.compilerArgs << '-proc:none'
+    groovyOptions.with {
+        stubDir = file([buildDir, 'classes', 'stub'].join(File.separator))
+        keepStubs = true
+    }
+}

@@ -27,7 +27,9 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
+import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
@@ -37,9 +39,14 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,17 +104,27 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             }
         };
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
-        unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory() {
+        unit.setCompilerFactory(new JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
                 return new JavaCompiler() {
                     public void compile(List<String> files, CompilationUnit cu) {
+                        if (shouldProcessAnnotations(astTransformClassLoader, spec)) {
+                            // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
+                            // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
+                            spec.setSource(spec.getSource().plus(new SimpleFileCollection((File) config.getJointCompilationOptions().get("stubDir")).getAsFileTree()));
+                        } else {
+                            // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
+                            // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
+                            spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
+                            spec.getCompileOptions().getCompilerArgs().add(((File) config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+                        }
+
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
                             public boolean isSatisfiedBy(File file) {
                                 return file.getName().endsWith(".java");
                             }
                         }));
-                        spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-                        spec.getCompileOptions().getCompilerArgs().add(((File) config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+
                         try {
                             javaCompiler.execute(spec);
                         } catch (CompilationFailedException e) {
@@ -126,6 +143,30 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         return new SimpleWorkResult(true);
+    }
+
+    private boolean shouldProcessAnnotations(ClassLoader classLoader, GroovyJavaJointCompileSpec spec) {
+        return !isAnnotationProcessingDisabled(spec)
+               && (isAnnotationProcessorOnClasspath(classLoader) || isDefaultAnnotationProcessorDiscoveryOverridden(spec));
+    }
+
+    private boolean isAnnotationProcessingDisabled(GroovyJavaJointCompileSpec spec) {
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
+        return compilerArgs.contains("-proc:none");
+    }
+
+    private boolean isAnnotationProcessorOnClasspath(ClassLoader classLoader) {
+        try {
+            Enumeration<URL> processorEntries = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
+            return processorEntries.hasMoreElements();
+        } catch (IOException e) {
+            throw new GradleException("Failed to retrieve annotation processor metadata from classpath", e);
+        }
+    }
+
+    private boolean isDefaultAnnotationProcessorDiscoveryOverridden(GroovyJavaJointCompileSpec spec) {
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
+        return !Collections.disjoint(compilerArgs, Arrays.asList("-processorpath", "-processor"));
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {

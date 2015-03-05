@@ -54,6 +54,118 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         module << ["groovy-all", "groovy"]
     }
 
+    def "compileWithAnnotationProcessor"() {
+        groovyDependency = "org.codehaus.groovy:$module:$version"
+
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Person.class').exists()
+        !file('build/classes/main/Person$$Generated.java').exists()
+        !file('build/classes/main/Person$$Generated.class').exists()
+
+        where:
+        module << ["groovy-all", "groovy"]
+    }
+
+    def "compileBadCodeWithAnnotationProcessor"() {
+        expect:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Stubs are not generated for pure groovy builds
+        !file('build/classes/stub/Person.java').exists()
+        !file('build/classes/main/Person.class').exists()
+        !file('build/classes/main/Person$$Generated.java').exists()
+        !file('build/classes/main/Person$$Generated.class').exists()
+    }
+
+    def "jointCompileBadCode"() {
+        expect:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // If there is no annotation processor on the classpath,
+        // the Person stub class won't be compiled, because it is not
+        // referenced by any java code in the joint compile
+        file('build/classes/stub/Person.java').exists()
+        !file('build/classes/main/Person.class').exists()
+        file('build/classes/main/Address.class').exists()
+    }
+
+    def "jointCompileWithAnnotationProcessor"() {
+        groovyDependency = "org.codehaus.groovy:$module:$version"
+
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Person.class').exists()
+        file('build/classes/main/Address.class').exists()
+        file('build/classes/main/Person$$Generated.java').exists()
+        file('build/classes/main/Address$$Generated.java').exists()
+        file('build/classes/main/Person$$Generated.class').exists()
+        file('build/classes/main/Address$$Generated.class').exists()
+
+        where:
+        module << ["groovy-all", "groovy"]
+    }
+
+    def "jointCompileBadCodeWithAnnotationProcessor"() {
+        expect:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because there is an annotation processor on the classpath,
+        // the Java stub of Person.groovy will be compiled even if
+        // it's not referenced by any other java code, even if the
+        // Groovy compiler fails to compile the same class.
+        file('build/classes/stub/Person.java').exists()
+        file('build/classes/main/Person.class').exists()
+        file('build/classes/main/Address.class').exists()
+        file('build/classes/main/Person$$Generated.java').exists()
+        file('build/classes/main/Address$$Generated.java').exists()
+        file('build/classes/main/Person$$Generated.class').exists()
+        file('build/classes/main/Address$$Generated.class').exists()
+    }
+
+    def "jointCompileWithAnnotationProcessorDisabled"() {
+        groovyDependency = "org.codehaus.groovy:$module:$version"
+
+        expect:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Person.class').exists()
+        file('build/classes/main/Address.class').exists()
+        !file('build/classes/main/Person$$Generated.java').exists()
+        !file('build/classes/main/Address$$Generated.java').exists()
+        !file('build/classes/main/Person$$Generated.class').exists()
+        !file('build/classes/main/Address$$Generated.class').exists()
+
+        where:
+        module << ["groovy-all", "groovy"]
+    }
+
+    def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
+        expect:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because annotation processing is disabled
+        // the Person class won't be compiled, because it is not
+        // referenced by any java code in the joint compile
+        file('build/classes/stub/Person.java').exists()
+        !file('build/classes/main/Person.class').exists()
+        file('build/classes/main/Address.class').exists()
+        !file('build/classes/main/Person$$Generated.java').exists()
+        !file('build/classes/main/Address$$Generated.java').exists()
+        !file('build/classes/main/Person$$Generated.class').exists()
+        !file('build/classes/main/Address$$Generated.class').exists()
+    }
+
     def "groovyToolClassesAreNotVisible"() {
         if (versionLowerThan("2.0")) {
             return
