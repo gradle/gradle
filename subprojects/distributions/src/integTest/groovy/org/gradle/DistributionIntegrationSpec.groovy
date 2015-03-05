@@ -38,6 +38,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
+    abstract int getLibJarsCount()
+
     def "no duplicate entries"() {
         given:
         ZipFile zipFile = new ZipFile(zip)
@@ -53,17 +55,29 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "all files under lib directory are jars"() {
-        given:
-        ZipFile zipFile = new ZipFile(zip)
-
-
         when:
-        def entries = zipFile.entries().toList()
-        def libFiles = entries.findAll { !it.isDirectory() && it.name.tokenize("/")[1] == "lib" }
-        def nonJarLibFiles = libFiles.findAll { !it.name.endsWith(".jar") }
+        def nonJarLibEntries = libZipEntries.findAll { !it.name.endsWith(".jar") }
 
         then:
-        nonJarLibFiles.isEmpty()
+        nonJarLibEntries.isEmpty()
+    }
+
+    def "no additional jars are added to the distribution"() {
+        when:
+        def jarLibEntries = libZipEntries.findAll { it.name.endsWith(".jar") }
+
+        then:
+        //ME: This is not a foolproof way of checking that additional jars have not been accidentally added to the distribution
+        //but should be good enough. If this test fails for you and you did not intend to add new jars to the distribution
+        //then there is something to be fixed. If you intentionally added new jars to the distribution and this is now failing please
+        //accept my sincere apologies that you have to manually bump the numbers here.
+        jarLibEntries.size() == libJarsCount
+    }
+
+    protected List<? extends ZipEntry> getLibZipEntries() {
+        ZipFile zipFile = new ZipFile(zip)
+        def entries = zipFile.entries().toList()
+        entries.findAll { !it.isDirectory() && it.name.tokenize("/")[1] == "lib" }
     }
 
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
