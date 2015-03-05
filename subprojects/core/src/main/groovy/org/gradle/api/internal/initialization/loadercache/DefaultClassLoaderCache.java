@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -23,7 +24,6 @@ import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URLClassLoader;
 import java.util.Map;
-import java.util.Objects;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
@@ -103,9 +103,9 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         @Override
         public boolean equals(Object o) {
             ClassLoaderSpec that = (ClassLoaderSpec) o;
-            return Objects.equals(this.parent, that.parent)
+            return Objects.equal(this.parent, that.parent)
                     && this.classPathSnapshot.equals(that.classPathSnapshot)
-                    && Objects.equals(this.filterSpec, that.filterSpec);
+                    && Objects.equal(this.filterSpec, that.filterSpec);
         }
 
         @Override
