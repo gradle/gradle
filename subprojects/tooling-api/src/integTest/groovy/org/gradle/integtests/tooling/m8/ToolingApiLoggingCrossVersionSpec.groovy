@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.junit.Assume
 
