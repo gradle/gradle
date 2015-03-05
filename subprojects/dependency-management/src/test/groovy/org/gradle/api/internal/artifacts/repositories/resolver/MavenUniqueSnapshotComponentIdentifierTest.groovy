@@ -22,31 +22,52 @@ import static org.gradle.util.Matchers.strictlyEquals
 
 class MavenUniqueSnapshotComponentIdentifierTest extends Specification {
 
-    def id = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "timestamp")
-
     def "delegates module version to owner"() {
+        def id = new MavenUniqueSnapshotComponentIdentifier("group", "module", version, "timestamp")
+
         expect:
         id.group == "group"
         id.module == "module"
-        id.version == "1.0-SNAPSHOT"
+        id.version == version
+        id.timestamp == "timestamp"
+
+        where:
+        version         | _
+        "1.0-SNAPSHOT"  | _
+        "1.0-timestamp" | _
     }
 
-    def "replaces SNAPSHOT in version with timestamp for timestamped version"() {
+    def "can request timestamp or symbolic version"() {
+        def id = new MavenUniqueSnapshotComponentIdentifier("group", "module", version, "timestamp")
+
         expect:
         id.timestampedVersion == "1.0-timestamp"
+        id.snapshotVersion == "1.0-SNAPSHOT"
+
+        where:
+        version         | _
+        "1.0-SNAPSHOT"  | _
+        "1.0-timestamp" | _
     }
 
     def "has useful display name"() {
+        def id = new MavenUniqueSnapshotComponentIdentifier("group", "module", version, "timestamp")
+
         expect:
         id.displayName == "group:module:1.0-SNAPSHOT:timestamp"
+
+        where:
+        version         | _
+        "1.0-SNAPSHOT"  | _
+        "1.0-timestamp" | _
     }
 
     def "can compare with other instance"() {
         when:
-        MavenUniqueSnapshotComponentIdentifier id1 = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "timestamp")
-        MavenUniqueSnapshotComponentIdentifier same = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "timestamp")
-        MavenUniqueSnapshotComponentIdentifier differentVersion = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.1-SNAPSHOT", "timestamp")
-        MavenUniqueSnapshotComponentIdentifier differentTimestamp = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "other")
+        def id1 = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "timestamp")
+        def same = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "timestamp")
+        def differentVersion = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.1-SNAPSHOT", "timestamp")
+        def differentTimestamp = new MavenUniqueSnapshotComponentIdentifier("group", "module", "1.0-SNAPSHOT", "other")
 
         then:
         assert strictlyEquals(id1, same)
