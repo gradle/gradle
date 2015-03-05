@@ -72,7 +72,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
-        jointCompilationOptions.put("stubDir", spec.getGroovyCompileOptions().getStubDir());
+        final File stubDir = spec.getGroovyCompileOptions().getStubDir();
+        jointCompilationOptions.put("stubDir", stubDir);
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
@@ -103,20 +104,31 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                 return astTransformClassLoader;
             }
         };
+
+        final boolean shouldProcessAnnotations = shouldProcessAnnotations(astTransformClassLoader, spec);
+        if (shouldProcessAnnotations) {
+            // If an annotation processor is detected, we need to force Java stub generation, so the we can process annotations on Groovy classes
+            // We are forcing stub generation by tricking the groovy compiler into thinking there are java files to compile.
+            // All java files are just passed to the compile method of the JavaCompiler and aren't processed internally by the Groovy Compiler.
+            // Since we're maintaining our own list of Java files independent what's passed by the Groovy compiler, adding a non-existant java file
+            // to the sources won't cause any issues.
+            unit.addSources(new File[] {new File("ForceStubGeneration.java")});
+        }
+
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
         unit.setCompilerFactory(new JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
                 return new JavaCompiler() {
                     public void compile(List<String> files, CompilationUnit cu) {
-                        if (shouldProcessAnnotations(astTransformClassLoader, spec)) {
+                        if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSource(spec.getSource().plus(new SimpleFileCollection((File) config.getJointCompilationOptions().get("stubDir")).getAsFileTree()));
+                            spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
                             spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-                            spec.getCompileOptions().getCompilerArgs().add(((File) config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+                            spec.getCompileOptions().getCompilerArgs().add(stubDir.getAbsolutePath());
                         }
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
