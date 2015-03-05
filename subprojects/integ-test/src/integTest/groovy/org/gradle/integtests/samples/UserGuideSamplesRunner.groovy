@@ -132,6 +132,11 @@ class UserGuideSamplesRunner extends Runner {
 
             executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
 
+            if (!GradleContextualExecuter.longLivingProcess) {
+                //suppress daemon usage suggestions
+                executer.withArgument("--no-daemon")
+            }
+
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
                 def expectedResult = buildContext.userGuideOutputDir.file(run.outputFile).text
