@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
 
+import java.util.List;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
@@ -37,5 +39,12 @@ public interface TestResultVersion1 {
      * @return The completion time
      */
     long getEndTime();
+
+    /**
+     * Returns the exceptions that occurred while running the test, if any.
+     *
+     * @return The exceptions that occurred
+     */
+    List<Throwable> getExceptions();
 
 }

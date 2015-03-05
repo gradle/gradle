@@ -174,28 +174,32 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testFailedEvent.descriptor.className == 'example.MyTest' &&
                 testFailedEvent.descriptor.parent == null &&
                 ((TestFailedEvent) testFailedEvent).result.startTime > 0 &&
-                ((TestFailedEvent) testFailedEvent).result.endTime > ((TestFailedEvent) testFailedEvent).result.startTime
+                ((TestFailedEvent) testFailedEvent).result.endTime > ((TestFailedEvent) testFailedEvent).result.startTime &&
+                ((TestFailedEvent) testFailedEvent).result.exceptions.findAll { it.class == AssertionError }.size() == 1
         def testClassFailedEvent = result[5]
         testClassFailedEvent instanceof TestSuiteFailedEvent &&
                 testClassFailedEvent.descriptor.name == 'example.MyTest' &&
                 testClassFailedEvent.descriptor.className == 'example.MyTest' &&
                 testClassFailedEvent.descriptor.parent == null &&
                 ((TestSuiteFailedEvent) testClassFailedEvent).result.startTime > 0 &&
-                ((TestSuiteFailedEvent) testClassFailedEvent).result.endTime > ((TestSuiteFailedEvent) testClassFailedEvent).result.startTime
+                ((TestSuiteFailedEvent) testClassFailedEvent).result.endTime > ((TestSuiteFailedEvent) testClassFailedEvent).result.startTime &&
+                ((TestSuiteFailedEvent) testClassFailedEvent).result.exceptions.size() == 0
         def testProcessFailedEvent = result[6]
         testProcessFailedEvent instanceof TestSuiteFailedEvent &&
                 testProcessFailedEvent.descriptor.name == 'Gradle Test Executor 2' &&
                 testProcessFailedEvent.descriptor.className == null &&
                 testProcessFailedEvent.descriptor.parent == null &&
                 ((TestSuiteFailedEvent) testProcessFailedEvent).result.startTime > 0 &&
-                ((TestSuiteFailedEvent) testProcessFailedEvent).result.endTime > ((TestSuiteFailedEvent) testProcessFailedEvent).result.startTime
+                ((TestSuiteFailedEvent) testProcessFailedEvent).result.endTime > ((TestSuiteFailedEvent) testProcessFailedEvent).result.startTime &&
+                ((TestSuiteFailedEvent) testProcessFailedEvent).result.exceptions.size() == 0
         def rootFailedEvent = result[7]
         rootFailedEvent instanceof TestSuiteFailedEvent &&
                 rootFailedEvent.descriptor.name == 'Test Run' &&
                 rootFailedEvent.descriptor.className == null &&
                 rootFailedEvent.descriptor.parent == null &&
                 ((TestSuiteFailedEvent) rootFailedEvent).result.startTime > 0 &&
-                ((TestSuiteFailedEvent) rootFailedEvent).result.endTime > ((TestSuiteFailedEvent) rootFailedEvent).result.startTime
+                ((TestSuiteFailedEvent) rootFailedEvent).result.endTime > ((TestSuiteFailedEvent) rootFailedEvent).result.startTime &&
+                ((TestSuiteFailedEvent) rootFailedEvent).result.exceptions.size() == 0
     }
 
     @ToolingApiVersion(">=2.4")

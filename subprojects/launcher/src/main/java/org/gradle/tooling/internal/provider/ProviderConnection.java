@@ -239,6 +239,11 @@ public class ProviderConnection {
                                 return testProgressEvent.getResult().getEndTime();
                             }
 
+                            @Override
+                            public List<Throwable> getExceptions() {
+                                return testProgressEvent.getResult().getFailures();
+                            }
+
                         };
                     }
 

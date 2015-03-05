@@ -90,7 +90,7 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime());
+        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), result.getExceptions());
     }
 
 }

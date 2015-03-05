@@ -16,6 +16,8 @@
 package org.gradle.tooling.internal.provider;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 public class InternalTestProgressEvent implements Serializable {
 
@@ -75,10 +77,12 @@ public class InternalTestProgressEvent implements Serializable {
 
         private final long startTime;
         private final long endTime;
+        private final List<Throwable> failures;
 
-        public InternalTestResult(long startTime, long endTime) {
+        public InternalTestResult(long startTime, long endTime, List<Throwable> failures) {
             this.startTime = startTime;
             this.endTime = endTime;
+            this.failures = failures == null ? Collections.<Throwable>emptyList() : failures;
         }
 
         public long getStartTime() {
@@ -87,6 +91,10 @@ public class InternalTestProgressEvent implements Serializable {
 
         public long getEndTime() {
             return endTime;
+        }
+
+        public List<Throwable> getFailures() {
+            return failures;
         }
 
     }

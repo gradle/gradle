@@ -22,7 +22,6 @@ import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -184,13 +183,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             }
 
             @Override
-            public Throwable getException() {
-                return null;
-            }
-
-            @Override
             public List<Throwable> getExceptions() {
-                return Collections.emptyList();
+                return testResult.getExceptions();
             }
 
         };

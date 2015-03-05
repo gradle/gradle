@@ -42,13 +42,6 @@ public interface TestFailure {
     long getEndTime();
 
     /**
-     * The exception that occurred while running the test, if any.
-     *
-     * @return the exception, null if the test failed without an exception
-     */
-    Throwable getException();
-
-    /**
      * The exceptions that occurred while running the test, if any.
      *
      * @return the exceptions, empty if the test failed without any exceptions
