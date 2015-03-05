@@ -218,8 +218,8 @@ public class ProviderConnection {
                             }
 
                             @Override
-                            public TestDescriptorVersion1 getParent() {
-                                return null;
+                            public Object getParentId() {
+                                return testProgressEvent.getDescriptor().getParentId();
                             }
 
                         };

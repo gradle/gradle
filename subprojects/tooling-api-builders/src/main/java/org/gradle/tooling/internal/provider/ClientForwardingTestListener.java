@@ -86,7 +86,8 @@ class ClientForwardingTestListener implements TestListener {
         Object id = ((TestDescriptorInternal) suite).getId();
         String name = suite.getName();
         String className = suite.getClassName();
-        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, className);
+        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, className, parentId);
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
