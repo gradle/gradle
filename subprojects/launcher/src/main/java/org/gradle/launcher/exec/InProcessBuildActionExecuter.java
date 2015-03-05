@@ -63,7 +63,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         if (!actionParameters.isDaemonUsageConfiguredExplicitly() && !buildEnvironment.isLongLivingProcess() && !OperatingSystem.current().isWindows()) {
             StyledTextOutput styledTextOutput = textOutputFactory.create(InProcessBuildActionExecuter.class, LogLevel.LIFECYCLE);
             styledTextOutput.println();
-            styledTextOutput.formatln("This build could be faster, please consider using the daemon: {}", documentationRegistry.getDocumentationFor("gradle_daemon"));
+            styledTextOutput.println("This build could be faster, please consider using the daemon: " + documentationRegistry.getDocumentationFor("gradle_daemon"));
         }
     }
 

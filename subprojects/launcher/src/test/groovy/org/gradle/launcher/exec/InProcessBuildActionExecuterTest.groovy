@@ -193,7 +193,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * textOutput.println()
 
         and:
-        1 * textOutput.formatln("This build could be faster, please consider using the daemon: {}", DAEMON_DOCS_URL)
+        1 * textOutput.println("This build could be faster, please consider using the daemon: $DAEMON_DOCS_URL")
     }
 
     @Requires(WINDOWS)
