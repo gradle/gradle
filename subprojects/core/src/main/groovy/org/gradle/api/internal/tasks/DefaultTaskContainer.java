@@ -199,7 +199,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public void discoverTasks() {
-        project.runModelRulesBlock();
+        project.fireDeferredConfiguration();
         project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
     }
 

@@ -33,6 +33,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
+import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -81,6 +82,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock());
+    }
+
+    protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
+        return new DeferredProjectConfiguration(project);
     }
 
     protected FileResolver createFileResolver() {

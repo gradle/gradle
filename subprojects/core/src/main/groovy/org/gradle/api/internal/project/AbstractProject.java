@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
@@ -54,11 +53,11 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
@@ -141,8 +140,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private String description;
 
     private final Path path;
-
-    private SingleRunCompositeRunnable modelRulesBlockRunner = new SingleRunCompositeRunnable();
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -968,30 +965,19 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         }
     }
 
-    public void addModelRulesBlockRunner(Runnable runnable) {
-        modelRulesBlockRunner.add(runnable);
+    @Inject
+    protected DeferredProjectConfiguration getDeferredProjectConfiguration() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    public void addDeferredConfiguration(Runnable configuration) {
+        getDeferredProjectConfiguration().add(configuration);
     }
 
     @Override
-    public void runModelRulesBlock() {
-        modelRulesBlockRunner.run();
+    public void fireDeferredConfiguration() {
+        getDeferredProjectConfiguration().fire();
     }
 
-    private static class SingleRunCompositeRunnable implements Runnable {
-        private boolean hasRun;
-        private LinkedList<Runnable> runnables = Lists.newLinkedList();
-
-        public void run() {
-            if (!hasRun) {
-                hasRun = true;
-                for (Runnable runnable : runnables) {
-                    runnable.run();
-                }
-            }
-        }
-
-        public void add(Runnable runnable) {
-            runnables.add(runnable);
-        }
-    }
 }
