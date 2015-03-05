@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -74,13 +75,13 @@ public class MavenResolver extends ExternalResourceResolver {
 
     protected void doResolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
-            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
+            MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
                 resolveUniqueSnapshotDependency(dependency, moduleComponentIdentifier, result, uniqueSnapshotVersion);
                 return;
             }
-        } else if (isUniqueSnapshot(moduleComponentIdentifier)) {
-            final MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
+        } else {
+            MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
             if (uniqueSnapshotVersion != null) {
                 ModuleComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
                 resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
@@ -159,6 +160,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return null;
     }
 
+    @Nullable
     private MavenUniqueSnapshotModuleSource composeUniqueSnapshotVersion(ModuleComponentIdentifier moduleComponentIdentifier) {
         Matcher matcher = UNIQUE_SNAPSHOT.matcher(moduleComponentIdentifier.getVersion());
         if (!matcher.matches()) {
@@ -254,12 +256,6 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
         return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
-    }
-
-    private boolean isUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
-        String version = moduleComponentIdentifier.getVersion();
-        Matcher matcher = UNIQUE_SNAPSHOT.matcher(version);
-        return matcher.matches();
     }
 
     private ModuleComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
