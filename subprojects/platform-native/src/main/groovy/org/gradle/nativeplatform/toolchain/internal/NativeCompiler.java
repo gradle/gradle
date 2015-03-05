@@ -24,7 +24,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
