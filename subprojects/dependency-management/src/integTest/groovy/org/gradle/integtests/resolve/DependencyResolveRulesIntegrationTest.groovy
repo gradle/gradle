@@ -45,11 +45,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-	            eachDependency {
-                    if (it.requested.group == 'org.utils' && it.requested.name != 'optional-lib') {
-                        it.useVersion '1.5'
+                dependencySubstitution {
+                    eachModule {
+                        if (it.requested.group == 'org.utils' && it.requested.module != 'optional-lib') {
+                            it.useVersion '1.5'
+                        }
                     }
-	            }
+                }
 	            failOnVersionConflict()
 	        }
 """
@@ -79,11 +81,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-	            eachDependency {
-                    if (it.requested.group == 'org.utils') {
-                        it.useVersion '1.5'
+                dependencySubstitution {
+                    eachModule {
+                        if (it.requested.group == 'org.utils') {
+                            it.useVersion '1.5'
+                        }
                     }
-	            }
+                }
 	        }
 
 	        task check << {
@@ -118,20 +122,22 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-	            eachDependency {
-	                assert it.target == it.selector
-                    it.useVersion '1.4'
-	            }
-	            eachDependency {
-	                assert it.target.version == '1.4'
-	                assert it.target.module == it.requested.name
-	                assert it.target.group == it.requested.group
-                    it.useVersion '1.5'
-	            }
-	            eachDependency {
-	                assert it.target.version == '1.5'
-	                //don't change the version
-	            }
+                dependencySubstitution {
+                    eachModule {
+                        assert it.target == it.requested
+                        it.useVersion '1.4'
+                    }
+                    eachModule {
+                        assert it.target.version == '1.4'
+                        assert it.target.module == it.requested.module
+                        assert it.target.group == it.requested.group
+                        it.useVersion '1.5'
+                    }
+                    eachModule {
+                        assert it.target.version == '1.5'
+                        //don't change the version
+                    }
+                }
 	        }
 
 	        task check << {
@@ -170,9 +176,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-	            eachDependency {
-                    it.useVersion it.requested.version
-	            }
+                dependencySubstitution {
+    	            eachModule {
+                        it.useVersion it.requested.version
+	                }
+                }
 	        }
 
 	        task check << {
@@ -212,10 +220,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-	            eachDependency {
-                    assert it.target.version == '1.5'
-                    it.useVersion '1.3'
-	            }
+                dependencySubstitution {
+                    eachModule {
+                        assert it.target.version == '1.5'
+                        it.useVersion '1.3'
+                    }
+                }
 	        }
 
 	        task check << {
@@ -255,12 +265,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5")
 
-	            eachDependency {
-                    if (it.requested.name == 'api') {
-                        assert it.target == it.selector
+                dependencySubstitution {
+                    withModule("org.utils:api") {
+                        assert it.target == it.requested
                         it.useVersion '1.5'
                     }
-	            }
+                }
 	        }
 
 	        task check << {
@@ -301,7 +311,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 it.useVersion '1.+'
 	        }
 
@@ -324,18 +334,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can replace external dependency with project dependency"()
     {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
         settingsFile << 'include "api", "impl"'
-
         buildFile << """
             allprojects {
                 $common
-
                 group "org.utils"
-            }
-
-            project(":api") {
                 version = "1.6"
             }
 
@@ -344,7 +347,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     conf group: "org.utils", name: "api", version: "1.5", configuration: "conf"
                 }
 
-                configurations.conf.resolutionStrategy.eachDependency {
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
                     it.useTarget project(":api")
                 }
 
@@ -373,6 +376,55 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace project dependency with external dependency"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                $common
+
+                group "org.utils"
+                version = "1.6"
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf project(path: ":api", configuration: "default")
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
+                    it.useTarget group: "org.utils", name: "api", version: "1.5"
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ProjectComponentSelector
+                    assert deps[0].requested.projectPath == ":api"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+                    assert deps[0].selected.componentId.group == "org.utils"
+                    assert deps[0].selected.componentId.module == "api"
+                    assert deps[0].selected.componentId.version == "1.5"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
+            }
+"""
+
+        when:
+        run("impl:check")
+
+        then:
+        noExceptionThrown()
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
@@ -387,9 +439,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 // a:1.2 is blacklisted, 1.4 should be used instead:
-                if (it.requested.name == 'a' && it.requested.version == '1.2') {
+                if (it.requested.module == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.4'
                 }
 	        }
@@ -425,9 +477,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 // a:1.2 is blacklisted, 1.2.1 should be used instead:
-                if (it.requested.name == 'a' && it.requested.version == '1.2') {
+                if (it.requested.module == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.2.1'
                 }
 	        }
@@ -460,7 +512,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:default'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 if (it.requested.version == 'default') {
                     it.useVersion '1.3'
                 }
@@ -494,7 +546,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:impl:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 if (it.requested.version == 'default') {
                     it.useVersion '1.3'
                 }
@@ -528,7 +580,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 it.useVersion '1.123.15' //does not exist
 	        }
 
@@ -583,9 +635,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             List requested = []
 
             configurations.conf.resolutionStrategy {
-	            eachDependency {
-                    requested << "\$it.requested.name:\$it.requested.version"
-	            }
+                dependencySubstitution {
+                    eachModule {
+                        requested << "\$it.requested.module:\$it.requested.version"
+                    }
+                }
 	        }
 
 	        task check << {
@@ -617,12 +671,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-	            eachDependency {
-                    it.useVersion '1.3' //happy
-	            }
-                eachDependency {
-                    throw new RuntimeException("Unhappy :(")
-	            }
+                dependencySubstitution {
+                    eachModule {
+                        it.useVersion '1.3' //happy
+                    }
+                    eachModule {
+                        throw new RuntimeException("Unhappy :(")
+                    }
+                }
 	        }
 """
 
@@ -649,10 +705,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:2.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.name == 'a') {
-                    it.useTarget(it.requested.group + ':b:2.1')
-                }
+            configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:a") {
+                it.useTarget(it.requested.group + ':b:2.1')
 	        }
 
 	        task check << {
@@ -692,9 +746,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:b:1.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 if (it.requested.group == 'foo') {
-                    it.useTarget('org:' + it.requested.name + ':' + it.requested.version)
+                    it.useTarget('org:' + it.requested.module + ':' + it.requested.version)
                 }
 	        }
 """
@@ -726,7 +780,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 if (it.requested.group == 'foo') {
                     it.useTarget group: 'org', name: 'b', version: '1.0'
                 }
@@ -753,7 +807,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
                 it.useTarget "foobar"
 	        }
 """
@@ -778,8 +832,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'org:a:2.0'
             }
 
-            configurations.conf.resolutionStrategy.eachDependency {
-                if (it.requested.name == 'a' && it.requested.version == '1.0') {
+            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+                if (it.requested.module == 'a' && it.requested.version == '1.0') {
                     it.useTarget group: 'org', name: 'c', version: '1.1'
                 }
 	        }
