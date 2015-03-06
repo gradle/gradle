@@ -25,6 +25,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.Adler32;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
@@ -37,13 +38,14 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
     public ClassPathSnapshot snapshot(ClassPath classPath) {
         List<String> visitedFilePaths = Lists.newLinkedList();
         Set<File> visitedDirs = Sets.newLinkedHashSet();
-        List<byte[]> combinedHash = Lists.newLinkedList();
         List<File> cpFiles = classPath.getAsFiles();
-        hash(combinedHash, visitedFilePaths, visitedDirs, cpFiles.toArray(new File[cpFiles.size()]));
-        return new ClassPathSnapshotImpl(visitedFilePaths, combinedHash);
+
+        Adler32 checksum = new Adler32();
+        hash(checksum, visitedFilePaths, visitedDirs, cpFiles.toArray(new File[cpFiles.size()]));
+        return new ClassPathSnapshotImpl(visitedFilePaths, checksum.getValue());
     }
 
-    private void hash(List<byte[]> combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, File[] toHash) {
+    private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, File[] toHash) {
         for (File file : toHash) {
             file = GFileUtils.canonicalise(file);
             if (file.isDirectory()) {
@@ -54,7 +56,7 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
                 }
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
-                combinedHash.add(fileSnapshotter.snapshot(file).getHash());
+                combinedHash.update(fileSnapshotter.snapshot(file).getHash());
             }
             //else an empty folder - a legit situation
         }
@@ -62,30 +64,33 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
     private static class ClassPathSnapshotImpl implements ClassPathSnapshot {
         private final List<String> files;
-        private final List<byte[]> combinedHash;
+        private final long hash;
 
-        public ClassPathSnapshotImpl(List<String> files, List<byte[]> combinedHash) {
+        public ClassPathSnapshotImpl(List<String> files, long hash) {
             assert files != null;
-            assert combinedHash != null;
 
             this.files = files;
-            this.combinedHash = combinedHash;
+            this.hash = hash;
         }
 
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ClassPathSnapshotImpl)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
+
             ClassPathSnapshotImpl that = (ClassPathSnapshotImpl) o;
-            return this.files.equals(that.files) && this.combinedHash.equals(that.combinedHash);
+
+            return hash == that.hash && files.equals(that.files);
         }
 
+        @Override
         public int hashCode() {
             int result = files.hashCode();
-            result = 31 * result + combinedHash.hashCode();
+            result = 31 * result + (int) (hash ^ (hash >>> 32));
             return result;
         }
     }
