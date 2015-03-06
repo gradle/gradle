@@ -36,7 +36,7 @@ class DefaultObjectFileExtensionCalculatorTest extends Specification {
         where:
         isWindows | isPreCompiledHeader | extension
         true      | true                | ".pch"
-        false     | true                | ".h.pch"
+        false     | true                | ".h.gch"
         true      | false               | ".obj"
         false     | false               | ".o"
     }

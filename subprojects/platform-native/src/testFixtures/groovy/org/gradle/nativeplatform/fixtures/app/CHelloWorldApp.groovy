@@ -51,8 +51,8 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     List<SourceFile> librarySources = [
         sourceFile("c", "hello.c", """
-            #include <stdio.h>
             #include "hello.h"
+            #include <stdio.h>
 
             #ifdef FRENCH
             char* greeting() {

@@ -95,6 +95,8 @@ public abstract class NativeCompilerTest extends Specification {
             getAllArgs() >> ["-firstArg", "-secondArg"]
             getIncludeRoots() >> [ includeDir ]
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeaderFile() >> null
+            getPreCompiledHeaderObjectFile() >> null
         }
 
         and:
@@ -119,6 +121,8 @@ public abstract class NativeCompilerTest extends Specification {
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeaderFile() >> null
+            getPreCompiledHeaderObjectFile() >> null
         }
 
         and:
@@ -151,6 +155,8 @@ public abstract class NativeCompilerTest extends Specification {
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeaderFile() >> null
+            getPreCompiledHeaderObjectFile() >> null
         }
         and:
         invocationContext.getArgAction() >> action
@@ -178,6 +184,8 @@ public abstract class NativeCompilerTest extends Specification {
             getIncludeRoots() >> [ includeDir ]
             getTempDir() >> testDir
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeaderFile() >> null
+            getPreCompiledHeaderObjectFile() >> null
         }
 
         and:

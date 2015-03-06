@@ -37,9 +37,4 @@ public interface NativeDependencySet {
      * Returns the files to use at runtime.
      */
     FileCollection getRuntimeFiles();
-
-    /**
-     * Returns the pre-compiled header to use at compile time
-     */
-    FileCollection getPreCompiledHeader();
 }

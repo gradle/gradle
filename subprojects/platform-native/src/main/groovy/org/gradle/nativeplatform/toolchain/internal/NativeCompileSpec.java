@@ -67,5 +67,13 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     boolean isPreCompiledHeader();
 
-    void setPreCompiledHeader(boolean flag);
+    void setIsPreCompiledHeader(boolean flag);
+
+    File getPreCompiledHeaderFile();
+
+    void setPreCompiledHeaderFile(File preCompiledHeaderFile);
+
+    File getPreCompiledHeaderObjectFile();
+
+    void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile);
 }

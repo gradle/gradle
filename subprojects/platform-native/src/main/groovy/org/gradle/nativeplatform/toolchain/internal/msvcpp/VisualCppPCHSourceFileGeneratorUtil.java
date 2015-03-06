@@ -32,8 +32,10 @@ public class VisualCppPCHSourceFileGeneratorUtil {
     private static SourceFileExtensionCalculator calculator = new SourceFileExtensionCalculator();
 
     public static <T extends NativeCompileSpec> File generatePCHSourceFile(T original, File sourceFile) {
-        File generatedSource = new File(original.getTempDir(), FilenameUtils.removeExtension(sourceFile.getName()).concat(calculator.transform(original.getClass())));
-        File headerFileCopy = new File(original.getTempDir(), sourceFile.getName());
+        File generatedSourceDir = new File(original.getTempDir(), "pchGeneratedSource");
+        generatedSourceDir.mkdirs();
+        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(calculator.transform(original.getClass())));
+        File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());
         try {
             FileUtils.copyFile(sourceFile, headerFileCopy);
             FileUtils.writeStringToFile(generatedSource, "#include \"".concat(headerFileCopy.getName()).concat("\""));

@@ -32,8 +32,10 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private boolean positionIndependentCode;
-    private boolean preCompiledHeader;
     private BuildOperationLogger oplogger;
+    private boolean isPreCompiledHeader;
+    private File preCompiledHeaderFile;
+    private File preCompiledHeaderObjectFile;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -115,12 +117,32 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
 
     @Override
     public boolean isPreCompiledHeader() {
-        return preCompiledHeader;
+        return isPreCompiledHeader;
     }
 
     @Override
-    public void setPreCompiledHeader(boolean preCompiledHeader) {
-        this.preCompiledHeader = preCompiledHeader;
+    public void setIsPreCompiledHeader(boolean preCompiledHeader) {
+        this.isPreCompiledHeader = preCompiledHeader;
+    }
+
+    @Override
+    public File getPreCompiledHeaderObjectFile() {
+        return preCompiledHeaderObjectFile;
+    }
+
+    @Override
+    public void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile) {
+        this.preCompiledHeaderObjectFile = preCompiledHeaderObjectFile;
+    }
+
+    @Override
+    public File getPreCompiledHeaderFile() {
+        return preCompiledHeaderFile;
+    }
+
+    @Override
+    public void setPreCompiledHeaderFile(File pchFile) {
+        this.preCompiledHeaderFile = pchFile;
     }
 
     private void addAll(List<File> list, Iterable<File> iterable) {

@@ -28,6 +28,7 @@ class VisualCppPCHSourceFileGeneratorUtilTest extends Specification {
     def "can generate a source file for a pre-compiled header" () {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
+        def pchSourceDir = tempDir.createDir("pchGeneratedSource")
         def headerDir = tmpDirProvider.createDir("headers")
         def sourceFile = headerDir.createFile("test.h")
         def spec = Mock(type) {
@@ -39,9 +40,9 @@ class VisualCppPCHSourceFileGeneratorUtilTest extends Specification {
 
         then:
         generated.name == "test.${extension}"
-        generated.parentFile == tempDir
+        generated.parentFile == pchSourceDir
         generated.text == "#include \"test.h\""
-        tempDir.assertContainsDescendants("test.h", "test.${extension}")
+        pchSourceDir.assertContainsDescendants("test.h", "test.${extension}")
 
         where:
         type           | extension

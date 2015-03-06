@@ -24,6 +24,7 @@ import spock.lang.Specification
 class VisualCppPCHSourceFileTransformerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     def tempDir = tmpDirProvider.createDir("temp")
+    def pchSourceDir = tempDir.createDir("pchGeneratedSource")
     def headerDir = tmpDirProvider.createDir("headers")
     def sourceFile = headerDir.createFile("test.h")
     VisualCppPCHSourceFileTransformer<CCompileSpec> transformer = new VisualCppPCHSourceFileTransformer<CCompileSpec>()
@@ -43,7 +44,7 @@ class VisualCppPCHSourceFileTransformerTest extends Specification {
             def sourceFiles = args[0]
             assert sourceFiles.size() == 1
             assert sourceFiles[0].name == "test.c"
-            assert sourceFiles[0].parentFile == tempDir
+            assert sourceFiles[0].parentFile == pchSourceDir
         }
     }
 

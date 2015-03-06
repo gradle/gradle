@@ -28,8 +28,8 @@ import java.util.List;
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
-public abstract class AbstractHeaderExportingDependentSourceSet extends AbstractHeaderExportingSourceSet
-        implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
+public abstract class AbstractHeaderExportingDependentSourceSet extends AbstractPreCompiledHeaderExportingSourceSet
+        implements PreCompiledHeaderExportingSourceSetInternal, HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
     private final List<Object> libs = new ArrayList<Object>();
     private File preCompiledHeaderFile;

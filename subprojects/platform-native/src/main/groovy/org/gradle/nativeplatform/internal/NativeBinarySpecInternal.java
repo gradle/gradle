@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -63,5 +62,5 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
      */
     void binaryInputs(FileCollection files);
 
-    Map<LanguageSourceSet, DependentSourceSet> getPreCompiledHeaderMappings();
+    Map<DependentSourceSet, FileCollection> getPreCompiledHeaderObjectMappings();
 }

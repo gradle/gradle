@@ -64,10 +64,6 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
             return empty();
         }
 
-        public FileCollection getPreCompiledHeader() {
-            return empty();
-        }
-
         private FileCollection empty() {
             return new SimpleFileCollection();
         }

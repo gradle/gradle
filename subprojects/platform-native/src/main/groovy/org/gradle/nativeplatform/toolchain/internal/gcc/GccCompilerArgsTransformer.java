@@ -49,6 +49,11 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {
+        if (spec.getPreCompiledHeaderObjectFile() != null) {
+            File headerFile = GccPCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec);
+            args.add("-include");
+            args.add(headerFile.getAbsolutePath());
+        }
         for (File file : spec.getIncludeRoots()) {
             args.add("-I");
             args.add(file.getAbsolutePath());

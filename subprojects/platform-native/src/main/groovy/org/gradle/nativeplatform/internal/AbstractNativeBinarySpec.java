@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
@@ -53,7 +52,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
-    private Map<LanguageSourceSet, DependentSourceSet> preCompiledHeaderMappings = Maps.newLinkedHashMap();
+    private Map<DependentSourceSet, FileCollection> preCompiledHeaderObjectMappings = Maps.newLinkedHashMap();
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -169,7 +168,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     protected abstract ObjectFilesToBinary getCreateOrLink();
 
     @Override
-    public Map<LanguageSourceSet, DependentSourceSet> getPreCompiledHeaderMappings() {
-        return preCompiledHeaderMappings;
+    public Map<DependentSourceSet, FileCollection> getPreCompiledHeaderObjectMappings() {
+        return preCompiledHeaderObjectMappings;
     }
 }

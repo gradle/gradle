@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 
@@ -38,9 +37,5 @@ public class DefaultNativeDependencySet implements NativeDependencySet {
 
     public FileCollection getRuntimeFiles() {
         return binary.getRuntimeFiles();
-    }
-
-    public FileCollection getPreCompiledHeader() {
-        return new SimpleFileCollection();
     }
 }

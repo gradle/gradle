@@ -16,19 +16,21 @@
 
 package org.gradle.nativeplatform.sourceset
 
+import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 
 class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def "setting a precompiled header generates a source set and compile task" () {
+    def "can set a precompiled header on a source set" () {
         given:
         def app = new CHelloWorldApp()
         settingsFile << "rootProject.name = 'test'"
-        def sourceFile = app.mainSource.writeToDir(file("src/main"))
-        def headerFile = app.libraryHeader.writeToDir(file("src/hello"))
+        app.mainSource.writeToDir(file("src/main"))
+        app.libraryHeader.writeToDir(file("src/hello")).append('\n#pragma message("<==== compiling header ====>")')
         app.librarySources.each {
-            it.writeToDir(file("src/hello"))
+            def noHeaderInclude = new SourceFile(it.path, it.name, modifyContent(it.content))
+            noHeaderInclude.writeToDir(file("src/hello"))
         }
         assert file("src/hello/headers/hello.h").exists()
 
@@ -53,14 +55,25 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         """
 
         then:
-        succeeds "mainExecutable"
-        executedAndNotSkipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        args("--info")
+        succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        output.contains("<==== compiling header ====>")
         def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
+
+        and:
+        args("--info")
+        succeeds "compileHelloSharedLibraryHelloC"
+        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        ! output.contains("<==== compiling header ====>")
     }
 
     String getSuffix() {
-        return OperatingSystem.current().isWindows() ? "pch" : "h.pch"
+        return OperatingSystem.current().isWindows() ? "pch" : "h.gch"
+    }
+
+    String modifyContent(content) {
+        return OperatingSystem.current().isWindows() ? content : content - "#include \"hello.h\""
     }
 }

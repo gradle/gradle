@@ -34,6 +34,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.internal.PreCompiledHeaderExportingSourceSetInternal;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
@@ -209,7 +210,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                 LanguageSourceSet pchSourceSet = createPreCompiledHeaderSourceSet(dependentSourceSet, serviceRegistry, languageRegistry);
                                 pchSourceSet.getSource().srcDir(dependentSourceSet.getPreCompiledHeader().getParent());
                                 pchSourceSet.getSource().include(dependentSourceSet.getPreCompiledHeader().getName());
-                                nativeBinarySpec.getPreCompiledHeaderMappings().put(pchSourceSet, dependentSourceSet);
+                                ((PreCompiledHeaderExportingSourceSetInternal)pchSourceSet).setConsumingSourceSet(dependentSourceSet);
                                 nativeBinarySpec.source(pchSourceSet);
                             }
                         }

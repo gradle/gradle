@@ -52,12 +52,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private boolean isPreCompiledHeader;
-    private ConfigurableFileCollection includePreCompiledHeader;
+    private File preCompiledHeaderFile;
+    private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
-        includePreCompiledHeader = getProject().files();
+        preCompiledHeaderInclude = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -89,8 +90,10 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
-        spec.setPreCompiledHeader(isPreCompiledHeader());
         spec.setOperationLogger(operationLogger);
+        spec.setIsPreCompiledHeader(isPreCompiledHeader());
+        spec.setPreCompiledHeaderFile(getPreCompiledHeaderFile());
+        spec.setPreCompiledHeaderObjectFile(preCompiledHeaderInclude.isEmpty() ? null : preCompiledHeaderInclude.getSingleFile());
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         operationLogger.start();
@@ -216,9 +219,28 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
+     * Returns the pre-compiled header file to be used during compilation
+     */
+    public File getPreCompiledHeaderFile() {
+        return preCompiledHeaderFile;
+    }
+
+    public void setPreCompiledHeaderFile(File preCompiledHeaderFile) {
+        this.preCompiledHeaderFile = preCompiledHeaderFile;
+    }
+
+    /**
+     * Returns the pre-compiled header object file to be used during compilation
+     */
+    @InputFiles
+    public FileCollection getPreCompiledHeaderInclude() {
+        return preCompiledHeaderInclude;
+    }
+
+    /**
      * Set the pre-compiled header the compiler should use.
      */
-    public void includePreCompiledHeader(Object preCompiledHeader) {
-        includePreCompiledHeader.from(preCompiledHeader);
+    public void preCompiledHeaderInclude(Object preCompiledHeader) {
+        preCompiledHeaderInclude.from(preCompiledHeader);
     }
 }
