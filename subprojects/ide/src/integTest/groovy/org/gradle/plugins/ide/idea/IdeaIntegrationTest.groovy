@@ -368,10 +368,13 @@ idea.project {
     void canDetectSubstitutedProjectDependency() {
         executer.withTasks('idea').run()
 
-        assertHasExpectedContents('root.ipr')
-        assertHasExpectedContents('root.iws')
-        assertHasExpectedContents('root.iml')
-        assertHasExpectedContents('api/api.iml')
+        assertHasExpectedContents('impl/impl.iml')
+    }
+
+    @Test
+    void canDetectSubstitutedExternalDependency() {
+        executer.withTasks('idea').run()
+
         assertHasExpectedContents('impl/impl.iml')
     }
 
