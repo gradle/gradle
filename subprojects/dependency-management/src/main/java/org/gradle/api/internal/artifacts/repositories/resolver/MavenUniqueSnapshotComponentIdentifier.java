@@ -57,6 +57,10 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
         return getVersion().replace(timestamp, "SNAPSHOT");
     }
 
+    public ModuleComponentIdentifier getSnapshotComponent() {
+        return DefaultModuleComponentIdentifier.newId(getGroup(), getModule(), getSnapshotVersion());
+    }
+
     public String getTimestampedVersion() {
         return getVersion().replace("SNAPSHOT", timestamp);
     }

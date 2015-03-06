@@ -77,13 +77,14 @@ public class MavenResolver extends ExternalResourceResolver {
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
-                resolveUniqueSnapshotDependency(dependency, moduleComponentIdentifier, result, uniqueSnapshotVersion);
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
                 return;
             }
         } else {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
             if (uniqueSnapshotVersion != null) {
-                ModuleComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
                 resolveUniqueSnapshotDependency(dependency, snapshotIdentifier, result, uniqueSnapshotVersion);
                 return;
             }
@@ -103,7 +104,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return metaData;
     }
 
-    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, ModuleComponentIdentifier module, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(DependencyMetaData dependency, MavenUniqueSnapshotComponentIdentifier module, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(dependency, module, result, createArtifactResolver(snapshotSource));
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             result.getMetaData().setSource(snapshotSource);
@@ -194,8 +195,17 @@ public class MavenResolver extends ExternalResourceResolver {
         return processMetaData(new DefaultMavenModuleResolveMetaData(dependency));
     }
 
-    protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        return processMetaData(metaDataParser.parseMetaData(context, cachedResource));
+    protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        MutableModuleComponentResolveMetaData metaData = metaDataParser.parseMetaData(context, cachedResource);
+        if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+            // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so map to expected id
+            MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
+            checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
+            metaData.setComponentId(snapshotComponentIdentifier);
+        } else {
+            checkMetadataConsistency(moduleComponentIdentifier, metaData);
+        }
+        return processMetaData(metaData);
     }
 
     protected static MavenModuleResolveMetaData mavenMetaData(ModuleComponentResolveMetaData metaData) {
@@ -257,7 +267,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
     }
 
-    private ModuleComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
+    private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
         return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
                 moduleComponentIdentifier.getModule(),
                 moduleComponentIdentifier.getVersion(),
