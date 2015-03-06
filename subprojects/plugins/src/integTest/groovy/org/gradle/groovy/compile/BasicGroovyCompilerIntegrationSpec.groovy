@@ -66,8 +66,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         succeeds("compileGroovy")
         !errorOutput
         file('build/classes/main/Groovy.class').exists()
-        !file('build/classes/main/Groovy$$Generated.java').exists()
-        !file('build/classes/main/Groovy$$Generated.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
@@ -83,14 +83,61 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         compileErrorOutput.contains 'unable to resolve class'
         failure.assertHasCause(compilationFailureMessage)
 
-        // Stubs are not generated for pure groovy builds
+        file('build/classes/stub/Groovy.java').exists()
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "compileBadCodeWithoutAnnotationProcessor"() {
+        when:
+        writeAnnotationProcessingBuild(
+                false,
+                "", // no Java
+                "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+        )
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // No Groovy stubs will be created if there are no java files
+        // and an annotation processor is not on the classpath
         !file('build/classes/stub/Groovy.java').exists()
         !file('build/classes/main/Groovy.class').exists()
         !file('build/classes/main/Groovy$$Generated.java').exists()
         !file('build/classes/main/Groovy$$Generated.class').exists()
     }
 
-    def "jointCompileBadCode"() {
+    def "compileBadCodeWithAnnotationProcessorDisabled"() {
+        when:
+        writeAnnotationProcessingBuild(
+                true,
+                "", // no Java
+                "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+        )
+
+        buildFile << """
+            compileGroovy {
+                options.compilerArgs << '-proc:none'
+            }
+        """
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because annotation processing is disabled
+        // No Groovy stubs will be created
+        !file('build/classes/stub/Groovy.java').exists()
+        !file('build/classes/main/Groovy.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "jointCompileBadCodeWithoutAnnotationProcessor"() {
         when:
         writeAnnotationProcessingBuild(
                 false,
@@ -104,7 +151,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause(compilationFailureMessage)
 
         // If there is no annotation processor on the classpath,
-        // the Person stub class won't be compiled, because it is not
+        // the Groovy stub class won't be compiled, because it is not
         // referenced by any java code in the joint compile
         file('build/classes/stub/Groovy.java').exists()
         !file('build/classes/main/Groovy.class').exists()
