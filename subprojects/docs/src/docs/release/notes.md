@@ -231,9 +231,18 @@ The arguments passed to this would include the path to the source file and outpu
 arguments to the command-line tool instead of "per-file" arguments. We've changed it so that `withArguments()` is called once per 
 task execution and does not contain any specific file arguments.  Changes to arguments using this method will affect all source files.
 
-### On the fly compilation of Groovy classes located in external scripts when compiling build scripts has been disabled
+### Implicit Groovy source compilation while compiling build script is now disabled
 
-TBD
+The Groovy compiler by default looks for dependencies in source form before looking for them in class form.
+That is, if Groovy code being compiled references `foo.bar.MyClass` then the compiler will look for `foo/bar/MyClass.groovy` on the classpath.
+If it finds such a file, it will try to compile it.
+If it doesn't it will then look for a corresponding class file.
+
+As of Gradle 2.4, this feature has been disabled for _build script_ compilation.
+It does not affect the compilation of “application” Groovy code (e.g. `src/main/groovy`).
+It has been disabled to make build script compilation faster.
+
+If you were relying on this feature, please use the [`buildSrc` feature](userguide/organizing_build_logic.html#sec:build_sources) as a replacement.
 
 ### Changes to Groovy compilation when annotation processors are present
 
