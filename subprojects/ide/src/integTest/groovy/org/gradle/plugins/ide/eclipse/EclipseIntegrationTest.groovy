@@ -353,8 +353,47 @@ project(":impl") {
 
         //then
         def implClasspathFile = parseFile([:], "impl/.classpath")
+        // <classpathentry kind="src" path="/api" exported="true"/>
         def sourceEntries = findEntries(implClasspathFile, "src")
         assert sourceEntries*.@path == ["/api"]
+    }
+
+    @Test
+    void canDetectSubstitutedExternalDependency() {
+        runEclipseTask("""
+include "api", "impl"
+rootProject.name = 'root'
+""", """
+allprojects {
+    apply plugin: "java"
+    apply plugin: "eclipse"
+}
+
+project(":impl") {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile project(":api")
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (it.requested.name == 'api') {
+                it.useTarget "junit:junit:4.7"
+            }
+        }
+    }
+}
+""")
+
+        //then
+        def implClasspathFile = parseFile([:], "impl/.classpath")
+        // <classpathentry kind="lib" path="@CACHE_DIR@/junit/junit/4.7/@SHA1@/junit-4.7.jar" exported="true"/>
+        def libEntries = findEntries(implClasspathFile, "lib")
+        assert libEntries.size() == 1
+        assert libEntries[0].@path ==~ /.*\/junit\/junit\/4.7\/[a-z0-9]{40}\/junit-4.7.jar/
     }
 
     @Test
