@@ -16,16 +16,19 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
-public class InMemoryNonExclusiveStore implements PersistentStore {
+import java.util.Map;
+
+public class NonThreadsafeInMemoryStore implements PersistentStore {
 
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new InMemoryNotSerializingCache<K, V>();
+        return new CacheImpl<K, V>();
     }
 
     @Override
@@ -46,5 +49,26 @@ public class InMemoryNonExclusiveStore implements PersistentStore {
     @Override
     public void longRunningOperation(String operationDisplayName, Runnable action) {
         action.run();
+    }
+
+    private static class CacheImpl<K, V> implements PersistentIndexedCache<K, V> {
+
+        Map<K, V> entries = Maps.newHashMap();
+
+        @Override
+        public V get(K key) {
+            return entries.get(key);
+        }
+
+        @Override
+        public void put(K key, V value) {
+            entries.put(key, value);
+        }
+
+        @Override
+        public void remove(K key) {
+            entries.remove(key);
+
+        }
     }
 }
