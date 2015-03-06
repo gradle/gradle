@@ -17,6 +17,7 @@
 
 package org.gradle.java.compile
 
+import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
@@ -339,6 +340,20 @@ class Main {
                 }
             }
         }
+    }
+
+    def "cant compile against gradle base services"() {
+        def gradleBaseServicesClass = Action
+
+        when:
+        file("src/main/java/Java.java") << """
+            import ${gradleBaseServicesClass.name};
+            public class Java {}
+        """
+
+        then:
+        fails("compileJava")
+        compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
     }
 
 }

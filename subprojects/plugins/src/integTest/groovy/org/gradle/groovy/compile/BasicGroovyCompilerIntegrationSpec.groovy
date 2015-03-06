@@ -360,6 +360,24 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         succeeds("compileGroovy")
     }
 
+    def "cant compile against gradle base services"() {
+        def gradleBaseServicesClass = Action
+        buildScript """
+            apply plugin: 'groovy'
+            repositories { mavenCentral() }
+        """
+
+        when:
+        file("src/main/groovy/Groovy.groovy") << """
+            import ${gradleBaseServicesClass.name}
+            class Groovy {}
+        """
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains("unable to resolve class ${gradleBaseServicesClass.name}")
+    }
+
     protected ExecutionResult run(String... tasks) {
         configureGroovy()
         super.run(tasks)
