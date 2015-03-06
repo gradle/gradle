@@ -17,7 +17,6 @@
 
 package org.gradle.java.compile
 
-import com.google.common.collect.Queues
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
