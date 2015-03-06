@@ -2,6 +2,30 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Improved performance of Gradle Daemon via class reuse
+
+The [Gradle Daemon](userguide/gradle_daemon.html) is now much smarter about reusing classes across builds.
+This makes all Gradle builds faster when using the Daemon, and builds that use non-core plugins in particular.
+This feature is completely transparent and applies to all builds.
+
+The Daemon is a persistent process.
+For a long time it has reused the Gradle core infrastructure and plugins across builds.
+This allows these classes to be loaded _once_ during a “session”, instead of for each build (as is the case when not using the Daemon).
+The level of class reuse has been greatly improved in Gradle 2.4 to also cover build scripts and third-party plugins.
+
+This improves performance in several ways.
+Class loading is expensive and by reusing classes this just happens less.
+Classes also reside in memory and with the Daemon being a persistent process reuse also reduces memory usage.
+This also reduces the severity of class loader leaks (because fewer class loaders actually leak) which again reduces memory usage.
+
+Perhaps more subtly, reusing classes across builds also improves performance by giving the JVM more opportunity to optimize the code.
+The optimizer typically improves build performance _dramatically_ over the first half dozen builds in a JVM.
+
+The [Tooling API](userguide/embedding.html), which allows Gradle to be embedded in IDEs automatically uses the Gradle Daemon.
+The Gradle integration in IDEs such as Android Studio, Eclipse, IntelliJ IDEA and NetBeans also benefits from these performance improvements.
+
+If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge you to try it out with Gradle 2.4.
+
 ### Daemon health monitoring
 
 The daemon actively monitors its health and may expire earlier if its performance degrades.
@@ -46,18 +70,6 @@ Gradle now supports S3 backed repositories. Here's an example on how to declare 
 S3 backed repositories can be used with both the `ivy-publish` and `maven-publish` plugins, as well as an Ivy repository associated with an `Upload` task.
 
 A big thank you goes to Adrian Kelly for implementing this feature.
-
-### Improved performance with class loader caching
-
-We want each new version of Gradle to perform better.
-Gradle is faster and less memory hungry when class loaders are reused between builds.
-The daemon process can cache the class loader instances, and consequently, the loaded classes.
-This unlocks modern jvm optimizations that lead to faster execution of consecutive builds.
-This also means that if the class loader is reused, static state is preserved from the previous build.
-Class loaders are not reused when build script classpath changes (for example, when the build script file is changed).
-
-In the reference project, we observed 10% build speed improvement for the initial build invocations in given daemon process.
-Later build invocations perform even better in comparison to Gradle daemon without classloader caching.
 
 ### Google Test support (i)
 
