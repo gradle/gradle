@@ -84,7 +84,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     public static ModuleComponentIdentifier newId(String group, String name, String version) {

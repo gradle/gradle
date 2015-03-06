@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.internal.component.model.DependencyMetaData;
 
@@ -39,7 +40,13 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleDescriptor descriptor, String packaging, boolean relocated) {
+        super(DefaultModuleVersionIdentifier.newId(componentId), descriptor, componentId);
+        this.packaging = packaging;
+        this.relocated = relocated;
+    }
+
+    private DefaultMavenModuleResolveMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
         super(id, descriptor, componentId);
         this.packaging = packaging;
         this.relocated = relocated;

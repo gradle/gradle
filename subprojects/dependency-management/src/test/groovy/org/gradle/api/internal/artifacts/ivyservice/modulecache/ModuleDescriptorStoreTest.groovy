@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
-import org.gradle.internal.resource.local.PathKeyFileStore
+import org.gradle.internal.resolve.resolver.DependencyToComponentResolver
 import org.gradle.internal.resource.local.LocallyAvailableResource
+import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,7 +33,6 @@ class ModuleDescriptorStoreTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder
     ModuleDescriptorStore store
     PathKeyFileStore pathKeyFileStore = Mock()
-    ModuleRevisionId moduleRevisionId = Mock()
     ModuleComponentRepository repository = Mock()
     LocallyAvailableResource fileStoreEntry = Mock()
     ModuleDescriptor moduleDescriptor = Mock()
@@ -49,7 +47,6 @@ class ModuleDescriptorStoreTest extends Specification {
         _ * moduleComponentIdentifier.group >> "org.test"
         _ * moduleComponentIdentifier.module >> "testArtifact"
         _ * moduleComponentIdentifier.version >> "1.0"
-        _ * moduleDescriptor.getModuleRevisionId() >> moduleRevisionId
     }
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
@@ -68,12 +65,9 @@ class ModuleDescriptorStoreTest extends Specification {
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
-        _ * moduleRevisionId.organisation >> "org.test"
-        _ * moduleRevisionId.name >> "testArtifact"
-        _ * moduleRevisionId.revision >> "1.0"
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
         when:
-        store.putModuleDescriptor(repository, moduleDescriptor);
+        store.putModuleDescriptor(repository, moduleComponentIdentifier, moduleDescriptor);
         then:
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/ivy.xml", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry

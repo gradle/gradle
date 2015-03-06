@@ -56,7 +56,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
     @Override
     public String toString() {
-        return moduleVersionIdentifier.toString();
+        return componentIdentifier.getDisplayName();
     }
 
     public ModuleVersionIdentifier getId() {
@@ -182,7 +182,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
         @Override
         public String toString() {
-            return String.format("%s:%s", moduleVersionIdentifier, name);
+            return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
         }
 
         public ComponentResolveMetaData getComponent() {

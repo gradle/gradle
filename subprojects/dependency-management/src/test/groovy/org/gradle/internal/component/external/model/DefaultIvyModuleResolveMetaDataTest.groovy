@@ -26,7 +26,7 @@ class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolve
 
     @Override
     AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultIvyModuleResolveMetaData(id, moduleDescriptor, componentId)
+        return new DefaultIvyModuleResolveMetaData(componentIdentifier, moduleDescriptor)
     }
 
     def "can make a copy"() {

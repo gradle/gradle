@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -34,7 +35,12 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
         this.extraInfo = moduleDescriptor.getExtraInfo();
     }
 
-    public DefaultIvyModuleResolveMetaData(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor moduleDescriptor) {
+        super(DefaultModuleVersionIdentifier.newId(componentIdentifier), moduleDescriptor, componentIdentifier);
+        this.extraInfo = moduleDescriptor.getExtraInfo();
+    }
+
+    private DefaultIvyModuleResolveMetaData(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         super(identifier, moduleDescriptor, componentIdentifier);
         this.extraInfo = moduleDescriptor.getExtraInfo();
     }
