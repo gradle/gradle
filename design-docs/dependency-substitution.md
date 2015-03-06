@@ -140,6 +140,12 @@ external dependency, the correct tasks are included for execution:
 
 ## Story: IDE plugins include correct set of projects based on dependency substitution
 
+### Test coverage
+
+- For both IDEA and Eclipse plugins:
+    - external dependency replaced with subproject is shown as project dependency in IDE
+    - subproject replaced with external dependency is shown as external dependency in IDE
+
 # Feature: Improve the dependency substitution rule DSL
 
 ## Story: Declare substitution rules that apply to all resolution for a project
