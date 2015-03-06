@@ -16,6 +16,7 @@
 package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
@@ -457,6 +458,10 @@ ${compilerConfiguration()}
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                }
+
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
                                     final String className = String.format("%s\$\$Generated", classElement.getSimpleName().toString());
 
@@ -486,6 +491,15 @@ ${compilerConfiguration()}
                             @Override
                             public SourceVersion getSupportedSourceVersion() {
                                 return SourceVersion.latestSupported();
+                            }
+
+                            private boolean isClasspathContaminated() {
+                                try {
+                                    Class.forName("$Action.name");
+                                    return true;
+                                } catch (final ClassNotFoundException e) {
+                                    return false;
+                                }
                             }
                         }
                     """
