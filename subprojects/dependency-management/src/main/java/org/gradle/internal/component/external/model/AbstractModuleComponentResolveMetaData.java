@@ -76,6 +76,12 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         return (ModuleComponentIdentifier) super.getComponentId();
     }
 
+    @Override
+    public void setComponentId(ModuleComponentIdentifier componentId) {
+        super.setComponentId(componentId);
+        setId(DefaultModuleVersionIdentifier.newId(componentId));
+    }
+
     public ModuleComponentArtifactMetaData artifact(Artifact artifact) {
         return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
     }

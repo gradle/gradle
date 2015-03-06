@@ -46,6 +46,19 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         metaData.getConfiguration('config').toString() == 'group:module:version:config'
     }
 
+    def "can replace identifiers"() {
+        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+
+        given:
+        metaData.setComponentId(newId)
+
+        expect:
+        metaData.componentId.is(newId)
+        metaData.id.group == "group"
+        metaData.id.name == "module"
+        metaData.id.version == "version"
+    }
+
     def "builds and caches the dependency meta-data from the module descriptor"() {
         def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
@@ -39,7 +40,7 @@ class ExternalResourceResolverTest extends Specification {
     ModuleComponentArtifactMetaData artifact = Stub() {
         getId() >> artifactIdentifier
     }
-    MavenUniqueSnapshotModuleSource moduleSource = Mock()
+    ModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     FileStore<ModuleComponentArtifactMetaData> fileStore = Stub()
