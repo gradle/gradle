@@ -32,6 +32,7 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.DefaultBuildConfigurer
 import org.gradle.configuration.DefaultScriptPluginFactory
+import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
@@ -90,6 +91,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
         parent.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
         parent.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
+        parent.get(ImportsReader) >> Mock(ImportsReader)
     }
 
     def delegatesToParentForUnknownService() {

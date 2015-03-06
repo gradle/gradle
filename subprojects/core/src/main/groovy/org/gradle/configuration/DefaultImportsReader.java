@@ -16,54 +16,48 @@
 
 package org.gradle.configuration;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import org.gradle.internal.UncheckedException;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.LineProcessor;
+import com.google.common.io.Resources;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.List;
 
 public class DefaultImportsReader implements ImportsReader {
 
-    private String importsText;
+    private static final String RESOURCE = "/default-imports.txt";
+    private final String[] importPackages;
 
-    public String getImports() {
-        if (importsText == null) {
-            try {
-                URL url = getClass().getResource("/default-imports.txt");
-                InputStreamReader reader = new InputStreamReader(url.openStream(), "UTF8");
-                try {
-                    int bufferSize = 8192; // at time of writing, the file was about 7k so this should cover in one read
-                    StringBuilder imports = new StringBuilder(bufferSize);
-                    char[] chars = new char[bufferSize];
-
-                    int numRead = reader.read(chars, 0, bufferSize);
-                    while (numRead != -1) {
-                        imports.append(chars, 0, numRead);
-                        numRead = reader.read(chars, 0, bufferSize);
-                    }
-
-                    importsText = imports.toString();
-                } finally {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+    public DefaultImportsReader() {
+        try {
+            URL url = getClass().getResource(RESOURCE);
+            if (url == null) {
+                throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
             }
-        }
+            this.importPackages = Resources.asCharSource(url, Charsets.UTF_8).readLines(new LineProcessor<String[]>() {
+                private final List<String> packages = Lists.newLinkedList();
 
-        return importsText;
+                @Override
+                public boolean processLine(@SuppressWarnings("NullableProblems") String line) throws IOException {
+                    packages.add(line.substring(7, line.length() - 2));
+                    return true;
+                }
+
+                @Override
+                public String[] getResult() {
+                    return packages.toArray(new String[packages.size()]);
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public String[] getImportPackages() {
-        String[] lines = getImports().split("(?:\\r?\\n)+");
-        return FluentIterable.from(Arrays.asList(lines)).transform(new Function<String, String>() {
-            public String apply(String input) {
-                return input.substring(7, input.length() - 1);
-            }
-        }).toArray(String.class);
+        return importPackages;
     }
 
 }

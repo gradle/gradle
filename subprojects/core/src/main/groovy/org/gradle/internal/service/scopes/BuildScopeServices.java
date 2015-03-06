@@ -60,6 +60,7 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -68,7 +69,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -100,10 +100,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
-    }
-
-    protected ImportsReader createImportsReader() {
-        return new DefaultImportsReader();
     }
 
     protected TimeProvider createTimeProvider() {
@@ -329,5 +325,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() { return new DefaultBuildOperationLoggerFactory(); }
+    protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() {
+        return new DefaultBuildOperationLoggerFactory();
+    }
 }
