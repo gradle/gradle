@@ -507,6 +507,57 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "can replace transitive external dependency with project dependency"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        settingsFile << 'include "api", "test"'
+
+        buildFile << """
+            allprojects {
+                $common
+                group "org.utils"
+                version = "1.6"
+            }
+
+            project(":test") {
+                dependencies {
+                    conf group: "org.utils", name: "impl", version: "1.5"
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
+                    it.useTarget project(":api")
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 2
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                        it.selected.componentId.group == "org.utils" &&
+                        it.selected.componentId.module == "impl" &&
+                        it.selected.componentId.version == "1.5" &&
+                        !it.selected.selectionReason.forced &&
+                        !it.selected.selectionReason.selectedByRule
+                    }
+                    assert deps.find {
+                        it.requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector &&
+                        it.requested.group == "org.utils" &&
+                        it.requested.module == "api" &&
+                        it.requested.version == "1.5" &&
+                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier &&
+                        it.selected.componentId.projectPath == ":api" &&
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("test:check")
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
