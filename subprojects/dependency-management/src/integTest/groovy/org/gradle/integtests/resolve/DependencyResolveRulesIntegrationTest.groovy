@@ -456,10 +456,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             $common
 
-            project(":api") {
-                configurations.create("default").extendsFrom(configurations.conf)
-            }
-
             project(":impl") {
                 dependencies {
                     conf project(path: ":api", configuration: "default")
@@ -535,10 +531,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             $common
 
-            project(":api") {
-                configurations.create("default").extendsFrom(configurations.conf)
-            }
-
             project(":impl") {
                 dependencies {
                     conf module(group: "org.utils", name: "api", version: "1.5")
@@ -573,10 +565,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             $common
-
-            project(":api") {
-                configurations.create("default").extendsFrom(configurations.conf)
-            }
 
             project(":impl") {
                 dependencies {
@@ -621,10 +609,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             $common
-
-            project(":api") {
-                configurations.create("default").extendsFrom(configurations.conf)
-            }
 
             project(":impl") {
                 configurations {
@@ -1138,10 +1122,15 @@ conf
     String getCommon() {
         """
         allprojects {
-            configurations { conf }
+            configurations {
+                conf
+            }
+            configurations.create("default").extendsFrom(configurations.conf)
+
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
+
             task resolveConf << { configurations.conf.files }
         }
 
