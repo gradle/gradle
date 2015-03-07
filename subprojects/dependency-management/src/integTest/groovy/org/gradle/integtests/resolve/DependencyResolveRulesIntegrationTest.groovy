@@ -418,11 +418,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     {
         settingsFile << 'include "api", "impl"'
         buildFile << """
-            allprojects {
-                $common
-                group "org.utils"
-                version = "1.6"
-            }
+            $common
 
             project(":impl") {
                 dependencies {
@@ -438,13 +434,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
-                    assert deps[0].requested.group == "org.utils"
-                    assert deps[0].requested.module == "api"
-                    assert deps[0].requested.version == "1.5"
+                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == projectId(":api")
 
-                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
-                    assert deps[0].selected.componentId.projectPath == ":api"
                     assert !deps[0].selected.selectionReason.forced
                     assert deps[0].selected.selectionReason.selectedByRule
                 }
@@ -462,8 +454,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
-            allprojects {
-                $common
+            $common
+
+            project(":api") {
                 configurations.create("default").extendsFrom(configurations.conf)
             }
 
@@ -481,13 +474,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ProjectComponentSelector
-                    assert deps[0].requested.projectPath == ":api"
+                    assert deps[0].requested.matchesStrictly(projectId(":api"))
+                    assert deps[0].selected.componentId == modelId("org.utils", "api", "1.5")
 
-                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
-                    assert deps[0].selected.componentId.group == "org.utils"
-                    assert deps[0].selected.componentId.module == "api"
-                    assert deps[0].selected.componentId.version == "1.5"
                     assert !deps[0].selected.selectionReason.forced
                     assert deps[0].selected.selectionReason.selectedByRule
                 }
@@ -504,9 +493,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "api", "test"'
 
         buildFile << """
-            allprojects {
-                $common
-            }
+            $common
 
             project(":test") {
                 dependencies {
@@ -522,21 +509,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 2
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
-                        it.selected.componentId.group == "org.utils" &&
-                        it.selected.componentId.module == "impl" &&
-                        it.selected.componentId.version == "1.5" &&
+                        it.selected.componentId == modelId("org.utils", "impl", "1.5")
                         !it.selected.selectionReason.forced &&
                         !it.selected.selectionReason.selectedByRule
                     }
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector &&
-                        it.requested.group == "org.utils" &&
-                        it.requested.module == "api" &&
-                        it.requested.version == "1.5" &&
-                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier &&
-                        it.selected.componentId.projectPath == ":api" &&
+                        it.requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                        it.selected.componentId == projectId(":api")
                         !it.selected.selectionReason.forced &&
                         it.selected.selectionReason.selectedByRule
                     }
@@ -553,8 +533,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
-            allprojects {
-                $common
+            $common
+
+            project(":api") {
                 configurations.create("default").extendsFrom(configurations.conf)
             }
 
@@ -572,13 +553,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
-                    assert deps[0].requested.group == "org.utils"
-                    assert deps[0].requested.module == "api"
-                    assert deps[0].requested.version == "1.5"
+                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == projectId(":api")
 
-                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
-                    assert deps[0].selected.componentId.projectPath == ":api"
                     assert !deps[0].selected.selectionReason.forced
                     assert deps[0].selected.selectionReason.selectedByRule
                 }
@@ -595,8 +572,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org.utils", "bela", '1.5').publish()
 
         buildFile << """
-            allprojects {
-                $common
+            $common
+
+            project(":api") {
                 configurations.create("default").extendsFrom(configurations.conf)
             }
 
@@ -616,21 +594,14 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 2
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
-                        it.selected.componentId.group == "org.utils" &&
-                        it.selected.componentId.module == "bela" &&
-                        it.selected.componentId.version == "1.5" &&
+                        it.selected.componentId == modelId("org.utils", "bela", "1.5") &&
                         !it.selected.selectionReason.forced &&
                         !it.selected.selectionReason.selectedByRule
                     }
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector &&
-                        it.requested.group == "org.utils" &&
-                        it.requested.module == "api" &&
-                        it.requested.version == "1.5" &&
-                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier &&
-                        it.selected.componentId.projectPath == ":api" &&
+                        it.requested.matchesStrictly(modelId("org.utils", "api", "1.5")) &&
+                        it.selected.componentId == projectId(":api") &&
                         !it.selected.selectionReason.forced &&
                         it.selected.selectionReason.selectedByRule
                     }
@@ -1106,14 +1077,25 @@ conf
     }
 
     String getCommon() {
-        """configurations { conf }
-        repositories {
-            maven { url "${mavenRepo.uri}" }
+        """
+        allprojects {
+            configurations { conf }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            task resolveConf << { configurations.conf.files }
         }
-        task resolveConf << { configurations.conf.files }
 
         //resolving the configuration at the end:
         gradle.startParameter.taskNames += 'resolveConf'
+
+        def modelId(String group, String name, String version) {
+            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
+        }
+
+        def projectId(String projectPath) {
+            return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newId(projectPath)
+        }
         """
     }
 }
