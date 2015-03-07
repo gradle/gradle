@@ -39,6 +39,8 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
 
@@ -105,7 +107,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     private ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         rules.add(specRuleAction);
         return this;
     }

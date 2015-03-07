@@ -30,6 +30,7 @@ import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
 public class DefaultResolutionStrategySpec extends Specification {
 
@@ -204,19 +205,19 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.beforeChange(validator)
 
         when: strategy.failOnVersionConflict()
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.force("org.utils:api:1.3")
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.forcedModules = ["org.utils:api:1.4"]
-        then: (1.._) * validator.validateMutation(true)
+        then: (1.._) * validator.validateMutation(STRATEGY)
 
         when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.componentSelection.all(Actions.doNothing())
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
@@ -224,7 +225,7 @@ public class DefaultResolutionStrategySpec extends Specification {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {

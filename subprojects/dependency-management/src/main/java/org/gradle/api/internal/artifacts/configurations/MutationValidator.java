@@ -20,16 +20,28 @@ package org.gradle.api.internal.artifacts.configurations;
  * Used to validate mutation of an object and its sub-parts.
  */
 public interface MutationValidator {
+    enum MutationType {
+        /**
+         * The mutation of the resolution strategy of the configuration, i.e. caching, resolution rules etc.
+         */
+        STRATEGY,
+
+        /**
+         * The mutation of the content of the configuration, i.e. dependencies, artifacts, extended configurations etc.
+         */
+        CONTENT
+    }
+
     /**
      * Check if mutation is allowed.
      *
-     * @param lenient <code>false</code> if mutation should be completely forbidden, or <code>true</code> if mutation is allowed, but a deprecation warning should be shown.
+     * @param type the type of mutation to validate.
      */
-    void validateMutation(boolean lenient);
+    void validateMutation(MutationType type);
 
     static final MutationValidator IGNORE = new MutationValidator() {
         @Override
-        public void validateMutation(boolean lenient) {
+        public void validateMutation(MutationType type) {
         }
     };
 }

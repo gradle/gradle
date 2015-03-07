@@ -33,6 +33,8 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
+
 class DefaultComponentSelectionRulesTest extends Specification {
     static final GROUP = "group"
     static final MODULE = "module"
@@ -270,22 +272,22 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.beforeChange(checker)
 
         when: rules.all(Actions.doNothing())
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.all(Closure.IDENTITY)
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.all(ruleSource)
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something", Actions.doNothing())
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something", Closure.IDENTITY)
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something", ruleSource)
-        then: 1 * checker.validateMutation(true)
+        then: 1 * checker.validateMutation(STRATEGY)
     }
 
     private class TestComponentSelectionAction implements Action<ComponentSelection> {

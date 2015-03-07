@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 import static org.gradle.util.GUtil.flattenElements;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
@@ -66,7 +67,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public ResolutionStrategy failOnVersionConflict() {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         this.conflictResolution = new StrictConflictResolution();
         return this;
     }
@@ -80,14 +81,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.addAll(modules);
         return this;
     }
 
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         dependencyResolveRules.add(rule);
         return this;
     }
@@ -98,7 +99,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.clear();
         this.forcedModules.addAll(modules);
