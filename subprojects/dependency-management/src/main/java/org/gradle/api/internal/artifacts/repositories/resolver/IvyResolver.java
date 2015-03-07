@@ -41,7 +41,7 @@ import java.net.URI;
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
-    private final MetaDataParser metaDataParser;
+    private final MetaDataParser<DefaultIvyModuleResolveMetaData> metaDataParser;
     private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,

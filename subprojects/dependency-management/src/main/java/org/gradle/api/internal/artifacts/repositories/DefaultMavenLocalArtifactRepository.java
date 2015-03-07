@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolve
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
@@ -32,7 +33,7 @@ import java.net.URI;
 public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
+                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser) {
         super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiator, artifactFileStore, pomParser);
     }
 

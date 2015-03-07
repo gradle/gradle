@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVer
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ import java.util.Map;
 /**
  * This based on a copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, but now heavily refactored.
  */
-public final class GradlePomModuleDescriptorParser extends AbstractModuleDescriptorParser {
+public final class GradlePomModuleDescriptorParser extends AbstractModuleDescriptorParser<DefaultMavenModuleResolveMetaData> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
     private static final String DEPENDENCY_IMPORT_SCOPE = "import";
     private final VersionSelectorScheme gradleVersionSelectorScheme;
@@ -64,7 +63,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return "gradle pom parser";
     }
 
-    protected MutableModuleComponentResolveMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
+    protected DefaultMavenModuleResolveMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
 

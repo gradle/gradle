@@ -45,12 +45,12 @@ public class MavenResolver extends ExternalResourceResolver {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
-    private final MetaDataParser metaDataParser;
+    private final MetaDataParser<DefaultMavenModuleResolveMetaData> metaDataParser;
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                         FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
+                         FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),

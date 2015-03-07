@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
@@ -42,7 +43,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
     private final ResolverStrategy resolverStrategy;
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
-    private final MetaDataParser pomParser;
+    private final MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -50,7 +51,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                         ResolverStrategy resolverStrategy,
-                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser pomParser) {
+                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;

@@ -37,10 +37,9 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
@@ -73,7 +72,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleR
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase, and heavily modified.
  */
-public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser {
+public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser<DefaultIvyModuleResolveMetaData> {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES =
             new String[] {"org", "name", "branch", "branchConstraint", "rev", "revConstraint", "force", "transitive", "changing", "conf"};
 
@@ -86,7 +85,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.resolverStrategy = resolverStrategy;
     }
 
-    protected MutableModuleComponentResolveMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected DefaultIvyModuleResolveMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties(), resolverStrategy);
         return doParseDescriptorWithProvidedParser(parser, validate);
     }
@@ -95,7 +94,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
-    private MutableModuleComponentResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
+    private DefaultIvyModuleResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
         parser.setValidate(validate);
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
