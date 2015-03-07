@@ -17,15 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.external.model.*;
 
 import java.math.BigInteger;
 
-class ModuleDescriptorCacheEntry {
-    private static final byte TYPE_MISSING = 0;
-    private static final byte TYPE_IVY = 1;
-    private static final byte TYPE_MAVEN = 2;
+abstract class ModuleDescriptorCacheEntry {
+    static final byte TYPE_MISSING = 0;
+    static final byte TYPE_IVY = 1;
+    static final byte TYPE_MAVEN = 2;
 
     public byte type;
     public boolean isChanging;
@@ -44,28 +47,16 @@ class ModuleDescriptorCacheEntry {
     }
 
     public static ModuleDescriptorCacheEntry forMissingModule(long createTimestamp) {
-        return new ModuleDescriptorCacheEntry(TYPE_MISSING, false, null, createTimestamp, BigInteger.ZERO, null);
+        return new MissingModuleCacheEntry(createTimestamp);
     }
 
     public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
-        byte type = getType(metaData);
-        String packaging = getPackaging(metaData);
-        return new ModuleDescriptorCacheEntry(type, metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, metaData.getSource());
-    }
-
-    private static String getPackaging(ModuleComponentResolveMetaData metaData) {
-        return metaData instanceof MavenModuleResolveMetaData ? ((MavenModuleResolveMetaData) metaData).getPackaging() : null;
-    }
-
-    private static byte getType(ModuleComponentResolveMetaData metaData) {
-        if (metaData == null) {
-            return TYPE_MISSING;
-        }
         if (metaData instanceof IvyModuleResolveMetaData) {
-            return TYPE_IVY;
+            return new IvyModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
         }
         if (metaData instanceof MavenModuleResolveMetaData) {
-            return TYPE_MAVEN;
+            String packaging = ((MavenModuleResolveMetaData) metaData).getPackaging();
+            return new MavenModuleCacheEntry(metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, metaData.getSource());
         }
         throw new IllegalArgumentException("Not a valid module version type: " + metaData);
     }
@@ -75,19 +66,10 @@ class ModuleDescriptorCacheEntry {
     }
     
     public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
-        switch (type) {
-            case TYPE_IVY:
-                return configure(new DefaultIvyModuleResolveMetaData(componentIdentifier, descriptor));
-            case TYPE_MAVEN:
-                // TODO Relocation is not currently cached
-                return configure(new DefaultMavenModuleResolveMetaData(componentIdentifier, descriptor, packaging, false));
-            case TYPE_MISSING:
-            default:
-                throw new IllegalStateException();
-        }
+        throw new UnsupportedOperationException("Cannot create meta-data for entry " + this);
     }
 
-    private MutableModuleComponentResolveMetaData configure(MutableModuleComponentResolveMetaData input) {
+    protected MutableModuleComponentResolveMetaData configure(MutableModuleComponentResolveMetaData input) {
         input.setChanging(isChanging);
         input.setSource(moduleSource);
         return input;

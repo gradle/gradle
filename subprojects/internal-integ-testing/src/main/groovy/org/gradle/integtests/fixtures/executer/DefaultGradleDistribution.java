@@ -120,7 +120,9 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("2.2-rc-1")) {
+        if (isSameOrNewer("2.4-rc-1")) {
+            return VersionNumber.parse("2.15");
+        } else if (isSameOrNewer("2.2-rc-1")) {
             return VersionNumber.parse("2.14");
         } else if (isSameOrNewer("2.1-rc-3")) {
             return VersionNumber.parse("2.13");
