@@ -548,6 +548,100 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test:check")
     }
 
+    void "can replace client module dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            allprojects {
+                $common
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf module(group: "org.utils", name: "api", version: "1.5")
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
+                    it.useTarget project(":api")
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector
+                    assert deps[0].requested.group == "org.utils"
+                    assert deps[0].requested.module == "api"
+                    assert deps[0].requested.version == "1.5"
+
+                    assert deps[0].selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier
+                    assert deps[0].selected.componentId.projectPath == ":api"
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
+    void "can replace client module's transitive dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+        mavenRepo.module("org.utils", "bela", '1.5').publish()
+
+        buildFile << """
+            allprojects {
+                $common
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf module(group: "org.utils", name: "bela", version: "1.5") {
+                        dependencies group: "org.utils", name: "api", version: "1.5"
+                    }
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
+                    it.useTarget project(":api")
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 2
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                        it.selected.componentId.group == "org.utils" &&
+                        it.selected.componentId.module == "bela" &&
+                        it.selected.componentId.version == "1.5" &&
+                        !it.selected.selectionReason.forced &&
+                        !it.selected.selectionReason.selectedByRule
+                    }
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector &&
+                        it.requested.group == "org.utils" &&
+                        it.requested.module == "api" &&
+                        it.requested.version == "1.5" &&
+                        it.selected.componentId instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier &&
+                        it.selected.componentId.projectPath == ":api" &&
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
