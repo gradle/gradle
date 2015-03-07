@@ -434,7 +434,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
                     assert deps[0].selected.componentId == projectId(":api")
 
                     assert !deps[0].selected.selectionReason.forced
@@ -471,7 +471,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
                     assert deps[0].requested.matchesStrictly(projectId(":api"))
-                    assert deps[0].selected.componentId == modelId("org.utils", "api", "1.5")
+                    assert deps[0].selected.componentId == moduleId("org.utils", "api", "1.5")
 
                     assert !deps[0].selected.selectionReason.forced
                     assert deps[0].selected.selectionReason.selectedByRule
@@ -505,13 +505,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 2
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId == modelId("org.utils", "impl", "1.5")
+                        it.selected.componentId == moduleId("org.utils", "impl", "1.5")
                         !it.selected.selectionReason.forced &&
                         !it.selected.selectionReason.selectedByRule
                     }
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
                         it.selected.componentId == projectId(":api")
                         !it.selected.selectionReason.forced &&
                         it.selected.selectionReason.selectedByRule
@@ -545,7 +545,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
                     assert deps[0].selected.componentId == projectId(":api")
 
                     assert !deps[0].selected.selectionReason.forced
@@ -582,13 +582,13 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 2
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId == modelId("org.utils", "bela", "1.5") &&
+                        it.selected.componentId == moduleId("org.utils", "bela", "1.5") &&
                         !it.selected.selectionReason.forced &&
                         !it.selected.selectionReason.selectedByRule
                     }
                     assert deps.find {
                         it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(modelId("org.utils", "api", "1.5")) &&
+                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5")) &&
                         it.selected.componentId == projectId(":api") &&
                         !it.selected.selectionReason.forced &&
                         it.selected.selectionReason.selectedByRule
@@ -628,8 +628,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == modelId("org.utils", "api", "1.5")
+                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == moduleId("org.utils", "api", "1.5")
 
                     assert !deps[0].selected.selectionReason.forced
                     assert !deps[0].selected.selectionReason.selectedByRule
@@ -640,7 +640,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps.size() == 1
                     assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
 
-                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
                     assert deps[0].selected.componentId == projectId(":api")
 
                     assert !deps[0].selected.selectionReason.forced
@@ -1137,7 +1137,7 @@ conf
         //resolving the configuration at the end:
         gradle.startParameter.taskNames += 'resolveConf'
 
-        def modelId(String group, String name, String version) {
+        def moduleId(String group, String name, String version) {
             return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
         }
 
