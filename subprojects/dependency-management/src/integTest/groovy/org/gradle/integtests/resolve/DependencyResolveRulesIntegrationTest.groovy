@@ -613,6 +613,65 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("impl:check")
     }
 
+    void "can replace external dependency declared in extended configuration with project dependency"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":api") {
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                configurations {
+                    testConf.extendsFrom conf
+                }
+
+                dependencies {
+                    conf group: "org.utils", name: "api", version: "1.5"
+                }
+
+                configurations.testConf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
+                    it.useTarget project(":api")
+                }
+
+                task checkConf << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == modelId("org.utils", "api", "1.5")
+
+                    assert !deps[0].selected.selectionReason.forced
+                    assert !deps[0].selected.selectionReason.selectedByRule
+                }
+
+                task checkTestConf << {
+                    def deps = configurations.testConf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested.matchesStrictly(modelId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == projectId(":api")
+
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
+
+                task check(dependsOn: [ checkConf, checkTestConf ])
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
