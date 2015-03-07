@@ -33,8 +33,11 @@ import java.util.Map;
 class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private final ListenerBroadcast<TestProgressListener> testProgressListeners = new ListenerBroadcast<TestProgressListener>(TestProgressListener.class);
-
     private final Map<Object, TestDescriptor> testDescriptorCache = new HashMap<Object, TestDescriptor>();
+
+    BuildProgressListenerAdapter(List<TestProgressListener> testListeners) {
+        this.testProgressListeners.addAll(testListeners);
+    }
 
     @Override
     public void onEvent(final Object event) {
@@ -236,10 +239,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 return parentTestDescriptor;
             }
         }
-    }
-
-    public void addTestProgressListener(TestProgressListener listener) {
-        testProgressListeners.add(listener);
     }
 
 }

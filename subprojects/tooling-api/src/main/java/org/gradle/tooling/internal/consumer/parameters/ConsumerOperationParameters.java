@@ -32,10 +32,7 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -45,8 +42,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public static class Builder {
-        private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
-        private final BuildProgressListenerAdapter buildProgressListener = new BuildProgressListenerAdapter();
+        private final List<ProgressListener> progressListeners = new ArrayList<ProgressListener>();
+        private final List<TestProgressListener> testProgressListeners = new ArrayList<TestProgressListener>();
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -133,11 +130,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public void addProgressListener(ProgressListener listener) {
-            progressListener.add(listener);
+            progressListeners.add(listener);
         }
 
         public void addTestProgressListener(TestProgressListener listener) {
-            buildProgressListener.addTestProgressListener(listener);
+            testProgressListeners.add(listener);
         }
 
         public void setCancellationToken(CancellationToken cancellationToken) {
@@ -145,8 +142,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public ConsumerOperationParameters build() {
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin,
-                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, buildProgressListener, cancellationToken);
+            // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
+            // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
+            // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
+            ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.progressListeners);
+            BuildProgressListenerAdapter testProgressListenerAdapter = new BuildProgressListenerAdapter(this.testProgressListeners);
+            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
+                    progressListenerAdapter, testProgressListenerAdapter, cancellationToken);
         }
     }
 
