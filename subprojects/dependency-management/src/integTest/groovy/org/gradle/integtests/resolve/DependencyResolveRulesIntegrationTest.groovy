@@ -106,6 +106,33 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    void "warns about using deprecated resolution rules"()
+    {
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:api:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+                eachDependency {
+                    it.useVersion "1.5"
+                }
+	        }
+"""
+
+        executer.withDeprecationChecksDisabled()
+
+        when:
+        succeeds()
+
+        then:
+        output.contains("The ResolutionStrategy.eachDependency() method has been deprecated and is scheduled to be removed in Gradle 3.0. Please use the DependencySubstitution.eachModule() method instead.")
+    }
+
     void "all rules are executed orderly and last one wins"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
@@ -150,6 +177,61 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	            }
 	        }
 """
+
+        when:
+        run("check")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "all rules are executed orderly and last one wins, including deprecated resolution rules"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+
+        mavenRepo.module("org.utils", "api", '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.5').publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org.utils:impl:1.3'
+            }
+
+            configurations.conf.resolutionStrategy {
+                dependencySubstitution {
+                    eachModule {
+                        assert it.target == it.requested
+                        it.useVersion '1.4'
+                    }
+                }
+                eachDependency {
+                    assert it.target.version == '1.4'
+                    assert it.target.module == it.requested.name
+                    assert it.target.group == it.requested.group
+                    it.useVersion '1.5'
+                }
+                dependencySubstitution {
+                    eachDependency {
+                        assert it.target.version == '1.5'
+                        //don't change the version
+                    }
+                }
+	        }
+
+	        task check << {
+	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
+                assert deps.size() == 2
+                deps.each {
+	                assert it.selected.id.version == '1.5'
+	                assert it.selected.selectionReason.selectedByRule
+	                assert it.selected.selectionReason.description == 'selected by rule'
+	            }
+	        }
+"""
+        executer.withDeprecationChecksDisabled()
 
         when:
         run("check")
