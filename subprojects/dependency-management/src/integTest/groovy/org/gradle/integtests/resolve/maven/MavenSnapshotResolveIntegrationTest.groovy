@@ -674,7 +674,7 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    def "reports missing snapshot artifact"() {
+    def "reports missing unique snapshot artifact"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
 
@@ -764,7 +764,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    def "Can find and cache a unique snapshot in a Maven HTTP repository"() {
+    def "can find and cache a unique snapshot in a Maven HTTP repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -776,10 +776,14 @@ repositories {
     }
 }
 
-configurations { compile }
+configurations {
+    compile {
+        resolutionStrategy.cacheChangingModulesFor 0, 'SECONDS'
+    }
+}
 
 dependencies {
-    compile "org.gradle.integtests.resolve:projectA:${published.backingModule.publishArtifactVersion}"
+    compile "org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}"
 }
 
 task retrieve(type: Sync) {
@@ -796,10 +800,17 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
+        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
     }
 
-    def "Can find and cache a unique snapshot in a Maven file repository"() {
+    def "can find a unique snapshot in a Maven file repository"() {
         given:
         def fileRepo = maven("fileRepo")
         def projectA = fileRepo.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -828,9 +839,15 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
+
+        when:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
-    def "Can find and cache a both snapshot types in a Maven HTTP repository"() {
+    def "applies conflict resolution when unique snapshot is referenced by timestamp and SNAPSHOT"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -845,7 +862,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "org.gradle.integtests.resolve:projectA:${published.backingModule.publishArtifactVersion}"
+    compile "org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}"
     compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
 }
 
@@ -864,9 +881,16 @@ task retrieve(type: Sync) {
 
         then:
         file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
+
+        when:
+        server.resetExpectations()
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
     }
 
-    def "Try to find a inexisting unique snapshot in a Maven HTTP repository"() {
+    def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -881,7 +905,7 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "org.gradle.integtests.resolve:projectA:${published.backingModule.publishArtifactVersion}"
+    compile "org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}"
 }
 
 task retrieve(type: Sync) {
@@ -897,7 +921,11 @@ task retrieve(type: Sync) {
         fails('retrieve')
 
         then:
-        file('libs').file("projectA-${published.backingModule.publishArtifactVersion}.jar").assertDoesNotExist()
+        failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
+Searched in the following locations:
+    ${projectA.pom.uri}
+    ${projectA.artifact.uri}
+""")
     }
 
     private expectModuleServed(MavenHttpModule module) {
