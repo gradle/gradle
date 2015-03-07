@@ -447,6 +447,49 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("impl:check")
     }
 
+    void "can access built artifacts from substituted project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":api") {
+                task build << {
+                    mkdir(projectDir)
+                    file("artifact.txt") << "Lajos"
+                }
+
+                artifacts {
+                    conf (file("artifact.txt")) {
+                        builtBy build
+                    }
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf group: "org.utils", name: "api", version: "1.5"
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
+                    it.useTarget project(":api")
+                }
+
+                task check(dependsOn: configurations.conf) << {
+                    def files = configurations.conf.files
+                    assert files*.name.sort() == ["artifact.txt"]
+                    assert files*.text.sort() == ["Lajos"]
+                }
+                // TODO:PREZI Remove this when PR#412 is merged
+                check.dependsOn project(":api").build
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
+
     void "can replace project dependency with external dependency"()
     {
         mavenRepo.module("org.utils", "api", '1.5').publish()
