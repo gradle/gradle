@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
-public interface ModuleRevisionResolveState extends Versioned {
+public interface ComponentResolutionState extends Versioned {
     ModuleVersionIdentifier getId();
 
     ComponentSelectionReason getSelectionReason();

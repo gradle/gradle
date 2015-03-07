@@ -21,7 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -32,7 +32,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
     private final CompositeConflictResolver compositeResolver = new CompositeConflictResolver();
-    private final ConflictContainer<ModuleIdentifier, ModuleRevisionResolveState> conflicts = new ConflictContainer<ModuleIdentifier, ModuleRevisionResolveState>();
+    private final ConflictContainer<ModuleIdentifier, ComponentResolutionState> conflicts = new ConflictContainer<ModuleIdentifier, ComponentResolutionState>();
     private final ModuleReplacementsData moduleReplacements;
 
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
@@ -62,7 +62,7 @@ public class DefaultConflictHandler implements ConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer.Conflict conflict = conflicts.popConflict();
-        ModuleRevisionResolveState selected = compositeResolver.select(conflict.candidates);
+        ComponentResolutionState selected = compositeResolver.select(conflict.candidates);
         ConflictResolutionResult result = new DefaultConflictResolutionResult(potentialConflict(conflict), selected);
         resolutionAction.execute(result);
         LOGGER.debug("Selected {} from conflicting modules {}.", selected, conflict.candidates);

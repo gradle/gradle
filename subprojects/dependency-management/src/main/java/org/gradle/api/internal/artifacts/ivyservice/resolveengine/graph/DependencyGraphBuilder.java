@@ -511,7 +511,7 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module version.
      */
-    static class ModuleVersionResolveState implements ModuleRevisionResolveState, ModuleVersionSelection {
+    static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection {
         public final ModuleVersionIdentifier id;
         private final ComponentMetaDataResolver resolver;
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
@@ -907,7 +907,7 @@ public class DependencyGraphBuilder {
             this.root = root;
         }
 
-        public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+        public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
             for (ConfigurationNode configuration : root.configurations) {
                 for (DependencyEdge outgoingEdge : configuration.outgoingEdges) {
                     if (outgoingEdge.dependencyDescriptor.isForce() && candidates.contains(outgoingEdge.targetModuleRevision)) {

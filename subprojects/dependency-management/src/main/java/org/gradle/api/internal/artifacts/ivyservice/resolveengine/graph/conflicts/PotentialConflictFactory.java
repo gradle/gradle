@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 class PotentialConflictFactory {
 
-    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ModuleRevisionResolveState>.Conflict conflict) {
+    static PotentialConflict potentialConflict(final ConflictContainer<ModuleIdentifier, ? extends ComponentResolutionState>.Conflict conflict) {
         return new PotentialConflict() {
             public boolean conflictExists() {
                 return conflict != null;

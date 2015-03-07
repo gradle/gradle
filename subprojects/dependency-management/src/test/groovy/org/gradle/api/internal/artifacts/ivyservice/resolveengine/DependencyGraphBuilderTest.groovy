@@ -167,7 +167,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             def sel = candidates.find { it.id.name == 'b' }
             assert sel
             sel
@@ -224,7 +224,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             assert candidates*.version == ['1.2', '1.1']
             return candidates.find { it.version == '1.2' }
         }
@@ -255,7 +255,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             assert candidates*.version == ['1.1', '1.2']
             return candidates.find { it.version == '1.2' }
         }
@@ -286,7 +286,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             assert candidates*.version == ['1.1', '1.2']
             return candidates.find { it.version == '1.2' }
         }
@@ -313,7 +313,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             assert candidates*.version == ['1.2', '1.1']
             return candidates.find { it.version == '1.2' }
         }
@@ -343,7 +343,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             assert candidates*.version == ['1.1', '1.2']
             return candidates.find { it.version == '1.2' }
         }
@@ -374,15 +374,15 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select({ it*.version == ['1.1', '1.2'] }) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
         1 * conflictResolver.select({ it*.version == ['2.1', '2.2'] }) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '2.2' }
         }
         1 * conflictResolver.select({ it*.version == ['1.1', '1.2', '1.0'] }) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
@@ -413,7 +413,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '2' }
         }
         0 * conflictResolver._
@@ -444,7 +444,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select({ it*.version == ['1', '2'] }) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '2' }
         }
         0 * conflictResolver._
@@ -483,7 +483,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
 
@@ -810,7 +810,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
 
@@ -842,7 +842,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
 
@@ -867,7 +867,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
 
@@ -892,7 +892,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         then:
         1 * conflictResolver.select(!null) >> {
-            Collection<ModuleRevisionResolveState> candidates = it[0]
+            Collection<ComponentResolutionState> candidates = it[0]
             return candidates.find { it.version == '1.2' }
         }
 

@@ -26,5 +26,5 @@ public interface ModuleConflictResolver {
      * @param candidates
      * @param <T>
      */
-    @Nullable <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates);
+    @Nullable <T extends ComponentResolutionState> T select(Collection<? extends T> candidates);
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
     private final PotentialConflict conflict;
-    private final ModuleRevisionResolveState selected;
+    private final ComponentResolutionState selected;
 
-    public DefaultConflictResolutionResult(PotentialConflict conflict, ModuleRevisionResolveState selected) {
+    public DefaultConflictResolutionResult(PotentialConflict conflict, ComponentResolutionState selected) {
         this.conflict = conflict;
         this.selected = selected;
     }
@@ -31,7 +31,7 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
         return conflict;
     }
 
-    public ModuleRevisionResolveState getSelected() {
+    public ComponentResolutionState getSelected() {
         return selected;
     }
 }

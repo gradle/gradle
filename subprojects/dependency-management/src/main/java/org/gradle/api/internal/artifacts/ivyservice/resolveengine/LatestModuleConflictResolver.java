@@ -27,7 +27,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         this.versionComparator = versionComparator;
     }
 
-    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
         return Collections.max(candidates, versionComparator);
     }
 }

@@ -25,8 +25,8 @@ class VersionSelectionReasonResolverTest extends Specification {
         def delegate = Mock(ModuleConflictResolver)
         VersionSelectionReasonResolver resolver = new VersionSelectionReasonResolver(delegate)
 
-        def candidate1 = Mock(ModuleRevisionResolveState)
-        def candidate2 = Mock(ModuleRevisionResolveState)
+        def candidate1 = Mock(ComponentResolutionState)
+        def candidate2 = Mock(ComponentResolutionState)
 
         when:
         def out = resolver.select([candidate1, candidate2])
