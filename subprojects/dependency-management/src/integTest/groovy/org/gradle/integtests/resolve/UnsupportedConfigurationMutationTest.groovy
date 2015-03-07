@@ -106,6 +106,18 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
+    def "warns about changing substitution rules on a configuration that has been resolved"() {
+        buildFile << """
+            configurations { a }
+            configurations.a.resolve()
+            configurations.a.resolutionStrategy.dependencySubstitution.all {}
+        """
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
     def "warns about changing component selection rules on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }

@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependencySubstitution
 import org.gradle.api.artifacts.ProjectDependencySubstitution
 import org.gradle.api.internal.artifacts.*
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
@@ -259,5 +260,63 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         then:
         1 * details.useVersion("3.0")
         0 * details._
+    }
+    
+    def "mutations trigger lenient validation"() {
+        given:
+        def validator = Mock(MutationValidator)
+        substitutions.beforeChange(validator)
+        
+        when: substitutions.all(Mock(Action))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.all(Mock(Closure))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.eachModule(Mock(Action))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.eachModule(Mock(Closure))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.withModule("org:foo", Mock(Action))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.withModule("org:foo", Mock(Closure))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.eachProject(Mock(Action))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.eachProject(Mock(Closure))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.withProject(":foo", Mock(Action))
+        then: 1 * validator.validateMutation(true)
+        
+        when: substitutions.withProject(":foo", Mock(Closure))
+        then: 1 * validator.validateMutation(true)
+    }
+
+    def "mutating copy does not trigger original validator"() {
+        given:
+        def validator = Mock(MutationValidator)
+        substitutions.beforeChange(validator)
+        def copy = substitutions.copy()
+
+        when:
+        copy.all(Mock(Action))
+        copy.all(Mock(Closure))
+        copy.eachModule(Mock(Action))
+        copy.eachModule(Mock(Closure))
+        copy.withModule("org:foo", Mock(Action))
+        copy.withModule("org:foo", Mock(Closure))
+        copy.eachProject(Mock(Action))
+        copy.eachProject(Mock(Closure))
+        copy.withProject(":foo", Mock(Action))
+        copy.withProject(":foo", Mock(Closure))
+
+        then:
+        0 * validator.validateMutation(_)
     }
 }
