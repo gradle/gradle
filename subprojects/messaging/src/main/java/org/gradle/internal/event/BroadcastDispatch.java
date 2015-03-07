@@ -40,6 +40,10 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
         return type;
     }
 
+    public boolean isEmpty() {
+        return handlers.isEmpty();
+    }
+
     public void add(Dispatch<MethodInvocation> dispatch) {
         handlers.put(dispatch, dispatch);
     }

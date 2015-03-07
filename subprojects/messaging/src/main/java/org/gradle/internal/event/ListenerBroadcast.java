@@ -60,6 +60,15 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     }
 
     /**
+     * Returns {@code true} if no listeners are registered with this object.
+     *
+     * @return {@code true} if no listeners are registered with this object, {@code false} otherwise
+     */
+    public boolean isEmpty() {
+        return broadcast.isEmpty();
+    }
+
+    /**
      * Adds a listener.
      *
      * @param listener The listener.
