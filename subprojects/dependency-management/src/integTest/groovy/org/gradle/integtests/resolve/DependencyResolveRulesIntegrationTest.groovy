@@ -530,6 +530,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                         !it.selected.selectionReason.selectedByRule
                     }
                     assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
                         it.requested instanceof org.gradle.api.artifacts.component.ModuleComponentSelector &&
                         it.requested.group == "org.utils" &&
                         it.requested.module == "api" &&
