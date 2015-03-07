@@ -451,11 +451,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 """
 
-        when:
-        run("impl:check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("impl:check")
     }
 
     void "can replace project dependency with external dependency"()
@@ -467,9 +464,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 $common
-
-                group "org.utils"
-                version = "1.6"
                 configurations.create("default").extendsFrom(configurations.conf)
             }
 
@@ -500,11 +494,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 """
 
-        when:
-        run("impl:check")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("impl:check")
     }
 
     void "can replace transitive external dependency with project dependency"()
@@ -515,8 +506,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 $common
-                group "org.utils"
-                version = "1.6"
             }
 
             project(":test") {
