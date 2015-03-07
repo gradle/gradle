@@ -865,7 +865,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    void "project dependency substituted for an external dependency participates in conflict resolution (version #projectVersion)"()
+    void "project dependency substituted for an external dependency participates in conflict resolution (version #apiProjectVersion)"()
     {
         mavenRepo.module("org.utils", "api", '2.0').publish()
         settingsFile << 'include "api", "impl"'
