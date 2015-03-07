@@ -880,14 +880,14 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
+        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
 
         when:
         server.resetExpectations()
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants("projectA-1.0-SNAPSHOT.jar")
+        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
     }
 
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
