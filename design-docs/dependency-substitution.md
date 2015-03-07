@@ -20,11 +20,18 @@ This is similar to the current situation when a project dependency is added to a
 ### User visible changes
 
 ```
-class DependencySubstitution<T extends ComponentSelector> {
+interface DependencySubstitution<T extends ComponentSelector> {
     T getRequested()
     void useTarget(Object notation)
 }
+
+interface ModuleDependencySubstitution extendsDependencySubstitution<ModuleComponentSelector> {
+    void useVersion(String version)
+}
     
+interface ProjectDependencySubstitution extendsDependencySubstitution<ProjectComponentSelector> {
+}
+
 configurations.all {
     resolutionStrategy {
         dependencySubstitution {
@@ -58,7 +65,11 @@ configurations.all {
 
 ### Implementation
 
-A description of how we plan to implement this.
+Introduce a new DSL that allows applying substitution rules on all dependencies, or only on modules or projects.
+Ability to substitute a single module or project should be provided as well.
+
+This new DSL supersedes `ResolutionStrategy.eachDependency()`, which in turn is deprecated. `DependencyResolveDetails` is
+deprecated, too, and replaced by the `DependencySubstitution` interface family.
 
 A few notes:
 
@@ -79,10 +90,12 @@ A few notes:
 - Additional dependency details (configuration, transitive, etc) are retained in substituted dependency
 - Real resolution of dependency files: pre-build the substituted project. (This test would later be modified to remove the pre-build step).
 - Dependency reports provide information on dependency substitution
+- Deprecation warnings are shown when `ResolutionStrategy.eachDependency` is used
+- New DSL works together with `ResolutionStrategy.force()` and the deprecated `ResolutionStrategy.eachDependency`
 
 ### Open issues
 
-This section is to keep track of assumptions and things we haven't figured out yet.
+- What happens if `DependencySubstitution.withModule()` is called with a module that is not a dependency? Same with `withProject()`.
 
 ## Story: Option to re-resolve Configuration when modified after resolution
 
