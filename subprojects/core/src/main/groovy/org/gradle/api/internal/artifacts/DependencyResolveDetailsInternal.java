@@ -17,14 +17,11 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-public interface DependencyResolveDetailsInternal<T extends ComponentSelector> extends DependencyResolveDetails<T> {
+@SuppressWarnings("deprecation")
+public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
-    ComponentSelector getTarget();
-
-    @Deprecated
     void useVersion(String version, ComponentSelectionReason selectionReason);
 
     ComponentSelectionReason getSelectionReason();

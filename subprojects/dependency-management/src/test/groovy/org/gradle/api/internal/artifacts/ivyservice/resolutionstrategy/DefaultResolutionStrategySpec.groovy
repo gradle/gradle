@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.ModuleDependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
@@ -35,7 +34,8 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 public class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
-    def strategy = new DefaultResolutionStrategy(cachePolicy, new DefaultDomainObjectSet(Action))
+    def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions)
 
     def "allows setting forced modules"() {
         expect:
@@ -71,66 +71,48 @@ public class DefaultResolutionStrategySpec extends Specification {
         versions[1].group == 'g'
     }
 
-    def "provides no op resolve rule when no rules or forced modules configured"() {
-        given:
-        def details = Mock(DependencyResolveDetailsInternal)
-
-        when:
-        strategy.dependencyResolveRule.execute(details)
-
-        then:
-        0 * details._
-    }
-
     def "provides dependency resolve rule that forces modules"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
-        def details = Mock(DependencyResolveDetailsInternal)
+        def details = Mock(ModuleDependencySubstitutionInternal)
 
         when:
-        strategy.dependencyResolveRule.execute(details)
+        strategy.dependencySubstitutionRule.execute(details)
 
         then:
-        _ * details.getRequested() >> newSelector("org", "foo", "1.0")
+        _ * dependencySubstitutions.dependencySubstitutionRule >> Actions.doNothing()
+        _ * details.getOldRequested() >> newSelector("org", "foo", "1.0")
         1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
         0 * details._
     }
 
-    def "provides dependency resolve rule that orderly aggregates user specified rules"() {
+    def "eachDependency calls through to substitution rules"() {
         given:
-        strategy.eachDependency({ it.useVersion("1.0") } as Action)
-        strategy.eachDependency({ it.useVersion("2.0") } as Action)
-        def details = Mock(DependencyResolveDetailsInternal)
+        def action = Mock(Action)
 
         when:
-        strategy.dependencyResolveRule.execute(details)
+        strategy.eachDependency(action)
 
         then:
-        1 * details.useVersion("1.0")
-        then:
-        1 * details.useVersion("2.0")
-        0 * details._
+        1 * dependencySubstitutions.allWithDependencyResolveDetails(action)
     }
 
     def "provides dependency resolve rule with forced modules first and then user specified rules"() {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
-        strategy.eachDependency({ it.useVersion("5.0") } as Action)
-        strategy.eachDependency({ it.useVersion("6.0") } as Action)
-
-        def details = Mock(DependencyResolveDetailsInternal)
+        def details = Mock(ModuleDependencySubstitutionInternal)
+        def substitutionAction = Mock(Action)
 
         when:
-        strategy.dependencyResolveRule.execute(details)
+        strategy.dependencySubstitutionRule.execute(details)
 
         then: //forced modules:
-        _ * details.requested >> newSelector("org", "foo", "1.0")
+        dependencySubstitutions.dependencySubstitutionRule >> substitutionAction
+        _ * details.oldRequested >> newSelector("org", "foo", "1.0")
         1 * details.useVersion("2.0", VersionSelectionReasons.FORCED)
 
-        then: //user rules, in order:
-        1 * details.useVersion("5.0")
-        then:
-        1 * details.useVersion("6.0")
+        then: //user rules follow:
+        1 * substitutionAction.execute(details)
         0 * details._
     }
 
@@ -149,10 +131,11 @@ public class DefaultResolutionStrategySpec extends Specification {
         given:
         def newCachePolicy = Mock(DefaultCachePolicy)
         cachePolicy.copy() >> newCachePolicy
+        def newDependencySubstitutions = Mock(DependencySubstitutionsInternal)
+        dependencySubstitutions.copy() >> newDependencySubstitutions
 
         strategy.failOnVersionConflict()
         strategy.force("org:foo:1.0")
-        strategy.eachDependency(Mock(Action))
         strategy.componentSelection.rules.add(new NoInputsRuleAction<ComponentSelection>({}))
 
         when:
@@ -160,12 +143,14 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         then:
         copy.forcedModules == strategy.forcedModules
-        copy.dependencyResolveRules == strategy.dependencyResolveRules
         copy.componentSelection.rules == strategy.componentSelection.rules
         copy.conflictResolution instanceof StrictConflictResolution
 
         strategy.cachePolicy == cachePolicy
         copy.cachePolicy == newCachePolicy
+
+        strategy.dependencySubstitution == dependencySubstitutions
+        copy.dependencySubstitution == newDependencySubstitutions
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -213,8 +198,9 @@ public class DefaultResolutionStrategySpec extends Specification {
         when: strategy.forcedModules = ["org.utils:api:1.4"]
         then: (1.._) * validator.validateMutation(STRATEGY)
 
+        // DependencySubstitutionsInternal.allWithDependencyResolveDetails() will call back to validateMutation() instead
         when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        then: 0 * validator.validateMutation(_)
 
         when: strategy.componentSelection.all(Actions.doNothing())
         then: 1 * validator.validateMutation(STRATEGY)
@@ -231,6 +217,7 @@ public class DefaultResolutionStrategySpec extends Specification {
     def "mutation is not checked for copy"() {
         given:
         cachePolicy.copy() >> Mock(DefaultCachePolicy)
+        dependencySubstitutions.copy() >> Mock(DependencySubstitutionsInternal)
         def validator = Mock(MutationValidator)
         strategy.beforeChange(validator)
         def copy = strategy.copy()
@@ -242,9 +229,6 @@ public class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
 
         when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * validator.validateMutation(_)
-
-        when: copy.eachDependency(Actions.doNothing())
         then: 0 * validator.validateMutation(_)
 
         when: copy.componentSelection.all(Actions.doNothing())

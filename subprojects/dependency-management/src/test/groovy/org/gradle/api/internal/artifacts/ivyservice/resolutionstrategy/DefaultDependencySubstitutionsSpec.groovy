@@ -27,6 +27,8 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
+
 class DefaultDependencySubstitutionsSpec extends Specification {
     DependencySubstitutionsInternal substitutions;
 
@@ -268,34 +270,34 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.beforeChange(validator)
         
         when: substitutions.all(Mock(Action))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.all(Mock(Closure))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.eachModule(Mock(Action))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.eachModule(Mock(Closure))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withModule("org:foo", Mock(Action))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withModule("org:foo", Mock(Closure))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.eachProject(Mock(Action))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.eachProject(Mock(Closure))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withProject(":foo", Mock(Action))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
         
         when: substitutions.withProject(":foo", Mock(Closure))
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutating copy does not trigger original validator"() {

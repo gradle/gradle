@@ -16,7 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.DependencyResolveDetails
+import org.gradle.api.artifacts.DependencySubstitution
+import org.gradle.api.artifacts.ModuleDependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetaData
@@ -39,7 +40,7 @@ class DependencySubstitutionResolverSpec extends Specification {
 
     def "passes through dependency when it does not match any rule"() {
         given:
-        rule.execute(_) >> { DependencyResolveDetails details ->
+        rule.execute(_) >> { DependencySubstitution details ->
         }
 
         when:
@@ -53,7 +54,7 @@ class DependencySubstitutionResolverSpec extends Specification {
         def substitutedDependency = Stub(DependencyMetaData)
 
         given:
-        rule.execute(_) >> { DependencyResolveDetails details ->
+        rule.execute(_) >> { ModuleDependencySubstitution details ->
             details.useVersion("new")
         }
 
@@ -68,7 +69,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     def "explosive rule yields failure result that provides context"() {
         given:
         def failure = new RuntimeException("broken")
-        rule.execute(_) >> { DependencyResolveDetails details ->
+        rule.execute(_) >> { DependencySubstitution details ->
             throw failure
         }
 

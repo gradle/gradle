@@ -61,7 +61,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private void addRule(Action<? super DependencySubstitution<? super ComponentSelector>> rule) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(MutationValidator.MutationType.STRATEGY);
         substitutionRules.add(rule);
     }
 

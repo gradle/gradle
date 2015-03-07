@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Defines the strategies around dependency resolution.
- * For example, forcing certain dependency versions, conflict resolutions or snapshot timeouts.
+ * For example, forcing certain dependency versions, substitutions, conflict resolutions or snapshot timeouts.
  * <p>
  * Examples:
  * <pre autoTested=''>
@@ -42,15 +42,17 @@ import java.util.concurrent.TimeUnit;
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
- *     // add a dependency resolve rule
- *     eachDependency { DependencyResolveDetails details ->
+ *     // add dependency substitution rules
+ *     dependencySubstitution {
  *       //specifying a fixed version for all libraries with 'org.gradle' group
- *       if (details.requested.group == 'org.gradle') {
- *           details.useVersion'1.4'
- *       }
- *       //changing 'groovy-all' into 'groovy':
- *       if (details.requested.name == 'groovy-all') {
- *          details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+ *       eachModule { ModuleDependencySubstitution details ->
+ *         if (details.requested.group == 'org.gradle') {
+ *           details.useVersion '2.4'
+ *         }
+ *         //changing 'groovy-all' into 'groovy':
+ *         if (details.requested.name == 'groovy-all') {
+ *           details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
+ *         }
  *       }
  *     }
  *
@@ -140,7 +142,7 @@ public interface ResolutionStrategy {
     Set<ModuleVersionSelector> getForcedModules();
 
     /**
-     * Adds a dependency resolve rule that is triggered for every dependency (including transitive)
+     * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencyResolveDetails}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * Example:
@@ -172,6 +174,7 @@ public interface ResolutionStrategy {
      * @since 1.4
      */
     @Incubating
+    @Deprecated
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**
@@ -238,4 +241,10 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
+
+    @Incubating
+    DependencySubstitutions getDependencySubstitution();
+
+    @Incubating
+    ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
 }
