@@ -35,10 +35,20 @@ configurations.all {
                     }
                 }
             }
-            withModule("org.gradle:mylib") { DependencySubstitution<ModuleComponentSelector> dependency ->
+            eachModule { ModuleDependencySubstitution dependency ->
+                if (dependency.requested.name == ':api') {
+                    dependency.useVersion "1.3"
+                }
+            }
+            withModule("org.gradle:mylib") { ModuleDependencySubstitution dependency ->
                 dependency.useTarget project(":foo")
             }
-            withProject(":bar") { DependencySubstitution<ProjectComponentSelector> dependency ->
+            eachProject { ProjectDependencySubstitution dependency ->
+                if (dependency.requested.projectPath == ':api') {
+                    dependency.useTarget "org.gradle:another:1.+"
+                }
+            }
+            withProject(":bar") { ProjectDependencySubstitution dependency ->
                 dependency.useTarget "org.gradle:another:1.+"
             }
         }

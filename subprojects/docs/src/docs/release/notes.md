@@ -182,20 +182,29 @@ In previous Gradle versions you could replace an external dependency with anothe
         }
     }
 
-Now the `requested` property on `DependencyResolveDetails` is deprecated; you can use the `selector` property instead. This returns a `ComponentSelector` instead
-a `ModuleVersionSelector`.
-
-The `useVersion()` method is also deprecated. You can use the `useTarget()` method instead:
+This method has been deprecated, and a new DSL has been introduced:
 
     resolutionStrategy {
-        eachDependency { details ->
-            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
-                useTarget group: 'com.example', name: 'my-module', version: '1.3'
-            }
+        dependencySubstitution {
+            withModule("com.example:my-module") { useVersion "1.3" }
         }
     }
 
-Note that `ModuleComponentSelector` has a `module` property to return the module's name, while `ModuleVersionSelector` had a `name` property.
+There are other options available to match module and project dependencies:
+
+    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
+    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
+    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
+    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
+    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
+
+Note that only `ModuleDependencySubstitution` has the `useVersion()` method. For the other substitutions you can use `useTarget()`:
+
+    resolutionStrategy {
+        dependencySubstitution {
+            withProject(project(":api")) { useTarget group: "org.utils", name: "api", version: "1.3" }
+        }
+    }
 
 ## Potential breaking changes
 
@@ -236,9 +245,9 @@ location to `install` to. The default repository was `mavenLocal()`.
 It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
 will be ignored.
 
-### DependencyResolveDetails.getTarget() is gone
+### DependencyResolveDetails.getTarget() returns a `ComponentSelector`
 
-There still is a `getTarget()` method on `DefaultDependencyResolveDetails`, but it returns a `ComponentSelector` instead of a `ModuleVersionSelector`.
+The `getTarget()` method on the now deprecated `DefaultDependencyResolveDetails` returns a `ComponentSelector` instead of a `ModuleVersionSelector`.
 
 ### CommandLineToolConfiguration.withArguments() semantics have changed
 
