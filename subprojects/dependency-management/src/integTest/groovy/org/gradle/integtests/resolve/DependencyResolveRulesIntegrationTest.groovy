@@ -735,6 +735,41 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("impl:check")
     }
 
+    void "replacing external module dependency with project dependency keeps the original transitivity"()
+    {
+        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
+        settingsFile << 'include "impl", "test"'
+
+        buildFile << """
+            $common
+
+            project(":test") {
+                dependencies {
+                    conf (group: "org.utils", name: "impl", version: "1.5") { transitive = false }
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:impl") {
+                    it.useTarget project(":impl")
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(moduleId("org.utils", "impl", "1.5"))
+                        it.selected.componentId == projectId(":impl")
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("test:check")
+    }
+
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
