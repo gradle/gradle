@@ -18,6 +18,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -861,6 +862,64 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("impl:check")
+    }
+
+    @Unroll
+    void "project dependency substituted for an external dependency participates in conflict resolution (version #projectVersion)"()
+    {
+        mavenRepo.module("org.utils", "api", '2.0').publish()
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":api") {
+                group "org.utils"
+                version = $apiProjectVersion
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf "org.utils:api:1.5"
+                    conf "org.utils:api:2.0"
+                }
+
+                configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+                    if (it.requested.module == "api" && it.requested.version == "1.5") {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 2
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5")) &&
+                        it.selected.componentId == $winner &&
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule == $selectedByRule &&
+                        it.selected.selectionReason.conflictResolution
+                    }
+                    assert deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
+                        it.selected.componentId == $winner &&
+                        !it.selected.selectionReason.forced &&
+                        it.selected.selectionReason.selectedByRule == $selectedByRule &&
+                        it.selected.selectionReason.conflictResolution
+                    }
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+
+        where:
+        apiProjectVersion | winner                                | selectedByRule
+        "1.6"             | 'moduleId("org.utils", "api", "2.0")' | false
+        "3.0"             | 'projectId(":api")'                   | true
     }
 
     void "can blacklist a version"()
