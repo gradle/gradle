@@ -18,13 +18,16 @@ package org.gradle.internal.component.model
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
@@ -174,5 +177,27 @@ class DefaultDependencyMetaDataTest extends Specification {
         componentSelector.group == 'org'
         componentSelector.module == 'module'
         componentSelector.version == '1.2+'
+    }
+
+    def "retains transitive and changing flags in substituted dependency"() {
+        given:
+        def requestedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(requestedModuleId)
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleDescriptor, requestedModuleId, false, changing, transitive)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        when:
+        DependencyMetaData replacedMetaData = metaData.withTarget(DefaultProjectComponentSelector.newSelector("test"))
+
+        then:
+        replacedMetaData.getSelector() instanceof ProjectComponentSelector
+        replacedMetaData.isTransitive() == metaData.isTransitive()
+        replacedMetaData.isChanging() == metaData.isChanging()
+
+        where:
+        transitive | changing
+        true       | true
+        false      | true
+        true       | false
+        false      | false
     }
 }

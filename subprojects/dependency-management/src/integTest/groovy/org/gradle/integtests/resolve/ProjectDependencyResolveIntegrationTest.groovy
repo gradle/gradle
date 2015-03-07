@@ -217,7 +217,7 @@ project(':b') {
             configurations { compile }
             dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
-                assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
+                assert configurations.compile.collect { it.name } == ['a.jar', 'b-early.jar']
             }
 '''
 

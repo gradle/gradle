@@ -324,6 +324,40 @@ eclipse {
     }
 
     @Test
+    void canDetectSubstitutedProjectDependency() {
+        runEclipseTask("""
+include "api", "impl"
+rootProject.name = 'root'
+""", """
+allprojects {
+    apply plugin: "java"
+    apply plugin: "eclipse"
+    group "org.utils"
+    version = "1.6"
+}
+
+project(":impl") {
+    dependencies {
+        compile group: "org.utils", name: "api", version: "1.5"
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (it.requested.name == 'api') {
+                it.useTarget project(":api")
+            }
+        }
+    }
+}
+""")
+
+        //then
+        def implClasspathFile = parseFile([:], "impl/.classpath")
+        def sourceEntries = findEntries(implClasspathFile, "src")
+        assert sourceEntries*.@path == ["/api"]
+    }
+
+    @Test
     @Issue("GRADLE-1157")
     void canHandleDependencyWithoutSourceJarInFlatDirRepo() {
         def repoDir = testDirectory.createDir("repo")

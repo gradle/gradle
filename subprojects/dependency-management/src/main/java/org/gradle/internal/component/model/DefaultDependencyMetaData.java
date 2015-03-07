@@ -124,7 +124,6 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
             return new DefaultDependencyMetaData(substitutedDescriptor);
         } else if (target instanceof ProjectComponentSelector) {
-            // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
             return new DefaultProjectDependencyMetaData(getDescriptor(), projectTarget.getProjectPath());
         } else {
