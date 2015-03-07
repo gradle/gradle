@@ -198,10 +198,13 @@ public class MavenResolver extends ExternalResourceResolver {
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
         MutableModuleComponentResolveMetaData metaData = metaDataParser.parseMetaData(context, cachedResource);
         if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
-            // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so map to expected id
+            // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
             checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
-            metaData.setComponentId(snapshotComponentIdentifier);
+            // Use the requested id. Currently we're discarding the MavenUniqueSnapshotComponentIdentifier and replacing with DefaultModuleComponentIdentifier as pretty
+            // much every consumer of the meta-data is expecting a DefaultModuleComponentIdentifier.
+            ModuleComponentIdentifier lossyId = DefaultModuleComponentIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+            metaData.setComponentId(lossyId);
         } else {
             checkMetadataConsistency(moduleComponentIdentifier, metaData);
         }
