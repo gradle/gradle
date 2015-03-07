@@ -93,7 +93,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ClassLoaderScope getBaseClassLoaderScope();
 
-    void addModelRulesBlockRunner(Runnable modelRulesBlockRunner);
+    void addDeferredConfiguration(Runnable configuration);
 
-    void runModelRulesBlock();
+    void fireDeferredConfiguration();
 }

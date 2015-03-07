@@ -28,7 +28,7 @@ import org.gradle.api.Action
 import org.gradle.api.tasks.testing.logging.TestLogging
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(new DirectInstantiator())
+    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(DirectInstantiator.INSTANCE)
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)

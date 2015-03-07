@@ -17,14 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.internal.operations.OperationFailure;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStream;
 
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
@@ -48,6 +49,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
     public void execute(CommandLineToolInvocation invocation) {
         ExecAction toolExec = execActionFactory.newExecAction();
+
         toolExec.executable(executable);
         if (invocation.getWorkDirectory() != null) {
             GFileUtils.mkdirs(invocation.getWorkDirectory());
@@ -68,10 +70,21 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
         toolExec.environment(invocation.getEnvironment());
 
+        ByteArrayOutputStream errOutput = new ByteArrayOutputStream();
+        ByteArrayOutputStream stdOutput = new ByteArrayOutputStream();
+        toolExec.setErrorOutput(errOutput);
+        toolExec.setStandardOutput(stdOutput);
+
         try {
             toolExec.execute();
+            invocation.getLogger().operationSuccess(invocation.getDescription(), combineOutput(stdOutput, errOutput));
         } catch (ExecException e) {
-            throw new OperationFailure(String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()), e);
+            invocation.getLogger().operationFailed(invocation.getDescription(), combineOutput(stdOutput, errOutput));
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()));
         }
+    }
+
+    private String combineOutput(OutputStream stdOutput, OutputStream errOutput) {
+        return stdOutput.toString() + errOutput.toString();
     }
 }

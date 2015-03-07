@@ -212,6 +212,7 @@ model {
 
     def "build fails when multiple compilations fail"() {
         given:
+        def brokenFileCount = 5
         buildFile << """
             model {
                 components {
@@ -221,28 +222,21 @@ model {
          """
 
         and:
-        file("src/main/c/broken.c") << """
+        (1..brokenFileCount).each {
+            file("src/main/c/broken${it}.c") << """
         #include <stdio.h>
 
         'broken
 """
-        file("src/main/c/broken2.c") << """
-        #include <stdio.h>
+        }
 
-        'broken
-"""
-        file("src/main/c/broken3.c") << """
-        #include <stdio.h>
-
-        'broken
-"""
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("Multiple build operations failed.")
-        failure.assertHasCause("C compiler failed while compiling broken.c; see the error output for details.")
-        failure.assertHasCause("C compiler failed while compiling broken2.c; see the error output for details.")
-        failure.assertHasCause("C compiler failed while compiling broken3.c; see the error output for details.")
+        (1..brokenFileCount).each {
+            failure.assertHasCause("C compiler failed while compiling broken${it}.c; see the error output for details.")
+        }
     }
 }
 

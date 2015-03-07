@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.internal.resolve.PreCompiledHeaderNativeDependencySet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
 
@@ -104,8 +105,27 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
             task.setCompilerArgs(tool.getArgs());
         }
 
+        // If this task is for compiling a pre-compiled header
         if (binary.getPreCompiledHeaderMappings().containsKey(sourceSet)) {
-            task.setPreCompiledHeader(true);
+            task.setIsPreCompiledHeader(true);
+            binary.getPreCompiledHeaderMappings().get(sourceSet).lib(new PreCompiledHeaderNativeDependencySet(
+                    task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch"))
+            ));
+        }
+
+        // If this task uses a pre-compiled header
+        if (sourceSet instanceof DependentSourceSet && ((DependentSourceSet)sourceSet).getPreCompiledHeader() != null) {
+            task.includePreCompiledHeader(new Callable<List<FileCollection>>() {
+                public List<FileCollection> call() {
+                    Collection<NativeDependencySet> libs = binary.getLibs((DependentSourceSet) sourceSet);
+                    return CollectionUtils.collect(libs, new Transformer<FileCollection, NativeDependencySet>() {
+                        @Override
+                        public FileCollection transform(NativeDependencySet nativeDependencySet) {
+                            return nativeDependencySet.getPreCompiledHeader();
+                        }
+                    });
+                }
+            });
         }
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

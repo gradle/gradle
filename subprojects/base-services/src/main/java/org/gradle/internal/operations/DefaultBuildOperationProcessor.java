@@ -41,8 +41,8 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         return actualThreads;
     }
 
-    public <T extends BuildOperation> OperationQueue<T> newQueue(OperationWorker<T> worker) {
-        return new DefaultOperationQueue<T>(fixedSizePool, worker);
+    public <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker) {
+        return new DefaultBuildOperationQueue<T>(fixedSizePool, worker);
     }
 
     public void stop() {

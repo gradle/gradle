@@ -43,7 +43,7 @@ import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinaries
 class DefaultSharedLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def namingScheme = new DefaultBinaryNamingScheme("main", "sharedLibrary", [])
     final toolChain = Stub(NativeToolChainInternal)
     final platform = Stub(NativePlatform)
@@ -151,7 +151,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     }
 
     private DefaultSharedLibraryBinarySpec getSharedLibrary() {
-        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", new DirectInstantiator(), Stub(ProjectSourceSet)), instantiator);
+        final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet)), instantiator);
         return create(DefaultSharedLibraryBinarySpec, instantiator, library, namingScheme, resolver, toolChain, Stub(PlatformToolProvider), platform, buildType, new DefaultFlavor("flavorOne"), Mock(ITaskFactory))
     }
 }

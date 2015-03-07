@@ -66,6 +66,9 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "creates launcher and forwards action to action runner"() {
+        given:
+        param.envVariables >> [:]
+
         when:
         def result = executer.execute(action, buildRequestContext, param)
 
@@ -81,6 +84,9 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "can have null result"() {
+        given:
+        param.envVariables >> [:]
+
         when:
         def result = executer.execute(action, buildRequestContext, param)
 
@@ -98,6 +104,9 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "runs build when requested by action"() {
+        given:
+        param.envVariables >> [:]
+
         when:
         def result = executer.execute(action, buildRequestContext, param)
 
@@ -117,6 +126,9 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     def "configures build when requested by action"() {
+        given:
+        param.envVariables >> [:]
+
         when:
         def result = executer.execute(action, buildRequestContext, param)
 
@@ -178,13 +190,14 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     @Requires(NOT_WINDOWS)
-    def "suggests using daemon when not on windows, daemon usage is not explicitly specified and not running in a long running process"() {
+    def "suggests using daemon when not on windows, daemon usage is not explicitly specified, CI env var is not specified and not running in a long running process"() {
         given:
         factory.newInstance(startParameter, buildRequestContext) >> launcher
 
         and:
         buildEnvironment.longLivingProcess >> false
         param.daemonUsageConfiguredExplicitly >> false
+        param.envVariables >> [CI: null]
 
         when:
         executer.execute(action, buildRequestContext, param)
@@ -193,7 +206,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         1 * textOutput.println()
 
         and:
-        1 * textOutput.formatln("This build could be faster, please consider using the daemon: {}", DAEMON_DOCS_URL)
+        1 * textOutput.println("This build could be faster, please consider using the daemon: $DAEMON_DOCS_URL")
     }
 
     @Requires(WINDOWS)
@@ -204,6 +217,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         and:
         buildEnvironment.longLivingProcess >> false
         param.daemonUsageConfiguredExplicitly >> false
+        param.envVariables >> [CI: null]
 
         when:
         executer.execute(action, buildRequestContext, param)
@@ -213,13 +227,14 @@ class InProcessBuildActionExecuterTest extends Specification {
     }
 
     @Unroll
-    def "does not suggest using daemon when daemon usage is explicitly specified and/or running in a long running process"() {
+    def "does not suggest using daemon [#longLivingProcess, #deamonUsageConfiguredExplicitly, #ciEnvValue]"() {
         given:
         factory.newInstance(startParameter, buildRequestContext) >> launcher
 
         and:
         buildEnvironment.longLivingProcess >> longLivingProcess
         param.daemonUsageConfiguredExplicitly >> deamonUsageConfiguredExplicitly
+        param.getEnvVariables() >> [CI: ciEnvValue]
 
         when:
         executer.execute(action, buildRequestContext, param)
@@ -228,9 +243,6 @@ class InProcessBuildActionExecuterTest extends Specification {
         0 * textOutput._
 
         where:
-        longLivingProcess | deamonUsageConfiguredExplicitly
-        true              | false
-        false             | true
-        true              | true
+        [longLivingProcess, deamonUsageConfiguredExplicitly, ciEnvValue] << ([[true, false], [true, false], [null, "true"]].combinations() - [[false, false, null]])
     }
 }

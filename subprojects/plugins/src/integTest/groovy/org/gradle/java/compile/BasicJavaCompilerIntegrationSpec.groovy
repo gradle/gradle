@@ -17,6 +17,7 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
@@ -232,5 +233,127 @@ class Main {
     def classFile(String path) {
         return new ClassFile(file(path))
     }
+
+    def "can use annotation processor"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            dependencies {
+                compile project(":processor")
+            }
+        """
+        settingsFile << "include 'processor'"
+        writeAnnotationProcessorProject()
+
+        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
+
+        then:
+        succeeds("compileJava")
+        file('build/classes/main/Java$$Generated.java').exists()
+    }
+
+    def writeAnnotationProcessorProject() {
+        file("processor").create {
+            file("build.gradle") << "apply plugin: 'java'"
+            "src/main" {
+                file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
+                "java/com/test/" {
+                    file("SimpleAnnotation.java") << """
+                        package com.test;
+
+                        import java.lang.annotation.ElementType;
+                        import java.lang.annotation.Retention;
+                        import java.lang.annotation.RetentionPolicy;
+                        import java.lang.annotation.Target;
+
+                        @Retention(RetentionPolicy.SOURCE)
+                        @Target(ElementType.TYPE)
+                        public @interface SimpleAnnotation {}
+                    """
+
+                    file("SimpleAnnotationProcessor.java") << """
+                        package com.test;
+
+                        import java.io.BufferedWriter;
+                        import java.io.IOException;
+                        import java.io.Writer;
+                        import java.util.Set;
+
+                        import javax.annotation.processing.AbstractProcessor;
+                        import javax.annotation.processing.RoundEnvironment;
+                        import javax.annotation.processing.SupportedAnnotationTypes;
+                        import javax.lang.model.element.Element;
+                        import javax.lang.model.element.TypeElement;
+                        import javax.lang.model.SourceVersion;
+                        import javax.tools.JavaFileObject;
+
+                        @SupportedAnnotationTypes("com.test.SimpleAnnotation")
+                        public class SimpleAnnotationProcessor extends AbstractProcessor {
+                            @Override
+                            public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                }
+
+                                for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
+                                    final String className = String.format("%s\$\$Generated", classElement.getSimpleName().toString());
+
+                                    Writer writer = null;
+                                    try {
+                                        final JavaFileObject file = processingEnv.getFiler().createSourceFile(className);
+
+                                        writer = new BufferedWriter(file.openWriter());
+                                        writer.append(String.format("public class %s {\\n", className));
+                                        writer.append("}");
+                                    } catch (final IOException e) {
+                                        throw new RuntimeException(e);
+                                    } finally {
+                                        if (writer != null) {
+                                            try {
+                                                writer.close();
+                                            } catch (final IOException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                return true;
+                            }
+
+                            @Override
+                            public SourceVersion getSupportedSourceVersion() {
+                                return SourceVersion.latestSupported();
+                            }
+
+                            private boolean isClasspathContaminated() {
+                                try {
+                                    Class.forName("$Action.name");
+                                    return true;
+                                } catch (final ClassNotFoundException e) {
+                                    return false;
+                                }
+                            }
+                        }
+                    """
+                }
+            }
+        }
+    }
+
+    def "cant compile against gradle base services"() {
+        def gradleBaseServicesClass = Action
+
+        when:
+        file("src/main/java/Java.java") << """
+            import ${gradleBaseServicesClass.name};
+            public class Java {}
+        """
+
+        then:
+        fails("compileJava")
+        compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
 }
 

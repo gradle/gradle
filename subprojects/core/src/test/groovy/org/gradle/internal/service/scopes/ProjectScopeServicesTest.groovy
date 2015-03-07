@@ -92,7 +92,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DependencyFactory) >> dependencyFactory
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
-        parent.get(Instantiator) >> new DirectInstantiator()
+        parent.get(Instantiator) >> DirectInstantiator.INSTANCE
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)

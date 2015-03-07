@@ -47,7 +47,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     private Instantiator instantiator;
 
     public ComponentTypeModelRuleExtractor(final Instantiator instantiator) {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultComponentTypeBuilder.class));
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultComponentTypeBuilder.class));
         this.instantiator = instantiator;
     }
 

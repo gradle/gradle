@@ -100,5 +100,9 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         public FileCollection getRuntimeFiles() {
             return new SimpleFileCollection();
         }
+
+        public FileCollection getPreCompiledHeader() {
+            return new SimpleFileCollection();
+        }
     }
 }

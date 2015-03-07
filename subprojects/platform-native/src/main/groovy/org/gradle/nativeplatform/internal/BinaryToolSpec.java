@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
@@ -40,5 +41,9 @@ public interface BinaryToolSpec extends CompileSpec {
     void systemArgs(List<String> args);
 
     List<String> getAllArgs();
+
+    BuildOperationLogger getOperationLogger();
+
+    void setOperationLogger(BuildOperationLogger oplogger);
 
 }

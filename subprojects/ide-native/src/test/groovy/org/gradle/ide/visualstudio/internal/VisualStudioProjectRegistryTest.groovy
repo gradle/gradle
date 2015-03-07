@@ -27,7 +27,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
     def fileResolver = Mock(FileResolver)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
-    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, new DirectInstantiator())
+    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
 
     def executable = Mock(NativeExecutableSpec)
 

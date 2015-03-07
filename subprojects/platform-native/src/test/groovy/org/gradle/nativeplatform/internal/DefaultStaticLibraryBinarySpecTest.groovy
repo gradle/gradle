@@ -45,7 +45,7 @@ import static org.gradle.nativeplatform.internal.configure.DefaultNativeBinaries
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def toolChain = Stub(NativeToolChainInternal)

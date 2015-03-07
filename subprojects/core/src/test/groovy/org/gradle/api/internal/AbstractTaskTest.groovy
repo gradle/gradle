@@ -42,7 +42,7 @@ class AbstractTaskTest extends Specification {
     public TaskInternal createTask(String name) {
         AbstractProject project = TestUtil.createRootProject()
         DefaultServiceRegistry registry = new DefaultServiceRegistry()
-        registry.add(Instantiator, new DirectInstantiator())
+        registry.add(Instantiator, DirectInstantiator.INSTANCE)
         TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask, Task.TASK_NAME, name))
         assertTrue(TestTask.isAssignableFrom(task.getClass()))
         return task

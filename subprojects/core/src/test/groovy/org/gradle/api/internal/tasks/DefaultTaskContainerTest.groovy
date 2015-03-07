@@ -38,7 +38,7 @@ public class DefaultTaskContainerTest extends Specification {
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainerFactory(modelRegistry, new DirectInstantiator(), taskFactory, project, accessListener).create()
+    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
 
     void "creates by Map"() {
         def options = singletonMap("option", "value")

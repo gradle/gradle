@@ -31,7 +31,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container = createResolverContainer()
     }
 
-    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = new DirectInstantiator()) {
+    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = DirectInstantiator.INSTANCE) {
         new DefaultArtifactRepositoryContainer(instantiator)
     }
 

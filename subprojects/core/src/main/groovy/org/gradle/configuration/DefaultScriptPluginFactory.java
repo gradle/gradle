@@ -151,7 +151,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             Boolean hasImperativeStatements = runner.getCompiledScript().getData();
             if (!hasImperativeStatements && target instanceof ProjectInternal) {
-                ((ProjectInternal) target).addModelRulesBlockRunner(buildScriptRunner);
+                ((ProjectInternal) target).addDeferredConfiguration(buildScriptRunner);
             } else {
                 buildScriptRunner.run();
             }

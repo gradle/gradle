@@ -24,8 +24,13 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
     def "setting a precompiled header generates a source set and compile task" () {
         given:
         def app = new CHelloWorldApp()
-        app.writeSources(file("src/main/c"))
-        assert file("src/main/c/headers/hello.h").exists()
+        settingsFile << "rootProject.name = 'test'"
+        def sourceFile = app.mainSource.writeToDir(file("src/main"))
+        def headerFile = app.libraryHeader.writeToDir(file("src/hello"))
+        app.librarySources.each {
+            it.writeToDir(file("src/hello"))
+        }
+        assert file("src/hello/headers/hello.h").exists()
 
         when:
         buildFile << """
@@ -34,8 +39,13 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
             model {
                 components {
                     main(NativeExecutableSpec) {
+                        binaries.all {
+                            lib library: 'hello'
+                        }
+                    }
+                    hello(NativeLibrarySpec) {
                         sources {
-                            c.preCompiledHeader file("src/main/c/headers/hello.h")
+                            c.preCompiledHeader file("src/hello/headers/hello.h")
                         }
                     }
                 }
@@ -43,8 +53,9 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         """
 
         then:
-        succeeds "compileMainExecutableCPreCompiledHeader"
-        def outputDirectories = file("build/objs/mainExecutable/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
+        succeeds "mainExecutable"
+        executedAndNotSkipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
     }

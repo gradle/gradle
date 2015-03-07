@@ -227,7 +227,8 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     return sourceSetFactory.create(targetSourceSet.getName().concat("PreCompiledHeader"));
                 }
             }
-            return null;
+            // This should never happen
+            throw new GradleException("Unable to generate a pre-compiled header source set for type ".concat(targetSourceSet.getClass().getSimpleName()));
         }
 
         @Mutate

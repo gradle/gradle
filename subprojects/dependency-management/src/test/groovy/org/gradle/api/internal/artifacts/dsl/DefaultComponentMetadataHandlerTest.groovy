@@ -42,12 +42,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String MODULE = "module"
 
     // For testing ModuleMetadataProcessor capabilities
-    def handler = new DefaultComponentMetadataHandler(new DirectInstantiator())
+    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE)
 
     // For testing ComponentMetadataHandler capabilities
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
     NotationParser<Object, String> notationParser = Mock(NotationParser)
-    def mockedHandler = new DefaultComponentMetadataHandler(new DirectInstantiator(), adapter, notationParser)
+    def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, notationParser)
     def ruleAction = Stub(RuleAction)
 
     def "add action rule that applies to all components" () {

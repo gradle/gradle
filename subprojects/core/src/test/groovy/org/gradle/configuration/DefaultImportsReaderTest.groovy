@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.configuration
 
 import org.gradle.util.Resources
@@ -21,16 +21,12 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultImportsReaderTest extends Specification {
-    @Rule public Resources resources = new Resources()
+    @Rule
+    public Resources resources = new Resources()
     DefaultImportsReader reader = new DefaultImportsReader()
-
-    public void testReadImportsFromResource() {
-        expect:
-        reader.imports.contains('import org.gradle.api.*')
-    }
 
     public void testReadImportPackagesFromResource() {
         expect:
-        reader.importPackages.contains('org.gradle.api.')
+        reader.importPackages.contains('org.gradle.api')
     }
 }

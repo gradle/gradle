@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class NonImperativeBuildScriptEvaluationIntegrationTest extends AbstractIntegrationSpec {
 
     def "all non-imperative script plugins applied to a project get evaluated"() {
+        when:
         file("scriptPlugin1.gradle") << """
             model {
                 tasks {
@@ -42,11 +43,7 @@ class NonImperativeBuildScriptEvaluationIntegrationTest extends AbstractIntegrat
             apply from: "scriptPlugin2.gradle"
         """
 
-        when:
-        succeeds "tasks"
-
         then:
-        output.contains "fromScriptPlugin1"
-        output.contains "fromScriptPlugin2"
+        succeeds "fromScriptPlugin1", "fromScriptPlugin2"
     }
 }

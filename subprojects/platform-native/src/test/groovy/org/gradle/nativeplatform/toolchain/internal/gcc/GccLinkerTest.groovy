@@ -17,16 +17,17 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc
 import org.gradle.internal.Actions
 import org.gradle.internal.operations.BuildOperationProcessor
-import org.gradle.internal.operations.OperationQueue
+import org.gradle.internal.operations.BuildOperationQueue
+import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,12 +35,13 @@ import spock.lang.Specification
 class GccLinkerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
+    def operationLogger =  Mock(BuildOperationLogger)
     def executable = new File("executable")
     def invocationContext = Mock(CommandLineToolContext)
     def invocation = Mock(CommandLineToolInvocation)
     CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
     BuildOperationProcessor buildOperationProcessor = Mock(BuildOperationProcessor)
-    OperationQueue queue = Mock(OperationQueue)
+    BuildOperationQueue queue = Mock(BuildOperationQueue)
 
     GccLinker linker = new GccLinker(buildOperationProcessor, commandLineTool, invocationContext, false)
 
@@ -67,6 +69,7 @@ class GccLinkerTest extends Specification {
         spec.getInstallName() >> "installName"
         spec.getTargetPlatform() >> new DefaultNativePlatform("default")
         spec.getObjectFiles() >> [testDir.file("one.o"), testDir.file("two.o")]
+        spec.getOperationLogger() >> operationLogger
 
         and:
         linker.execute(spec)
@@ -74,7 +77,7 @@ class GccLinkerTest extends Specification {
         then:
         1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
         1 * queue.waitForCompletion()
         0 * _
@@ -114,6 +117,7 @@ class GccLinkerTest extends Specification {
         spec.getInstallName() >> "installName"
         spec.getTargetPlatform() >> platform
         spec.getObjectFiles() >> [testDir.file("one.o")]
+        spec.getOperationLogger() >> operationLogger
 
         and:
         linker.execute(spec)
@@ -121,7 +125,7 @@ class GccLinkerTest extends Specification {
         then:
         1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
         1 * queue.waitForCompletion()
         0 * _
@@ -150,6 +154,7 @@ class GccLinkerTest extends Specification {
         spec.getInstallName() >> "installName"
         spec.getTargetPlatform() >> platform
         spec.getObjectFiles() >> [testDir.file("one.o")]
+        spec.getOperationLogger() >> operationLogger
 
         and:
         linker.execute(spec)
@@ -157,7 +162,7 @@ class GccLinkerTest extends Specification {
         then:
         1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
         1 * queue.waitForCompletion()
         0 * _
@@ -187,6 +192,7 @@ class GccLinkerTest extends Specification {
         spec.getInstallName() >> "installName"
         spec.getTargetPlatform() >> platform
         spec.getObjectFiles() >> [testDir.file("one.o")]
+        spec.getOperationLogger() >> operationLogger
 
         and:
         linker.execute(spec)
@@ -194,7 +200,7 @@ class GccLinkerTest extends Specification {
         then:
         1 * buildOperationProcessor.newQueue(commandLineTool) >> queue
         1 * invocationContext.getArgAction() >> Actions.doNothing()
-        1 * invocationContext.createInvocation("linking lib", expectedArgs) >> invocation
+        1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
         1 * queue.waitForCompletion()
         0 * _

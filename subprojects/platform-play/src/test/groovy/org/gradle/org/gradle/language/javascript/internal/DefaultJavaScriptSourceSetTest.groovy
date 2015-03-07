@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class DefaultJavaScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet, "javascriptX", "playX", Stub(FileResolver), new DirectInstantiator())
+        def sourceSet = BaseLanguageSourceSet.create(DefaultJavaScriptSourceSet, "javascriptX", "playX", Stub(FileResolver), DirectInstantiator.INSTANCE)
 
         expect:
         sourceSet.displayName == "JavaScript source 'playX:javascriptX'"

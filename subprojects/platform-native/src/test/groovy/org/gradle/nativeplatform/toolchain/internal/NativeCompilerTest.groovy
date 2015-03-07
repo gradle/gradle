@@ -16,10 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.api.Action
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.operations.DefaultBuildOperationProcessor
+import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -93,6 +94,7 @@ public abstract class NativeCompilerTest extends Specification {
             getMacros() >> [foo: "bar", empty: null]
             getAllArgs() >> ["-firstArg", "-secondArg"]
             getIncludeRoots() >> [ includeDir ]
+            getOperationLogger() >> Mock(BuildOperationLogger)
         }
 
         and:
@@ -116,6 +118,7 @@ public abstract class NativeCompilerTest extends Specification {
             getTempDir() >> testDir
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
+            getOperationLogger() >> Mock(BuildOperationLogger)
         }
 
         and:
@@ -147,6 +150,7 @@ public abstract class NativeCompilerTest extends Specification {
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
+            getOperationLogger() >> Mock(BuildOperationLogger)
         }
         and:
         invocationContext.getArgAction() >> action
@@ -173,6 +177,7 @@ public abstract class NativeCompilerTest extends Specification {
             getAllArgs() >> ["-firstArg", "-secondArg"]
             getIncludeRoots() >> [ includeDir ]
             getTempDir() >> testDir
+            getOperationLogger() >> Mock(BuildOperationLogger)
         }
 
         and:

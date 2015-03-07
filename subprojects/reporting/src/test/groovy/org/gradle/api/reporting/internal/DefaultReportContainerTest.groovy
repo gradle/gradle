@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 class DefaultReportContainerTest extends Specification {
 
-    static Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    static Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
 
     static class TestReportContainer extends DefaultReportContainer {
         TestReportContainer(Closure c) {

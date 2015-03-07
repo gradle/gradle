@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.samples
-
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
@@ -22,7 +21,6 @@ import org.gradle.api.Transformer
 import org.gradle.api.reporting.components.ComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.SystemProperties
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AntUtil
@@ -131,6 +129,11 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
             executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+
+            if (!GradleContextualExecuter.longLivingProcess) {
+                //suppress daemon usage suggestions
+                executer.withArgument("--no-daemon")
+            }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
@@ -244,11 +247,7 @@ class UserGuideSamplesRunner extends Runner {
         }
 
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new ComponentReportOutputFormatter() }
-        samplesById.completeCUnitExample.runs.each {
-            if (AvailableToolChains.defaultToolChain.visualCpp) {
-                it.outputFile = it.outputFile.replace(".out", "-visualCpp.out")
-            }
-        }
+
         if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
             // Ignore for now
             samplesById.remove('completeCUnitExample')

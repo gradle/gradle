@@ -22,7 +22,7 @@ import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
 
     def "cannot instantiate directly"() {
         when:

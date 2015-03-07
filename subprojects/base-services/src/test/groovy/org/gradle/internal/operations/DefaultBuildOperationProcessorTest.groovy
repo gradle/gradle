@@ -29,8 +29,8 @@ class DefaultBuildOperationProcessorTest extends Specification {
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
-        def operation = Mock(DefaultOperationQueueTest.TestBuildOperation)
-        def worker = new DefaultOperationQueueTest.SimpleWorker()
+        def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
+        def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
         def queue = buildOperationProcessor.newQueue(worker)
@@ -58,7 +58,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
     def "all work run to completion for multiple queues when using multiple threads #maxThreads"() {
         given:
         def amountOfWork = 10
-        def worker = new DefaultOperationQueueTest.SimpleWorker()
+        def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
         def queues = [
                 buildOperationProcessor.newQueue(worker),
@@ -68,11 +68,11 @@ class DefaultBuildOperationProcessorTest extends Specification {
                 buildOperationProcessor.newQueue(worker),
         ]
         def operations = [
-                Mock(DefaultOperationQueueTest.TestBuildOperation),
-                Mock(DefaultOperationQueueTest.TestBuildOperation),
-                Mock(DefaultOperationQueueTest.TestBuildOperation),
-                Mock(DefaultOperationQueueTest.TestBuildOperation),
-                Mock(DefaultOperationQueueTest.TestBuildOperation),
+                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
+                Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
         ]
 
         when:
@@ -104,11 +104,11 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def amountOfWork = 10
         def maxThreads = 4
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
-        def success = Stub(DefaultOperationQueueTest.TestBuildOperation)
-        def failure = Stub(DefaultOperationQueueTest.TestBuildOperation) {
+        def success = Stub(DefaultBuildOperationQueueTest.TestBuildOperation)
+        def failure = Stub(DefaultBuildOperationQueueTest.TestBuildOperation) {
             run() >> { throw new Exception() }
         }
-        def worker = new DefaultOperationQueueTest.SimpleWorker()
+        def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
         def successfulQueue = buildOperationProcessor.newQueue(worker)
         def failedQueue = buildOperationProcessor.newQueue(worker)
 
@@ -150,10 +150,10 @@ class DefaultBuildOperationProcessorTest extends Specification {
         given:
         def threadCount = 4
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), threadCount)
-        def worker = new DefaultOperationQueueTest.SimpleWorker()
+        def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
         def queue = buildOperationProcessor.newQueue(worker)
         def startLatch = new CountDownLatch(1)
-        def operation = Stub(DefaultOperationQueueTest.TestBuildOperation) {
+        def operation = Stub(DefaultBuildOperationQueueTest.TestBuildOperation) {
             run() >> {
                 startLatch.await()
                 throw new GradleException("always fails")

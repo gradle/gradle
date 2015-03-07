@@ -32,7 +32,7 @@ class SourceSetNotationParserTest extends Specification {
 
     def "collects all LanguageSourceSets for a FunctionalSourceSet"() {
         when:
-        def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator(), projectSources)
+        def functionalSourceSet = new DefaultFunctionalSourceSet("func", DirectInstantiator.INSTANCE, projectSources)
         functionalSourceSet.add(languageSourceSet1)
         functionalSourceSet.add(languageSourceSet2)
 

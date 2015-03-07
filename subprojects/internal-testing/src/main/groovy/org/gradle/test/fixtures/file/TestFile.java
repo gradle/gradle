@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -252,10 +253,10 @@ public class TestFile extends File {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void moveToDirectory(File target) {
         if (target.exists() && !target.isDirectory()) {
-                throw new RuntimeException(String.format("Target '%s' is not a directory", target));
+            throw new RuntimeException(String.format("Target '%s' is not a directory", target));
         }
         try {
             FileUtils.moveFileToDirectory(this, target, true);
@@ -285,7 +286,7 @@ public class TestFile extends File {
      * }
      * </pre>
      */
-    public TestFile create(Closure structure) {
+    public TestFile create(@DelegatesTo(TestWorkspaceBuilder.class) Closure structure) {
         assertTrue(isDirectory() || mkdirs());
         new TestWorkspaceBuilder(this).apply(structure);
         return this;
@@ -514,7 +515,7 @@ public class TestFile extends File {
         return zipFile;
     }
 
-    public TestFile zipTo(TestFile zipFile){
+    public TestFile zipTo(TestFile zipFile) {
         new TestFileHelper(this).zipTo(zipFile, useNativeTools);
         return this;
     }
@@ -587,7 +588,7 @@ public class TestFile extends File {
             throw new RuntimeException(e);
         }
     }
-    
+
     public ExecOutput exec(Object... args) {
         return new TestFileHelper(this).execute(Arrays.asList(args), null);
     }

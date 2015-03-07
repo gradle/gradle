@@ -63,7 +63,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createChild(project, new DirectInstantiator()).createTask(
+        Task task = TASK_FACTORY.createChild(project, DirectInstantiator.INSTANCE).createTask(
                 GUtil.map(Task.TASK_TYPE, type,
                         Task.TASK_NAME, name))
         assert type.isAssignableFrom(task.getClass())

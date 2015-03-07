@@ -27,7 +27,7 @@ import spock.lang.Specification
 public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     StartParameter startParameter = new StartParameter()
     TaskArtifactStateRepository delegate = Mock(TaskArtifactStateRepository)
-    ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, new DirectInstantiator(), delegate)
+    ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, DirectInstantiator.INSTANCE, delegate)
     TaskArtifactState taskArtifactState = Mock(TaskArtifactState)
     TaskInternal task = Mock(TaskInternal)
     TaskOutputsInternal outputs = Mock(TaskOutputsInternal)

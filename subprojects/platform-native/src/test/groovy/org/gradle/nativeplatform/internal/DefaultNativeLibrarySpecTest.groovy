@@ -25,8 +25,8 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeLibrarySpecTest extends Specification {
-    FunctionalSourceSet mainSourceSet = new DefaultFunctionalSourceSet("testFS", new DirectInstantiator(), Stub(ProjectSourceSet))
-    final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("project-path", "someLib"), mainSourceSet, new DirectInstantiator())
+    FunctionalSourceSet mainSourceSet = new DefaultFunctionalSourceSet("testFS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
+    final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("project-path", "someLib"), mainSourceSet, DirectInstantiator.INSTANCE)
 
     def "has useful string representation"() {
         expect:

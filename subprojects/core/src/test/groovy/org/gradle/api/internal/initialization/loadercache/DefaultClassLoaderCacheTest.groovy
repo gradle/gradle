@@ -26,12 +26,12 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def storage = [:]
-    def cache = new DefaultClassLoaderCache(storage)
+    def cache = new DefaultClassLoaderCache(new FileClassPathSnapshotter())
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
 
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     TestFile file(String path) {
         testDirectoryProvider.testDirectory.file(path)
@@ -80,7 +80,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
         !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
-        storage.size() == 2
+        cache.size() == 2
     }
 
     def "non filtered classloaders are reused"() {
@@ -88,9 +88,40 @@ class DefaultClassLoaderCacheTest extends Specification {
         def root = classLoader(classPath("root"))
         def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
         cache.get(id1, classPath("c1"), root, f1)
-        storage.size() == 2
+        cache.size() == 2
         cache.get(id1, classPath("c1"), root, null)
-        storage.size() == 2
+        cache.size() == 1
+    }
+
+    def "filtered classloaders are reused if they have multiple ids"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
+        cache.get(id1, classPath("c1"), root, f1)
+        cache.get(id2, classPath("c1"), root, f1)
+        cache.size() == 2
+        cache.get(id1, classPath("c1"), root, null)
+        cache.size() == 2
+    }
+
+    def "unfiltered base is released when there are no more references to it"() {
+        expect:
+        def root = classLoader(classPath("root"))
+        def f1 = new FilteringClassLoader.Spec(["1"], [], [], [], [], [], [])
+        def f2 = new FilteringClassLoader.Spec(["2"], [], [], [], [], [], [])
+        def cp1 = classPath("c1")
+        def cp2 = classPath("c2")
+
+        cache.get(id1, cp1, root, f1)
+        cache.get(id2, cp1, root, f2)
+        cache.size() == 3
+        cache.get(id1, cp2, root, f1)
+        cache.size() == 4
+        cache.get(id1, cp1, root, null)
+        cache.size() == 2
+        cache.get(id1, cp2, root, null)
+        cache.get(id2, cp2, root, null)
+        cache.size() == 1
     }
 
     def "removes stale classloader"() {
@@ -98,7 +129,7 @@ class DefaultClassLoaderCacheTest extends Specification {
         cache.get(id1, classPath("c1"), root, null)
         def c2 = cache.get(id1, classPath("c2"), root, null)
         expect:
-        storage.size() == 1
+        cache.size() == 1
         c2.is cache.get(id1, classPath("c2"), root, null)
     }
 }

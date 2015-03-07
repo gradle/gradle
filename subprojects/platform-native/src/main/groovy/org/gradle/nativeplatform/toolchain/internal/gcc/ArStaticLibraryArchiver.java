@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.OperationQueue;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
@@ -50,11 +50,11 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                String.format("archiving %s", spec.getOutputFile().getName()), args);
+                String.format("archiving %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
         queue.add(invocation);
         queue.waitForCompletion();
         return new SimpleWorkResult(true);

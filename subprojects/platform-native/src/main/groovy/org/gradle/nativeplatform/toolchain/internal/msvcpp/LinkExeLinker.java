@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.OperationQueue;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -49,13 +49,13 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        OperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
         LinkerSpec transformedSpec = specTransformer.transform(spec);
         List<String> args = argsTransformer.transform(transformedSpec);
         invocationContext.getArgAction().execute(args);
         new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                String.format("linking %s", spec.getOutputFile().getName()), args);
+                String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
         queue.add(invocation);
         queue.waitForCompletion();
         return new SimpleWorkResult(true);

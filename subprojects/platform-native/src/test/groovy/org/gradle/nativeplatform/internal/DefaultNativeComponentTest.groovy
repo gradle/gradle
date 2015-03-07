@@ -26,13 +26,13 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
-    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def id = new DefaultComponentSpecIdentifier("project", "name")
     FunctionalSourceSet mainSourceSet
     def component
 
     def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", new DirectInstantiator(), Stub(ProjectSourceSet))
+        mainSourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
         component = BaseComponentSpec.create(TestNativeComponentSpec, id, mainSourceSet, instantiator)
     }
 

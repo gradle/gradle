@@ -29,7 +29,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
     FunctionalSourceSet mainSourceSet
 
     def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator(), Stub(ProjectSourceSet));
+        mainSourceSet = new DefaultFunctionalSourceSet("testFss", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
     }
 
     def "library has name and path"() {
@@ -60,7 +60,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
     }
 
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, mainSourceSet, new DirectInstantiator())
+        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, mainSourceSet, DirectInstantiator.INSTANCE)
     }
 
     def languageSourceSet(String name) {

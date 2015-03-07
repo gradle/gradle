@@ -16,10 +16,12 @@
 
 package org.gradle.language.routes;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a source set containing routes files
  */
+@Incubating
 public interface RoutesSourceSet extends LanguageSourceSet {
 }

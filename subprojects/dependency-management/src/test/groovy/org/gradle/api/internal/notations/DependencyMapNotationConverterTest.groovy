@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 public class DependencyMapNotationConverterTest extends Specification {
 
-    def parser = NotationParserBuilder.toType(ExternalModuleDependency).converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class)).toComposite()
+    def parser = NotationParserBuilder.toType(ExternalModuleDependency).converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(DirectInstantiator.INSTANCE, DefaultExternalModuleDependency.class)).toComposite()
 
     def "with artifact"() {
         when:

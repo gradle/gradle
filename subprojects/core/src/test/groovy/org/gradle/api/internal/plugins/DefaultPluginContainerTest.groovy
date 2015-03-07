@@ -33,7 +33,7 @@ public class DefaultPluginContainerTest extends Specification {
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def applicator = Mock(PluginApplicator)
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, applicator)
 
     @Subject

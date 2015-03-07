@@ -470,7 +470,7 @@ public class ProtocolToModelAdapter implements Serializable {
             }
 
             if (instance == null) {
-                instance = new DirectInstantiator().newInstance(mixInClass, proxy);
+                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, proxy);
             }
             MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, invocation.getParameters());
             current.set(beanInvocation);

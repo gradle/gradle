@@ -49,7 +49,7 @@ public class WrapUtil {
      * Wraps the given items in a named domain object set.
      */
     public static <T extends Named> NamedDomainObjectSet<T> toNamedDomainObjectSet(Class<T> type, T... items) {
-        DefaultNamedDomainObjectSet<T> domainObjectSet = new DefaultNamedDomainObjectSet<T>(type, new DirectInstantiator());
+        DefaultNamedDomainObjectSet<T> domainObjectSet = new DefaultNamedDomainObjectSet<T>(type, DirectInstantiator.INSTANCE);
         CollectionUtils.addAll(domainObjectSet, items);
         return domainObjectSet;
     }

@@ -40,7 +40,7 @@ class VisualCppToolChainTest extends Specification {
     final BuildOperationProcessor buildOperationProcessor = Stub(BuildOperationProcessor)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
-    final Instantiator instantiator = new DirectInstantiator()
+    final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {

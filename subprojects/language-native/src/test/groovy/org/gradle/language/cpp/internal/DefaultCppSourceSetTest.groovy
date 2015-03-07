@@ -26,7 +26,7 @@ import spock.lang.Specification
 class DefaultCppSourceSetTest extends Specification {
     def parent = "main"
     def fileResolver = Mock(FileResolver)
-    def sourceSet = BaseLanguageSourceSet.create(DefaultCppSourceSet, "cpp", parent, fileResolver, new DirectInstantiator())
+    def sourceSet = BaseLanguageSourceSet.create(DefaultCppSourceSet, "cpp", parent, fileResolver, DirectInstantiator.INSTANCE)
 
     def "has useful string representation"() {
         expect:

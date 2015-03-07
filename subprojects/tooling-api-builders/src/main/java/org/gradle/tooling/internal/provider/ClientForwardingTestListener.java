@@ -20,7 +20,6 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 
 /**
@@ -35,121 +34,64 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     @Override
-    public void beforeSuite(final TestDescriptor suite) {
-        eventConsumer.dispatch(new TestProgressEventVersion1() {
-
-            @Override
-            public String getEventType() {
-                return TestProgressEventVersion1.TEST_SUITE_STARTED;
-            }
-
-            @Override
-            public TestDescriptorVersion1 getDescriptor() {
-                return new TestDescriptorImpl(suite);
-            }
-
-        });
+    public void beforeSuite(TestDescriptor suite) {
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_SUITE_STARTED, toTestDescriptor(suite), null));
     }
 
     @Override
-    public void afterSuite(final TestDescriptor suite, final TestResult result) {
-        eventConsumer.dispatch(new TestProgressEventVersion1() {
+    public void afterSuite(TestDescriptor suite, TestResult result) {
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestSuiteEventType(result), toTestDescriptor(suite), toTestResult(result)));
+    }
 
-            @Override
-            public String getEventType() {
-                TestResult.ResultType resultType = result.getResultType();
-                switch (resultType) {
-                    case SUCCESS:
-                        return TestProgressEventVersion1.TEST_SUITE_SUCCEEDED;
-                    case SKIPPED:
-                        return TestProgressEventVersion1.TEST_SUITE_SKIPPED;
-                    case FAILURE:
-                        return TestProgressEventVersion1.TEST_SUITE_FAILED;
-                    default:
-                        throw new IllegalStateException("Unknown test result type: " + resultType);
-                }
-            }
 
-            @Override
-            public TestDescriptorVersion1 getDescriptor() {
-                return new TestDescriptorImpl(suite);
-            }
-
-        });
+    private String getFinishTestSuiteEventType(TestResult result) {
+        TestResult.ResultType resultType = result.getResultType();
+        switch (resultType) {
+            case SUCCESS:
+                return TestProgressEventVersion1.TEST_SUITE_SUCCEEDED;
+            case SKIPPED:
+                return TestProgressEventVersion1.TEST_SUITE_SKIPPED;
+            case FAILURE:
+                return TestProgressEventVersion1.TEST_SUITE_FAILED;
+            default:
+                throw new IllegalStateException("Unknown test result type: " + resultType);
+        }
     }
 
     @Override
-    public void beforeTest(final TestDescriptor test) {
-        eventConsumer.dispatch(new TestProgressEventVersion1() {
-
-            @Override
-            public String getEventType() {
-                return TestProgressEventVersion1.TEST_STARTED;
-            }
-
-            @Override
-            public TestDescriptorVersion1 getDescriptor() {
-                return new TestDescriptorImpl(test);
-            }
-
-        });
+    public void beforeTest(TestDescriptor test) {
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_STARTED, toTestDescriptor(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new TestProgressEventVersion1() {
-
-            @Override
-            public String getEventType() {
-                TestResult.ResultType resultType = result.getResultType();
-                switch (resultType) {
-                    case SUCCESS:
-                        return TestProgressEventVersion1.TEST_SUCCEEDED;
-                    case SKIPPED:
-                        return TestProgressEventVersion1.TEST_SKIPPED;
-                    case FAILURE:
-                        return TestProgressEventVersion1.TEST_FAILED;
-                    default:
-                        throw new IllegalStateException("Unknown test result type: " + resultType);
-                }
-            }
-
-            @Override
-            public TestDescriptorVersion1 getDescriptor() {
-                return new TestDescriptorImpl(test);
-            }
-
-        });
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestEventType(result), toTestDescriptor(test), toTestResult(result)));
     }
 
-    private static class TestDescriptorImpl implements TestDescriptorVersion1 {
-
-        private final TestDescriptor testDescriptor;
-
-        private TestDescriptorImpl(TestDescriptor testDescriptor) {
-            this.testDescriptor = testDescriptor;
+    private String getFinishTestEventType(TestResult result) {
+        TestResult.ResultType resultType = result.getResultType();
+        switch (resultType) {
+            case SUCCESS:
+                return TestProgressEventVersion1.TEST_SUCCEEDED;
+            case SKIPPED:
+                return TestProgressEventVersion1.TEST_SKIPPED;
+            case FAILURE:
+                return TestProgressEventVersion1.TEST_FAILED;
+            default:
+                throw new IllegalStateException("Unknown test result type: " + resultType);
         }
+    }
 
-        @Override
-        public Object getId() {
-            return ((TestDescriptorInternal) testDescriptor).getId();
-        }
+    private static InternalTestProgressEvent.InternalTestDescriptor toTestDescriptor(TestDescriptor suite) {
+        Object id = ((TestDescriptorInternal) suite).getId();
+        String name = suite.getName();
+        String className = suite.getClassName();
+        Object parentId = suite.getParent() != null ? ((TestDescriptorInternal) suite.getParent()).getId() : null;
+        return new InternalTestProgressEvent.InternalTestDescriptor(id, name, className, parentId);
+    }
 
-        @Override
-        public String getName() {
-            return testDescriptor.getName();
-        }
-
-        @Override
-        public String getClassName() {
-            return testDescriptor.getClassName();
-        }
-
-        @Override
-        public TestDescriptorVersion1 getParent() {
-            return null;
-        }
-
+    private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
+        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), result.getExceptions());
     }
 
 }

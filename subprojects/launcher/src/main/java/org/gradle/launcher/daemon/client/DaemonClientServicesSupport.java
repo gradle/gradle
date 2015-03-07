@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -27,7 +28,10 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.internal.ProgressLoggingBridge;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
@@ -85,7 +89,11 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector();
     }
 
-    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter) {
-        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter);
+    protected ProgressLoggerFactory createProgressLoggerFactory() {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), new TrueTimeProvider());
+    }
+
+    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ProgressLoggerFactory progressLoggerFactory) {
+        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, progressLoggerFactory);
     }
 }

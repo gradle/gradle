@@ -77,8 +77,8 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
         }
         if (prefix == null) {
             String safeMethodName = methodName.replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_").replace('"', '_');
-            if (safeMethodName.length() > 64) {
-                safeMethodName = safeMethodName.substring(0, 32) + "..." + safeMethodName.substring(safeMethodName.length() - 32);
+            if (safeMethodName.length() > 60) {
+                safeMethodName = safeMethodName.substring(0, 29) + "..." + safeMethodName.substring(safeMethodName.length() - 29);
             }
             prefix = String.format("%s/%s", className, safeMethodName);
         }

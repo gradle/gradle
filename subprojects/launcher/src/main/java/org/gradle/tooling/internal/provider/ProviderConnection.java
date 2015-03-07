@@ -36,10 +36,7 @@ import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.util.GradleVersion;
@@ -192,7 +189,66 @@ public class ProviderConnection {
 
         @Override
         public void dispatch(Object event) {
-            this.buildProgressListener.onEvent(event);
+            if (event instanceof InternalTestProgressEvent) {
+                final InternalTestProgressEvent testProgressEvent = (InternalTestProgressEvent) event;
+                this.buildProgressListener.onEvent(new TestProgressEventVersion1() {
+
+                    @Override
+                    public String getEventType() {
+                        return testProgressEvent.getEventType();
+                    }
+
+                    @Override
+                    public TestDescriptorVersion1 getDescriptor() {
+                        return new TestDescriptorVersion1() {
+
+                            @Override
+                            public Object getId() {
+                                return testProgressEvent.getDescriptor().getId();
+                            }
+
+                            @Override
+                            public String getName() {
+                                return testProgressEvent.getDescriptor().getName();
+                            }
+
+                            @Override
+                            public String getClassName() {
+                                return testProgressEvent.getDescriptor().getClassName();
+                            }
+
+                            @Override
+                            public Object getParentId() {
+                                return testProgressEvent.getDescriptor().getParentId();
+                            }
+
+                        };
+                    }
+
+                    @Override
+                    public TestResultVersion1 getResult() {
+                        return new TestResultVersion1() {
+
+                            @Override
+                            public long getStartTime() {
+                                return testProgressEvent.getResult().getStartTime();
+                            }
+
+                            @Override
+                            public long getEndTime() {
+                                return testProgressEvent.getResult().getEndTime();
+                            }
+
+                            @Override
+                            public List<Throwable> getExceptions() {
+                                return testProgressEvent.getResult().getFailures();
+                            }
+
+                        };
+                    }
+
+                });
+            }
         }
 
     }

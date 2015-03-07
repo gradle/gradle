@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 
 import java.io.BufferedReader;
@@ -157,9 +156,8 @@ public class ServiceLocator {
         }
 
         public T newInstance(Object... params) {
-            Instantiator instantiator = new DirectInstantiator();
             try {
-                return instantiator.newInstance(implementationClass, params);
+                return DirectInstantiator.instantiate(implementationClass, params);
             } catch (ObjectInstantiationException t) {
                 throw new RuntimeException(String.format("Could not create an implementation of service '%s'.", serviceType.getName()), t);
             }

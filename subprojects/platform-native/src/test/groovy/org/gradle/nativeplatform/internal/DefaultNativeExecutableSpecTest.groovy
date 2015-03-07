@@ -23,7 +23,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeExecutableSpecTest extends Specification {
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def mainSourceSet = new DefaultFunctionalSourceSet("testFS", instantiator, Stub(ProjectSourceSet))
     def executable = BaseComponentSpec.create(DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("project-path", "someExe"), mainSourceSet, instantiator)
 

@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.internal.operations.BuildOperation;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 
 import java.io.File;
 import java.util.List;
@@ -30,4 +31,6 @@ public interface CommandLineToolInvocation extends BuildOperation  {
     File getWorkDirectory();
 
     Iterable<String> getArgs();
+
+    BuildOperationLogger getLogger();
 }

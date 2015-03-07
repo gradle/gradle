@@ -47,7 +47,7 @@ class CreateJvmBinariesTest extends Specification {
     def platforms = Mock(PlatformResolvers)
     CollectionBuilder<JarBinarySpec> binaries = Mock(CollectionBuilder)
     def instantiator = Mock(Instantiator)
-    def mainSourceSet = new DefaultFunctionalSourceSet("ss", new DirectInstantiator(), Stub(ProjectSourceSet))
+    def mainSourceSet = new DefaultFunctionalSourceSet("ss", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
     def toolChainRegistry = Mock(JavaToolChainRegistry)
     def toolResolver = Mock(ToolResolver)
 
@@ -61,7 +61,7 @@ class CreateJvmBinariesTest extends Specification {
     }).build()
 
     def "adds a binary for each jvm library"() {
-        def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, new DirectInstantiator())
+        def library = BaseComponentSpec.create(DefaultJvmLibrarySpec, componentId("jvmLibOne", ":project-path"), mainSourceSet, DirectInstantiator.INSTANCE)
         def namingScheme = Mock(BinaryNamingScheme)
         def jvmExtension = Mock(JvmComponentExtension)
         def platform = new DefaultJavaPlatform("test")

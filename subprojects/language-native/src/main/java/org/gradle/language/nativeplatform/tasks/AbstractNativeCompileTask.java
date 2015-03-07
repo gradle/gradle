@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -49,11 +51,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private boolean preCompiledHeader;
+    private boolean isPreCompiledHeader;
+    private ConfigurableFileCollection includePreCompiledHeader;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
+        includePreCompiledHeader = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -67,9 +71,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void compile(IncrementalTaskInputs inputs) {
-
+        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir(), 10);
         NativeCompileSpec spec = createCompileSpec();
         spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());
@@ -81,11 +90,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setPreCompiledHeader(isPreCompiledHeader());
+        spec.setOperationLogger(operationLogger);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
-
-        setDidWork(result.getDidWork());
+        operationLogger.start();
+        try {
+            WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
+            setDidWork(result.getDidWork());
+        } finally {
+            operationLogger.done();
+        }
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
@@ -194,10 +208,17 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * Is this a compile task for a pre-compiled header?
      */
     public boolean isPreCompiledHeader() {
-        return preCompiledHeader;
+        return isPreCompiledHeader;
     }
 
-    public void setPreCompiledHeader(boolean preCompiledHeader) {
-        this.preCompiledHeader = preCompiledHeader;
+    public void setIsPreCompiledHeader(boolean isPreCompiledHeader) {
+        this.isPreCompiledHeader = isPreCompiledHeader;
+    }
+
+    /**
+     * Set the pre-compiled header the compiler should use.
+     */
+    public void includePreCompiledHeader(Object preCompiledHeader) {
+        includePreCompiledHeader.from(preCompiledHeader);
     }
 }

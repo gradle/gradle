@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.operations.OperationQueue;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
@@ -56,7 +56,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final OperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        final BuildOperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
 
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {
@@ -114,7 +114,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
 
-        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs));
+        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs), spec.getOperationLogger());
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {

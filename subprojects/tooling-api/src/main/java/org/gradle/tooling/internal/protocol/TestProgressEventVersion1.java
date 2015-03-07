@@ -44,4 +44,11 @@ public interface TestProgressEventVersion1 {
      */
     TestDescriptorVersion1 getDescriptor();
 
+    /**
+     * The result of running the test successfully or with a failure.
+     *
+     * @return The test result
+     */
+    TestResultVersion1 getResult();
+
 }

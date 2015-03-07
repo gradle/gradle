@@ -162,6 +162,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
+            allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
+
             ITaskFactory taskFactoryMock = context.mock(ITaskFactory)
             allowing(serviceRegistryMock).get(ITaskFactory); will(returnValue(taskFactoryMock))
 

@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private final ScriptCompilationHandler scriptCompilationHandler;
-    private ProgressLoggerFactory progressLoggerFactory;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
     private final CompositeStoppable caches = new CompositeStoppable();

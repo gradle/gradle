@@ -16,10 +16,12 @@
 
 package org.gradle.language.twirl;
 
+import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a source set containing twirl templates
  */
+@Incubating
 public interface TwirlSourceSet extends LanguageSourceSet {
 }

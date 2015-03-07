@@ -32,16 +32,19 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.configuration.DefaultBuildConfigurer
 import org.gradle.configuration.DefaultScriptPluginFactory
+import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
+import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer
@@ -88,6 +91,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
         parent.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
         parent.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
+        parent.get(ImportsReader) >> Mock(ImportsReader)
     }
 
     def delegatesToParentForUnknownService() {
@@ -278,6 +282,14 @@ public class BuildScopeServicesTest extends Specification {
         then:
         projectRegistry instanceof DefaultProjectRegistry
         projectRegistry sameInstance(secondRegistry)
+    }
+
+    def "provides an build operation logger factory"() {
+        when:
+        def operationLoggerFactory = registry.get(BuildOperationLoggerFactory)
+
+        then:
+        operationLoggerFactory instanceof DefaultBuildOperationLoggerFactory
     }
 
     private <T> T expectParentServiceLocated(Class<T> type) {

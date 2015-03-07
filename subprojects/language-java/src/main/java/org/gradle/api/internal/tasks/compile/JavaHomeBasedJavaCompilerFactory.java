@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.jvm.JdkTools;
 import org.gradle.internal.jvm.Jvm;
 
 import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.Serializable;
 
@@ -43,7 +43,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
     public JavaCompiler create() {
         JavaCompiler compiler = findCompiler();
 
-        if(compiler==null){
+        if (compiler == null) {
             throw new RuntimeException("Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.");
         }
 
@@ -74,7 +74,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
 
     public static class SystemJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
         public JavaCompiler create() {
-            return ToolProvider.getSystemJavaCompiler();
+            return JdkTools.current().getSystemJavaCompiler();
         }
     }
 }

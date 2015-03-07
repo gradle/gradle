@@ -48,7 +48,7 @@ class DefaultCollectionBuilderTest extends Specification {
     def containerType = new ModelType<PolymorphicDomainObjectContainer<NamedThing>>() {}
     def collectionBuilderType = new ModelType<CollectionBuilder<NamedThing>>() {}
     def registry = new ModelRegistryHelper()
-    def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, new DirectInstantiator(), { it.getName() })
+    def container = new DefaultPolymorphicDomainObjectContainer<NamedThing>(NamedThing, DirectInstantiator.INSTANCE, { it.getName() })
 
     def setup() {
         BridgedCollections.dynamicTypes(registry, containerPath, "container", containerType, containerType, ModelType.of(NamedThing), container, Named.Namer.forType(NamedThing), BridgedCollections.itemDescriptor("container"))

@@ -33,7 +33,7 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
-    Instantiator instantiator = new DirectInstantiator()
+    Instantiator instantiator = DirectInstantiator.INSTANCE
 
     ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(instantiator)
 
