@@ -655,6 +655,43 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("impl:check")
     }
 
+    void "can replace forced external dependency with project dependency"()
+    {
+        settingsFile << 'include "api", "impl"'
+
+        buildFile << """
+            $common
+
+            project(":impl") {
+                dependencies {
+                    conf group: "org.utils", name: "api", version: "1.5"
+                }
+
+                configurations.conf.resolutionStrategy {
+                    force("org.utils:api:1.3")
+
+                    dependencySubstitution.withModule("org.utils:api") {
+                        it.useTarget project(":api")
+                    }
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
+                    assert deps[0].selected.componentId == projectId(":api")
+
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
 
     void "can blacklist a version"()
     {
