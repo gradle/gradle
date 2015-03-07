@@ -26,7 +26,7 @@ import java.math.BigInteger;
 
 class IvyModuleCacheEntry extends ModuleDescriptorCacheEntry {
     public IvyModuleCacheEntry(boolean isChanging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
-        super(TYPE_IVY, isChanging, null, createTimestamp, moduleDescriptorHash, moduleSource);
+        super(TYPE_IVY, isChanging, createTimestamp, moduleDescriptorHash, moduleSource);
     }
 
     public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {

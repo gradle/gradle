@@ -24,4 +24,5 @@ public interface MavenModuleResolveMetaData extends ModuleComponentResolveMetaDa
     boolean isRelocated();
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
+    String getSnapshotTimestamp();
 }

@@ -20,6 +20,6 @@ import java.math.BigInteger;
 
 class MissingModuleCacheEntry extends ModuleDescriptorCacheEntry {
     public MissingModuleCacheEntry(long createTimestamp) {
-        super(TYPE_MISSING, false, null, createTimestamp, BigInteger.ZERO, null);
+        super(TYPE_MISSING, false, createTimestamp, BigInteger.ZERO, null);
     }
 }

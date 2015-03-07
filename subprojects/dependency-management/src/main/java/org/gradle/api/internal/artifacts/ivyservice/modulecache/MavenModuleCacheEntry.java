@@ -25,8 +25,13 @@ import org.gradle.internal.component.model.ModuleSource;
 import java.math.BigInteger;
 
 class MavenModuleCacheEntry extends ModuleDescriptorCacheEntry {
-    public MavenModuleCacheEntry(boolean isChanging, String packaging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
-        super(TYPE_MAVEN, isChanging, packaging, createTimestamp, moduleDescriptorHash, moduleSource);
+    final String snapshotTimestamp;
+    final String packaging;
+
+    public MavenModuleCacheEntry(boolean isChanging, String packaging, String snapshotTimestamp, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+        super(TYPE_MAVEN, isChanging, createTimestamp, moduleDescriptorHash, moduleSource);
+        this.packaging = packaging;
+        this.snapshotTimestamp = snapshotTimestamp;
     }
 
     public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {

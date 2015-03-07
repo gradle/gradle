@@ -38,6 +38,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
         metaData.statusScheme = ['a', 'b', 'c']
+        metaData.snapshotTimestamp = '123'
 
         when:
         def copy = metaData.copy()
@@ -51,6 +52,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
         copy.statusScheme == ['a', 'b', 'c']
         copy.packaging == "pom"
         !copy.relocated
+        copy.snapshotTimestamp == '123'
     }
 
     def "recognises pom packaging"() {

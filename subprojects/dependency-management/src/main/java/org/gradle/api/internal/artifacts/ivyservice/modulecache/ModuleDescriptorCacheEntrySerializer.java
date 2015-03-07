@@ -41,8 +41,10 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
                 encoder.writeBinary(hash);
                 break;
             case ModuleDescriptorCacheEntry.TYPE_MAVEN:
+                MavenModuleCacheEntry mavenCacheEntry = (MavenModuleCacheEntry) value;
                 encoder.writeBoolean(value.isChanging);
-                encoder.writeNullableString(value.packaging);
+                encoder.writeNullableString(mavenCacheEntry.packaging);
+                encoder.writeNullableString(mavenCacheEntry.snapshotTimestamp);
                 encoder.writeLong(value.createTimestamp);
                 moduleSourceSerializer.write(encoder, value.moduleSource);
                 hash = value.moduleDescriptorHash.toByteArray();
@@ -69,11 +71,12 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
             case ModuleDescriptorCacheEntry.TYPE_MAVEN:
                 isChanging = decoder.readBoolean();
                 String packaging = decoder.readNullableString();
+                String snapshotTimestamp = decoder.readNullableString();
                 createTimestamp = decoder.readLong();
                 moduleSource = moduleSourceSerializer.read(decoder);
                 encodedHash = decoder.readBinary();
                 hash = new BigInteger(encodedHash);
-                return new MavenModuleCacheEntry(isChanging, packaging, createTimestamp, hash, moduleSource);
+                return new MavenModuleCacheEntry(isChanging, packaging, snapshotTimestamp, createTimestamp, hash, moduleSource);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }

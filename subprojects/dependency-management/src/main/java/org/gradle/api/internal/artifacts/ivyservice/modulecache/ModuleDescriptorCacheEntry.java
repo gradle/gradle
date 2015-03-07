@@ -30,17 +30,15 @@ abstract class ModuleDescriptorCacheEntry {
     static final byte TYPE_IVY = 1;
     static final byte TYPE_MAVEN = 2;
 
-    public byte type;
-    public boolean isChanging;
-    public String packaging;
-    public long createTimestamp;
-    public ModuleSource moduleSource;
-    public BigInteger moduleDescriptorHash;
+    final byte type;
+    final boolean isChanging;
+    final long createTimestamp;
+    final ModuleSource moduleSource;
+    final BigInteger moduleDescriptorHash;
 
-    ModuleDescriptorCacheEntry(byte type, boolean isChanging, String packaging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
+    ModuleDescriptorCacheEntry(byte type, boolean isChanging, long createTimestamp, BigInteger moduleDescriptorHash, ModuleSource moduleSource) {
         this.type = type;
         this.isChanging = isChanging;
-        this.packaging = packaging;
         this.createTimestamp = createTimestamp;
         this.moduleSource = moduleSource;
         this.moduleDescriptorHash = moduleDescriptorHash;
@@ -55,8 +53,10 @@ abstract class ModuleDescriptorCacheEntry {
             return new IvyModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
         }
         if (metaData instanceof MavenModuleResolveMetaData) {
-            String packaging = ((MavenModuleResolveMetaData) metaData).getPackaging();
-            return new MavenModuleCacheEntry(metaData.isChanging(), packaging, createTimestamp, moduleDescriptorHash, metaData.getSource());
+            MavenModuleResolveMetaData mavenMetaData = (MavenModuleResolveMetaData) metaData;
+            String packaging = mavenMetaData.getPackaging();
+            String snapshotTimestamp = mavenMetaData.getSnapshotTimestamp();
+            return new MavenModuleCacheEntry(metaData.isChanging(), packaging, snapshotTimestamp, createTimestamp, moduleDescriptorHash, metaData.getSource());
         }
         throw new IllegalArgumentException("Not a valid module version type: " + metaData);
     }
