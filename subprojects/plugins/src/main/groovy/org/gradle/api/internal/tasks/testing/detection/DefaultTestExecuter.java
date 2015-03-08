@@ -28,6 +28,9 @@ import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
@@ -72,6 +75,7 @@ public class DefaultTestExecuter implements TestExecuter {
         } else {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
-        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider()).run();
+        IdGenerator idGenerator = new CompositeIdGenerator(testTask.getPath(), new LongIdGenerator());
+        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), idGenerator).run();
     }
 }
