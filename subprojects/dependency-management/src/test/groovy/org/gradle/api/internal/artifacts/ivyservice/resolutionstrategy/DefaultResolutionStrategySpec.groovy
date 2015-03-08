@@ -200,7 +200,7 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         // DependencySubstitutionsInternal.allWithDependencyResolveDetails() will call back to validateMutation() instead
         when: strategy.eachDependency(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.componentSelection.all(Actions.doNothing())
         then: 1 * validator.validateMutation(STRATEGY)
