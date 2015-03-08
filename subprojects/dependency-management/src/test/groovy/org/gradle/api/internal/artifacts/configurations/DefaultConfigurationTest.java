@@ -65,13 +65,22 @@ public class DefaultConfigurationTest {
     private ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class);
     private DefaultConfiguration configuration;
+    private DependencyObservationListener dependencyObservationBroadcast = context.mock(DependencyObservationListener.class);
     private DependencyResolutionListener dependencyResolutionBroadcast = context.mock(DependencyResolutionListener.class);
-    private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class); 
+    private ListenerBroadcast observationListenerBroadcast = context.mock(ListenerBroadcast.class);
+    private ListenerBroadcast resolutionListenerBroadcast = context.mock(ListenerBroadcast.class);
 
     @Before
     public void setUp() {
         configurationContainer = context.mock(ConfigurationsProvider.class);
         context.checking(new Expectations(){{
+            allowing(listenerManager).createAnonymousBroadcaster(DependencyObservationListener.class);
+            will(returnValue(observationListenerBroadcast));
+            allowing(observationListenerBroadcast).getSource();
+            will(returnValue(dependencyObservationBroadcast));
+            allowing(dependencyObservationBroadcast).beforeObserve(with(any(ResolvableDependencies.class)));
+            will(returnValue(null));
+
             allowing(listenerManager).createAnonymousBroadcaster(DependencyResolutionListener.class);
             will(returnValue(resolutionListenerBroadcast));
             allowing(resolutionListenerBroadcast).getSource();

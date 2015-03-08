@@ -297,13 +297,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void markAsObserved() {
-        markAsObservedInternal();
-        for (Configuration configuration : extendsFrom) {
-            ((ConfigurationInternal) configuration).markAsObserved();
-        }
-    }
-
-    private void markAsObservedInternal() {
         synchronized (lock) {
             if (state == InternalState.UNOBSERVED) {
                 getDependencyObservationBroadcast().beforeObserve(getIncoming());
@@ -331,12 +324,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 case RESULTS_RESOLVED:
                     break;
             }
-            markAsObservedInternal();
             if (needsResolve) {
-                for (Configuration configuration : extendsFrom) {
-                    ((ConfigurationInternal) configuration).markAsObserved();
-                }
-
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);

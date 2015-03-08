@@ -46,6 +46,8 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
             }
         """
 
+        executer.withDeprecationChecksDisabled()
+
         when:
         run()
 

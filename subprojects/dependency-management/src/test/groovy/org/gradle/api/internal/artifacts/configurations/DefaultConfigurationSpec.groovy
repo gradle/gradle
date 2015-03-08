@@ -349,15 +349,7 @@ class DefaultConfigurationSpec extends Specification {
         config.state == Configuration.State.RESOLVED
     }
 
-    def "resolving configuration puts it into the RESOLVED_RESULTS state, parent configuration in OBSERVED state, and broadcasts events"() {
-        def parentObservationBroadcast = Mock(ListenerBroadcast)
-
-        when:
-        def parentConfig = conf("parent")
-
-        then:
-        1 * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> parentObservationBroadcast
-
+    def "resolving configuration puts it into the RESOLVED_RESULTS state and broadcasts events"() {
         def observationBroadcast = Mock(ListenerBroadcast)
         def resolutionBroadcast = Mock(ListenerBroadcast)
 
@@ -368,10 +360,6 @@ class DefaultConfigurationSpec extends Specification {
         1 * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> observationBroadcast
         1 * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> resolutionBroadcast
 
-        config.extendsFrom parentConfig
-
-        def parentObservationListener = Mock(DependencyObservationListener)
-        def observationListener = Mock(DependencyObservationListener)
         def resolutionListener = Mock(DependencyResolutionListener)
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
@@ -379,14 +367,6 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         config.incoming.getResolutionResult()
-
-        then:
-        1 * observationBroadcast.getSource() >> observationListener
-        1 * observationListener.beforeObserve(config.incoming)
-
-        then:
-        1 * parentObservationBroadcast.getSource() >> parentObservationListener
-        1 * parentObservationListener.beforeObserve(parentConfig.incoming)
 
         then:
         1 * resolutionBroadcast.getSource() >> resolutionListener
