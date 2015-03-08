@@ -364,6 +364,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
             test.maxParallelForks = 4
+            test.ignoreFailures = true
         """
             it.file("src/test/java/sub/MyUnitTest1.java") << """
             package sub;
@@ -374,7 +375,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
                 @org.junit.Test public void beta() throws Exception {
                      Thread.sleep(1000);
-                     org.junit.Assert.assertEquals(1, 1);
+                     org.junit.Assert.assertEquals(2, 1);
                 }
             }
         """
@@ -395,7 +396,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
                 @org.junit.Test public void four() throws Exception {
                      Thread.sleep(300);
-                     org.junit.Assert.assertEquals(1, 1);
+                     org.junit.Assert.assertEquals(3, 1);
                 }
             }
         """
