@@ -354,8 +354,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         ExecutionResult result = executer.withTasks("test").run()
 
         then:
-        assert containsLine(result.getOutput(), "START [tests] [Test Run]")
-        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run] [FAILURE] [4]")
+        assert containsLine(result.getOutput(), "START [tests] [Gradle Test Run test]")
+        assert containsLine(result.getOutput(), "FINISH [tests] [Gradle Test Run test] [FAILURE] [4]")
 
         assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]")
         assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1] [FAILURE] [4]")

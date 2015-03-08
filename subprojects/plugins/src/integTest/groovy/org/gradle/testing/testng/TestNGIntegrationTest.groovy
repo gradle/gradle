@@ -48,8 +48,8 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void canListenForTestResults() {
         ExecutionResult result = executer.withTasks("test").run();
 
-        assert containsLine(result.getOutput(), "START [tests] [Test Run]");
-        assert containsLine(result.getOutput(), "FINISH [tests] [Test Run]");
+        assert containsLine(result.getOutput(), "START [tests] [Gradle Test Run test]");
+        assert containsLine(result.getOutput(), "FINISH [tests] [Gradle Test Run test]");
         assert containsLine(result.getOutput(), "START [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
         assert containsLine(result.getOutput(), "FINISH [process 'Gradle Test Executor 1'] [Gradle Test Executor 1]");
         assert containsLine(result.getOutput(), "START [test 'Gradle suite'] [Gradle suite]");
@@ -150,7 +150,7 @@ test {
 """
         executer.withTasks("test").run()
     }
-    
+
     @Test
     void supportsTestGroups() {
         executer.withTasks("test").run()
