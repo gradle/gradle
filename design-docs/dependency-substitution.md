@@ -152,6 +152,7 @@ No need to add new functionality, this should already work due to the changes in
 
 - For both IDEA and Eclipse plugins:
     - external dependency replaced with subproject is shown as project dependency in IDE
+    - transitive external dependency replaced with subproject is shown as project dependency in IDE
     - subproject replaced with external dependency is shown as external dependency in IDE
 
 # Feature: Improve the dependency substitution rule DSL
