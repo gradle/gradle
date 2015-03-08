@@ -96,6 +96,18 @@ A few notes:
 ### Open issues
 
 - What happens if `DependencySubstitution.withModule()` is called with a module that is not a dependency? Same with `withProject()`.
+- Need to (again) open discussion about a consistent syntax for _all_ dependency resolution rules
+    - `ResolutionStrategy.componentSelection`, `ResolutionStrategy.dependencySubstitution`, `DependencyHandler.components`, `DependencyHandler.modules`
+    - Is 'Dependency Substitution' the best way to refer to these rules?
+- Should generate `Closure` accepting API methods based on `Action` accepting API methods
+    - Should also allow RuleSource input, and generate `Action` and `Closure` accepting methods based on `RuleSource` methods
+- DSL documentation
+    - More usage examples on `DependencySubstitutions`
+    - Ensure that new classes are included in DSL reference
+- Maybe don't _yet_ deprecate the existing API (and replace in the docs).
+    - Depends on release strategy (do we announce in 2.4), and how confident we feel about the new DSL
+    - Don't want to encourage users to switch if we think we might change DSL in 2.5
+- Some of the userguide examples could use `withModule` for convenience
 
 ## Story: Option to re-resolve Configuration when modified after resolution
 
