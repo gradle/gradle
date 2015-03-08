@@ -158,7 +158,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         if (fromCache) {
             TestDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
             if (cachedTestDescriptor == null) {
-                throw new IllegalStateException(String.format("Test descriptor %s not available.", testDescriptor.getId()));
+                throw new IllegalStateException(String.format("%s not available.", toString(testDescriptor)));
             } else {
                 // when we access the test descriptor from the cache, it is because we have received a test finished event
                 // once the test has finished, we can remove the test from the cache since no child will access it anymore
@@ -169,7 +169,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         } else {
             TestDescriptor cachedTestDescriptor = this.testDescriptorCache.get(testDescriptor.getId());
             if (cachedTestDescriptor != null) {
-                throw new IllegalStateException(String.format("Test descriptor %s already available.", testDescriptor.getId()));
+                throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
             } else {
                 final TestDescriptor parent = getParentTestDescriptor(testDescriptor);
                 TestDescriptor newTestDescriptor = new TestDescriptor() {
@@ -240,11 +240,15 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         } else {
             TestDescriptor parentTestDescriptor = testDescriptorCache.get(parentId);
             if (parentTestDescriptor == null) {
-                throw new IllegalStateException(String.format("Parent test descriptor %s not available for test descriptor %s.", parentId, testDescriptor.getId()));
+                throw new IllegalStateException(String.format("Parent test descriptor with id %s not available for %s.", parentId, toString(testDescriptor)));
             } else {
                 return parentTestDescriptor;
             }
         }
+    }
+
+    private String toString(TestDescriptorVersion1 testDescriptor) {
+        return String.format("TestDescriptor[id(%s), name(%s), className(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getClassName(), testDescriptor.getParentId());
     }
 
 }
