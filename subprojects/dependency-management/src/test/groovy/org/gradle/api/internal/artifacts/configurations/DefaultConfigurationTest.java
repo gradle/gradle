@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.project.ProjectChangeListener;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -574,7 +576,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void getTypedDependencies() {
-        ProjectDependency projectDependency = context.mock(ProjectDependency.class);
+        ProjectDependency projectDependency = prepareProjectDependency("dep");
         configuration.getDependencies().add(context.mock(Dependency.class));
         configuration.getDependencies().add(projectDependency);
         assertThat(configuration.getDependencies().withType(ProjectDependency.class), hasSameItems(toSet(projectDependency)));
@@ -601,14 +603,32 @@ public class DefaultConfigurationTest {
         assertCorrectInstanceInAllDependencies(configuration.getAllDependencies(), dependencyConf);
     }
 
+    private ProjectDependency prepareProjectDependency(String name) {
+        final ProjectDependency projectDependency = context.mock(ProjectDependency.class, name);
+        final ProjectInternal project = context.mock(ProjectInternal.class, name + "Project");
+        final ConfigurationContainerInternal configurationContainer = context.mock(ConfigurationContainerInternal.class, name + "ProjectConfigurations");
+        context.checking(new Expectations() {{
+            allowing(projectDependency).getDependencyProject();
+            will(returnValue(project));
+
+            allowing(project).addChangeListener(with(any(ProjectChangeListener.class)));
+
+            allowing(project).getConfigurations();
+            will(returnValue(configurationContainer));
+
+            allowing(configurationContainer).addMutationValidator(with(any(MutationValidator.class)));
+        }});
+        return projectDependency;
+    }
+
     @Test
     public void getAllTypedDependencies() {
-        ProjectDependency projectDependencyCurrentConf = context.mock(ProjectDependency.class, "projectDepCurrentConf");
+        ProjectDependency projectDependencyCurrentConf = prepareProjectDependency("projectDepCurrentConf");
         configuration.getDependencies().add(context.mock(Dependency.class, "depCurrentConf"));
         configuration.getDependencies().add(projectDependencyCurrentConf);
         Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.extendsFrom(otherConf);
-        ProjectDependency projectDependencyExtendedConf = context.mock(ProjectDependency.class, "projectDepExtendedConf");
+        ProjectDependency projectDependencyExtendedConf = prepareProjectDependency("projectDepExtendedConf");
         otherConf.getDependencies().add(context.mock(Dependency.class, "depExtendedConf"));
         otherConf.getDependencies().add(projectDependencyExtendedConf);
 

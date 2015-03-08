@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator.Mutati
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.project.ProjectChangeListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
@@ -103,15 +104,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
-        RunnableMutationValidator veto = new RunnableMutationValidator(MutationType.CONTENT) {
-            @Override
-            public void validateMutation(MutationType type) {
-                DefaultConfiguration.this.validateMutation(type);
-            }
-        };
+        final VetoValidator veto = new VetoValidator();
 
-        DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(veto);
+        DefaultDomainObjectSet<Dependency> ownDependencies = createOwnDependencies(veto);
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
@@ -124,6 +119,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
 
         resolutionStrategy.beforeChange(veto);
+    }
+
+    private static DefaultDomainObjectSet<Dependency> createOwnDependencies(final VetoValidator veto) {
+        DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
+        ownDependencies.beforeChange(veto);
+
+        ownDependencies.whenObjectAdded(new Action<Dependency>() {
+            @Override
+            public void execute(Dependency dependency) {
+                if (dependency instanceof ProjectDependency) {
+                    ProjectInternal project = (ProjectInternal) ((ProjectDependency) dependency).getDependencyProject();
+                    project.addChangeListener(veto);
+                    ((ConfigurationContainerInternal) project.getConfigurations()).addMutationValidator(veto);
+                }
+            }
+        });
+        ownDependencies.whenObjectRemoved(new Action<Dependency>() {
+            @Override
+            public void execute(Dependency dependency) {
+                if (dependency instanceof ProjectDependency) {
+                    ProjectInternal project = (ProjectInternal) ((ProjectDependency) dependency).getDependencyProject();
+                    project.removeChangeListener(veto);
+                    ((ConfigurationContainerInternal) project.getConfigurations()).removeMutationValidator(veto);
+                }
+            }
+        });
+        return ownDependencies;
     }
 
     public String getName() {
@@ -693,4 +715,37 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private class VetoValidator extends RunnableMutationValidator implements ProjectChangeListener {
+        private boolean running;
+
+        public VetoValidator() {
+            super(MutationType.CONTENT);
+        }
+
+        @Override
+        public void validateMutation(MutationType type) {
+            // TODO:PREZI This is really ugly, and should be replaced with something better
+            // It is a workaround for the case when a project depends on itself.
+            // See ArtifactDependenciesIntegrationTest.projectCanDependOnItself()
+            if (!running) {
+                running = true;
+                try {
+                    DefaultConfiguration.this.validateMutation(type);
+                } finally {
+                    running = false;
+                }
+            }
+        }
+
+        @Override
+        public void beforeChange(ProjectInternal project, String changedProperty) {
+            if ("version".equals(changedProperty)) {
+                // version is used in resolving artifact names
+                validateMutation(MutationType.CONTENT);
+            } else if ("group".equals(changedProperty)) {
+                // group influences conflict resolution
+                validateMutation(MutationType.STRATEGY);
+            }
+        }
+    }
 }

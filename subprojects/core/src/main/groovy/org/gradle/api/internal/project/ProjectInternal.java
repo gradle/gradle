@@ -96,4 +96,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     void addDeferredConfiguration(Runnable configuration);
 
     void fireDeferredConfiguration();
+
+    void addChangeListener(ProjectChangeListener validator);
+
+    void removeChangeListener(ProjectChangeListener validator);
 }

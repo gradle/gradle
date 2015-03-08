@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -195,10 +194,6 @@ project(':b') {
         succeeds "check"
     }
 
-    // TODO:PREZI This exposes a bug in our new early-resolve strategy for configurations: project b produces 'b-late.jar', but this isn't included in the configuration
-    // This means that we're resolving the artifacts for the project dependency early, but not coping with modification to these later
-    // Need to either detect the change and re-resolve, or delay the artifact resolution
-    @Ignore
     public void "resolved project artifacts contain project version in their names"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -219,12 +214,53 @@ project(':b') {
             artifacts { compile bJar }
 '''
         file('build.gradle') << '''
-            configurations { compile }
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+            }
             dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) << {
+            task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
                 assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
+                // Check extended configuration, too
+                assert configurations.testCompile.collect { it.name } == ['a.jar', 'b-late.jar']
             }
 '''
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        succeeds "test"
+    }
+
+    public void "resolved project artifacts are re-resolved if transitive project changes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+
+        and:
+        file('a/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            task aJar(type: Jar) { }
+            version = 'early'
+            gradle.taskGraph.whenReady { project.version = 'late' }
+            artifacts { compile aJar }
+'''
+        file('b/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task bJar(type: Jar) { }
+            artifacts { compile bJar }
+'''
+        file('build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(path: ':b', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << {
+                assert configurations.compile*.name.sort() == ['a-late.jar', 'b.jar']
+            }
+'''
+
+        executer.withDeprecationChecksDisabled()
 
         expect:
         succeeds "test"
