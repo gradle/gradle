@@ -59,7 +59,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         }
     }
 
-    private TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
+    private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         String eventType = event.getEventType();
         if (TestProgressEventVersion1.TEST_SUITE_STARTED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
