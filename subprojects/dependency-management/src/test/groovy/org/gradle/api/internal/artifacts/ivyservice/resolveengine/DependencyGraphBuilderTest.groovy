@@ -42,7 +42,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetaDa
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper
 import org.gradle.internal.component.model.*
-import org.gradle.internal.component.model.ComponentResolveMetaData.MetaDataOrigin
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
@@ -57,7 +56,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleRevisionId
-import static org.gradle.internal.component.model.ComponentResolveMetaData.MetaDataOrigin.Gradle
 
 class DependencyGraphBuilderTest extends Specification {
     def configuration = Mock(ConfigurationInternal)
@@ -1092,11 +1090,6 @@ class DependencyGraphBuilderTest extends Specification {
         @Override
         Set<? extends ComponentArtifactMetaData> getArtifacts() {
             return []
-        }
-
-        @Override
-        MetaDataOrigin getOrigin() {
-            return Gradle;
         }
     }
 }

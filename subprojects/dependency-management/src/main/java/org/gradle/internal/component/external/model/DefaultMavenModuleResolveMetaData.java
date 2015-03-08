@@ -27,8 +27,6 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.gradle.internal.component.model.ComponentResolveMetaData.MetaDataOrigin.Maven;
-
 public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements MavenModuleResolveMetaData {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
@@ -81,10 +79,6 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
 
     public boolean isKnownJarPackaging() {
         return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
-    }
-
-    public MetaDataOrigin getOrigin() {
-        return Maven;
     }
 
     public void setSnapshotTimestamp(@Nullable String snapshotTimestamp) {

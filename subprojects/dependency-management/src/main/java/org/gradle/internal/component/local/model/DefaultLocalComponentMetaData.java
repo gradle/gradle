@@ -23,15 +23,14 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.*;
 
 import java.io.File;
 import java.util.*;
-
-import static org.gradle.internal.component.model.ComponentResolveMetaData.MetaDataOrigin.Gradle;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
@@ -178,10 +177,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
                 }
             }
             return result;
-        }
-
-        public MetaDataOrigin getOrigin() {
-            return Gradle;
         }
     }
 }
