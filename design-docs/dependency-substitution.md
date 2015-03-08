@@ -11,10 +11,10 @@ where no special dependency syntax is required.
 
 # Feature: Dependency substitution rules handle project dependencies
 
-## Story: Use dependency substitution rule to replace external dependency with project dependency
+## Story: Use dependency substitution rule to substitute external and project dependencies
 
-Extend the existing dependency substitution mechanism to permit replacing an external dependency with a project dependency.
-Note that adding a project dependency in this way will not result in the correct tasks being added to the task execution graph.
+Extend the existing dependency substitution mechanism to permit replacing an external dependency with a project dependency and vice-versa.
+Note that adding a project dependency in this way may not result in the correct tasks being added to the task execution graph, and replacing a project dependency with an external dependency may still result in the project being built when resolving the dependencies.
 This is similar to the current situation when a project dependency is added to a configuration during task execution.
 
 ### User visible changes
@@ -131,13 +131,6 @@ external dependency, the correct tasks are included for execution:
 
 ### Open issues
 
-## Story: Use dependency substitution rule to replace project dependency with external dependency
-
-### Test coverage
-
-- TBD
-- Dependency reports provide information on dependency substitution
-
 ## Story: IDE plugins include correct set of projects based on dependency substitution
 
 Newly introduced dependency substitutions should work in both IntelliJ and Eclipse. The IDEs
@@ -154,8 +147,6 @@ No need to add new functionality, this should already work due to the changes in
     - external dependency replaced with subproject is shown as project dependency in IDE
     - transitive external dependency replaced with subproject is shown as project dependency in IDE
     - subproject replaced with external dependency is shown as external dependency in IDE
-
-# Feature: Improve the dependency substitution rule DSL
 
 ## Story: Declare substitution rules that apply to all resolution for a project
 
