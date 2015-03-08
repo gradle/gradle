@@ -357,18 +357,18 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
         projectDir.createFile('build.gradle')
 
-        [projectDir.createDir('sub1'), projectDir.createDir('sub2')].each { TestFile it ->
+        [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
             it.file('build.gradle') << """
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
-            test.maxParallelForks = 4
+            test.maxParallelForks = 2
             test.ignoreFailures = true
         """
-            it.file("src/test/java/sub/MyUnitTest1.java") << """
+            it.file("src/test/java/sub/MyUnitTest1${index}.java") << """
             package sub;
-            public class MyUnitTest1 {
+            public class MyUnitTest1$index {
                 @org.junit.Test public void alpha() throws Exception {
                      Thread.sleep(300);
                      org.junit.Assert.assertEquals(1, 1);
@@ -379,9 +379,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-            it.file('src/test/java/sub/MyUnitTest2.java') << """
+            it.file("src/test/java/sub/MyUnitTest2${index}.java") << """
             package sub;
-            public class MyUnitTest2 {
+            public class MyUnitTest2$index {
                 @org.junit.Test public void one() throws Exception {
                      Thread.sleep(1000);
                      org.junit.Assert.assertEquals(1, 1);
@@ -423,7 +423,11 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.collect { it.descriptor }.toSet().size() == 2 * 11
 
         then: "number of nodes under the root suite is equal to the number of test worker processes"
-        result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 1 root suite with no further parent (start & finish events)
+        result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 2 root suites with no further parent (start & finish events)
+
+        then: "names for root suites and worker suits are consistent"
+        result.findAll { it.descriptor.name == 'Gradle Test Task test' }.toSet().size() == 4      // 2 root suites for 2 tasks (start & finish events)
+        result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8  // 2 test processes for each task (start & finish events)
     }
 
 }
