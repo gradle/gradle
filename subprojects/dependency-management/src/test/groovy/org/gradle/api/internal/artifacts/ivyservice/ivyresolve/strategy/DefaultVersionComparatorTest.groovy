@@ -25,7 +25,28 @@ class DefaultVersionComparatorTest extends Specification {
         return strategy.compare(new VersionInfo(s1), new VersionInfo(s2))
     }
 
-    def "compares versions lexicographically"() {
+    def "compares versions numerically when parts are digits"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller | larger
+        "1.0"   | "2.0"
+        "1.0"   | "1.1"
+        "1.2"   | "1.10"
+        "1.0.1" | "1.1.0"
+        "1.2"   | "1.2.3"
+        "12"    | "12.2.3"
+        "12"    | "13"
+        "1.0-1" | "1.0-2"
+        "1.0-1" | "1.0.2"
+        "1.0-1" | "1+0_2"
+    }
+
+    def "compares versions lexicographically when parts are not digits"() {
         expect:
         compare(smaller, larger) < 0
         compare(larger, smaller) > 0
@@ -34,16 +55,39 @@ class DefaultVersionComparatorTest extends Specification {
 
         where:
         smaller     | larger
-        "1.0"       | "2.0"
-        "1.0"       | "1.1"
-        "1.0.1"     | "1.1.0"
-        "1.2"       | "1.2.3"
-        "1.0-1"     | "1.0-2"
         "1.0.a"     | "1.0.b"
-        "1.0-alpha" | "1.0"
         "1.0-alpha" | "1.0-beta"
         "1.0.alpha" | "1.0.b"
-        "1.0.a"     | "1.0.0"
+        "alpha"     | "beta"
+    }
+
+    def "considers parts that are digits as larger than parts that are not"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller     | larger
+        "1.0-alpha" | "1.0.1"
+        "a.b.c"     | "a.b.123"
+        "a"         | "123"
+    }
+
+    def "considers a trailing part that contains no digits as smaller"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller     | larger
+        "1.0-alpha" | "1.0"
+        "1.0.a"     | "1.0"
+        "1.beta.a"  | "1.beta"
+        "a-b-c"     | "a.b"
     }
 
     def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
@@ -131,7 +175,7 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0"                     | "1.0-20150201.121010-123" // incorrect!
         "1.0-20150201.121010-123" | "1.0-20150201.121010-124"
         "1.0-20150201.121010-123" | "1.0-20150201.131010-1"
-        "1.0-SNAPSHOT"            | "1.0-20150201.131010-1"
+        "1.0-SNAPSHOT"            | "1.0-20150201.131010-1" // probably not right
         "1.0"                     | "1.1-SNAPSHOT"
         "1.0"                     | "1.1-20150201.121010-12"
     }
