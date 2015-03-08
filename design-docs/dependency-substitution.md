@@ -140,6 +140,21 @@ external dependency, the correct tasks are included for execution:
 
 ## Story: IDE plugins include correct set of projects based on dependency substitution
 
+Newly introduced dependency substitutions should work in both IntelliJ and Eclipse. The IDEs
+should be able to recognize when an external dependency is replaced with a local project or
+vice versa.
+
+### Implementation
+
+No need to add new functionality, this should already work due to the changes in other stories.
+
+### Test coverage
+
+- For both IDEA and Eclipse plugins:
+    - external dependency replaced with subproject is shown as project dependency in IDE
+    - transitive external dependency replaced with subproject is shown as project dependency in IDE
+    - subproject replaced with external dependency is shown as external dependency in IDE
+
 # Feature: Improve the dependency substitution rule DSL
 
 ## Story: Declare substitution rules that apply to all resolution for a project
