@@ -181,6 +181,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: succeeds()
         then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
@@ -198,6 +199,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: succeeds()
         then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
@@ -215,6 +217,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: succeeds()
         then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "allows changing any lenient property of a configuration whose child has been resolved"() {
@@ -251,6 +254,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when: fails()
         then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and: output.contains("Attempting to change configuration ':b' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
         and: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
     }
 
