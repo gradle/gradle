@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 // TODO - report on the configuration that was actually changed
@@ -385,4 +386,31 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         when: fails()
         then: failure.assertHasCause("Cannot change configuration ':compile' after it has been resolved.")
     }
+
+    // TODO:PREZI This should work without a warning
+    // This is because the order of marking the dependency project's configuration is wrong:
+    // dependency project configurations should be marked as observed before the dependent
+    // configuration.
+    @Ignore
+    def "allows changing a dependent project's dependencies in beforeObserve()"() {
+        settingsFile << "include 'api'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            project(":api") {
+                configurations.compile.incoming.beforeObserve {
+                    dependencies {
+                        compile files("some.jar")
+                    }
+                }
+            }
+            dependencies {
+                compile project(":api")
+            }
+            configurations.compile.resolve()
+"""
+        expect: succeeds()
+    }
+
 }
