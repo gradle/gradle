@@ -101,7 +101,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 ((TestSuiteSucceededEvent) rootSucceededEvent).result.endTime > ((TestSuiteSucceededEvent) rootSucceededEvent).result.startTime
     }
 
-
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events for failed test run"() {
@@ -261,6 +260,87 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 rootSucceededEvent.descriptor == rootStartedEvent.descriptor &&
                 ((TestSuiteSucceededEvent) rootSucceededEvent).result.startTime > 0 &&
                 ((TestSuiteSucceededEvent) rootSucceededEvent).result.endTime > ((TestSuiteSucceededEvent) rootSucceededEvent).result.startTime
+    }
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
+    def "test progress event ids are unique across multiple test workers"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+            test.maxParallelForks = 2
+        """
+
+        file("src/test/java/example/MyTest1.java") << """
+            package example;
+            public class MyTest1 {
+                @org.junit.Test public void alpha() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void beta() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void gamma() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void delta() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+        file("src/test/java/example/MyTest2.java") << """
+            package example;
+            public class MyTest2 {
+                @org.junit.Test public void one() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void two() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void three() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void four() throws Exception {
+                     Thread.sleep(100);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when:
+        List<TestProgressEvent> result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result << event
+                        println "event.descriptor.name = $event.descriptor.name"
+                    }
+                }).run()
+        }
+
+        then:
+        result.size() % 2 == 0                      // same number of start events as finish events
+        result.size() == 2 * (1 + 2 + 2 + 8)        // 1 root suite, 2 test processes, 2 tests classes, 8 tests (each with a start and finish event)
+        result.collect { it.descriptor }.toSet().size() == 13 // each node has its own description
+
+//        def rootStartedEvent = result[0]
+//        rootStartedEvent instanceof TestSuiteStartedEvent &&
+//                rootStartedEvent.descriptor.name == 'Test Run' &&
+//                rootStartedEvent.descriptor.className == null &&
+//                rootStartedEvent.descriptor.parent == null
+//        def testProcessStartedEvent = result[1]
     }
 
 }
