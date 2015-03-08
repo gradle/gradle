@@ -482,7 +482,6 @@ public class DefaultConfigurationTest {
         final FileCollectionDependency fileCollectionDependencyStub = context.mock(FileCollectionDependency.class);
 
         context.checking(new Expectations() {{
-            TaskDependency projectTaskDependencyDummy = context.mock(TaskDependency.class, "projectDep");
             TaskDependency fileTaskDependencyStub = context.mock(TaskDependency.class, "fileDep");
 
             allowing(fileCollectionDependencyStub).getBuildDependencies();
