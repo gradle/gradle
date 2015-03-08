@@ -19,14 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,17 +43,17 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = new LatestConflictResolution();
     private final DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
 
-    private final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
+    private final DependencySubstitutionsInternal dependencySubstitutions;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultResolutionStrategy() {
-        this(new DefaultCachePolicy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>());
+        this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, Set<Action<? super DependencyResolveDetails>> dependencyResolveRules) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions) {
         this.cachePolicy = cachePolicy;
-        this.dependencyResolveRules = dependencyResolveRules;
+        this.dependencySubstitutions = dependencySubstitutions;
     }
 
     @Override
@@ -60,6 +61,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         mutationValidator = validator;
         cachePolicy.beforeChange(validator);
         componentSelectionRules.beforeChange(validator);
+        dependencySubstitutions.beforeChange(validator);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {
@@ -87,14 +89,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
+        DeprecationLogger.nagUserOfReplacedMethod("ResolutionStrategy.eachDependency()", "DependencySubstitution.eachModule()");
         mutationValidator.validateMutation(STRATEGY);
-        dependencyResolveRules.add(rule);
+        dependencySubstitutions.allWithDependencyResolveDetails(rule);
         return this;
     }
 
-    public Action<DependencyResolveDetailsInternal> getDependencyResolveRule() {
-        Collection<Action<DependencyResolveDetailsInternal>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
+    public Action<DependencySubstitution<ComponentSelector>> getDependencySubstitutionRule() {
+        Collection<Action<DependencySubstitution<ComponentSelector>>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
         return Actions.composite(allRules);
     }
 
@@ -137,8 +141,19 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
+    @Override
+    public DependencySubstitutionsInternal getDependencySubstitution() {
+        return dependencySubstitutions;
+    }
+
+    @Override
+    public ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action) {
+        action.execute(dependencySubstitutions);
+        return this;
+    }
+
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveRules));
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy());
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

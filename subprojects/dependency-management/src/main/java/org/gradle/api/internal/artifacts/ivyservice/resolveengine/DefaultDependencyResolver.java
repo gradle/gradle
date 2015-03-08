@@ -95,7 +95,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver());
                 ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
-                DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencyResolveRule());
+                DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencySubstitutionRule());
 
                 ArtifactResolver artifactResolver = createArtifactResolver(repositoryChain);
 

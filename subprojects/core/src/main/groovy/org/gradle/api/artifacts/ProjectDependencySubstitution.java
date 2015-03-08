@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.internal.HasInternalProtocol;
 
-@SuppressWarnings("deprecation")
-public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
-
-    void useVersion(String version, ComponentSelectionReason selectionReason);
-
-    ComponentSelectionReason getSelectionReason();
-
-    boolean isUpdated();
+/**
+ * Provides means to substitute a different dependency in place of a project dependency.
+ *
+ * @since 2.4
+ */
+@Incubating
+@HasInternalProtocol
+public interface ProjectDependencySubstitution extends DependencySubstitution<ProjectComponentSelector> {
 }

@@ -23,62 +23,52 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  * Provides details about a dependency when it is resolved.
  * Provides means to manipulate dependency metadata when it is resolved.
  *
- * @param <T> Component selector type.
  * @since 1.4
  */
+@Deprecated
 @Incubating
-public interface DependencyResolveDetails<T extends ComponentSelector> {
-
-    /**
-     * The component selector, before it is resolved.
-     * The requested component selector does not change even if there are multiple dependency resolve rules
-     * that manipulate the dependency metadata.
-     *
-     * @since 2.4
-     */
-    T getSelector();
+public interface DependencyResolveDetails {
 
     /**
      * The module, before it is resolved.
      * The requested module does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
-     *
-     * @deprecated Use {@link #getSelector()} instead.
      */
-    @Deprecated
     ModuleVersionSelector getRequested();
 
     /**
      * Allows to override the version when the dependency {@link #getRequested()} is resolved.
      * Can be used to select a version that is different than requested.
-     * Forcing modules via {@link org.gradle.api.artifacts.ResolutionStrategy#force(Object...)} uses this capability.
+     * Configuring a version different than requested will cause {@link #getTarget()} method
+     * return a target module with updated target version.
      * <p>
      * If you need to change not only the version but also group or name please use the {@link #useTarget(Object)} method.
      *
      * @param version to use when resolving this dependency, cannot be null.
      * It is valid to configure the same version as requested.
-     *
-     * @deprecated Use {@link #useTarget(Object)} instead.
      */
-    @Deprecated
     void useVersion(String version);
 
     /**
+     * Allows to override the details of the dependency (see {@link #getTarget()})
+     * when it is resolved (see {@link #getRequested()}).
      * This method can be used to change the dependency before it is resolved,
      * e.g. change group, name or version (or all three of them).
      * In many cases users are interested in changing the version.
      * For such scenario you can use the {@link #useVersion(String)} method.
      *
-     * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
-     * You can pass:
-     * <ul>
-     *     <li>Strings like <code>"org.gradle:gradle-core:1.4"</code></li>
-     *     <li>Maps like <code>[group: 'org.gradle', name: 'gradle-core', version: '1.4']</code></li>
-     *     <li>instances of <code>ComponentSelector</code></li>
-     *     <li>{@link org.gradle.api.Project} instances with <code>project(":path")</code></li>
-     * </ul>
+     * @param notation the notation that gets parsed into an instance of {@link ModuleVersionSelector}.
+     * You can pass Strings like 'org.gradle:gradle-core:1.4',
+     * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
+     * or instances of ModuleVersionSelector.
      *
      * @since 1.5
      */
     void useTarget(Object notation);
+
+    /**
+     * The target module selector used to resolve the dependency.
+     * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
+     */
+    ComponentSelector getTarget();
 }

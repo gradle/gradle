@@ -16,8 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -27,19 +30,27 @@ import java.util.Arrays;
 
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
-    private final Action<DependencyResolveDetailsInternal> rule;
+    private final Action<DependencySubstitution<ComponentSelector>> rule;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencyResolveDetailsInternal> rule) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution<ComponentSelector>> rule) {
         this.resolver = resolver;
         this.rule = rule;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
-        DependencyResolveDetailsInternal<? extends ComponentSelector> details = new DefaultDependencyResolveDetails<ComponentSelector>(dependency.getSelector(), dependency.getRequested());
+        ComponentSelector selector = dependency.getSelector();
+        DependencySubstitutionInternal details;
+        if (selector instanceof ModuleComponentSelector) {
+            details = new DefaultModuleDependencySubstitution((ModuleComponentSelector) selector, dependency.getRequested());
+        } else if (selector instanceof ProjectComponentSelector) {
+            details = new DefaultProjectDependencySubstitution((ProjectComponentSelector) selector, dependency.getRequested());
+        } else {
+            throw new IllegalStateException("Unknown type of component selector: " + selector);
+        }
         try {
             rule.execute(details);
         } catch (Throwable e) {
-            result.failed(new ModuleVersionResolveException(dependency.getSelector(), Arrays.asList(e)));
+            result.failed(new ModuleVersionResolveException(selector, Arrays.asList(e)));
             return;
         }
         if (details.isUpdated()) {

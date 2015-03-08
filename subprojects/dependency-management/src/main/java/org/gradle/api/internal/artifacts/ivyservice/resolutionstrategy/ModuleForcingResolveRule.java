@@ -19,15 +19,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ModuleDependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModuleForcingResolveRule implements Action<DependencyResolveDetailsInternal> {
+public class ModuleForcingResolveRule implements Action<DependencySubstitutionInternal<? extends ComponentSelector>> {
 
     private final Map<ModuleIdentifier, String> forcedModules;
 
@@ -42,13 +44,14 @@ public class ModuleForcingResolveRule implements Action<DependencyResolveDetails
         }
     }
 
-    public void execute(DependencyResolveDetailsInternal details) {
+    @Override
+    public void execute(DependencySubstitutionInternal<? extends ComponentSelector> details) {
         if (forcedModules == null) {
             return;
         }
-        ModuleIdentifier key = new DefaultModuleIdentifier(details.getRequested().getGroup(), details.getRequested().getName());
-        if (forcedModules.containsKey(key)) {
-            details.useVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
+        ModuleIdentifier key = new DefaultModuleIdentifier(details.getOldRequested().getGroup(), details.getOldRequested().getName());
+        if (forcedModules.containsKey(key) && details instanceof ModuleDependencySubstitutionInternal) {
+            ((ModuleDependencySubstitutionInternal) details).useVersion(forcedModules.get(key), VersionSelectionReasons.FORCED);
         }
     }
 }

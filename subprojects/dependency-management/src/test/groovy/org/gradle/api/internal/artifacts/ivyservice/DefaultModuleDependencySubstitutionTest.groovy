@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
-class DefaultDependencyResolveDetailsSpec extends Specification {
+class DefaultModuleDependencySubstitutionTest extends Specification {
 
     def "can specify version to use"() {
         when:
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target == newComponentSelector("org", "foo", "1.0")
         !details.updated
         !details.selectionReason
@@ -39,7 +41,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.useVersion("1.0") //the same version
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target == newComponentSelector("org", "foo", "1.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
@@ -48,7 +50,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.useVersion("2.0") //different version
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target != newComponentSelector("org", "foo", "1.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
@@ -59,13 +61,13 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     def "can specify version with selection reason"() {
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         when:
         details.useVersion("1.0", VersionSelectionReasons.FORCED) //same version
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target == newComponentSelector("org", "foo", "1.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.FORCED
@@ -74,7 +76,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.useVersion("3.0", VersionSelectionReasons.FORCED) //different version
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target.version == "3.0"
         details.target.module == newComponentSelector("org", "foo", "1.0").module
         details.target.group == newComponentSelector("org", "foo", "1.0").group
@@ -83,14 +85,14 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     def "can override version and selection reason"() {
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         when:
         details.useVersion("2.0", VersionSelectionReasons.FORCED)
         details.useVersion("3.0", VersionSelectionReasons.SELECTED_BY_RULE)
 
         then:
-        details.requested == newVersionSelector("org", "foo", "1.0")
+        details.requested == newComponentSelector("org", "foo", "1.0")
         details.target.version == "3.0"
         details.target.module == newComponentSelector("org", "foo", "1.0").module
         details.target.group == newComponentSelector("org", "foo", "1.0").group
@@ -98,8 +100,24 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
+    def "does not allow null target"() {
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
+
+        when:
+        details.useTarget(null)
+
+        then:
+        thrown(UnsupportedNotationException)
+
+        when:
+        details.useTarget(null, VersionSelectionReasons.SELECTED_BY_RULE)
+
+        then:
+        thrown(UnsupportedNotationException)
+    }
+
     def "does not allow null version"() {
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         when:
         details.useVersion(null)
@@ -115,19 +133,35 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     def "can specify target module"() {
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         when:
         details.useTarget("org:bar:2.0")
 
         then:
+        details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
+    def "can specify target project"() {
+        def project = Mock(Project)
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
+
+        when:
+        details.useTarget(project)
+
+        then:
+        _ * project.path >> ":bar"
+        details.target instanceof ProjectComponentSelector
+        details.target.projectPath == ":bar"
+        details.updated
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+    }
+
     def "can mix configuring version and target module"() {
-        def details = newDependencyResolveDetails("org", "foo", "1.0")
+        def details = newModuleDependencySubstitution("org", "foo", "1.0")
 
         when:
         details.useVersion("1.5")
@@ -142,21 +176,17 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.target.toString() == 'com:bar:3.0'
 
         when:
-        details.useVersion('5.0')
+        details.useVersion('2.0')
 
         then:
-        details.target.toString() == 'com:bar:5.0'
+        details.target.toString() == 'org:foo:2.0'
     }
 
-    private static def newDependencyResolveDetails(String group, String name, String version) {
-        return new DefaultDependencyResolveDetails(new DefaultModuleDependencySubstitution(newComponentSelector(group, name, version), newVersionSelector(group, name, version)))
+    private static def newModuleDependencySubstitution(String group, String name, String version) {
+        return new DefaultModuleDependencySubstitution(newComponentSelector(group, name, version), DefaultModuleVersionSelector.newSelector(group, name, version))
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {
         return DefaultModuleComponentSelector.newSelector(group, module, version)
-    }
-
-    private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
-        return DefaultModuleVersionSelector.newSelector(group, name, version)
     }
 }
