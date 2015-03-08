@@ -165,8 +165,8 @@ dependencies {
         def libs = module.component.orderEntry.library
         assert libs.size() == 1
         assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-        assert libs.CLASSES.root*.@url*.text().findAll(){ it.contains("\$GRADLE_REPO\$") }.size() == 1
-        assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir))} as Set == ["jar://${relPath(artifact1)}!/"] as Set
+        assert libs.CLASSES.root*.@url*.text().findAll() { it.contains("\$GRADLE_REPO\$") }.size() == 1
+        assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir)) } as Set == ["jar://${relPath(artifact1)}!/"] as Set
     }
 
     @Test
@@ -364,20 +364,6 @@ idea.project {
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"])
     }
 
-    @Test
-    void canDetectSubstitutedProjectDependency() {
-        executer.withTasks('idea').run()
-
-        assertHasExpectedContents('impl/impl.iml')
-    }
-
-    @Test
-    void canDetectSubstitutedExternalDependency() {
-        executer.withTasks('idea').run()
-
-        assertHasExpectedContents('impl/impl.iml')
-    }
-
     private void assertHasExpectedContents(String path) {
         TestFile file = testDirectory.file(path).assertIsFile()
         TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()
@@ -451,7 +437,7 @@ idea.project {
         urls.any { it.endsWith(path) }
     }
 
-    private String relPath(File file){
+    private String relPath(File file) {
         return file.absolutePath.replace(File.separator, "/")
     }
 }
