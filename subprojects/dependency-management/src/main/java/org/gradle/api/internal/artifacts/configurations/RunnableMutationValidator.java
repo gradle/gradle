@@ -21,14 +21,14 @@ package org.gradle.api.internal.artifacts.configurations;
  * {@link org.gradle.api.internal.DefaultDomainObjectCollection#beforeChange(Runnable)}.
  */
 abstract public class RunnableMutationValidator implements MutationValidator, Runnable {
-    private final boolean leniencyAsRunnable;
+    private final MutationType typeAsRunnable;
 
-    public RunnableMutationValidator(boolean leniencyAsRunnable) {
-        this.leniencyAsRunnable = leniencyAsRunnable;
+    public RunnableMutationValidator(MutationType typeAsRunnable) {
+        this.typeAsRunnable = typeAsRunnable;
     }
 
     @Override
     public void run() {
-        validateMutation(leniencyAsRunnable);
+        validateMutation(typeAsRunnable);
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -87,10 +88,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
-        RunnableMutationValidator veto = new RunnableMutationValidator(false) {
+        RunnableMutationValidator veto = new RunnableMutationValidator(MutationType.CONTENT) {
             @Override
-            public void validateMutation(boolean lenient) {
-                DefaultConfiguration.this.validateMutation(lenient);
+            public void validateMutation(MutationType type) {
+                DefaultConfiguration.this.validateMutation(type);
             }
         };
 
@@ -129,7 +130,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setVisible(boolean visible) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -139,7 +140,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -152,7 +153,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -171,7 +172,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setTransitive(boolean transitive) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         this.transitive = transitive;
         return this;
     }
@@ -305,12 +306,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         this.excludeRules = excludeRules;
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        validateMutation(false);
+        validateMutation(MutationType.CONTENT);
         excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
@@ -404,10 +405,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    private void validateMutation(boolean lenient) {
+    private void validateMutation(MutationType type) {
         boolean userAlreadyNagged = false;
         if (getState() != State.UNRESOLVED) {
-            if (!lenient) {
+            if (type == MutationType.CONTENT) {
                 throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
             } else {
                 userAlreadyNagged = true;

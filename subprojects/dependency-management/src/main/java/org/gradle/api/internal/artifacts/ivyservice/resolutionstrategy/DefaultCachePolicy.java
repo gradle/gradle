@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+
 public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
 
@@ -65,17 +67,17 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     }
 
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         dependencyCacheRules.add(0, rule);
     }
 
     public void eachModule(Action<? super ModuleResolutionControl> rule) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         moduleCacheRules.add(0, rule);
     }
 
     public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
-        mutationValidator.validateMutation(true);
+        mutationValidator.validateMutation(STRATEGY);
         artifactCacheRules.add(0, rule);
     }
 

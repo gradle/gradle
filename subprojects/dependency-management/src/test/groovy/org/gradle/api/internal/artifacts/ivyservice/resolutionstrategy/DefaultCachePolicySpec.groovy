@@ -30,6 +30,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
+
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
     private static final int MINUTE = SECOND * 60;
@@ -217,19 +219,19 @@ public class DefaultCachePolicySpec extends Specification {
         cachePolicy.beforeChange(validator)
 
         when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
-        then: (1.._) * validator.validateMutation(true)
+        then: (1.._) * validator.validateMutation(STRATEGY)
 
         when: cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: cachePolicy.eachArtifact(Actions.doNothing())
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: cachePolicy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
 
         when: cachePolicy.eachModule(Actions.doNothing())
-        then: 1 * validator.validateMutation(true)
+        then: 1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {
