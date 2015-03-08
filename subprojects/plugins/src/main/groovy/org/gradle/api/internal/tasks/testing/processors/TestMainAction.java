@@ -27,17 +27,19 @@ public class TestMainAction implements Runnable {
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
+    private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
+        this.displayName = displayName;
     }
 
     public void run() {
-        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(idGenerator.generateId(), "Test Run");
+        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(idGenerator.generateId(), displayName);
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);

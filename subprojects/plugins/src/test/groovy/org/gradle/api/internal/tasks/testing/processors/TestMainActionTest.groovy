@@ -35,7 +35,7 @@ class TestMainActionTest {
     private final Runnable detector = context.mock(Runnable.class)
     private final TimeProvider timeProvider = context.mock(TimeProvider.class)
     private final IdGenerator<?> idGenerator = context.mock(IdGenerator.class)
-    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, idGenerator)
+    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, idGenerator, "Test Run")
 
     @Test
     public void firesStartAndEndEventsAroundDetectorExecution() {

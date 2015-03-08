@@ -76,6 +76,6 @@ public class DefaultTestExecuter implements TestExecuter {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
         IdGenerator idGenerator = new CompositeIdGenerator(testTask.getPath(), new LongIdGenerator());
-        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), idGenerator).run();
+        new TestMainAction(detector, processor, testResultProcessor, new TrueTimeProvider(), idGenerator, String.format("Gradle Test Task %s", testTask.getName())).run();
     }
 }
