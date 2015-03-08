@@ -39,7 +39,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
-import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
@@ -89,7 +88,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         this.project = project;
         project.getPluginManager().apply(BasePlugin.class);
 
-        DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
+        MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
                 mavenFactory,

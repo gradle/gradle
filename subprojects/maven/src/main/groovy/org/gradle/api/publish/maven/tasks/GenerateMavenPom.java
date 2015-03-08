@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -48,6 +49,11 @@ public class GenerateMavenPom extends DefaultTask {
 
     @Inject
     protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected VersionRangeMapper getVersionRangeMapper() {
         throw new UnsupportedOperationException();
     }
 
@@ -89,7 +95,7 @@ public class GenerateMavenPom extends DefaultTask {
     public void doGenerate() {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
-        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity());
+        MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity(), getVersionRangeMapper());
         pomGenerator.setPackaging(pomInternal.getPackaging());
 
         for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {

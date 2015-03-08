@@ -15,24 +15,27 @@
  */
 
 package org.gradle.api.publish.maven.internal.tasks
+
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
 import org.gradle.util.TextUtil
-
+import org.junit.Rule
 import spock.lang.Specification
 
 class MavenPomFileGeneratorTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def projectIdentity = new DefaultMavenProjectIdentity("group-id", "artifact-id", "1.0")
-    MavenPomFileGenerator generator = new MavenPomFileGenerator(projectIdentity)
+    def rangeMapper = Stub(VersionRangeMapper)
+    def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -68,7 +71,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def groupId = 'group-ぴ₦ガき∆ç√∫'
         def artifactId = 'artifact-<tag attrib="value"/>-markup'
         def version = 'version-&"'
-        generator = new MavenPomFileGenerator(new DefaultMavenProjectIdentity(groupId, artifactId, version))
+        generator = new MavenPomFileGenerator(new DefaultMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
 
         then:
         with (pom) {
@@ -89,6 +92,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.artifactId >> "dep-name"
         dependency.version >> "dep-version"
         dependency.excludeRules >> []
+        rangeMapper.map("dep-version") >> "maven-dep-version"
 
         and:
         with (pom) {
@@ -96,7 +100,7 @@ class MavenPomFileGeneratorTest extends Specification {
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "dep-name"
-                version == "dep-version"
+                version == "maven-dep-version"
                 scope == "runtime"
             }
         }
@@ -174,6 +178,7 @@ class MavenPomFileGeneratorTest extends Specification {
         dependency.groupId >> "dep-group"
         dependency.version >> "dep-version"
         dependency.excludeRules >> []
+        rangeMapper.map("dep-version") >> "maven-dep-version"
         artifact1.name >> "artifact-1"
         artifact1.type >> "type-1"
         artifact1.classifier >> "classifier-1"
@@ -187,7 +192,7 @@ class MavenPomFileGeneratorTest extends Specification {
             with (dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "artifact-1"
-                version == "dep-version"
+                version == "maven-dep-version"
                 type == "type-1"
                 classifier == "classifier-1"
                 scope == "runtime"
@@ -195,44 +200,9 @@ class MavenPomFileGeneratorTest extends Specification {
             with (dependencies[0].dependency[1]) {
                 groupId == "dep-group"
                 artifactId == "artifact-2"
-                version == "dep-version"
+                version == "maven-dep-version"
                 type.empty
                 classifier.empty
-                scope == "runtime"
-            }
-        }
-    }
-
-    def "maps version range to maven syntax"() {
-        def dependency1 = Mock(MavenDependencyInternal)
-        def dependency2 = Mock(MavenDependencyInternal)
-
-        when:
-        generator.addRuntimeDependency(dependency1)
-        generator.addRuntimeDependency(dependency2)
-
-        then:
-        dependency1.artifacts >> new HashSet<DependencyArtifact>()
-        dependency1.groupId >> "dep-group"
-        dependency1.version >> "latest.release"
-        dependency1.excludeRules >> []
-
-        dependency2.artifacts >> new HashSet<DependencyArtifact>()
-        dependency2.groupId >> "dep-group"
-        dependency2.version >> "latest.integration"
-        dependency2.excludeRules >> []
-
-        and:
-        with (pom) {
-            dependencies.dependency.size() == 2
-            with (dependencies[0].dependency[0]) {
-                groupId == "dep-group"
-                version == "RELEASE"
-                scope == "runtime"
-            }
-            with (dependencies[0].dependency[1]) {
-                groupId == "dep-group"
-                version == "LATEST"
                 scope == "runtime"
             }
         }

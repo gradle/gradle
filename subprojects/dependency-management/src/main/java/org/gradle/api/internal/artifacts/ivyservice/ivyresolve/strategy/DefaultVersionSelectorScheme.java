@@ -17,9 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
+    private final VersionComparator versionComparator;
+
+    public DefaultVersionSelectorScheme(VersionComparator versionComparator) {
+        this.versionComparator = versionComparator;
+    }
+
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
-            return new VersionRangeSelector(selectorString);
+            return new VersionRangeSelector(selectorString, versionComparator.asStringComparator());
         }
 
         if (selectorString.endsWith("+")) {

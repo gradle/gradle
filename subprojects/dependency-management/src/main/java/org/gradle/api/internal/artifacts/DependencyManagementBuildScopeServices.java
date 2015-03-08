@@ -160,11 +160,11 @@ class DependencyManagementBuildScopeServices {
         return new ResolverStrategy();
     }
 
-    VersionSelectorScheme createVersionSelectorScheme(ResolverStrategy resolverStrategy) {
-        return new DefaultVersionSelectorScheme();
+    VersionSelectorScheme createVersionSelectorScheme(ResolverStrategy resolverStrategy, VersionComparator versionComparator) {
+        return new DefaultVersionSelectorScheme(versionComparator);
     }
 
-    VersionComparator createVersionComparator(ResolverStrategy resolverStrategy) {
+    VersionComparator createVersionComparator() {
         return new DefaultVersionComparator();
     }
 

@@ -141,8 +141,9 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return backingModule.rootMetaDataFile
     }
 
-    void allowAll() {
+    MavenHttpModule allowAll() {
         server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
+        return this
     }
 
     void missing() {

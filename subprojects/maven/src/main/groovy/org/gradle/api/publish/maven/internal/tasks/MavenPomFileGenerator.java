@@ -25,7 +25,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
@@ -43,9 +42,10 @@ public class MavenPomFileGenerator {
 
     private MavenProject mavenProject = new MavenProject();
     private XmlTransformer xmlTransformer = new XmlTransformer();
-    private VersionRangeMapper versionRangeMapper= new MavenVersionRangeMapper();
+    private final VersionRangeMapper versionRangeMapper;
 
-    public MavenPomFileGenerator(MavenProjectIdentity identity) {
+    public MavenPomFileGenerator(MavenProjectIdentity identity, VersionRangeMapper versionRangeMapper) {
+        this.versionRangeMapper = versionRangeMapper;
         mavenProject.setModelVersion(POM_VERSION);
         Model model = getModel();
         model.setGroupId(identity.getGroupId());

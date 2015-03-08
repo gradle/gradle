@@ -150,6 +150,6 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
 
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector)
+        return new VersionRangeSelector(selector, new StaticVersionComparator())
     }
 }

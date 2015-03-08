@@ -27,4 +27,9 @@ public class DefaultVersionComparator implements VersionComparator {
         String version2 = element2.getVersion();
         return STATIC_VERSION_COMPARATOR.compare(version1, version2);
     }
+
+    @Override
+    public Comparator<String> asStringComparator() {
+        return STATIC_VERSION_COMPARATOR;
+    }
 }

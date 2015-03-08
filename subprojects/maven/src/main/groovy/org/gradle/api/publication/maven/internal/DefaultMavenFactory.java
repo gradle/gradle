@@ -28,6 +28,11 @@ import org.gradle.internal.Factory;
 import java.util.Map;
 
 public class DefaultMavenFactory implements MavenFactory {
+    private final VersionRangeMapper versionRangeMapper;
+
+    public DefaultMavenFactory(VersionRangeMapper versionRangeMapper) {
+        this.versionRangeMapper = versionRangeMapper;
+    }
 
     public Factory<MavenPom> createMavenPomFactory(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer conf2ScopeMappingContainer, FileResolver fileResolver) {
         return new DefaultMavenPomFactory(configurationContainer, conf2ScopeMappingContainer, createPomDependenciesConverter(), fileResolver);
@@ -38,7 +43,7 @@ public class DefaultMavenFactory implements MavenFactory {
     }
 
     private PomDependenciesConverter createPomDependenciesConverter() {
-        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter(), new MavenVersionRangeMapper());
+        return new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter(), versionRangeMapper);
     }
 
     public Conf2ScopeMappingContainer createConf2ScopeMappingContainer(Map<Configuration, Conf2ScopeMapping> mappings) {

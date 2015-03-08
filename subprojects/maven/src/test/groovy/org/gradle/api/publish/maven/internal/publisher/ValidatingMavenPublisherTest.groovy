@@ -15,9 +15,11 @@
  */
 
 package org.gradle.api.publish.maven.internal.publisher
+
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
@@ -223,7 +225,8 @@ public class ValidatingMavenPublisherTest extends Specification {
 
     private def createPomFile(MavenProjectIdentity projectIdentity, Action<XmlProvider> withXmlAction = null) {
         def pomFile = testDir.file("pom")
-        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity);
+        def mapper = Stub(VersionRangeMapper)
+        MavenPomFileGenerator pomFileGenerator = new MavenPomFileGenerator(projectIdentity, mapper)
         if (withXmlAction != null) {
             pomFileGenerator.withXml(withXmlAction)
         }

@@ -16,8 +16,13 @@
 
 package org.gradle.api.publish.maven.internal;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
+import org.gradle.api.publication.maven.internal.MavenFactory;
+import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
+import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.maven.MavenModule;
@@ -40,6 +45,14 @@ public class MavenPublishServices implements PluginServiceRegistry {
             // TODO:DAZ Dependency Management should be able to extract this from the plugin, without explicit registration
             componentTypeRegistry.maybeRegisterComponentType(MavenModule.class)
                     .registerArtifactType(MavenPomArtifact.class, ArtifactType.MAVEN_POM);
+        }
+
+        public MavenFactory createMavenFactory(VersionRangeMapper versionRangeMapper) {
+            return new DefaultMavenFactory(versionRangeMapper);
+        }
+
+        public VersionRangeMapper createVersionRangeMapper(VersionSelectorScheme versionSelectorScheme) {
+            return new MavenVersionRangeMapper(versionSelectorScheme);
         }
     }
 }

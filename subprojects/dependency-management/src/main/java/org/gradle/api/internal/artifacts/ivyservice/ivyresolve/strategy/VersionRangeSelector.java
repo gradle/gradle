@@ -89,15 +89,15 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
             + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN);
 
-    private static final Comparator<String> STATIC_VERSION_COMPARATOR = new StaticVersionComparator();
-
     private final String upperBound;
     private final boolean upperInclusive;
     private final String lowerBound;
     private final boolean lowerInclusive;
+    private final Comparator<String> comparator;
 
-    public VersionRangeSelector(String selector) {
+    public VersionRangeSelector(String selector, Comparator<String> comparator) {
         super(selector);
+        this.comparator = comparator;
 
         Matcher matcher;
         matcher = FINITE_RANGE.matcher(selector);
@@ -153,7 +153,7 @@ public class VersionRangeSelector extends AbstractVersionSelector {
      * Tells if version1 is lower than version2.
      */
     private boolean isLower(String version1, String version2, boolean inclusive) {
-        int result = STATIC_VERSION_COMPARATOR.compare(version1, version2);
+        int result = comparator.compare(version1, version2);
         return result <= (inclusive ? 0 : -1);
     }
 
@@ -161,7 +161,7 @@ public class VersionRangeSelector extends AbstractVersionSelector {
      * Tells if version1 is higher than version2.
      */
     private boolean isHigher(String version1, String version2, boolean inclusive) {
-        int result = STATIC_VERSION_COMPARATOR.compare(version1, version2);
+        int result = comparator.compare(version1, version2);
         return result >= (inclusive ? 0 : 1);
     }
 }

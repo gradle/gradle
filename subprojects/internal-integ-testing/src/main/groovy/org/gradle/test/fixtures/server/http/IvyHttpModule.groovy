@@ -130,8 +130,9 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         return backingModule.jarFile
     }
 
-    void allowAll() {
+    IvyHttpModule allowAll() {
         server.allowGetOrHead(prefix, backingModule.moduleDir)
+        return this
     }
 
     IvyModuleHttpArtifact getArtifact(Map<String, ?> options = [:]) {

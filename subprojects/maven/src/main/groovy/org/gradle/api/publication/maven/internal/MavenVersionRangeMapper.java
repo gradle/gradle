@@ -16,13 +16,17 @@
 
 package org.gradle.api.publication.maven.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
 public class MavenVersionRangeMapper implements VersionRangeMapper {
-    private final VersionSelectorScheme defaultVersionSelectorScheme = new DefaultVersionSelectorScheme();
-    private final VersionSelectorScheme mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
+    private final VersionSelectorScheme defaultVersionSelectorScheme;
+    private final VersionSelectorScheme mavenVersionSelectorScheme;
+
+    public MavenVersionRangeMapper(VersionSelectorScheme defaultVersionSelector) {
+        this.defaultVersionSelectorScheme = defaultVersionSelector;
+        mavenVersionSelectorScheme = new MavenVersionSelectorScheme(defaultVersionSelectorScheme);
+    }
 
     public String map(String version) {
         if(version == null) {

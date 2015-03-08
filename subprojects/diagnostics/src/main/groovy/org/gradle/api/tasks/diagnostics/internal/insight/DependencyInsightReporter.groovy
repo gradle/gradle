@@ -20,15 +20,13 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
 
-/**
- * Created: 23/08/2012
- */
 public class DependencyInsightReporter {
 
-    Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme) {
+    Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
         def out = new LinkedList<RenderableDependency>()
         def dependencies = input.collect {
             if (it instanceof UnresolvedDependencyResult) {
@@ -38,7 +36,7 @@ public class DependencyInsightReporter {
             }
         }
 
-        def sorted = DependencyResultSorter.sort(dependencies, versionSelectorScheme)
+        def sorted = DependencyResultSorter.sort(dependencies, versionSelectorScheme, versionComparator)
 
         //remember if module id was annotated
         def annotated = new HashSet<ComponentIdentifier>()
