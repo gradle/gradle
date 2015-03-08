@@ -301,7 +301,9 @@ We would like to thank the following community members for making contributions 
 * [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
-* [Роман Донченко](https://github.com/SpecLad) - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
+* [Роман Донченко](https://github.com/SpecLad) 
+    - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
+    - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
 * [Noam Y. Tenne](https://github.com/noamt) - Declare a dependency on a specific timestamped Maven snapshot
 
