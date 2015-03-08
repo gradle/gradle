@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.plugins.ide.idea
-
+package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTest {
+class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void "external dependency substituted with project dependency"() {
-        runTask("idea", "include 'project1', 'project2'", """
+        runEclipseTask("include 'project1', 'project2'", """
 allprojects {
     apply plugin: "java"
-    apply plugin: "idea"
+    apply plugin: "eclipse"
 }
 
 project(":project2") {
@@ -48,11 +45,10 @@ project(":project2") {
     }
 }
 """)
-        
-        def dependencies = parseIml("project2/project2.iml").dependencies
-        assert dependencies.libraries.size() == 0
-        assert dependencies.modules.size() == 1
-        dependencies.assertHasModule('COMPILE', 'project1')
+
+        def classpath = classpath("project2")
+        assert classpath.projects == ["/project1"]
+        assert classpath.libs == []
     }
 
     @Ignore("Not yet implemented")
@@ -61,10 +57,10 @@ project(":project2") {
         mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
 
-        runTask("idea", "include 'project1', 'project2'", """
+        runEclipseTask("include 'project1', 'project2'", """
 allprojects {
     apply plugin: "java"
-    apply plugin: "idea"
+    apply plugin: "eclipse"
 }
 
 project(":project2") {
@@ -86,19 +82,18 @@ project(":project2") {
 }
 """)
 
-        def dependencies = parseIml("project2/project2.iml").dependencies
-        assert dependencies.libraries.size() == 1
-        dependencies.assertHasLibrary("COMPILE", "module1-1.0.jar")
-        assert dependencies.modules.size() == 1
-        dependencies.assertHasModule('COMPILE', 'project1')
+        def classpath = classpath("project2")
+        assert classpath.libs*.jarName == ["module1-1.0.jar"]
+        assert classpath.projects == ["/project1"]
     }
+
 
     @Test
     void "project dependency substituted with external dependency"() {
-        runTask("idea", "include 'project1', 'project2'", """
-allprojects {
+        runEclipseTask("include 'project1', 'project2'", """
+ allprojects {
     apply plugin: "java"
-    apply plugin: "idea"
+    apply plugin: "eclipse"
 }
 
 project(":project2") {
@@ -120,9 +115,8 @@ project(":project2") {
 }
 """)
 
-        def dependencies = parseIml("project2/project2.iml").dependencies
-        assert dependencies.libraries.size() == 1
-        dependencies.assertHasLibrary('COMPILE', 'junit-4.7.jar')
-        assert dependencies.modules.size() == 0
+        def classpath = classpath("project2")
+        assert classpath.projects == []
+        assert classpath.libs*.jarName == ["junit-4.7.jar"]
     }
 }
