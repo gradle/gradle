@@ -22,13 +22,9 @@ import org.apache.ivy.plugins.matcher.*;
 import java.util.Map;
 
 public class ResolverStrategy {
-    private final VersionSelectorScheme versionSelectorScheme;
     private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
-    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator();
 
     public ResolverStrategy() {
-        versionSelectorScheme = new DefaultVersionSelectorScheme();
-
         addMatcher(ExactPatternMatcher.INSTANCE);
         addMatcher(RegexpPatternMatcher.INSTANCE);
         addMatcher(ExactOrRegexpPatternMatcher.INSTANCE);
@@ -37,14 +33,6 @@ public class ResolverStrategy {
 
     private void addMatcher(PatternMatcher instance) {
         matchers.put(instance.getName(), instance);
-    }
-
-    public VersionSelectorScheme getVersionSelectorScheme() {
-        return versionSelectorScheme;
-    }
-
-    public VersionComparator getVersionComparator() {
-        return versionComparator;
     }
 
     public PatternMatcher getPatternMatcher(String name) {

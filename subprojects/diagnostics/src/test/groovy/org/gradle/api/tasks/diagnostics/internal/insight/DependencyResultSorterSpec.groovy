@@ -18,17 +18,17 @@ package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyResultSorterSpec extends Specification {
-    def versionSelectorScheme = new ResolverStrategy().versionSelectorScheme
+    def versionSelectorScheme = new DefaultVersionSelectorScheme()
 
     @Unroll
     def "throws exception if dependencyt or requested component selector is null (#d1, #d2)"() {

@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
@@ -39,13 +40,13 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.event.ListenerManager;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -72,7 +73,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
     private static class DependencyResolutionScopeServices {
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator, Instantiator instantiator, FileResolver fileResolver,
                                                           RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                                                          ResolverStrategy resolverStrategy, ArtifactIdentifierFileStore artifactIdentifierFileStore) {
+                                                          ResolverStrategy resolverStrategy, ArtifactIdentifierFileStore artifactIdentifierFileStore,
+                                                          VersionSelectorScheme versionSelectorScheme) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -81,7 +83,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     locallyAvailableResourceFinder,
                     resolverStrategy,
                     artifactIdentifierFileStore,
-                    new GradlePomModuleDescriptorParser(resolverStrategy.getVersionSelectorScheme())
+                    new GradlePomModuleDescriptorParser(versionSelectorScheme)
             );
         }
 
