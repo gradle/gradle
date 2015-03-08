@@ -48,4 +48,36 @@ class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec 
         output.contains "accessed files"
     }
 
+    def "listeners are called in parent->child order during resolution of child configuration"() {
+        given:
+        buildFile << """
+            def listenTo(conf) {
+                    conf.incoming.beforeObserve { incoming ->
+                        println "before observe \$conf"
+                    }
+                    conf.incoming.beforeResolve { incoming ->
+                        println "before resolve \$conf"
+                    }
+                    conf.incoming.afterResolve { incoming ->
+                        println "after resolve \$conf"
+                    }
+            }
+            configurations {
+                grandParent
+                parent { extendsFrom grandParent }
+                things { extendsFrom parent }
+            }
+            configurations.each { listenTo it }
+            configurations.things.resolve()
+        """
+
+        when: succeeds()
+        then: output.contains(
+"""before resolve configuration ':things'
+before observe configuration ':grandParent'
+before observe configuration ':parent'
+before observe configuration ':things'
+after resolve configuration ':things'""")
+    }
+
 }
