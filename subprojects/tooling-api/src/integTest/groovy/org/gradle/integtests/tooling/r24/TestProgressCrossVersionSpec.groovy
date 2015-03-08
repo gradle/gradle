@@ -21,6 +21,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.*
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.4")
@@ -45,13 +47,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = []
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        result << event
+                        assert event != null
+                        result.add(event)
                     }
                 }).run()
         }
@@ -125,13 +128,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = []
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        result << event
+                        assert event != null
+                        result.add(event)
                     }
                 }).run()
         }
@@ -208,13 +212,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = []
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        result << event
+                        assert event != null
+                        result.add(event)
                     }
                 }).run()
         }
@@ -319,13 +324,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        List<TestProgressEvent> result = []
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        result << event
+                        assert event != null
+                        result.add(event)
                     }
                 }).run()
         }
@@ -396,13 +402,14 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         when:
-        List<TestProgressEvent> result = []
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
                     @Override
                     void statusChanged(TestProgressEvent event) {
-                        result << event
+                        assert event != null
+                        result.add(event)
                     }
                 }).withArguments('--parallel').run()
         }
