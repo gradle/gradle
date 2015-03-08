@@ -18,44 +18,84 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
 
+import static org.gradle.util.Matchers.strictlyEqual
+
 class VersionParserTest extends Specification {
     def versionParser = new VersionParser()
 
+    def "parsed version is equal when source string is equal"() {
+        def v = parse("1.2.b")
+        def equal = parse("1.2.b")
+
+        expect:
+        v strictlyEqual(equal)
+        v != parse("1.2.c")
+        v != parse("1.2")
+        v != parse("1.2.b.0")
+        v != parse("1.2-b")
+        v != parse("1.2b")
+    }
+
     def "splits version on punctuation"() {
         expect:
-        def version = versionParser.transform(versionStr)
+        def version = parse(versionStr)
         version.parts as List == parts
 
         where:
-        versionStr  | parts
-        'a.b.c'     | ['a', 'b', 'c']
-        'a-b-c'     | ['a', 'b', 'c']
-        'a_b_c'     | ['a', 'b', 'c']
-        'a+b+c'     | ['a', 'b', 'c']
-        'a.b-c+d_e' | ['a', 'b', 'c', 'd', 'e']
+        versionStr      | parts
+        'a.b.c'         | ['a', 'b', 'c']
+        'a-b-c'         | ['a', 'b', 'c']
+        'a_b_c'         | ['a', 'b', 'c']
+        'a+b+c'         | ['a', 'b', 'c']
+        'a.b-c+d_e'     | ['a', 'b', 'c', 'd', 'e']
+        '\u03b1-\u03b2' | ['\u03b1', '\u03b2']
     }
 
     def "splits on adjacent digits and alpha"() {
         expect:
-        def version = versionParser.transform(versionStr)
+        def version = parse(versionStr)
         version.parts as List == parts
 
         where:
-        versionStr | parts
-        'abc123'   | ['abc', '123']
-        '1a2b'     | ['1', 'a', '2', 'b']
+        versionStr       | parts
+        'abc123'         | ['abc', '123']
+        '1a2b'           | ['1', 'a', '2', 'b']
+        '1\u03b12\u03b2' | ['1', '\u03b1', '2', '\u03b2']
     }
 
-    def "inconsistently handles empty parts and retains whitespace (existing behaviour not necessarily desirable behaviour)"() {
+    def "base version includes the first . separated parts"() {
         expect:
-        def version = versionParser.transform(versionStr)
+        def version = parse(versionStr)
+        version.baseVersion == parse(baseStr)
+
+        where:
+        versionStr        | baseStr
+        "1.2.3"           | "1.2.3"
+        "1.2-3"           | "1.2"
+        "1.2-beta_3+0000" | "1.2"
+        "1.2b3"           | "1.2"
+        "1-alpha"         | "1"
+        "abc.1-3"         | "abc.1"
+        "123"             | "123"
+        "abc"             | "abc"
+        "1b2.1.2.3"       | "1"
+        "b1-2-3.3"        | "b"
+    }
+
+    def "handles empty parts and retains whitespace"() {
+        expect:
+        def version = parse(versionStr)
         version.parts as List == parts
 
         where:
         versionStr  | parts
-        ''          | ['']
+        ''          | []
         'a b c'     | ['a b c']
-        '...'       | []
+        '...'       | ['', '', '']
         '-a b c-  ' | ['', 'a b c', '  ']
+    }
+
+    def parse(String v) {
+        return versionParser.transform(v)
     }
 }

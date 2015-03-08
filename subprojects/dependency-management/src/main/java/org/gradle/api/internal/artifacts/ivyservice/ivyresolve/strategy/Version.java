@@ -21,14 +21,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
  *
  * This should be synced with {@link org.gradle.util.VersionNumber} and {@link org.gradle.util.GradleVersion} at some point.
  */
-public class Version {
-    private final String[] parts;
+public interface Version {
+    /**
+     * Returns all the parts of this version. e.g. 1.2.3 returns [1,2,3] or 1.2-beta4 returns [1,2,beta,4].
+     */
+    String[] getParts();
 
-    public Version(String[] parts) {
-        this.parts = parts;
-    }
-
-    public String[] getParts() {
-        return parts;
-    }
+    /**
+     * Returns the base version for this version, which removes any qualifiers. Generally this is the first '.' separated parts of this version.
+     * e.g. 1.2.3-beta-4 returns 1.2.3, or 7.0.12beta5 returns 7.0.12.
+     */
+    Version getBaseVersion();
 }
