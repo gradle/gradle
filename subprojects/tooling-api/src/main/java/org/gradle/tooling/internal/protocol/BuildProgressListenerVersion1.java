@@ -15,10 +15,17 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.util.List;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface BuildProgressListenerVersion1 {
+
+    /**
+     * The constant for the test progress event type.
+     */
+    String TEST_PROGRESS = "TEST_PROGRESS";
 
     /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
@@ -28,5 +35,12 @@ public interface BuildProgressListenerVersion1 {
      * @param event The issued progress event
      */
     void onEvent(Object event);
+
+    /**
+     * Returns the type of events that the listener wants to subscribe to.
+     *
+     * @return the type of events to be notified about
+     */
+    List<String> getSubscribedEvents();
 
 }

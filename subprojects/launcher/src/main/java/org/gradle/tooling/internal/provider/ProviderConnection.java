@@ -90,8 +90,10 @@ public class ProviderConnection {
         }
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        BuildEventConsumer buildEventConsumer = createBuildEventConsumer(providerParameters);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, !(buildEventConsumer instanceof NoOpBuildEventConsumer));
+        BuildProgressListenerVersion1 buildProgressListener = providerParameters.getBuildProgressListener(null);
+        boolean listenToTestProgress = buildProgressListener != null && buildProgressListener.getSubscribedEvents().contains(BuildProgressListenerVersion1.TEST_PROGRESS);
+        BuildEventConsumer buildEventConsumer = listenToTestProgress ? new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener) : new NoOpBuildEventConsumer();
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenToTestProgress);
         return run(action, cancellationToken, buildEventConsumer, providerParameters, params);
     }
 
@@ -112,12 +114,6 @@ public class ProviderConnection {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }
         return payloadSerializer.deserialize(result.result);
-    }
-
-    private BuildEventConsumer createBuildEventConsumer(ProviderOperationParameters operationParameters) {
-        // handle the case where the consumer is an older Gradle version that does not know about build progress listeners
-        BuildProgressListenerVersion1 buildProgressListener = operationParameters.getBuildProgressListener(null);
-        return buildProgressListener == null ? new NoOpBuildEventConsumer() : new BuildProgressListenerInvokingBuildEventConsumer(buildProgressListener);
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {

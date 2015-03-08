@@ -22,13 +22,14 @@ import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
- * matching progress listeners. This adapter handles all the different incoming progress event types.
+ * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
  */
 class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
@@ -37,6 +38,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     BuildProgressListenerAdapter(List<TestProgressListener> testListeners) {
         this.testProgressListeners.addAll(testListeners);
+    }
+
+    @Override
+    public List<String> getSubscribedEvents() {
+        return this.testProgressListeners.isEmpty() ? Collections.<String>emptyList() : Collections.singletonList(BuildProgressListenerVersion1.TEST_PROGRESS);
     }
 
     @Override

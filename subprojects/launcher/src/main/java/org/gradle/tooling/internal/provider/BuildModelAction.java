@@ -24,13 +24,13 @@ public class BuildModelAction implements BuildAction, Serializable {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
-    private final boolean sendProgressEvents;
+    private final boolean sendTestProgressEvents;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, boolean sendProgressEvents) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, boolean sendTestProgressEvents) {
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
-        this.sendProgressEvents = sendProgressEvents;
+        this.sendTestProgressEvents = sendTestProgressEvents;
     }
 
     @Override
@@ -47,6 +47,6 @@ public class BuildModelAction implements BuildAction, Serializable {
     }
 
     public boolean isSendTestProgressEvents() {
-        return sendProgressEvents;
+        return sendTestProgressEvents;
     }
 }
