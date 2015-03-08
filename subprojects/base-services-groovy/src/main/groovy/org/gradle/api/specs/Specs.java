@@ -72,13 +72,9 @@ public class Specs {
         return new NotSpec<T>(spec);
     }
 
-    public static <T> Spec<T> or(final boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
+    public static <T> Spec<T> or(boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
         if (specs.isEmpty()) {
-            return new Spec<T>() {
-                public boolean isSatisfiedBy(T element) {
-                    return defaultWhenNoSpecs;
-                }
-            };
+            return defaultWhenNoSpecs ? Specs.<T>satisfyAll() : Specs.<T>satisfyNone();
         }
         return new OrSpec<T>(specs);
     }
