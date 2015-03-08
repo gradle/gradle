@@ -20,10 +20,83 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.*
+import org.gradle.tooling.model.gradle.BuildInvocations
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
+    def "receive test progress events when requesting a model"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when: "asking for a model and specifying some test task(s) to run first"
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result.add(event)
+                    }
+                }).get()
+        }
+
+        then: "test progress events must be forwarded to the attached listeners"
+        result.size() > 0
+    }
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
+    def "receive test progress events when launching a build"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when: "launching a build"
+        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result.add(event)
+                    }
+                }).run()
+        }
+
+        then: "test progress events must be forwarded to the attached listeners"
+        result.size() > 0
+    }
 
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
