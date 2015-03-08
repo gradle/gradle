@@ -293,6 +293,42 @@ project(':b') {
             }
 '''
 
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        succeeds "test"
+    }
+
+    public void "resolved project artifacts are re-resolved if transitive project changes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+
+        and:
+        file('a/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            task aJar(type: Jar) { }
+            version = 'early'
+            gradle.taskGraph.whenReady { project.version = 'late' }
+            artifacts { compile aJar }
+'''
+        file('b/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task bJar(type: Jar) { }
+            artifacts { compile bJar }
+'''
+        file('build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(path: ':b', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << {
+                assert configurations.compile*.name.sort() == ['a-late.jar', 'b.jar']
+            }
+'''
+
+        executer.withDeprecationChecksDisabled()
+
         expect:
         succeeds "test"
     }

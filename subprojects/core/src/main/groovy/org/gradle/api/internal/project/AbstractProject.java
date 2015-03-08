@@ -143,6 +143,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private final Path path;
 
+    private final Set<ProjectChangeListener> changeListeners = new LinkedHashSet<ProjectChangeListener>();
+
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
@@ -296,6 +298,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void setDescription(String description) {
+        notifyChangeListeners("description");
         this.description = description;
     }
 
@@ -309,6 +312,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void setGroup(Object group) {
+        notifyChangeListeners("group");
         this.group = group;
     }
 
@@ -317,6 +321,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void setVersion(Object version) {
+        notifyChangeListeners("version");
         this.version = version;
     }
 
@@ -325,6 +330,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void setStatus(Object status) {
+        notifyChangeListeners("status");
         this.status = status;
     }
 
@@ -528,6 +534,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public void setBuildDir(Object path) {
+        notifyChangeListeners("buildDir");
         buildDir = path;
     }
 
@@ -988,5 +995,21 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     @Override
     public ProjectAccessListener getProjectAccessListener() {
         return projectAccessListener;
+    }
+
+    @Override
+    public void addChangeListener(ProjectChangeListener listener) {
+        changeListeners.add(listener);
+    }
+
+    @Override
+    public void removeChangeListener(ProjectChangeListener listener) {
+        changeListeners.remove(listener);
+    }
+
+    private void notifyChangeListeners(String property) {
+        for (ProjectChangeListener listener : changeListeners) {
+            listener.beforeChange(this, property);
+        }
     }
 }

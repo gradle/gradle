@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -30,6 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.event.ListenerManager;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration>
@@ -43,6 +45,15 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
+    private final Set<MutationValidator> mutationValidators = new LinkedHashSet<MutationValidator>();
+    private final MutationValidator childValidator = new MutationValidator() {
+        @Override
+        public void validateMutation(MutationType type) {
+            for (MutationValidator validator : mutationValidators) {
+                validator.validateMutation(type);
+            }
+        }
+    };
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
@@ -57,6 +68,20 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
+
+        // Track mutation
+        whenObjectAdded(new Action<Configuration>() {
+            @Override
+            public void execute(Configuration configuration) {
+                ((ConfigurationInternal) configuration).addMutationValidator(childValidator);
+            }
+        });
+        whenObjectRemoved(new Action<Configuration>() {
+            @Override
+            public void execute(Configuration configuration) {
+                ((ConfigurationInternal) configuration).removeMutationValidator(childValidator);
+            }
+        });
     }
 
     @Override
@@ -112,5 +137,15 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         }
         
         return reply.toString();
+    }
+
+    @Override
+    public void addMutationValidator(MutationValidator validator) {
+        mutationValidators.add(validator);
+    }
+
+    @Override
+    public void removeMutationValidator(MutationValidator validator) {
+        mutationValidators.remove(validator);
     }
 }

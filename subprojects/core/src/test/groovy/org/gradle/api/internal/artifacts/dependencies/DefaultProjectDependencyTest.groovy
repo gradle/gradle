@@ -61,11 +61,12 @@ class DefaultProjectDependencyTest extends Specification {
     void "transitive resolution resolves all dependencies"() {
         def context = Mock(DependencyResolveContext)
 
+        ProjectInternal dep1Project = TestUtil.createRootProject()
         def superConf = project.configurations.create("superConf")
         def conf = project.configurations.create("conf")
         conf.extendsFrom(superConf)
 
-        def dep1 = Mock(ProjectDependency)
+        def dep1 = Mock(ProjectDependency) { it.dependencyProject >> dep1Project }
         def dep2 = Mock(ExternalDependency)
         conf.dependencies.add(dep1)
         superConf.dependencies.add(dep2)

@@ -22,4 +22,7 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 public interface ConfigurationContainerInternal extends ConfigurationContainer {
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
+
+    void addMutationValidator(MutationValidator validator);
+    void removeMutationValidator(MutationValidator validator);
 }
