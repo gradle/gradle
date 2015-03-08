@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r24
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.*
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -338,6 +339,83 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         then: "number of nodes under the root suite is equal to the number of test worker processes"
         result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
+    }
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
+    def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
+        given:
+        projectDir.createFile('settings.gradle') << """
+            include ':sub1'
+            include ':sub2'
+        """
+        projectDir.createFile('build.gradle')
+
+        [projectDir.createDir('sub1'), projectDir.createDir('sub2')].each { TestFile it ->
+            it.file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true
+            test.maxParallelForks = 4
+        """
+            it.file("src/test/java/sub/MyUnitTest1.java") << """
+            package sub;
+            public class MyUnitTest1 {
+                @org.junit.Test public void alpha() throws Exception {
+                     Thread.sleep(300);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void beta() throws Exception {
+                     Thread.sleep(1000);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+            it.file('src/test/java/sub/MyUnitTest2.java') << """
+            package sub;
+            public class MyUnitTest2 {
+                @org.junit.Test public void one() throws Exception {
+                     Thread.sleep(1000);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void two() throws Exception {
+                     Thread.sleep(300);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void three() throws Exception {
+                     Thread.sleep(300);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+                @org.junit.Test public void four() throws Exception {
+                     Thread.sleep(300);
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+        }
+
+        when:
+        List<TestProgressEvent> result = []
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        result << event
+                    }
+                }).withArguments('--parallel').run()
+        }
+
+        then: "start and end event is sent for each node in the test tree"
+        result.size() % 2 == 0                    // same number of start events as finish events
+        result.size() == 2 * 2 * (1 + 2 + 2 + 6)  // two test tasks with each: 1 root suite, 2 test processes, 2 tests classes, 6 tests (each with a start and finish event)
+
+        then: "each node in the test tree has its own description"
+        result.collect { it.descriptor }.toSet().size() == 2 * 11
+
+        then: "number of nodes under the root suite is equal to the number of test worker processes"
+        result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 1 root suite with no further parent (start & finish events)
     }
 
 }
