@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
-
 import spock.lang.Specification
 
 class DefaultVersionComparatorTest extends Specification {
@@ -28,13 +27,13 @@ class DefaultVersionComparatorTest extends Specification {
 
     def "compares versions lexicographically"() {
         expect:
-        compare(v1, v2) < 0
-        compare(v2, v1) > 0
-        compare(v1, v1) == 0
-        compare(v2, v2) == 0
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
 
         where:
-        v1          | v2
+        smaller     | larger
         "1.0"       | "2.0"
         "1.0"       | "1.1"
         "1.0.1"     | "1.1.0"
@@ -49,13 +48,13 @@ class DefaultVersionComparatorTest extends Specification {
 
     def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
         expect:
-        compare(v1, v2) < 0
-        compare(v2, v1) > 0
-        compare(v1, v1) == 0
-        compare(v2, v2) == 0
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
 
         where:
-        v1          | v2
+        smaller     | larger
         "1.0-dev-1" | "1.0"
         "1.0-dev-1" | "1.0-dev-2"
         "1.0-rc-1"  | "1.0"
@@ -100,24 +99,41 @@ class DefaultVersionComparatorTest extends Specification {
     // original Ivy behavior - should we change it?
     def "does not compare versions with different number of trailing .0's equal"() {
         expect:
-        compare(v1, v2) > 0
-        compare(v2, v1) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, larger) < 0
 
         where:
-        v1          | v2
-        "1.0.0"     | "1.0"
-        "1.0.0"     | "1"
+        larger  | smaller
+        "1.0.0" | "1.0"
+        "1.0.0" | "1"
     }
 
     def "does not compare versions with different capitalization equal"() {
         expect:
-        compare(v1, v2) > 0
-        compare(v2, v1) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, larger) < 0
 
         where:
-        v1          | v2
+        larger      | smaller
         "1.0-alpha" | "1.0-ALPHA"
     }
 
+    def "incorrectly compares Maven snapshot-like versions (current behaviour not necessarily desired behaviour"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller                   | larger
+        "1.0-SNAPSHOT"            | "1.0"
+        "1.0"                     | "1.0-20150201.121010-123" // incorrect!
+        "1.0-20150201.121010-123" | "1.0-20150201.121010-124"
+        "1.0-20150201.121010-123" | "1.0-20150201.131010-1"
+        "1.0-SNAPSHOT"            | "1.0-20150201.131010-1"
+        "1.0"                     | "1.1-SNAPSHOT"
+        "1.0"                     | "1.1-20150201.121010-12"
+    }
 
 }

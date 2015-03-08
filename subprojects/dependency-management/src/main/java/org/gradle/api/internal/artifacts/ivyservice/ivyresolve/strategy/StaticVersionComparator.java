@@ -26,23 +26,18 @@ import java.util.Map;
 public class StaticVersionComparator implements Comparator<String> {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
             ImmutableMap.of("dev", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
+    private final VersionParser versionParser = new VersionParser();
 
     /**
-     * Compares a static selector with a candidate version. Algorithm is inspired
-     * by PHP version_compare one.
+     * Compares 2 versions. Algorithm is inspired by PHP version_compare one.
      */
-    public int compare(String selector, String candidate) {
-        if (selector.equals(candidate)) {
+    public int compare(String version1, String version2) {
+        if (version1.equals(version2)) {
             return 0;
         }
 
-        selector = selector.replaceAll("([a-zA-Z])(\\d)", "$1.$2");
-        selector = selector.replaceAll("(\\d)([a-zA-Z])", "$1.$2");
-        candidate = candidate.replaceAll("([a-zA-Z])(\\d)", "$1.$2");
-        candidate = candidate.replaceAll("(\\d)([a-zA-Z])", "$1.$2");
-
-        String[] parts1 = selector.split("[\\._\\-\\+]");
-        String[] parts2 = candidate.split("[\\._\\-\\+]");
+        String[] parts1 = versionParser.transform(version1).getParts();
+        String[] parts2 = versionParser.transform(version2).getParts();
 
         int i = 0;
         for (; i < parts1.length && i < parts2.length; i++) {
