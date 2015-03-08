@@ -69,6 +69,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
+    private final ListenerBroadcast<DependencyObservationListener> observationListenerBroadcast;
     private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
     private boolean modified;
@@ -102,6 +103,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolutionStrategy = resolutionStrategy;
         this.projectFinder = projectFinder;
 
+        observationListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyObservationListener.class);
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         final VetoValidator veto = new VetoValidator();
@@ -293,14 +295,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
+    @Override
     public void markAsObserved() {
-        synchronized (lock) {
-            if (state == InternalState.UNOBSERVED) {
-                state = InternalState.OBSERVED;
-            }
-        }
+        markAsObservedInternal();
         for (Configuration configuration : extendsFrom) {
             ((ConfigurationInternal) configuration).markAsObserved();
+        }
+    }
+
+    private void markAsObservedInternal() {
+        synchronized (lock) {
+            if (state == InternalState.UNOBSERVED) {
+                getDependencyObservationBroadcast().beforeObserve(getIncoming());
+                state = InternalState.OBSERVED;
+            }
         }
     }
 
@@ -323,14 +331,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 case RESULTS_RESOLVED:
                     break;
             }
+            markAsObservedInternal();
             if (needsResolve) {
+                for (Configuration configuration : extendsFrom) {
+                    ((ConfigurationInternal) configuration).markAsObserved();
+                }
+
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 cachedResolverResults = resolver.resolve(this);
-                for (Configuration configuration : extendsFrom) {
-                    ((ConfigurationInternal) configuration).markAsObserved();
-                }
                 resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
                 markAsResolved(requestedState);
                 broadcast.afterResolve(incoming);
@@ -488,6 +498,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public DependencyResolutionListener getDependencyResolutionBroadcast() {
         return resolutionListenerBroadcast.getSource();
+    }
+
+    public DependencyObservationListener getDependencyObservationBroadcast() {
+        return observationListenerBroadcast.getSource();
     }
 
     public ResolutionStrategyInternal getResolutionStrategy() {
@@ -691,6 +705,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         public DependencySet getDependencies() {
             return getAllDependencies();
+        }
+
+        public void beforeObserve(Action<? super ResolvableDependencies> action) {
+            observationListenerBroadcast.add("beforeObserve", action);
+        }
+
+        public void beforeObserve(Closure action) {
+            observationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeObserve", action));
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {

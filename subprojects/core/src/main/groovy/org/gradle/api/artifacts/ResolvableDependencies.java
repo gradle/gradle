@@ -55,6 +55,20 @@ public interface ResolvableDependencies {
     DependencySet getDependencies();
 
     /**
+     * Adds an action to be executed before the dependencies in this set are first observed.
+     *
+     * @param action The action to execute.
+     */
+    void beforeObserve(Action<? super ResolvableDependencies> action);
+
+    /**
+     * Adds an action to be executed before the dependencies in this set are first observed.
+     *
+     * @param action The action to execute.
+     */
+    void beforeObserve(Closure action);
+
+    /**
      * Adds an action to be executed before the dependencies in this set are resolved.
      *
      * @param action The action to execute.

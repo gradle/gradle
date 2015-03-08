@@ -117,7 +117,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, JacocoPluginExtension extension) {
         def config = this.project.configurations[AGENT_CONFIGURATION_NAME]
         jacocoAgentJar.conventionMapping.agentConf = { config }
-        config.incoming.beforeResolve {
+        config.incoming.beforeObserve {
             if (config.dependencies.empty) {
                 config.dependencies.add(this.project.dependencies.create("org.jacoco:org.jacoco.agent:${extension.toolVersion}"))
             }
@@ -134,7 +134,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
         this.project.tasks.withType(JacocoBase) { task ->
             task.conventionMapping.jacocoClasspath = { config }
         }
-        config.incoming.beforeResolve {
+        config.incoming.beforeObserve {
             if (config.dependencies.empty) {
                 config.dependencies.add(this.project.dependencies.create("org.jacoco:org.jacoco.ant:${extension.toolVersion}"))
             }

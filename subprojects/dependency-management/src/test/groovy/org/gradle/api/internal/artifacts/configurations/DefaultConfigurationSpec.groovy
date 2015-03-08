@@ -69,8 +69,10 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def setup() {
-        ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
+        ListenerBroadcast<DependencyObservationListener> observationBroadcast = new ListenerBroadcast<DependencyObservationListener>(DependencyObservationListener)
+        _ * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> observationBroadcast
+        ListenerBroadcast<DependencyResolutionListener> resolutionBroadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> resolutionBroadcast
     }
 
     def "all artifacts collection has immediate artifacts"() {
@@ -347,16 +349,30 @@ class DefaultConfigurationSpec extends Specification {
         config.state == Configuration.State.RESOLVED
     }
 
-    def "resolving configuration puts it into the right state and broadcasts events"() {
-        def listenerBroadcaster = Mock(ListenerBroadcast)
+    def "resolving configuration puts it into the RESOLVED_RESULTS state, parent configuration in OBSERVED state, and broadcasts events"() {
+        def parentObservationBroadcast = Mock(ListenerBroadcast)
+
+        when:
+        def parentConfig = conf("parent")
+
+        then:
+        1 * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> parentObservationBroadcast
+
+        def observationBroadcast = Mock(ListenerBroadcast)
+        def resolutionBroadcast = Mock(ListenerBroadcast)
 
         when:
         def config = conf("conf")
 
         then:
-        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcaster
+        1 * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> observationBroadcast
+        1 * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> resolutionBroadcast
 
-        def listener = Mock(DependencyResolutionListener)
+        config.extendsFrom parentConfig
+
+        def parentObservationListener = Mock(DependencyObservationListener)
+        def observationListener = Mock(DependencyObservationListener)
+        def resolutionListener = Mock(DependencyResolutionListener)
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
         resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
@@ -365,10 +381,23 @@ class DefaultConfigurationSpec extends Specification {
         config.incoming.getResolutionResult()
 
         then:
-        1 * listenerBroadcaster.getSource() >> listener
-        1 * listener.beforeResolve(config.incoming)
+        1 * observationBroadcast.getSource() >> observationListener
+        1 * observationListener.beforeObserve(config.incoming)
+
+        then:
+        1 * parentObservationBroadcast.getSource() >> parentObservationListener
+        1 * parentObservationListener.beforeObserve(parentConfig.incoming)
+
+        then:
+        1 * resolutionBroadcast.getSource() >> resolutionListener
+        1 * resolutionListener.beforeResolve(config.incoming)
+
+        then:
         1 * resolver.resolve(config) >> resolverResults
-        1 * listener.afterResolve(config.incoming)
+
+        then:
+        1 * resolutionListener.afterResolve(config.incoming)
+
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
     }

@@ -329,7 +329,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 .setTransitive(false)
                 .setDescription("The SonarRunner configuration to use to run analysis")
                 .getIncoming()
-                .beforeResolve(new Action<ResolvableDependencies>() {
+                .beforeObserve(new Action<ResolvableDependencies>() {
                     public void execute(ResolvableDependencies resolvableDependencies) {
                         DependencySet dependencies = resolvableDependencies.getDependencies();
                         if (dependencies.isEmpty()) {
