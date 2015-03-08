@@ -37,10 +37,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.eachDependency {
-            if (it.requested.name == 'junit') {
-                it.useTarget project(":project1")
-            }
+        resolutionStrategy.dependencySubstitution.withModule("junit:junit") {
+            it.useTarget project(":project1")
         }
     }
 }
@@ -73,10 +71,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.eachDependency {
-            if (it.requested.name == 'module2') {
-                it.useTarget project(":project1")
-            }
+        resolutionStrategy.dependencySubstitution.withModule("org.gradle:module2") {
+            it.useTarget project(":project1")
         }
     }
 }
@@ -106,10 +102,8 @@ project(":project2") {
     }
 
     configurations.all {
-        resolutionStrategy.eachDependency {
-            if (it.requested.name == 'project1') {
-                it.useTarget "junit:junit:4.7"
-            }
+        resolutionStrategy.dependencySubstitution.withProject(":project1") {
+            it.useTarget "junit:junit:4.7"
         }
     }
 }
