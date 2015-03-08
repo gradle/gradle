@@ -325,22 +325,19 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                     @Override
                     void statusChanged(TestProgressEvent event) {
                         result << event
-                        println "event.descriptor.name = $event.descriptor.name"
                     }
                 }).run()
         }
 
-        then:
-        result.size() % 2 == 0                      // same number of start events as finish events
-        result.size() == 2 * (1 + 2 + 2 + 8)        // 1 root suite, 2 test processes, 2 tests classes, 8 tests (each with a start and finish event)
-        result.collect { it.descriptor }.toSet().size() == 13 // each node has its own description
+        then: "start and end event is sent for each node in the test tree"
+        result.size() % 2 == 0                // same number of start events as finish events
+        result.size() == 2 * (1 + 2 + 2 + 8)  // 1 root suite, 2 test processes, 2 tests classes, 8 tests (each with a start and finish event)
 
-//        def rootStartedEvent = result[0]
-//        rootStartedEvent instanceof TestSuiteStartedEvent &&
-//                rootStartedEvent.descriptor.name == 'Test Run' &&
-//                rootStartedEvent.descriptor.className == null &&
-//                rootStartedEvent.descriptor.parent == null
-//        def testProcessStartedEvent = result[1]
+        then: "each node in the test tree has its own description"
+        result.collect { it.descriptor }.toSet().size() == 13
+
+        then: "number of nodes under the root suite is equal to the number of test worker processes"
+        result.findAll { it.descriptor.parent == null }.toSet().size() == 2  // 1 root suite with no further parent (start & finish events)
     }
 
 }
