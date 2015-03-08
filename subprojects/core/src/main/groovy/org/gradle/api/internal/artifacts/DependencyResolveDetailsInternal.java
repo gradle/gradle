@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-@SuppressWarnings("deprecation")
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
 
     void useVersion(String version, ComponentSelectionReason selectionReason);

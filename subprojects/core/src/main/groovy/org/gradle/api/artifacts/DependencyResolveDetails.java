@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
  *
  * @since 1.4
  */
-@Deprecated
 @Incubating
 public interface DependencyResolveDetails {
 

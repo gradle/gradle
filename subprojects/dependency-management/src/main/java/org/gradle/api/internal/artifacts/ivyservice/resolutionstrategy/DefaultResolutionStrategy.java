@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -91,7 +90,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @SuppressWarnings("deprecation")
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
-        DeprecationLogger.nagUserOfReplacedMethod("ResolutionStrategy.eachDependency()", "DependencySubstitution.eachModule()");
+//        DeprecationLogger.nagUserOfReplacedMethod("ResolutionStrategy.eachDependency()", "DependencySubstitution.eachModule()");
         mutationValidator.validateMutation(STRATEGY);
         dependencySubstitutions.allWithDependencyResolveDetails(rule);
         return this;

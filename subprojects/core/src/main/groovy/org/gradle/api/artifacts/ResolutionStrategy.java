@@ -174,7 +174,6 @@ public interface ResolutionStrategy {
      * @since 1.4
      */
     @Incubating
-    @Deprecated
     ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule);
 
     /**
