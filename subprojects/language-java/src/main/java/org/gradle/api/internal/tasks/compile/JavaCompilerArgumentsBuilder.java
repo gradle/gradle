@@ -73,7 +73,9 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void addLauncherOptions() {
-        if (!includeLauncherOptions) { return; }
+        if (!includeLauncherOptions) {
+            return;
+        }
 
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getMemoryInitialSize() != null) {
@@ -88,7 +90,9 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void addMainOptions() {
-        if (!includeMainOptions) { return; }
+        if (!includeMainOptions) {
+            return;
+        }
 
         String sourceCompatibility = spec.getSourceCompatibility();
         if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
@@ -138,7 +142,7 @@ public class JavaCompilerArgumentsBuilder {
         }
         FileCollection sourcepath = compileOptions.getSourcepath();
         Iterable<File> classpath = spec.getClasspath();
-        if ((sourcepath != null && !sourcepath.isEmpty()) || !includeClasspath || (classpath != null && classpath.iterator().hasNext())) {
+        if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
             args.add("-sourcepath");
             args.add(sourcepath == null ? "" : sourcepath.getAsPath());
         }
@@ -148,7 +152,9 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void addClasspath() {
-        if (!includeClasspath) { return; }
+        if (!includeClasspath) {
+            return;
+        }
 
         Iterable<File> classpath = spec.getClasspath();
         if (classpath != null && classpath.iterator().hasNext()) {
@@ -158,7 +164,9 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private void addSourceFiles() {
-        if (!includeSourceFiles) { return; }
+        if (!includeSourceFiles) {
+            return;
+        }
 
         for (File file : spec.getSource()) {
             args.add(file.getPath());

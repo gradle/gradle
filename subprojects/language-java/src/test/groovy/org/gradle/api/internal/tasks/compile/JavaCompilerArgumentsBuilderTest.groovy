@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.tasks.compile.CompileOptions
-import spock.lang.Specification
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.tasks.compile.CompileOptions
+import spock.lang.Specification
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
@@ -206,7 +206,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeClasspath(false)
 
         then:
-        builder.build() == ["-g", "-sourcepath", ""]
+        builder.build() == ["-g"]
     }
 
     def "includes classpath by default"() {
@@ -281,5 +281,30 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g", "-sourcepath", "/lib/lib1.jar:/lib/lib2.jar"]
+    }
+
+    def "generates -sourcepath option when classpath not included and explicit value for source path"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.compileOptions.sourcepath = new SimpleFileCollection(file1)
+        spec.classpath = new SimpleFileCollection(file2)
+
+        expect:
+        builder.build() == ["-g", "-sourcepath", "$file1", "-classpath", "$file2"]
+        builder.includeClasspath(false).build() == ["-g", "-sourcepath", "$file1"]
+
+        when:
+        spec.compileOptions.sourcepath = null
+
+        then:
+        builder.includeClasspath(true).build() == ["-g", "-sourcepath", "", "-classpath", "$file2"]
+        builder.includeClasspath(false).build() == ["-g"]
+
+        when:
+        spec.classpath = null
+
+        then:
+        builder.includeClasspath(true).build() == ["-g"]
+        builder.includeClasspath(false).build() == ["-g"]
     }
 }
