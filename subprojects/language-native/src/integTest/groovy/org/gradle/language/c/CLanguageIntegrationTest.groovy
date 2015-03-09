@@ -20,6 +20,8 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import spock.lang.Issue
 import spock.lang.Unroll
+import static org.gradle.util.Matchers.containsText
+
 // TODO:DAZ Some of these tests should apply to all single-language integration tests
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
@@ -207,7 +209,7 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("C compiler failed while compiling broken.c; see the error output for details.")
+        failure.assertThatCause(containsText("C compiler failed while compiling broken.c"))
     }
 
     def "build fails when multiple compilations fail"() {
@@ -235,7 +237,7 @@ model {
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
         failure.assertHasCause("Multiple build operations failed.")
         (1..brokenFileCount).each {
-            failure.assertHasCause("C compiler failed while compiling broken${it}.c; see the error output for details.")
+            failure.assertThatCause(containsText("C compiler failed while compiling broken${it}.c"))
         }
     }
 }

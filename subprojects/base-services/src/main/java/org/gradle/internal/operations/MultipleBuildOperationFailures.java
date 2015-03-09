@@ -16,12 +16,31 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
-@Contextual
 public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
+    private static final int MAX_CAUSES = 10;
+
     public MultipleBuildOperationFailures(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes);
+        super(format(message, causes), causes);
+    }
+
+    private static String format(String message, Iterable<? extends Throwable> causes) {
+        StringBuilder sb = new StringBuilder(message);
+        int count = 0;
+        for (Throwable cause : causes) {
+            if (count < MAX_CAUSES) {
+                sb.append(String.format("%n    %s", cause.getMessage()));
+            }
+            count++;
+        }
+
+        int suppressedFailureCount = count - MAX_CAUSES;
+        if (suppressedFailureCount == 1) {
+            sb.append(String.format("%n    ...and %d more failure.", suppressedFailureCount));
+        } else if (suppressedFailureCount > 1) {
+            sb.append(String.format("%n    ...and %d more failures.", suppressedFailureCount));
+        }
+        return sb.toString();
     }
 }

@@ -22,6 +22,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 
+import static org.gradle.util.Matchers.containsText
+
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
@@ -253,7 +255,7 @@ model {
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
         failure.assertHasCause("A build operation failed.")
         def exeName = executable("build/binaries/mainExecutable/main").file.name
-        failure.assertHasCause("Linker failed while linking ${exeName}; see the error output for details.")
+        failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
     }
 
     def "build fails when link library fails"() {
@@ -286,7 +288,7 @@ model {
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
         failure.assertHasCause("A build operation failed.")
         def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
-        failure.assertHasCause("Linker failed while linking ${libName}; see the error output for details.")
+        failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
     }
 
     def "build fails when create static library fails"() {
@@ -317,7 +319,7 @@ binaries.withType(StaticLibraryBinarySpec) {
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
         failure.assertHasCause("A build operation failed.")
         def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
-        failure.assertHasCause("Static library archiver failed while archiving ${libName}; see the error output for details.")
+        failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

@@ -16,11 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperation;
 import org.gradle.internal.operations.BuildOperationFailure;
 
-@Contextual
 class CommandLineToolInvocationFailure extends BuildOperationFailure {
     CommandLineToolInvocationFailure(BuildOperation operation, String message) {
         super(operation, message);

@@ -43,7 +43,7 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
         1 * execAction.executable(executable)
         1 * execAction.execute() >> { throw new ExecException("fail") }
         BuildOperationFailure e = thrown()
-        e.getMessage() == 'Tool failed while doing something; see the error output for details.'
+        e.getMessage().contains('Tool failed while doing something')
 
     }
 }

@@ -22,6 +22,8 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 
+import static org.gradle.util.Matchers.containsText
+
 class CppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
@@ -47,7 +49,7 @@ model {
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
         failure.assertHasCause("A build operation failed.")
-        failure.assertHasCause("C++ compiler failed while compiling broken.cpp; see the error output for details.")
+        failure.assertThatCause(containsText("C\\+\\+ compiler failed while compiling broken.cpp"))
     }
 
     def "sources are compiled with C++ compiler"() {
