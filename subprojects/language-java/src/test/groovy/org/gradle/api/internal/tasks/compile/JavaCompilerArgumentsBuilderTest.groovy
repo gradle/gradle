@@ -277,10 +277,11 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "generates -sourcepath option"() {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
-        spec.compileOptions.sourcepath = new SimpleFileCollection(file1, file2)
+        def fc = new SimpleFileCollection(file1, file2)
+        spec.compileOptions.sourcepath = fc
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "/lib/lib1.jar:/lib/lib2.jar"]
+        builder.build() == ["-g", "-sourcepath", fc.asPath]
     }
 
     def "generates -sourcepath option when classpath not included and explicit value for source path"() {
@@ -290,14 +291,14 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = new SimpleFileCollection(file2)
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "$file1", "-classpath", "$file2"]
-        builder.includeClasspath(false).build() == ["-g", "-sourcepath", "$file1"]
+        builder.build() == ["-g", "-sourcepath", "$file1", "-classpath", asPath(file2)]
+        builder.includeClasspath(false).build() == ["-g", "-sourcepath", asPath(file1)]
 
         when:
         spec.compileOptions.sourcepath = null
 
         then:
-        builder.includeClasspath(true).build() == ["-g", "-sourcepath", "", "-classpath", "$file2"]
+        builder.includeClasspath(true).build() == ["-g", "-sourcepath", "", "-classpath", asPath(file2)]
         builder.includeClasspath(false).build() == ["-g"]
 
         when:
@@ -306,5 +307,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         then:
         builder.includeClasspath(true).build() == ["-g"]
         builder.includeClasspath(false).build() == ["-g"]
+    }
+
+    String asPath(File... files) {
+        new SimpleFileCollection(files).asPath
     }
 }
