@@ -24,7 +24,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tempDir
+    @Rule
+    TestNameTestDirectoryProvider tempDir
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 
     def "inlines arguments if they are short enough"() {
@@ -34,7 +35,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def args = argsGenerator.generate(spec)
 
         then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", "", "-classpath", spec.classpath.asPath, *spec.source*.path]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", File.pathSeparator, "-classpath", spec.classpath.asPath, *spec.source*.path]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -48,7 +49,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", '""', "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
     }
 
     def createCompileSpec(numFiles) {
@@ -68,6 +69,6 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def quote(arg) {
-      "\"${arg.replace("\\", "\\\\")}\""
+        "\"${arg.replace("\\", "\\\\")}\""
     }
 }

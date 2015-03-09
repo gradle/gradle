@@ -25,20 +25,14 @@ public class ArgWriter implements ArgCollector {
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
     private final PrintWriter writer;
     private final boolean backslashEscape;
-    private final boolean quoteEmpty;
 
-    private ArgWriter(PrintWriter writer, boolean backslashEscape, boolean quoteEmpty) {
+    private ArgWriter(PrintWriter writer, boolean backslashEscape) {
         this.writer = writer;
         this.backslashEscape = backslashEscape;
-        this.quoteEmpty = quoteEmpty;
     }
 
     public static ArgWriter unixStyle(PrintWriter writer) {
-        return new ArgWriter(writer, true, false);
-    }
-
-    public ArgWriter quoteEmpty() {
-        return new ArgWriter(writer, backslashEscape, true);
+        return new ArgWriter(writer, true);
     }
 
     public static Transformer<ArgWriter, PrintWriter> unixStyleFactory() {
@@ -50,7 +44,7 @@ public class ArgWriter implements ArgCollector {
     }
 
     public static ArgWriter windowsStyle(PrintWriter writer) {
-        return new ArgWriter(writer, false, false);
+        return new ArgWriter(writer, false);
     }
 
     public static Transformer<ArgWriter, PrintWriter> windowsStyleFactory() {
@@ -74,7 +68,7 @@ public class ArgWriter implements ArgCollector {
             if (backslashEscape) {
                 str = str.replace("\\", "\\\\").replace("\"", "\\\"");
             }
-            if (WHITESPACE.matcher(str).find() || (str.isEmpty() && quoteEmpty)) {
+            if (WHITESPACE.matcher(str).find()) {
                 writer.print('\"');
                 writer.print(str);
                 writer.print('\"');

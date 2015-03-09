@@ -144,7 +144,7 @@ public class JavaCompilerArgumentsBuilder {
         Iterable<File> classpath = spec.getClasspath();
         if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
             args.add("-sourcepath");
-            args.add(sourcepath == null ? "" : sourcepath.getAsPath());
+            args.add(sourcepath == null ? File.pathSeparator : sourcepath.getAsPath());
         }
         if (compileOptions.getCompilerArgs() != null) {
             args.addAll(compileOptions.getCompilerArgs());

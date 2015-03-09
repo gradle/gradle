@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
-class JavaCompilerArgumentsBuilderTest extends Specification {
+class JavaCompilerArgumentsBuilderTzest extends Specification {
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
 
@@ -158,7 +158,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "adds custom compiler args"() {
@@ -200,7 +200,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeClasspath(true)
 
         then:
-        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2"]
 
         when:
         builder.includeClasspath(false)
@@ -215,7 +215,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "can include/exclude launcher options"() {
@@ -298,7 +298,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.sourcepath = null
 
         then:
-        builder.includeClasspath(true).build() == ["-g", "-sourcepath", "", "-classpath", asPath(file2)]
+        builder.includeClasspath(true).build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", asPath(file2)]
         builder.includeClasspath(false).build() == ["-g"]
 
         when:

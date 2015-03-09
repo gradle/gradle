@@ -49,7 +49,9 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
             // limit is 2047 on older Windows systems, and 8191 on newer ones
             // http://support.microsoft.com/kb/830473
             // let's play it safe, no need to optimize
-            if (length > 1500) { return true; }
+            if (length > 1500) {
+                return true;
+            }
         }
         return false;
     }
@@ -61,7 +63,7 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
         try {
             PrintWriter writer = new PrintWriter(new FileWriter(file));
             try {
-                ArgWriter argWriter = ArgWriter.unixStyle(writer).quoteEmpty();
+                ArgWriter argWriter = ArgWriter.unixStyle(writer);
                 for (String arg : args) {
                     argWriter.args(arg);
                 }
