@@ -106,6 +106,11 @@ public class VersionParser implements Transformer<Version, String> {
         }
 
         @Override
+        public boolean isQualified() {
+            return baseVersion != this;
+        }
+
+        @Override
         public Version getBaseVersion() {
             return baseVersion;
         }

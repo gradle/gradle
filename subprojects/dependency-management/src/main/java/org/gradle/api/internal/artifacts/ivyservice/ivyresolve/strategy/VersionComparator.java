@@ -25,5 +25,7 @@ public interface VersionComparator extends Comparator<Versioned> {
      */
     int compare(Versioned element1, Versioned element2);
 
+    Comparator<Version> asVersionComparator();
+
     Comparator<String> asStringComparator();
 }

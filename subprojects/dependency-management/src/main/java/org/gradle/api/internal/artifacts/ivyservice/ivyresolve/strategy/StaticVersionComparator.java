@@ -22,22 +22,20 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 
-
-public class StaticVersionComparator implements Comparator<String> {
+class StaticVersionComparator implements Comparator<Version> {
     private static final Map<String, Integer> SPECIAL_MEANINGS =
             ImmutableMap.of("dev", new Integer(-1), "rc", new Integer(1), "final", new Integer(2));
-    private final VersionParser versionParser = new VersionParser();
 
     /**
      * Compares 2 versions. Algorithm is inspired by PHP version_compare one.
      */
-    public int compare(String version1, String version2) {
+    public int compare(Version version1, Version version2) {
         if (version1.equals(version2)) {
             return 0;
         }
 
-        String[] parts1 = versionParser.transform(version1).getParts();
-        String[] parts2 = versionParser.transform(version2).getParts();
+        String[] parts1 = version1.getParts();
+        String[] parts2 = version2.getParts();
 
         int i = 0;
         for (; i < parts1.length && i < parts2.length; i++) {

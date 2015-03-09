@@ -19,10 +19,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
 import spock.lang.Specification
 
 class DefaultVersionComparatorTest extends Specification {
-    def strategy = new DefaultVersionComparator()
+    def comparator = new DefaultVersionComparator()
 
     def compare(String s1, String s2) {
-        return strategy.compare(new VersionInfo(s1), new VersionInfo(s2))
+        return comparator.compare(new VersionInfo(s1), new VersionInfo(s2))
     }
 
     def "compares versions numerically when parts are digits"() {
@@ -180,4 +180,22 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0"                     | "1.1-20150201.121010-12"
     }
 
+    def "can compare version strings"() {
+        expect:
+        def stringComparator = comparator.asStringComparator()
+        stringComparator.compare("1.2", "1.3") < 0
+    }
+
+    def "can compare Version objects"() {
+        def v1 = Stub(Version) {
+            getParts() >> ["1", "2"]
+        }
+        def v2 = Stub(Version) {
+            getParts() >> ["1", "3"]
+        }
+
+        expect:
+        def versionComparator = comparator.asVersionComparator()
+        versionComparator.compare(v1, v2) < 0
+    }
 }

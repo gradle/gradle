@@ -32,4 +32,9 @@ public interface Version {
      * e.g. 1.2.3-beta-4 returns 1.2.3, or 7.0.12beta5 returns 7.0.12.
      */
     Version getBaseVersion();
+
+    /**
+     * Returns true if this version is qualified in any way. For example, 1.2.3 is not qualified, 1.2-beta-3 is.
+     */
+    boolean isQualified();
 }

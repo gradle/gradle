@@ -67,19 +67,21 @@ class VersionParserTest extends Specification {
         expect:
         def version = parse(versionStr)
         version.baseVersion == parse(baseStr)
+        version.qualified == qualified
 
         where:
-        versionStr        | baseStr
-        "1.2.3"           | "1.2.3"
-        "1.2-3"           | "1.2"
-        "1.2-beta_3+0000" | "1.2"
-        "1.2b3"           | "1.2"
-        "1-alpha"         | "1"
-        "abc.1-3"         | "abc.1"
-        "123"             | "123"
-        "abc"             | "abc"
-        "1b2.1.2.3"       | "1"
-        "b1-2-3.3"        | "b"
+        versionStr        | baseStr     | qualified
+        "1.2.3"           | "1.2.3"     | false
+        "1.2-3"           | "1.2"       | true
+        "1.2-beta_3+0000" | "1.2"       | true
+        "1.2b3"           | "1.2"       | true
+        "1-alpha"         | "1"         | true
+        "abc.1-3"         | "abc.1"     | true
+        "123"             | "123"       | false
+        "abc"             | "abc"       | false
+        "a.b.c.1.2"       | "a.b.c.1.2" | false
+        "1b2.1.2.3"       | "1"         | true
+        "b1-2-3.3"        | "b"         | true
     }
 
     def "handles empty parts and retains whitespace"() {
