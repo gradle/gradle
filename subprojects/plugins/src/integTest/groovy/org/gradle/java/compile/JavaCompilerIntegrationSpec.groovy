@@ -28,7 +28,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
         '''
 
         expect:
-        succeeds("compileJava")
+        fails("compileJava")
         output.contains(logStatement())
         !errorOutput
         file("build/classes/main/compile/test/Person.class").exists()

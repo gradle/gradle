@@ -61,7 +61,7 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
         try {
             PrintWriter writer = new PrintWriter(new FileWriter(file));
             try {
-                ArgWriter argWriter = ArgWriter.unixStyle(writer);
+                ArgWriter argWriter = ArgWriter.unixStyle(writer).quoteEmpty();
                 for (String arg : args) {
                     argWriter.args(arg);
                 }

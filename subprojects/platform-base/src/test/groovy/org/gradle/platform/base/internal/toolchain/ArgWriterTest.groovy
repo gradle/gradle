@@ -74,4 +74,14 @@ class ArgWriterTest extends Specification {
         then:
         writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
     }
+
+    def "can quote empty values"() {
+        def argWriter = ArgWriter.unixStyle(printWriter).quoteEmpty()
+
+        when:
+        argWriter.args("a", "")
+
+        then:
+        writer.toString() == toPlatformLineSeparators('a ""\n')
+    }
 }
