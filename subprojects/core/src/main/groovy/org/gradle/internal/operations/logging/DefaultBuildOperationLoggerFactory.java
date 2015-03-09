@@ -24,6 +24,8 @@ import org.gradle.util.GFileUtils;
 import java.io.*;
 
 public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerFactory {
+    private static final int MAX_FAILURES = 10;
+
     private final Logger logger;
 
     DefaultBuildOperationLoggerFactory(Logger logger) {
@@ -37,10 +39,9 @@ public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerF
 
     @Override
     public BuildOperationLogger newOperationLogger(String taskName, File outputDir) {
-        return newOperationLogger(taskName, outputDir, Integer.MAX_VALUE);
+        return newOperationLogger(taskName, outputDir, MAX_FAILURES);
     }
 
-    @Override
     public BuildOperationLogger newOperationLogger(String taskName, File outputDir, int maximumFailures) {
         final File outputFile = createOutputFile(outputDir);
         final PrintWriter logWriter = createWriter(outputFile);

@@ -78,7 +78,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @TaskAction
     public void compile(IncrementalTaskInputs inputs) {
-        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir(), 10);
+        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         NativeCompileSpec spec = createCompileSpec();
         spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());

@@ -19,6 +19,5 @@ package org.gradle.internal.operations.logging;
 import java.io.File;
 
 public interface BuildOperationLoggerFactory {
-    BuildOperationLogger newOperationLogger(String taskName, File outputDir, int maximumFailures);
     BuildOperationLogger newOperationLogger(String taskName, File outputDir);
 }
