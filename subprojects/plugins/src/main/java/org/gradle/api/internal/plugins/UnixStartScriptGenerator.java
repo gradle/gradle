@@ -66,13 +66,25 @@ public class UnixStartScriptGenerator extends TemplateBasedStartScriptGenerator 
                 jvmOpt = jvmOpt.replace("'", "'\"'\"'");
                 jvmOpt = jvmOpt.replace("`", "'\"`\"'");
                 jvmOpt = jvmOpt.replace("$", "\\$");
-                return String.format("\"%s\"", jvmOpt);
+                StringBuilder quotedJvmOpt = new StringBuilder();
+                quotedJvmOpt.append("\"");
+                quotedJvmOpt.append(jvmOpt);
+                quotedJvmOpt.append("\"");
+                return quotedJvmOpt.toString();
             }
         });
 
         //put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
         // in which case we output "" to stay compatible with existing builds that scan the script for it
         Joiner spaceJoiner = Joiner.on(" ");
-        return Iterables.size(quotedDefaultJvmOpts) > 0 ? String.format("'%s'", spaceJoiner.join(quotedDefaultJvmOpts)) : "\"\"";
+        if(Iterables.size(quotedDefaultJvmOpts) > 0) {
+            StringBuilder singleQuoteJvmOpt = new StringBuilder();
+            singleQuoteJvmOpt.append("'");
+            singleQuoteJvmOpt.append(spaceJoiner.join(quotedDefaultJvmOpts));
+            singleQuoteJvmOpt.append("'");
+            return singleQuoteJvmOpt.toString();
+        }
+
+        return "\"\"";
     }
 }
