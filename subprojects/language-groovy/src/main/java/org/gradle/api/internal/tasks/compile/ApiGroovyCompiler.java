@@ -29,6 +29,7 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
@@ -127,8 +128,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
-                            spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-                            spec.getCompileOptions().getCompilerArgs().add(stubDir.getAbsolutePath());
+                            FileCollection sourcepath = new SimpleFileCollection(stubDir);
+                            if (spec.getCompileOptions().getSourcepath() != null) {
+                                sourcepath = spec.getCompileOptions().getSourcepath().plus(sourcepath);
+                            }
+                            spec.getCompileOptions().setSourcepath(sourcepath);
                         }
 
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
