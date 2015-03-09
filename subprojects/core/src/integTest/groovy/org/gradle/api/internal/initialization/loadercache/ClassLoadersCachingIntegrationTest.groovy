@@ -56,7 +56,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertCacheSize() {
         assert cacheSizePerRun.size() > 1
-        assert cacheSizePerRun[-1] == cacheSizePerRun[-2]
+        assert cacheSizePerRun[-1] <= cacheSizePerRun[-2]
     }
 
     ExecutionResult run(String... tasks) {
