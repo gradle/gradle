@@ -83,6 +83,7 @@ public class JUnitTestClassExecuter {
         //Will be fixed with adding class filters
         if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
             RunNotifier notifier = new RunNotifier();
+
             for (String listenerClass : options.getListeners()) {
                 try {
                     RunListener rl = null;
