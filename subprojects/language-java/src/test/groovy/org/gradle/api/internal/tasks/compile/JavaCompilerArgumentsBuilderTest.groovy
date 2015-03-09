@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
-class JavaCompilerArgumentsBuilderTzest extends Specification {
+class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
 
