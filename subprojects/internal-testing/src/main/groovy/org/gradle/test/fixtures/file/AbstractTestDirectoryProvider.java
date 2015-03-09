@@ -35,6 +35,8 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
     private String prefix;
     protected static TestFile root;
     private static final Random RANDOM = new Random();
+    public static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
+    private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -93,7 +95,7 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             }
             while (true) {
                 // Use a random prefix to avoid reusing test directories
-                dir = root.file(prefix, Integer.toString(RANDOM.nextInt(), 36));
+                dir = root.file(prefix, Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX));
                 if (dir.mkdirs()) {
                     break;
                 }
