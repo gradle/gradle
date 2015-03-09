@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.*;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
@@ -40,12 +40,13 @@ public class ExecuteBuild extends BuildCommandOnly {
         this.actionExecuter = actionExecuter;
     }
 
-    protected void doBuild(DaemonCommandExecution execution, Build build) {
+    protected void doBuild(final DaemonCommandExecution execution, Build build) {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
-            Object result = actionExecuter.execute(build.getAction(), cancellationToken, build.getParameters());
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, new DaemonConnectionBackedEventConsumer(execution));
+            Object result = actionExecuter.execute(build.getAction(), buildRequestContext, build.getParameters());
             execution.setResult(result);
         } catch (ReportedException e) {
             /*
@@ -63,4 +64,16 @@ public class ExecuteBuild extends BuildCommandOnly {
         execution.proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the future
     }
 
+    private static class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
+        private final DaemonCommandExecution execution;
+
+        public DaemonConnectionBackedEventConsumer(DaemonCommandExecution execution) {
+            this.execution = execution;
+        }
+
+        @Override
+        public void dispatch(Object event) {
+            execution.getConnection().event(event);
+        }
+    }
 }

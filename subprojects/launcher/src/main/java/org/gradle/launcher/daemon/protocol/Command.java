@@ -15,9 +15,7 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
-public class Command implements Serializable {
+public class Command extends Message {
     private final Object identifier;
 
     public Command(Object identifier) {

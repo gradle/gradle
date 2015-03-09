@@ -17,9 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
@@ -105,7 +103,8 @@ public class ProviderConnection {
     private Object run(BuildAction<? extends BuildActionResult> action, BuildCancellationToken cancellationToken, ProviderOperationParameters operationParameters, Map<String, String> properties) {
         BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(operationParameters);
         ConfiguringBuildAction<BuildActionResult> configuringAction = new ConfiguringBuildAction<BuildActionResult>(operationParameters, action, properties);
-        BuildActionResult result = executer.execute(configuringAction, cancellationToken, operationParameters);
+        BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(operationParameters.getStartTime()), cancellationToken, new NoOpBuildEventConsumer());
+        BuildActionResult result = executer.execute(configuringAction, buildRequestContext, operationParameters);
         if (result.failure != null) {
             throw (RuntimeException) payloadSerializer.deserialize(result.failure);
         }

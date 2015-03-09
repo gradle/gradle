@@ -20,14 +20,15 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 
 import java.util.List;
 
 class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
-    WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new VisualCppCompilerArgsTransformerFactory<WindowsResourceCompileSpec>(new RcCompilerArgsTransformer()), specTransformer, objectFileExtensionCalculator, useCommandFile);
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {

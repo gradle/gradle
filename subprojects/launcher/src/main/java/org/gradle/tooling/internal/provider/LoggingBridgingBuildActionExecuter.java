@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.Factory;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.logging.LoggingManagerInternal;
@@ -40,7 +40,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         this.loggingManagerFactory = loggingManagerFactory;
     }
 
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
+    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
         LoggingManagerInternal loggingManager = loggingManagerFactory.create();
         loggingManager.removeAllOutputEventListeners();
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
@@ -59,7 +59,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         loggingManager.setLevel(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
-            return executer.execute(action, cancellationToken, actionParameters);
+            return executer.execute(action, buildRequestContext, actionParameters);
         } finally {
             loggingManager.removeAllOutputEventListeners();
             loggingManager.stop();

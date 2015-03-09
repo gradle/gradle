@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.compile
 
-class   InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
 
     String compilerConfiguration() {
 '''

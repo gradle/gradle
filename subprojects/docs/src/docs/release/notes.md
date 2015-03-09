@@ -119,6 +119,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Changing a configuration after it has been resolved
+
+todo
+
 ### Dependency substitution changes
 
 In previous Gradle versions you could replace an external dependency with another like this:

@@ -32,7 +32,10 @@ class OutputCleaningCompilerTest extends Specification {
 
     NativeCompileSpec spec = Mock(NativeCompileSpec);
     Compiler delegateCompiler = Mock(Compiler)
-    OutputCleaningCompiler cleanCompiler = new OutputCleaningCompiler<NativeCompileSpec>(delegateCompiler, ".o");
+    ObjectFileExtensionCalculator calculator = Stub(ObjectFileExtensionCalculator) {
+        transform(_) >> ".o"
+    }
+    OutputCleaningCompiler cleanCompiler = new OutputCleaningCompiler<NativeCompileSpec>(delegateCompiler, calculator);
 
     TestFile outputDir = tmpDirProvider.createDir("objs")
 

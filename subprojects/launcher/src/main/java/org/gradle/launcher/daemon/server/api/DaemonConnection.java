@@ -86,6 +86,11 @@ public interface DaemonConnection extends Stoppable {
     void logEvent(OutputEvent logEvent);
 
     /**
+     * Dispatches some build event to the client.
+     */
+    void event(Object event);
+
+    /**
      * Dispatches the given result to the client.
      */
     void completed(Result result);

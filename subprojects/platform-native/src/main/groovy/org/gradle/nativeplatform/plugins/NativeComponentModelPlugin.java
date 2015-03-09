@@ -28,8 +28,11 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.registry.LanguageRegistration;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
+import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -192,6 +195,39 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     }
                 }
             });
+        }
+
+        @Mutate
+        void configurePreCompiledHeaderSourceSets(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageRegistry languageRegistry) {
+            binaries.all(new Action<NativeBinarySpecInternal>() {
+                @Override
+                public void execute(final NativeBinarySpecInternal nativeBinarySpec) {
+                    nativeBinarySpec.getSource().withType(DependentSourceSet.class, new Action<DependentSourceSet>() {
+                        @Override
+                        public void execute(DependentSourceSet dependentSourceSet) {
+                            if (dependentSourceSet.getPreCompiledHeader() != null) {
+                                LanguageSourceSet pchSourceSet = createPreCompiledHeaderSourceSet(dependentSourceSet, serviceRegistry, languageRegistry);
+                                pchSourceSet.getSource().srcDir(dependentSourceSet.getPreCompiledHeader().getParent());
+                                pchSourceSet.getSource().include(dependentSourceSet.getPreCompiledHeader().getName());
+                                nativeBinarySpec.getPreCompiledHeaderMappings().put(pchSourceSet, dependentSourceSet);
+                                nativeBinarySpec.source(pchSourceSet);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        private LanguageSourceSet createPreCompiledHeaderSourceSet(DependentSourceSet targetSourceSet, ServiceRegistry serviceRegistry, LanguageRegistry languageRegistry) {
+            FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            for (LanguageRegistration<?> languageRegistration : languageRegistry) {
+                if (languageRegistration.getSourceSetType().isAssignableFrom(targetSourceSet.getClass())) {
+                    NamedDomainObjectFactory<? extends LanguageSourceSet> sourceSetFactory = languageRegistration.getSourceSetFactory("");
+                    return sourceSetFactory.create(targetSourceSet.getName().concat("PreCompiledHeader"));
+                }
+            }
+            return null;
         }
 
         @Mutate

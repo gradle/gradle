@@ -19,17 +19,19 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ComponentSelectionRules;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
-import org.gradle.internal.rules.*;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.rules.*;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -40,6 +42,7 @@ import java.util.Set;
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
 
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
 
     private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
@@ -52,6 +55,13 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     protected DefaultComponentSelectionRules(RuleActionAdapter<ComponentSelection> ruleActionAdapter, NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser) {
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = moduleIdentifierNotationParser;
+    }
+
+    /**
+     * Sets the validator to invoke prior to each mutation.
+     */
+    public void beforeChange(MutationValidator mutationValidator) {
+        this.mutationValidator = mutationValidator;
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
@@ -95,6 +105,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     private ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
+        mutationValidator.validateMutation(true);
         rules.add(specRuleAction);
         return this;
     }

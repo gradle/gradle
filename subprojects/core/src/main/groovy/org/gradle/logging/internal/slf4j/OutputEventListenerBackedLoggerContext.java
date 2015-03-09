@@ -16,35 +16,40 @@
 
 package org.gradle.logging.internal.slf4j;
 
-import org.gradle.logging.internal.LogEvent;
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Actions;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.internal.OutputEventRenderer;
 import org.slf4j.ILoggerFactory;
 
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.gradle.api.logging.LogLevel.INFO;
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
 public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     private final Map<String, OutputEventListenerBackedLogger> loggers = new ConcurrentHashMap<String, OutputEventListenerBackedLogger>();
     private final OutputEventListenerBackedLogger root;
-    private final PrintStream defaultOutputStream;
+    private final OutputStream defaultOutputStream;
+    private final OutputStream defaultErrorStream;
 
     private OutputEventListener outputEventListener;
 
-    public OutputEventListenerBackedLoggerContext(PrintStream defaultOutputStream) {
+    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream) {
         this.defaultOutputStream = defaultOutputStream;
-        assignDefaultOutputEventListener();
+        this.defaultErrorStream = defaultErrorStream;
+        setDefaultOutputEventListener();
         root = new OutputEventListenerBackedLogger(ROOT_LOGGER_NAME, null, this);
-        root.setLevel(INFO);
+        root.setLevel(LogLevel.LIFECYCLE);
     }
 
-    private void assignDefaultOutputEventListener() {
-        outputEventListener = new StreamBackedOutputEventListener(defaultOutputStream);
+    private void setDefaultOutputEventListener() {
+        OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
+        renderer.addStandardOutputListener(defaultOutputStream);
+        renderer.addStandardErrorListener(defaultErrorStream);
+        outputEventListener = renderer;
     }
 
     public void setOutputEventListener(OutputEventListener outputEventListener) {
@@ -89,32 +94,8 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     }
 
     public void reset() {
-        assignDefaultOutputEventListener();
+        setDefaultOutputEventListener();
         root.reset();
-    }
-
-    private static class StreamBackedOutputEventListener implements OutputEventListener {
-
-        private final PrintStream stream;
-
-        public StreamBackedOutputEventListener(PrintStream stream) {
-            this.stream = stream;
-        }
-        @Override
-        public void onOutput(OutputEvent event) {
-            if (event instanceof LogEvent) {
-                LogEvent logEvent = (LogEvent) event;
-                stream.print(logEvent.getLogLevel());
-                stream.print(" ");
-                stream.print(logEvent.getCategory());
-                stream.print(" - ");
-                if (logEvent.getMessage() != null) {
-                    stream.println(logEvent.getMessage());
-                }
-                if (logEvent.getThrowable() != null) {
-                    logEvent.getThrowable().printStackTrace(stream);
-                }
-            }
-        }
+        root.setLevel(LogLevel.LIFECYCLE);
     }
 }

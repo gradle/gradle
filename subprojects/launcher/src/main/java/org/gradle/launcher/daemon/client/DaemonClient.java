@@ -21,6 +21,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildAction;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -107,14 +109,14 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @param action The action
      * @throws org.gradle.launcher.exec.ReportedException On failure, when the failure has already been logged/reported.
      */
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, BuildActionParameters parameters) {
+    public <T> T execute(BuildAction<T> action, BuildRequestContext requestContext, BuildActionParameters parameters) {
         Object buildId = idGenerator.generateId();
-        Build build = new Build(buildId, action, parameters);
+        Build build = new Build(buildId, action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
-                return (T) executeBuild(build, connection, cancellationToken);
+                return (T) executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 //this exception means that we want to try again.
                 LOGGER.info(e.getMessage() + " Trying a different daemon...");
@@ -127,7 +129,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
     }
 
-    protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken) throws DaemonInitialConnectException {
+    protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
         Object result;
         try {
             LOGGER.info("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
@@ -145,7 +147,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
         if (result instanceof BuildStarted) {
             DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
-            result = monitorBuild(build, diagnostics, connection, cancellationToken);
+            result = monitorBuild(build, diagnostics, connection, cancellationToken, buildEventConsumer);
         }
 
         LOGGER.info("Received result {} from daemon {}.", result, connection.getDaemon());
@@ -169,7 +171,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
         try {
@@ -182,9 +184,11 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
-                    return handleDaemonDisappearance(build, diagnostics, cancellationToken);
+                    return handleDaemonDisappearance(build, diagnostics);
                 } else if (object instanceof OutputEvent) {
                     outputEventListener.onOutput((OutputEvent) object);
+                } else if (object instanceof BuildEvent) {
+                    buildEventConsumer.dispatch(((BuildEvent)object).getPayload());
                 } else {
                     return object;
                 }
@@ -195,7 +199,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics, BuildCancellationToken cancellationToken) {
+    private Result handleDaemonDisappearance(Build build, DaemonDiagnostics diagnostics) {
         //we can try sending something to the daemon and try out if he is really dead or use jps
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)

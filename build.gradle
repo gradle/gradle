@@ -154,6 +154,9 @@ subprojects {
 }
 
 configurations {
+    distributionOnly {
+        visible = false
+    }
     runtime {
         visible = false
     }
@@ -169,6 +172,7 @@ configurations {
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
+    distributionOnly libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
 }

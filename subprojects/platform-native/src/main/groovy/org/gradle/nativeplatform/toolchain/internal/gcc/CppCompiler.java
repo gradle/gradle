@@ -20,12 +20,13 @@ import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends GccCompatibleNativeCompiler<CppCompileSpec>  {
 
-    CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileSuffix, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new CppCompileArgsTransformer(), Transformers.<CppCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
+    CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new GccCompilerArgsTransformerFactory<CppCompileSpec>(new CppCompileArgsTransformer()), Transformers.<CppCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
     }
 
     private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {

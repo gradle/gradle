@@ -72,28 +72,32 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public DefaultGradleLauncher newInstance(StartParameter startParameter) {
         BuildRequestMetaData requestMetaData;
         BuildCancellationToken cancellationToken;
+        BuildEventConsumer buildEventConsumer;
         if (tracker.getCurrentBuild() != null) {
             ServiceRegistry services = tracker.getCurrentBuild().getServices();
             requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
             cancellationToken = services.get(BuildCancellationToken.class);
+            buildEventConsumer = services.get(BuildEventConsumer.class);
         } else {
             requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
             cancellationToken = new FixedBuildCancellationToken();
+            buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        return doNewInstance(startParameter, cancellationToken, requestMetaData);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        return doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext);
+        return doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer());
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData) {
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer) {
         final BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
+        serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);

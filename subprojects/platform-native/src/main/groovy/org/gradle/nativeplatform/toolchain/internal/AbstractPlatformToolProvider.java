@@ -29,10 +29,12 @@ import org.gradle.util.TreeVisitor;
 public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
     protected final BuildOperationProcessor buildOperationProcessor;
+    private final ObjectFileExtensionCalculator objectFileExtensionCalculator;
 
     public AbstractPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.buildOperationProcessor = buildOperationProcessor;
+        this.objectFileExtensionCalculator = new DefaultObjectFileExtensionCalculator(targetOperatingSystem);
     }
 
     public boolean isAvailable() {
@@ -42,8 +44,8 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
     public void explain(TreeVisitor<? super String> visitor) {
     }
 
-    public String getObjectFileExtension() {
-        return targetOperatingSystem.isWindows() ? "obj" : "o";
+    public ObjectFileExtensionCalculator getObjectFileExtensionCalculator() {
+        return objectFileExtensionCalculator;
     }
 
     public String getExecutableName(String executablePath) {

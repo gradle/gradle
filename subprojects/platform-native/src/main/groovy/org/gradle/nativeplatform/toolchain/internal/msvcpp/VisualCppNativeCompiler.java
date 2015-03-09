@@ -26,8 +26,8 @@ import java.util.List;
 
 class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
 
-    VisualCppNativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, VisualCppCompilerArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, argsTransformer, specTransformer, objectFileSuffix, useCommandFile);
+    VisualCppNativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, VisualCppCompilerArgsTransformerFactory<T> argsTransformerFactory, Transformer<T, T> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, argsTransformerFactory, specTransformer, objectFileExtensionCalculator, useCommandFile);
     }
 
     @Override

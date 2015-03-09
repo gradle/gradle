@@ -47,7 +47,8 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         return new GradleException(formatter.toString());
     }
 
-    public String getObjectFileExtension() {
+    @Override
+    public ObjectFileExtensionCalculator getObjectFileExtensionCalculator() {
         throw failure();
     }
 

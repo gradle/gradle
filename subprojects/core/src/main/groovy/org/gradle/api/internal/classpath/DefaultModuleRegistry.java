@@ -68,6 +68,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         if (distDir != null) {
             libDirs.add(new File(distDir, "lib"));
             libDirs.add(new File(distDir, "lib/plugins"));
+            libDirs.add(new File(distDir, "lib/distributionOnly"));
         }
     }
 

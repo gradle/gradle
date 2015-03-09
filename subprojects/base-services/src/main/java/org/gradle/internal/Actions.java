@@ -48,7 +48,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
-    public static <T> Action<T> composite(Iterable<Action<? super T>> actions) {
+    public static <T> Action<T> composite(Iterable<? extends Action<? super T>> actions) {
         return new CompositeAction<T>(actions);
     }
 
@@ -64,9 +64,9 @@ public abstract class Actions {
     }
 
     private static class CompositeAction<T> implements Action<T> {
-        private final Iterable<Action<? super T>> actions;
+        private final Iterable<? extends Action<? super T>> actions;
 
-        private CompositeAction(Iterable<Action<? super T>> actions) {
+        private CompositeAction(Iterable<? extends Action<? super T>> actions) {
             this.actions = actions;
         }
 

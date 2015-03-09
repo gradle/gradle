@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public interface PlatformToolProvider extends ToolProvider {
-    String getObjectFileExtension();
+    ObjectFileExtensionCalculator getObjectFileExtensionCalculator();
 
     String getExecutableName(String executablePath);
 

@@ -16,12 +16,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.exec.*;
+import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.ReportedException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
@@ -35,11 +37,11 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.parameters = parameters;
     }
 
-    public <T> T execute(BuildAction<T> action, BuildCancellationToken cancellationToken, ProviderOperationParameters actionParameters) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), actionParameters.getStartTime(),
-                this.parameters.getEffectiveSystemProperties(), System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
+    public <T> T execute(BuildAction<T> action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters) {
+        BuildActionParameters parameters = new DefaultBuildActionParameters(this.parameters.getEffectiveSystemProperties(),
+                System.getenv(), SystemProperties.getInstance().getCurrentDir(), actionParameters.getBuildLogLevel());
         try {
-            return executer.execute(action, cancellationToken, parameters);
+            return executer.execute(action, buildRequestContext, parameters);
         } catch (ReportedException e) {
             Throwable t = e.getCause();
             while (t != null) {

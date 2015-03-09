@@ -41,6 +41,10 @@ public class BuildModelAction implements BuildAction<BuildActionResult>, Seriali
     public BuildActionResult run(BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
 
+// TODO - wire this up to test events
+//        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+//        eventConsumer.dispatch(someEvent);
+
         if (runTasks) {
             buildController.run();
         } else {

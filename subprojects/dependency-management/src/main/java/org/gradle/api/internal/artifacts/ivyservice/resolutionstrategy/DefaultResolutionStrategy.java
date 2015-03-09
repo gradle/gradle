@@ -20,14 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.internal.Actions;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -35,13 +37,13 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.util.GUtil.flattenElements;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
-
-    private Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
+    private final Set<ModuleVersionSelector> forcedModules = new LinkedHashSet<ModuleVersionSelector>();
     private ConflictResolution conflictResolution = new LatestConflictResolution();
-    private ComponentSelectionRulesInternal componentSelectionRules = new DefaultComponentSelectionRules();
+    private final DefaultComponentSelectionRules componentSelectionRules = new DefaultComponentSelectionRules();
 
-    final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
+    private final Set<Action<? super DependencyResolveDetails>> dependencyResolveRules;
     private final DefaultCachePolicy cachePolicy;
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>());
@@ -52,11 +54,19 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         this.dependencyResolveRules = dependencyResolveRules;
     }
 
+    @Override
+    public void beforeChange(MutationValidator validator) {
+        mutationValidator = validator;
+        cachePolicy.beforeChange(validator);
+        componentSelectionRules.beforeChange(validator);
+    }
+
     public Set<ModuleVersionSelector> getForcedModules() {
-        return forcedModules;
+        return Collections.unmodifiableSet(forcedModules);
     }
 
     public ResolutionStrategy failOnVersionConflict() {
+        mutationValidator.validateMutation(true);
         this.conflictResolution = new StrictConflictResolution();
         return this;
     }
@@ -70,24 +80,28 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
+        mutationValidator.validateMutation(true);
         Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
         this.forcedModules.addAll(modules);
         return this;
     }
 
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
+        mutationValidator.validateMutation(true);
         dependencyResolveRules.add(rule);
         return this;
     }
 
     public Action<DependencyResolveDetailsInternal> getDependencyResolveRule() {
-        Collection allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
+        Collection<Action<DependencyResolveDetailsInternal>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencyResolveRules);
         return Actions.composite(allRules);
     }
 
     public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
-        Set<ModuleVersionSelector> forcedModules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
-        this.forcedModules = forcedModules;
+        mutationValidator.validateMutation(true);
+        Set<ModuleVersionSelector> modules = ModuleVersionSelectorParsers.multiParser().parseNotation(moduleVersionSelectorNotations);
+        this.forcedModules.clear();
+        this.forcedModules.addAll(modules);
         return this;
     }
 
@@ -123,8 +137,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(),
-                new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveRules));
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), new LinkedHashSet<Action<? super DependencyResolveDetails>>(dependencyResolveRules));
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

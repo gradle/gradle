@@ -46,7 +46,12 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
                     filteredGroovy.allowPackage(packageName);
                 }
 
-                ClassLoader workerClassLoader = new MutableURLClassLoader(filteredGroovy, ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
+                FilteringClassLoader loggingClassLoader = new FilteringClassLoader(compiler.getClass().getClassLoader());
+                loggingClassLoader.allowPackage("org.slf4j");
+
+                MultiParentClassLoader groovyAndLoggingClassLoader = new MultiParentClassLoader(loggingClassLoader, filteredGroovy);
+
+                ClassLoader workerClassLoader = new MutableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
 
                 try {
                     byte[] serializedWorker = GUtil.serialize(new Worker<T>(compiler, spec));
