@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider
+package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.StartParameter
 import org.gradle.api.BuildCancelledException
@@ -25,6 +25,10 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
+import org.gradle.tooling.internal.provider.BuildActionResult
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
+import org.gradle.tooling.internal.provider.PayloadSerializer
+import org.gradle.tooling.internal.provider.SerializedPayload
 import spock.lang.Specification
 
 class ClientProvidedBuildActionRunnerTest extends Specification {

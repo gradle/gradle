@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.tooling.internal.provider.BuildActionResult;
+import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
+import org.gradle.tooling.internal.provider.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override

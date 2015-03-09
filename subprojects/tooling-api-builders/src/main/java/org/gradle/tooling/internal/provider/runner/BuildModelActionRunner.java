@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
@@ -22,9 +22,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.provider.BuildActionResult;
+import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
