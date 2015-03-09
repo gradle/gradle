@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class TemplateBasedStartScriptGenerator implements ScriptGenerator<StartScriptGenerationDetails> {
+public abstract class AbstractTemplateBasedStartScriptGenerator implements ScriptGenerator<StartScriptGenerationDetails> {
     public void generateScript(StartScriptGenerationDetails details, Writer destination) {
         try {
             Map<String, String> binding = createBinding(details);
@@ -50,7 +50,7 @@ public abstract class TemplateBasedStartScriptGenerator implements ScriptGenerat
     }
 
     private String generateStartScriptContentFromTemplate(Map<String, String> binding) throws URISyntaxException, ClassNotFoundException, IOException {
-        URL stream = getClass().getResource(getTemplateFileName());
+        URL stream = getClass().getResource(getTemplate().getName());
         String templateText = GFileUtils.readFile(new File(stream.toURI()), "UTF-8");
         Writable output = new SimpleTemplateEngine().createTemplate(templateText).make(binding);
         return TextUtil.convertLineSeparators(output.toString(), getLineSeparator());
@@ -81,6 +81,6 @@ public abstract class TemplateBasedStartScriptGenerator implements ScriptGenerat
     }
 
     abstract String getLineSeparator();
-    abstract String getTemplateFileName();
+    abstract File getTemplate();
     abstract Map<String, String> createBinding(StartScriptGenerationDetails details);
 }

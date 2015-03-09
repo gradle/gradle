@@ -22,12 +22,12 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class UnixStartScriptGeneratorTest extends Specification {
-    TemplateBasedStartScriptGenerator generator = new UnixStartScriptGenerator()
+    AbstractTemplateBasedStartScriptGenerator generator = new UnixStartScriptGenerator()
     StartScriptGenerationDetails details = createScriptGenerationDetails()
 
     def "uses expected template and line separator"() {
         expect:
-        generator.templateFileName == 'unixStartScript.txt'
+        generator.template == new File('unixStartScript.txt')
         generator.lineSeparator == '\n'
     }
 

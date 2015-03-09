@@ -21,16 +21,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.util.TextUtil;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UnixStartScriptGenerator extends TemplateBasedStartScriptGenerator {
+public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGenerator {
     String getLineSeparator() {
         return TextUtil.getUnixLineSeparator();
     }
 
-    String getTemplateFileName() {
-        return "unixStartScript.txt";
+    File getTemplate() {
+        return new File("unixStartScript.txt");
     }
 
     Map<String, String> createBinding(StartScriptGenerationDetails details) {

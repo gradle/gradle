@@ -21,18 +21,19 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.util.TextUtil;
 
+import java.io.File;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WindowsStartScriptGenerator extends TemplateBasedStartScriptGenerator {
+public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScriptGenerator {
     String getLineSeparator() {
         return TextUtil.getWindowsLineSeparator();
     }
 
-    String getTemplateFileName() {
-        return "windowsStartScript.txt";
+    File getTemplate() {
+        return new File("windowsStartScript.txt");
     }
 
     Map<String, String> createBinding(StartScriptGenerationDetails details) {
