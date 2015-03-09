@@ -282,6 +282,20 @@ The implication is that more compilation is now required for Groovy code when an
 This is unlikely to be noticeable unless the code base contains a lot of Groovy code.
 If this is problematic for your build, the solution is to separate the code that requires annotation processing from the code that does not to some degree.
 
+### Changes to default value for Java compilation `sourcepath`
+
+The source path indicates the location of source files that _may_ be compiled if necessary.
+It is effectively a complement to the class path, where the classes to be compiled against are in source form.
+It does __not__ indicate the actual primary source being compiled.
+
+The source path feature of the Java compiler is rarely needed for modern builds that use dependency management.
+
+The default value for the source path as of this release is now effectively an empty source path.
+Previously Gradle implicitly used the same default as the `javac` tool, which is the `-classpath` value.
+This causes unexpected build results when source accidentally ends up on the classpath, which can happen when dependencies surprisingly include source as well as binaries.
+
+This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
+     
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -309,6 +323,7 @@ We would like to thank the following community members for making contributions 
     - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
 * [Noam Y. Tenne](https://github.com/noamt) - Declare a dependency on a specific timestamped Maven snapshot
+* [Thomas Broyer](https://github.com/tbroyer) - Better defaults for Java compilation source path
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

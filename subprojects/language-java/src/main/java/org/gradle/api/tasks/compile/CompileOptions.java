@@ -279,7 +279,7 @@ public class CompileOptions extends AbstractOptions {
      * Returns the extension dirs to be used for the compiler process.
      * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
      */
-    @Input 
+    @Input
     @Optional
     public String getExtensionDirs() {
         return extensionDirs;
@@ -394,21 +394,34 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the sourcepath to use to compile the source files.
+     * The source path to use for the compilation.
+     * <p>
+     * The source path indicates the location of source files that <i>may</i> be compiled if necessary.
+     * It is effectively a complement to the class path, where the classes to be compiled against are in source form.
+     * It does <b>not</b> indicate the actual primary source being compiled.
+     * <p>
+     * The source path feature of the Java compiler is rarely needed for modern builds that use dependency management.
+     * <p>
+     * The default value for the source path is {@code null}, which indicates an <i>empty</i> source path.
+     * Note that this is different to the default value for the {@code -sourcepath} option for {@code javac}, which is to use the value specified by {@code -classpath}.
+     * If you wish to use any source path, it must be explicitly set.
      *
-     * @return The sourcepath.
+     * @return the source path
+     * @see #setSourcepath(FileCollection)
      */
     @Input
     @Optional
+    @Incubating
     public FileCollection getSourcepath() {
         return sourcepath;
     }
 
     /**
-     * Sets the sourcepath to use to compile the source files.
+     * Sets the source path to use for the compilation.
      *
-     * @param sourcepath The sourcepath. Must not be null, but may be empty.
+     * @param sourcepath the source path
      */
+    @Incubating
     public void setSourcepath(FileCollection sourcepath) {
         this.sourcepath = sourcepath;
     }
