@@ -88,6 +88,9 @@ A number of improvements have been made to the model rules execution used by the
 
 There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
 
+You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
+test progress events are of a sub-type of `TestProgressEvent`.
+
 ### Dependency substitution accepts projects
 
 You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
@@ -107,9 +110,9 @@ TODO
 
 ### Parallel Native Compilation
 
-Gradle uses multiple concurrent compilation processes when compiling all supported native languages. You can enable this 
-with the incubating `--parallel` and `--parallel-threads=#` command-line options. Up until this release, Gradle compiled 
-all native source files sequentially. 
+Gradle uses multiple concurrent compilation processes when compiling all supported native languages. You can enable this
+with the incubating `--parallel` and `--parallel-threads=#` command-line options. Up until this release, Gradle compiled
+all native source files sequentially.
 
 ### Support for “annotation processing” of Groovy code
 
@@ -126,7 +129,7 @@ The support for annotation processing of Groovy code is limited to annotation pr
 The official and supported annotation processing mechanisms _do not_ support modifying classes, so almost all annotation processors will work.
 However, some popular annotation processing tools, notably [Project Lombok](http://projectlombok.org), that use unofficial API to modify classes will not work.
 
-This feature was contributed by [Will Erickson](https://github.com/Sarev0k). 
+This feature was contributed by [Will Erickson](https://github.com/Sarev0k).
 
 ### Generate wrapper with specific version from command-line
 
@@ -251,9 +254,9 @@ The `getTarget()` method on the now deprecated `DefaultDependencyResolveDetails`
 
 ### CommandLineToolConfiguration.withArguments() semantics have changed
 
-`withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file. 
-The arguments passed to this would include the path to the source file and output file. This hook was intended to capture "overall" 
-arguments to the command-line tool instead of "per-file" arguments. We've changed it so that `withArguments()` is called once per 
+`withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.
+The arguments passed to this would include the path to the source file and output file. This hook was intended to capture "overall"
+arguments to the command-line tool instead of "per-file" arguments. We've changed it so that `withArguments()` is called once per
 task execution and does not contain any specific file arguments.  Changes to arguments using this method will affect all source files.
 
 ### Implicit Groovy source compilation while compiling build script is now disabled
@@ -288,9 +291,9 @@ We would like to thank the following community members for making contributions 
     - Support for publishing to AWS S3 backed Maven and Ivy repositories
     - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
-* [Victor Bronstein](https://github.com/victorbr) 
+* [Victor Bronstein](https://github.com/victorbr)
     - Convert NotationParser implementations to NotationConverter
-    - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219) 
+    - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219)
 * [Vyacheslav Blinov](https://github.com/dant3) - fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
 * [Michal Bendowski](https://github.com/bendowski-google) - six webDist userguide example
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
@@ -301,7 +304,7 @@ We would like to thank the following community members for making contributions 
 * [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
-* [Роман Донченко](https://github.com/SpecLad) 
+* [Роман Донченко](https://github.com/SpecLad)
     - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
     - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
