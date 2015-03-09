@@ -20,11 +20,13 @@ import spock.lang.Specification
 
 class WaitingReaderTest extends Specification {
 
+    def input = new ExpandingReader()
+    def source = new BufferedReader(input)
+
     def "can read lines"() {
-        def input = new ExpandingReader()
-        input.append("1\n2")
-        def source = new BufferedReader(input)
         def reader = new WaitingReader(source, 1, 1)
+        input.append("1\n2\n")
+
         expect:
         reader.readLine() == "1"
         reader.retriedCount == 0
@@ -37,10 +39,8 @@ class WaitingReaderTest extends Specification {
     }
 
     def "can receive content after end of stream reached"() {
-        def input = new ExpandingReader()
+        def reader = new WaitingReader(source, 10, 1)
         input.append("1\n2\n")
-        def source = new BufferedReader(input)
-        def reader = new WaitingReader(source, 1, 1)
 
         expect:
         reader.readLine() == "1"
@@ -50,6 +50,20 @@ class WaitingReaderTest extends Specification {
         reader.readLine() == "3"
         reader.readLine() == "4"
         reader.readLine() == null
+    }
+
+    def "test"() {
+        def reader = new WaitingReader(source, 1000, 10)
+        input.append("first part of the line")
+
+        new Thread({
+            sleep(200)
+            input.append(", second part of the line\nnext line\n")
+        }).start()
+
+        expect:
+        reader.readLine() == "first part of the line, second part of the line"
+        reader.readLine() == "next line"
     }
 
     static class ExpandingReader extends Reader {
