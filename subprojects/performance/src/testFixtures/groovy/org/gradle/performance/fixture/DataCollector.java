@@ -23,5 +23,6 @@ import java.util.List;
 
 public interface DataCollector {
     List<String> getAdditionalGradleOpts(File workingDir);
+    List<String> getAdditionalArgs(File workingDir);
     void collect(File testProjectDir, MeasuredOperation operation);
 }

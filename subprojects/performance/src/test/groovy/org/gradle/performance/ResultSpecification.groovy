@@ -56,7 +56,9 @@ abstract class ResultSpecification extends Specification {
 
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
-        operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args?.executionTime ?: 120)
+        operation.totalTime = args.totalTime instanceof Amount ? args.totalTime : Duration.millis(args?.totalTime ?: 120)
+        operation.configurationTime = args.configurationTime instanceof Amount ? args.configurationTime : Duration.millis(args.configurationTime ?: 30);
+        operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args.configurationTime ?: 80);
         operation.totalMemoryUsed = args.totalMemoryUsed instanceof Amount ? args.totalMemoryUsed : DataAmount.bytes(args?.totalMemoryUsed ?: 1024)
         operation.totalHeapUsage = args.totalHeapUsage instanceof Amount ? args.totalHeapUsage : DataAmount.bytes(args?.totalHeapUsage ?: 4096)
         operation.maxHeapUsage = args.maxHeapUsage instanceof Amount ? args.maxHeapUsage : DataAmount.bytes(args?.maxHeapUsage ?: 2000)

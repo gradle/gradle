@@ -33,7 +33,7 @@ public class OperationTimer {
         DateTime end = DateTime.now();
         result.setStart(start);
         result.setEnd(end);
-        result.setExecutionTime(Duration.millis(end.getMillis() - start.getMillis()));
+        result.setTotalTime(Duration.millis(end.getMillis() - start.getMillis()));
         return result;
     }
 }

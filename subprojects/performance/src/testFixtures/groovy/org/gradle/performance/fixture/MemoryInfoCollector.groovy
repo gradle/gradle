@@ -27,6 +27,11 @@ public class MemoryInfoCollector implements DataCollector {
         return Collections.emptyList();
     }
 
+    @Override
+    List<String> getAdditionalArgs(File workingDir) {
+        return Collections.emptyList();
+    }
+
     public void collect(File testProjectDir, MeasuredOperation operation) {
         def file = new File(testProjectDir, outputFileName).canonicalFile
         if (!file.exists()) {

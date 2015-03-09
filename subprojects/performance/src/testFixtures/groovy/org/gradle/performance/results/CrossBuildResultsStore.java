@@ -71,7 +71,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
@@ -94,12 +94,14 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             statement.setString(3, displayInfo.getDisplayName());
             statement.setObject(4, toArray(displayInfo.getTasksToRun()));
             statement.setObject(5, toArray(displayInfo.getArgs()));
-            statement.setBigDecimal(6, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(7, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(8, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(9, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(10, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(11, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(6, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(7, operation.getConfigurationTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(8, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(9, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(10, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(11, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(12, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(13, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.execute();
         }
     }
@@ -154,7 +156,7 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                         }
                     });
                     PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -187,12 +189,14 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
                             );
 
                             MeasuredOperation operation = new MeasuredOperation();
-                            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(5)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(6)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(7)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(8)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(9)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(10)));
+                            operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(5)));
+                            operation.setConfigurationTime(Duration.millis(resultSet.getBigDecimal(6)));
+                            operation.setExecutionTime(Duration.millis(resultSet.getBigDecimal(7)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(resultSet.getBigDecimal(8)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(9)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(10)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(11)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(12)));
 
                             performanceResults.buildResult(displayInfo).add(operation);
                             builds.add(displayInfo);
@@ -237,8 +241,24 @@ public class CrossBuildResultsStore implements ResultsStore, DataReporter<CrossB
             statement.execute("update testExecution set testGroup = 'project using variants' where testGroup is null and testId like '%project using variants%'");
             statement.execute("update testExecution set testGroup = testId where testGroup is null");
             statement.execute("alter table testExecution alter column testGroup set not null");
+            if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+                statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+                statement.execute("alter table testOperation add column executionTime decimal");
+                statement.execute("update testOperation set executionTime = 0");
+                statement.execute("alter table testOperation alter column executionTime set not null");
+                statement.execute("alter table testOperation add column configurationTime decimal");
+                statement.execute("update testOperation set configurationTime = 0");
+                statement.execute("alter table testOperation alter column configurationTime set not null");
+            }
             statement.close();
             return null;
+        }
+
+        private boolean columnExists(Connection connection, String table, String column) throws SQLException {
+            ResultSet columns = connection.getMetaData().getColumns(null, null, table, column);
+            boolean exists = columns.next();
+            columns.close();
+            return exists;
         }
     }
 }

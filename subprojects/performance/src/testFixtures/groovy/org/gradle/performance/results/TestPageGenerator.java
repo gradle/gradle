@@ -45,7 +45,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         text("  success: function(data) {\n");
                         text("    var labels = data.labels;\n");
                         text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } } };\n");
-                        text("    $.plot('#executionTimeChart', data.executionTime, options);\n");
+                        text("    $.plot('#executionTimeChart', data.totalTime, options);\n");
                         text("    $.plot('#heapUsageChart', data.heapUsage, options);\n");
                         text("    $('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
                         text("      if (!item) {\n");
@@ -85,6 +85,8 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("4").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average build time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average configuration time").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
                             th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
@@ -112,6 +114,16 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
                                 td().text(results.getVcsCommit()).end();
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getTotalTime();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getConfigurationTime();
+                                    }
+                                });
                                 renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                                         return original.getExecutionTime();

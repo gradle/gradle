@@ -52,6 +52,10 @@ class GradleInvocationSpec {
         return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(gradleOpts).addAll(additionalGradleOpts).build(), useDaemon, useToolingApi)
     }
 
+    GradleInvocationSpec withAdditionalArgs(List<String> additionalArgs) {
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), gradleOpts, useDaemon, useToolingApi)
+    }
+
     static class Builder {
         GradleDistribution gradleDistribution
         File workingDirectory

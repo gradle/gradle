@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import org.gradle.api.Action;
 import org.gradle.performance.measure.MeasuredOperation;
 
+import java.io.File;
 import java.util.List;
 
 public class BuildExperimentRunner {
@@ -31,7 +32,8 @@ public class BuildExperimentRunner {
         this.executerProvider = executerProvider;
         MemoryInfoCollector memoryInfoCollector = new MemoryInfoCollector();
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector);
+        BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector);
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -39,9 +41,11 @@ public class BuildExperimentRunner {
         System.out.println(String.format("%s ...", experiment.getDisplayName()));
         System.out.println();
 
-        final List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(experiment.getInvocation().getWorkingDirectory());
+        File workingDirectory = experiment.getInvocation().getWorkingDirectory();
+        final List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(workingDirectory);
+        final List<String> additionalArgs = dataCollector.getAdditionalArgs(workingDirectory);
 
-        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalGradleOpts(additionalGradleOpts);
+        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalGradleOpts(additionalGradleOpts).withAdditionalArgs(additionalArgs);
         GradleSession session = executerProvider.session(buildSpec);
 
         session.prepare();

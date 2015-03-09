@@ -39,6 +39,15 @@ public class CompositeDataCollector implements DataCollector {
         return additional;
     }
 
+    @Override
+    public List<String> getAdditionalArgs(File workingDir) {
+        List<String> additional = Lists.newLinkedList();
+        for (DataCollector collector : collectors) {
+            additional.addAll(collector.getAdditionalArgs(workingDir));
+        }
+        return additional;
+    }
+
     public void collect(File testProjectDir, MeasuredOperation operation) {
         for (DataCollector collector : collectors) {
             collector.collect(testProjectDir, operation);

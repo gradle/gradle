@@ -74,7 +74,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override
                                     public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
-                                        return measuredOperations.getExecutionTime();
+                                        return measuredOperations.getTotalTime();
                                     }
                                 });
                                 renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {

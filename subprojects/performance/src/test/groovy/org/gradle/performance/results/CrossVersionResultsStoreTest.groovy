@@ -40,7 +40,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 vcsCommit: "1234")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
-        result1.current << operation(executionTime: minutes(12),
+        result1.current << operation(totalTime: minutes(12),
+                configurationTime: minutes(1),
+                executionTime: minutes(10),
                 totalMemoryUsed: kbytes(12.33),
                 totalHeapUsage: kbytes(5612.45),
                 maxHeapUsage: kbytes(124.01),
@@ -98,7 +100,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].vcsBranch == 'master'
         results[0].vcsCommit == '1234'
         results[0].current.size() == 1
-        results[0].current[0].executionTime == minutes(12)
+        results[0].current[0].totalTime == minutes(12)
+        results[0].current[0].configurationTime == minutes(1)
+        results[0].current[0].executionTime == minutes(10)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)
         results[0].current[0].totalHeapUsage == kbytes(5612.45)
         results[0].current[0].maxHeapUsage == kbytes(124.01)

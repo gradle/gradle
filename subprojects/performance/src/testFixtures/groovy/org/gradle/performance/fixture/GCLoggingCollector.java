@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -45,6 +46,11 @@ public class GCLoggingCollector implements DataCollector {
                 "-Xloggc:" + logFile.getAbsolutePath(),
                 "-XX:-PrintGCTimeStamps"
         );
+    }
+
+    @Override
+    public List<String> getAdditionalArgs(File workingDir) {
+        return Collections.emptyList();
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {

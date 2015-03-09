@@ -56,7 +56,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.jvm
         results.operatingSystem
         results.current.size() == 4
-        results.current.executionTime.average == Duration.seconds(10)
+        results.current.totalTime.average == Duration.seconds(10)
         results.current.totalMemoryUsed.average == DataAmount.kbytes(10)
         results.baselineVersions*.version == ['1.0', '1.1']
         results.baseline('1.0').results.size() == 4
@@ -66,10 +66,10 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
-            result.add(operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
         }
         1 * reporter.report(_)
         0 * reporter._

@@ -84,7 +84,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         addOperations(statement, testId, null, results.getCurrent());
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
@@ -105,12 +105,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         for (MeasuredOperation operation : operations) {
             statement.setLong(1, testId);
             statement.setString(2, version);
-            statement.setBigDecimal(3, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(4, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(5, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(6, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(7, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(8, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(3, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(4, operation.getConfigurationTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(5, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(6, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(7, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(8, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(9, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(10, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.execute();
         }
     }
@@ -151,7 +153,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     });
                     Set<String> allBranches = new TreeSet<String>();
                     PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -181,12 +183,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                                 continue;
                             }
                             MeasuredOperation operation = new MeasuredOperation();
-                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(2)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(3)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(4)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(5)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(6)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(7)));
+                            operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
+                            operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
+                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
 
                             if (version == null) {
                                 performanceResults.getCurrent().add(operation);
@@ -234,8 +238,24 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+            if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+                statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+                statement.execute("alter table testOperation add column executionTime decimal");
+                statement.execute("update testOperation set executionTime = 0");
+                statement.execute("alter table testOperation alter column executionTime set not null");
+                statement.execute("alter table testOperation add column configurationTime decimal");
+                statement.execute("update testOperation set configurationTime = 0");
+                statement.execute("alter table testOperation alter column configurationTime set not null");
+            }
             statement.close();
             return null;
+        }
+
+        private boolean columnExists(Connection connection, String table, String column) throws SQLException {
+            ResultSet columns = connection.getMetaData().getColumns(null, null, table, column);
+            boolean exists = columns.next();
+            columns.close();
+            return exists;
         }
     }
 }

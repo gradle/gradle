@@ -40,7 +40,9 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
                         ["-i"]
                 )
         )
-        buildResults1 << operation(executionTime: minutes(12),
+        buildResults1 << operation(totalTime: minutes(12),
+                configurationTime: minutes(1),
+                executionTime: minutes(10),
                 totalMemoryUsed: kbytes(12.33),
                 totalHeapUsage: kbytes(5612.45),
                 maxHeapUsage: kbytes(124.01),
@@ -99,7 +101,9 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         and:
         def operation = crossBuildPerformanceResults.buildResult(secondSpecification).first
-        operation.executionTime == minutes(12)
+        operation.totalTime == minutes(12)
+        operation.configurationTime == minutes(1)
+        operation.executionTime == minutes(10)
         operation.totalMemoryUsed == kbytes(12.33)
         operation.totalHeapUsage == kbytes(5612.45)
         operation.maxHeapUsage == kbytes(124.01)

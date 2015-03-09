@@ -1,0 +1,20 @@
+${original}
+
+def configurationEndTimestamp
+
+gradle.taskGraph.whenReady {
+    configurationEndTimestamp = System.currentTimeMillis()
+}
+
+gradle.buildFinished {
+    def buildEndTimestamp = System.currentTimeMillis()
+    buildDir.mkdirs()
+    def writer = new File(buildDir, "buildEventTimestamps.txt").newPrintWriter()
+    try {
+        writer.println(settingsEvaluatedTimestamp)
+        writer.println(configurationEndTimestamp)
+        writer.print(buildEndTimestamp)
+    } finally {
+        writer.close()
+    }
+}

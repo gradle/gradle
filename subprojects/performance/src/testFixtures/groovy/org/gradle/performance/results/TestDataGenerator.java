@@ -44,10 +44,10 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
             out.print("\"" + format.date(new Date(results.getTestTime())) + "\"");
         }
         out.println("],");
-        out.print("\"executionTime\":");
+        out.print("\"totalTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getExecutionTime().getAverage());
+                return format.seconds(original.getTotalTime().getAverage());
             }
         }, out);
         out.println(",");

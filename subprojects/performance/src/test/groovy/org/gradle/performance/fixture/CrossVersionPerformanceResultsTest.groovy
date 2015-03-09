@@ -25,14 +25,14 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
 
     def "passes when average execution time for current release is smaller than average execution time for previous releases"() {
         given:
-        result.baseline("1.0").results.add(operation(executionTime: 110))
-        result.baseline("1.0").results.add(operation(executionTime: 100))
-        result.baseline("1.0").results.add(operation(executionTime: 90))
+        result.baseline("1.0").results.add(operation(totalTime: 110))
+        result.baseline("1.0").results.add(operation(totalTime: 100))
+        result.baseline("1.0").results.add(operation(totalTime: 90))
 
         and:
-        result.current.add(operation(executionTime: 90))
-        result.current.add(operation(executionTime: 110))
-        result.current.add(operation(executionTime: 90))
+        result.current.add(operation(totalTime: 90))
+        result.current.add(operation(totalTime: 110))
+        result.current.add(operation(totalTime: 90))
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -41,18 +41,18 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
     def "passes when average execution time for current release is within specified range of average execution time for previous releases"() {
         given:
         result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
-        result.baseline("1.0").results << operation(executionTime: 100)
-        result.baseline("1.0").results << operation(executionTime: 100)
-        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
 
-        result.baseline("1.3").results << operation(executionTime: 115)
-        result.baseline("1.3").results << operation(executionTime: 105)
-        result.baseline("1.3").results << operation(executionTime: 110)
+        result.baseline("1.3").results << operation(totalTime: 115)
+        result.baseline("1.3").results << operation(totalTime: 105)
+        result.baseline("1.3").results << operation(totalTime: 110)
 
         and:
-        result.current << operation(executionTime: 110)
-        result.current << operation(executionTime: 110)
-        result.current << operation(executionTime: 110)
+        result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 110)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -61,19 +61,19 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
     def "fails when average execution time for current release is larger than average execution time for previous releases"() {
         given:
         result.baseline("1.0").maxExecutionTimeRegression = Duration.millis(10)
-        result.baseline("1.0").results << operation(executionTime: 100)
-        result.baseline("1.0").results << operation(executionTime: 100)
-        result.baseline("1.0").results << operation(executionTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
+        result.baseline("1.0").results << operation(totalTime: 100)
 
         result.baseline("1.3").maxExecutionTimeRegression = Duration.millis(10)
-        result.baseline("1.3").results << operation(executionTime: 101)
-        result.baseline("1.3").results << operation(executionTime: 100)
-        result.baseline("1.3").results << operation(executionTime: 100)
+        result.baseline("1.3").results << operation(totalTime: 101)
+        result.baseline("1.3").results << operation(totalTime: 100)
+        result.baseline("1.3").results << operation(totalTime: 100)
 
         and:
-        result.current << operation(executionTime: 110)
-        result.current << operation(executionTime: 110)
-        result.current << operation(executionTime: 111)
+        result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 110)
+        result.current << operation(totalTime: 111)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -154,18 +154,18 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
 
     def "fails when both heap usage and execution time have regressed"() {
         given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 150)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1000, executionTime: 100)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 150)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000, totalTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 150)
 
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 100)
 
         and:
-        result.current << operation(totalMemoryUsed: 1100, executionTime: 110)
-        result.current << operation(totalMemoryUsed: 1100, executionTime: 110)
-        result.current << operation(totalMemoryUsed: 1101, executionTime: 111)
+        result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
+        result.current << operation(totalMemoryUsed: 1100, totalTime: 110)
+        result.current << operation(totalMemoryUsed: 1101, totalTime: 111)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -221,15 +221,15 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
 
     def "fails if one of the baseline version is faster and the other needs less memory"() {
         given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 100)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 100)
 
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 150)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, totalTime: 150)
 
         and:
-        result.current << operation(totalMemoryUsed: 1100, executionTime: 125)
-        result.current << operation(totalMemoryUsed: 1100, executionTime: 125)
+        result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
+        result.current << operation(totalMemoryUsed: 1100, totalTime: 125)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -245,15 +245,15 @@ class CrossVersionPerformanceResultsTest extends ResultSpecification {
 
     def "fails if all of the baseline versions are better in every respect"() {
         given:
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 120)
-        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 120)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, totalTime: 120)
 
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, executionTime: 150)
-        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, totalTime: 150)
 
         and:
-        result.current << operation(totalMemoryUsed: 1300, executionTime: 200)
-        result.current << operation(totalMemoryUsed: 1300, executionTime: 200)
+        result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
+        result.current << operation(totalMemoryUsed: 1300, totalTime: 200)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
