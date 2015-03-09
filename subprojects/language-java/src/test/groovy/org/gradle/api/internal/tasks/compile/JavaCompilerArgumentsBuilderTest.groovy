@@ -158,7 +158,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "adds custom compiler args"() {
@@ -200,13 +200,13 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeClasspath(true)
 
         then:
-        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
 
         when:
         builder.includeClasspath(false)
 
         then:
-        builder.build() == ["-g"]
+        builder.build() == ["-g", "-sourcepath", ""]
     }
 
     def "includes classpath by default"() {
@@ -215,7 +215,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-sourcepath", "", "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "can include/exclude launcher options"() {
@@ -272,5 +272,14 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
         expect:
         builder.build() == ["-g"]
+    }
+
+    def "generates -sourcepath option"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.compileOptions.sourcepath = new SimpleFileCollection(file1, file2)
+
+        expect:
+        builder.build() == ["-g", "-sourcepath", "/lib/lib1.jar:/lib/lib2.jar"]
     }
 }

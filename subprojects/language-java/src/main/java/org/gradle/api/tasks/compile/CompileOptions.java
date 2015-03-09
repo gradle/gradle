@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -67,6 +68,8 @@ public class CompileOptions extends AbstractOptions {
     private List<String> compilerArgs = Lists.newArrayList();
 
     private boolean incremental;
+
+    private FileCollection sourcepath;
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
@@ -388,6 +391,26 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public boolean isIncremental() {
         return incremental;
+    }
+
+    /**
+     * Returns the sourcepath to use to compile the source files.
+     *
+     * @return The sourcepath.
+     */
+    @Input
+    @Optional
+    public FileCollection getSourcepath() {
+        return sourcepath;
+    }
+
+    /**
+     * Sets the sourcepath to use to compile the source files.
+     *
+     * @param sourcepath The sourcepath. Must not be null, but may be empty.
+     */
+    public void setSourcepath(FileCollection sourcepath) {
+        this.sourcepath = sourcepath;
     }
 }
 
