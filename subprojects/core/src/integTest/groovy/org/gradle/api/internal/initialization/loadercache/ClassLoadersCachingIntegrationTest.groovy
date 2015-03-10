@@ -471,6 +471,14 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         addIsCachedCheck()
         addIsCachedCheck("a")
         addIsCachedCheck("a/a")
+
+        // Add this to make the hierarchy unique, avoiding interference with the numbers from previous builds
+        file("build.gradle") << """
+            buildscript {
+                dependencies { classpath files("thing.jar") }
+            }
+        """
+
         run()
         run()
 
