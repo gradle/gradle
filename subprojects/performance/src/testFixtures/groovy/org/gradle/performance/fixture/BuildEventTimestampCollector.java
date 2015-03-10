@@ -69,8 +69,10 @@ public class BuildEventTimestampCollector implements DataCollector {
 
     private List<String> readLines(File timestampFile) {
         ImmutableList.Builder<String> lines = ImmutableList.builder();
+        FileReader fileReader = null;
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(timestampFile));
+            fileReader = new FileReader(timestampFile);
+            BufferedReader reader = new BufferedReader(fileReader);
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
@@ -80,6 +82,14 @@ public class BuildEventTimestampCollector implements DataCollector {
             throw new UncheckedIOException(e);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            if (fileReader != null) {
+                try {
+                    fileReader.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
         }
     }
 }
