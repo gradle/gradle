@@ -15,12 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 
 public interface ComponentResolutionState extends Versioned {
     ModuleVersionIdentifier getId();
+
+    /**
+     * Returns the meta-data for the component. Resolves if not already resolved.
+     *
+     * @return null if the meta-data is not available due to some failure.
+     */
+    @Nullable
+    ComponentResolveMetaData getMetaData();
 
     ComponentSelectionReason getSelectionReason();
 

@@ -847,11 +847,12 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
-    def "applies conflict resolution when unique snapshot is referenced by timestamp and SNAPSHOT"() {
+    def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def projectA = repo1.module("group", "projectA", "1.0-SNAPSHOT")
         def published = projectA.publish()
+        def timestamp1 = published.publishArtifactVersion
         buildFile << """
 repositories {
     maven {
@@ -862,8 +863,8 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile "org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}"
-    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
+    compile "group:projectA:${timestamp1}"
+    compile "group:projectA:1.0-SNAPSHOT"
 }
 
 task retrieve(type: Sync) {
@@ -873,6 +874,7 @@ task retrieve(type: Sync) {
 """
 
         when:
+        published.metaData.expectGet()
         published.pom.expectGet()
         published.artifact.expectGet()
 
@@ -880,14 +882,40 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
+        file('libs').assertHasDescendants("projectA-${timestamp1}.jar")
 
         when:
+        published.publishWithChangedContent()
+        def timestamp2 = published.publishArtifactVersion
+        buildFile << """
+dependencies {
+    compile "group:projectA:${timestamp2}"
+}
+"""
         server.resetExpectations()
+        published.pom.expectGet()
+        published.artifact.expectGet()
+
+        and:
         run 'retrieve'
 
         then:
-        file('libs').assertHasDescendants("projectA-${published.publishArtifactVersion}.jar")
+        file('libs').assertHasDescendants("projectA-${timestamp2}.jar")
+
+        when:
+        server.resetExpectations()
+        def released = repo1.module("group", "projectA", "1.0").publish()
+        released.pom.expectGet()
+        released.artifact.expectGet()
+        buildFile << """
+dependencies {
+    compile "group:projectA:1.0"
+}
+"""
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
