@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
-
-import org.gradle.api.scripting.ScriptGenerationDetails;
-import org.gradle.api.scripting.ScriptGenerator;
+package org.gradle.api.scripting;
 
 import java.io.File;
 import java.util.Map;
