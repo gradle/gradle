@@ -14,22 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.api.internal.plugins;
 
-import java.io.Serializable;
-import java.io.Writer;
+import org.gradle.api.scripting.ScriptGenerationDetails;
+import org.gradle.api.scripting.ScriptGenerator;
+
+import java.io.File;
+import java.util.Map;
 
 /**
- * Interface for generating scripts with the provided details.
+ * Interface for generating scripts with the provided details based on a provided template.
  *
  * @param <T> Script generation details
  */
-public interface ScriptGenerator<T extends ScriptGenerationDetails> extends Serializable {
+public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
     /**
-     * Generates a script.
+     * Gets the template file used for generating script.
+     *
+     * @return Template file
+     */
+    File getTemplate();
+
+    /**
+     * Creates a binding used for the template expression replacement.
      *
      * @param details Script generation details
-     * @param destination Target script destination
+     * @return Binding key and value mapping
      */
-    void generateScript(T details, Writer destination);
+    Map<String, String> createBinding(T details);
 }

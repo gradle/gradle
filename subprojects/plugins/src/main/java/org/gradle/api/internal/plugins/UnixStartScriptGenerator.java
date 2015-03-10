@@ -53,11 +53,11 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
         return TextUtil.getUnixLineSeparator();
     }
 
-    File getTemplate() {
+    public File getTemplate() {
         return template;
     }
 
-    Map<String, String> createBinding(StartScriptGenerationDetails details) {
+    public Map<String, String> createBinding(StartScriptGenerationDetails details) {
         Map<String, String> binding = new HashMap<String, String>();
         binding.put("applicationName", details.getApplicationName());
         binding.put("optsEnvironmentVar", details.getOptsEnvironmentVar());

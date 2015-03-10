@@ -19,21 +19,19 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.scripting.ScriptGenerator;
 import org.gradle.util.TextUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractTemplateBasedStartScriptGenerator implements ScriptGenerator<StartScriptGenerationDetails> {
+public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator<StartScriptGenerationDetails> {
     private final TemplateEngine templateEngine;
 
     public AbstractTemplateBasedStartScriptGenerator() {
-        templateEngine = new GroovySimpleTemplateEngine();
+        this(new GroovySimpleTemplateEngine());
     }
 
     public AbstractTemplateBasedStartScriptGenerator(TemplateEngine templateEngine) {
@@ -80,6 +78,4 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Scrip
     }
 
     abstract String getLineSeparator();
-    abstract File getTemplate();
-    abstract Map<String, String> createBinding(StartScriptGenerationDetails details);
 }
