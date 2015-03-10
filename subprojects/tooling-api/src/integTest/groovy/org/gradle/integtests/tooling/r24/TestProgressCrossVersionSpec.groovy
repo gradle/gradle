@@ -138,7 +138,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def rootStartedEvent = result[0]
         rootStartedEvent instanceof TestSuiteStartedEvent &&
-                rootStartedEvent.descriptor.name == 'Gradle Test Run test' &&
+                rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
                 rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
@@ -219,7 +219,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def rootStartedEvent = result[0]
         rootStartedEvent instanceof TestSuiteStartedEvent &&
-                rootStartedEvent.descriptor.name == 'Gradle Test Run test' &&
+                rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
                 rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
@@ -303,7 +303,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
         def rootStartedEvent = result[0]
         rootStartedEvent instanceof TestSuiteStartedEvent &&
-                rootStartedEvent.descriptor.name == 'Gradle Test Run test' &&
+                rootStartedEvent.descriptor.name == 'Gradle Test Run :test' &&
                 rootStartedEvent.descriptor.className == null &&
                 rootStartedEvent.descriptor.parent == null
         def testProcessStartedEvent = result[1]
@@ -498,9 +498,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         then: "number of nodes under the root suite is equal to the number of test worker processes"
         result.findAll { it.descriptor.parent == null }.toSet().size() == 4  // 2 root suites with no further parent (start & finish events)
 
-        then: "names for root suites and worker suits are consistent"
-        result.findAll { it.descriptor.name == 'Gradle Test Run test' }.toSet().size() == 4      // 2 root suites for 2 tasks (start & finish events)
-        result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8  // 2 test processes for each task (start & finish events)
+        then: "names for root suites and worker suites are consistent"
+        result.findAll { it.descriptor.name =~ 'Gradle Test Run :sub[1|2]:test' }.toSet().size() == 4  // 2 root suites for 2 tasks (start & finish events)
+        result.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 8       // 2 test processes for each task (start & finish events)
     }
 
 }
