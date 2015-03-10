@@ -140,7 +140,7 @@ class BuildLayoutFactoryTest extends Specification {
         def currentDir = tmpDir.createDir("current")
         currentDir.createFile("settings.gradle")
         def rootDir = tmpDir.createDir("root")
-        def settingsFile = rootDir.createDir("some-settings.gradle")
+        def settingsFile = rootDir.createFile("some-settings.gradle")
         def startParameter = new StartParameter()
         startParameter.currentDir = currentDir
         startParameter.settingsFile = settingsFile
