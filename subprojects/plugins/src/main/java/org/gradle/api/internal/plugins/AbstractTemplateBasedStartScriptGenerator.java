@@ -17,43 +17,42 @@
 package org.gradle.api.internal.plugins;
 
 import com.google.common.base.Joiner;
-import groovy.lang.Writable;
-import groovy.text.SimpleTemplateEngine;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.scripting.ScriptGenerator;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractTemplateBasedStartScriptGenerator implements ScriptGenerator<StartScriptGenerationDetails> {
+    private final TemplateEngine templateEngine;
+
+    public AbstractTemplateBasedStartScriptGenerator() {
+        templateEngine = new GroovySimpleTemplateEngine();
+    }
+
+    public AbstractTemplateBasedStartScriptGenerator(TemplateEngine templateEngine) {
+        this.templateEngine = templateEngine;
+    }
+
     public void generateScript(StartScriptGenerationDetails details, Writer destination) {
         try {
             Map<String, String> binding = createBinding(details);
-            String nativeOutput = generateStartScriptContentFromTemplate(binding);
-            writeStartScriptContent(nativeOutput, destination);
-        } catch(URISyntaxException e) {
-            throw new UncheckedException(e);
-        } catch(ClassNotFoundException e) {
-            throw new UncheckedException(e);
+            String scriptContent = generateStartScriptContentFromTemplate(binding);
+            writeStartScriptContent(scriptContent, destination);
         } catch(IOException e) {
-            throw new UncheckedException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
-    private String generateStartScriptContentFromTemplate(Map<String, String> binding) throws URISyntaxException, ClassNotFoundException, IOException {
-        URL stream = getClass().getResource(getTemplate().getName());
-        String templateText = GFileUtils.readFile(new File(stream.toURI()), "UTF-8");
-        Writable output = new SimpleTemplateEngine().createTemplate(templateText).make(binding);
-        return TextUtil.convertLineSeparators(output.toString(), getLineSeparator());
+    private String generateStartScriptContentFromTemplate(Map<String, String> binding) {
+        String content = templateEngine.generate(getTemplate(), binding);
+        return TextUtil.convertLineSeparators(content, getLineSeparator());
     }
 
     private void writeStartScriptContent(String scriptContent, Writer destination) throws IOException {

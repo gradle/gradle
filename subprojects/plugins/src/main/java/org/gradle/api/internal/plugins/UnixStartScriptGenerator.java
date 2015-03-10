@@ -19,19 +19,42 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.TextUtil;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGenerator {
+    private final File template;
+
+    public UnixStartScriptGenerator() {
+        template = getDefaultTemplate();
+    }
+
+    public UnixStartScriptGenerator(File template) {
+        this.template = template;
+    }
+
+    private File getDefaultTemplate() {
+        URL stream = getClass().getResource("unixStartScript.txt");
+
+        try {
+            return new File(stream.toURI());
+        } catch(URISyntaxException e) {
+            throw new UncheckedException(e);
+        }
+    }
+
     String getLineSeparator() {
         return TextUtil.getUnixLineSeparator();
     }
 
     File getTemplate() {
-        return new File("unixStartScript.txt");
+        return template;
     }
 
     Map<String, String> createBinding(StartScriptGenerationDetails details) {

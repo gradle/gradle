@@ -27,7 +27,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "uses expected template and line separator"() {
         expect:
-        generator.template == new File('unixStartScript.txt')
+        generator.template == new File(UnixStartScriptGenerator.getResource('unixStartScript.txt').toURI())
         generator.lineSeparator == '\n'
     }
 
