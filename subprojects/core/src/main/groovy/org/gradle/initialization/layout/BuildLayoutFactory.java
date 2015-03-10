@@ -56,11 +56,7 @@ public class BuildLayoutFactory {
                 return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }
         }
-        return layout(currentDir, currentDir);
-    }
-
-    private BuildLayout layout(File rootDir, File settingsDir) {
-        return new BuildLayout(rootDir, settingsDir, null);
+        return layout(currentDir, currentDir, settingsFile);
     }
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {

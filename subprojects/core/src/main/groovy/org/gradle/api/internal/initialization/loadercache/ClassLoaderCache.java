@@ -20,21 +20,12 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-/**
- * Preserves reusable instances of class loaders
- */
 public interface ClassLoaderCache {
 
     int size();
 
-    /**
-     * Creates new instance of the class loader or returns a cached instance of an existing class loader
-     *
-     * @param id the identifier of class loader. Used for invalidation of the stored classloaders
-     * @param classPath classpath
-     * @param parent parent of the classloader
-     * @param filterSpec filterSpec
-     */
     ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec);
+
+    void remove(ClassLoaderId id);
 
 }

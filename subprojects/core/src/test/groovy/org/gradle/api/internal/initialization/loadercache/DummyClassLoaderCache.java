@@ -28,6 +28,11 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     }
 
     @Override
+    public void remove(ClassLoaderId id) {
+
+    }
+
+    @Override
     public int size() {
         return 0;
     }

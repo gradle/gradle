@@ -32,8 +32,8 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -195,7 +195,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(final ScriptSource source, final ClassLoader classLoader, final File scriptCacheDir,
-                                                                  File metadataCacheDir, CompileOperation<M> transformer, final Class<T> scriptBaseClass) {
+                                                                  File metadataCacheDir, final CompileOperation<M> transformer, final Class<T> scriptBaseClass, final ClassLoaderId classLoaderId) {
 
         final M metadata = deserializeMetadata(source, transformer, metadataCacheDir);
 
@@ -204,11 +204,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             @Override
             public Class<? extends T> loadClass() {
                 if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
+                    classLoaderCache.remove(classLoaderId);
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }
 
                 try {
-                    ClassLoader loader = classLoaderCache.get(ClassLoaderIds.buildScript(source.getFileName()), new DefaultClassPath(scriptCacheDir), classLoader, null);
+                    ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
                     return loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
@@ -304,7 +305,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, ScriptSource source, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
             this.source = source;
-            this.verifier = new Verifier(){
+            this.verifier = new Verifier() {
                 public void visitClass(ClassNode node) {
                     customVerifier.execute(node);
                     super.visitClass(node);

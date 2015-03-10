@@ -29,7 +29,7 @@ public class SettingsLocation {
         this.settingsDir = settingsDir;
         this.settingsScriptSource = settingsFile == null
                 ? new StringScriptSource("empty settings script", "")
-                : new UriScriptSource("settings file", settingsFile);
+                : UriScriptSource.file("settings file", settingsFile);
     }
 
     /**

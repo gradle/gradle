@@ -18,34 +18,39 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     private final ScriptClassCompiler compiler;
     private final EmptyScriptGenerator emptyScriptGenerator;
+    private final ClassLoaderCache classLoaderCache;
 
-    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, EmptyScriptGenerator emptyScriptGenerator) {
+    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, EmptyScriptGenerator emptyScriptGenerator, ClassLoaderCache classLoaderCache) {
         this.compiler = compiler;
         this.emptyScriptGenerator = emptyScriptGenerator;
+        this.classLoaderCache = classLoaderCache;
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoader classLoader, final CompileOperation<M> transformer, String classpathClosureName,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, final CompileOperation<M> operation, String classpathClosureName,
                                                               final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
             return new ClassCachingCompiledScript<T, M>(new CompiledScript<T, M>() {
 
                 public Class<? extends T> loadClass() {
+                    classLoaderCache.remove(classLoaderId);
                     return emptyScriptGenerator.generate(scriptBaseClass);
                 }
 
                 @Override
                 public M getData() {
-                    return transformer.getExtractedData();
+                    return operation.getExtractedData();
                 }
             });
         }
-        return compiler.compile(source, classLoader, transformer, classpathClosureName, scriptBaseClass, verifier);
+        return compiler.compile(source, classLoader, classLoaderId, operation, classpathClosureName, scriptBaseClass, verifier);
     }
 
 }

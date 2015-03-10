@@ -30,52 +30,72 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
-        buildFile << """
-            class StaticState {
-                static set = new HashSet()
-            }
-            allprojects {
-                println project.path + " cached: " + !StaticState.set.add(project.path)
-            }
-            def cache = project.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
+        file("cacheCheck.gradle") << """
+            def cache = gradle.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
             gradle.buildFinished { println "### cache size: " + cache.size() }
+        """
+        executer.beforeExecute {
+            withArgument("-I").withArgument("cacheCheck.gradle")
+        }
+    }
+
+    def getIsCachedCheck() {
+        """
+            class StaticState {
+                static set = new java.util.concurrent.atomic.AtomicBoolean()
+            }
+            println project.path + " cached: " + StaticState.set.getAndSet(true)
         """
     }
 
+    def addIsCachedCheck(String project = null) {
+        file((project ? "$project/" : "") + "build.gradle") << isCachedCheck
+    }
+
     private boolean isCached(String projectPath = ":") {
-        assertCacheSize()
+        assert output.contains("$projectPath cached:"): "no cache flag for project"
         output.contains("$projectPath cached: true")
     }
 
-    private boolean isNotCached(String projectPath = ":", boolean checkCacheSize = true) {
-        if (checkCacheSize) {
-            assertCacheSize()
-        }
+    private boolean isNotCached(String projectPath = ":") {
+        assert output.contains("$projectPath cached:"): "no cache flag for project"
         output.contains("$projectPath cached: false")
     }
 
-    private void assertCacheSize() {
-        assert cacheSizePerRun.size() > 1
+    private void assertCacheDidNotGrow() {
+        assert cacheSizePerRun.size() > 1: "only one build has been run"
         assert cacheSizePerRun[-1] <= cacheSizePerRun[-2]
+    }
+
+    private void assertCacheSizeChange(int expectedCacheSizeChange) {
+        assert cacheSizePerRun.size() > 1: "only one build has been run"
+        assert cacheSizePerRun[-1] - cacheSizePerRun[-2] == expectedCacheSizeChange
     }
 
     ExecutionResult run(String... tasks) {
         def result = super.run(tasks)
         def m = output =~ /(?s).*### cache size: (\d+).*/
         m.matches()
-        cacheSizePerRun << m.group(1)
+        cacheSizePerRun << m.group(1).toInteger()
         result
     }
 
     def "classloader is cached"() {
+        given:
+        addIsCachedCheck()
+
         when:
         run()
         run()
 
-        then: cached
+        then:
+        isCached()
+        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildscript changes"() {
+        given:
+        addIsCachedCheck()
         run()
         buildFile << """
             task newTask
@@ -83,25 +103,33 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         run "newTask" //knows new task
+        isNotCached()
+        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildSrc changes"() {
+        addIsCachedCheck()
         file("buildSrc/src/main/groovy/Foo.groovy") << "class Foo {}"
 
         when:
         run()
         run()
 
-        then: cached
+        then:
+        isCached()
+        assertCacheDidNotGrow()
 
         when:
         file("buildSrc/src/main/groovy/Foo.groovy").text = "class Foo { static int x = 5; }"
         run()
 
-        then: notCached
+        then:
+        isNotCached()
+        assertCacheDidNotGrow()
     }
 
     def "refreshes when new build script plugin added"() {
+        addIsCachedCheck()
         file("plugin.gradle") << "task foo"
 
         when:
@@ -109,11 +137,14 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply from: 'plugin.gradle'"
         run("foo")
 
-        then: isNotCached(":", false) //not asserting cache size because
-        //new classloader was added due to addition of script plugin
+        then:
+        isNotCached()
+        assertCacheSizeChange(1)
     }
 
     def "does not refresh main script loader when build script plugin changes"() {
+        addIsCachedCheck()
+
         when:
         buildFile << "apply from: 'plugin.gradle'"
         file("plugin.gradle") << "task foo"
@@ -122,101 +153,173 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         run("foobar") //new task is detected
-        cached //main script loader cached
+        isCached()
     }
 
     def "caches subproject classloader"() {
         settingsFile << "include 'foo'"
+        addIsCachedCheck()
+        addIsCachedCheck "foo"
 
         when:
         run()
         run()
 
-        then: isCached(":foo")
+        then:
+        isCached(":foo")
     }
 
-    def "refreshes subproject classloader when parent changes"() {
+    def "uses cached subproject classloader when parent changes"() {
         settingsFile << "include 'foo'"
+        addIsCachedCheck()
+        addIsCachedCheck "foo"
 
         when:
         run()
         buildFile << "task foo"
         run()
 
-        then: isNotCached(":foo")
+        then:
+        isNotCached()
+        isCached(":foo")
+        assertCacheDidNotGrow()
     }
 
     def "refreshes when buildscript classpath gets new dependency"() {
+        addIsCachedCheck()
         file("foo.jar") << "foo"
 
         when:
         run()
         buildFile << """
-            buildscript { dependencies { classpath files("foo.jar") }}
+            buildscript { dependencies { classpath files("foo.jar") } }
         """
         run()
 
-        then: isNotCached(":", false) //not asserting cache size
-        //because new cl was added to cache by the addition of buildscript {} clause
+        then:
+        isNotCached()
+        assertCacheSizeChange(2) // 1 new loader for first pass, 1 for second pass
+
+        then:
+        run()
+        isCached()
+        assertCacheDidNotGrow()
     }
 
-    def "refreshes when parent project buildscript classpath changes"() {
-        settingsFile << "include 'foo'"
+    def "cache shrinks when buildscript disappears"() {
+        addIsCachedCheck()
         file("foo.jar") << "foo"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") } }
+
+            task foo
+        """
 
         when:
         run()
+        buildScript isCachedCheck
+        buildFile << "task foo"
+        run()
+
+        then:
+        assertCacheSizeChange(-1) // don't need loader for buildscript pass, do need loader for second pass
+
+        then:
+        run()
+        isCached()
+        assertCacheSizeChange(0)
+
+        then:
+        buildFile.delete()
+        run()
+        assertCacheSizeChange(-1) // no loader needed for script at all now
+    }
+
+    def "refreshes when root project buildscript classpath changes"() {
+        settingsFile << "include 'foo'"
+        addIsCachedCheck()
+        addIsCachedCheck "foo"
+        buildFile << """
+            buildscript { dependencies { classpath files("lib") } }
+        """
+        file("lib/foo.jar") << "foo"
+
+        when:
+        run()
+        run()
+
+        then:
+        isCached(":")
+        isCached(":foo")
+
+        when:
+        file("lib/foo.jar") << "bar"
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        isNotCached(":")
+        isNotCached(":foo")
+
+        when:
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        isCached(":")
+        isCached(":foo")
+    }
+
+    def "refreshes when jar is removed from buildscript classpath"() {
+        addIsCachedCheck()
+        file("foo.jar") << "yyy"
+        buildFile << """
+            buildscript { dependencies { classpath files("foo.jar") }}
+        """
+
+        when:
+        run()
+        assert file("foo.jar").delete()
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        notCached
+
+        when:
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        isCached()
+    }
+
+    def "refreshes when dir is removed from buildscript classpath"() {
+        addIsCachedCheck()
+        file("lib/foo.jar") << "foo"
         buildFile << """
             buildscript { dependencies { classpath files("lib") }}
         """
-        run()
-
-        then: isNotCached(":foo", false) //not asserting cache size, new cl was added for buildscript {}
-    }
-
-    def "refreshes when buildscript classpath changes dependency"() {
-        file("foo.jar") << "yyy"
-        buildFile << """
-            buildscript { dependencies { classpath files("foo.jar") }}
-        """
 
         when:
         run()
-        file("foo.jar") << "xxx"
+        assert file("lib").deleteDir()
         run()
 
-        then: notCached
-    }
-
-    def "refreshes when buildscript classpath dependency is removed"() {
-        file("foo.jar") << "yyy"
-        buildFile << """
-            buildscript { dependencies { classpath files("foo.jar") }}
-        """
+        then:
+        assertCacheDidNotGrow()
+        notCached
 
         when:
         run()
-        assert file("foo.jar").delete()
-        run()
 
-        then: notCached
-    }
-
-    def "refreshes when buildscript classpath dir dependency is changed"() {
-        file("lib/foo.jar") << "xxx"
-        buildFile << """
-            buildscript { dependencies { classpath fileTree("lib") }}
-        """
-
-        when:
-        run()
-        file("lib/bar.jar") << "xxx"
-        run()
-
-        then: notCached
+        then:
+        assertCacheDidNotGrow()
+        isCached()
     }
 
     def "refreshes when buildscript when jar dependency replaced with dir"() {
+        addIsCachedCheck()
         file("foo.jar") << "xxx"
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") }}
@@ -226,51 +329,208 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
         assert file("foo.jar").delete()
         assert file("foo.jar").mkdirs()
+        assert file("foo.jar/someFile.txt").touch()
+
         run()
 
-        then: notCached
+        then:
+        notCached
+        assertCacheDidNotGrow()
     }
 
-    @Ignore("failing - LD - 9/3/15")
     def "refreshes when buildscript when dir dependency replaced with jar"() {
+        addIsCachedCheck()
         assert file("foo.jar").mkdirs()
+        assert file("foo.jar/someFile.txt").touch()
+
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") }}
         """
 
         when:
         run()
-        assert file("foo.jar").delete()
+        assert file("foo.jar").deleteDir()
         file("foo.jar") << "xxx"
         run()
 
-        then: notCached
+        then:
+        notCached
+        assertCacheDidNotGrow()
     }
 
     def "reuse classloader when init script changed"() {
-        file("init.gradle") << "println 'init x'"
+        addIsCachedCheck()
 
         when:
+        run()
+        file("init.gradle") << "println 'init x'"
         run("-I", "init.gradle")
+
+        then:
+        isCached()
+        assertCacheSizeChange(1)
+
+        when:
         file("init.gradle") << "println 'init y'"
         run("-I", "init.gradle")
 
         then:
-        cached
+        isCached()
         output.contains "init y"
+        assertCacheDidNotGrow()
     }
 
     def "reuse classloader when settings script changed"() {
-        file("settings.gradle") << "println 'settings x'"
+        addIsCachedCheck()
 
         when:
         run()
+        file("settings.gradle") << "println 'settings x'"
+        run()
+
+        then:
+        isCached()
+        assertCacheSizeChange(1)
+
+        when:
         file("settings.gradle") << "println 'settings y'"
         run()
 
         then:
-        cached
+        isCached()
         output.contains "settings y"
+        assertCacheDidNotGrow()
+
+        when:
+        assert settingsFile.delete()
+        run()
+
+        then:
+        isCached()
+        !output.contains("settings y")
+        assertCacheSizeChange(-1)
+    }
+
+    def "cache growth is linear as projects are added"() {
+        when:
+        settingsFile << "System.getProperty('projects')?.split(':')?.each { include \"\$it\" }"
+        addIsCachedCheck()
+        addIsCachedCheck "a"
+        addIsCachedCheck "b"
+
+        then:
+        run("tasks")
+        run("tasks")
+        assertCacheDidNotGrow()
+
+        and:
+        args("-Dprojects=a")
+        run("tasks")
+        isCached()
+        isNotCached("a")
+        assertCacheSizeChange(1)
+        args("-Dprojects=a")
+        run("tasks")
+        isCached()
+        isCached("a")
+        assertCacheDidNotGrow()
+
+        and:
+        args("-Dprojects=a:b")
+        run("tasks")
+        isCached()
+        isCached("a")
+        isNotCached("b")
+        assertCacheSizeChange(1)
+        args("-Dprojects=a:b")
+        run("tasks")
+        isCached()
+        isCached("a")
+        isCached("b")
+        assertCacheDidNotGrow()
+
+        then:
+        args("-Dprojects=a:b")
+        file("b/build.gradle") << "\ntask c"
+        run("tasks")
+        assertCacheDidNotGrow()
+        isCached()
+        isCached(":a")
+        isNotCached(":b")
+
+        then:
+        args("-Dprojects=")
+        run("tasks")
+        assertCacheSizeChange(0) // we don't reclaim loaders for “orphaned” build scripts
+        isCached()
+    }
+
+    def "changing non root buildsript classpath does affect child projects"() {
+        when:
+        settingsFile << "include 'a', 'a:a'"
+        addIsCachedCheck()
+        addIsCachedCheck("a")
+        addIsCachedCheck("a/a")
+        run()
+        run()
+
+        then:
+        isCached("a")
+        isCached("a:a")
+        assertCacheDidNotGrow()
+
+        when:
+        file("a/build.gradle") << """
+            buildscript {
+                dependencies { classpath files("thing.jar") }
+            }
+        """
+        run()
+
+        then:
+        assertCacheSizeChange(2)
+        isNotCached("a")
+        isNotCached("a:a")
+
+        when:
+        run()
+
+        then:
+        assertCacheDidNotGrow()
+        isCached("a")
+        isCached("a:a")
+
+        when:
+        file("a/a/build.gradle") << """
+            buildscript {
+                dependencies { classpath files("thing.jar") }
+            }
+        """
+        run()
+
+        then:
+        assertCacheSizeChange(2) // can't just reuse, because the parent is different
+        isCached("a")
+        isNotCached("a:a")
+
+        when:
+        file("a/build.gradle").text = getIsCachedCheck() // remove the middle buildscript
+        run()
+
+        then:
+        assertCacheSizeChange(-2) //
+        isNotCached("a")
+        isNotCached("a:a")
+
+        when:
+        file("a/a/build.gradle").text = getIsCachedCheck() // remove the leaf buildscript
+        run()
+
+        then:
+        // Note: not the desired behaviour, we are leaking the loader that had the buildscript for a and a/a
+        assertCacheSizeChange(-1)
+        isCached("a")
+        isNotCached("a:a")
     }
 
     @Ignore
@@ -282,6 +542,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "//comment"
         run()
 
-        then: cached
+        then:
+        cached
     }
 }

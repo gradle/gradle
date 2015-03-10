@@ -19,7 +19,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.NonExistentFileScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -28,7 +28,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectFactoryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def instantiator = Mock(Instantiator)
     def projectDescriptor = Stub(ProjectDescriptor)
     def gradle = Stub(GradleInternal)
@@ -75,7 +76,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof StringScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof NonExistentFileScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 

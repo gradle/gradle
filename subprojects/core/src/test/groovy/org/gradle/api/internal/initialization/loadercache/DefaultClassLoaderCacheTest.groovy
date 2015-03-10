@@ -79,6 +79,7 @@ class DefaultClassLoaderCacheTest extends Specification {
 
         expect:
         cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f1))
+        cache.size() == 2
         !cache.get(id1, classPath("c1"), root, f1).is(cache.get(id1, classPath("c1"), root, f2))
         cache.size() == 2
     }
@@ -131,5 +132,37 @@ class DefaultClassLoaderCacheTest extends Specification {
         expect:
         cache.size() == 1
         c2.is cache.get(id1, classPath("c2"), root, null)
+    }
+
+    def "can remove loaders"() {
+        expect:
+        cache.size() == 0
+
+        when:
+        cache.remove(id1)
+
+        then:
+        noExceptionThrown()
+        cache.size() == 0
+
+        when:
+        def root = classLoader(classPath("root"))
+        cache.get(id1, classPath("c2"), root, null)
+        cache.get(id2, classPath("c2"), root, null)
+
+        then:
+        cache.size() == 1 // both are the same
+
+        when:
+        cache.remove(id1)
+
+        then:
+        cache.size() == 1 // still used by id2
+
+        when:
+        cache.remove(id2)
+
+        then:
+        cache.size() == 0
     }
 }

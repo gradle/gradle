@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal
 
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ImportsReader
@@ -40,6 +41,7 @@ class BuildScriptTransformerSpec extends Specification {
 
     File scriptCacheDir
     File metadataCacheDir
+    private classLoaderId = Mock(ClassLoaderId)
 
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir");
@@ -53,7 +55,7 @@ class BuildScriptTransformerSpec extends Specification {
         def transformer = new BuildScriptTransformer(classpathClosureName, source)
         def operation = new FactoryBackedCompileOperation("id", transformer, transformer, BaseSerializerFactory.BOOLEAN_SERIALIZER)
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, classpathClosureName, ProjectScript, Actions.doNothing())
-        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript).data
+        scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId).data
     }
 
     def "empty script does not contain imperative code"() {

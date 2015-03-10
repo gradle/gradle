@@ -293,10 +293,10 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope = (DefaultClassLoaderScope) scope
 
         expect:
-        scope.id.localId().toString() == "scope:root:c1-local"
-        scope.id.exportId().toString() == "scope:root:c1-export"
-        ((DefaultClassLoaderScope) scope.createChild()).id.localId().toString() == "scope:root:c1:c1-local"
-        ((DefaultClassLoaderScope) scope.createChild()).id.exportId().toString() == "scope:root:c1:c2-export"
+        scope.id.localId() == ClassLoaderIds.scopeNode("root:c1-local")
+        scope.id.exportId() == ClassLoaderIds.scopeNode("root:c1-export")
+        ((DefaultClassLoaderScope) scope.createChild()).id.localId() == ClassLoaderIds.scopeNode("root:c1:c1-local")
+        ((DefaultClassLoaderScope) scope.createChild()).id.exportId() == ClassLoaderIds.scopeNode("root:c1:c2-export")
     }
 
     void copyTo(Class<?> clazz, TestFile destDir) {

@@ -32,9 +32,9 @@ class ClassLoaderIdsTest extends Specification {
         first.hashCode() != different2.hashCode()
 
         where:
-        first                   |same                   |different              |different2
-        buildScript("x")        |buildScript("x")       |buildScript("y")       |testTaskClasspath("x")
-        testTaskClasspath("x")  |testTaskClasspath("x") |testTaskClasspath("y") |scopeNode("x")
-        scopeNode("x")          |scopeNode("x")         |scopeNode("y")         |buildScript("x")
+        first                  | same                   | different              | different2
+        buildScript("x", "x")  | buildScript("x", "x")  | buildScript("y", "y")  | buildScript("x", "y")
+        testTaskClasspath("x") | testTaskClasspath("x") | testTaskClasspath("y") | scopeNode("x")
+        scopeNode("x")         | scopeNode("x")         | scopeNode("y")         | buildScript("x", "x")
     }
 }

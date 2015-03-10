@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -51,7 +52,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, CompileOperation<M> operation, String classpathClosureName, final Class<T> scriptBaseClass,
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, CompileOperation<M> operation, String classpathClosureName, final Class<T> scriptBaseClass,
                                                               Action<? super ClassNode> verifier) {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("source.filename", source.getFileName());
@@ -73,7 +74,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         final File classesDir = classesDir(cache);
         final File metadataDir = metadataDir(cache);
 
-        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass);
+        return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
     public void close() {

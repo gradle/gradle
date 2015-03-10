@@ -24,14 +24,14 @@ class ScopeNodeIdentifierTest extends Specification {
     def "knows loader ids"() {
         def id = new ScopeNodeIdentifier("x", new LongIdGenerator())
         expect:
-        id.localId().toString() == "scope:x-local"
-        id.exportId().toString() == "scope:x-export"
+        id.localId() == ClassLoaderIds.scopeNode("x-local")
+        id.exportId() == ClassLoaderIds.scopeNode("x-export")
     }
 
     def "creates child"() {
         def id = new ScopeNodeIdentifier("x", new LongIdGenerator())
         expect:
-        id.newChild().localId().toString() == "scope:x:c1-local"
-        id.newChild().exportId().toString() == "scope:x:c2-export"
+        id.newChild().localId() == ClassLoaderIds.scopeNode("x:c1-local")
+        id.newChild().exportId() == ClassLoaderIds.scopeNode("x:c2-export")
     }
 }

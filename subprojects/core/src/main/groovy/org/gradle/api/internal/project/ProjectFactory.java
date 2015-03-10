@@ -20,7 +20,6 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -37,13 +36,7 @@ public class ProjectFactory implements IProjectFactory {
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
-        ScriptSource source;
-        if (!buildFile.exists()) {
-            source = new StringScriptSource("empty build file", "");
-        } else {
-            source = new UriScriptSource("build file", buildFile);
-        }
-
+        ScriptSource source = UriScriptSource.file("build file", buildFile);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
                 projectDescriptor.getName(),
                 parent,

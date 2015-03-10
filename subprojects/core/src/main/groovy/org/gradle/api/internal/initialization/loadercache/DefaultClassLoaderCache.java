@@ -17,7 +17,9 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -43,11 +45,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         synchronized (lock) {
             CachedClassLoader cachedLoader = byId.get(id);
             if (cachedLoader == null || !cachedLoader.is(spec)) {
-                CachedClassLoader newLoader = getLoader(classPath, spec).retain();
+                CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
                 byId.put(id, newLoader);
 
                 if (cachedLoader != null) {
-                    cachedLoader.release();
+                    cachedLoader.release(id);
                 }
 
                 return newLoader.classLoader;
@@ -57,13 +59,21 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
     }
 
-    private CachedClassLoader getLoader(ClassPath classPath, ClassLoaderSpec spec) {
+    @Override
+    public void remove(ClassLoaderId id) {
+        CachedClassLoader cachedClassLoader = byId.remove(id);
+        if (cachedClassLoader != null) {
+            cachedClassLoader.release(id);
+        }
+    }
+
+    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ClassLoaderSpec spec, ClassLoaderId id) {
         CachedClassLoader cachedLoader = bySpec.get(spec);
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
             if (spec.isFiltered()) {
-                parentCachedLoader = getLoader(classPath, spec.unfiltered()).retain();
+                parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
                 classLoader = new URLClassLoader(classPath.getAsURLArray(), spec.parent);
@@ -72,7 +82,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             bySpec.put(spec, cachedLoader);
         }
 
-        return cachedLoader;
+        return cachedLoader.retain(id);
     }
 
     @Override
@@ -121,7 +131,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         private final ClassLoader classLoader;
         private final ClassLoaderSpec spec;
         private final CachedClassLoader parent;
-        private int refCount = -1;
+        private final Multiset<ClassLoaderId> usedBy = HashMultiset.create();
 
         private CachedClassLoader(ClassLoader classLoader, ClassLoaderSpec spec, @Nullable CachedClassLoader parent) {
             this.classLoader = classLoader;
@@ -133,28 +143,25 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             return this.spec.equals(spec);
         }
 
-        public CachedClassLoader retain() {
-            if (refCount < 0) {
-                refCount = 1;
-            } else if (refCount == 0) {
-                throw new IllegalStateException("Cannot retain already released classloader: " + classLoader);
-            } else {
-                ++refCount;
-            }
-
+        public CachedClassLoader retain(ClassLoaderId loaderId) {
+            usedBy.add(loaderId);
             return this;
         }
 
-        public void release() {
-            if (refCount <= 0) {
+        public void release(ClassLoaderId loaderId) {
+            if (usedBy.isEmpty()) {
                 throw new IllegalStateException("Cannot release already released classloader: " + classLoader);
             }
 
-            if (--refCount == 0) {
-                if (parent != null) {
-                    parent.release();
+            if (usedBy.remove(loaderId)) {
+                if (usedBy.isEmpty()) {
+                    if (parent != null) {
+                        parent.release(loaderId);
+                    }
+                    bySpec.remove(spec);
                 }
-                bySpec.remove(spec);
+            } else {
+                throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
             }
         }
     }
