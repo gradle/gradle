@@ -70,10 +70,11 @@ set CMD_LINE_ARGS=%\$
 :execute
 @rem Setup the command line
 
+@rem Build %CLASSPATH% variable incrementally to avoid the CMD line length limit
 set CLASSPATH=$classpath
 
 @rem Execute ${applicationName}
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> $classpathParam ${mainClassName} %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

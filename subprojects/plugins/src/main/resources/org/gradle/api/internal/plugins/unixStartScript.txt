@@ -65,6 +65,7 @@ cd "`dirname \"\$PRG\"`/${appHomeRelativePath}" >&-
 APP_HOME="`pwd -P`"
 cd "\$SAVED" >&-
 
+# Build \$CLASSPATH variable incrementally to avoid shell's line length limit (ARG_MAX)
 CLASSPATH=$classpath
 
 # Determine the Java command to use to start the JVM.
@@ -161,4 +162,4 @@ function splitJvmOpts() {
 eval splitJvmOpts \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar}
 <% if ( appNameSystemProperty ) { %>JVM_OPTS[\${#JVM_OPTS[*]}]="-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %>
 
-exec "\$JAVACMD" "\${JVM_OPTS[@]}" -classpath "\$CLASSPATH" ${mainClassName} "\$@"
+exec "\$JAVACMD" "\${JVM_OPTS[@]}" $classpathParam ${mainClassName} "\$@"
