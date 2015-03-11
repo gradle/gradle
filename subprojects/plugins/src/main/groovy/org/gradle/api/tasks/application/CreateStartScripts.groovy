@@ -18,6 +18,10 @@ package org.gradle.api.tasks.application
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
+import org.gradle.api.internal.plugins.UnixStartScriptGenerator
+import org.gradle.api.internal.plugins.WindowsStartScriptGenerator
+import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
+import org.gradle.api.scripting.ScriptGenerator
 import org.gradle.api.tasks.*
 import org.gradle.util.GUtil
 
@@ -95,16 +99,26 @@ public class CreateStartScripts extends ConventionTask {
         return new File(getOutputDir(), "${getApplicationName()}.bat")
     }
 
+    /**
+     * The Unix start script generator.
+     */
+    ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator = new UnixStartScriptGenerator()
+
+    /**
+     * The Windows start script generator.
+     */
+    ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator = new WindowsStartScriptGenerator()
+
     @TaskAction
     void generate() {
-        def generator = new StartScriptGenerator()
+        def generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator)
         generator.applicationName = getApplicationName()
         generator.mainClassName = getMainClassName()
         generator.defaultJvmOpts = getDefaultJvmOpts()
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
-        generator.classpath = getClasspath().collect { "lib/${it.name}" }
-        generator.scriptRelPath = "bin/${getUnixScript().name}"
+        generator.classpath = getClasspath().collect { "lib/${it.name}".toString() }
+        generator.scriptRelPath = "bin/${getUnixScript().name}".toString()
         generator.generateUnixScript(getUnixScript())
         generator.generateWindowsScript(getWindowsScript())
     }

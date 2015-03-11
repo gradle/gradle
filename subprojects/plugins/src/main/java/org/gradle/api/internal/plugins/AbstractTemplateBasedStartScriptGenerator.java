@@ -53,7 +53,7 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
     }
 
     public void setTemplate(Reader reader) {
-        this.template = template;
+        this.template = reader;
     }
 
     public Reader getTemplate() {

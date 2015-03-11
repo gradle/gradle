@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.plugins
 
-import groovy.text.SimpleTemplateEngine
-import org.gradle.util.TextUtil
-import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Chmod
-import org.gradle.util.GFileUtils
+import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
+import org.gradle.api.scripting.ScriptGenerator
+import org.gradle.util.AntUtil
 
 class StartScriptGenerator {
     /**
@@ -56,77 +55,38 @@ class StartScriptGenerator {
      */
     String appNameSystemProperty
 
-    private final engine = new SimpleTemplateEngine()
+    private final ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator
+    private final ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator
+
+    StartScriptGenerator() {
+        this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator())
+    }
+
+    StartScriptGenerator(ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator,
+                         ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator) {
+        this.unixStartScriptGenerator = unixStartScriptGenerator
+        this.windowsStartScriptGenerator = windowsStartScriptGenerator
+    }
+
+    private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
+        JavaAppStartScriptGenerationDetails scriptGenerationDetails = new JavaAppStartScriptGenerationDetails()
+        scriptGenerationDetails.applicationName = applicationName
+        scriptGenerationDetails.mainClassName = mainClassName
+        scriptGenerationDetails.defaultJvmOpts = defaultJvmOpts
+        scriptGenerationDetails.optsEnvironmentVar = optsEnvironmentVar
+        scriptGenerationDetails.exitEnvironmentVar = exitEnvironmentVar
+        scriptGenerationDetails.classpath = classpath
+        scriptGenerationDetails.scriptRelPath = scriptRelPath
+        scriptGenerationDetails
+    }
 
     void generateUnixScript(File unixScript) {
-        String nativeOutput = generateUnixScriptContent()
-        writeToFile(nativeOutput, unixScript)
+        unixStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), new FileWriter(unixScript))
         createExecutablePermission(unixScript)
     }
 
-    String generateUnixScriptContent() {
-        def unixClassPath = classpath.collect { "\$APP_HOME/${it.replace('\\', '/')}" }.join(":")
-        def quotedDefaultJvmOpts = defaultJvmOpts.collect{
-            //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
-            it = it.replace('\\', '\\\\')
-            it = it.replace('"', '\\"')
-            it = it.replace(/'/, /'"'"'/)
-            it = it.replace(/`/, /'"`"'/)
-            it = it.replace('$', '\\$')
-            (/"${it}"/)
-        }
-        //put the whole arguments string in single quotes, unless defaultJvmOpts was empty,
-        // in which case we output "" to stay compatible with existing builds that scan the script for it
-        def defaultJvmOptsString = (quotedDefaultJvmOpts ? /'${quotedDefaultJvmOpts.join(' ')}'/ : '""')
-        def binding = [applicationName: applicationName,
-                optsEnvironmentVar: optsEnvironmentVar,
-                mainClassName: mainClassName,
-                defaultJvmOpts: defaultJvmOptsString,
-                appNameSystemProperty: appNameSystemProperty,
-                appHomeRelativePath: appHomeRelativePath,
-                classpath: unixClassPath]
-        return generateNativeOutput('unixStartScript.txt', binding, TextUtil.unixLineSeparator)
-    }
-
     void generateWindowsScript(File windowsScript) {
-        String nativeOutput = generateWindowsScriptContent()
-        writeToFile(nativeOutput, windowsScript);
-    }
-
-    String generateWindowsScriptContent() {
-        def windowsClassPath = classpath.collect { "%APP_HOME%\\${it.replace('/', '\\')}" }.join(";")
-        def appHome = appHomeRelativePath.replace('/', '\\')
-        //argument quoting:
-        // - " must be encoded as \"
-        // - % must be encoded as %%
-        // - pathological case: \" must be encoded as \\\", but other than that, \ MUST NOT be quoted
-        // - other characters (including ') will not be quoted
-        // - use a state machine rather than regexps
-        def quotedDefaultJvmOpts = defaultJvmOpts.collect {
-            def wasOnBackslash = false
-            it = it.collect { ch ->
-                def repl = ch
-                if (ch == '%') {
-                    repl = '%%'
-                } else if (ch == '"') {
-                    repl = (wasOnBackslash ? '\\' : '') + '\\"'
-                }
-                wasOnBackslash = (ch == '\\')
-                repl
-            }
-            (/"${it.join()}"/)
-        }
-        def defaultJvmOptsString = quotedDefaultJvmOpts.join(' ')
-        def binding = [applicationName: applicationName,
-                optsEnvironmentVar: optsEnvironmentVar,
-                exitEnvironmentVar: exitEnvironmentVar,
-                mainClassName: mainClassName,
-                defaultJvmOpts: defaultJvmOptsString,
-                appNameSystemProperty: appNameSystemProperty,
-                appHomeRelativePath: appHome,
-                classpath: windowsClassPath]
-        return generateNativeOutput('windowsStartScript.txt', binding, TextUtil.windowsLineSeparator)
-
+        windowsStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), new FileWriter(windowsScript))
     }
 
     private void createExecutablePermission(File unixScriptFile) {
@@ -135,28 +95,5 @@ class StartScriptGenerator {
         chmod.perm = "ugo+rx"
         chmod.project = AntUtil.createProject()
         chmod.execute()
-    }
-
-    void writeToFile(String scriptContent, File scriptFile) {
-        GFileUtils.mkdirs(scriptFile.parentFile)
-        scriptFile.write(scriptContent)
-    }
-
-
-    private String generateNativeOutput(String templateName, Map binding, String lineSeparator) {
-        def stream = StartScriptGenerator.getResource(templateName)
-        def templateText = stream.text
-        def output = engine.createTemplate(templateText).make(binding)
-        def nativeOutput = TextUtil.convertLineSeparators(output as String, lineSeparator)
-        return nativeOutput;
-
-    }
-
-    private String getAppHomeRelativePath() {
-        def depth = scriptRelPath.count("/")
-        if (depth == 0) {
-            return ""
-        }
-        return (1..depth).collect {".."}.join("/")
     }
 }
