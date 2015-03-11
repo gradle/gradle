@@ -76,7 +76,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
 
         if (!classAllowed(name)) {
-            throw new ClassNotFoundException(String.format("%s not found.", name));
+            throw new ClassNotFoundException(name + " not found.");
         }
 
         Class<?> cl = super.loadClass(name, false);
