@@ -102,9 +102,6 @@ There is a new API `GradleEnvironment#getGradleUserHome` that returns the Gradle
 You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
 test progress events are of a sub-type of `TestProgressEvent`.
 
-TODO - GradleEnvironment#getGradleUserHome
-TODO - test event listeners
-
 ### Dependency substitution accepts projects
 
 You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
