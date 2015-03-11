@@ -26,6 +26,13 @@ import java.util.Map;
  */
 public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
     /**
+     * Sets the template reader used for generating script.
+     *
+     * @param reader Template reader
+     */
+    void setTemplate(Reader reader);
+
+    /**
      * Gets the template reader used for generating script.
      *
      * @return Template reader

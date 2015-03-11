@@ -27,7 +27,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
 
     def "uses expected template and line separator"() {
         expect:
-        generator.DEFAULT_TEMPLATE_FILENAME == 'windowsStartScript.txt'
+        generator.defaultTemplateFilename == 'windowsStartScript.txt'
         generator.lineSeparator == TextUtil.windowsLineSeparator
     }
 

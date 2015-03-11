@@ -30,9 +30,11 @@ import java.util.Map;
 
 public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator<StartScriptGenerationDetails> {
     private final TemplateEngine templateEngine;
+    private Reader template;
 
     public AbstractTemplateBasedStartScriptGenerator() {
         this(new GroovySimpleTemplateEngine());
+        template = createDefaultTemplate(getDefaultTemplateFilename());
     }
 
     public AbstractTemplateBasedStartScriptGenerator(TemplateEngine templateEngine) {
@@ -49,6 +51,14 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         }
     }
 
+    public void setTemplate(Reader reader) {
+        this.template = template;
+    }
+
+    public Reader getTemplate() {
+        return template;
+    }
+
     private String generateStartScriptContentFromTemplate(Map<String, String> binding) {
         String content = templateEngine.generate(getTemplate(), binding);
         return TextUtil.convertLineSeparators(content, getLineSeparator());
@@ -63,7 +73,7 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         }
     }
 
-    Reader getDefaultTemplate(String filename) {
+    private Reader createDefaultTemplate(String filename) {
         InputStream stream = getClass().getResourceAsStream(filename);
 
         try {
@@ -88,5 +98,6 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         return slashJoiner.join(appHomeRelativePath);
     }
 
+    abstract String getDefaultTemplateFilename();
     abstract String getLineSeparator();
 }

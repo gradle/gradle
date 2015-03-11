@@ -27,7 +27,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "uses expected template and line separator"() {
         expect:
-        generator.DEFAULT_TEMPLATE_FILENAME == 'unixStartScript.txt'
+        generator.defaultTemplateFilename == 'unixStartScript.txt'
         generator.lineSeparator == TextUtil.unixLineSeparator
     }
 
