@@ -2,6 +2,10 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Performance improvements
+
+TODO - needs some detail
+
 ### Improved performance of Gradle Daemon via class reuse
 
 The [Gradle Daemon](userguide/gradle_daemon.html) is now much smarter about reusing classes across builds.
@@ -84,12 +88,20 @@ A number of improvements have been made to the model rules execution used by the
 - `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
 - `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
 
+TODO - performance improvements
+TODO - creation DSL
+TODO - changes to `ManagedSet` and `CollectionBuilder`
+TODO - other improvements
+
 ### Tooling API improvements
 
 There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
 
 You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
 test progress events are of a sub-type of `TestProgressEvent`.
+
+TODO - GradleEnvironment#getGradleUserHome
+TODO - test event listeners
 
 ### Dependency substitution accepts projects
 
@@ -104,7 +116,7 @@ allows access to the `ComponentSelector` as well:
         }
     }
 
-### Unique snapshots
+### Unique Maven snapshots
 
 TODO
 
