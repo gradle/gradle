@@ -21,12 +21,12 @@ import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
 class IvyS3Repository implements RemoteIvyRepository {
 
-    S3StubServer server
+    S3Server server
     String bucket
     IvyFileRepository backingRepository
     String repositoryPath
 
-    public IvyS3Repository(S3StubServer server, File repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
+    public IvyS3Repository(S3Server server, File repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
         assert !bucket.startsWith('/')
         this.server = server
         this.bucket = bucket

@@ -15,19 +15,16 @@
  */
 
 package org.gradle.integtests.resource.s3.ivy
-
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.test.fixtures.server.RepositoryServer
-import org.gradle.integtests.resource.s3.fixtures.S3StubServer
-import org.gradle.integtests.resource.s3.fixtures.S3StubSupport
 import org.junit.Rule
 
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final S3StubServer server = new S3StubServer(this)
-    final S3StubSupport s3StubSupport = new S3StubSupport(server)
+    final S3Server server = new S3Server(this)
 
     @Override
     RepositoryServer getServer() {
@@ -35,7 +32,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
     }
 
     protected ExecutionResult succeeds(String... tasks) {
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
         executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
         result = executer.withTasks(*tasks).run()
     }

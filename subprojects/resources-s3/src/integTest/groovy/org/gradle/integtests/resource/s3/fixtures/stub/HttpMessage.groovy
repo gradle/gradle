@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.server.stub
+package org.gradle.integtests.resource.s3.fixtures.stub
 
 import groovy.transform.ToString
 
-@ToString(includeNames = true, includeSuper = true)
-class StubResponse extends HttpMessage {
-    int status
+@ToString(includeNames = true)
+class HttpMessage {
+    Map<String, String> headers = [:]
+    def body
 }

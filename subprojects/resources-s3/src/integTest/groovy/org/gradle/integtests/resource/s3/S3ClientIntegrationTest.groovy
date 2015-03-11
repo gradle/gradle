@@ -15,17 +15,15 @@
  */
 
 package org.gradle.integtests.resource.s3
-
 import com.amazonaws.services.s3.model.*
 import com.google.common.base.Optional
 import org.apache.commons.io.IOUtils
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.integtests.resource.s3.fixtures.S3StubServer
-import org.gradle.integtests.resource.s3.fixtures.S3StubSupport
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -46,8 +44,7 @@ class S3ClientIntegrationTest extends Specification {
     DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
 
     @Rule
-    public final S3StubServer server = new S3StubServer()
-    final S3StubSupport s3StubSupport = new S3StubSupport(server)
+    public final S3Server server = new S3Server()
 
     def setup() {
         awsCredentials.setAccessKey(accessKey)
@@ -61,10 +58,10 @@ class S3ClientIntegrationTest extends Specification {
         File file = temporaryFolder.createFile(FILE_NAME)
         file << fileContents
 
-        s3StubSupport.stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
+        server.stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
         S3ConnectionProperties s3SystemProperties = Mock {
-            getEndpoint() >> Optional.of(s3StubSupport.endpoint)
+            getEndpoint() >> Optional.of(server.endpoint)
             getProxy() >> Optional.fromNullable(null)
             getMaxErrorRetryCount() >> Optional.absent()
         }
@@ -79,7 +76,7 @@ class S3ClientIntegrationTest extends Specification {
         s3Client.put(stream, file.length(), uri)
 
         when:
-        s3StubSupport.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
+        server.stubMetaData(file, "/${bucketName}/maven/release/$FILE_NAME")
         S3Object data = s3Client.getMetaData(uri)
         def metadata = data.getObjectMetadata()
 
@@ -88,7 +85,7 @@ class S3ClientIntegrationTest extends Specification {
         metadata.getETag() ==~ /\w{32}/
 
         when:
-        s3StubSupport.stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
+        server.stubGetFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
         then:
         S3Object object = s3Client.getResource(uri)
@@ -99,7 +96,7 @@ class S3ClientIntegrationTest extends Specification {
         outStream.toString() == fileContents
 
         when:
-        s3StubSupport.stubListFile(temporaryFolder.testDirectory, bucketName)
+        server.stubListFile(temporaryFolder.testDirectory, bucketName)
 
         then:
         def files = s3Client.list(new URI("s3://${bucketName}/maven/release/"))

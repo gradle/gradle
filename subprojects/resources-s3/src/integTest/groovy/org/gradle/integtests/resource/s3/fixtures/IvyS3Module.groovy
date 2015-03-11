@@ -26,10 +26,10 @@ import org.gradle.test.fixtures.resource.RemoteResource
 class IvyS3Module implements RemoteIvyModule {
     IvyFileModule backingModule
     String bucket
-    S3StubServer server
+    S3Server server
     String repositoryPath
 
-    IvyS3Module(S3StubServer server, IvyFileModule backingModule, String repositoryPath, String bucket) {
+    IvyS3Module(S3Server server, IvyFileModule backingModule, String repositoryPath, String bucket) {
         this.bucket = bucket
         this.server = server
         this.backingModule = backingModule

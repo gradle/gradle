@@ -21,12 +21,12 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
 
 class MavenS3Repository implements MavenRepository {
-    private final S3StubServer server
+    private final S3Server server
     private final MavenFileRepository backingRepository
     private final String bucket
     private final String repositoryPath
 
-    MavenS3Repository(S3StubServer server, File repoDir, String repositoryPath, String bucket) {
+    MavenS3Repository(S3Server server, File repoDir, String repositoryPath, String bucket) {
         assert !bucket.startsWith('/')
         this.server = server
         this.bucket = bucket

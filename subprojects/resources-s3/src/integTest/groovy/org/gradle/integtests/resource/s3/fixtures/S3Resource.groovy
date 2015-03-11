@@ -20,17 +20,15 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteResource
 
 class S3Resource implements RemoteResource {
-    S3StubServer server
+    S3Server server
     TestFile file
-    S3StubSupport s3StubSupport
     String bucket
     String repositoryPath
 
-    S3Resource(S3StubServer server, TestFile file, String repositoryPath, String bucket) {
+    S3Resource(S3Server server, TestFile file, String repositoryPath, String bucket) {
         this.repositoryPath = repositoryPath
         this.bucket = bucket
         this.server = server
-        this.s3StubSupport = new S3StubSupport(server)
         this.file = file
     }
 
@@ -41,37 +39,37 @@ class S3Resource implements RemoteResource {
 
     @Override
     void expectDownload() {
-        s3StubSupport.stubGetFile(file, relativeFilePath())
+        server.stubGetFile(file, relativeFilePath())
     }
 
     @Override
     void expectDownloadMissing() {
         def path = relativeFilePath()
-        s3StubSupport.stubFileNotFound(path)
+        server.stubFileNotFound(path)
     }
 
     void expectDownloadAuthencicationError() {
-        s3StubSupport.stubGetFileAuthFailure(relativeFilePath())
+        server.stubGetFileAuthFailure(relativeFilePath())
     }
 
     @Override
     void expectMetadataRetrieve() {
-        s3StubSupport.stubMetaData(file, relativeFilePath())
+        server.stubMetaData(file, relativeFilePath())
     }
 
     @Override
     void expectMetadataRetrieveMissing() {
-        s3StubSupport.stubMetaDataMissing(relativeFilePath())
+        server.stubMetaDataMissing(relativeFilePath())
     }
 
     @Override
     void expectDownloadBroken() {
-        s3StubSupport.stubGetFileBroken(relativeFilePath())
+        server.stubGetFileBroken(relativeFilePath())
     }
 
     @Override
     void expectMetadataRetrieveBroken() {
-        s3StubSupport.stubMetaDataBroken(relativeFilePath())
+        server.stubMetaDataBroken(relativeFilePath())
     }
 
     def relativeFilePath() {
@@ -81,6 +79,6 @@ class S3Resource implements RemoteResource {
     }
 
     def expectPutAuthencicationError() {
-        s3StubSupport.stubPutFileAuthFailure(relativeFilePath());
+        server.stubPutFileAuthFailure(relativeFilePath());
     }
 }

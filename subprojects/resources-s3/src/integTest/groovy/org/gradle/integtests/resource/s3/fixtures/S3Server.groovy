@@ -15,17 +15,27 @@
  */
 
 package org.gradle.integtests.resource.s3.fixtures
-
 import groovy.xml.StreamingMarkupBuilder
-import org.gradle.test.fixtures.server.stub.HttpStub
+import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
+import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.ivy.RemoteIvyRepository
+import org.gradle.test.fixtures.server.RepositoryServer
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.tz.FixedDateTimeZone
+import org.mortbay.jetty.Request
+import org.mortbay.jetty.handler.AbstractHandler
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
 
-class S3StubSupport {
+class S3Server extends HttpServer implements RepositoryServer {
+
+    public static final String BUCKET_NAME = "tests3bucket"
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
     protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
             .withLocale(Locale.US)
@@ -36,13 +46,68 @@ class S3StubSupport {
     public static final String X_AMZ_ID_2 = 'nwUZ/n/F2/ZFRTZhtzjYe7mcXkxCaRjfrJSWirV50lN7HuvhF60JpphwoiX/sMnh'
     public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
     public static final String SERVER_AMAZON_S3 = 'AmazonS3'
-    final URI endpoint
-    final S3StubServer server
 
-    S3StubSupport(S3StubServer server) {
-        this.server = server
-        this.endpoint = new URI(server.address)
+    final URI endpoint
+
+    TestDirectoryProvider testDirectoryProvider
+
+    S3Server(TestDirectoryProvider testDirectoryProvider) {
+        super()
+        this.testDirectoryProvider = testDirectoryProvider;
+        this.endpoint = new URI(getAddress())
     }
+
+    void assertRequest(HttpStub httpStub, HttpServletRequest request) {
+        StubRequest stubRequest = httpStub.request
+        String path = stubRequest.path
+        assert path.startsWith('/')
+        assert path == request.pathInfo
+        assert stubRequest.method == request.method
+        if (stubRequest.body) {
+            assert stubRequest.body == request.getInputStream().bytes
+        }
+        assert stubRequest.params.every {
+            request.getParameterMap()[it.key] == it.value
+        }
+    }
+
+    boolean requestMatches(HttpStub httpStub, HttpServletRequest request) {
+        StubRequest stubRequest = httpStub.request
+        String path = stubRequest.path
+        assert path.startsWith('/')
+        boolean result = path == request.pathInfo && stubRequest.method == request.method
+        result
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo() {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
+    }
+
+    @Override
+    RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
+        new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME$contextPath"), "$contextPath", BUCKET_NAME)
+    }
+
+    @Override
+    String getValidCredentials() {
+        return """
+        credentials(AwsCredentials) {
+            accessKey "someKey"
+            secretKey "someSecret"
+        }"""
+    }
+
 
     def stubPutFile(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
@@ -67,7 +132,7 @@ class S3StubSupport {
                 ]
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubMetaData(File file, String url) {
@@ -95,7 +160,7 @@ class S3StubSupport {
                 ]
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubMetaDataBroken(String url) {
@@ -127,7 +192,7 @@ class S3StubSupport {
                 ]
             }
         }
-        server.expect(httpStub)
+       expect(httpStub)
     }
 
     def stubGetFile(File file, String url) {
@@ -156,7 +221,7 @@ class S3StubSupport {
                 body = file.getBytes()
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubListFile(File file, String bucketName, prefix = 'maven/release/', delimiter = '/') {
@@ -238,7 +303,7 @@ class S3StubSupport {
                 body = xml.toString()
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubGetFileAuthFailure(String url) {
@@ -273,7 +338,7 @@ class S3StubSupport {
                 body = xml.toString()
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
 
@@ -309,7 +374,7 @@ class S3StubSupport {
                 body = xml.toString()
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubFileNotFound(String url) {
@@ -344,7 +409,7 @@ class S3StubSupport {
                 body = xml.toString()
             }
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
     def stubGetFileBroken(String url) {
@@ -379,10 +444,50 @@ class S3StubSupport {
             }
 
         }
-        server.expect(httpStub)
+        expect(httpStub)
     }
 
-    def calculateEtag(File file) {
+    private expect(HttpStub httpStub) {
+        add(httpStub, stubAction(httpStub))
+    }
+
+    private HttpServer.ActionSupport stubAction(HttpStub httpStub) {
+        new HttpServer.ActionSupport("Generic stub handler") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                httpStub.response?.headers?.each {
+                    response.addHeader(it.key, it.value)
+                }
+                response.setStatus(httpStub.response.status)
+                if (httpStub.response?.body) {
+                    response.outputStream.bytes = httpStub.response.body
+                }
+            }
+        }
+    }
+
+    private void add(HttpStub httpStub, HttpServer.ActionSupport action) {
+        HttpServer.HttpExpectOne expectation = new HttpServer.HttpExpectOne(action, [httpStub.request.method], httpStub.request.path)
+        expectations << expectation
+        addHandler(new AbstractHandler() {
+            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                if (requestMatches(httpStub, request)) {
+                    assertRequest(httpStub, request)
+                    if (expectation.run) {
+                        println("This expectation for the request [${request.method} :${request.pathInfo}] was already handeled - skipping")
+                        return
+                    }
+                    if (!((Request) request).isHandled()) {
+                        expectation.run = true
+                        action.handle(request, response)
+                        ((Request) request).setHandled(true)
+                    }
+                }
+            }
+        })
+    }
+
+
+    private calculateEtag(File file) {
         MessageDigest digest = MessageDigest.getInstance("MD5")
         digest.update(file.bytes);
         new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')

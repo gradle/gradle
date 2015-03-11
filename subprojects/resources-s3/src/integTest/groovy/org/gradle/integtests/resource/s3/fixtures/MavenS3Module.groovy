@@ -25,11 +25,11 @@ import org.gradle.test.fixtures.maven.MavenPom
 
 class MavenS3Module implements MavenModule {
     MavenFileModule backingModule
-    S3StubServer server
+    S3Server server
     String bucket
     String repositoryPath
 
-    MavenS3Module(S3StubServer server, MavenFileModule backingModule, String repositoryPath, String bucket) {
+    MavenS3Module(S3Server server, MavenFileModule backingModule, String repositoryPath, String bucket) {
         this.bucket = bucket
         this.server = server
         this.backingModule = backingModule

@@ -20,17 +20,15 @@ import org.gradle.test.fixtures.file.TestFile
 
 class S3DirectoryResource {
 
-    private final S3StubServer server
+    private final S3Server server
     private final TestFile directory
-    private final S3StubSupport s3StubSupport
     private String bucket
     private final String path
 
-    S3DirectoryResource(S3StubServer server, String bucket, TestFile directory) {
+    S3DirectoryResource(S3Server server, String bucket, TestFile directory) {
         this.bucket = bucket
         this.directory = directory
         this.server = server
-        this.s3StubSupport = new S3StubSupport(server)
         def directoryUri = directory.toURI().toString()
         this.path = directoryUri.substring(directoryUri.indexOf(bucket) + bucket.length() + 1)
     }
@@ -40,8 +38,7 @@ class S3DirectoryResource {
     }
 
     public void expectGet() {
-
-        s3StubSupport.stubListFile(directory, bucket, path)
+        server.stubListFile(directory, bucket, path)
     }
 
     public void allowGet() {

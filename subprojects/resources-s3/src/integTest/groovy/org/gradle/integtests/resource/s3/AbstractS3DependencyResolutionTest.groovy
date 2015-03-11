@@ -18,20 +18,18 @@ package org.gradle.integtests.resource.s3
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.IvyS3Repository
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
-import org.gradle.integtests.resource.s3.fixtures.S3StubServer
 import org.gradle.integtests.resource.s3.fixtures.S3Resource
-import org.gradle.integtests.resource.s3.fixtures.S3StubSupport
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
 abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyResolutionTest {
 
     @Rule
-    public final S3StubServer server = new S3StubServer()
-    final S3StubSupport s3StubSupport = new S3StubSupport(server)
+    public final S3Server server = new S3Server()
 
     def setup() {
         executer.withArgument('-i')
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
     }
 
     String getBucket() {
