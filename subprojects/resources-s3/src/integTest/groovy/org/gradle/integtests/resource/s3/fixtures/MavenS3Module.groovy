@@ -28,6 +28,7 @@ class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements Mave
     String repositoryPath
 
     MavenS3Module(S3Server server, MavenFileModule backingModule, String repositoryPath, String bucket) {
+        super(backingModule)
         this.bucket = bucket
         this.server = server
         this.backingModule = backingModule
