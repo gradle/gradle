@@ -93,6 +93,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
 
     @Override
     public final void put(File file, String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+        LOGGER.error("PUTTING " + resourceName + " WITH MAVEN WAGON ADAPTER");
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
@@ -101,7 +102,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
             signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
         } catch (IOException e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
-            throw new GradleException(String.format("Could not put file to remote location: %s", resourceName), e);
+            throw new UncheckedIOException(e);
         }
         this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_PUT));
     }

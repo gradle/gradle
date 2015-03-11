@@ -161,7 +161,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertThatCause(Matchers.containsString('Return code is: 401'))
+        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
@@ -179,7 +179,7 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertThatCause(Matchers.containsString('Return code is: 401'))
+        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
