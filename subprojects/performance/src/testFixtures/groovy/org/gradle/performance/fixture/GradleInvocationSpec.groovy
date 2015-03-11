@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.model.persist.ReusingModelRegistryStore
 
 @CompileStatic
@@ -118,6 +119,10 @@ class GradleInvocationSpec {
 
         Builder enableTransformedModelDsl() {
             gradleOpts("-Dorg.gradle.model.dsl=true")
+        }
+
+        Builder disableParallelWorkers() {
+            gradleOpts("-D${GradleProperties.WORKERS_PROPERTY}=1")
         }
 
         GradleInvocationSpec build() {
