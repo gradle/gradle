@@ -97,6 +97,8 @@ TODO - other improvements
 
 There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
 
+There is a new API `GradleEnvironment#getGradleUserHome` that returns the Gradle user home directory used for all operations that are requested through the Tooling API.
+
 You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
 test progress events are of a sub-type of `TestProgressEvent`.
 
@@ -307,7 +309,7 @@ Previously Gradle implicitly used the same default as the `javac` tool, which is
 This causes unexpected build results when source accidentally ends up on the classpath, which can happen when dependencies surprisingly include source as well as binaries.
 
 This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
-     
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
