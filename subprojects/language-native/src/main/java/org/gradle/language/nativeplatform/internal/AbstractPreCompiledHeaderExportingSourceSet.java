@@ -21,7 +21,7 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 
 public abstract class AbstractPreCompiledHeaderExportingSourceSet extends AbstractHeaderExportingSourceSet implements PreCompiledHeaderExportingSourceSetInternal, HeaderExportingSourceSet, LanguageSourceSet {
-    private boolean isPreCompiledHeader = false;
+    private boolean isPreCompiledHeader;
     private DependentSourceSet consumingSourceSet;
 
     @Override
