@@ -59,7 +59,7 @@ abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyReso
         """
         repositories {
             maven {
-                url "s3://${getBucket()}${getRepositoryPath()}"
+                url "${mavenS3Repo.uri}"
                 credentials(AwsCredentials) {
                     accessKey "someKey"
                     secretKey "someSecret"

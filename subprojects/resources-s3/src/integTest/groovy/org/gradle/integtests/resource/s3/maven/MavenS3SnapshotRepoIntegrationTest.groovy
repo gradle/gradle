@@ -21,14 +21,15 @@ import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 
 class MavenS3SnapshotRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
-    @Override
-    String getRepositoryPath() {
-        return '/maven/snapshot/'
+    String artifactVersion = "1.45-SNAPSHOT"
+    MavenS3Module module
+
+    def setup() {
+        module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
     }
 
     def "resolves a maven snapshot module stored in S3"() {
         setup:
-        MavenS3Module module = getMavenS3Repo().module("org.gradle", "test", "1.45-SNAPSHOT")
         module.publish()
 
         buildFile << mavenAwsRepoDsl()
@@ -59,8 +60,7 @@ task retrieve(type: Sync) {
 
     def "resolves a dynamic maven snapshot module stored in S3"() {
         setup:
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", "1.45-SNAPSHOT")
-        remoteModule.publish()
+        module.publish()
 
         and:
         buildFile << mavenAwsRepoDsl()
@@ -79,10 +79,10 @@ task retrieve(type: Sync) {
 """
 
         expect:
-        remoteModule.mavenRootMetaData.expectDownload()
-        remoteModule.metaData.expectDownload()
-        remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectDownload()
+        module.mavenRootMetaData.expectDownload()
+        module.metaData.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
 
         and:
         succeeds 'retrieve'
@@ -93,9 +93,7 @@ task retrieve(type: Sync) {
 
     def "should download snapshot artifacts when maven local artifacts are different to remote"() {
         setup:
-        String artifactVersion = "1.45-SNAPSHOT"
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publishWithChangedContent()
+        module.publishWithChangedContent()
 
         m2Installation.generateGlobalSettingsFile()
         def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
@@ -114,9 +112,9 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.metaData.expectDownload()
-        remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectDownload()
+        module.metaData.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
 
         when:
         using m2Installation
@@ -126,8 +124,14 @@ task retrieve(type: Sync) {
         succeeds 'retrieve'
 
         and:
-        localModule.artifactFile.assertIsDifferentFrom(remoteModule.artifactFile)
-        localModule.pomFile.assertIsDifferentFrom(remoteModule.pomFile)
-        file("libs/test-${artifactVersion}.jar").assertIsCopyOf(remoteModule.artifactFile)
+        localModule.artifactFile.assertIsDifferentFrom(module.artifactFile)
+        localModule.pomFile.assertIsDifferentFrom(module.pomFile)
+        file("libs/test-${artifactVersion}.jar").assertIsCopyOf(module.artifactFile)
     }
+
+    @Override
+    String getRepositoryPath() {
+        return '/maven/snapshot/'
+    }
+
 }

@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.resource.s3.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3StubServer
 import org.gradle.integtests.resource.s3.fixtures.S3StubSupport
 import org.junit.Rule
@@ -38,6 +39,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${s3StubSupport.endpoint.toString()}")
+
     }
 
     def "should fail with an authentication error"() {
@@ -54,7 +56,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
     publishing {
         repositories {
                 maven {
-                   url "s3://${bucket}${repositoryPath}"
+                   url "${mavenS3Repo.uri}"
                     credentials(AwsCredentials) {
                         accessKey "someKey"
                         secretKey "someSecret"
@@ -70,7 +72,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
     """
 
         when:
-        s3StubSupport.stubPutFileAuthFailure("/${getBucket()}/maven/release/org/gradle/publishS3Test/1.45/publishS3Test-1.45.jar")
+        mavenS3Repo.module("org.gradle", "publishS3Test", "1.45").artifact.expectPutAuthencicationError()
 
         then:
         fails 'publish'
@@ -79,5 +81,9 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(startsWith("Failed to publish publication 'pub' to repository 'maven'"))
                 .assertHasCause("Could not put s3 resource: [s3://tests3bucket/maven/release/org/gradle/publishS3Test/1.45/publishS3Test-1.45.jar]. " +
                 "The AWS Access Key Id you provided does not exist in our records.")
+    }
+
+    MavenS3Repository getMavenS3Repo() {
+        new MavenS3Repository(server, file(getTestDirectory()), getRepositoryPath(), getBucket())
     }
 }

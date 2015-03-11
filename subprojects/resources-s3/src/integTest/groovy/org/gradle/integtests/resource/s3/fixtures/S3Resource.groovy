@@ -50,7 +50,7 @@ class S3Resource implements RemoteResource {
         s3StubSupport.stubFileNotFound(path)
     }
 
-    void expectAuthFailureWithGet() {
+    void expectDownloadAuthencicationError() {
         s3StubSupport.stubGetFileAuthFailure(relativeFilePath())
     }
 
@@ -78,5 +78,9 @@ class S3Resource implements RemoteResource {
         String absolute = file.toURI()
         String base = "/${bucket}$repositoryPath"
         absolute.substring(absolute.indexOf(base), absolute.length())
+    }
+
+    def expectPutAuthencicationError() {
+        s3StubSupport.stubPutFileAuthFailure(relativeFilePath());
     }
 }

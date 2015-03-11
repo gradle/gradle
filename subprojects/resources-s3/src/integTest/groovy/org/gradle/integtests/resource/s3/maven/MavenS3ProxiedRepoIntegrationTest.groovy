@@ -31,21 +31,17 @@ class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTe
     SetSystemProperties systemProperties = new SetSystemProperties()
 
     final String artifactVersion = "1.85"
-
-    @Override
-    String getRepositoryPath() {
-        return '/maven/release/'
-    }
+    MavenS3Module module
 
     @Override
     def setup() {
         proxyServer.start()
+        module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
     }
 
     def "should proxy requests using HTTP system proxy settings"() {
         setup:
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publish()
+        module.publish()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -61,8 +57,8 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
 
         when:
         executer.withArguments(
@@ -84,8 +80,7 @@ task retrieve(type: Sync) {
 
     def "should not proxy requests when HTTP system proxy settings has a nonProxyHost rule"() {
         setup:
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publish()
+        module.publish()
 
         buildFile << mavenAwsRepoDsl()
         buildFile << """
@@ -101,8 +96,8 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectDownload()
 
         when:
         executer.withArguments(
@@ -120,5 +115,10 @@ task retrieve(type: Sync) {
         and:
         proxyServer.port != server.port
         proxyServer.requestCount == 0
+    }
+
+    @Override
+    String getRepositoryPath() {
+        return '/maven/release/'
     }
 }

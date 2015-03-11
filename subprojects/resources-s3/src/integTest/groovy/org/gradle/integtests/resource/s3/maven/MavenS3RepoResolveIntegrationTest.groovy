@@ -26,11 +26,16 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
         return '/maven/release/'
     }
 
+    String artifactVersion = "1.85"
+    MavenS3Module module
+
+    def setup(){
+        module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
+    }
+
     def "should not download artifacts when already present in maven home"() {
         setup:
-        String artifactVersion = "1.85"
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publish()
+        module.publish()
 
         m2Installation.generateGlobalSettingsFile()
         def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publish()
@@ -49,10 +54,10 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.pom.expectMetadataRetrieve()
-        remoteModule.pomSha1.expectDownload()
-        remoteModule.artifact.expectMetadataRetrieve()
-        remoteModule.artifactSha1.expectDownload()
+        module.pom.expectMetadataRetrieve()
+        module.pomSha1.expectDownload()
+        module.artifact.expectMetadataRetrieve()
+        module.artifactSha1.expectDownload()
 
         when:
         using m2Installation
@@ -61,21 +66,18 @@ task retrieve(type: Sync) {
         succeeds 'retrieve'
 
         and:
-        localModule.artifactFile.assertIsCopyOf(remoteModule.artifactFile)
-        localModule.pomFile.assertIsCopyOf(remoteModule.pomFile)
-        file('libs/test-1.85.jar').assertIsCopyOf(remoteModule.artifactFile)
+        localModule.artifactFile.assertIsCopyOf(module.artifactFile)
+        localModule.pomFile.assertIsCopyOf(module.pomFile)
+        file('libs/test-1.85.jar').assertIsCopyOf(module.artifactFile)
 
         and:
-        assertLocallyAvailableLogged(remoteModule.pom, remoteModule.artifact)
+        assertLocallyAvailableLogged(module.pom, module.artifact)
     }
 
 
     def "should download artifacts when maven local artifacts are different to remote "() {
         setup:
-        String artifactVersion = "1.85"
-        MavenS3Module remoteModule = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
-        remoteModule.publish()
-
+        module.publish()
         m2Installation.generateGlobalSettingsFile()
         def localModule = m2Installation.mavenRepo().module("org.gradle", "test", artifactVersion).publishWithChangedContent()
 
@@ -93,12 +95,12 @@ task retrieve(type: Sync) {
 }
 """
         and:
-        remoteModule.pom.expectMetadataRetrieve()
-        remoteModule.pomSha1.expectDownload()
-        remoteModule.pom.expectDownload()
-        remoteModule.artifact.expectMetadataRetrieve()
-        remoteModule.artifactSha1.expectDownload()
-        remoteModule.artifact.expectDownload()
+        module.pom.expectMetadataRetrieve()
+        module.pomSha1.expectDownload()
+        module.pom.expectDownload()
+        module.artifact.expectMetadataRetrieve()
+        module.artifactSha1.expectDownload()
+        module.artifact.expectDownload()
 
         when:
         using m2Installation
@@ -107,8 +109,8 @@ task retrieve(type: Sync) {
         succeeds 'retrieve'
 
         and:
-        localModule.artifactFile.assertIsDifferentFrom(remoteModule.artifactFile)
-        localModule.pomFile.assertIsDifferentFrom(remoteModule.pomFile)
-        file('libs/test-1.85.jar').assertIsCopyOf(remoteModule.artifactFile)
+        localModule.artifactFile.assertIsDifferentFrom(module.artifactFile)
+        localModule.pomFile.assertIsDifferentFrom(module.pomFile)
+        file('libs/test-1.85.jar').assertIsCopyOf(module.artifactFile)
     }
 }
