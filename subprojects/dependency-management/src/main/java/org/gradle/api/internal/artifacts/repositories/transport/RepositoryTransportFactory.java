@@ -67,6 +67,15 @@ public class RepositoryTransportFactory {
         registeredProtocols.add(resourceConnectorFactory);
     }
 
+    public Set<String> getRegisteredProtocols() {
+        Set<String> validSchemes = Sets.newLinkedHashSet();
+        validSchemes.add("file");
+        for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
+            validSchemes.addAll(registeredProtocol.getSupportedProtocols());
+        }
+        return validSchemes;
+    }
+
     public RepositoryTransport createTransport(String scheme, String name, Credentials credentials) {
         Set<String> schemes = new HashSet<String>();
         schemes.add(scheme);
@@ -92,16 +101,12 @@ public class RepositoryTransportFactory {
             return new FileTransport(name);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);
-        ExternalResourceConnector resourceConnector = findRegisteredProtocol(schemes).createResourceConnector(connectionDetails);
+        ExternalResourceConnector resourceConnector = findConnectorFactory(schemes).createResourceConnector(connectionDetails);
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
     }
 
     private void validateSchemes(Set<String> schemes) {
-        Set<String> validSchemes = Sets.newLinkedHashSet();
-        validSchemes.add("file");
-        for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
-            validSchemes.addAll(registeredProtocol.getSupportedProtocols());
-        }
+        Set<String> validSchemes = getRegisteredProtocols();
         for (String scheme : schemes) {
             if (!validSchemes.contains(scheme)) {
                 throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
@@ -109,7 +114,7 @@ public class RepositoryTransportFactory {
         }
     }
 
-    private ResourceConnectorFactory findRegisteredProtocol(Set<String> schemes) {
+    private ResourceConnectorFactory findConnectorFactory(Set<String> schemes) {
         for (ResourceConnectorFactory protocolRegistration : registeredProtocols) {
             if (protocolRegistration.getSupportedProtocols().containsAll(schemes)) {
                 return protocolRegistration;

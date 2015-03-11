@@ -22,43 +22,24 @@ import org.codehaus.plexus.component.repository.ComponentDescriptor;
 import org.codehaus.plexus.component.repository.exception.ComponentRepositoryException;
 import org.gradle.api.GradleException;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class WagonRegistry {
     private static final String FAILED_TO_REGISTER_WAGON = "Failed to register wagon";
-    private final Set<String> protocols = new HashSet<String>();
     private PlexusContainer plexusContainer;
 
     public WagonRegistry(PlexusContainer plexusContainer) {
         this.plexusContainer = plexusContainer;
-        add("s3");
-        add("sftp");
-        //Add other transports here
-//        add("http");
-//        add("https");
     }
 
-    private void add(String protocol) {
-        this.protocols.add(protocol.toLowerCase());
-    }
-
-    public void registerAll() {
+    public void registerProtocol(String protocol) {
         try {
-            for (String protocol : protocols) {
-                ComponentDescriptor componentDescriptor = new ComponentDescriptor();
-                componentDescriptor.setRole(Wagon.ROLE);
-                componentDescriptor.setRoleHint(protocol);
-                componentDescriptor.setImplementation(RepositoryTransportDeployWagon.class.getCanonicalName());
+            ComponentDescriptor componentDescriptor = new ComponentDescriptor();
+            componentDescriptor.setRole(Wagon.ROLE);
+            componentDescriptor.setRoleHint(protocol);
+            componentDescriptor.setImplementation(RepositoryTransportDeployWagon.class.getCanonicalName());
 
-                plexusContainer.addComponentDescriptor(componentDescriptor);
-            }
+            plexusContainer.addComponentDescriptor(componentDescriptor);
         } catch (ComponentRepositoryException e) {
             throw new GradleException(FAILED_TO_REGISTER_WAGON, e);
         }
-    }
-
-    public boolean isCustomWagonProtocol(String protocol) {
-        return protocols.contains(protocol);
     }
 }

@@ -56,16 +56,18 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
             this.repositoryTransportFactory = repositoryTransportFactory;
             this.wagonRegistry = new WagonRegistry(getContainer());
 
-            wagonRegistry.registerAll();
+            registerWagonProtocols();
+        }
+
+        private void registerWagonProtocols() {
+            for (String protocol : repositoryTransportFactory.getRegisteredProtocols()) {
+                wagonRegistry.registerProtocol(protocol);
+            }
         }
 
         @Override
         public void publish() {
-            String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-            if (wagonRegistry.isCustomWagonProtocol(protocol)) {
-                RepositoryTransportDeployWagon.init(protocol, artifactRepository, repositoryTransportFactory);
-            }
-
+            RepositoryTransportDeployWagon.init(artifactRepository, repositoryTransportFactory);
             try {
                 super.publish();
             } finally {

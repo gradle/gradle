@@ -60,8 +60,9 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private Repository mutatingRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployWagon.class);
 
-    public static void init(String scheme, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        currentDelegate.set(new RepositoryTransportWagonAdapter(scheme, artifactRepository, repositoryTransportFactory));
+    public static void init(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
+        currentDelegate.set(new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory));
     }
 
     public static void reset() {
