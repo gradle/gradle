@@ -356,4 +356,36 @@ task listJars << {
         then:
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
+
+    void "fails when configured with AwsCredentials"() {
+        given:
+        mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                maven {
+                    url '${mavenHttpRepo.uri}'
+                    credentials(AwsCredentials) {
+                        accessKey "someKey"
+                        secretKey "someSecret"
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        when:
+
+        fails 'retrieve'
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
+                .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
+    }
+
 }
