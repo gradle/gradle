@@ -28,7 +28,7 @@ class UnixStartScriptGeneratorTest extends Specification {
     def "uses expected template and line separator"() {
         expect:
         generator.DEFAULT_TEMPLATE_FILENAME == 'unixStartScript.txt'
-        generator.lineSeparator == '\n'
+        generator.lineSeparator == TextUtil.unixLineSeparator
     }
 
     def "classpath for unix script uses slashes as path separator"() {
@@ -50,7 +50,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.windowsLineSeparator).length == 1
+        destination.toString().split(TextUtil.unixLineSeparator).length == 164
     }
 
     def "defaultJvmOpts is expanded properly in unix script"() {

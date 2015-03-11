@@ -28,7 +28,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
     def "uses expected template and line separator"() {
         expect:
         generator.DEFAULT_TEMPLATE_FILENAME == 'windowsStartScript.txt'
-        generator.lineSeparator == '\r\n'
+        generator.lineSeparator == TextUtil.windowsLineSeparator
     }
 
     def "classpath for windows script uses backslash as path separator and windows line separator"() {
@@ -40,7 +40,6 @@ class WindowsStartScriptGeneratorTest extends Specification {
 
         then:
         destination.toString().contains("set CLASSPATH=%APP_HOME%\\path\\to\\Jar.jar")
-        destination.toString().split(TextUtil.windowsLineSeparator).length == 90
     }
 
     def "windows script uses windows line separator"() {
