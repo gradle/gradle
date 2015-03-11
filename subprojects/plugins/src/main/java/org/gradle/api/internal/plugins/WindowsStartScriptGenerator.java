@@ -19,25 +19,23 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.TextUtil;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.Reader;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.HashMap;
 import java.util.Map;
 
 public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScriptGenerator {
-    private final File template;
+    public static final String DEFAULT_TEMPLATE_FILENAME = "windowsStartScript.txt";
+    private final Reader template;
 
     public WindowsStartScriptGenerator() {
-        template = getDefaultTemplate();
+        template = getDefaultTemplate(DEFAULT_TEMPLATE_FILENAME);
     }
 
-    public WindowsStartScriptGenerator(File template) {
+    public WindowsStartScriptGenerator(Reader template) {
         this.template = template;
     }
 
@@ -45,17 +43,7 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
         return TextUtil.getWindowsLineSeparator();
     }
 
-    private File getDefaultTemplate() {
-        URL stream = getClass().getResource("windowsStartScript.txt");
-
-        try {
-            return new File(stream.toURI());
-        } catch(URISyntaxException e) {
-            throw new UncheckedException(e);
-        }
-    }
-
-    public File getTemplate() {
+    public Reader getTemplate() {
         return template;
     }
 

@@ -21,7 +21,6 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.plugins.GroovySimpleTemplateEngine
 import org.gradle.api.internal.plugins.TemplateEngine
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.UncheckedException
 
 class GroovySimpleTemplateEngineIntegrationTest extends AbstractIntegrationSpec {
     TemplateEngine templateEngine = new GroovySimpleTemplateEngine()
@@ -32,25 +31,10 @@ class GroovySimpleTemplateEngineIntegrationTest extends AbstractIntegrationSpec 
         def binding = ['language': 'Groovy']
 
         when:
-        String content = templateEngine.generate(template, binding)
+        String content = templateEngine.generate(new FileReader(template), binding)
 
         then:
         content == 'Hello from "Groovy"!'
-    }
-
-    def "rethrows ClassNotFoundException wrapped as UncheckedException"() {
-        given:
-        SimpleTemplateEngine simpleTemplateEngine = Spy(SimpleTemplateEngine)
-        templateEngine.engine = simpleTemplateEngine
-        File template = file('mytemplate.txt') << ''
-        def binding = [:]
-
-        when:
-        templateEngine.generate(template, binding)
-
-        then:
-        simpleTemplateEngine.createTemplate(_) >> { String templateText -> throw new ClassNotFoundException() }
-        thrown(UncheckedException)
     }
 
     def "rethrows IOException wrapped as UncheckedIOException"() {
@@ -61,10 +45,10 @@ class GroovySimpleTemplateEngineIntegrationTest extends AbstractIntegrationSpec 
         def binding = [:]
 
         when:
-        templateEngine.generate(template, binding)
+        templateEngine.generate(new FileReader(template), binding)
 
         then:
-        simpleTemplateEngine.createTemplate(_) >> { String templateText -> throw new IOException() }
+        simpleTemplateEngine.createTemplate(_) >> { Reader reader -> throw new IOException() }
         thrown(UncheckedIOException)
     }
 }

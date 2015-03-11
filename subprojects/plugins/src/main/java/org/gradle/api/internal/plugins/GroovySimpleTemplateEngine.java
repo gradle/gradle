@@ -19,24 +19,18 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Writable;
 import groovy.text.SimpleTemplateEngine;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.GFileUtils;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Map;
 
 public class GroovySimpleTemplateEngine implements TemplateEngine {
     private SimpleTemplateEngine engine = new SimpleTemplateEngine();
 
-    public String generate(File template, Map<String, String> binding) {
-        String templateText = GFileUtils.readFile(template, "UTF-8");
-
+    public String generate(Reader template, Map<String, String> binding) {
         try {
-            Writable output = engine.createTemplate(templateText).make(binding);
+            Writable output = engine.createTemplate(template).make(binding);
             return output.toString();
-        } catch(ClassNotFoundException e) {
-            throw new UncheckedException(e);
         } catch(IOException e) {
             throw new UncheckedIOException(e);
         }

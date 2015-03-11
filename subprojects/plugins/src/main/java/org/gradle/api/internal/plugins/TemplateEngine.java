@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
-import java.io.File;
+import java.io.Reader;
 import java.util.Map;
 
 public interface TemplateEngine {
-    String generate(File template, Map<String, String> binding);
+    String generate(Reader template, Map<String, String> binding);
 }

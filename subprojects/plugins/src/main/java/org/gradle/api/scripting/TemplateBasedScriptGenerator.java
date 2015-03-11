@@ -16,7 +16,7 @@
 
 package org.gradle.api.scripting;
 
-import java.io.File;
+import java.io.Reader;
 import java.util.Map;
 
 /**
@@ -28,9 +28,9 @@ public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails>
     /**
      * Gets the template file used for generating script.
      *
-     * @return Template file
+     * @return Template reader
      */
-    File getTemplate();
+    Reader getTemplate();
 
     /**
      * Creates a binding used for the template expression replacement.

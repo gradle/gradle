@@ -22,12 +22,12 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class WindowsStartScriptGeneratorTest extends Specification {
-    AbstractTemplateBasedStartScriptGenerator generator = new WindowsStartScriptGenerator()
+    WindowsStartScriptGenerator generator = new WindowsStartScriptGenerator()
     StartScriptGenerationDetails details = createScriptGenerationDetails()
 
     def "uses expected template and line separator"() {
         expect:
-        generator.template == new File(WindowsStartScriptGenerator.getResource('windowsStartScript.txt').toURI())
+        generator.DEFAULT_TEMPLATE_FILENAME == 'windowsStartScript.txt'
         generator.lineSeparator == '\r\n'
     }
 

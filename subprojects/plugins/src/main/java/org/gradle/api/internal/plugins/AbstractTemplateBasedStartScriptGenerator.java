@@ -20,10 +20,10 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.scripting.TemplateBasedScriptGenerator;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.TextUtil;
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +60,16 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
             destination.flush();
         } finally {
             destination.close();
+        }
+    }
+
+    Reader getDefaultTemplate(String filename) {
+        InputStream stream = getClass().getResourceAsStream(filename);
+
+        try {
+            return new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+        } catch(UnsupportedEncodingException e) {
+            throw new UncheckedException(e);
         }
     }
 
