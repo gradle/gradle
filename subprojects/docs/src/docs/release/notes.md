@@ -121,9 +121,8 @@ TODO
 
 ### Parallel Native Compilation
 
-Gradle uses multiple concurrent compilation processes when compiling all supported native languages. You can enable this
-with the incubating `--parallel` and `--parallel-threads=#` command-line options. Up until this release, Gradle compiled
-all native source files sequentially.
+Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Assembler languages. This is automatically enabled for all builds. Up until this release, Gradle compiled
+all native source files sequentially. 
 
 ### Support for “annotation processing” of Groovy code
 
@@ -179,6 +178,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
+
+### Setting number of threads with --parallel-threads
+
+Gradle still honors --parallel-threads for inter-project parallelization, but the method of specifying the number of worker threads is changing.  
+As we add more parallelized work to Gradle, we need a more generic way of controlling the number of workers (threads, processes, etc) Gradle may use.
+
+If you were using --parallel-threads to enable parallel-project execution, please consider using just --parallel.
+
+If you were using StartParameter.getParallelThreadCount() to check if parallel-project execution was enabled, please consider using StartParameter.isParallelProjectExecutionEnabled().
+
+TODO: Mention --workers now?
 
 ### Changing a configuration after it has been resolved
 

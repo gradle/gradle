@@ -24,21 +24,8 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
 
     private final StoppableExecutor fixedSizePool;
 
-    public DefaultBuildOperationProcessor(ExecutorFactory executorFactory, int maxThreads) {
-        final int actualThreads = actualThreadCount(maxThreads);
-        this.fixedSizePool = executorFactory.create("build operations", actualThreads);
-    }
-
-    int actualThreadCount(int maxThreads) {
-        final int actualThreads;
-        if (maxThreads < 0) {
-            actualThreads = Runtime.getRuntime().availableProcessors();
-        } else if (maxThreads == 0) {
-            actualThreads = 1;
-        } else {
-            actualThreads = maxThreads;
-        }
-        return actualThreads;
+    public DefaultBuildOperationProcessor(ExecutorFactory executorFactory, int maxWorkerCount) {
+        this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
 
     public <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker) {

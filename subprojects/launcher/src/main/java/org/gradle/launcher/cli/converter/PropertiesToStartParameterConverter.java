@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
@@ -29,8 +30,18 @@ public class PropertiesToStartParameterConverter {
 
         String parallel = properties.get(GradleProperties.PARALLEL_PROPERTY);
         if (isTrue(parallel)) {
-            startParameter.setParallelThreadCount(-1);
+            startParameter.setParallelProjectExecutionEnabled(true);
         }
+
+        String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
+        if (workers != null) {
+            try {
+                startParameter.setMaxWorkerCount(Integer.parseInt(workers));
+            } catch (NumberFormatException e) {
+                // Ignore invalid worker settings
+            }
+        }
+
         return startParameter;
     }
 }

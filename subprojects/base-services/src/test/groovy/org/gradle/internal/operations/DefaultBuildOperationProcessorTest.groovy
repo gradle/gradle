@@ -130,22 +130,6 @@ class DefaultBuildOperationProcessorTest extends Specification {
         thrown MultipleBuildOperationFailures
     }
 
-    @Unroll
-    def "converts parallel-threads=#count into usable number of threads (#expected)"() {
-        given:
-        def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), count)
-
-        expect:
-        expected == buildOperationProcessor.actualThreadCount(count)
-
-        where:
-        count | expected
-        -1    | Runtime.getRuntime().availableProcessors()
-        0     | 1
-        1     | 1
-        8     | 8
-    }
-
     def "multiple failures get reported"() {
         given:
         def threadCount = 4

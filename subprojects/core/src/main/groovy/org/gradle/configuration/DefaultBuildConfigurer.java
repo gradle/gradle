@@ -37,9 +37,9 @@ public class DefaultBuildConfigurer implements BuildConfigurer {
     }
 
     private void maybeInformAboutIncubatingMode(StartParameter startParameter) {
-        if (startParameter.getParallelThreadCount() != 0 && startParameter.isConfigureOnDemand()) {
+        if (startParameter.isParallelProjectExecutionEnabled() && startParameter.isConfigureOnDemand()) {
             SingleMessageLogger.incubatingFeatureUsed("Parallel execution with configuration on demand");
-        } else if (startParameter.getParallelThreadCount() != 0) {
+        } else if (startParameter.isParallelProjectExecutionEnabled()) {
             SingleMessageLogger.incubatingFeatureUsed("Parallel execution");
         } else if (startParameter.isConfigureOnDemand()) {
             SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");

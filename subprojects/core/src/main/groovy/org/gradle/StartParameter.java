@@ -74,6 +74,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean recompileScripts;
     private int parallelThreadCount;
     private boolean configureOnDemand;
+    private int maxWorkerCount;
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -102,6 +103,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();
         gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
+        maxWorkerCount = Runtime.getRuntime().availableProcessors();
     }
 
     /**
@@ -156,6 +158,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.refreshDependencies = refreshDependencies;
         p.parallelThreadCount = parallelThreadCount;
         p.configureOnDemand = configureOnDemand;
+        p.maxWorkerCount = maxWorkerCount;
         return p;
     }
 
@@ -562,7 +565,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * <0: Automatically determine the optimal number of executors to use.
      *  0: Do not use parallel execution.
      * >0: Use this many parallel execution threads.
+     *
+     * @deprecated In a future Gradle release, this will be replaced with dedicated parallel options.
+     * @see #getMaxWorkerCount()
      */
+    @Deprecated
     public int getParallelThreadCount() {
         return parallelThreadCount;
     }
@@ -572,8 +579,58 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * 
      * @see #getParallelThreadCount()
      */
+    @Deprecated
     public void setParallelThreadCount(int parallelThreadCount) {
         this.parallelThreadCount = parallelThreadCount;
+    }
+
+    /**
+     * Returns true if parallel project execution is enabled.
+     *
+     * @see #getParallelThreadCount()
+     */
+    @Incubating
+    public boolean isParallelProjectExecutionEnabled() {
+        return parallelThreadCount != 0;
+    }
+
+    @Incubating
+    public void setParallelProjectExecutionEnabled(boolean enabled) {
+        if (enabled) {
+            setParallelThreadCount(-1);
+        } else {
+            setParallelThreadCount(0);
+        }
+    }
+
+    /**
+     * Returns the maximum number of concurrent workers used for underlying build operations.
+     *
+     * Workers can be threads, processes or whatever Gradle considers a "worker".
+     *
+     * Defaults to the number of processors available to the Java virtual machine.
+     *
+     * @see java.lang.Runtime#availableProcessors()
+     *
+     * @return maximum number of concurrent workers, always >= 1.
+     */
+    @Incubating
+    public int getMaxWorkerCount() {
+        return maxWorkerCount;
+    }
+
+    /**
+     * Specifies the maximum number of concurrent workers used for underlying build operations.
+     *
+     * @see #getMaxWorkerCount()
+     */
+    @Incubating
+    public void setMaxWorkerCount(int maxWorkerCount) {
+        if (maxWorkerCount < 1) {
+            this.maxWorkerCount = 1;
+        } else {
+            this.maxWorkerCount = maxWorkerCount;
+        }
     }
 
     /**
@@ -606,6 +663,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", refreshDependencies=" + refreshDependencies
                 + ", parallelThreadCount=" + parallelThreadCount
                 + ", configureOnDemand=" + configureOnDemand
+                + ", maxWorkerCount=" + maxWorkerCount
                 + '}';
     }
 
