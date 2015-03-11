@@ -16,10 +16,8 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(Experiment.class)
 class NativeParallelPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "#size parallel performance test" () {

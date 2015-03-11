@@ -17,10 +17,8 @@
 package org.gradle.performance
 
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(Experiment.class)
 class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {

@@ -17,10 +17,8 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category(Experiment.class)
 class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll

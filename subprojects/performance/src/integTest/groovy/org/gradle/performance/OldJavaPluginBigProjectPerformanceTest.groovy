@@ -16,11 +16,13 @@
 
 package org.gradle.performance
 
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(Experiment.class)
 class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("#scenario build")
@@ -32,7 +34,7 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = tasks
         runner.maxExecutionTimeRegression = millis(200)
         runner.maxMemoryRegression = mbytes(100)
-        runner.targetVersions = ['1.6', '2.0', '2.2.1', '2.4', 'last']
+        runner.targetVersions = ['2.0', '2.2.1', '2.4', 'last']
         runner.gradleOpts = ["-Xmx1024m", "-XX:MaxPermSize=256m", "-Dorg.gradle.daemon.performance.expire-at=0"]
 
         when:
