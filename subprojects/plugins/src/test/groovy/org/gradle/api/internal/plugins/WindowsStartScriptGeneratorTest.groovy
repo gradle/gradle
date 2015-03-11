@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
 import org.gradle.api.scripting.ScriptGenerationDetails
 import org.gradle.util.TextUtil
 import org.gradle.util.WrapUtil

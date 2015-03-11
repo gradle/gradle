@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
-
-import org.gradle.api.scripting.ScriptGenerationDetails;
+package org.gradle.api.scripting;
 
 import java.util.ArrayList;
 
+/**
+ * Details for generating Java-based application start scripts.
+ */
 public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
     /**
      * The display name of the application
