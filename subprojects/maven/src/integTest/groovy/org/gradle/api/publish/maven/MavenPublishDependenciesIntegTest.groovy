@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
 
@@ -61,7 +62,8 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3233")
-    def "publishes POM dependency with empty version for Gradle dependency with null version"() {
+    @Unroll
+    def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         def repoModule = mavenRepo.module('group', 'root', '1.0')
 
@@ -75,7 +77,7 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
             version = '1.0'
 
             dependencies {
-                compile "group:projectA"
+                compile $dependencyNotation
             }
 
             publishing {
@@ -100,5 +102,10 @@ class MavenPublishDependenciesIntegTest extends AbstractIntegrationSpec {
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
         dependency.version == ""
+
+        where:
+        versionType | dependencyNotation
+        "empty"     | "'group:projectA'"
+        "null"      | "group:'group', name:'projectA', version:null"
     }
 }
