@@ -99,4 +99,12 @@ class MavenSftpModule implements MavenModule {
     SftpResource getArtifact() {
         new SftpResource(server, artifactFile)
     }
+
+    SftpResource getMavenMetadata() {
+        new SftpResource(server, metaDataFile)
+    }
+
+    SftpResource getRootMavenMetadata() {
+        new SftpResource(server, backingModule.rootMetaDataFile)
+    }
 }

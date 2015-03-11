@@ -75,6 +75,10 @@ S3 backed repositories can be used with both the `ivy-publish` and `maven-publis
 
 A big thank you goes to Adrian Kelly for implementing this feature.
 
+### Can use `maven-publish` for publishing via SFTP to Maven repositories
+
+- TBD
+
 ### Google Test support (i)
 
 - TBD

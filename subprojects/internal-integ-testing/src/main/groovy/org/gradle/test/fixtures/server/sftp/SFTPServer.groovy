@@ -157,6 +157,10 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         return new URI("sftp://${hostAddress}:${port}")
     }
 
+    void allowAll() {
+        expectations << new SftpAllowAll()
+    }
+
     void allowInit() {
         expectations << new SftpAllow(SftpSubsystem.SSH_FXP_INIT)
     }
@@ -434,6 +438,20 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
         boolean matches(Buffer buffer, int type, int id) {
             return type == expectedType
+        }
+
+        void assertMet() {
+            //can never be not met
+        }
+    }
+
+    class SftpAllowAll implements SftpExpectation {
+
+        final boolean failing = false
+        final boolean missing = false
+
+        boolean matches(Buffer buffer, int type, int id) {
+            return true
         }
 
         void assertMet() {

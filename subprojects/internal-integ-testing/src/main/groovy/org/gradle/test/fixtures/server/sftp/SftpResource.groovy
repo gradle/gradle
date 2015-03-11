@@ -43,6 +43,10 @@ class SftpResource implements RemoteResource {
         server.expectLstat(pathOnServer)
     }
 
+    void expectLstatMissing() {
+        server.expectLstatMissing(pathOnServer)
+    }
+
     void expectStat() {
         server.expectStat(pathOnServer)
     }
@@ -68,6 +72,12 @@ class SftpResource implements RemoteResource {
     void expectFileAndSha1Upload() {
         server.expectFileUpload(pathOnServer)
         server.expectFileUpload("${pathOnServer}.sha1")
+    }
+
+    void expectFileAndChecksumsUpload() {
+        server.expectFileUpload(pathOnServer)
+        server.expectFileUpload("${pathOnServer}.sha1")
+        server.expectFileUpload("${pathOnServer}.md5")
     }
 
     void expectMetadataRetrieveBroken() {

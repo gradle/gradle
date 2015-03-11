@@ -39,7 +39,7 @@ public class WagonRegistry {
     public WagonRegistry(PlexusContainer plexusContainer) {
         this.plexusContainer = plexusContainer;
         add("s3");
-//        add("sftp");
+        add("sftp");
         //Add other transports here
 //        add("http");
 //        add("https");
