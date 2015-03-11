@@ -32,6 +32,11 @@ import java.util.Collection;
 import java.util.List;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+    @Override
+    public ClassLoader getIsolatedSystemClassLoader() {
+        return ClassLoader.getSystemClassLoader().getParent();
+    }
+
     public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
         return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
     }
@@ -63,7 +68,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             }
         }
 
-        return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), ClassLoader.getSystemClassLoader().getParent());
+        return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), getIsolatedSystemClassLoader());
     }
 
     public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {

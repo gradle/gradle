@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -236,6 +237,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     private ClassLoader getExtClassLoader() {
-        return ClassLoader.getSystemClassLoader().getParent();
+        return new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
     }
 }
