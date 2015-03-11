@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal.ant
-
+package org.gradle.api.publication.maven.internal.wagon
 import org.apache.maven.artifact.manager.WagonManager
 import org.codehaus.plexus.PlexusContainer
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.publication.maven.internal.RepositoryTransportDeployWagon
 import spock.lang.Specification
 
 class WagonRegistryTest extends Specification {

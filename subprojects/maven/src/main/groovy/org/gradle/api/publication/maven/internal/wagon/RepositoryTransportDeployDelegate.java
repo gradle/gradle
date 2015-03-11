@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal;
+package org.gradle.api.publication.maven.internal.wagon;
 
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.gradle.api.GradleException;

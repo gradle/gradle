@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal
-
+package org.gradle.api.publication.maven.internal.wagon
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory

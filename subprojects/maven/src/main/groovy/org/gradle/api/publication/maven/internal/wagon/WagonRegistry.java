@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal.ant;
+package org.gradle.api.publication.maven.internal.wagon;
 
 import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.wagon.UnsupportedProtocolException;
@@ -26,7 +26,6 @@ import org.codehaus.plexus.component.repository.exception.ComponentRepositoryExc
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.RepositoryTransportDeployWagon;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -40,16 +39,17 @@ public class WagonRegistry {
     public WagonRegistry(PlexusContainer plexusContainer) {
         this.plexusContainer = plexusContainer;
         add("s3");
+//        add("sftp");
         //Add other transports here
 //        add("http");
 //        add("https");
-//        add("sftp");
     }
 
     private void add(String protocol) {
         this.protocols.add(protocol.toLowerCase());
     }
 
+    // TODO:DAZ Only need to register a single wagon, since it's backed by a thread context state
     public void registerAll() {
         try {
             for (String protocol : protocols) {

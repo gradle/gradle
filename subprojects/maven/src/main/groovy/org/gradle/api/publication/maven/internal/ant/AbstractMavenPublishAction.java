@@ -37,6 +37,7 @@ import org.codehaus.plexus.embed.Embedder;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;

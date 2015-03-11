@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publication.maven.internal
-
+package org.gradle.api.publication.maven.internal.wagon
 import org.apache.maven.wagon.ResourceDoesNotExistException
 import org.apache.maven.wagon.TransferFailedException
 import org.apache.maven.wagon.authentication.AuthenticationInfo
