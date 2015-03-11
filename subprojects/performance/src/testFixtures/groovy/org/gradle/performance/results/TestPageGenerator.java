@@ -100,7 +100,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                             th().text("Test version").end();
                             th().text("Branch").end();
                             th().text("Git commit").end();
-                            for (int i = 0; i < 6; i++) {
+                            for (int i = 0; i < 8; i++) {
                                 for (String label : testHistory.getExperimentLabels()) {
                                     th().classAttr("numeric").text(label).end();
                                 }
