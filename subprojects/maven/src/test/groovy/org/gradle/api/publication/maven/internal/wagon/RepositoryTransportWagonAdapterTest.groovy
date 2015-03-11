@@ -41,7 +41,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
 
         when:
-        delegate.getAndWriteFile(null, resourceName)
+        delegate.getRemoteFile(null, resourceName)
 
         then:
         1 * repositoryTransport.getRepository().getResource({ it.toString() == expected })
@@ -67,7 +67,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
         expect:
-        delegate.getAndWriteFile(null, 'a/b/some.jar') == expected
+        delegate.getRemoteFile(null, 'a/b/some.jar') == expected
 
         where:
         resourceResponse       | expected
@@ -89,7 +89,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
 
         when:
-        delegate.putFile(null, 'something.jar')
+        delegate.putRemoteFile(null, 'something.jar')
 
         then:
         1 * externalResourceRepo.putWithoutChecksum(null, { it.toString() == 's3://somewhere/maven/something.jar'})

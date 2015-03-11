@@ -62,10 +62,15 @@ public class RepositoryTransportDeployWagon implements Wagon {
 
     public static void init(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-        currentDelegate.set(new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory));
+        RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
+        currentDelegate.set(adapter);
     }
 
-    public static void reset() {
+    public static void contextualize(RepositoryTransportWagonAdapter adapter) {
+        currentDelegate.set(adapter);
+    }
+
+    public static void decontextualize() {
         currentDelegate.remove();
     }
 
@@ -80,7 +85,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
                 destination.getParentFile().mkdirs();
                 destination.createNewFile();
             }
-            if (!getDelegate().getAndWriteFile(destination, resourceName)) {
+            if (!getDelegate().getRemoteFile(destination, resourceName)) {
                 throw new ResourceDoesNotExistException(String.format("'%s' does not exist", resourceName));
             }
             signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
@@ -98,7 +103,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
-            getDelegate().putFile(file, resourceName);
+            getDelegate().putRemoteFile(file, resourceName);
             signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
         } catch (IOException e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));

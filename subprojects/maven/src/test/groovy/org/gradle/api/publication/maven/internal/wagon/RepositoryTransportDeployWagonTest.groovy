@@ -24,8 +24,6 @@ import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.proxy.ProxyInfoProvider
 import org.apache.maven.wagon.repository.Repository
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -103,18 +101,6 @@ class RepositoryTransportDeployWagonTest extends Specification {
         !wagon.isInteractive()
     }
 
-    def "should create a RepositoryTransportDeployDelegate"() {
-        RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
-        MavenArtifactRepository mavenArtifactRepository = Mock()
-        RepositoryTransportFactory repositoryTransportFactory = Mock()
-
-        when:
-        wagon.createDelegate("scheme", mavenArtifactRepository, repositoryTransportFactory)
-
-        then:
-        wagon.delegate.artifactRepository == mavenArtifactRepository
-    }
-
     @Unroll
     def "should signal #expectedProgressCount progress events on a successful upload of #byteSize bytes"() {
         setup:
@@ -130,7 +116,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
+        wagon.contextualize(delegate)
 
         when:
         wagon.put(file, resourceName)
@@ -141,7 +127,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * transferListener.transferStarted(_)
         then:
-        1 * delegate.putFile(file, resourceName)
+        1 * delegate.putRemoteFile(file, resourceName)
         then:
         expectedProgressCount * transferListener.transferProgress(*_)
         then:
@@ -162,7 +148,8 @@ class RepositoryTransportDeployWagonTest extends Specification {
         SessionListener sessionListener = Mock()
         TransferListener transferListener = Mock()
         RepositoryTransportWagonAdapter delegate = Mock()
-        delegate.putFile(*_) >> { throw new IOException("failed") }
+        def failure = new IOException("failed")
+        delegate.putRemoteFile(*_) >> { throw failure }
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
@@ -170,7 +157,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
 
         wagon.addSessionListener(sessionListener)
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
+        wagon.contextualize(delegate)
 
         when:
         wagon.put(file, resourceName)
@@ -184,9 +171,8 @@ class RepositoryTransportDeployWagonTest extends Specification {
         0 * transferListener._
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.startsWith('Could not put file to remote location:')
-
+        def ex = thrown(org.gradle.api.UncheckedIOException)
+        ex.cause == failure
     }
 
     def "should signal the correct events on a successful retrieval"() {
@@ -200,7 +186,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
+        wagon.contextualize(delegate)
 
         when:
         wagon.get(resourceName, file)
@@ -210,7 +196,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * transferListener.transferStarted(_)
         then:
-        1 * delegate.getAndWriteFile(file, resourceName) >> true
+        1 * delegate.getRemoteFile(file, resourceName) >> true
         then:
         1 * transferListener.transferProgress(*_)
         then:
@@ -231,7 +217,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         file.delete()
 
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
+        wagon.contextualize(delegate)
 
         when:
         assert !file.exists()
@@ -242,7 +228,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * transferListener.transferStarted(_)
         then:
-        1 * delegate.getAndWriteFile(file, resourceName) >> true
+        1 * delegate.getRemoteFile(file, resourceName) >> true
         then:
         1 * transferListener.transferCompleted(*_)
         then:
@@ -262,7 +248,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
+        wagon.contextualize(delegate)
 
         when:
         wagon.get(resourceName, file)
@@ -273,7 +259,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         1 * transferListener.transferStarted(_)
 
         then:
-        delegate.getAndWriteFile(file, resourceName) >> false
+        delegate.getRemoteFile(file, resourceName) >> false
 
         then: "Normally indicates to the deployer that it's a first time snapshot publish"
         thrown(ResourceDoesNotExistException)
@@ -289,8 +275,8 @@ class RepositoryTransportDeployWagonTest extends Specification {
         def resourceName = '/some/resource.jar'
 
         wagon.addTransferListener(transferListener)
-        wagon.delegate = delegate
-        delegate.getAndWriteFile(*_) >> { throw new IOException("Explode!") }
+        wagon.contextualize(delegate)
+        delegate.getRemoteFile(*_) >> { throw new IOException("Explode!") }
 
         when:
         wagon.get(resourceName, file)

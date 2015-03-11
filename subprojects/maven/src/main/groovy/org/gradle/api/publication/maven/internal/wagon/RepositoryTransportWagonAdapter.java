@@ -17,7 +17,6 @@
 package org.gradle.api.publication.maven.internal.wagon;
 
 import org.apache.maven.wagon.ResourceDoesNotExistException;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -29,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class RepositoryTransportWagonAdapter {
 
@@ -42,7 +40,7 @@ public class RepositoryTransportWagonAdapter {
         transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
     }
 
-    public boolean getAndWriteFile(File destination, String resourceName) throws IOException, ResourceDoesNotExistException {
+    public boolean getRemoteFile(File destination, String resourceName) throws IOException, ResourceDoesNotExistException {
         URI uriForResource = getUriForResource(resourceName);
         try {
             ExternalResource resource = transport.getRepository().getResource(uriForResource);
@@ -57,7 +55,7 @@ public class RepositoryTransportWagonAdapter {
         return false;
     }
 
-    public void putFile(File file, String resourceName) throws IOException {
+    public void putRemoteFile(File file, String resourceName) throws IOException {
         transport.getRepository().putWithoutChecksum(file, getUriForResource(resourceName));
     }
 
