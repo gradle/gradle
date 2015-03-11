@@ -50,6 +50,10 @@ class S3Resource implements RemoteResource {
         s3StubSupport.stubFileNotFound(path)
     }
 
+    void expectAuthFailureWithGet() {
+        s3StubSupport.stubGetFileAuthFailure(relativeFilePath())
+    }
+
     @Override
     void expectMetadataRetrieve() {
         s3StubSupport.stubMetaData(file, relativeFilePath())

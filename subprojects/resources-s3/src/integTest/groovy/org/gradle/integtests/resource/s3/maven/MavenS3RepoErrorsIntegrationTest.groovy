@@ -18,10 +18,12 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
+import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 import org.gradle.util.TextUtil
 
 class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTest {
     final String artifactVersion = "1.85"
+    MavenS3Module module;
 
     @Override
     String getRepositoryPath() {
@@ -29,6 +31,7 @@ class MavenS3RepoErrorsIntegrationTest extends AbstractS3DependencyResolutionTes
     }
 
     def setup() {
+        module = mavenS3Repo.module("org.gradle", "test", artifactVersion)
         buildFile << """
 configurations { compile }
 
@@ -46,9 +49,8 @@ task retrieve(type: Sync) {
     def "should fail with an AWS S3 authentication error"() {
         setup:
         buildFile << mavenAwsRepoDsl()
-
         when:
-        s3StubSupport.stubGetFileAuthFailure("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
+        module.pom.expectAuthFailureWithGet()
         then:
         fails 'retrieve'
         and:
@@ -102,8 +104,8 @@ repositories {
         setup:
         buildFile << mavenAwsRepoDsl()
         when:
-        s3StubSupport.stubFileNotFound("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.pom")
-        s3StubSupport.stubMetaDataMissing("/${getBucket()}/maven/release/org/gradle/test/1.85/test-1.85.jar")
+        module.pom.expectDownloadMissing()
+        module.artifact.expectMetadataRetrieveMissing()
         then:
         fails 'retrieve'
 
