@@ -54,11 +54,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     public void credentials(Action<? super PasswordCredentials> action) {
-        if (credentials != null) {
-            throw new IllegalStateException("Cannot overwrite already configured credentials.");
-        }
-        credentials = newCredentials(PasswordCredentials.class);
-        action.execute((PasswordCredentials) credentials);
+        credentials(PasswordCredentials.class, action);
     }
 
     public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
