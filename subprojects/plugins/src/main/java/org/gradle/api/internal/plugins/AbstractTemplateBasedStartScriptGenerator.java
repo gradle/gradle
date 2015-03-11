@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator<StartScriptGenerationDetails> {
+public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator<JavaAppStartScriptGenerationDetails> {
     private final TemplateEngine templateEngine;
     private Reader template;
 
@@ -41,7 +41,7 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         this.templateEngine = templateEngine;
     }
 
-    public void generateScript(StartScriptGenerationDetails details, Writer destination) {
+    public void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
             Map<String, String> binding = createBinding(details);
             String scriptContent = generateStartScriptContentFromTemplate(binding);

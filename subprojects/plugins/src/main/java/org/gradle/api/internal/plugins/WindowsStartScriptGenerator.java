@@ -35,7 +35,7 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
         return TextUtil.getWindowsLineSeparator();
     }
 
-    public Map<String, String> createBinding(StartScriptGenerationDetails details) {
+    public Map<String, String> createBinding(JavaAppStartScriptGenerationDetails details) {
         Map<String, String> binding = new HashMap<String, String>();
         binding.put("applicationName", details.getApplicationName());
         binding.put("optsEnvironmentVar", details.getOptsEnvironmentVar());

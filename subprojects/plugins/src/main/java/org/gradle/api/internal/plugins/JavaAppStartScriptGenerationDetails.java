@@ -20,7 +20,7 @@ import org.gradle.api.scripting.ScriptGenerationDetails;
 
 import java.util.ArrayList;
 
-public class StartScriptGenerationDetails implements ScriptGenerationDetails {
+public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
     /**
      * The display name of the application
      */

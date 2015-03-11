@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class UnixStartScriptGeneratorTest extends Specification {
     UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
-    StartScriptGenerationDetails details = createScriptGenerationDetails()
+    JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails()
 
     def "uses expected template and line separator"() {
         expect:
@@ -136,8 +136,8 @@ class UnixStartScriptGeneratorTest extends Specification {
         destination.toString().contains('cd "`dirname \\"$PRG\\"`/../.." >&-')
     }
 
-    private StartScriptGenerationDetails createScriptGenerationDetails() {
-        ScriptGenerationDetails details = new StartScriptGenerationDetails()
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails() {
+        ScriptGenerationDetails details = new JavaAppStartScriptGenerationDetails()
         details.applicationName = "TestApp"
         details.classpath = WrapUtil.toList("path\\to\\Jar.jar")
         details.scriptRelPath = "bin"

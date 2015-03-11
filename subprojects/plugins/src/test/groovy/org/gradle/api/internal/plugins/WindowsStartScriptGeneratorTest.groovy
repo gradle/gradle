@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class WindowsStartScriptGeneratorTest extends Specification {
     WindowsStartScriptGenerator generator = new WindowsStartScriptGenerator()
-    StartScriptGenerationDetails details = createScriptGenerationDetails()
+    JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails()
 
     def "uses expected template and line separator"() {
         expect:
@@ -113,8 +113,8 @@ class WindowsStartScriptGeneratorTest extends Specification {
         destination.toString().contains('set APP_HOME=%DIRNAME%..\\..')
     }
 
-    private StartScriptGenerationDetails createScriptGenerationDetails() {
-        ScriptGenerationDetails details = new StartScriptGenerationDetails()
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails() {
+        ScriptGenerationDetails details = new JavaAppStartScriptGenerationDetails()
         details.applicationName = "TestApp"
         details.classpath = WrapUtil.toList("path/to/Jar.jar")
         details.scriptRelPath = "bin"
