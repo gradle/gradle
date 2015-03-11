@@ -29,7 +29,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
-import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;

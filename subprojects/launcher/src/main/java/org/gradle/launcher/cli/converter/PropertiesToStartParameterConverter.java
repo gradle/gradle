@@ -17,7 +17,6 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
