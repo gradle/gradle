@@ -46,7 +46,7 @@ class StartScriptGeneratorTest extends Specification {
         String unixScriptContent = generator.generateUnixScriptContent()
         then:
         unixScriptContent.split(TextUtil.windowsLineSeparator).length == 1
-        unixScriptContent.split(TextUtil.unixLineSeparator).length == 164
+        unixScriptContent.split(TextUtil.unixLineSeparator).length == 160
     }
 
     def "classpath for windows script uses backslash as path separator and windows line separator"() {
