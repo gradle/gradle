@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,17 +62,7 @@ public class RepositoryTransportWagonAdapter {
     }
 
     private URI getUriForResource(String resource) {
-        String base = this.artifactRepository.getUrl().toString();
-        StringBuilder sb = new StringBuilder();
-        sb.append(base);
-        if (!base.endsWith("/") && !resource.startsWith("/")) {
-            sb.append("/");
-        }
-        sb.append(resource);
-        try {
-            return new URI(sb.toString());
-        } catch (URISyntaxException e) {
-            throw new GradleException("Could not create URL for resource", e);
-        }
+        ExternalResourceName resourceName = new ExternalResourceName(artifactRepository.getUrl(), resource);
+        return resourceName.getUri();
     }
 }
