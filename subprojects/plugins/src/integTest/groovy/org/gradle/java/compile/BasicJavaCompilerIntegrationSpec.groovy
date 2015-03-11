@@ -124,8 +124,7 @@ compileJava.options.debug = false
         !noDebug.debugIncludesLocalVariables
     }
 
-
-    @Requires([TestPrecondition.JDK_ORACLE, TestPrecondition.JDK8_OR_LATER])
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''

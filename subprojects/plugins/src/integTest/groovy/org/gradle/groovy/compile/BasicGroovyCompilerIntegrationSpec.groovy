@@ -350,12 +350,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
-    @Requires([TestPrecondition.JDK_ORACLE, TestPrecondition.JDK8_OR_LATER])
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "compileJavaFx8Code"() {
-        if (versionLowerThan("2.0")) {
-            return
-        }
-
         expect:
         succeeds("compileGroovy")
     }
