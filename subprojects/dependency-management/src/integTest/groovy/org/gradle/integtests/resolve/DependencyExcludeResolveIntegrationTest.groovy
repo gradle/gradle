@@ -44,17 +44,17 @@ class DependencyExcludeResolveIntegrationTest extends AbstractDependencyResoluti
         enterpriseModule.publish()
 
         def companyModule = mavenRepo().module('com.company', 'company', '4.0')
-        companyModule.dependsOn(enterpriseModule.groupId, enterpriseModule.artifactId, enterpriseModule.version)
-        companyModule.dependsOn(bazModule.groupId, bazModule.artifactId, bazModule.version)
+        companyModule.dependsOn(enterpriseModule)
+        companyModule.dependsOn(bazModule)
         companyModule.publish()
 
         def otherCompanyModule = mavenRepo().module('com.company', 'other-company', '4.0')
         otherCompanyModule.publish()
 
-        testModule.dependsOn(fooModule.groupId, fooModule.artifactId, fooModule.version)
-        testModule.dependsOn(barModule.groupId, barModule.artifactId, barModule.version)
-        testModule.dependsOn(companyModule.groupId, companyModule.artifactId, companyModule.version)
-        testModule.dependsOn(otherCompanyModule.groupId, otherCompanyModule.artifactId, otherCompanyModule.version)
+        testModule.dependsOn(fooModule)
+        testModule.dependsOn(barModule)
+        testModule.dependsOn(companyModule)
+        testModule.dependsOn(otherCompanyModule)
         testModule.publish()
 
         and:

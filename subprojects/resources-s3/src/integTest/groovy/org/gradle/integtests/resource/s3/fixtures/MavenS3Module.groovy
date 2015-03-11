@@ -17,13 +17,11 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenMetaData
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.maven.MavenPom
 
-class MavenS3Module implements MavenModule {
+class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements MavenModule {
     MavenFileModule backingModule
     S3Server server
     String bucket
@@ -34,67 +32,6 @@ class MavenS3Module implements MavenModule {
         this.server = server
         this.backingModule = backingModule
         this.repositoryPath = repositoryPath
-    }
-
-    MavenModule publish() {
-        backingModule.publish()
-    }
-
-    MavenModule publishPom() {
-        backingModule.publishPom()
-    }
-
-    MavenModule publishWithChangedContent() {
-        backingModule.publishWithChangedContent()
-    }
-
-    MavenModule withNonUniqueSnapshots() {
-        backingModule.withNonUniqueSnapshots()
-    }
-
-    MavenModule parent(String group, String artifactId, String version) {
-        backingModule.parent(group, artifactId, version)
-    }
-
-    MavenModule dependsOn(String group, String artifactId, String version) {
-        backingModule.dependsOn(group, artifactId, version)
-    }
-
-    MavenModule dependsOn(String group, String artifactId, String version, String type) {
-        backingModule.dependsOn(group, artifactId, version, type)
-    }
-
-    MavenModule hasPackaging(String packaging) {
-        backingModule.hasPackaging(packaging)
-    }
-
-    MavenModule hasType(String type) {
-        backingModule.hasPackaging(type)
-    }
-
-    @Override
-    String getPublishArtifactVersion() {
-        return backingModule.publishArtifactVersion
-    }
-
-    TestFile getPomFile() {
-        backingModule.getPomFile()
-    }
-
-    TestFile getArtifactFile() {
-        backingModule.getArtifactFile()
-    }
-
-    TestFile getMetaDataFile() {
-        backingModule.getMetaDataFile()
-    }
-
-    MavenPom getParsedPom() {
-        backingModule.getParsedPom()
-    }
-
-    MavenMetaData getRootMetaData() {
-        backingModule.getRootMetaData()
     }
 
     S3Resource getPom() {

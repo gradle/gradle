@@ -40,6 +40,8 @@ interface MavenModule extends Module {
 
     MavenModule parent(String group, String artifactId, String version)
 
+    MavenModule dependsOn(MavenModule module)
+
     MavenModule dependsOn(String group, String artifactId, String version)
 
     MavenModule dependsOn(String group, String artifactId, String version, String type)
@@ -52,6 +54,12 @@ interface MavenModule extends Module {
     MavenModule hasType(String type)
 
     String getPublishArtifactVersion()
+
+    String getGroupId()
+
+    String getArtifactId()
+
+    String getVersion()
 
     TestFile getPomFile()
 
