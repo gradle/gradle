@@ -30,13 +30,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class RepositoryTransportDeployDelegate {
+public class RepositoryTransportWagonAdapter {
 
     private final RepositoryTransport transport;
     private final MavenArtifactRepository artifactRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployDelegate.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportWagonAdapter.class);
 
-    public RepositoryTransportDeployDelegate(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         this.artifactRepository = artifactRepository;
         transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
     }

@@ -119,7 +119,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
     def "should signal #expectedProgressCount progress events on a successful upload of #byteSize bytes"() {
         setup:
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
@@ -161,7 +161,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         setup:
         SessionListener sessionListener = Mock()
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
         delegate.putFile(*_) >> { throw new IOException("failed") }
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
@@ -192,7 +192,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
     def "should signal the correct events on a successful retrieval"() {
         setup:
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
@@ -222,7 +222,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
     def "should create the destination file if the deployer supplies a file which does not exist"() {
         setup:
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def resourceName = '/some/resource.jar'
@@ -255,7 +255,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
     def "should throw ResourceDoesNotExistException and signal events when the remote resource does not exist"() {
         setup:
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
@@ -282,7 +282,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
     def "should throw TransferFailedException and signal events when failed to download a remote resource"() {
         setup:
         TransferListener transferListener = Mock()
-        RepositoryTransportDeployDelegate delegate = Mock()
+        RepositoryTransportWagonAdapter delegate = Mock()
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')

@@ -35,9 +35,6 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.embed.Embedder;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
@@ -53,13 +50,11 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     private File localMavenRepository;
     private PlexusContainer container;
-    private final WagonRegistry wagonRegistry;
 
     protected AbstractMavenPublishAction(File pomFile) {
         this.pomFile = pomFile;
         this.wagonManager = lookup(WagonManager.class);
         wagonManager.setDownloadMonitor(new LoggingMavenTransferListener());
-        this.wagonRegistry = new WagonRegistry(container);
     }
 
     public void setLocalMavenRepositoryLocation(File localMavenRepository) {
@@ -134,7 +129,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         }
     }
 
-    synchronized PlexusContainer getContainer() {
+    protected synchronized PlexusContainer getContainer() {
         if (container == null) {
             try {
                 ClassWorld classWorld = new ClassWorld();
@@ -178,14 +173,6 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     private DefaultArtifactHandler artifactHandler(String type) {
         return new DefaultArtifactHandler(type);
-    }
-
-    public void registerGradleWagons() {
-        wagonRegistry.registerAll();
-    }
-
-    public void configureWagonForPublication(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        wagonRegistry.prepareForPublish(artifactRepository, repositoryTransportFactory);
     }
 
     private static class AdditionalArtifact {

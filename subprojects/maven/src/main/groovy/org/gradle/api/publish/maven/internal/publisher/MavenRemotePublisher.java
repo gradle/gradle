@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
+import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
+import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -36,11 +38,39 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
     }
 
     protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenDeployAction deployTask = new MavenDeployAction(pomFile);
+        MavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(new MavenRemoteRepositoryFactory(artifactRepository).create(), null);
         deployTask.setUniqueVersion(true);
-        deployTask.configureWagonForPublication(artifactRepository, repositoryTransportFactory);
         return deployTask;
+    }
+
+    private static class GradleWagonMavenDeployAction extends MavenDeployAction {
+        private final MavenArtifactRepository artifactRepository;
+        private final RepositoryTransportFactory repositoryTransportFactory;
+        private final WagonRegistry wagonRegistry;
+
+        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            super(pomFile);
+            this.artifactRepository = artifactRepository;
+            this.repositoryTransportFactory = repositoryTransportFactory;
+            this.wagonRegistry = new WagonRegistry(getContainer());
+
+            wagonRegistry.registerAll();
+        }
+
+        @Override
+        public void publish() {
+            String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
+            if (wagonRegistry.isCustomWagonProtocol(protocol)) {
+                RepositoryTransportDeployWagon.init(protocol, artifactRepository, repositoryTransportFactory);
+            }
+
+            try {
+                super.publish();
+            } finally {
+                RepositoryTransportDeployWagon.reset();
+            }
+        }
     }
 }

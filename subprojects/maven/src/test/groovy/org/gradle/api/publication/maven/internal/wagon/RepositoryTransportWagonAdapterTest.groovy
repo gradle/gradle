@@ -23,7 +23,7 @@ import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RepositoryTransportDeployDelegateTest extends Specification {
+class RepositoryTransportWagonAdapterTest extends Specification {
 
     public static final URI S3_URI = new URI("s3://somewhere/maven")
 
@@ -38,7 +38,7 @@ class RepositoryTransportDeployDelegateTest extends Specification {
         repositoryTransport.getRepository() >> externalResourceRepo
         repositoryTransportFactory.createTransport(*_) >> repositoryTransport
 
-        RepositoryTransportDeployDelegate delegate = new RepositoryTransportDeployDelegate("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
 
         when:
         delegate.getAndWriteFile(null, resourceName)
@@ -65,7 +65,7 @@ class RepositoryTransportDeployDelegateTest extends Specification {
         externalResourceRepo.getResource(_) >> resourceResponse
         repositoryTransportFactory.createTransport(*_) >> repositoryTransport
 
-        RepositoryTransportDeployDelegate delegate = new RepositoryTransportDeployDelegate("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
         expect:
         delegate.getAndWriteFile(null, 'a/b/some.jar') == expected
 
@@ -86,7 +86,7 @@ class RepositoryTransportDeployDelegateTest extends Specification {
         repositoryTransport.getRepository() >> externalResourceRepo
         repositoryTransportFactory.createTransport(*_) >> repositoryTransport
 
-        RepositoryTransportDeployDelegate delegate = new RepositoryTransportDeployDelegate("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
 
         when:
         delegate.putFile(null, 'something.jar')

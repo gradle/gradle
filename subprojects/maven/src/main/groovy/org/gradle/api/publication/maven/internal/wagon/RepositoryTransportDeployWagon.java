@@ -53,14 +53,19 @@ import static org.apache.maven.wagon.events.TransferEvent.*;
  */
 public class RepositoryTransportDeployWagon implements Wagon {
 
+    private static ThreadLocal<RepositoryTransportWagonAdapter> currentDelegate = new InheritableThreadLocal<RepositoryTransportWagonAdapter>();
+
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
     private TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
-    protected RepositoryTransportDeployDelegate delegate;
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployWagon.class);
 
-    public void createDelegate(String scheme, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        delegate = new RepositoryTransportDeployDelegate(scheme, artifactRepository, repositoryTransportFactory);
+    public static void init(String scheme, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        currentDelegate.set(new RepositoryTransportWagonAdapter(scheme, artifactRepository, repositoryTransportFactory));
+    }
+
+    public static void reset() {
+        currentDelegate.remove();
     }
 
     @Override
@@ -74,7 +79,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
                 destination.getParentFile().mkdirs();
                 destination.createNewFile();
             }
-            if (!delegate.getAndWriteFile(destination, resourceName)) {
+            if (!getDelegate().getAndWriteFile(destination, resourceName)) {
                 throw new ResourceDoesNotExistException(String.format("'%s' does not exist", resourceName));
             }
             signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
@@ -91,13 +96,17 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
-            delegate.putFile(file, resourceName);
+            getDelegate().putFile(file, resourceName);
             signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
         } catch (IOException e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
             throw new GradleException(String.format("Could not put file to remote location: %s", resourceName), e);
         }
         this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_PUT));
+    }
+
+    private RepositoryTransportWagonAdapter getDelegate() {
+        return currentDelegate.get();
     }
 
     @Override
