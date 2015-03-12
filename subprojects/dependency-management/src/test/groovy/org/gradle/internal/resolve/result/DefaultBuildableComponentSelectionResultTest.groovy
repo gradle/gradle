@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resolve.result
 
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resolve.ModuleVersionResolveException
