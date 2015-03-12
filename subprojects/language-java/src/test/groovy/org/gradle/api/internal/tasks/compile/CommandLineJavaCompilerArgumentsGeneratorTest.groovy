@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
+
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tempDir
@@ -35,7 +37,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def args = argsGenerator.generate(spec)
 
         then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", File.pathSeparator, "-classpath", spec.classpath.asPath, *spec.source*.path]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", File.pathSeparator, "-classpath", spec.classpath.asPath, *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -49,7 +51,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def createCompileSpec(numFiles) {

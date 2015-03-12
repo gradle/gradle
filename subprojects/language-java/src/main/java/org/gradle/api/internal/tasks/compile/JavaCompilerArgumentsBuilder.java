@@ -28,12 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
+    public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
+
     private final JavaCompileSpec spec;
 
     private boolean includeLauncherOptions;
     private boolean includeMainOptions = true;
     private boolean includeClasspath = true;
     private boolean includeSourceFiles;
+    private boolean includeCustomizations = true;
 
     private List<String> args;
 
@@ -61,6 +64,11 @@ public class JavaCompilerArgumentsBuilder {
         return this;
     }
 
+    public JavaCompilerArgumentsBuilder includeCustomizations(boolean flag) {
+        includeCustomizations = flag;
+        return this;
+    }
+
     public List<String> build() {
         args = new ArrayList<String>();
 
@@ -68,8 +76,25 @@ public class JavaCompilerArgumentsBuilder {
         addMainOptions();
         addClasspath();
         addSourceFiles();
+        addCustomizations();
 
         return args;
+    }
+
+    private void addCustomizations() {
+        if (includeCustomizations) {
+            //This is an internal option, it's used in com.sun.tools.javac.util.Names#createTable(Options options).
+            //The -XD backdoor switch is used to set it, as described in a comment in com.sun.tools.javac.main.RecognizedOptions#getAll(OptionHelper helper).
+            //This option was introduced in JDK 7 and controls if compiler's name tables should be reused.
+            //Without this option being set they are stored in a static list using soft references which can lead to memory pressure and performance deterioration
+            //when using the daemon, especially when using small heap and building a large project.
+            //Due to what looks like a bug in com.sun.tools.javac.util.Names#createTable(Options options) no instances of SharedNameTable are actually ever reused.
+            //With this option set name tables are not cached anywhere.
+            //Using this option leads to significant performance improvements when using daemon to compile java sources.
+            //No difference in performance has been observed between setting this option and not when compiling large number of files and not using the daemon probably due to
+            //the fact that no instances are ever reused even with this option not set.
+            args.add(USE_UNSHARED_COMPILER_TABLE_OPTION);
+        }
     }
 
     private void addLauncherOptions() {
