@@ -341,7 +341,7 @@ task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUn
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative,
-                                smallScenarioNative, mediumScenarioNative, bigScenarioNative,
+                                smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
                                 bigOldJavaMoreSource])
 
 task report {
