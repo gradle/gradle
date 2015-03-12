@@ -286,6 +286,17 @@ task multiNative(type: ProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
+task manyProjectsNative(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 1
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 3,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-source', 'native-component']
+}
+
 task smallScenarioNative(type: ProjectGeneratorTask) {
     projects = 1
     nativeProject = true

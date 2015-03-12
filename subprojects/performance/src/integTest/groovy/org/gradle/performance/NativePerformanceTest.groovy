@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
@@ -42,5 +43,21 @@ class NativePerformanceTest extends AbstractCrossVersionPerformanceTest {
         "medium"       | millis(500)
         "big"          | millis(1000)
         "multi"        | millis(1000)
+    }
+
+    @Category(Experiment)
+    def "Many projects native build" () {
+        given:
+        runner.testId = "native build many projects"
+        runner.testProject = "manyProjectsNative"
+        runner.tasksToRun = [ "clean", "assemble" ]
+        runner.maxExecutionTimeRegression = millis(500)
+        runner.targetVersions = [ '2.3', 'last' ]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
     }
 }
