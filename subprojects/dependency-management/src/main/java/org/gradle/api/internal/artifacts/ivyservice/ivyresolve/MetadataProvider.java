@@ -37,6 +37,11 @@ public class MetadataProvider {
         this.metaDataSupplier = metaDataSupplier;
     }
 
+    public MetadataProvider(BuildableModuleComponentMetaDataResolveResult result) {
+        this.metaDataSupplier = null;
+        cachedResult = result;
+    }
+
     public ComponentMetadata getComponentMetadata() {
         return new ComponentMetadataDetailsAdapter(getMetaData());
     }
@@ -50,16 +55,16 @@ public class MetadataProvider {
         return null;
     }
 
-    public MutableModuleComponentResolveMetaData getMetaData() {
-        if(cachedResult == null) {
+    public boolean resolve() {
+        if (cachedResult == null) {
             cachedResult = metaDataSupplier.create();
         }
-
-        return cachedResult.hasResult() ? cachedResult.getMetaData() : null;
+        return cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
     }
 
-    public boolean canProvideMetaData() {
-        return getMetaData() != null;
+    public MutableModuleComponentResolveMetaData getMetaData() {
+        resolve();
+        return cachedResult.hasResult() ? cachedResult.getMetaData() : null;
     }
 
     public static class MetaDataSupplier implements Factory<BuildableModuleComponentMetaDataResolveResult> {

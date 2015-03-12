@@ -43,7 +43,7 @@ class MetadataProviderTest extends Specification {
         result.resolved(new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor)))
 
         when:
-        boolean metaData = metadataProvider.canProvideMetaData()
+        boolean metaData = metadataProvider.resolve()
 
         then:
         1 * metadataSupplier.create() >> result

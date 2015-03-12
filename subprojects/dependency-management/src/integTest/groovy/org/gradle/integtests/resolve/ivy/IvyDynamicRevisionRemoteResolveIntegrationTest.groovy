@@ -854,6 +854,83 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    def "reports and recovers from missing module for dynamic version that requires meta-data"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "latest.release"
+}
+"""
+
+        when:
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        def projectA = ivyHttpRepo.module("group", "projectA", "1.2").withStatus("release").publish()
+        directoryList.expectGet()
+        projectA.ivy.expectGetMissing()
+        projectA.jar.expectHeadMissing()
+
+        then:
+        fails "checkDeps"
+        // TODO - is missing the URLs for projectA:1.2
+        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.release.
+Searched in the following locations:
+    ${directoryList.uri}
+""")
+
+        when:
+        server.resetExpectations()
+        // TODO - should not fetch directory list again
+        directoryList.expectGet()
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+
+        then:
+        checkResolve "group:projectA:latest.release": "group:projectA:1.2"
+    }
+
+    def "reports and recovers from broken module for dynamic version that requires meta-data"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "latest.release"
+}
+"""
+
+        when:
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        def projectA = ivyHttpRepo.module("group", "projectA", "1.2").withStatus("release").publish()
+        directoryList.expectGet()
+        projectA.ivy.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not resolve group:projectA:latest.release")
+        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        // TODO - should not need to list versions again
+        directoryList.expectGet()
+        projectA.ivy.expectGet()
+        projectA.jar.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
+        failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        projectA.jar.expectGet()
+
+        then:
+        checkResolve "group:projectA:latest.release": "group:projectA:1.2"
+    }
+
     @Unroll
     def "finds best matching version in local and remote repository with #order"() {
         given:
