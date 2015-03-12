@@ -23,7 +23,7 @@ import java.io.File;
 
 public interface BuildableArtifactResolveResult extends ArtifactResolveResult, ResourceAwareResolveResult {
     /**
-     * Marks the module version as resolved, with the given artifact resolver.
+     * Marks the artifact as resolved to the given file.
      */
     void resolved(File file);
 

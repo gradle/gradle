@@ -23,6 +23,10 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+/**
+ * The result of resolving a module version selector to a particular component id. The result may optionally include the meta-data for the selected component, if it
+ * is cheaply available (for example, it was used to select the component).
+ */
 public interface ComponentIdResolveResult extends ResolveResult {
     @Nullable
     ModuleVersionResolveException getFailure();

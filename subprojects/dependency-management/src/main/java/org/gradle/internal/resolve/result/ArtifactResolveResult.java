@@ -20,6 +20,9 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
 
+/**
+ * The result of resolving an artifact id to a file.
+ */
 public interface ArtifactResolveResult extends ResolveResult {
     /**
      * Returns the resolve failure, if any.

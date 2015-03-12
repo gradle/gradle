@@ -16,8 +16,12 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
+/**
+ * The result of resolving some dynamic version selector to a particular component id.
+ */
 public interface BuildableComponentSelectionResult extends ResolveResult {
     static enum State {
         Match, NoMatch, Unknown
@@ -28,6 +32,7 @@ public interface BuildableComponentSelectionResult extends ResolveResult {
      *
      * @return Chosen module component identifier
      */
+    @Nullable
     ModuleComponentIdentifier getMatch();
 
     /**

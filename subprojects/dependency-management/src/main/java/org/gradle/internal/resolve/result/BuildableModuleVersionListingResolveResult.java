@@ -22,7 +22,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import java.util.Collection;
 
 /**
- * The result of attempting to resolve a dependency descriptor to a list of candidate versions that might match that descriptor.
+ * The result of attempting to resolve the list of versions for a particular module.
  */
 public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ResolveResult {
 
@@ -31,14 +31,9 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
     }
 
     /**
-     * Returns the current state of this descriptor.
+     * Returns the current state of this result.
      */
     State getState();
-
-    /**
-     * Returns true if this result is available, ie the state is not {@link State#Unknown}.
-     */
-    boolean hasResult();
 
     /**
      * Returns the versions that match the selector.

@@ -21,7 +21,7 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
- * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.
+ * The result of attempting to resolve a component id to the meta-data for the component.
  */
 public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult, ResolveResult {
     static enum State {
