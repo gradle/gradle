@@ -79,32 +79,26 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
             MetadataProvider metadataProvider = new MetadataProvider(dependency, candidateIdentifier, moduleAccess);
 
-            if (requestedVersion.requiresMetadata() && !metadataProvider.resolve()) {
-                BuildableModuleComponentMetaDataResolveResult metaDataResult = metadataProvider.getResult();
-                switch (metaDataResult.getState()) {
-                    case Unknown:
-                        // For example, when using a local access to resolve something remote
-                        result.noMatchFound();
-                        return;
-                    case Missing:
-                        metaDataResult.applyTo(result);
-                        result.noMatchFound();
-                        return;
-                    case Failed:
-                        result.failed(metaDataResult.getFailure());
-                        return;
-                    default:
-                        throw new IllegalStateException("Unexpected meta-data resolution result.");
-                }
+            boolean versionMatches = versionMatches(requestedVersion, candidateIdentifier, metadataProvider);
+            if (!metadataProvider.isUsable()) {
+                applyTo(metadataProvider, result);
+                return;
             }
 
-            if (versionMatches(requestedVersion, candidateIdentifier, metadataProvider)) {
-                if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
+            if (versionMatches) {
+                boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
+                if (!metadataProvider.isUsable()) {
+                    applyTo(metadataProvider, result);
+                    return;
+                }
+
+                if (accepted) {
                     result.matches(candidateIdentifier);
                     return;
                 }
 
                 if (requestedVersion.matchesUniqueVersion()) {
+                    // Only consider one candidate
                     break;
                 }
             }
@@ -113,8 +107,30 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         result.noMatchFound();
     }
 
+    private void applyTo(MetadataProvider provider, BuildableComponentSelectionResult result) {
+        BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
+        switch (metaDataResult.getState()) {
+            case Unknown:
+                // For example, when using a local access to resolve something remote
+                result.noMatchFound();
+                break;
+            case Missing:
+                metaDataResult.applyTo(result);
+                result.noMatchFound();
+                break;
+            case Failed:
+                result.failed(metaDataResult.getFailure());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected meta-data resolution result.");
+        }
+    }
+
     private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
+            if (!metadataProvider.resolve()) {
+                return false;
+            }
             return selector.accept(metadataProvider.getComponentMetadata());
         } else {
             return selector.accept(candidateIdentifier.getVersion());

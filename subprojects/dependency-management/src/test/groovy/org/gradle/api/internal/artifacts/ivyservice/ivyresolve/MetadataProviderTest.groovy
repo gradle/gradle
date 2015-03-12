@@ -18,101 +18,94 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.internal.Factory
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class MetadataProviderTest extends Specification {
-    Factory metadataSupplier = Mock(Factory)
-    MetadataProvider metadataProvider = new MetadataProvider(metadataSupplier)
+    def repo = Mock(ModuleComponentRepositoryAccess)
+    def dep = Stub(DependencyMetaData)
+    def id = Stub(ModuleComponentIdentifier) {
+        getVersion() >> "1.2"
+    }
+    def metaData = Stub(MutableModuleComponentResolveMetaData)
+    def metadataProvider = new MetadataProvider(dep, id, repo)
 
-    def "caches metadata supplier result"() {
+    def "caches metadata result"() {
         when:
         metadataProvider.getMetaData()
         metadataProvider.getMetaData()
 
         then:
-        1 * metadataSupplier.create() >> new DefaultBuildableModuleComponentMetaDataResolveResult()
+        1 * repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.resolved(metaData)
+        }
+        0 * repo._
     }
 
     def "verifies that metadata was provided"() {
         given:
-        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
-        result.resolved(new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor)))
+        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.resolved(metaData)
+        }
 
-        when:
-        boolean metaData = metadataProvider.resolve()
-
-        then:
-        1 * metadataSupplier.create() >> result
-        metaData
+        expect:
+        metadataProvider.resolve()
+        metadataProvider.usable
+        metadataProvider.metaData
     }
 
     def "verifies that metadata was not provided"() {
         given:
-        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
+        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.missing()
+        }
 
-        when:
-        boolean metaData = metadataProvider.getMetaData()
-
-        then:
-        1 * metadataSupplier.create() >> result
-        !metaData
+        expect:
+        !metadataProvider.resolve()
+        !metadataProvider.usable
     }
 
     def "can provide component metadata" () {
         given:
-        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
-        def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
-            getModuleRevisionId() >> ModuleRevisionId.newInstance("group", "name", "1.0")
-        })
-        result.resolved(metaData)
+        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.resolved(metaData)
+        }
 
         when:
         def componentMetadata = metadataProvider.getComponentMetadata()
 
         then:
-        componentMetadata.id.group == "group"
-        componentMetadata.id.name == "name"
-        componentMetadata.id.version == "1.0"
-
-        and:
-        1 * metadataSupplier.create() >> result
+        componentMetadata.metadata == metaData
     }
 
     def "can provide Ivy descriptor" () {
         given:
-        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
         def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
             getStatus() >> "test"
         })
-        result.resolved(metaData)
+        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.resolved(metaData)
+        }
 
         when:
         def returned = metadataProvider.getIvyModuleDescriptor()
 
         then:
         returned.ivyStatus == "test"
-
-        and:
-        1 * metadataSupplier.create() >> result
     }
 
     def "returns null when not Ivy descriptor" () {
         given:
-        def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
-        def metaData = new DefaultMavenModuleResolveMetaData(Stub(ModuleDescriptor), "bundle", false)
-        result.resolved(metaData)
+        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+            result.resolved(metaData)
+        }
 
-        when:
-        def returned = metadataProvider.getIvyModuleDescriptor()
-
-        then:
-        returned == null
-
-        and:
-        1 * metadataSupplier.create() >> result
+        expect:
+        metadataProvider.getIvyModuleDescriptor() == null
     }
 }

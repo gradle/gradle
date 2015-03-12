@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
@@ -30,15 +31,11 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 
 public class MetadataProvider {
-    private final Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier;
+    private final MetaDataSupplier metaDataSupplier;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
 
     public MetadataProvider(DependencyMetaData dependency, ModuleComponentIdentifier id, ModuleComponentRepositoryAccess repository) {
         this.metaDataSupplier = new MetaDataSupplier(dependency, id, repository);
-    }
-
-    public MetadataProvider(Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier) {
-        this.metaDataSupplier = metaDataSupplier;
     }
 
     public MetadataProvider(BuildableModuleComponentMetaDataResolveResult result) {
@@ -50,6 +47,7 @@ public class MetadataProvider {
         return new ComponentMetadataDetailsAdapter(getMetaData());
     }
 
+    @Nullable
     public IvyModuleDescriptor getIvyModuleDescriptor() {
         ModuleComponentResolveMetaData metaData = getMetaData();
         if (metaData instanceof IvyModuleResolveMetaData) {
@@ -68,9 +66,14 @@ public class MetadataProvider {
 
     public MutableModuleComponentResolveMetaData getMetaData() {
         resolve();
-        return cachedResult.hasResult() ? cachedResult.getMetaData() : null;
+        return cachedResult.getMetaData();
     }
 
+    public boolean isUsable() {
+        return cachedResult == null || cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+    }
+
+    @Nullable
     public BuildableModuleComponentMetaDataResolveResult getResult() {
         return cachedResult;
     }
