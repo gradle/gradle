@@ -734,6 +734,7 @@ dependencies {
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when: "no version > 2"
@@ -745,6 +746,7 @@ Searched in the following locations:
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when:
@@ -777,6 +779,7 @@ dependencies {
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when: "no versions"
@@ -788,6 +791,7 @@ Searched in the following locations:
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when:
@@ -873,10 +877,12 @@ dependencies {
 
         then:
         fails "checkDeps"
-        // TODO - is missing the URLs for projectA:1.2
         failure.assertHasCause("""Could not find any version that matches group:projectA:latest.release.
 Searched in the following locations:
+    ${projectA.ivy.uri}
+    ${projectA.jar.uri}
     ${directoryList.uri}
+Required by:
 """)
 
         when:

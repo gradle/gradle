@@ -322,6 +322,7 @@ Searched in the following locations:
     ${projectA.pom.uri}
     ${projectA.artifact.uri}
     ${repo.getModuleMetaData("group", "projectA").uri}
+Required by:
 """)
 
         when:

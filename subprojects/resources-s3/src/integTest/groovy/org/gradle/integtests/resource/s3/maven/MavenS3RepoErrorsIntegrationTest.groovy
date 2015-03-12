@@ -114,7 +114,9 @@ repositories {
         errorOutput.contains(TextUtil.toPlatformLineSeparators(
                 """Could not find org.gradle:test:1.85.
 Searched in the following locations:
-    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.pom
-    s3://${bucket}/maven/release/org/gradle/test/1.85/test-1.85.jar"""))
+    ${module.pom.uri}
+    ${module.artifact.uri}
+Required by:
+"""))
     }
 }

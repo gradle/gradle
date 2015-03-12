@@ -660,6 +660,7 @@ Searched in the following locations:
     ${projectA.metaData.uri}
     ${projectA.pom.uri}
     ${projectA.artifact.uri}
+Required by:
 """)
 
         when:
@@ -953,6 +954,7 @@ task retrieve(type: Sync) {
 Searched in the following locations:
     ${projectA.pom.uri}
     ${projectA.artifact.uri}
+Required by:
 """)
     }
 

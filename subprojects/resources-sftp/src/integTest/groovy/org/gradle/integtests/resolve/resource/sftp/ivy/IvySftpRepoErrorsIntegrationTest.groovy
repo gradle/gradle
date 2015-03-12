@@ -52,6 +52,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 Searched in the following locations:
     ${module.ivy.uri}
     ${module.jar.uri}
+Required by:
 """)
     }
 
@@ -84,6 +85,7 @@ Searched in the following locations:
                 .assertHasCause("""Could not find any version that matches org.group.name:projectA:1.+.
 Searched in the following locations:
     ${ivySftpRepo.uri}/org.group.name/projectA/
+Required by:
 """)
     }
 
@@ -199,8 +201,10 @@ Searched in the following locations:
             }
         """
 
+
         when:
-        ivySftpRepo.module('org.group.name', 'projectA', '1.2').ivy.expectMetadataRetrieveBroken()
+        def projectA = ivySftpRepo.module('org.group.name', 'projectA', '1.2')
+        projectA.ivy.expectMetadataRetrieveBroken()
 
         and:
         failure = executer.withStackTraceChecksDisabled().withTasks('retrieve').runWithFailure()
@@ -208,6 +212,6 @@ Searched in the following locations:
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
-                .assertHasCause("Could not get resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo/org.group.name/projectA/1.2/ivy-1.2.xml'")
+                .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
 }

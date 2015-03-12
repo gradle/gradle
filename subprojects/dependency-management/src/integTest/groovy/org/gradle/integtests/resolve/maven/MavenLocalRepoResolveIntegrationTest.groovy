@@ -172,7 +172,9 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
     ${module.pomFile.toURL()}
-    ${module.artifactFile.toURL()}""")
+    ${module.artifactFile.toURL()}
+Required by:
+""")
 
         when:
         module.publish()
