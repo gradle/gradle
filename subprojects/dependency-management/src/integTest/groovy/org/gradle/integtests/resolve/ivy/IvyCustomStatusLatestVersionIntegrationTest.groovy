@@ -120,7 +120,7 @@ dependencies {
     compile 'org.test:projectA:latest.release'
     components {
         all { ComponentMetadataDetails details ->
-            if(details.status == 'snapshot') {
+            if (details.status == 'snapshot') {
                 details.changing = true
             }
 
@@ -141,12 +141,18 @@ task retrieve(type: Sync) {
 }
 """
 
-        and:
-        ivyHttpRepo.directoryList('org.test', 'projectA').allowGet()
-        ivyHttpRepo.module('org.test', 'projectA', '1.1').withStatus("snapshot").publish().allowAll()
-        ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish().allowAll()
-        ivyHttpRepo.module('org.test', 'projectA', '1.3').withStatus("snapshot").publish().allowAll()
 
+        and:
+        def directoryList = ivyHttpRepo.directoryList('org.test', 'projectA')
+        ivyHttpRepo.module('org.test', 'projectA', '1.1').withStatus("snapshot").publish()
+        def project2 = ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish()
+        def project3 = ivyHttpRepo.module('org.test', 'projectA', '1.3').withStatus("snapshot").publish()
+
+        and:
+        directoryList.allowGet()
+        project3.ivy.expectGet()
+        project2.ivy.expectGet()
+        project2.jar.expectGet()
 
         when:
         run 'retrieve'
@@ -155,6 +161,13 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-1.2.jar")
 
         when:
+        server.resetExpectations()
+        directoryList.allowGet()
+        project3.ivy.expectHead()
+        project2.ivy.expectHead()
+        // TODO - should be checking the jar too
+
+        and:
         run 'retrieve'
 
         then:
@@ -162,6 +175,14 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-1.2.jar")
 
         when:
+        server.resetExpectations()
+        directoryList.allowGet()
+        project3.ivy.expectHead()
+        // TODO - should not be checking these, they are not marked as changing
+        project2.ivy.expectHead()
+        project2.jar.expectHead()
+
+        and:
         run 'retrieve'
 
         then:
