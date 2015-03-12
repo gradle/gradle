@@ -16,14 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import spock.lang.Specification
 
 class DefaultObjectFileExtensionCalculatorTest extends Specification {
 
     def "returns correct object file suffix for operating system" () {
-        def os = Mock(OperatingSystemInternal) {
-            isWindows() >> isWindows
+        def os = Mock(AbstractPlatformToolProvider) {
+            getPCHFileExtension() >> ".pch"
+            getObjectFileExtension() >> ".o"
         }
         def spec = Mock(NativeCompileSpec) {
             isPreCompiledHeader() >> isPreCompiledHeader
@@ -34,10 +34,8 @@ class DefaultObjectFileExtensionCalculatorTest extends Specification {
         calculator.transform(spec) == extension
 
         where:
-        isWindows | isPreCompiledHeader | extension
-        true      | true                | ".pch"
-        false     | true                | ".h.gch"
-        true      | false               | ".obj"
-        false     | false               | ".o"
+        isPreCompiledHeader | extension
+        true                | ".pch"
+        false               | ".o"
     }
 }

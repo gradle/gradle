@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.sourceset
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 
@@ -70,10 +69,10 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
     }
 
     String getSuffix() {
-        return OperatingSystem.current().isWindows() ? "pch" : "h.gch"
+        return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
     }
 
     String modifyContent(content) {
-        return OperatingSystem.current().isWindows() ? content : content - "#include \"hello.h\""
+        return toolChain.displayName == "visual c++" ? content : content - "#include \"hello.h\""
     }
 }

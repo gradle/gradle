@@ -16,20 +16,18 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
-
 public class DefaultObjectFileExtensionCalculator implements ObjectFileExtensionCalculator {
-    private final OperatingSystemInternal targetOperatingSystem;
+    private final AbstractPlatformToolProvider toolProvider;
 
-    public DefaultObjectFileExtensionCalculator(OperatingSystemInternal targetOperatingSystem) {
-        this.targetOperatingSystem = targetOperatingSystem;
+    public DefaultObjectFileExtensionCalculator(AbstractPlatformToolProvider toolProvider) {
+        this.toolProvider = toolProvider;
     }
 
     @Override
     public String transform(NativeCompileSpec nativeCompileSpec) {
         if (nativeCompileSpec.isPreCompiledHeader()) {
-            return targetOperatingSystem.isWindows() ? ".pch" : ".h.gch";
+            return toolProvider.getPCHFileExtension();
         }
-        return targetOperatingSystem.isWindows() ? ".obj" : ".o";
+        return toolProvider.getObjectFileExtension();
     }
 }

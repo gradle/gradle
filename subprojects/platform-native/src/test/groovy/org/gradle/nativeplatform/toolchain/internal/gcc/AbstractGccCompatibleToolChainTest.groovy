@@ -25,7 +25,6 @@ import org.gradle.internal.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.*
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.version.CompilerMetaDataProvider
@@ -178,40 +177,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         then:
         selected.isAvailable()
         assert platformActionApplied == 2
-    }
-
-
-    def "selected toolChain uses objectfile suffix based on targetplatform"() {
-        def platform1 = Mock(NativePlatformInternal)
-        def platform2 = Mock(NativePlatformInternal)
-        platform1.getName() >> "platform1"
-        def platformOSWin = Mock(OperatingSystemInternal)
-        platformOSWin.isWindows() >> true
-        def platformOSNonWin = Mock(OperatingSystemInternal)
-        platformOSNonWin.isWindows() >> false
-        platform1.getOperatingSystem() >> platformOSWin
-        platform2.getOperatingSystem() >> platformOSNonWin
-        platform2.getName() >> "platform2"
-        toolSearchPath.locate(_, _) >> tool
-        metaDataProvider.getGccMetaData(_, _) >> correctCompiler
-        def spec = Stub(NativeCompileSpec) {
-            isPreCompiledHeader() >> false
-        }
-
-        toolChain.target(platform1.getName())
-        toolChain.target(platform2.getName())
-
-        when:
-        PlatformToolProvider selected = toolChain.select(platform1)
-
-        then:
-        selected.objectFileExtensionCalculator.transform(spec) == ".obj"
-
-        when:
-        selected = toolChain.select(platform2)
-
-        then:
-        selected.objectFileExtensionCalculator.transform(spec) == ".o"
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {

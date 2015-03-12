@@ -101,4 +101,14 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
         return baseInvocation;
     }
+
+    @Override
+    public String getPCHFileExtension() {
+        return ".h.gch";
+    }
+
+    @Override
+    public String getObjectFileExtension() {
+        return ".o";
+    }
 }

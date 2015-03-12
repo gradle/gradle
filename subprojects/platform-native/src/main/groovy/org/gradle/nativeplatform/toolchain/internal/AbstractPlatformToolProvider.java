@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.*;
 import org.gradle.util.TreeVisitor;
 
-public class AbstractPlatformToolProvider implements PlatformToolProvider {
+public abstract class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected final OperatingSystemInternal targetOperatingSystem;
     protected final BuildOperationProcessor buildOperationProcessor;
     private final ObjectFileExtensionCalculator objectFileExtensionCalculator;
@@ -34,7 +34,7 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
     public AbstractPlatformToolProvider(BuildOperationProcessor buildOperationProcessor, OperatingSystemInternal targetOperatingSystem) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.buildOperationProcessor = buildOperationProcessor;
-        this.objectFileExtensionCalculator = new DefaultObjectFileExtensionCalculator(targetOperatingSystem);
+        this.objectFileExtensionCalculator = new DefaultObjectFileExtensionCalculator(this);
     }
 
     public boolean isAvailable() {
@@ -132,4 +132,8 @@ public class AbstractPlatformToolProvider implements PlatformToolProvider {
     protected Compiler<?> createStaticLibraryArchiver() {
         throw unavailableTool("Static library archiver is not available");
     }
+
+    public abstract String getPCHFileExtension();
+
+    public abstract String getObjectFileExtension();
 }
