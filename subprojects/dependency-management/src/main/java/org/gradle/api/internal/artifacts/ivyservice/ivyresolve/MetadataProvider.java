@@ -28,11 +28,14 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 public class MetadataProvider {
     private final Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
+
+    public MetadataProvider(DependencyMetaData dependency, ModuleComponentIdentifier id, ModuleComponentRepositoryAccess repository) {
+        this.metaDataSupplier = new MetaDataSupplier(dependency, id, repository);
+    }
 
     public MetadataProvider(Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier) {
         this.metaDataSupplier = metaDataSupplier;
@@ -68,13 +71,11 @@ public class MetadataProvider {
         return cachedResult.hasResult() ? cachedResult.getMetaData() : null;
     }
 
-    public void applyTo(ResourceAwareResolveResult target) {
-        if (cachedResult != null) {
-            cachedResult.applyTo(target);
-        }
+    public BuildableModuleComponentMetaDataResolveResult getResult() {
+        return cachedResult;
     }
 
-    public static class MetaDataSupplier implements Factory<BuildableModuleComponentMetaDataResolveResult> {
+    private static class MetaDataSupplier implements Factory<BuildableModuleComponentMetaDataResolveResult> {
         private final DependencyMetaData dependency;
         private final ModuleComponentIdentifier id;
         private final ModuleComponentRepositoryAccess repository;

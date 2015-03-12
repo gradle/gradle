@@ -319,9 +319,9 @@ task retrieve(type: Sync) {
         // TODO - this error message isn't right: it found a version, it just happened to be missing. should really choose another version
         failure.assertHasCause("""Could not find any version that matches group:projectA:1.+.
 Searched in the following locations:
+    ${repo.getModuleMetaData("group", "projectA").uri}
     ${projectA.pom.uri}
     ${projectA.artifact.uri}
-    ${repo.getModuleMetaData("group", "projectA").uri}
 Required by:
 """)
 

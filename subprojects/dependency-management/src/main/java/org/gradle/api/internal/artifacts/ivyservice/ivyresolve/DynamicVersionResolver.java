@@ -198,14 +198,17 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                     DependencyMetaData selectedVersionDependency = dynamicVersionDependency.withRequestedVersion(selectedComponentId.getVersion());
                     moduleAccess.resolveComponentMetaData(selectedVersionDependency, selectedComponentId, resolveResult);
                     break;
+                case Failed:
+                    resolveResult.failed(componentSelectionResult.getFailure());
+                    break;
                 default:
                     throw new IllegalStateException("Unexpected state for component selection result.");
             }
         }
 
         protected void applyTo(ResourceAwareResolveResult result) {
-            metaDataResolveResult.applyTo(result);
             versionListingResult.applyTo(result);
+            metaDataResolveResult.applyTo(result);
         }
 
         public boolean canMakeFurtherAttempts() {

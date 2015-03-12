@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
@@ -35,8 +36,6 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MetadataProvider.MetaDataSupplier;
 
 class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
@@ -78,12 +77,25 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
         for (Versioned candidate : sortLatestFirst(versions)) {
             ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
-            MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
+            MetadataProvider metadataProvider = new MetadataProvider(dependency, candidateIdentifier, moduleAccess);
 
             if (requestedVersion.requiresMetadata() && !metadataProvider.resolve()) {
-                metadataProvider.applyTo(result);
-                result.noMatchFound();
-                return;
+                BuildableModuleComponentMetaDataResolveResult metaDataResult = metadataProvider.getResult();
+                switch (metaDataResult.getState()) {
+                    case Unknown:
+                        // For example, when using a local access to resolve something remote
+                        result.noMatchFound();
+                        return;
+                    case Missing:
+                        metaDataResult.applyTo(result);
+                        result.noMatchFound();
+                        return;
+                    case Failed:
+                        result.failed(metaDataResult.getFailure());
+                        return;
+                    default:
+                        throw new IllegalStateException("Unexpected meta-data resolution result.");
+                }
             }
 
             if (versionMatches(requestedVersion, candidateIdentifier, metadataProvider)) {

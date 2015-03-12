@@ -18,13 +18,14 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
  * The result of resolving some dynamic version selector to a particular component id.
  */
 public interface BuildableComponentSelectionResult extends ResolveResult, ResourceAwareResolveResult {
     static enum State {
-        Match, NoMatch, Unknown
+        Match, NoMatch, Failed, Unknown
     }
 
     /**
@@ -32,8 +33,14 @@ public interface BuildableComponentSelectionResult extends ResolveResult, Resour
      *
      * @return Chosen module component identifier
      */
-    @Nullable
     ModuleComponentIdentifier getMatch();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    ModuleVersionResolveException getFailure();
 
     /**
      * Marks the given module component identifier as matching.
@@ -41,6 +48,8 @@ public interface BuildableComponentSelectionResult extends ResolveResult, Resour
      * @param moduleComponentIdentifier Chosen module component identifier
      */
     void matches(ModuleComponentIdentifier moduleComponentIdentifier);
+
+    void failed(ModuleVersionResolveException failure);
 
     /**
      * Registers that there was no matching module component identifier.

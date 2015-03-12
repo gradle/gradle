@@ -18,10 +18,12 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwareResolveResult implements BuildableComponentSelectionResult {
     private State state = State.Unknown;
     private ModuleComponentIdentifier moduleComponentIdentifier;
+    private ModuleVersionResolveException failure;
 
     public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
         setChosenComponentWithReason(State.Match, moduleComponentIdentifier);
@@ -34,6 +36,7 @@ public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwa
     private void setChosenComponentWithReason(State state, ModuleComponentIdentifier moduleComponentIdentifier) {
         this.state = state;
         this.moduleComponentIdentifier = moduleComponentIdentifier;
+        this.failure = null;
     }
 
     public State getState() {
@@ -41,6 +44,9 @@ public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwa
     }
 
     public ModuleComponentIdentifier getMatch() {
+        if (state != State.Match) {
+            throw new IllegalStateException("This result has not been resolved.");
+        }
         return moduleComponentIdentifier;
     }
 
@@ -51,7 +57,17 @@ public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwa
 
     @Nullable
     @Override
-    public Throwable getFailure() {
-        return null;
+    public ModuleVersionResolveException getFailure() {
+        if (state == State.Unknown) {
+            throw new IllegalStateException("This result has not been resolved.");
+        }
+        return failure;
+    }
+
+    @Override
+    public void failed(ModuleVersionResolveException failure) {
+        this.moduleComponentIdentifier = null;
+        this.failure = failure;
+        this.state = State.Failed;
     }
 }

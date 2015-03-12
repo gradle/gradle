@@ -36,6 +36,8 @@ import org.gradle.internal.rules.ClosureBackedRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
+import static org.gradle.internal.resolve.result.BuildableComponentSelectionResult.State.NoMatch
+
 class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = Mock(VersionSelectorScheme)
     def versionComparator = new DefaultVersionComparator()
@@ -233,8 +235,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         // Since 1.3 is "latest.release" but it's rejected by rule, we should fail to resolve
         chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
-        selectedComponentResult.match == null
-
+        selectedComponentResult.state == NoMatch
     }
 
     def "rejects static version by selection rule" () {
@@ -264,7 +265,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
-        selectedComponentResult.match == null
+        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when no versions match without metadata"() {
@@ -290,7 +291,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
-        selectedComponentResult.match == null
+        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when no versions are chosen with metadata"() {
@@ -322,7 +323,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
-        selectedComponentResult.match == null
+        selectedComponentResult.state == NoMatch
     }
 
     def "returns no match when all matching versions match are rejected by rule"() {
@@ -351,7 +352,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         chooser.selectNewestMatchingComponent(listing, dependency, repo, selectedComponentResult)
-        selectedComponentResult.match == null
+        selectedComponentResult.state == NoMatch
     }
 
     def rules(Closure closure) {

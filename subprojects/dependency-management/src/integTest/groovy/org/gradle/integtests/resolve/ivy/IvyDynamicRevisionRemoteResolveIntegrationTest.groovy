@@ -879,9 +879,9 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:latest.release.
 Searched in the following locations:
+    ${directoryList.uri}
     ${projectA.ivy.uri}
     ${projectA.jar.uri}
-    ${directoryList.uri}
 Required by:
 """)
 

@@ -24,10 +24,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseException {
@@ -61,6 +58,10 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
         this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), messageFormat);
+    }
+
+    public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), Arrays.asList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
