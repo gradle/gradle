@@ -176,13 +176,15 @@ class DynamicVersionResolverTest extends Specification {
 
         then:
         1 * localAccess.listModuleVersions(dependency, _) >> { dep, result ->
-            result.attempted('somewhere')
+            result.attempted('version-location')
             result.listed(versionListing)
         }
         1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
+            res.attempted("component-location")
             res.noMatchFound()
         }
-        1 * result.attempted('somewhere')
+        1 * result.attempted('version-location')
+        1 * result.attempted('component-location')
         1 * result.notFound(selector)
 
         and:

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 /**
  * The result of resolving some dynamic version selector to a particular component id.
  */
-public interface BuildableComponentSelectionResult extends ResolveResult {
+public interface BuildableComponentSelectionResult extends ResolveResult, ResourceAwareResolveResult {
     static enum State {
         Match, NoMatch, Unknown
     }

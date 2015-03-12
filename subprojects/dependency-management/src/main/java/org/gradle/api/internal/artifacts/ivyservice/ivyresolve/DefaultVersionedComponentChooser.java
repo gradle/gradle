@@ -81,6 +81,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             MetadataProvider metadataProvider = new MetadataProvider(new MetaDataSupplier(dependency, candidateIdentifier, moduleAccess));
 
             if (requestedVersion.requiresMetadata() && !metadataProvider.resolve()) {
+                metadataProvider.applyTo(result);
                 result.noMatchFound();
                 return;
             }

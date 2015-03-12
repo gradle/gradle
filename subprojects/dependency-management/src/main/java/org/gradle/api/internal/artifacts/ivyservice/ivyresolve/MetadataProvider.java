@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 public class MetadataProvider {
     private final Factory<? extends BuildableModuleComponentMetaDataResolveResult> metaDataSupplier;
@@ -65,6 +66,12 @@ public class MetadataProvider {
     public MutableModuleComponentResolveMetaData getMetaData() {
         resolve();
         return cachedResult.hasResult() ? cachedResult.getMetaData() : null;
+    }
+
+    public void applyTo(ResourceAwareResolveResult target) {
+        if (cachedResult != null) {
+            cachedResult.applyTo(target);
+        }
     }
 
     public static class MetaDataSupplier implements Factory<BuildableModuleComponentMetaDataResolveResult> {

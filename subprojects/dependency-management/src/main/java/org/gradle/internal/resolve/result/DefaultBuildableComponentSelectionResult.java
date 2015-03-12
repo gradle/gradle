@@ -19,7 +19,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public class DefaultBuildableComponentSelectionResult implements BuildableComponentSelectionResult {
+public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwareResolveResult implements BuildableComponentSelectionResult {
     private State state = State.Unknown;
     private ModuleComponentIdentifier moduleComponentIdentifier;
 

@@ -267,7 +267,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         selectedComponentResult.match == null
     }
 
-    def "returns null when no versions match without metadata"() {
+    def "returns no match when no versions match without metadata"() {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "1.3")
         def listing = Mock(ModuleVersionListing)
@@ -293,7 +293,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         selectedComponentResult.match == null
     }
 
-    def "returns null when no versions are chosen with metadata"() {
+    def "returns no match when no versions are chosen with metadata"() {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "latest.release")
         def listing = Mock(ModuleVersionListing)
@@ -325,7 +325,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         selectedComponentResult.match == null
     }
 
-    def "returns null when all matching versions match are rejected by rule"() {
+    def "returns no match when all matching versions match are rejected by rule"() {
         given:
         def selector = new DefaultModuleVersionSelector("group", "name", "latest.integration")
         def listing = Mock(ModuleVersionListing)

@@ -174,16 +174,21 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                 case Listed:
                     selectMatchingVersionAndResolve(dynamicVersionDependency, moduleAccess, resolveResult);
                     break;
+                case Unknown:
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected state for version list result.");
             }
         }
 
         private void selectMatchingVersionAndResolve(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            BuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
+            DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
             versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
+                    componentSelectionResult.applyTo(resolveResult);
                     resolveResult.missing();
                     resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
                     break;
@@ -193,8 +198,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                     DependencyMetaData selectedVersionDependency = dynamicVersionDependency.withRequestedVersion(selectedComponentId.getVersion());
                     moduleAccess.resolveComponentMetaData(selectedVersionDependency, selectedComponentId, resolveResult);
                     break;
-                // Could not determine if there is a matching version in list: continue
                 default:
+                    throw new IllegalStateException("Unexpected state for component selection result.");
             }
         }
 
