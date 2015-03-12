@@ -29,7 +29,7 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
     def "build"() {
         given:
         runner.testId = "big project old java plugin $scenario build"
-        runner.testProject = "bigOldJava"
+        runner.testProject = "bigOldJavaMoreSource"
         runner.useDaemon = true
         runner.tasksToRun = tasks
         runner.maxExecutionTimeRegression = millis(200)

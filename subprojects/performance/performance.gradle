@@ -316,13 +316,22 @@ task bigScenarioNative(type: ProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-scenario']
 }
 
+task bigOldJavaMoreSource(type: ProjectGeneratorTask) {
+    projects = 500
+    sourceFiles = 10
+    linesOfCodePerSourceFile = 20
+    subProjectTemplates = ['java-source', 'old-java-plugin']
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative,
-                                smallScenarioNative, mediumScenarioNative, bigScenarioNative])
+                                smallScenarioNative, mediumScenarioNative, bigScenarioNative,
+                                bigOldJavaMoreSource])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
