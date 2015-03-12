@@ -18,10 +18,11 @@ import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
-import static org.gradle.util.Matchers.containsText
 
+import static org.gradle.util.Matchers.containsText
 // TODO:DAZ Some of these tests should apply to all single-language integration tests
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
@@ -45,6 +46,44 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
         expect:
         succeeds "mainExecutable"
         executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
+    }
+
+    @Issue("GRADLE-3248")
+    @Ignore("issue hasn't been fixed yet")
+    def "incremental compilation isn't considered up-to-date when a new invalid source added"() {
+        def app = new CCompilerDetectingTestApp()
+
+        given:
+        app.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+         """
+
+        expect:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
+
+        when:
+        file("src/main/c/broken.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+        then:
+        fails "compileMainExecutableMainC"
+
+        when:
+        // nothing changes
+
+        expect:
+        // build should still fail
+        fails "compileMainExecutableMainC"
     }
 
     def "can manually define C source sets"() {
