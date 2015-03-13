@@ -30,6 +30,10 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         this.delegate = delegate;
     }
 
+    public ModuleComponentRepositoryAccess getDelegate() {
+        return delegate;
+    }
+
     public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
         delegate.listModuleVersions(dependency, result);
     }

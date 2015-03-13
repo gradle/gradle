@@ -105,6 +105,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+        @Override
+        public String toString() {
+            return "cache lookup for " + delegate.toString();
+        }
 
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case

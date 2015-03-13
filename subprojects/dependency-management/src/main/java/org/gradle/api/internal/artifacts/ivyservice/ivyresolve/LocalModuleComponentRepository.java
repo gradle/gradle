@@ -45,6 +45,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private class LocalAccess implements ModuleComponentRepositoryAccess {
+        @Override
+        public String toString() {
+            return "local adapter > " + delegate.toString();
+        }
+
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (!result.hasResult()) {
@@ -86,6 +91,11 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     }
 
     private static class RemoteAccess implements ModuleComponentRepositoryAccess {
+        @Override
+        public String toString() {
+            return "empty";
+        }
+
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
         }
 

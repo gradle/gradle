@@ -356,6 +356,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected abstract class LocalRepositoryAccess extends AbstractRepositoryAccess {
+        @Override
+        public String toString() {
+            return "local > " + ExternalResourceResolver.this.toString();
+        }
+
         public final void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
         }
 
@@ -373,6 +378,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected abstract class RemoteRepositoryAccess extends AbstractRepositoryAccess {
+        @Override
+        public String toString() {
+            return "remote > " + ExternalResourceResolver.this.toString();
+        }
+
         public final void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             doListModuleVersions(dependency, result);
         }

@@ -58,6 +58,11 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             this.metaDataCache = metaDataCache;
         }
 
+        @Override
+        public String toString() {
+            return "in-memory cache > " + getDelegate().toString();
+        }
+
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             if(!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
                 super.listModuleVersions(dependency, result);

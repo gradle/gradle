@@ -45,6 +45,11 @@ class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleCompone
         super(delegate);
     }
 
+    @Override
+    public String toString() {
+        return "Ivy dynamic resolve > " + getDelegate().toString();
+    }
+
     public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
         super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {

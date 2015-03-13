@@ -98,6 +98,11 @@ public class StartParameterResolutionOverride {
     }
 
     private static class FailedRemoteAccess implements ModuleComponentRepositoryAccess {
+        @Override
+        public String toString() {
+            return "offline remote";
+        }
+
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), "No cached version listing for %s available for offline mode."));
         }

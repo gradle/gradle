@@ -45,6 +45,11 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         private final ModuleComponentRepositoryAccess delegate;
         private final CacheLockingManager cacheLockingManager;
 
+        @Override
+        public String toString() {
+            return "unlocking > " + delegate.toString();
+        }
+
         private LockReleasingRepositoryAccess(String name, ModuleComponentRepositoryAccess delegate, CacheLockingManager cacheLockingManager) {
             this.name = name;
             this.delegate = delegate;
