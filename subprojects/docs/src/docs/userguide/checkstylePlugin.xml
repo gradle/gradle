@@ -80,9 +80,10 @@
                 <td>
                     <filename>config/checkstyle/checkstyle.xml</filename>
                 </td>
-                <td>Checkstyle configuration file</td>
+                <td>Checkstyle configuration file and its default location and name.</td>
             </tr>
         </table>
+        <para>If you haven't own Checkstyle configuration file in default directory, Checkstyle plugin uses default <ulink url="http://checkstyle.sourceforge.net/google_style.html">google config file</ulink>.</para>
     </section>
 
     <section>
