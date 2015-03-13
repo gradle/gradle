@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.compile
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
+
+    @Rule
+    TestNameTestDirectoryProvider tempDir  = new TestNameTestDirectoryProvider()
+
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
 
     def setup() {
+        spec.tempDir = tempDir.file("tmp")
         spec.compileOptions = new CompileOptions()
     }
 
@@ -160,7 +166,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "adds custom compiler args"() {
@@ -202,7 +208,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeClasspath(true)
 
         then:
-        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
 
         when:
         builder.includeClasspath(false)
@@ -217,7 +223,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "can include/exclude launcher options"() {
@@ -300,7 +306,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.sourcepath = null
 
         then:
-        builder.includeClasspath(true).build() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", asPath(file2), USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.includeClasspath(true).build() == ["-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", asPath(file2), USE_UNSHARED_COMPILER_TABLE_OPTION]
         builder.includeClasspath(false).build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
 
         when:
@@ -309,6 +315,10 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         then:
         builder.includeClasspath(true).build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
         builder.includeClasspath(false).build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
+    String defaultEmptySourcePathRefFolder() {
+        return tempDir.file("tmp/$JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR").absolutePath
     }
 
     def "can exclude customizations"() {

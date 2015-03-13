@@ -29,6 +29,7 @@ import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
+    public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
     private final JavaCompileSpec spec;
 
@@ -167,11 +168,17 @@ public class JavaCompilerArgumentsBuilder {
         Iterable<File> classpath = spec.getClasspath();
         if ((sourcepath != null && !sourcepath.isEmpty()) || (includeClasspath && (classpath != null && classpath.iterator().hasNext()))) {
             args.add("-sourcepath");
-            args.add(sourcepath == null ? File.pathSeparator : sourcepath.getAsPath());
+            args.add(sourcepath == null ? emptyFolder(spec.getTempDir()) : sourcepath.getAsPath());
         }
         if (compileOptions.getCompilerArgs() != null) {
             args.addAll(compileOptions.getCompilerArgs());
         }
+    }
+
+    private String emptyFolder(File parent) {
+        File emptySourcePath = new File(parent, EMPTY_SOURCE_PATH_REF_DIR);
+        emptySourcePath.mkdirs();
+        return emptySourcePath.getAbsolutePath();
     }
 
     private void addClasspath() {

@@ -28,6 +28,7 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tempDir
+
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 
     def "inlines arguments if they are short enough"() {
@@ -35,9 +36,8 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
 
         when:
         def args = argsGenerator.generate(spec)
-
         then:
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", File.pathSeparator, "-classpath", spec.classpath.asPath, *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-sourcepath", defaultEmptySourcePathRefFolder(), "-classpath", spec.classpath.asPath, *spec.source*.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -49,9 +49,14 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
 
         then: "argument list only contains launcher args and reference to args file"
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
+        println argsFile.text
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == ["-g", "-sourcepath", File.pathSeparator, "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
+        argsFile.readLines() == ["-g", "-sourcepath", quote(defaultEmptySourcePathRefFolder()), "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) }), USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
+    String defaultEmptySourcePathRefFolder() {
+       return tempDir.testDirectory.file(JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR).absolutePath
     }
 
     def createCompileSpec(numFiles) {
