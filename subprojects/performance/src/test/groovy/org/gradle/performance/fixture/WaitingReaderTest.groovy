@@ -16,15 +16,15 @@
 
 package org.gradle.performance.fixture
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class WaitingReaderTest extends Specification {
+class WaitingReaderTest extends ConcurrentSpec {
 
     def input = new ExpandingReader()
     def source = new BufferedReader(input)
 
     def "can read lines"() {
-        def reader = new WaitingReader(source, 1, 1)
+        def reader = new WaitingReader(source, 100, 1)
         input.append("1\n2\n")
 
         expect:
@@ -39,7 +39,7 @@ class WaitingReaderTest extends Specification {
     }
 
     def "can receive content after end of stream reached"() {
-        def reader = new WaitingReader(source, 10, 1)
+        def reader = new WaitingReader(source, 100, 1)
         input.append("1\n2\n")
 
         expect:
@@ -56,10 +56,10 @@ class WaitingReaderTest extends Specification {
         def reader = new WaitingReader(source, 1000, 10)
         input.append("first part of the line")
 
-        new Thread({
+        start {
             sleep(200)
             input.append(", second part of the line\nnext line\n")
-        }).start()
+        }
 
         expect:
         reader.readLine() == "first part of the line, second part of the line"
@@ -78,7 +78,7 @@ class WaitingReaderTest extends Specification {
         }
 
         @Override
-        int read(char[] dest, int offset, int len) throws IOException {
+        synchronized int read(char[] dest, int offset, int len) throws IOException {
             if (buffer.length() == 0) {
                 return -1
             }
