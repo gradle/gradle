@@ -216,8 +216,10 @@ task retrieve(type: Sync) {
 """
 
         and:
-        ivyHttpRepo.directoryList('org.test', 'projectA').allowGet()
-        ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish().allowAll()
+        ivyHttpRepo.directoryList('org.test', 'projectA').expectGet()
+        def module = ivyHttpRepo.module('org.test', 'projectA', '1.2').withStatus("release").publish()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         when:
         run 'retrieve'
@@ -226,6 +228,11 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-1.2.jar")
 
         when:
+        server.resetExpectations()
+        module.ivy.expectHead()
+        module.jar.expectHead()
+
+        and:
         run 'retrieve'
 
         then:

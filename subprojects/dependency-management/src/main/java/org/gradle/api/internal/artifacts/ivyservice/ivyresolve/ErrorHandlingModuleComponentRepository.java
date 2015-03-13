@@ -38,6 +38,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
+    @Override
     public String getId() {
         return delegate.getId();
     }
@@ -62,6 +67,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
         public ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate) {
             this.delegate = delegate;
+        }
+
+        @Override
+        public String toString() {
+            return "error handling > " + delegate.toString();
         }
 
         @Override

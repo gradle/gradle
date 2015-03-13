@@ -229,8 +229,6 @@ Required by:
 
         when:
         server.resetExpectations()
-        // TODO - should not list versions again
-        dirList.expectGet()
         module21.ivy.expectGet()
         module21.jar.expectGet()
 
@@ -268,8 +266,6 @@ dependencies {
 
         when:
         server.resetExpectations()
-        // TODO - should not need to list versions again
-        dirList.expectGet()
         module21.ivy.expectGet()
         module21.jar.expectGetBroken()
 

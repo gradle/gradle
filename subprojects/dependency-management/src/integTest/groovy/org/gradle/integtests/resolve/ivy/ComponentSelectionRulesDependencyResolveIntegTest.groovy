@@ -108,9 +108,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         when:
         server.resetExpectations()
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        downloadedMetadata.each {
-            modules[it].ivy.expectHead()
-        }
 
         then:
         fails 'resolveConf'

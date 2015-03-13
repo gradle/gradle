@@ -264,8 +264,6 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        // TODO - should not need to list versions again
-        repo.getModuleMetaData("group", "projectA").expectGet()
         projectA.pom.expectGet()
         projectA.artifact.expectGetBroken()
 
@@ -327,8 +325,6 @@ Required by:
 
         when:
         server.resetExpectations()
-        // TODO - should not need to list versions again
-        repo.getModuleMetaData("group", "projectA").expectGet()
         projectA.pom.expectGet()
         projectA.artifact.expectGetMissing()
 
@@ -393,7 +389,6 @@ Searched in the following locations:
 
         when:
         server.resetExpectations()
-        repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGet()
         projectA2.artifact.expectGet()
 

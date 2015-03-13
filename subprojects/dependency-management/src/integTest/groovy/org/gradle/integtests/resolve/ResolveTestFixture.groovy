@@ -59,7 +59,7 @@ allprojects {
     /**
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
-    void expectGraph(Closure closure) {
+    void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
         def graph = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
@@ -138,7 +138,7 @@ allprojects {
         /**
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
          */
-        def root(String value, Closure cl) {
+        def root(String value, @DelegatesTo(NodeBuilder) Closure cl) {
             if (root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
@@ -149,7 +149,10 @@ allprojects {
             return root
         }
 
-        def root(String path, String value, Closure cl) {
+        /**
+         * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
+         */
+        def root(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
             if (root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
@@ -237,7 +240,7 @@ allprojects {
             "$module${version ? '-' + version : ''}.jar"
         }
 
-        private def addNode(String id, String moduleVersionId = id) {
+        private NodeBuilder addNode(String id, String moduleVersionId = id) {
             def node = graph.node(id, moduleVersionId)
             deps << new EdgeBuilder(this, node.id, node)
             return node
@@ -246,14 +249,14 @@ allprojects {
         /**
          * Defines a dependency on the given external module.
          */
-        def module(String moduleVersionId) {
+        NodeBuilder module(String moduleVersionId) {
             return addNode(moduleVersionId)
         }
 
         /**
          * Defines a dependency on the given external module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        def module(String moduleVersionId, Closure cl) {
+        NodeBuilder module(String moduleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
             def node = module(moduleVersionId)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
@@ -264,7 +267,7 @@ allprojects {
         /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        def project(String path, String value, Closure cl) {
+        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
             def node = addNode("project $path", value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
@@ -275,7 +278,7 @@ allprojects {
         /**
          * Defines a dependency from the current node to the given node.
          */
-        def edge(String requested, String selectedModuleVersionId) {
+        NodeBuilder edge(String requested, String selectedModuleVersionId) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             return node
@@ -293,7 +296,7 @@ allprojects {
         /**
          * Marks that this node was selected due to conflict resolution.
          */
-        def byConflictResolution() {
+        NodeBuilder byConflictResolution() {
             reason = 'conflict resolution:conflict'
             this
         }

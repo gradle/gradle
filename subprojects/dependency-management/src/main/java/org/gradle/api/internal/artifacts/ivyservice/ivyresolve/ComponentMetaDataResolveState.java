@@ -26,7 +26,7 @@ class ComponentMetaDataResolveState {
     private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
     private final VersionedComponentChooser versionedComponentChooser;
     private final DependencyMetaData dependency;
-    final ModuleComponentIdentifier componentIdentifier;
+    private final ModuleComponentIdentifier componentIdentifier;
     final ModuleComponentRepository repository;
 
     private boolean searchedLocally;

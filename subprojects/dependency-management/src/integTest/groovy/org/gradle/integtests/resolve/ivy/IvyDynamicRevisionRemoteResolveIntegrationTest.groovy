@@ -392,6 +392,80 @@ dependencies {
         }
     }
 
+    def "reuses cached version lists unless no matches"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "org.test", name: "projectA", version: "1.+"
+}
+"""
+
+        when:
+        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA21 = ivyHttpRepo.module("org.test", "projectA", "2.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        ivyHttpRepo.directoryList("org.test", "projectA").expectGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+            }
+        }
+
+        when:
+        server.resetExpectations()
+        projectA21.ivy.expectGet()
+        projectA21.jar.expectGet()
+
+        and:
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "2.+"
+}
+"""
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution()
+                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution()
+            }
+        }
+
+        when:
+        def projectA30 = ivyHttpRepo.module("org.test", "projectA", "3.0").publish()
+        server.resetExpectations()
+        ivyHttpRepo.directoryList("org.test", "projectA").expectGet()
+        projectA30.ivy.expectGet()
+        projectA30.jar.expectGet()
+
+        and:
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "3.+"
+}
+"""
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution()
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution()
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution()
+            }
+        }
+    }
+
     def "caches resolved revisions until cache expiry"() {
         given:
         useRepository ivyHttpRepo
@@ -887,8 +961,6 @@ Required by:
 
         when:
         server.resetExpectations()
-        // TODO - should not fetch directory list again
-        directoryList.expectGet()
         projectA.ivy.expectGet()
         projectA.jar.expectGet()
 
@@ -919,8 +991,6 @@ dependencies {
 
         when:
         server.resetExpectations()
-        // TODO - should not need to list versions again
-        directoryList.expectGet()
         projectA.ivy.expectGet()
         projectA.jar.expectGetBroken()
 
