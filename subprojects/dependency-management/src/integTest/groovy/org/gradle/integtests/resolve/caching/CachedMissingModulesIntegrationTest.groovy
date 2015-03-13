@@ -102,12 +102,10 @@ task showMissing << { println configurations.missing.files }
         succeeds("showMissing")
     }
 
-    def "cached not-found information for dynamic version is ignored if module is not available in any repo"() {
+    def "cached empty version list for dynamic version is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
-        repo1.module("group", "projectA", "1.0")
         def repo2 = mavenHttpRepo("repo2")
-        def repo2Module = repo2.module("group", "projectA", "1.0")
 
         buildFile << """
             repositories {
@@ -132,20 +130,56 @@ task showMissing << { println configurations.missing.files }
             """
 
         when:
-        repo1.getModuleMetaData("group", "projectA").expectGetMissing()
-        repo1.directory("group", "projectA").expectGet()
-        repo2.getModuleMetaData("group", "projectA").expectGetMissing()
-        repo2.directory("group", "projectA").expectGet()
+        def repo1MetaData = repo1.getModuleMetaData("group", "projectA")
+        def repo1DirList = repo1.directory("group", "projectA")
+        def repo2MetaData = repo2.getModuleMetaData("group", "projectA")
+        def repo2DirLib = repo2.directory("group", "projectA")
+        def repo2Module = repo2.module("group", "projectA", "1.0")
+
+        repo1MetaData.expectGetMissing()
+        repo1DirList.expectGet()
+        repo2MetaData.expectGetMissing()
+        repo2DirLib.expectGet()
 
         then:
-        runAndFail 'retrieve'
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.integration.
+Searched in the following locations:
+    ${repo1MetaData.uri}
+    ${repo1DirList.uri}
+    ${repo2MetaData.uri}
+    ${repo2DirLib.uri}
+Required by:
+""")
 
         when:
         server.resetExpectations()
-        repo1.getModuleMetaData("group", "projectA").expectGetMissing()
-        repo1.directory("group", "projectA").expectGet()
+        repo1MetaData.expectGetMissing()
+        repo1DirList.expectGet()
+        repo2MetaData.expectGetMissing()
+        repo2DirLib.expectGet()
+
+        then:
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.integration.
+Searched in the following locations:
+    ${repo1MetaData.uri}
+    ${repo1DirList.uri}
+    ${repo2MetaData.uri}
+    ${repo2DirLib.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
         repo2Module.publish()
-        repo2.getModuleMetaData("group", "projectA").expectGet()
+        repo1MetaData.expectGetMissing()
+        repo1DirList.expectGet()
+        repo2MetaData.expectGet()
         repo2Module.pom.expectGet()
         repo2Module.getArtifact().expectGet()
 
@@ -190,6 +224,15 @@ task showMissing << { println configurations.missing.files }
         from configurations.compile
     }
     """
+
+        when:
+        repo1Module.pom.expectGetMissing()
+        repo1Artifact.expectHeadMissing()
+        repo2Module.pom.expectGetMissing()
+        repo2Artifact.expectHeadMissing()
+
+        then:
+        runAndFail 'retrieve'
 
         when:
         repo1Module.pom.expectGetMissing()
