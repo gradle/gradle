@@ -109,6 +109,9 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                 continue;
             }
             switch (request.metaDataResolveResult.getState()) {
+                case Failed:
+                    failures.add(request.metaDataResolveResult.getFailure());
+                    break;
                 case Missing:
                     // Queue this up for checking again later
                     if (!request.metaDataResolveResult.isAuthoritative() && request.canMakeFurtherAttempts()) {
@@ -140,19 +143,24 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         return versionedComponentChooser.selectNewestComponent(one.module, two.module) == one.module ? one : two;
     }
 
-    public class RepositoryResolveState {
+    private class RepositoryResolveState {
         private final DefaultBuildableModuleComponentMetaDataResolveResult metaDataResolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        final DefaultBuildableModuleVersionListingResolveResult versionListingResult = new DefaultBuildableModuleVersionListingResolveResult();
-        final ModuleComponentRepository repository;
+        private final VersionListResult versionListingResult;
+        private final ModuleComponentRepository repository;
 
         private boolean searchedLocally;
-        boolean searchedRemotely;
+        private boolean searchedRemotely;
 
         public RepositoryResolveState(ModuleComponentRepository repository) {
             this.repository = repository;
+            versionListingResult = new VersionListResult(repository);
         }
 
         void resolve(DependencyMetaData dependency) {
+            if (versionListingResult.canMakeFurtherAttempts()) {
+                versionListingResult.resolve(dependency);
+            }
+
             if (!searchedLocally) {
                 searchedLocally = true;
                 process(dependency, repository.getLocalAccess(), metaDataResolveResult);
@@ -160,16 +168,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
                 searchedRemotely = true;
                 process(dependency, repository.getRemoteAccess(), metaDataResolveResult);
             }
-            if (metaDataResolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
-                throw metaDataResolveResult.getFailure();
-            }
         }
 
         protected void process(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-            moduleAccess.listModuleVersions(dynamicVersionDependency, versionListingResult);
-            switch (versionListingResult.getState()) {
+            switch (versionListingResult.result.getState()) {
                 case Failed:
-                    resolveResult.failed(versionListingResult.getFailure());
+                    resolveResult.failed(versionListingResult.result.getFailure());
                     break;
                 case Listed:
                     selectMatchingVersionAndResolve(dynamicVersionDependency, moduleAccess, resolveResult);
@@ -184,13 +188,13 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private void selectMatchingVersionAndResolve(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
-            versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
+            versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.result.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
                     componentSelectionResult.applyTo(resolveResult);
                     resolveResult.missing();
-                    resolveResult.setAuthoritative(versionListingResult.isAuthoritative());
+                    resolveResult.setAuthoritative(false); // TODO - not right
                     break;
                 // Found version matching in list: resolve component
                 case Match:
@@ -206,13 +210,58 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
         }
 
-        protected void applyTo(ResourceAwareResolveResult result) {
-            versionListingResult.applyTo(result);
-            metaDataResolveResult.applyTo(result);
+        protected void applyTo(ResourceAwareResolveResult target) {
+            versionListingResult.applyTo(target);
+            metaDataResolveResult.applyTo(target);
         }
 
         public boolean canMakeFurtherAttempts() {
             return !searchedRemotely;
+        }
+    }
+
+    public static class VersionListResult {
+        private final DefaultBuildableModuleVersionListingResolveResult result = new DefaultBuildableModuleVersionListingResolveResult();
+        private final ModuleComponentRepository repository;
+
+        private boolean searchedLocally;
+        private boolean searchedRemotely;
+
+        public VersionListResult(ModuleComponentRepository repository) {
+            this.repository = repository;
+        }
+
+        void resolve(DependencyMetaData dependency) {
+            if (!searchedLocally) {
+                searchedLocally = true;
+                process(dependency, repository.getLocalAccess());
+                if (result.hasResult()) {
+                    if (result.isAuthoritative()) {
+                        // Authoritative result - don't need to try remote
+                        searchedRemotely = true;
+                    }
+                    return;
+                }
+                // Otherwise, try remotely
+            }
+            if (!searchedRemotely) {
+                searchedRemotely = true;
+                process(dependency, repository.getRemoteAccess());
+            }
+
+            // Otherwise, just reuse previous result
+        }
+
+        public boolean canMakeFurtherAttempts() {
+            return !searchedRemotely;
+        }
+
+        public void applyTo(ResourceAwareResolveResult target) {
+            result.applyTo(target);
+        }
+
+        private void process(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess) {
+            moduleAccess.listModuleVersions(dynamicVersionDependency, result);
         }
     }
 }

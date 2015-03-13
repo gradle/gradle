@@ -43,7 +43,7 @@ class ComponentMetaDataResolveState {
         if (!searchedLocally) {
             searchedLocally = true;
             process(dependency, componentIdentifier, repository.getLocalAccess(), resolveResult);
-            if (resolveResult.getState() != BuildableModuleComponentMetaDataResolveResult.State.Unknown) {
+            if (resolveResult.hasResult()) {
                 if (resolveResult.isAuthoritative()) {
                     // Don't bother searching remotely
                     searchedRemotely = true;
@@ -64,9 +64,6 @@ class ComponentMetaDataResolveState {
 
     protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
         moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
-        if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
-            throw resolveResult.getFailure();
-        }
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             if (versionedComponentChooser.isRejectedComponent(componentIdentifier, new MetadataProvider(resolveResult))) {
                 resolveResult.missing();

@@ -117,6 +117,9 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
                 continue;
             }
             switch (metaDataResolveResult.getState()) {
+                case Failed:
+                    failures.add(metaDataResolveResult.getFailure());
+                    break;
                 case Missing:
                     // Queue this up for checking again later
                     if (request.canMakeFurtherAttempts()) {
