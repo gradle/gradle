@@ -24,13 +24,18 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
         expect:
         succeeds("generateGrammarSource")
-        file("build/generated-src/antlr/main/Test.tokens").exists()
-        file("build/generated-src/antlr/main/TestBaseListener.java").exists()
-        file("build/generated-src/antlr/main/TestLexer.java").exists()
-        file("build/generated-src/antlr/main/TestLexer.tokens").exists()
-        file("build/generated-src/antlr/main/TestListener.java").exists()
-        file("build/generated-src/antlr/main/TestParser.java").exists()
+        assertGrammarSourceGenerated("Test")
+        assertGrammarSourceGenerated("Another")
         assertAntlrVersion(4)
+    }
+
+    private void assertGrammarSourceGenerated(String grammarName) {
+        assert file("build/generated-src/antlr/main/${grammarName}.tokens").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}BaseListener.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Lexer.tokens").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Listener.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -45,6 +50,12 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         file("src/main/antlr/Test.g4") << """grammar Test;
             r  : 'hello' ID ;        
             ID : [a-z]+ ;  
+            WS : [ \\t\\r\\n]+ -> skip ;
+        """
+
+        file("src/main/antlr/Another.g4") << """grammar Another;
+            r  : 'hello' ID ;
+            ID : [a-z]+ ;
             WS : [ \\t\\r\\n]+ -> skip ;
         """
     }

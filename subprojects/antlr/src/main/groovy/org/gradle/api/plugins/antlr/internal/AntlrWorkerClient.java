@@ -16,12 +16,7 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class AntlrWorkerClient implements AntlrWorkerClientProtocol {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrWorkerClient.class);
 
     private AntlrResult result;
 

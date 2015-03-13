@@ -16,22 +16,30 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
+import java.io.File;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Set;
 
 public class AntlrSpec implements Serializable {
 
     private List<String> arguments;
+    private Set<File> grammarFiles;
     private String maxHeapSize;
 
-    public AntlrSpec(List<String> arguments, String maxHeapSize) {
+    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, String maxHeapSize) {
         this.arguments = arguments;
+        this.grammarFiles = grammarFiles;
         this.maxHeapSize = maxHeapSize;
     }
 
     public List<String> getArguments() {
         return arguments;
+    }
+
+    public Set<File> getGrammarFiles() {
+        return grammarFiles;
     }
 
     public String getMaxHeapSize() {

@@ -24,10 +24,16 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
         expect:
         succeeds("generateGrammarSource")
-        file("build/generated-src/antlr/main/Test.tokens").exists()
-        file("build/generated-src/antlr/main/TestLexer.java").exists()
-        file("build/generated-src/antlr/main/TestParser.java").exists()
+
+        assertGrammarSourceGenerated("Test")
+        assertGrammarSourceGenerated("AnotherGrammar")
         assertAntlrVersion(3)
+    }
+
+    private void assertGrammarSourceGenerated(String grammarName) {
+        assert file("build/generated-src/antlr/main/${grammarName}.tokens").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -44,6 +50,22 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
                     ;
 
             item    :   
+                ID
+                | INT
+                ;
+
+            ID  :   ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
+                ;
+
+            INT :   '0'..'9'+
+                ;
+        """
+
+        file("src/main/antlr/AnotherGrammar.g") << """grammar AnotherGrammar;
+            list    :   item (item)*
+                    ;
+
+            item    :
                 ID
                 | INT
                 ;

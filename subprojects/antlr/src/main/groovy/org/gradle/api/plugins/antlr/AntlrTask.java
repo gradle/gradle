@@ -192,9 +192,9 @@ public class AntlrTask extends SourceTask {
             GFileUtils.cleanDirectory(outputDirectory);
             grammarFiles.addAll(sourceFiles);
         }
-        List<String> args = buildArguments(grammarFiles);
+        List<String> args = buildCommonArguments();
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = new AntlrSpec(args, maxHeapSize);
+        AntlrSpec spec = new AntlrSpec(args, grammarFiles, maxHeapSize);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluateAntlrResult(result);
     }
@@ -211,9 +211,11 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
-     * Finalizes the list of arguments that will be sent to the ANTLR tool.
+     * Generates the list of common arguments that will be sent to the ANTLR tool.
+     * The passing of the grammar files is done in the AntlrExecuter as it differs
+     * depending on the antlr version.
      */
-    List<String> buildArguments(Set<File> grammarFiles) {
+    List<String> buildCommonArguments() {
         List<String> args = new ArrayList<String>();    // List for finalized arguments
 
         // Output file
@@ -238,12 +240,6 @@ public class AntlrTask extends SourceTask {
         if (isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
             args.add("-traceTreeWalker");
         }
-
-        // Files in source directory
-        for (File file : grammarFiles) {
-            args.add(file.getAbsolutePath());
-        }
-
         return args;
     }
 }

@@ -18,13 +18,17 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class AntlrExecuter {
 
@@ -32,8 +36,15 @@ public class AntlrExecuter {
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
         List<String> arguments = spec.getArguments();
-        String[] argArr = new String[arguments.size()];
-        arguments.toArray(argArr);
+        Set<File> grammarFiles = spec.getGrammarFiles();
+        List<String> args = new ArrayList<String>();
+        args.addAll(arguments);
+        for (File file : grammarFiles) {
+            args.add(file.getAbsolutePath());
+        }
+
+        String[] argArr = new String[args.size()];
+        args.toArray(argArr);
 
         // Try ANTLR 4
         try {
@@ -57,7 +68,7 @@ public class AntlrExecuter {
         try {
             Object toolObj = loadTool("antlr.Tool", null);
             LOGGER.info("Processing with ANTLR 2");
-            return processV2(toolObj, argArr);
+            return processV2(toolObj, spec);
         } catch (ClassNotFoundException e) {
             LOGGER.debug("ANTLR 2 not found on classpath");
         }
@@ -87,8 +98,15 @@ public class AntlrExecuter {
         }
     }
 
-    AntlrResult processV2(Object tool, String[] args) {
-        JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{args});
+    AntlrResult processV2(Object tool, AntlrSpec spec) {
+        List<String> arguments = spec.getArguments();
+        Set<File> grammarFiles = spec.getGrammarFiles();
+        for (File grammarFile : grammarFiles) {
+            List<String> args = CollectionUtils.flattenCollections(String.class, arguments, grammarFile.getAbsolutePath());
+            String[] argArr = new String[args.size()];
+            args.toArray(argArr);
+            JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{argArr});
+        }
         return new AntlrResult(0);  // ANTLR 2 always returning 0
     }
 

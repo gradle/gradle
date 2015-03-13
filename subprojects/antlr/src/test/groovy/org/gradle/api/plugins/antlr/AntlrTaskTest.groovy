@@ -29,8 +29,6 @@ class AntlrTaskTest extends Specification {
     }
 
     def traceDefaultProperties() {
-        given:
-        def sourceFiles = someSourceFiles()
         when:
         main.outputDirectory = destFile()
         then:
@@ -38,15 +36,13 @@ class AntlrTaskTest extends Specification {
         main.isTraceLexer() == false
         main.isTraceParser() == false
         main.isTraceTreeWalker() == false
-        !main.buildArguments(sourceFiles).contains("-trace")
-        !main.buildArguments(sourceFiles).contains("-traceLexer")
-        !main.buildArguments(sourceFiles).contains("-traceParser")
-        !main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+        !main.buildCommonArguments().contains("-trace")
+        !main.buildCommonArguments().contains("-traceLexer")
+        !main.buildCommonArguments().contains("-traceParser")
+        !main.buildCommonArguments().contains("-traceTreeWalker")
     }
 
     def tracePropertiesAddedToArgumentList() {
-        given:
-        def sourceFiles = someSourceFiles()
         when:
         main.outputDirectory = destFile()
         main.setTrace(true)
@@ -59,42 +55,36 @@ class AntlrTaskTest extends Specification {
         main.isTraceLexer() == true
         main.isTraceParser() == true
         main.isTraceTreeWalker() == true
-        main.buildArguments(sourceFiles).contains("-trace")
-        main.buildArguments(sourceFiles).contains("-traceLexer")
-        main.buildArguments(sourceFiles).contains("-traceParser")
-        main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+        main.buildCommonArguments().contains("-trace")
+        main.buildCommonArguments().contains("-traceLexer")
+        main.buildCommonArguments().contains("-traceParser")
+        main.buildCommonArguments().contains("-traceTreeWalker")
     }
 
     def customArgumentsAdded() {
-        given:
-        def sourceFiles = someSourceFiles()
         when:
         main.outputDirectory = destFile()
         main.setArguments(["-a", "-b"])
 
         then:
-        main.buildArguments(sourceFiles).contains("-a")
-        main.buildArguments(sourceFiles).contains("-b")
+        main.buildCommonArguments().contains("-a")
+        main.buildCommonArguments().contains("-b")
     }
 
     def customTraceArgumentsOverrideProperties() {
-        given:
-        def sourceFiles = someSourceFiles()
         when:
         def main = project.tasks.generateGrammarSource
         main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
 
         then:
-        main.buildArguments(sourceFiles).contains("-trace")
-        main.buildArguments(sourceFiles).contains("-traceLexer")
-        main.buildArguments(sourceFiles).contains("-traceParser")
-        main.buildArguments(sourceFiles).contains("-traceTreeWalker")
+        main.buildCommonArguments().contains("-trace")
+        main.buildCommonArguments().contains("-traceLexer")
+        main.buildCommonArguments().contains("-traceParser")
+        main.buildCommonArguments().contains("-traceTreeWalker")
     }
 
     def traceArgumentsDoNotDuplicateTrueTraceProperties() {
-        given:
-        def sourceFiles = someSourceFiles()
         when:
         main.outputDirectory = destFile()
         main.setArguments(["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"])
@@ -104,13 +94,13 @@ class AntlrTaskTest extends Specification {
         main.setTraceTreeWalker(true)
 
         then:
-        main.buildArguments(sourceFiles).count {it == "-trace"} == 1
-        main.buildArguments(sourceFiles).count {it == "-traceLexer"} == 1
-        main.buildArguments(sourceFiles).count {it == "-traceParser"} == 1
-        main.buildArguments(sourceFiles).count {it == "-traceTreeWalker"} == 1
+        main.buildCommonArguments().count {it == "-trace"} == 1
+        main.buildCommonArguments().count {it == "-traceLexer"} == 1
+        main.buildCommonArguments().count {it == "-traceParser"} == 1
+        main.buildCommonArguments().count {it == "-traceTreeWalker"} == 1
     }
 
-    def buildArgumentsAddsAllParameters() {
+    def buildCommonArgumentsAddsAllParameters() {
         when:
         main.outputDirectory = destFile()
         main.setArguments(["-test"])
@@ -120,7 +110,7 @@ class AntlrTaskTest extends Specification {
         main.setTraceTreeWalker(true)
 
         then:
-        main.buildArguments(someSourceFiles()) == ["-o", "/output", "-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "/input/1", "/input/2"]
+        main.buildCommonArguments() == ["-o", "/output", "-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
     }
 
     def destFile() {
@@ -128,13 +118,4 @@ class AntlrTaskTest extends Specification {
         dest.getAbsolutePath() >> "/output"
         dest
     }
-
-    def someSourceFiles() {
-        File s1 = Mock()
-        File s2 = Mock()
-        s1.getAbsolutePath() >> "/input/1"
-        s2.getAbsolutePath() >> "/input/2"
-        [s1, s2] as Set
-    }
-
 }
