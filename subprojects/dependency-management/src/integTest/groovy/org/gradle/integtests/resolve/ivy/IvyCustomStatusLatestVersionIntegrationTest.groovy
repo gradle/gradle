@@ -165,22 +165,19 @@ task retrieve(type: Sync) {
         directoryList.allowGet()
         project3.ivy.expectHead()
         project2.ivy.expectHead()
-        // TODO - should be checking the jar too
+        project2.jar.expectHead()
 
         and:
+        executer.withArgument("--refresh-dependencies")
         run 'retrieve'
 
         then:
-        executer.withArgument("--refresh-dependencies")
         file('libs').assertHasDescendants("projectA-1.2.jar")
 
         when:
         server.resetExpectations()
         directoryList.allowGet()
         project3.ivy.expectHead()
-        // TODO - should not be checking these, they are not marked as changing
-        project2.ivy.expectHead()
-        project2.jar.expectHead()
 
         and:
         run 'retrieve'
