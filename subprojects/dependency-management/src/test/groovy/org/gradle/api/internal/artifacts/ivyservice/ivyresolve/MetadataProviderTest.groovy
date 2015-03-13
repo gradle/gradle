@@ -17,23 +17,21 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class MetadataProviderTest extends Specification {
-    def repo = Mock(ModuleComponentRepositoryAccess)
     def dep = Stub(DependencyMetaData)
     def id = Stub(ModuleComponentIdentifier) {
         getVersion() >> "1.2"
     }
     def metaData = Stub(MutableModuleComponentResolveMetaData)
-    def metadataProvider = new MetadataProvider(dep, id, repo)
+    def resolveState = Mock(ModuleComponentResolveState)
+    def metadataProvider = new MetadataProvider(resolveState)
 
     def "caches metadata result"() {
         when:
@@ -41,16 +39,20 @@ class MetadataProviderTest extends Specification {
         metadataProvider.getMetaData()
 
         then:
-        1 * repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        1 * resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
+            return result
         }
-        0 * repo._
+        0 * resolveState.resolve()
     }
 
     def "verifies that metadata was provided"() {
         given:
-        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
+            return result
         }
 
         expect:
@@ -61,8 +63,10 @@ class MetadataProviderTest extends Specification {
 
     def "verifies that metadata was not provided"() {
         given:
-        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.missing()
+            return result
         }
 
         expect:
@@ -72,8 +76,10 @@ class MetadataProviderTest extends Specification {
 
     def "can provide component metadata" () {
         given:
-        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
+            return result
         }
 
         when:
@@ -88,8 +94,10 @@ class MetadataProviderTest extends Specification {
         def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
             getStatus() >> "test"
         })
-        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
+            return result
         }
 
         when:
@@ -101,8 +109,10 @@ class MetadataProviderTest extends Specification {
 
     def "returns null when not Ivy descriptor" () {
         given:
-        repo.resolveComponentMetaData(_, id, _) >> { dependency, compId, result ->
+        resolveState.resolve() >> {
+            def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
+            return result
         }
 
         expect:

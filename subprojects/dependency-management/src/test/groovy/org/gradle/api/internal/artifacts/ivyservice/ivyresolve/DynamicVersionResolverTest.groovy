@@ -95,7 +95,7 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing)
         }
-        _ * componentSelectionStrategy.selectNewestMatchingComponent(versionListing, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+        _ * componentSelectionStrategy.selectNewestMatchingComponent(_, dynamicDependency, _) >> { ver, dep, res ->
             res.matches(selectedId)
         }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
@@ -137,14 +137,14 @@ class DynamicVersionResolverTest extends Specification {
         1 * localAccess.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing1)
         }
-        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing1, dynamicDependency, localAccess, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(_, dynamicDependency, _) >> { ver, dep, res ->
             res.noMatchFound()
         }
 
         1 * localAccess2.listModuleVersions(dynamicDependency, _) >> { dep, result ->
             result.listed(versionListing2)
         }
-        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing2, dynamicDependency, localAccess2, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(_, dynamicDependency, _) >> { ver, dep, res ->
             res.matches(selectedId)
         }
         1 * dynamicDependency.withRequestedVersion("1.1") >> dependency
@@ -179,7 +179,7 @@ class DynamicVersionResolverTest extends Specification {
             result.attempted('version-location')
             result.listed(versionListing)
         }
-        1 * componentSelectionStrategy.selectNewestMatchingComponent(versionListing, dependency, localAccess, _) >> { ver, dep, acc, res ->
+        1 * componentSelectionStrategy.selectNewestMatchingComponent(_, dependency, _) >> { ver, dep, res ->
             res.attempted("component-location")
             res.noMatchFound()
         }

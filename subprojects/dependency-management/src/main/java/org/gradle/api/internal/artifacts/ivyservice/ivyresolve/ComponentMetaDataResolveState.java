@@ -42,7 +42,7 @@ class ComponentMetaDataResolveState {
     BuildableModuleComponentMetaDataResolveResult resolve() {
         if (!searchedLocally) {
             searchedLocally = true;
-            process(dependency, componentIdentifier, repository.getLocalAccess(), resolveResult);
+            process(repository.getLocalAccess());
             if (resolveResult.hasResult()) {
                 if (resolveResult.isAuthoritative()) {
                     // Don't bother searching remotely
@@ -55,14 +55,14 @@ class ComponentMetaDataResolveState {
 
         if (!searchedRemotely) {
             searchedRemotely = true;
-            process(dependency, componentIdentifier, repository.getRemoteAccess(), resolveResult);
+            process(repository.getRemoteAccess());
             return resolveResult;
         }
 
         throw new IllegalStateException();
     }
 
-    protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
+    protected void process(ModuleComponentRepositoryAccess moduleAccess) {
         moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             if (versionedComponentChooser.isRejectedComponent(componentIdentifier, new MetadataProvider(resolveResult))) {

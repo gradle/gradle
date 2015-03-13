@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -188,7 +189,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private void selectMatchingVersionAndResolve(DependencyMetaData dynamicVersionDependency, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
             DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
-            versionedComponentChooser.selectNewestMatchingComponent(versionListingResult.result.getVersions(), dynamicVersionDependency, moduleAccess, componentSelectionResult);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(dynamicVersionDependency, moduleAccess, versionListingResult.result.getVersions()), dynamicVersionDependency, componentSelectionResult);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
@@ -210,6 +211,14 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
         }
 
+        private List<CandidateResult> candidates(DependencyMetaData dependencyMetaData, ModuleComponentRepositoryAccess repositoryAccess, ModuleVersionListing versions) {
+            List<CandidateResult> candidates = new ArrayList<CandidateResult>();
+            for (Versioned version : versions.getVersions()) {
+                candidates.add(new CandidateResult(dependencyMetaData, version.getVersion(), repositoryAccess));
+            }
+            return candidates;
+        }
+
         protected void applyTo(ResourceAwareResolveResult target) {
             versionListingResult.applyTo(target);
             metaDataResolveResult.applyTo(target);
@@ -220,7 +229,39 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
     }
 
-    public static class VersionListResult {
+    private static class CandidateResult implements ModuleComponentResolveState {
+        private final ModuleComponentIdentifier identifier;
+        private final ModuleComponentRepositoryAccess repositoryAccess;
+        private final DependencyMetaData dependencyMetaData;
+        private final String version;
+
+        public CandidateResult(DependencyMetaData dependencyMetaData, String version, ModuleComponentRepositoryAccess repositoryAccess) {
+            this.dependencyMetaData = dependencyMetaData;
+            this.version = version;
+            ModuleVersionSelector requested = dependencyMetaData.getRequested();
+            this.identifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), version);
+            this.repositoryAccess = repositoryAccess;
+        }
+
+        @Override
+        public ModuleComponentIdentifier getId() {
+            return identifier;
+        }
+
+        @Override
+        public String getVersion() {
+            return version;
+        }
+
+        @Override
+        public BuildableModuleComponentMetaDataResolveResult resolve() {
+            DefaultBuildableModuleComponentMetaDataResolveResult metaDataResolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
+            repositoryAccess.resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, metaDataResolveResult);
+            return metaDataResolveResult;
+        }
+    }
+
+    private static class VersionListResult {
         private final DefaultBuildableModuleVersionListingResolveResult result = new DefaultBuildableModuleVersionListingResolveResult();
         private final ModuleComponentRepository repository;
 

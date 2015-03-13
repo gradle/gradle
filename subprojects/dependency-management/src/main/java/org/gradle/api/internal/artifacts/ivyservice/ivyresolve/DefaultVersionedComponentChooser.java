@@ -24,12 +24,10 @@ import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.util.CollectionUtils;
 
@@ -70,22 +68,22 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetaData.isGenerated();
     }
 
-    public void selectNewestMatchingComponent(ModuleVersionListing versions, DependencyMetaData dependency, ModuleComponentRepositoryAccess moduleAccess, BuildableComponentSelectionResult result) {
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, DependencyMetaData dependency, BuildableComponentSelectionResult result) {
         ModuleVersionSelector requestedModule = dependency.getRequested();
         VersionSelector requestedVersion = versionSelectorScheme.parseSelector(requestedModule.getVersion());
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
-        for (Versioned candidate : sortLatestFirst(versions)) {
-            ModuleComponentIdentifier candidateIdentifier = DefaultModuleComponentIdentifier.newId(requestedModule.getGroup(), requestedModule.getName(), candidate.getVersion());
-            MetadataProvider metadataProvider = new MetadataProvider(dependency, candidateIdentifier, moduleAccess);
+        for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
+            MetadataProvider metadataProvider = new MetadataProvider(candidate);
 
-            boolean versionMatches = versionMatches(requestedVersion, candidateIdentifier, metadataProvider);
+            boolean versionMatches = versionMatches(requestedVersion, candidate, metadataProvider);
             if (!metadataProvider.isUsable()) {
                 applyTo(metadataProvider, result);
                 return;
             }
 
             if (versionMatches) {
+                ModuleComponentIdentifier candidateIdentifier = candidate.getId();
                 boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
                 if (!metadataProvider.isUsable()) {
                     applyTo(metadataProvider, result);
@@ -126,14 +124,14 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    private boolean versionMatches(VersionSelector selector, ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
+    private boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
         if (selector.requiresMetadata()) {
             if (!metadataProvider.resolve()) {
                 return false;
             }
             return selector.accept(metadataProvider.getComponentMetadata());
         } else {
-            return selector.accept(candidateIdentifier.getVersion());
+            return selector.accept(component.getVersion());
         }
     }
 
@@ -147,7 +145,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return selection.isRejected();
     }
 
-    private List<Versioned> sortLatestFirst(ModuleVersionListing listing) {
-        return CollectionUtils.sort(listing.getVersions(), Collections.reverseOrder(versionComparator));
+    private List<ModuleComponentResolveState> sortLatestFirst(Collection<? extends ModuleComponentResolveState> listing) {
+        return CollectionUtils.sort(listing, Collections.reverseOrder(versionComparator));
     }
 }
