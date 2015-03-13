@@ -194,7 +194,7 @@ public class AntlrTask extends SourceTask {
         }
         List<String> args = buildCommonArguments();
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = new AntlrSpec(args, grammarFiles, maxHeapSize);
+        AntlrSpec spec = new AntlrSpec(args, grammarFiles, getOutputDirectory(), maxHeapSize);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluateAntlrResult(result);
     }

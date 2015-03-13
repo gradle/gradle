@@ -66,10 +66,7 @@ Execution failed for task ':generateGrammarSource'.
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        file("build/generated-src/antlr/main/TestGrammar.java").exists()
-        file("build/generated-src/antlr/main/TestGrammar.smap").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
+        assertGrammarSourceGenerated("TestGrammar")
         succeeds("build")
     }
 
@@ -92,6 +89,7 @@ Execution failed for task ':generateGrammarSource'.
         file("src/main/antlr/AnotherGrammar.g") << """class AnotherGrammar extends Parser;
             options {
                 buildAST = true;
+                importVocab = TestGrammar;
             }
 
             expr:   mexpr (PLUS^ mexpr)* SEMI!
@@ -103,6 +101,7 @@ Execution failed for task ':generateGrammarSource'.
 
             atom:   INT
                 ;"""
+
     }
 
     private goodProgram() {

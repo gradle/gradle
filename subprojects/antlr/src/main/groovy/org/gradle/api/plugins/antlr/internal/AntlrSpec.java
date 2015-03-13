@@ -27,10 +27,12 @@ public class AntlrSpec implements Serializable {
     private List<String> arguments;
     private Set<File> grammarFiles;
     private String maxHeapSize;
+    private File outputDirectory;
 
-    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, String maxHeapSize) {
+    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, File outputDirectory, String maxHeapSize) {
         this.arguments = arguments;
         this.grammarFiles = grammarFiles;
+        this.outputDirectory = outputDirectory;
         this.maxHeapSize = maxHeapSize;
     }
 
@@ -44,5 +46,13 @@ public class AntlrSpec implements Serializable {
 
     public String getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
     }
 }

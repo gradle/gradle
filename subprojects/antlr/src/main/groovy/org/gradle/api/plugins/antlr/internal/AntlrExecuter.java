@@ -17,6 +17,10 @@
 package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
+import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
+import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
+import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -101,8 +105,10 @@ public class AntlrExecuter {
     AntlrResult processV2(Object tool, AntlrSpec spec) {
         List<String> arguments = spec.getArguments();
         Set<File> grammarFiles = spec.getGrammarFiles();
-        for (File grammarFile : grammarFiles) {
-            List<String> args = CollectionUtils.flattenCollections(String.class, arguments, grammarFile.getAbsolutePath());
+        XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
+        for (GenerationPlan generationPlan : generationPlans) {
+            List<String> args = CollectionUtils.flattenCollections(String.class, arguments, generationPlan.getSource().getAbsolutePath());
             String[] argArr = new String[args.size()];
             args.toArray(argArr);
             JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{argArr});
