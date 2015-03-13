@@ -106,9 +106,4 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     public String getPCHFileExtension() {
         return ".h.gch";
     }
-
-    @Override
-    public String getObjectFileExtension() {
-        return ".o";
-    }
 }

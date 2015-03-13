@@ -135,5 +135,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
 
     public abstract String getPCHFileExtension();
 
-    public abstract String getObjectFileExtension();
+    public String getObjectFileExtension() {
+        return targetOperatingSystem.isWindows() ? ".obj" : ".o";
+    }
 }

@@ -187,9 +187,4 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     public String getPCHFileExtension() {
         return ".pch";
     }
-
-    @Override
-    public String getObjectFileExtension() {
-        return ".obj";
-    }
 }
