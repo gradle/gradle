@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -53,7 +52,6 @@ project(":project2") {
         dependencies.assertHasModule('COMPILE', 'project1')
     }
 
-    @Ignore("Not yet implemented")
     @Test
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
