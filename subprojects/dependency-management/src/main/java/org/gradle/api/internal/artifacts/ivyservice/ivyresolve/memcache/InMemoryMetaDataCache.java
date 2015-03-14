@@ -20,15 +20,15 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resolve.result.ModuleVersionListing;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed;
 
 class InMemoryMetaDataCache {
-    private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
+    private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
     private InMemoryCacheStats stats;
 
@@ -37,11 +37,11 @@ class InMemoryMetaDataCache {
     }
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
-        ModuleVersionListing moduleVersionListing1 = moduleVersionListing.get(requested);
-        if (moduleVersionListing1 == null) {
+        Set<String> versions = moduleVersionListing.get(requested);
+        if (versions == null) {
             return false;
         }
-        result.listed(moduleVersionListing1);
+        result.listed(versions);
         return true;
     }
 

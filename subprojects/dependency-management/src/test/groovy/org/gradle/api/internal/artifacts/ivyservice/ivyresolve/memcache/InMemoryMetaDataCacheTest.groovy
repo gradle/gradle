@@ -20,7 +20,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
-import org.gradle.internal.resolve.result.ModuleVersionListing
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -35,14 +34,14 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies module versions"() {
-        def listing = Mock(ModuleVersionListing)
+        def versions = ['1', '2', '3'] as Set
         def result = Mock(BuildableModuleVersionListingResolveResult)
         def missingResult = Mock(BuildableModuleVersionListingResolveResult)
 
         given:
         cache.newModuleVersions(newSelector("org", "foo-remote", "1.0"), Stub(BuildableModuleVersionListingResolveResult) {
             getState() >> BuildableModuleVersionListingResolveResult.State.Listed
-            getVersions() >> listing
+            getVersions() >> versions
         })
 
         when:
@@ -51,7 +50,7 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         found
-        1 * result.listed(listing)
+        1 * result.listed(versions)
 
         and:
         !missing

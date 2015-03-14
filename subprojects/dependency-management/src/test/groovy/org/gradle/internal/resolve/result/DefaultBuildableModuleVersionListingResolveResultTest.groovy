@@ -24,23 +24,11 @@ import static org.gradle.internal.resolve.result.BuildableModuleVersionListingRe
 
 class DefaultBuildableModuleVersionListingResolveResultTest extends Specification {
     def descriptor = new DefaultBuildableModuleVersionListingResolveResult()
-    def listing = Mock(ModuleVersionListing)
 
     def "has unknown state by default"() {
         expect:
         descriptor.state == Unknown
         !descriptor.hasResult()
-    }
-
-    def "can mark as listed"() {
-        when:
-        descriptor.listed(listing)
-
-        then:
-        descriptor.state == Listed
-        descriptor.failure == null
-        descriptor.authoritative
-        descriptor.hasResult()
     }
 
     def "can mark as listed using version strings"() {
@@ -50,7 +38,7 @@ class DefaultBuildableModuleVersionListingResolveResultTest extends Specificatio
         then:
         descriptor.state == Listed
         descriptor.authoritative
-        descriptor.versions.versions*.version as Set == ['1.2', '1.3'] as Set
+        descriptor.versions == ['1.2', '1.3'] as Set
     }
 
     def "can mark as failed"() {

@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import org.gradle.internal.resolve.result.ModuleVersionListing;
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import java.util.Set;
+
 class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModuleVersionList {
-    private final ModuleVersionListing moduleVersions;
+    private final Set<String> moduleVersions;
     private final long ageMillis;
 
     public DefaultCachedModuleVersionList(ModuleVersionsCacheEntry entry, BuildCommencedTimeProvider timeProvider) {
@@ -27,7 +28,7 @@ class DefaultCachedModuleVersionList implements ModuleVersionsCache.CachedModule
         ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
     }
 
-    public ModuleVersionListing getModuleVersions() {
+    public Set<String> getModuleVersions() {
         return moduleVersions;
     }
 

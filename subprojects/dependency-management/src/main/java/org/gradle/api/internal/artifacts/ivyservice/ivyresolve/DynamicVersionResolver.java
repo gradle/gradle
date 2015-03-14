@@ -199,11 +199,11 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private List<CandidateResult> candidates() {
             List<CandidateResult> candidates = new ArrayList<CandidateResult>();
-            for (Versioned version : versionListingResult.result.getVersions().getVersions()) {
-                CandidateResult candidateResult = candidateComponents.get(version.getVersion());
+            for (String version : versionListingResult.result.getVersions()) {
+                CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {
-                    candidateResult = new CandidateResult(dependency, version.getVersion(), repository);
-                    candidateComponents.put(version.getVersion(), candidateResult);
+                    candidateResult = new CandidateResult(dependency, version, repository);
+                    candidateComponents.put(version, candidateResult);
                 }
                 candidates.add(candidateResult);
             }

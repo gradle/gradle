@@ -18,11 +18,13 @@ package org.gradle.internal.resolve.result;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultBuildableModuleVersionListingResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleVersionListingResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
-    private ModuleVersionListing versions;
+    private Set<String> versions;
     private boolean authoritative;
 
     private void reset(State state) {
@@ -40,7 +42,7 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
         return state != State.Unknown;
     }
 
-    public ModuleVersionListing getVersions() throws ModuleVersionResolveException {
+    public Set<String> getVersions() throws ModuleVersionResolveException {
         assertHasResult();
         return versions;
     }
@@ -50,18 +52,10 @@ public class DefaultBuildableModuleVersionListingResolveResult extends DefaultRe
         return failure;
     }
 
-    public void listed(ModuleVersionListing versions) {
-        reset(State.Listed);
-        this.versions = versions;
-        this.authoritative = true;
-    }
-
     public void listed(Collection<String> versions) {
-        DefaultModuleVersionListing listing = new DefaultModuleVersionListing();
-        for (String version : versions) {
-            listing.add(version);
-        }
-        listed(listing);
+        reset(State.Listed);
+        this.versions = new LinkedHashSet<String>(versions);
+        this.authoritative = true;
     }
 
     public void failed(ModuleVersionResolveException failure) {

@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * The result of attempting to resolve the list of versions for a particular module.
@@ -40,15 +41,10 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    ModuleVersionListing getVersions() throws ModuleVersionResolveException;
+    Set<String> getVersions() throws ModuleVersionResolveException;
 
     @Nullable
     ModuleVersionResolveException getFailure();
-
-    /**
-     * Marks the module as having been listed to have the specified versions available.
-     */
-    void listed(ModuleVersionListing versions);
 
     /**
      * Marks the module as having been listed to have the specified versions available.

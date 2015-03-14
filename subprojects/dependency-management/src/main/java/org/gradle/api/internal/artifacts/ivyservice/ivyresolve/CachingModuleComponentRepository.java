@@ -36,7 +36,10 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.resolve.result.*;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
@@ -125,10 +128,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
-                ModuleVersionListing versionList = cachedModuleVersionList.getModuleVersions();
-                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList.getVersions(), new Transformer<ModuleVersionIdentifier, Versioned>() {
-                    public ModuleVersionIdentifier transform(Versioned original) {
-                        return new DefaultModuleVersionIdentifier(moduleId, original.getVersion());
+                Set<String> versionList = cachedModuleVersionList.getModuleVersions();
+                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, String>() {
+                    public ModuleVersionIdentifier transform(String original) {
+                        return new DefaultModuleVersionIdentifier(moduleId, original);
                     }
                 });
                 if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
@@ -273,7 +276,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             switch (result.getState()) {
                 case Listed:
                     ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
-                    ModuleVersionListing versionList = result.getVersions();
+                    Set<String> versionList = result.getVersions();
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;
                 case Failed:

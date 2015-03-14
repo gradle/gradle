@@ -92,7 +92,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.listModuleVersions(dependency, result) >> {
-            result.listed(Mock(ModuleVersionListing))
+            result.listed(['a', 'b', 'c'])
         }
         0 * _
     }
