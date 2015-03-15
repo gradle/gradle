@@ -315,7 +315,7 @@ task retrieve(type: Sync) {
 
         then:
         // TODO - this error message isn't right: it found a version, it just happened to be missing. should really choose another version
-        failure.assertHasCause("""Could not find any version that matches group:projectA:1.+.
+        failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
 Searched in the following locations:
     ${repo.getModuleMetaData("group", "projectA").uri}
     ${projectA.pom.uri}

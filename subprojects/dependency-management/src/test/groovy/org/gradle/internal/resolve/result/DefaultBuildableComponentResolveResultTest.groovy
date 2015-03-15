@@ -18,7 +18,6 @@ package org.gradle.internal.resolve.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
@@ -101,24 +100,6 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         then:
         result.failure == null
-    }
-
-    def "fails with not found exception when not found using selector"() {
-        def selector = Mock(ModuleVersionSelector) {
-            it.group >> "org.gradle"
-            it.name >> "core"
-            it.version >> "2.3"
-        }
-
-        when:
-        result.notFound(selector)
-
-        then:
-        result.failure instanceof ModuleVersionNotFoundException
-        result.failure.selector instanceof ModuleComponentSelector
-        result.failure.selector.group == selector.group
-        result.failure.selector.module == selector.name
-        result.failure.selector.version == selector.version
     }
 
     def "fails with not found exception when not found using module version id"() {

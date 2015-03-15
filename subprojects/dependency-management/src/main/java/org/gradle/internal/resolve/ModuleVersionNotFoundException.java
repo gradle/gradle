@@ -19,44 +19,74 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+    /**
+     * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
+     */
     @SuppressWarnings("UnusedDeclaration")
-    public ModuleVersionNotFoundException(ComponentSelector selector, String messageFormat) {
-        super(selector, messageFormat);
+    public ModuleVersionNotFoundException(ComponentSelector selector, String message) {
+        super(selector, message);
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector, String messageFormat) {
-        super(selector, messageFormat);
+    public ModuleVersionNotFoundException(ModuleVersionSelector selector, String message) {
+        super(selector, message);
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector) {
-        super(selector, "Could not find any version that matches %s.");
+    public ModuleVersionNotFoundException(ModuleVersionSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
+        super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector, List<String> attemptedLocations) {
-        super(selector, format("Could not find any version that matches %s.", attemptedLocations));
+    public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
+        super(id, format(id, attemptedLocations));
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionIdentifier id) {
-        super(id, "Could not find %s.");
-    }
-
-    public ModuleVersionNotFoundException(ModuleVersionIdentifier id, List<String> attemptedLocations) {
-        super(id, format("Could not find %s.", attemptedLocations));
-    }
-
-    private static String format(String messageFormat, List<String> locations) {
-        if (locations.isEmpty()) {
-            return messageFormat;
-        }
+    private static String format(ModuleVersionSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
         StringBuilder builder = new StringBuilder();
-        builder.append(messageFormat);
+        if (unmatchedVersions.isEmpty() && rejectedVersions.isEmpty()) {
+            builder.append(String.format("Could not find any matches for %s as no versions of %s:%s are available.", selector, selector.getGroup(), selector.getName()));
+        } else {
+            builder.append(String.format("Could not find any version that matches %s.", selector));
+            if (!unmatchedVersions.isEmpty()) {
+                builder.append(String.format("%nVersions that do not match:"));
+                appendSizeLimited(builder, unmatchedVersions);
+            }
+            if (!rejectedVersions.isEmpty()) {
+                builder.append(String.format("%nVersions rejected by component selection rules:"));
+                appendSizeLimited(builder, rejectedVersions);
+            }
+        }
+        addLocations(builder, locations);
+        return builder.toString();
+    }
+
+    private static String format(ModuleVersionIdentifier id, Collection<String> locations) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Could not find %s.", id));
+        addLocations(builder, locations);
+        return builder.toString();
+    }
+
+    private static void appendSizeLimited(StringBuilder builder, Collection<String> values) {
+        Iterator<String> iterator = values.iterator();
+        int count = Math.min(5, values.size());
+        for (int i = 0; i < count; i++) {
+            builder.append(String.format("%n    %s", iterator.next()));
+        }
+        if (count < values.size()) {
+            builder.append(String.format("%n    + %d more", values.size() - count));
+        }
+    }
+
+    private static void addLocations(StringBuilder builder, Collection<String> locations) {
+        if (locations.isEmpty()) {
+            return;
+        }
         builder.append(String.format("%nSearched in the following locations:"));
         for (String location : locations) {
-            builder.append(String.format("%n    %s", location.replace("%", "%%")));
+            builder.append(String.format("%n    %s", location));
         }
-        return builder.toString();
     }
 }

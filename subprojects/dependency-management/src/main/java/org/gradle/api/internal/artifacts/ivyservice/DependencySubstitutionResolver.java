@@ -26,8 +26,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
-import java.util.Arrays;
-
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
     private final Action<DependencySubstitution<ComponentSelector>> rule;
@@ -50,7 +48,7 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
         try {
             rule.execute(details);
         } catch (Throwable e) {
-            result.failed(new ModuleVersionResolveException(selector, Arrays.asList(e)));
+            result.failed(new ModuleVersionResolveException(selector, e));
             return;
         }
         if (details.isUpdated()) {

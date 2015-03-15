@@ -145,7 +145,7 @@ task showMissing << { println configurations.missing.files }
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.integration.
+        failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
     ${repo1MetaData.uri}
     ${repo1DirList.uri}
@@ -165,7 +165,7 @@ Required by:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.integration.
+        failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
     ${repo1MetaData.uri}
     ${repo1DirList.uri}

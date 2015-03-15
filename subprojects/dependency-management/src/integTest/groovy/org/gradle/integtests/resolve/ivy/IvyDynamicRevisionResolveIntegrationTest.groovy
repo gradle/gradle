@@ -47,7 +47,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.integration.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.integration as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
@@ -117,21 +117,30 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.milestone as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
+Versions that do not match:
+    2.0
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
+Versions that do not match:
+    2.0
+    1.3
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
@@ -190,14 +199,18 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
@@ -205,7 +218,13 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+    1.3
+    1.2
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
@@ -220,8 +239,8 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1.1').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1-beta2').withStatus('integration').publish()
         run 'checkDeps'
 
         then:

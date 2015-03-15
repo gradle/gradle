@@ -219,7 +219,7 @@ dependencies {
 
         then:
         fails "resolveConf"
-        failure.assertHasCause("""Could not find any version that matches org.utils:api:+.
+        failure.assertHasCause("""Could not find any matches for org.utils:api:+ as no versions of org.utils:api are available.
 Searched in the following locations:
     ${dirList.uri}
     ${module21.ivy.uri}

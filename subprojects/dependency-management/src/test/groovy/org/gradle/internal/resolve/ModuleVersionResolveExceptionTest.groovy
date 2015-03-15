@@ -22,15 +22,11 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {
-    def "formats message to include selector"() {
+    def "provides default message that includes selector"() {
         def exception1 = new ModuleVersionResolveException(newSelector("org", "a", "1.2"), new RuntimeException())
-        def exception2 = new ModuleVersionResolveException(newSelector("org", "a", "1.2+"), "%s is broken")
-        def exception3 = new ModuleVersionResolveException(newId("org", "a", "1.2"), "%s is broken")
 
         expect:
         exception1.message == 'Could not resolve org:a:1.2.'
-        exception2.message == 'org:a:1.2+ is broken'
-        exception3.message == 'org:a:1.2 is broken'
     }
 
     def "can add incoming paths to exception"() {

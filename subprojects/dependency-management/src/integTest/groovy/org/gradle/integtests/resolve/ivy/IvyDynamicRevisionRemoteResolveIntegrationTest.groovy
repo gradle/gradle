@@ -800,12 +800,18 @@ dependencies {
 
         when: "no version > 2"
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
+        ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        ivyHttpRepo.module("group", "projectA", "3.0").publish()
         def directoryList = ivyHttpRepo.directoryList("group", "projectA")
         directoryList.expectGet()
 
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Versions that do not match:
+    3.0
+    1.2
+    1.1
 Searched in the following locations:
     ${directoryList.uri}
 Required by:
@@ -818,6 +824,10 @@ Required by:
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Versions that do not match:
+    3.0
+    1.2
+    1.1
 Searched in the following locations:
     ${directoryList.uri}
 Required by:
@@ -850,7 +860,7 @@ dependencies {
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+        failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
 Searched in the following locations:
     ${directoryList.uri}
 Required by:
@@ -862,7 +872,7 @@ Required by:
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+        failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
 Searched in the following locations:
     ${directoryList.uri}
 Required by:
@@ -951,7 +961,7 @@ dependencies {
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("""Could not find any version that matches group:projectA:latest.release.
+        failure.assertHasCause("""Could not find any matches for group:projectA:latest.release as no versions of group:projectA are available.
 Searched in the following locations:
     ${directoryList.uri}
     ${projectA.ivy.uri}

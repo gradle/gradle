@@ -17,25 +17,26 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.specs.Specs
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
 import org.gradle.internal.typeconversion.NotationParser
+import spock.lang.Specification
 
 import javax.xml.namespace.QName
-import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.artifacts.ComponentMetadataDetails
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.reflect.DirectInstantiator
-import spock.lang.Specification
 
 class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String GROUP = "group"
@@ -192,7 +193,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "processing fails when status is not present in status scheme"() {
         def metadata = Stub(MutableModuleComponentResolveMetaData) {
-            getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
+            getComponentId() >> DefaultModuleComponentIdentifier.newId("group", "module", "version")
             getStatus() >> "green"
             getStatusScheme() >> ["alpha", "beta"]
         }

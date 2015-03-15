@@ -17,7 +17,6 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -30,10 +29,6 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         metaData = null;
         this.failure = failure;
         return this;
-    }
-
-    public void notFound(ModuleVersionSelector versionSelector) {
-        failed(new ModuleVersionNotFoundException(versionSelector, getAttempted()));
     }
 
     public void notFound(ModuleVersionIdentifier versionIdentifier) {

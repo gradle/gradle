@@ -60,4 +60,14 @@ public interface BuildableComponentSelectionResult extends ResolveResult, Resour
      * Returns the reason for choosing the component.
      */
     State getState();
+
+    /**
+     * Adds a candidate version that did not match the provided selector.
+     */
+    void notMatched(String candidateVersion);
+
+    /**
+     * Adds a candidate version that matched the provided selector, but was rejected by some rule.
+     */
+    void rejected(String version);
 }

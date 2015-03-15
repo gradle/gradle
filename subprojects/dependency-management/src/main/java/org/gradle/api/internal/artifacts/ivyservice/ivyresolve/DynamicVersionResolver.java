@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.*;
@@ -61,7 +62,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             resolveStates.add(new RepositoryResolveState(dependency, repository));
         }
 
-        final RepositoryChainModuleResolution latestResolved = findLatestModule(dependency, resolveStates, errors);
+        final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
         if (latestResolved != null) {
             LOGGER.debug("Using {} from {}", latestResolved.module.getId(), latestResolved.repository);
             for (Throwable error : errors) {
@@ -74,14 +75,21 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(requested, errors));
         } else {
-            for (RepositoryResolveState resolveState : resolveStates) {
-                resolveState.applyTo(result);
-            }
-            result.notFound(requested);
+            notFound(result, requested, resolveStates);
         }
     }
 
-    private RepositoryChainModuleResolution findLatestModule(DependencyMetaData dependency, List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
+    private void notFound(BuildableComponentIdResolveResult result, ModuleVersionSelector requested, List<RepositoryResolveState> resolveStates) {
+        Set<String> unmatchedVersions = new LinkedHashSet<String>();
+        Set<String> rejectedVersions = new LinkedHashSet<String>();
+
+        for (RepositoryResolveState resolveState : resolveStates) {
+            resolveState.applyTo(result, unmatchedVersions, rejectedVersions);
+        }
+        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), unmatchedVersions, rejectedVersions));
+    }
+
+    private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<RepositoryResolveState>();
         queue.addAll(resolveStates);
 
@@ -145,6 +153,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final VersionListResult versionListingResult;
         private final ModuleComponentRepository repository;
         private final DependencyMetaData dependency;
+        private final DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
 
         public RepositoryResolveState(DependencyMetaData dependency, ModuleComponentRepository repository) {
             this.dependency = dependency;
@@ -174,14 +183,12 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
             versionedComponentChooser.selectNewestMatchingComponent(candidates(), dependency, componentSelectionResult);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
                     componentSelectionResult.applyTo(resolveResult);
                     resolveResult.missing();
-                    resolveResult.setAuthoritative(false); // TODO - not right
                     break;
                 // Found version matching in list: resolve component
                 case Match:
@@ -210,9 +217,11 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             return candidates;
         }
 
-        protected void applyTo(ResourceAwareResolveResult target) {
+        protected void applyTo(ResourceAwareResolveResult target, Set<String> unmatchedVersions, Set<String> rejectedVersions) {
             versionListingResult.applyTo(target);
             resolveResult.applyTo(target);
+            unmatchedVersions.addAll(componentSelectionResult.getUnmatchedVersions());
+            rejectedVersions.addAll(componentSelectionResult.getRejectedVersions());
         }
     }
 

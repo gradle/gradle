@@ -17,7 +17,6 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -31,11 +30,6 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
      * Marks the resolve as failed with the given exception.
      */
     BuildableComponentResolveResult failed(ModuleVersionResolveException failure);
-
-    /**
-     * Marks the component as not found.
-     */
-    void notFound(ModuleVersionSelector versionSelector);
 
     /**
      * Marks the component as not found.

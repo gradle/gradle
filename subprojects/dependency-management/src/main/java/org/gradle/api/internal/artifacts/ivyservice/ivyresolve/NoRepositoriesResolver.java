@@ -50,7 +50,7 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
-        result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), "Cannot resolve external dependency %s because no repositories are defined."));
+        result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 
     public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {

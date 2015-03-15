@@ -81,24 +81,27 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 applyTo(metadataProvider, result);
                 return;
             }
+            if (!versionMatches) {
+                result.notMatched(candidate.getVersion());
+                continue;
+            }
 
-            if (versionMatches) {
-                ModuleComponentIdentifier candidateIdentifier = candidate.getId();
-                boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
-                if (!metadataProvider.isUsable()) {
-                    applyTo(metadataProvider, result);
-                    return;
-                }
+            ModuleComponentIdentifier candidateIdentifier = candidate.getId();
+            boolean accepted = !isRejectedByRules(candidateIdentifier, rules, metadataProvider);
+            if (!metadataProvider.isUsable()) {
+                applyTo(metadataProvider, result);
+                return;
+            }
 
-                if (accepted) {
-                    result.matches(candidateIdentifier);
-                    return;
-                }
+            if (accepted) {
+                result.matches(candidateIdentifier);
+                return;
+            }
 
-                if (requestedVersion.matchesUniqueVersion()) {
-                    // Only consider one candidate
-                    break;
-                }
+            result.rejected(candidate.getVersion());
+            if (requestedVersion.matchesUniqueVersion()) {
+                // Only consider one candidate
+                break;
             }
         }
 

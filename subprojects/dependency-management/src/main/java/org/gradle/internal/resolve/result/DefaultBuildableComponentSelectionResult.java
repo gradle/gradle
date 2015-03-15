@@ -20,10 +20,15 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwareResolveResult implements BuildableComponentSelectionResult {
     private State state = State.Unknown;
     private ModuleComponentIdentifier moduleComponentIdentifier;
     private ModuleVersionResolveException failure;
+    private final Set<String> unmatchedVersions = new LinkedHashSet<String>();
+    private final Set<String> rejectedVersions = new LinkedHashSet<String>();
 
     public void matches(ModuleComponentIdentifier moduleComponentIdentifier) {
         setChosenComponentWithReason(State.Match, moduleComponentIdentifier);
@@ -69,5 +74,23 @@ public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwa
         this.moduleComponentIdentifier = null;
         this.failure = failure;
         this.state = State.Failed;
+    }
+
+    public Set<String> getUnmatchedVersions() {
+        return unmatchedVersions;
+    }
+
+    @Override
+    public void notMatched(String candidateVersion) {
+        unmatchedVersions.add(candidateVersion);
+    }
+
+    public Set<String> getRejectedVersions() {
+        return rejectedVersions;
+    }
+
+    @Override
+    public void rejected(String version) {
+        rejectedVersions.add(version);
     }
 }
