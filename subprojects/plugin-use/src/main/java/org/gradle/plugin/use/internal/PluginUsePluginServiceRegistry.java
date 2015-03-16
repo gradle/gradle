@@ -55,6 +55,9 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new BuildScopeServices());
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

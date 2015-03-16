@@ -38,6 +38,9 @@ public class CompileServices implements PluginServiceRegistry {
         registration.addProvider(new BuildScopeCompileServices());
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

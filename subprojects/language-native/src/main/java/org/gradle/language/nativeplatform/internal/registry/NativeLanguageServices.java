@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.registry;
 
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.language.nativeplatform.internal.incremental.DefaultCompilationStateCacheFactory;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 
 public class NativeLanguageServices implements PluginServiceRegistry {
@@ -25,6 +26,10 @@ public class NativeLanguageServices implements PluginServiceRegistry {
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
+        registration.add(DefaultCompilationStateCacheFactory.class);
     }
 
     public void registerProjectServices(ServiceRegistration registration) {

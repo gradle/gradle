@@ -31,6 +31,9 @@ public class ScalaToolChainServiceRegistry implements PluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }

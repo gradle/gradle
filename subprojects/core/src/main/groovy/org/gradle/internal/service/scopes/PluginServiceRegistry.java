@@ -36,6 +36,12 @@ public interface PluginServiceRegistry {
     void registerBuildServices(ServiceRegistration registration);
 
     /**
+     * Called once per build, to registry any gradle scoped services. These services are discarded at the end of the current build.
+     * All build scoped services are visible to the gradle scope services, but not vice versa.
+     */
+    void registerGradleServices(ServiceRegistration registration);
+
+    /**
      * Called once per project per build, to registry any project scoped services. These services are discarded at the end of the current build.
      * All global and build scoped services are visible to the project scope services, but not vice versa.
      */

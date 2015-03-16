@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -29,10 +30,11 @@ import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.event.ListenerManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,10 +48,17 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     private final CompositeStoppable registries = new CompositeStoppable();
 
-    public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
+    public GradleScopeServices(final ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
         addProvider(new TaskExecutionServices());
+        register(new Action<ServiceRegistration>() {
+            public void execute(ServiceRegistration registration) {
+                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                    pluginServiceRegistry.registerGradleServices(registration);
+                }
+            }
+        });
     }
 
     TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {

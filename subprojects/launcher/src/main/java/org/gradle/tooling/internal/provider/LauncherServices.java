@@ -40,6 +40,9 @@ public class LauncherServices implements PluginServiceRegistry {
         registration.addProvider(new ToolingBuildScopeServices());
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

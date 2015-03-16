@@ -41,6 +41,9 @@ public class NativeBinaryServices implements PluginServiceRegistry {
         registration.add(CompilerMetaDataProviderFactory.class);
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new NativeDependencyResolverServices());
     }

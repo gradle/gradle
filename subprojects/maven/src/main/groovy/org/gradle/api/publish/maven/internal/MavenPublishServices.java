@@ -36,6 +36,9 @@ public class MavenPublishServices implements PluginServiceRegistry {
         registration.addProvider(new ComponentRegistrationAction());
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

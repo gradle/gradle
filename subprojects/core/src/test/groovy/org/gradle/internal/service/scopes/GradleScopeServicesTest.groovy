@@ -130,4 +130,19 @@ public class GradleScopeServicesTest extends Specification {
         optionReader instanceof OptionReader
         secondOptionReader sameInstance(optionReader)
     }
+
+    def "adds all plugin gradle scope services"() {
+        def plugin1 = Mock(PluginServiceRegistry)
+        def plugin2 = Mock(PluginServiceRegistry)
+
+        given:
+        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+
+        when:
+        new GradleScopeServices(parent, gradle)
+
+        then:
+        1 * plugin1.registerGradleServices(_)
+        1 * plugin2.registerGradleServices(_)
+    }
 }
