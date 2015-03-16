@@ -53,7 +53,12 @@ public class UriResource implements Resource {
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s'", description, sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+        StringBuilder builder = new StringBuilder();
+        builder.append(description);
+        builder.append(" '");
+        builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+        builder.append("'");
+        return builder.toString();
     }
 
     public String getText() {
