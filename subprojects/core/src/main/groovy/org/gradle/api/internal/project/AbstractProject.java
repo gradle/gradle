@@ -556,7 +556,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             builder.append("root ");
         }
         builder.append("project '");
-        builder.append(path);
+        builder.append(parent == null ? name : path);
         builder.append("'");
         return builder.toString();
     }
