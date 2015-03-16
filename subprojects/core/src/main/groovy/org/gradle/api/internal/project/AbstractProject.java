@@ -551,11 +551,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public String toString() {
-        if (parent != null) {
-            return String.format("project '%s'", path);
-        } else {
-            return String.format("root project '%s'", name);
+        StringBuilder builder = new StringBuilder();
+        if (parent == null) {
+            builder.append("root ");
         }
+        builder.append("project '");
+        builder.append(path);
+        builder.append("'");
+        return builder.toString();
     }
 
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
