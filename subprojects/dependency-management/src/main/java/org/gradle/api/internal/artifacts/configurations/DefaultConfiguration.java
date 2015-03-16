@@ -321,7 +321,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public String getDisplayName() {
-        return String.format("configuration '%s'", path);
+        StringBuilder builder = new StringBuilder();
+        builder.append("configuration '");
+        builder.append(path);
+        builder.append("'");
+        return builder.toString();
     }
 
     public ResolvableDependencies getIncoming() {
