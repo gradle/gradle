@@ -43,6 +43,6 @@ class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         testProject | maxTimeReg   | maxMemReg
         "small"     | millis(500)  | DataAmount.kbytes(150)
-        "multi"     | millis(1000) | DataAmount.mbytes(0)
+        "multi"     | millis(1000) | DataAmount.mbytes(10)
     }
 }
