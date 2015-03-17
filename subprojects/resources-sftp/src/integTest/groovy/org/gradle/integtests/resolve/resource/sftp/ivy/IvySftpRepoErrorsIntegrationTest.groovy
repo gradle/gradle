@@ -82,7 +82,7 @@ Required by:
         then:
         fails 'retrieve'
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("""Could not find any version that matches org.group.name:projectA:1.+.
+                .assertHasCause("""Could not find any matches for org.group.name:projectA:1.+ as no versions of org.group.name:projectA are available.
 Searched in the following locations:
     ${ivySftpRepo.uri}/org.group.name/projectA/
 Required by:
