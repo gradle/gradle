@@ -139,11 +139,18 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
                 .converter(new ModuleIdentiferNotationConverter())
-                .converter(new ModuleIdentifierMapNotationConverter())
+                .converter(ModuleIdentifierMapNotationConverter.getInstance())
                 .toComposite();
     }
 
     private static class ModuleIdentifierMapNotationConverter extends MapNotationConverter<ModuleIdentifier> {
+
+        private final static ModuleIdentifierMapNotationConverter INSTANCE = new ModuleIdentifierMapNotationConverter();
+
+        public static ModuleIdentifierMapNotationConverter getInstance() {
+            return INSTANCE;
+        }
+
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.example("Maps, e.g. [group: 'org.gradle', name:'gradle-core'].");

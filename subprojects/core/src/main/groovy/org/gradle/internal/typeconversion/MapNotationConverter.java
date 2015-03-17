@@ -42,10 +42,11 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     public MapNotationConverter() {
         super(Map.class);
         convertMethod = findConvertMethod();
-        keyNames = new String[convertMethod.getParameterAnnotations().length];
-        optional = new boolean[convertMethod.getParameterAnnotations().length];
-        for (int i = 0; i < convertMethod.getParameterAnnotations().length; i++) {
-            Annotation[] annotations = convertMethod.getParameterAnnotations()[i];
+        Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
+        keyNames = new String[parameterAnnotations.length];
+        optional = new boolean[parameterAnnotations.length];
+        for (int i = 0; i < parameterAnnotations.length; i++) {
+            Annotation[] annotations = parameterAnnotations[i];
             keyNames[i] = keyName(annotations);
             optional[i] = optional(annotations);
         }
