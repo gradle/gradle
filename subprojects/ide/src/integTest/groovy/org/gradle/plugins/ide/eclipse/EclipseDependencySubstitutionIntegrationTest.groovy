@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
+
 import org.gradle.integtests.fixtures.TestResources
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -49,7 +49,6 @@ project(":project2") {
         assert classpath.libs == []
     }
 
-    @Ignore("Not yet implemented")
     @Test
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOn("module2").publish()
