@@ -102,7 +102,7 @@ task showMissing << { println configurations.missing.files }
         succeeds("showMissing")
     }
 
-    def "cached empty version list for dynamic version is ignored if module is not available in any repo"() {
+    def "cached empty version list is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
@@ -193,7 +193,7 @@ Required by:
         run 'retrieve'
     }
 
-    def "cached not-found information for fixed version is ignored if module is not available in any repo"() {
+    def "cached missing module is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
@@ -256,6 +256,89 @@ Required by:
 
         when:
         server.resetExpectations()
+
+        then:
+        run 'retrieve'
+    }
+
+    def "cached missing module is ignored when no module for dynamic version is available in any repo"() {
+        given:
+        def repo1 = mavenHttpRepo("repo1")
+        def repo1Module = repo1.module("group", "projectA", "1.0").publish()
+        def repo2 = mavenHttpRepo("repo2")
+        def repo2Module = repo2.module("group", "projectA", "1.0").publish()
+
+        buildFile << """
+    repositories {
+        maven {
+            name 'repo1'
+            url '${repo1.uri}'
+        }
+        maven {
+            name 'repo2'
+            url '${repo2.uri}'
+        }
+    }
+    configurations { conf1; conf2 }
+    dependencies {
+        conf1 'group:projectA:1.0'
+        conf2 'group:projectA:1.+'
+    }
+
+    task cache << { configurations.conf1.files }
+    task retrieve(type: Sync) {
+        into 'libs'
+        from configurations.conf2
+    }
+    """
+
+        and:
+        repo1Module.pom.expectGetMissing()
+        repo1Module.artifact.expectHeadMissing()
+        repo2Module.pom.expectGetMissing()
+        repo2Module.artifact.expectHeadMissing()
+        fails 'cache'
+        failure.assertHasCause("Could not find group:projectA:1.0.")
+
+        when:
+        server.resetExpectations()
+        repo1Module.rootMetaData.expectGet()
+        repo1Module.pom.expectGetMissing()
+        repo1Module.artifact.expectHeadMissing()
+        repo2Module.rootMetaData.expectGet()
+        repo2Module.pom.expectGetMissing()
+        repo2Module.artifact.expectHeadMissing()
+
+        then:
+        fails 'retrieve'
+
+        when:
+        server.resetExpectations()
+        repo1Module.rootMetaData.expectGet()
+        repo1Module.pom.expectGetMissing()
+        repo1Module.artifact.expectHeadMissing()
+        repo2Module.rootMetaData.expectGet()
+        repo2Module.pom.expectGetMissing()
+        repo2Module.artifact.expectHeadMissing()
+
+        then:
+        fails 'retrieve'
+
+        when:
+        server.resetExpectations()
+        repo1Module.pom.expectGetMissing()
+        repo1Module.artifact.expectHeadMissing()
+        repo2Module.pom.expectGet()
+        repo2Module.artifact.expectGet()
+
+        then:
+        run 'retrieve'
+
+        when:
+        server.resetExpectations()
+        // TODO - should not need to do this
+        repo1Module.pom.expectHeadMissing()
+        repo1Module.artifact.expectHeadMissing()
 
         then:
         run 'retrieve'
