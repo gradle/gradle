@@ -30,25 +30,6 @@ The Gradle integration in IDEs such as Android Studio, Eclipse, IntelliJ IDEA an
 
 If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge you to try it out with Gradle 2.4.
 
-### Daemon health monitoring
-
-The daemon actively monitors its health and may expire earlier if its performance degrades.
-The current implementation monitors the overhead of garbage collector and may detect memory issues.
-Memory problems can be caused by 3rd party plugins written without performance review.
-We want the Gradle daemon to be rock solid and enabled by default in the future.
-This feature is a big step forward towards the goal.
-Down the road the health monitoring will get richer and smarter, providing the users the insight into daemon's performance
-and deciding whether to restart the daemon process.
-
-Incubating system property "org.gradle.daemon.performance.logging" can be used to switch on an elegant message emitted at the beginning of each build.
-The new information presented in the build log helps getting better understanding of daemon's performance:
-
-    Starting 3rd build in daemon [uptime: 15 mins, performance: 92%, memory: 65% of 1.1 GB]
-
-The logging can be turned on by tweaking "org.gradle.jvmargs" property of the gradle.properties file:
-˛
-    org.gradle.jvmargs=-Dorg.gradle.daemon.performance.logging=true
-
 ### Support for AWS S3 backed repositories
 
 Gradle now supports S3 backed repositories. Here's an example on how to declare a S3 backed maven repository in gradle:

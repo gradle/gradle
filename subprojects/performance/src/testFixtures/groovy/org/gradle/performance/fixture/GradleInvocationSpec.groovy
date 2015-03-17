@@ -110,7 +110,7 @@ class GradleInvocationSpec {
         }
 
         Builder enableModelReuse() {
-            gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true", "-Dorg.gradle.daemon.performance.expire-at=0")
+            gradleOpts("-D$ReusingModelRegistryStore.TOGGLE=true")
         }
 
         Builder disableDaemonLogging() {

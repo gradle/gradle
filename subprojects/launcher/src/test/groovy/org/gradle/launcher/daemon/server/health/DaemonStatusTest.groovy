@@ -21,6 +21,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.EXPIRE_AT_PROPERTY
 
@@ -34,12 +35,15 @@ class DaemonStatusTest extends Specification {
     def "validates supplied threshold value"() {
         System.setProperty(EXPIRE_AT_PROPERTY, "foo")
 
-        when: status.isDaemonTired(stats)
+        when:
+        status.isDaemonTired(stats)
+
         then:
         def ex = thrown(GradleException)
         ex.message == "System property 'org.gradle.daemon.performance.expire-at' has incorrect value: 'foo'. The value needs to be integer."
     }
 
+    @Unroll
     def "knows when daemon is tired"() {
         when:
         System.setProperty(EXPIRE_AT_PROPERTY, threshold.toString())
@@ -47,7 +51,7 @@ class DaemonStatusTest extends Specification {
         stats.getMemoryUsed() >> mem
 
         then:
-        status.isDaemonTired(stats) >> tired
+        status.isDaemonTired(stats) == tired
 
         where:
         threshold | perf | mem   | tired
@@ -59,5 +63,14 @@ class DaemonStatusTest extends Specification {
         100       | 100  | 100   | true
         100       | 100  | 60    | false
         75        | 80   | 0     | false
+    }
+
+    def "daemon hygiene is disabled by default"() {
+        when:
+        stats.getCurrentPerformance() >> 0
+        stats.getMemoryUsed() >> 100
+
+        then:
+        !status.isDaemonTired(stats)
     }
 }

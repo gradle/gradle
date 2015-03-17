@@ -33,7 +33,7 @@ class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerform
         runner.maxExecutionTimeRegression = millis(200)
         runner.maxMemoryRegression = mbytes(100)
         runner.targetVersions = ['2.0', '2.2.1', '2.4', 'last']
-        runner.gradleOpts = ["-Xmx1024m", "-XX:MaxPermSize=256m", "-Dorg.gradle.daemon.performance.expire-at=0"]
+        runner.gradleOpts = ["-Xmx1024m", "-XX:MaxPermSize=256m"]
 
         when:
         def result = runner.run()

@@ -22,8 +22,8 @@ import static java.lang.String.format;
 
 class DaemonStatus {
 
-    static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
-    static final int DEFAULT_EXPIRE_AT = 80;
+    public static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
+    static final int DEFAULT_EXPIRE_AT = 0;
 
     boolean isDaemonTired(DaemonStats stats) {
         String expireAt = System.getProperty(EXPIRE_AT_PROPERTY);
