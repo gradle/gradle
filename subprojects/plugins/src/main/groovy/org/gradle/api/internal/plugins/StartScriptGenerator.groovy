@@ -39,6 +39,11 @@ class StartScriptGenerator {
     String mainClassName
 
     Iterable<String> defaultJvmOpts = []
+    
+    /**
+     * Flag to turn on escaping of meta characters like $ in default jvm opts 
+     */
+    Boolean escapeMetaCharactersInDefaultJvmOpts = false
 
     /**
      * The classpath, relative to the application home directory.
@@ -73,6 +78,7 @@ class StartScriptGenerator {
         scriptGenerationDetails.applicationName = applicationName
         scriptGenerationDetails.mainClassName = mainClassName
         scriptGenerationDetails.defaultJvmOpts = defaultJvmOpts
+        scriptGenerationDetails.escapeMetaCharactersInDefaultJvmOpts = escapeMetaCharactersInDefaultJvmOpts
         scriptGenerationDetails.optsEnvironmentVar = optsEnvironmentVar
         scriptGenerationDetails.exitEnvironmentVar = exitEnvironmentVar
         scriptGenerationDetails.classpath = classpath

@@ -40,6 +40,8 @@ public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDeta
     private String mainClassName;
 
     private Iterable<String> defaultJvmOpts = new ArrayList<String>();
+    
+    private Boolean escapeMetaCharactersInDefaultJvmOpts = false;
 
     /**
      * The classpath, relative to the application home directory.
@@ -94,6 +96,14 @@ public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDeta
 
     public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
         this.defaultJvmOpts = defaultJvmOpts;
+    }
+
+    public Boolean getEscapeMetaCharactersInDefaultJvmOpts() {
+      return escapeMetaCharactersInDefaultJvmOpts;
+    }
+
+    public void setEscapeMetaCharactersInDefaultJvmOpts(Boolean escapeMetaCharactersInDefaultJvmOpts) {
+      this.escapeMetaCharactersInDefaultJvmOpts = escapeMetaCharactersInDefaultJvmOpts;
     }
 
     public Iterable<String> getClasspath() {

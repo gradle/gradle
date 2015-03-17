@@ -47,6 +47,13 @@ public class CreateStartScripts extends ConventionTask {
     @Input
     @Optional
     Iterable<String> defaultJvmOpts = []
+    
+    /**
+     * If script should escape meta characters like $
+     */
+    @Input
+    @Optional
+    Boolean escapeMetaCharactersInDefaultJvmOpts = false;
 
     /**
      * The application's name.
@@ -115,6 +122,7 @@ public class CreateStartScripts extends ConventionTask {
         generator.applicationName = getApplicationName()
         generator.mainClassName = getMainClassName()
         generator.defaultJvmOpts = getDefaultJvmOpts()
+        generator.escapeMetaCharactersInDefaultJvmOpts = getEscapeMetaCharactersInDefaultJvmOpts()
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
         generator.classpath = getClasspath().collect { "lib/${it.name}".toString() }

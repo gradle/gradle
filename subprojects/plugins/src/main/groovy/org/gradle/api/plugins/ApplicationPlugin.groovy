@@ -102,6 +102,7 @@ class ApplicationPlugin implements Plugin<Project> {
         startScripts.conventionMapping.applicationName = { pluginConvention.applicationName }
         startScripts.conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
         startScripts.conventionMapping.defaultJvmOpts = { pluginConvention.applicationDefaultJvmArgs }
+        startScripts.conventionMapping.escapeMetaCharactersInDefaultJvmOpts = { pluginConvention.escapeMetaCharactersInDefaultJvmOpts }
     }
 
     private Task addInstallAppTask(Distribution distribution) {
