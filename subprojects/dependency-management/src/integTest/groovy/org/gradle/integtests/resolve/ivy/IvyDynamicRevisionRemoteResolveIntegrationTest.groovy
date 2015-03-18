@@ -50,15 +50,15 @@ dependencies {
                 dependsOn("group", "projectB", "[1.0,1.2)").
                 dependsOn("group", "projectC", "1.0.0").
                 publish()
-        def projectB1_1 = ivyHttpRepo.module("group", "projectB", "1.1").withStatus("milestone").publish()
-        def projectB1_2 = ivyHttpRepo.module("group", "projectB", "1.2").withStatus("milestone").publish()
+        def projectB11 = ivyHttpRepo.module("group", "projectB", "1.1").withStatus("milestone").publish()
+        def projectB12 = ivyHttpRepo.module("group", "projectB", "1.2").withStatus("milestone").publish()
 
         def projectC1 = ivyHttpRepo.module("group", "projectC", "1.0.0").dependsOn("group", "projectB", "latest.milestone").publish()
 
         and:
         expectGetDynamicRevision(projectA1)
-        expectGetDynamicRevision(projectB1_2)
-        projectB1_1.ivy.expectGet()
+        expectGetDynamicRevision(projectB12)
+        projectB11.ivy.expectGet()
         projectC1.ivy.expectGet()
         projectC1.jar.expectGet()
 
