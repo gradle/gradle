@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
@@ -45,7 +44,6 @@ class NativePerformanceTest extends AbstractCrossVersionPerformanceTest {
         "multi"        | millis(1000)
     }
 
-    @Category(Experiment)
     def "Many projects native build" () {
         given:
         runner.testId = "native build many projects"

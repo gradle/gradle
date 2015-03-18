@@ -17,6 +17,7 @@
 package org.gradle.internal.resource;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
@@ -29,13 +30,18 @@ import java.net.URLConnection;
  */
 public class UriResource implements Resource {
     private final File sourceFile;
-    private final URI sourceUri;
+    private volatile URI sourceUri;
     private final String description;
+    private final Factory<URI> sourceUriFactory;
 
-    public UriResource(String description, File sourceFile) {
+    public UriResource(String description, final File sourceFile) {
         this.description = description;
         this.sourceFile = canonicalise(sourceFile);
-        this.sourceUri = sourceFile.toURI();
+        this.sourceUriFactory = new Factory<URI>() {
+            public URI create() {
+                return sourceFile.toURI();
+            }
+        };
     }
 
     private File canonicalise(File file) {
@@ -50,10 +56,12 @@ public class UriResource implements Resource {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? canonicalise(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;
+        this.sourceUriFactory = null;
     }
 
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
+        URI sourceUri = getURI();
         builder.append(description);
         builder.append(" '");
         builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
@@ -66,7 +74,7 @@ public class UriResource implements Resource {
             throw new ResourceException(String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
         try {
-            Reader reader = getInputStream(sourceUri);
+            Reader reader = getInputStream(getURI());
             try {
                 return IOUtils.toString(reader);
             } finally {
@@ -81,7 +89,7 @@ public class UriResource implements Resource {
 
     public boolean getExists() {
         try {
-            Reader reader = getInputStream(sourceUri);
+            Reader reader = getInputStream(getURI());
             try {
                 return true;
             } finally {
@@ -107,7 +115,16 @@ public class UriResource implements Resource {
     }
 
     public URI getURI() {
-        return sourceUri;
+        URI result = sourceUri;
+        if (result == null) {
+            synchronized (this) {
+                result = sourceUri;
+                if (result == null) {
+                    sourceUri = result = sourceUriFactory.create();
+                }
+            }
+        }
+        return result;
     }
 
     public static String extractCharacterEncoding(String contentType, String defaultEncoding) {
