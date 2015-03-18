@@ -118,6 +118,7 @@
             </para>
         </section>
     </section>
+
     <section>
         <title>Component model</title>
         <para>
@@ -143,6 +144,24 @@
             These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
             provided, or additional source files provided. Each native binary produced for a component is referred to as <firstterm>variant</firstterm>.
             Binary variants are discussed in detail below.
+        </para>
+    </section>
+
+    <section>
+        <title>Parallel Compilation</title>
+        <para>
+            Gradle uses parallel compilation when building native components. All sources in a single source set are divided up among several workers.  No special
+            configuration is required to turn on this behavior.
+        </para>
+        <para>
+            You can change the number of background workers that Gradle will use when compiling and linking. By default, Gradle will try to use the same number of workers
+            as there are available processors.  To explicitly set the number of workers use the command-line option <literal>--workers</literal> or the
+            <literal>org.gradle.workers.max</literal> system property.  We do not expect that you will usually need to adjust this setting.
+        </para>
+        <para>
+            Since Gradle does not run tasks in parallel from the same project, increasing the number of workers will not have much impact on single-project builds, even if you
+            have several separate native components.  If your build is a multi-project build that runs with <literal>--parallel</literal>, the workers are pooled and shared across
+            project boundaries.  So if workers is set to five and ten projects are building in parallel, Gradle will only use five total workers, not fifty.
         </para>
     </section>
     <section>
