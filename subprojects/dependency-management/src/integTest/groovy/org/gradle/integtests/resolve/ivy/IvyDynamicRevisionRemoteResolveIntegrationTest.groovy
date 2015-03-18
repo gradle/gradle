@@ -20,6 +20,7 @@ import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -30,6 +31,39 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+    }
+
+    @Issue("GRADLE-3264")
+    def "resolves latest.milestone from when same dependency has a range constraint transitively"() {
+        given:
+        useRepository ivyHttpRepo
+
+        buildFile << """
+configurations { compile }
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1.+"
+}
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.0.0").
+                dependsOn("group", "projectB", "[1.0,1.2)").
+                dependsOn("group", "projectC", "1.0.0").
+                publish()
+        def projectB1_1 = ivyHttpRepo.module("group", "projectB", "1.1").withStatus("milestone").publish()
+        def projectB1_2 = ivyHttpRepo.module("group", "projectB", "1.2").withStatus("milestone").publish()
+
+        def projectC1 = ivyHttpRepo.module("group", "projectC", "1.0.0").dependsOn("group", "projectB", "latest.milestone").publish()
+
+        and:
+        expectGetDynamicRevision(projectA1)
+        expectGetDynamicRevision(projectB1_2)
+        projectB1_1.ivy.expectGet()
+        projectC1.ivy.expectGet()
+        projectC1.jar.expectGet()
+
+        then:
+        assert succeeds('checkDeps')
     }
 
     def "uses latest version from version range and latest status"() {
