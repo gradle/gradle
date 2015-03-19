@@ -19,7 +19,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "6.4.1"
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9"
     private CheckstyleExtension extension
 
     @Override
