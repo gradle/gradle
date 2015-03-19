@@ -17,7 +17,7 @@ subprojects {
 
 project(":project1") {
     dependencies {
-       compile 'org.slf4j:slf4j-api:1.7.7'
+       compile 'org.slf4j:slf4j-api:1.7.10'
     }
 
     // START SNIPPET customize-identity

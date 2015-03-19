@@ -160,7 +160,7 @@ after class err
 
     def "captures output from logging frameworks"() {
         buildFile << """
-dependencies { testCompile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
+dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
 """
         file("src/test/java/FooTest.java") << """
 

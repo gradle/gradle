@@ -213,8 +213,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executer.withTasks("someTask").withArguments("-x", "sODep", "-x", "soDep").run().assertTasksExecuted(":someTask")
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2974")
-    @Issue("https://issues.gradle.org/browse/GRADLE-3031")
+    @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
     def 'excluding a task that is a dependency of multiple tasks'() {
         settingsFile << "include 'sub'"
         buildFile << """

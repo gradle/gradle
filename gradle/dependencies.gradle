@@ -21,12 +21,12 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:1.4'
 
-versions.groovy = "2.3.9"
+versions.groovy = "2.3.10"
 
 versions.bouncycastle = "1.51"
 
-libraries.ant = dependencies.module('org.apache.ant:ant:1.9.3') {
-    dependency 'org.apache.ant:ant-launcher:1.9.3@jar'
+libraries.ant = dependencies.module('org.apache.ant:ant:1.9.4') {
+    dependency 'org.apache.ant:ant-launcher:1.9.4@jar'
 }
 
 libraries.asm =  'org.ow2.asm:asm-all:5.0.3'
@@ -42,14 +42,14 @@ libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
 libraries.inject = dependencies.module('javax.inject:javax.inject:1')
 
 // Logging
-libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.7')
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.7') {
+libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.10')
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.7') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.7') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
 libraries.logback_core = dependencies.module('ch.qos.logback:logback-core:1.0.13')
