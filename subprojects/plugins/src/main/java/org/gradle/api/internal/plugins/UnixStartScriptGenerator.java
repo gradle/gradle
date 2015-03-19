@@ -39,7 +39,8 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
         binding.put("applicationName", details.getApplicationName());
         binding.put("optsEnvironmentVar", details.getOptsEnvironmentVar());
         binding.put("mainClassName", details.getMainClassName());
-        binding.put("defaultJvmOpts", createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
+        binding.put("defaultJvmOpts", createJoinedDefaultJvmOpts(details.getDefaultJvmOpts(), details.getEscapeMetaCharactersInDefaultJvmOpts()));
+        binding.put("escapeMetaCharactersInDefaultJvmOpts", String.valueOf(details.getEscapeMetaCharactersInDefaultJvmOpts()));
         binding.put("appNameSystemProperty", details.getAppNameSystemProperty());
         binding.put("appHomeRelativePath", createJoinedAppHomeRelativePath(details.getScriptRelPath()));
         binding.put("classpath", createJoinedClasspath(details.getClasspath()));
@@ -58,7 +59,7 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
         }));
     }
 
-    private String createJoinedDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+    private String createJoinedDefaultJvmOpts(Iterable<String> defaultJvmOpts, final Boolean escapeMetaCharactersInDefaultJvmOpts) {
         Iterable<String> quotedDefaultJvmOpts = Iterables.transform(defaultJvmOpts, new Function<String, String>() {
             public String apply(String jvmOpt) {
                 //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
@@ -66,7 +67,9 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
                 jvmOpt = jvmOpt.replace("\"", "\\\"");
                 jvmOpt = jvmOpt.replace("'", "'\"'\"'");
                 jvmOpt = jvmOpt.replace("`", "'\"`\"'");
-                jvmOpt = jvmOpt.replace("$", "\\$");
+                if(escapeMetaCharactersInDefaultJvmOpts){
+                  jvmOpt = jvmOpt.replace("$", "\\$");
+                }
                 StringBuilder quotedJvmOpt = new StringBuilder();
                 quotedJvmOpt.append("\"");
                 quotedJvmOpt.append(jvmOpt);
