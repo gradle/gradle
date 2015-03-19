@@ -33,6 +33,7 @@ import org.gradle.util.VersionNumber
  * @see Pmd
  */
 class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
+    public static final String DEFAULT_PMD_VERSION = "5.2.3"
     private PmdExtension extension
 
     @Override
@@ -49,7 +50,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("pmd", PmdExtension, project)
         extension.with {
-            toolVersion = "5.1.1"
+            toolVersion = DEFAULT_PMD_VERSION
             // NOTE: should change default rule set to java-basic once we bump default version to 5.0+
             // this will also require a change to Pmd.run() (convert java-basic to basic for old versions,
             // instead of basic to java-basic for new versions)
@@ -78,8 +79,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         config.incoming.beforeResolve {
             if (config.dependencies.empty) {
                 VersionNumber version = VersionNumber.parse(extension.toolVersion)
-                String dependency = (version < VersionNumber.version(5))?
-                    "pmd:pmd:$extension.toolVersion" : "net.sourceforge.pmd:pmd:$extension.toolVersion"
+                String dependency = calculateDefaultDependencyNotation(version)
                 config.dependencies.add(project.dependencies.create(dependency))
             }
         }
@@ -98,6 +98,15 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 }
             }
         }
+    }
+
+    private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {
+        if (toolVersion < VersionNumber.version(5)) {
+            return "pmd:pmd:$extension.toolVersion"
+        } else if (toolVersion < VersionNumber.parse("5.2.0")) {
+            return "net.sourceforge.pmd:pmd:$extension.toolVersion"
+        }
+        return "net.sourceforge.pmd:pmd-java:$extension.toolVersion"
     }
 
     @Override

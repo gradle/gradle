@@ -35,7 +35,7 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     def "allows configuring tool dependencies explicitly"() {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "pmd")
-        output.contains "pmd:pmd:"
+        output.contains "pmd:pmd-java:"
 
         when:
         buildFile << """
