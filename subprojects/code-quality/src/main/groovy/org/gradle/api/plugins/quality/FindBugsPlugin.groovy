@@ -34,6 +34,7 @@ import org.gradle.api.tasks.SourceSet
  * @see FindBugsExtension
  */
 class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
+    public static final String DEFAULT_FINDBUGS_VERSION = "3.0.1"
     private FindBugsExtension extension
 
     @Override
@@ -62,7 +63,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("findbugs", FindBugsExtension, project)
-        extension.toolVersion = "3.0.0"
+        extension.toolVersion = DEFAULT_FINDBUGS_VERSION
         return extension
     }
 

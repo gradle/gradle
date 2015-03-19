@@ -19,6 +19,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "6.4.1"
     private CheckstyleExtension extension
 
     @Override
@@ -36,7 +37,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.extensions.create("checkstyle", CheckstyleExtension, project)
 
         extension.with {
-            toolVersion = "5.7"
+            toolVersion = DEFAULT_CHECKSTYLE_VERSION
             config = project.resources.text.fromFile("config/checkstyle/checkstyle.xml")
         }
 

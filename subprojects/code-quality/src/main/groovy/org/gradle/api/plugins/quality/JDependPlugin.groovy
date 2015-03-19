@@ -35,6 +35,7 @@ import org.gradle.api.tasks.SourceSet
  * @see JDepend
  */
 class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
+    public static final String DEFAULT_JDEPEND_VERSION = "2.9.1"
     private JDependExtension extension
 
     @Override
@@ -51,7 +52,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("jdepend", JDependExtension)
         extension.with {
-            toolVersion = "2.9.1"
+            toolVersion = DEFAULT_JDEPEND_VERSION
         }
         return extension
     }
@@ -63,7 +64,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
             if (config.dependencies.empty) {
                 project.dependencies {
                     jdepend "jdepend:jdepend:$extension.toolVersion"
-                    jdepend("org.apache.ant:ant-jdepend:1.8.2")
+                    jdepend("org.apache.ant:ant-jdepend:1.9.4")
                 }
             }
         }
