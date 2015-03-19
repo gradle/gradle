@@ -39,12 +39,15 @@ class StartScriptGeneratorTest extends Specification {
     StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
+    def setup() {
+        populateStartScriptGenerator()
+    }
+
     def "can generate Unix script"() {
         given:
         TestFile script = temporaryFolder.file('unix.sh')
 
         when:
-        populateStartScriptGenerator()
         startScriptGenerator.generateUnixScript(script)
 
         then:
@@ -58,7 +61,6 @@ class StartScriptGeneratorTest extends Specification {
         TestFile script = temporaryFolder.file('windows.bat')
 
         when:
-        populateStartScriptGenerator()
         startScriptGenerator.generateWindowsScript(script)
 
         then:
