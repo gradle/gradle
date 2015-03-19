@@ -57,6 +57,7 @@ class StartScriptGenerator {
 
     private final ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator
     private final ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator
+    private final UnixFileOperation unixFileOperation
 
     StartScriptGenerator() {
         this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator())
@@ -64,36 +65,51 @@ class StartScriptGenerator {
 
     StartScriptGenerator(ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator,
                          ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator) {
+        this(unixStartScriptGenerator, windowsStartScriptGenerator, new AntUnixFileOperation())
+    }
+
+    StartScriptGenerator(ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator,
+                         ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator,
+                         UnixFileOperation unixFileOperation) {
         this.unixStartScriptGenerator = unixStartScriptGenerator
         this.windowsStartScriptGenerator = windowsStartScriptGenerator
+        this.unixFileOperation = unixFileOperation
     }
+
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
         JavaAppStartScriptGenerationDetails scriptGenerationDetails = new JavaAppStartScriptGenerationDetails()
         scriptGenerationDetails.applicationName = applicationName
-        scriptGenerationDetails.mainClassName = mainClassName
-        scriptGenerationDetails.defaultJvmOpts = defaultJvmOpts
         scriptGenerationDetails.optsEnvironmentVar = optsEnvironmentVar
         scriptGenerationDetails.exitEnvironmentVar = exitEnvironmentVar
+        scriptGenerationDetails.mainClassName = mainClassName
+        scriptGenerationDetails.defaultJvmOpts = defaultJvmOpts
         scriptGenerationDetails.classpath = classpath
         scriptGenerationDetails.scriptRelPath = scriptRelPath
+        scriptGenerationDetails.appNameSystemProperty = appNameSystemProperty
         scriptGenerationDetails
     }
 
     void generateUnixScript(File unixScript) {
         unixStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), new FileWriter(unixScript))
-        createExecutablePermission(unixScript)
+        unixFileOperation.createExecutablePermission(unixScript)
     }
 
     void generateWindowsScript(File windowsScript) {
         windowsStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), new FileWriter(windowsScript))
     }
 
-    private void createExecutablePermission(File unixScriptFile) {
-        Chmod chmod = new Chmod()
-        chmod.file = unixScriptFile
-        chmod.perm = "ugo+rx"
-        chmod.project = AntUtil.createProject()
-        chmod.execute()
+    static interface UnixFileOperation {
+        void createExecutablePermission(File file)
+    }
+
+    static class AntUnixFileOperation implements UnixFileOperation {
+        void createExecutablePermission(File file) {
+            Chmod chmod = new Chmod()
+            chmod.file = file
+            chmod.perm = "ugo+rx"
+            chmod.project = AntUtil.createProject()
+            chmod.execute()
+        }
     }
 }

@@ -119,5 +119,57 @@ public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDeta
     public void setAppNameSystemProperty(String appNameSystemProperty) {
         this.appNameSystemProperty = appNameSystemProperty;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JavaAppStartScriptGenerationDetails that = (JavaAppStartScriptGenerationDetails) o;
+
+        if (appNameSystemProperty != null ? !appNameSystemProperty.equals(that.appNameSystemProperty) : that.appNameSystemProperty != null) {
+            return false;
+        }
+        if (applicationName != null ? !applicationName.equals(that.applicationName) : that.applicationName != null) {
+            return false;
+        }
+        if (classpath != null ? !classpath.equals(that.classpath) : that.classpath != null) {
+            return false;
+        }
+        if (defaultJvmOpts != null ? !defaultJvmOpts.equals(that.defaultJvmOpts) : that.defaultJvmOpts != null) {
+            return false;
+        }
+        if (exitEnvironmentVar != null ? !exitEnvironmentVar.equals(that.exitEnvironmentVar) : that.exitEnvironmentVar != null) {
+            return false;
+        }
+        if (mainClassName != null ? !mainClassName.equals(that.mainClassName) : that.mainClassName != null) {
+            return false;
+        }
+        if (optsEnvironmentVar != null ? !optsEnvironmentVar.equals(that.optsEnvironmentVar) : that.optsEnvironmentVar != null) {
+            return false;
+        }
+        if (scriptRelPath != null ? !scriptRelPath.equals(that.scriptRelPath) : that.scriptRelPath != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = applicationName != null ? applicationName.hashCode() : 0;
+        result = 31 * result + (optsEnvironmentVar != null ? optsEnvironmentVar.hashCode() : 0);
+        result = 31 * result + (exitEnvironmentVar != null ? exitEnvironmentVar.hashCode() : 0);
+        result = 31 * result + (mainClassName != null ? mainClassName.hashCode() : 0);
+        result = 31 * result + (defaultJvmOpts != null ? defaultJvmOpts.hashCode() : 0);
+        result = 31 * result + (classpath != null ? classpath.hashCode() : 0);
+        result = 31 * result + (scriptRelPath != null ? scriptRelPath.hashCode() : 0);
+        result = 31 * result + (appNameSystemProperty != null ? appNameSystemProperty.hashCode() : 0);
+        return result;
+    }
 }
 
