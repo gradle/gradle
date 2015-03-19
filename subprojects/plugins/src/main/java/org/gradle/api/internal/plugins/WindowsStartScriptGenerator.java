@@ -38,14 +38,14 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
 
     public Map<String, String> createBinding(JavaAppStartScriptGenerationDetails details) {
         Map<String, String> binding = new HashMap<String, String>();
-        binding.put("applicationName", details.getApplicationName());
-        binding.put("optsEnvironmentVar", details.getOptsEnvironmentVar());
-        binding.put("exitEnvironmentVar", details.getExitEnvironmentVar());
-        binding.put("mainClassName", details.getMainClassName());
-        binding.put("defaultJvmOpts", createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
-        binding.put("appNameSystemProperty", details.getAppNameSystemProperty());
-        binding.put("appHomeRelativePath", createJoinedAppHomeRelativePath(details.getScriptRelPath()).replace('/', '\\'));
-        binding.put("classpath", createJoinedClasspath(details.getClasspath()));
+        binding.put(ScriptBindingParameter.APP_NAME.getKey(), details.getApplicationName());
+        binding.put(ScriptBindingParameter.OPTS_ENV_VAR.getKey(), details.getOptsEnvironmentVar());
+        binding.put(ScriptBindingParameter.EXIT_ENV_VAR.getKey(), details.getExitEnvironmentVar());
+        binding.put(ScriptBindingParameter.MAIN_CLASSNAME.getKey(), details.getMainClassName());
+        binding.put(ScriptBindingParameter.DEFAULT_JVM_OPTS.getKey(), createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
+        binding.put(ScriptBindingParameter.APP_NAME_SYS_PROP.getKey(), details.getAppNameSystemProperty());
+        binding.put(ScriptBindingParameter.APP_HOME_REL_PATH.getKey(), createJoinedAppHomeRelativePath(details.getScriptRelPath()).replace('/', '\\'));
+        binding.put(ScriptBindingParameter.CLASSPATH.getKey(), createJoinedClasspath(details.getClasspath()));
         return binding;
     }
 

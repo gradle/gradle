@@ -80,8 +80,6 @@ task createStartScripts(type: CreateStartScripts) {
     windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
 }
 
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-
 class CustomUnixStartScriptGenerator implements ScriptGenerator<JavaAppStartScriptGenerationDetails> {
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {

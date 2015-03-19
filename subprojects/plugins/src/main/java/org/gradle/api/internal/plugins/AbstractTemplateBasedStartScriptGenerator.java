@@ -99,6 +99,27 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         return slashJoiner.join(appHomeRelativePath);
     }
 
+    public static enum ScriptBindingParameter {
+        APP_NAME("applicationName"),
+        OPTS_ENV_VAR("optsEnvironmentVar"),
+        EXIT_ENV_VAR("exitEnvironmentVar"),
+        MAIN_CLASSNAME("mainClassName"),
+        DEFAULT_JVM_OPTS("defaultJvmOpts"),
+        APP_NAME_SYS_PROP("appNameSystemProperty"),
+        APP_HOME_REL_PATH("appHomeRelativePath"),
+        CLASSPATH("classpath");
+
+        private final String key;
+
+        private ScriptBindingParameter(String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
+
     abstract String getDefaultTemplateFilename();
     abstract String getLineSeparator();
 }
