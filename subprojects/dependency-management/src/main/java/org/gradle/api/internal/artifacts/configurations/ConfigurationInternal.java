@@ -23,4 +23,6 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
     String getPath();
 
     void includedInResolveResult();
+
+    void triggerWhenEmptyIfNecessary();
 }
