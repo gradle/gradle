@@ -38,7 +38,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        ((ConfigurationInternal) projectDependency.getProjectConfiguration()).triggerWhenEmptyIfNecessary();
+        ((ConfigurationInternal) projectDependency.getProjectConfiguration()).triggerWhenEmptyActionsIfNecessary();
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent, moduleRevisionId, false, false, dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);

@@ -24,5 +24,5 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
 
     void includedInResolveResult();
 
-    void triggerWhenEmptyIfNecessary();
+    void triggerWhenEmptyActionsIfNecessary();
 }

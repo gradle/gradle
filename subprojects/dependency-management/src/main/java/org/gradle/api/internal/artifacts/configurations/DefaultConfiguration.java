@@ -61,7 +61,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
-    private Action<? super DependencySet> whenEmpty;
+    private final List<Action<? super DependencySet>> whenEmptyActions = new ArrayList<Action<? super DependencySet>>();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -207,7 +207,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration whenEmpty(Action<? super DependencySet> action) {
         validateMutation(MutationType.CONTENT);
-        this.whenEmpty = action;
+        this.whenEmptyActions.add(action);
         return this;
     }
 
@@ -217,12 +217,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void triggerWhenEmptyIfNecessary() {
-        if (whenEmpty != null && dependencies.isEmpty()) {
-            whenEmpty.execute(dependencies);
+    public void triggerWhenEmptyActionsIfNecessary() {
+        if (!whenEmptyActions.isEmpty()) {
+            for (Action<? super DependencySet> action : whenEmptyActions) {
+                if (!dependencies.isEmpty()) {
+                    break;
+                }
+                action.execute(dependencies);
+            }
         }
         for (Configuration superConfig : extendsFrom) {
-            ((ConfigurationInternal) superConfig).triggerWhenEmptyIfNecessary();
+            ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
         }
     }
 
@@ -280,7 +285,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
-                triggerWhenEmptyIfNecessary();
+                triggerWhenEmptyActionsIfNecessary();
                 cachedResolverResults = resolver.resolve(this);
                 for (Configuration configuration : extendsFrom) {
                     ((ConfigurationInternal) configuration).includedInResolveResult();
@@ -385,7 +390,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
-        copiedConfiguration.whenEmpty = whenEmpty;
+        copiedConfiguration.whenEmptyActions.addAll(whenEmptyActions);
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
