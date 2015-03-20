@@ -356,4 +356,25 @@ class DefaultConfigurationSpec extends Specification {
         def exArtifact = thrown(InvalidUserDataException);
         exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
     }
+
+    def "whenEmpty() is called on self first, then on parent"() {
+        def parentWhenEmptyAction = Mock(Action)
+        def parent = conf("parent", ":parent")
+        parent.whenEmpty parentWhenEmptyAction
+
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.extendsFrom parent
+        conf.whenEmpty whenEmptyAction
+
+        when:
+        conf.triggerWhenEmptyIfNecessary()
+
+        then:
+        1 * whenEmptyAction.execute(conf.dependencies)
+
+        then:
+        1 * parentWhenEmptyAction.execute(parent.dependencies)
+        0 * _
+    }
 }
