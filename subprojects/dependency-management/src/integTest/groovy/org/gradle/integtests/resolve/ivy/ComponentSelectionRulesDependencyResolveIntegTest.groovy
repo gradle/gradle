@@ -323,6 +323,8 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 }
             }
         """
+
+        when:
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
         modules['1.2'].ivy.expectGet()
         modules['1.1'].ivy.expectGet()
@@ -330,7 +332,13 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         modules['1.1'].artifact.expectGet()
         modules['1.0'].artifact.expectGet()
 
-        expect:
+        then:
+        succeeds "verify"
+
+        when:
+        server.resetExpectations()
+
+        then:
         succeeds "verify"
     }
 }
