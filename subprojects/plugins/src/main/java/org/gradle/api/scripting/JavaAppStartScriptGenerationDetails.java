@@ -23,22 +23,28 @@ import java.util.ArrayList;
  */
 public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
     /**
-     * The display name of the application
+     * The display name of the application.
      */
     private String applicationName;
 
     /**
-     * The environment variable to use to provide additional options to the JVM
+     * The environment variable to use to provide additional options to the JVM.
      */
     private String optsEnvironmentVar;
 
     /**
-     * The environment variable to use to control exit value (windows only)
+     * The environment variable to use to control exit value (Windows only).
      */
     private String exitEnvironmentVar;
 
+    /**
+     * The main classname used to start the Java application.
+     */
     private String mainClassName;
 
+    /**
+     * The default JVM options.
+     */
     private Iterable<String> defaultJvmOpts = new ArrayList<String>();
 
     /**

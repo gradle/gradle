@@ -16,7 +16,6 @@
 
 package org.gradle.api.scripting;
 
-import java.io.Serializable;
 import java.io.Writer;
 
 /**
@@ -24,7 +23,7 @@ import java.io.Writer;
  *
  * @param <T> Script generation details
  */
-public interface ScriptGenerator<T extends ScriptGenerationDetails> extends Serializable {
+public interface ScriptGenerator<T extends ScriptGenerationDetails> {
     /**
      * Generates a script.
      *
