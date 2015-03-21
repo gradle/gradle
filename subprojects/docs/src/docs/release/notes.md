@@ -365,6 +365,24 @@ This causes unexpected build results when source accidentally ends up on the cla
 
 This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
+### Upgraded libraries in the Gradle API
+
+Some dependencies used in Gradle have been updated. We updated
+
+* slf4j from 1.7.7 to 1.7.10
+* groovy from 2.3.9 to 2.3.10
+* ant from 1.9.3 to 1.9.4
+
+### Upgraded default versions for code quality plugins
+
+The default version for the following code quality plugins have been updated:
+
+* The `checkstyle` plugin uses now version 5.9 as default. (was 5.7)
+    (Note: The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant.)
+* The `pmd` plugin uses now version 5.2.3 as default. (was 5.1.1)
+* The `findbugs` plugin uses now version 3.0.1 as default. (was 3.0.0)
+* The `codenarc` plugin uses now version 0.23 as default. (was 0.21)
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
