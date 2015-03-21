@@ -18,8 +18,26 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
+import java.util.Collections;
+
 public interface ResolvedProjectConfigurationResultBuilder {
     void registerRoot(ComponentIdentifier componentId);
     void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName);
     ResolvedProjectConfigurationResults complete();
+
+    static ResolvedProjectConfigurationResultBuilder NOOP_BUILDER = new ResolvedProjectConfigurationResultBuilder() {
+
+        @Override
+        public void registerRoot(ComponentIdentifier componentId) {
+        }
+
+        @Override
+        public void addProjectComponentResult(ProjectComponentIdentifier componentId, String configurationName) {
+        }
+
+        @Override
+        public ResolvedProjectConfigurationResults complete() {
+            return new DefaultResolvedProjectConfigurationResults(Collections.<ResolvedProjectConfigurationResult>emptySet());
+        }
+    };
 }

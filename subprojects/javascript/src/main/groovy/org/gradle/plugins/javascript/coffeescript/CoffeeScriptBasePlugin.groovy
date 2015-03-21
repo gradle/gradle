@@ -56,7 +56,7 @@ class CoffeeScriptBasePlugin implements Plugin<Project> {
 
     private Configuration addJsConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, CoffeeScriptExtension extension) {
         Configuration configuration = configurations.create(CoffeeScriptExtension.JS_CONFIGURATION_NAME)
-        configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
+        configuration.incoming.beforeObserve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {
                     String notation = "${DEFAULT_JS_DEPENDENCY_GROUP}:${DEFAULT_JS_DEPENDENCY_MODULE}:${extension.version}@js"

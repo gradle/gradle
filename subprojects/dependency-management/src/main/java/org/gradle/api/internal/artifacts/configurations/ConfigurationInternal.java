@@ -18,9 +18,17 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
+    enum InternalState { UNOBSERVED, OBSERVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
+
+    InternalState getInternalState();
+
     ResolutionStrategyInternal getResolutionStrategy();
 
     String getPath();
 
-    void includedInResolveResult();
+    void markAsObserved();
+
+    void addMutationValidator(MutationValidator validator);
+
+    void removeMutationValidator(MutationValidator validator);
 }

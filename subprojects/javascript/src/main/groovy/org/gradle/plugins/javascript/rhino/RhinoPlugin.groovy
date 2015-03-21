@@ -61,7 +61,7 @@ class RhinoPlugin implements Plugin<Project> {
     }
 
     void configureDefaultRhinoDependency(Configuration configuration, DependencyHandler dependencyHandler, RhinoExtension extension) {
-        configuration.incoming.beforeResolve {
+        configuration.incoming.beforeObserve {
             if (configuration.dependencies.empty) {
                 Dependency dependency = dependencyHandler.create("${DEFAULT_RHINO_DEPENDENCY_GROUP}:${DEFAULT_RHINO_DEPENDENCY_MODULE}:${extension.version}")
                 configuration.dependencies.add(dependency)

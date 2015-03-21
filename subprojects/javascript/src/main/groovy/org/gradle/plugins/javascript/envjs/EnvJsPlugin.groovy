@@ -84,7 +84,7 @@ class EnvJsPlugin implements Plugin<Project> {
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, EnvJsExtension extension) {
         Configuration configuration = configurations.create(EnvJsExtension.CONFIGURATION_NAME)
-        configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
+        configuration.incoming.beforeObserve(new Action<ResolvableDependencies>() {
             void execute(ResolvableDependencies resolvableDependencies) {
                 if (configuration.dependencies.empty) {
                     String notation = "${DEFAULT_DEPENDENCY_GROUP}:${DEFAULT_DEPENDENCY_MODULE}:${extension.version}@js"

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
@@ -46,6 +46,80 @@ class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         output.contains "accessed files"
+    }
+
+    def "listeners are called in parent->child order during resolution of child configuration"() {
+        given:
+        buildFile << """
+            configurations {
+                grandParent
+                parent { extendsFrom grandParent }
+                things { extendsFrom parent }
+            }
+            configurations.each { conf ->
+                conf.incoming.beforeObserve { incoming ->
+                    println "before observe \$conf"
+                }
+                conf.incoming.beforeResolve { incoming ->
+                    println "before resolve \$conf"
+                }
+                conf.incoming.afterResolve { incoming ->
+                    println "after resolve \$conf"
+                }
+            }
+            configurations.things.resolve()
+        """
+
+        when: succeeds()
+        then: output.contains(
+"""before resolve configuration ':things'
+before observe configuration ':grandParent'
+before observe configuration ':parent'
+before observe configuration ':things'
+after resolve configuration ':things'""")
+    }
+
+    def "listeners are called on dependency project's configurations"() {
+        given:
+        settingsFile << 'include "api", "impl"'
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                configurations.all { conf ->
+                    conf.incoming.beforeObserve { incoming ->
+                        println "before observe \$conf"
+                    }
+                    conf.incoming.beforeResolve { incoming ->
+                        println "before resolve \$conf"
+                    }
+                    conf.incoming.afterResolve { incoming ->
+                        println "after resolve \$conf"
+                    }
+                }
+            }
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+            }
+
+            dependencies {
+                compile project(":impl")
+            }
+            configurations.compile.resolve()
+        """
+
+        when: succeeds("dependencies", "--configuration", "compile")
+        then: output.contains(
+"""before resolve configuration ':compile'
+before observe configuration ':compile'
+before observe configuration ':impl:compile'
+before observe configuration ':impl:runtime'
+before observe configuration ':impl:default'
+before observe configuration ':api:compile'
+before observe configuration ':api:runtime'
+before observe configuration ':api:default'
+after resolve configuration ':compile'""")
     }
 
 }

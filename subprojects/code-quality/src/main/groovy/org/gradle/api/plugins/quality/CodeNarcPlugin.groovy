@@ -55,7 +55,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     @Override
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
         def codenarcConfiguration = project.configurations['codenarc']
-        codenarcConfiguration.incoming.beforeResolve {
+        codenarcConfiguration.incoming.beforeObserve {
             if (codenarcConfiguration.dependencies.empty) {
                 codenarcConfiguration.dependencies.add(project.dependencies.create("org.codenarc:CodeNarc:$extension.toolVersion"))
             }

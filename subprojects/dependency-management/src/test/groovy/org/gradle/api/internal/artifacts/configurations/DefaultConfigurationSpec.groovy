@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.tasks.TaskDependency
@@ -36,9 +37,10 @@ class DefaultConfigurationSpec extends Specification {
     ListenerManager listenerManager = Mock()
     DependencyMetaDataProvider metaDataProvider = Mock()
     ResolutionStrategyInternal resolutionStrategy = Mock()
+    ProjectFinder projectFinder = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy)
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, projectFinder)
     }
 
     DefaultPublishArtifact artifact(String name) {
@@ -67,8 +69,10 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     def setup() {
-        ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
+        ListenerBroadcast<DependencyObservationListener> observationBroadcast = new ListenerBroadcast<DependencyObservationListener>(DependencyObservationListener)
+        _ * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> observationBroadcast
+        ListenerBroadcast<DependencyResolutionListener> resolutionBroadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> resolutionBroadcast
     }
 
     def "all artifacts collection has immediate artifacts"() {
@@ -192,6 +196,10 @@ class DefaultConfigurationSpec extends Specification {
         Task task = Mock()
         TaskDependency taskDep = Mock()
         def config = conf("conf")
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(resolvedConfiguration, Mock(ResolutionResult), projectConfigurationResults)
 
         given:
         config.dependencies.add(dependency)
@@ -203,6 +211,9 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolvedConfiguration.hasError() >> false
+        _ * resolver.resolve(config) >> resolverResults
+        _ * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
@@ -319,6 +330,167 @@ class DefaultConfigurationSpec extends Specification {
         then:
         1 * resolver.resolve(config) >> resolverResults
         out == result
+    }
+
+    def "resolving configuration for task dependencies puts it into the right state"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration puts it into the RESOLVED_RESULTS state and broadcasts events"() {
+        def observationBroadcast = Mock(ListenerBroadcast)
+        def resolutionBroadcast = Mock(ListenerBroadcast)
+
+        when:
+        def config = conf("conf")
+
+        then:
+        1 * listenerManager.createAnonymousBroadcaster(DependencyObservationListener) >> observationBroadcast
+        1 * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> resolutionBroadcast
+
+        def resolutionListener = Mock(DependencyResolutionListener)
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * resolutionBroadcast.getSource() >> resolutionListener
+        1 * resolutionListener.beforeResolve(config.incoming)
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+
+        then:
+        1 * resolutionListener.afterResolve(config.incoming)
+
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration for task dependencies, and then resolving it for results does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        0 * resolver.resolve(_)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration for results, and then resolving it for task dependencies does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        0 * resolver.resolve(_)
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration twice returns the same result objects"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolvedFiles = Mock(Set)
+        resolverResults.resolved(resolvedConfiguration, result, projectConfigurationResults)
+
+        when:
+        def previousFiles = config.files
+        def previousResolutionResult = config.incoming.resolutionResult
+        def previousResolvedConfiguration = config.resolvedConfiguration
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        when:
+        def nextFiles = config.files
+        def nextResolutionResult = config.incoming.resolutionResult
+        def nextResolvedConfiguration = config.resolvedConfiguration
+
+        then:
+        0 * resolver.resolve(_)
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == Configuration.State.RESOLVED
+
+        // We get back the same resolution results
+        previousResolutionResult == result
+        nextResolutionResult == result
+
+        // We get back the same resolved configuration
+        previousResolvedConfiguration == resolvedConfiguration
+        nextResolvedConfiguration == resolvedConfiguration
+
+        // And the same files
+        previousFiles == resolvedFiles
+        nextFiles == resolvedFiles
+    }
+
+    def "copied configuration is not resolved"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        when:
+        config.incoming.resolutionResult
+        def copy = config.copy()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
+        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.state == Configuration.State.UNRESOLVED
     }
 
     def "provides task dependency from project dependency using 'needed'"() {

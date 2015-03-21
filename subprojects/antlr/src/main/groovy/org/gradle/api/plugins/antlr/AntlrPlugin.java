@@ -57,7 +57,7 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        antlrConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
+        antlrConfiguration.getIncoming().beforeObserve(new Action<ResolvableDependencies>() {
             public void execute(ResolvableDependencies resolvableDependencies) {
                 DependencySet dependencies = antlrConfiguration.getDependencies();
                 if (dependencies.isEmpty()) {

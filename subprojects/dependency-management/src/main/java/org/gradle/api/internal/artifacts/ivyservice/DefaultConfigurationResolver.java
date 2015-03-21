@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.Transformers;
 import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
@@ -41,6 +44,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
+        // Mark configurations as observed in parent->child order
+        for (Configuration observedConfiguration : Lists.reverse(new ArrayList<Configuration>(configuration.getHierarchy()))) {
+            ((ConfigurationInternal) observedConfiguration).markAsObserved();
+        }
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         ResolverResults results = new ResolverResults();
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, results);
