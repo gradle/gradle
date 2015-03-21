@@ -283,4 +283,106 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
         expect: succeeds()
     }
+
+    def "allows changing a non-empty configuration that does not affect a resolved configuration"() {
+        buildFile << """
+            configurations {
+                a
+                b
+            }
+            dependencies { b files("some.jar") }
+            configurations.b.resolve()
+            dependencies { a "a:b:c" }
+        """
+        expect: succeeds()
+    }
+
+    def "does not allow changing an observed dependent project's version"() {
+        settingsFile << "include 'api'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            project(":api").version = "early"
+            dependencies {
+                compile project(":api")
+            }
+            configurations.compile.resolve()
+            project(":api").version = "late"
+"""
+        executer.withDeprecationChecksDisabled()
+
+        when: fails()
+        then: failure.assertHasCause("Cannot change configuration ':compile' after it has been resolved.")
+    }
+
+    def "warns about changing an observed dependent project's group"() {
+        settingsFile << "include 'api'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            project(":api").group = "something"
+            dependencies {
+                compile project(":api")
+            }
+            configurations.compile.resolve()
+            project(":api").group = "lajos"
+"""
+        executer.withDeprecationChecksDisabled()
+
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':compile' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+    }
+
+    def "does not allow changing an observed transitive dependent project's version"() {
+        settingsFile << "include 'api', 'impl'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            project(":api").version = "early"
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+            }
+            dependencies {
+                compile project(":impl")
+            }
+            configurations.compile.resolve()
+            project(":api").version = "late"
+"""
+        executer.withDeprecationChecksDisabled()
+
+        when: fails()
+        then: failure.assertHasCause("Cannot change configuration ':compile' after it has been resolved.")
+    }
+
+    def "does not allow changing a dependency project's dependencies after configuration is resolved"() {
+        settingsFile << "include 'api', 'impl'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+            }
+            dependencies {
+                compile project(":impl")
+            }
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+            }
+            configurations.compile.resolve()
+            project(":api") {
+                dependencies {
+                    compile files("some.jar")
+                }
+            }
+"""
+        executer.withDeprecationChecksDisabled()
+
+        when: fails()
+        then: failure.assertHasCause("Cannot change configuration ':compile' after it has been resolved.")
+    }
 }
