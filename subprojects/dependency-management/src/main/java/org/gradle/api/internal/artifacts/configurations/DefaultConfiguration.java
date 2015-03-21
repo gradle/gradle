@@ -328,10 +328,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 cachedResolverResults = resolver.resolve(this);
-                for (Configuration configuration : extendsFrom) {
-                    ((ConfigurationInternal) configuration).markAsObserved();
-                }
                 resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
+
+                // Mark all affected configurations as observed
+                markAsObserved();
+                for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
+                    ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+                    for (String targetConfigName : projectResult.getTargetConfigurations()) {
+                        ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(targetConfigName);
+                        targetConfig.markAsObserved();
+                    }
+                }
+
                 markAsResolved(requestedState);
                 broadcast.afterResolve(incoming);
             } else {

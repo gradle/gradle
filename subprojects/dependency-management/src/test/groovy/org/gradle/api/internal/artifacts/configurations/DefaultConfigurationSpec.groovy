@@ -63,8 +63,10 @@ class DefaultConfigurationSpec extends Specification {
     ResolvedConfiguration resolvedConfiguration(Configuration config, ConfigurationResolver dependencyResolver = resolver) {
         ResolvedConfiguration resolvedConfiguration = Mock()
         def results = new ResolverResults()
-        results.resolved(resolvedConfiguration, Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults))
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        results.resolved(resolvedConfiguration, Mock(ResolutionResult), projectConfigurationResults)
         1 * dependencyResolver.resolve(config) >> results
+        1 * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         resolvedConfiguration
     }
 
@@ -320,13 +322,16 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
 
         when:
         def out = config.incoming.resolutionResult
 
         then:
         1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         out == result
     }
 
@@ -342,9 +347,27 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolver.resolve(config) >> resolverResults
-        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        _ * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
         config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == Configuration.State.RESOLVED
+    }
+
+    def "resolving configuration marks parent configuration as observed"() {
+        def parent = conf("parent", ":parent")
+        def config = conf("conf")
+        config.extendsFrom parent
+        def result = Mock(ResolutionResult)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
+
+        when:
+        config.resolve()
+
+        then:
+        1 * resolver.resolve(config) >> resolverResults
+        _ * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        parent.internalState == ConfigurationInternal.InternalState.OBSERVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -359,7 +382,9 @@ class DefaultConfigurationSpec extends Specification {
         def listener = Mock(DependencyResolutionListener)
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
 
         when:
         config.incoming.getResolutionResult()
@@ -368,6 +393,7 @@ class DefaultConfigurationSpec extends Specification {
         1 * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(config.incoming)
         1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         1 * listener.afterResolve(config.incoming)
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
@@ -385,7 +411,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolver.resolve(config) >> resolverResults
-        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+        2 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
         config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
         config.state == Configuration.State.RESOLVED
 
@@ -410,6 +436,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
 
@@ -439,6 +466,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
         1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
         config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
         config.state == Configuration.State.RESOLVED
@@ -471,14 +499,21 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
 
         when:
         config.incoming.resolutionResult
-        def copy = config.copy()
 
         then:
         1 * resolver.resolve(config) >> resolverResults
+        1 * projectConfigurationResults.getAllProjectConfigurationResults() >> ([] as Set)
+
+        when:
+        def copy = config.copy()
+
+        then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
         copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
         copy.state == Configuration.State.UNRESOLVED
@@ -502,12 +537,15 @@ class DefaultConfigurationSpec extends Specification {
         def conf = conf("conf")
         def result = Mock(ResolutionResult)
         def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolverResults.resolved(Mock(ResolvedConfiguration), result, projectConfigurationResults)
 
         when:
         conf.incoming.getResolutionResult()
         then:
         1 * resolver.resolve(conf) >> resolverResults
+        1 * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
 
         when: conf.dependencies.add(Mock(Dependency))
         then:
