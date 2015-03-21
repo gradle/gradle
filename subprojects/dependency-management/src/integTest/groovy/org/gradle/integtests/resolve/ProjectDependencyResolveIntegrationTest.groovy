@@ -540,4 +540,36 @@ project('c') {
         and:
         file("b/build/copied/a-1.0.zip").exists()
     }
+
+    def "resolving configuration with project dependency marks dependency's configuration as observed"() {
+        settingsFile << "include 'api'; include 'impl'"
+
+        buildFile << """
+            allprojects {
+                configurations {
+                    conf
+                }
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf project(":api")
+                }
+
+                task check << {
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+
+                    configurations.conf.resolve()
+
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.OBSERVED
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
+    }
 }
