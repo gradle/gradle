@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.logging.StandardOutputCapture;
@@ -96,4 +97,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     void addDeferredConfiguration(Runnable configuration);
 
     void fireDeferredConfiguration();
+
+    ProjectAccessListener getProjectAccessListener();
 }

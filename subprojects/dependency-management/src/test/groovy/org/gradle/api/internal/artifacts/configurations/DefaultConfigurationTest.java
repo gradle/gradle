@@ -358,12 +358,12 @@ public class DefaultConfigurationTest {
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
         return new DefaultConfiguration(confName, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy());
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), null);
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
         return new DefaultConfiguration(path, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy());
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), null);
     }
 
     @SuppressWarnings("unchecked")

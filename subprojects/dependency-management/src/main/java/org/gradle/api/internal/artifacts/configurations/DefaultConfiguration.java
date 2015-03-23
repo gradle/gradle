@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -66,6 +67,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationResolvableDependencies resolvableDependencies = new ConfigurationResolvableDependencies();
     private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
+    private final ProjectAccessListener projectAccessListener;
 
     // This lock only protects the following fields
     private final Object lock = new Object();
@@ -77,7 +79,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
                                 DependencyMetaDataProvider metaDataProvider,
-                                ResolutionStrategyInternal resolutionStrategy) {
+                                ResolutionStrategyInternal resolutionStrategy,
+                                ProjectAccessListener projectAccessListener) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -85,6 +88,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
         this.resolutionStrategy = resolutionStrategy;
+        this.projectAccessListener = projectAccessListener;
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -279,7 +283,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, getAllDependencies());
+            return new TasksFromProjectDependencies(taskName, getAllDependencies(), projectAccessListener);
         } else {
             return new TasksFromDependentProjects(taskName, getName());
         }
@@ -351,7 +355,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy());
+                configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

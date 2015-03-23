@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
@@ -27,7 +28,8 @@ import java.io.File;
 @NoConventionMapping
 public class DefaultProject extends AbstractProject {
     public DefaultProject(String name, ProjectInternal parent, File projectDir, ScriptSource buildScriptSource,
-                          GradleInternal gradle, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-        super(name, parent, projectDir, buildScriptSource, gradle, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
+                          GradleInternal gradle, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope,
+                          ProjectAccessListener projectAccessListener) {
+        super(name, parent, projectDir, buildScriptSource, gradle, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope, projectAccessListener);
     }
 }

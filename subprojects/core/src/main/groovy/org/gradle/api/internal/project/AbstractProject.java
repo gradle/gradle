@@ -52,6 +52,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
@@ -87,6 +88,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
+    private final ProjectAccessListener projectAccessListener;
     private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
@@ -148,7 +150,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory,
                            ClassLoaderScope selfClassLoaderScope,
-                           ClassLoaderScope baseClassLoaderScope) {
+                           ClassLoaderScope baseClassLoaderScope,
+                           ProjectAccessListener projectAccessListener) {
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         assert name != null;
@@ -159,6 +162,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
+        this.projectAccessListener = projectAccessListener;
 
         if (parent == null) {
             path = Path.ROOT;
@@ -583,9 +587,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
-                //in configure-on-demand we don't know if the project was configured, hence explicit evaluate.
-                // Not especially tidy, we should clean this up while working on new configuration model.
-                ((ProjectInternal) project).evaluate();
+                projectAccessListener.beforeRequestingTaskByPath((ProjectInternal) project);
 
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
@@ -983,4 +985,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         getDeferredProjectConfiguration().fire();
     }
 
+    @Override
+    public ProjectAccessListener getProjectAccessListener() {
+        return projectAccessListener;
+    }
 }

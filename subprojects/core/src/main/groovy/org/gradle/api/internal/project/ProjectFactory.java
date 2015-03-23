@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -28,10 +29,12 @@ import java.io.File;
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ProjectAccessListener projectAccessListener;
 
-    public ProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public ProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, ProjectAccessListener projectAccessListener) {
         this.instantiator = instantiator;
         this.projectRegistry = projectRegistry;
+        this.projectAccessListener = projectAccessListener;
     }
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
@@ -45,7 +48,8 @@ public class ProjectFactory implements IProjectFactory {
                 gradle,
                 gradle.getServiceRegistryFactory(),
                 selfClassLoaderScope,
-                baseClassLoaderScope
+                baseClassLoaderScope,
+                projectAccessListener
         );
 
         if (parent != null) {

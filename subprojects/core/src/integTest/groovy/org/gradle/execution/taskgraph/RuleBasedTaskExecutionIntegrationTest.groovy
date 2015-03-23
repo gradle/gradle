@@ -149,4 +149,42 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         output.contains "dependency: configured"
         output.contains "finalizer: configured"
     }
+
+    def "task container is self closed for projects of which any tasks are being executed"() {
+        settingsFile << "include 'a', 'b'"
+
+        buildScript """
+            import org.gradle.model.collection.*
+
+            project(':a') {
+                apply type: ProjectARules
+            }
+
+            project(':b') {
+                apply type: ProjectBRules
+            }
+
+            class ProjectARules extends RuleSource {
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks) {
+                    tasks.create("executed") {
+                        dependsOn ":b:dependency"
+                    }
+                }
+            }
+
+            class ProjectBRules extends RuleSource {
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks) {
+                    tasks.create("dependency")
+                }
+            }
+        """
+
+        when:
+        succeeds ":a:executed"
+
+        then:
+        ":b:dependency" in executedTasks
+    }
 }

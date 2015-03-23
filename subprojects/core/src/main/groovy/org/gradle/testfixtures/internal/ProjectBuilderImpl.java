@@ -60,7 +60,8 @@ public class ProjectBuilderImpl {
                 parentProject.getGradle(),
                 parentProject.getGradle().getServiceRegistryFactory(),
                 parentProject.getClassLoaderScope().createChild(),
-                parentProject.getBaseClassLoaderScope()
+                parentProject.getBaseClassLoaderScope(),
+                parentProject.getProjectAccessListener()
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);

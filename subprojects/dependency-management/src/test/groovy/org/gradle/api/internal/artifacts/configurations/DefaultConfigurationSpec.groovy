@@ -38,7 +38,7 @@ class DefaultConfigurationSpec extends Specification {
     ResolutionStrategyInternal resolutionStrategy = Mock()
 
     DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy)
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, null)
     }
 
     DefaultPublishArtifact artifact(String name) {
