@@ -194,7 +194,7 @@ project(':b') {
         succeeds "check"
     }
 
-    public void "resolved project artifacts contain project version in their names"() {
+    public void "resolved project artifacts reflect late changes in project attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -218,6 +218,71 @@ project(':b') {
             dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
                 assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
+            }
+'''
+
+        expect:
+        succeeds "test"
+    }
+
+    public void "resolved project artifact can be changed by configuration task"() {
+        given:
+        file('settings.gradle') << "include 'a'"
+
+        and:
+        file('a/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            task configureJar << {
+                tasks.aJar.archiveName = "modified-artifact.txt"
+            }
+            task aJar(type: Jar) {
+                dependsOn configureJar
+            }
+            artifacts { compile aJar }
+'''
+        file('build.gradle') << '''
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+            }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
+                assert configurations.compile.collect { it.name } == ['modified-artifact.txt']
+                assert configurations.testCompile.collect { it.name } == ['modified-artifact.txt']
+            }
+'''
+
+        expect:
+        succeeds "test"
+    }
+
+
+    public void "set of resolved project artifacts can be changed after task graph is resolved"() {
+        given:
+        file('settings.gradle') << "include 'a'"
+
+        and:
+        file('a/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            task jar1(type: Jar) {
+                classifier '1'
+            }
+            task jar2(type: Jar) {
+                classifier '2'
+            }
+            artifacts { compile tasks.jar1 }
+            gradle.taskGraph.whenReady {
+                configurations.compile.artifacts.clear()
+                artifacts { compile tasks.jar2 }
+            }
+'''
+        file('build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << {
+                assert configurations.compile.collect { it.name } == ['a-2.jar']
             }
 '''
 
