@@ -148,8 +148,7 @@ public class Javadoc extends SourceTask {
      *
      * @return the tool resolver
      */
-    @Incubating
-    @Inject
+    @Incubating @Inject
     public ToolResolver getToolResolver() {
         throw new UnsupportedOperationException();
     }
@@ -158,9 +157,7 @@ public class Javadoc extends SourceTask {
      * Sets the tool resolver which will be used to find the tool to generate the Javadoc.
      */
     @Incubating
-    public void setToolResolver(ToolResolver toolResolver) {
-        throw new UnsupportedOperationException();
-    }
+    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
 
     private Platform getPlatform() {
         return new DefaultJavaPlatform(JavaVersion.current());
@@ -227,7 +224,8 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Sets whether Javadoc generation is accompanied by verbose output or not. The verbose output is done via println (by the underlying Ant task). Thus it is not handled by our logging.
+     * Sets whether Javadoc generation is accompanied by verbose output or not. The verbose output is done via println
+     * (by the underlying Ant task). Thus it is not handled by our logging.
      *
      * @param verbose Whether the output should be verbose.
      */
@@ -307,8 +305,7 @@ public class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      */
-    @Input
-    @Optional
+    @Input @Optional
     public String getExecutable() {
         return executable;
     }

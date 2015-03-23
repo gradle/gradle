@@ -90,9 +90,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
                 throw new GradleException(String.format("Could not list contents of '%s'.", file));
             }
             for (File child : children) {
-                if (stopFlag.get()) {
-                    break;
-                }
+                if (stopFlag.get()) { break; }
                 if (step.matches(child.getName())) {
                     relativePath.addLast(child.getName());
                     doVisitDirOrFile(visitor, child, relativePath, segmentIndex + 1, stopFlag);

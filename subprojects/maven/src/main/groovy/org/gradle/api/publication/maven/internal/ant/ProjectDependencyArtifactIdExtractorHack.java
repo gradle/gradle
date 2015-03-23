@@ -35,7 +35,7 @@ import java.util.Set;
  * Given a project dependency, determines the artifact ID that the depended-on project
  * can be referred to from a Maven POM. Falls back to project.name if the artifact ID
  * used for publishing the depended-on project cannot be determined with certainty.
- *
+ * 
  * The main goal of this class is to fix GRADLE-443 without changing any other existing
  * behavior (e.g. when a project that gets published to a Maven repo depends on a
  * project published to an Ivy repo).
@@ -52,9 +52,7 @@ public class ProjectDependencyArtifactIdExtractorHack {
     public String extract() {
         Collection<Upload> tasks = project.getTasks().withType(Upload.class);
         Collection<ArtifactRepository> repositories = getRepositories(tasks);
-        if (!onlyContainsMavenResolvers(repositories)) {
-            return project.getName();
-        }
+        if (!onlyContainsMavenResolvers(repositories)) { return project.getName(); }
 
         Collection<MavenDeployer> deployers = getMavenDeployers(repositories);
         Set<String> artifactIds = getArtifactIds(deployers);

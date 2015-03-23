@@ -31,17 +31,12 @@ public abstract class RhinoWorkerUtils {
 
     public static interface ScopeOperation<T> {
         void initContext(Context context);
-
         T action(Scriptable scope, Context context);
     }
 
     public static class DefaultScopeOperation<T> implements ScopeOperation<T> {
-        public void initContext(Context context) {
-        }
-
-        public T action(Scriptable scope, Context context) {
-            return null;
-        }
+        public void initContext(Context context) {}
+        public T action(Scriptable scope, Context context) { return null; }
     }
 
     public static String readFile(File file, String encoding) {

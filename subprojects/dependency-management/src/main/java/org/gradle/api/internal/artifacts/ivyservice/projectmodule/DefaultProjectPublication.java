@@ -30,9 +30,7 @@ public class DefaultProjectPublication implements ProjectPublication {
     }
 
     public boolean equals(Object other) {
-        if (!(other instanceof ProjectPublication)) {
-            return false;
-        }
+        if (!(other instanceof ProjectPublication)) { return false; }
         return id.equals(((ProjectPublication) other).getId());
     }
 

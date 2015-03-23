@@ -70,8 +70,7 @@ public class JavaCompile extends AbstractCompile {
      *
      * @return The tool resolver.
      */
-    @Incubating
-    @Inject
+    @Incubating @Inject
     public ToolResolver getToolResolver() {
         throw new UnsupportedOperationException();
     }
@@ -82,9 +81,7 @@ public class JavaCompile extends AbstractCompile {
      * @param toolResolver The tool resolver.
      */
     @Incubating
-    public void setToolResolver(ToolResolver toolResolver) {
-        throw new UnsupportedOperationException();
-    }
+    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {
@@ -126,13 +123,10 @@ public class JavaCompile extends AbstractCompile {
         performCompilation(spec, compiler);
     }
 
-    @Inject
-    protected GeneralCompileCaches getGeneralCompileCaches() {
+    @Inject protected GeneralCompileCaches getGeneralCompileCaches() {
         throw new UnsupportedOperationException();
     }
-
-    @Inject
-    protected CacheRepository getCacheRepository() {
+    @Inject protected CacheRepository getCacheRepository() {
         throw new UnsupportedOperationException();
     }
 
