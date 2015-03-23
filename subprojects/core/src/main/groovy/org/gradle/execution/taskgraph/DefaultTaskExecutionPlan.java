@@ -22,12 +22,15 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -38,6 +41,8 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
@@ -133,7 +138,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(node)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
+                Set<? extends Task> dependsOnTasks = selfClosedDependencies(task, context);
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = graph.addNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
@@ -141,7 +146,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+                for (Task finalizerTask : selfClosedDependencies(task, task.getFinalizedBy())) {
                     TaskInfo targetNode = graph.addNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
@@ -173,6 +178,16 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         resolveTasksInUnknownState();
+    }
+
+    Set<? extends Task> selfClosedDependencies(Task task, TaskDependency dependencies) {
+        Set<? extends Task> resolvedDependencies = dependencies.getDependencies(task);
+        for (Task resolvedDependency : resolvedDependencies) {
+            ProjectInternal project = (ProjectInternal) resolvedDependency.getProject();
+            ModelPath taskPath = DefaultTaskContainer.MODEL_PATH.child(resolvedDependency.getName());
+            project.getModelRegistry().atStateOrLater(taskPath, ModelNode.State.SelfClosed);
+        }
+        return resolvedDependencies;
     }
 
     private void resolveTasksInUnknownState() {

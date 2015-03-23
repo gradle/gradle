@@ -101,4 +101,52 @@ class RuleBasedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         output.contains "task container node state at the end of build: ${ModelNode.State.SelfClosed}"
         output.contains "task container node state after graph closing: ${ModelNode.State.GraphClosed}"
     }
+
+    def "tasks added via task container and not explicitly required but executed are self closed"() {
+        given:
+        buildScript '''
+            import org.gradle.model.collection.*
+
+            class EchoTask extends DefaultTask {
+                String text = "default"
+
+                @TaskAction
+                void print() {
+                    println "$name: $text"
+                }
+            }
+
+            class Rules extends RuleSource {
+                @Mutate
+                void configureDependencyTask(@Path("tasks.dependency") EchoTask task) {
+                    task.text = "configured"
+                }
+
+                @Mutate
+                void configureFinalizerTask(@Path("tasks.finalizer") EchoTask task) {
+                    task.text = "configured"
+                }
+
+                @Mutate
+                void addTasks(CollectionBuilder<Task> tasks) {
+                    tasks.create("requested") {
+                        dependsOn "dependency"
+                        finalizedBy "finalizer"
+                    }
+                }
+            }
+
+            apply type: Rules
+
+            tasks.create("dependency", EchoTask)
+            tasks.create("finalizer", EchoTask)
+        '''
+
+        when:
+        succeeds "requested"
+
+        then:
+        output.contains "dependency: configured"
+        output.contains "finalizer: configured"
+    }
 }
