@@ -214,12 +214,53 @@ project(':b') {
             artifacts { compile bJar }
 '''
         file('build.gradle') << '''
-            configurations { compile }
+            configurations {
+                compile
+                testCompile { extendsFrom compile }
+            }
             dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) << {
+            task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
                 assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
+                // Check extended configuration, too
+                assert configurations.testCompile.collect { it.name } == ['a.jar', 'b-late.jar']
             }
 '''
+
+        executer.withDeprecationChecksDisabled()
+
+        expect:
+        succeeds "test"
+    }
+
+    public void "resolved project artifacts are re-resolved if transitive project changes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+
+        and:
+        file('a/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            task aJar(type: Jar) { }
+            version = 'early'
+            gradle.taskGraph.whenReady { project.version = 'late' }
+            artifacts { compile aJar }
+'''
+        file('b/build.gradle') << '''
+            apply plugin: 'base'
+            configurations { compile }
+            dependencies { compile project(path: ':a', configuration: 'compile') }
+            task bJar(type: Jar) { }
+            artifacts { compile bJar }
+'''
+        file('build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(path: ':b', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << {
+                assert configurations.compile*.name.sort() == ['a-late.jar', 'b.jar']
+            }
+'''
+
+        executer.withDeprecationChecksDisabled()
 
         expect:
         succeeds "test"
@@ -431,5 +472,37 @@ project('c') {
         
         and:
         file("b/build/copied/a-1.0.zip").exists()
+    }
+
+    def "resolving configuration with project dependency marks dependency's configuration as observed"() {
+        settingsFile << "include 'api'; include 'impl'"
+
+        buildFile << """
+            allprojects {
+                configurations {
+                    conf
+                }
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":impl") {
+                dependencies {
+                    conf project(":api")
+                }
+
+                task check << {
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNOBSERVED
+
+                    configurations.conf.resolve()
+
+                    assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.OBSERVED
+                }
+            }
+"""
+
+        expect:
+        succeeds("impl:check")
     }
 }

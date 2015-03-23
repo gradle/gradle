@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -23,11 +24,13 @@ import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.event.ListenerManager;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultConfigurationContainer extends AbstractNamedDomainObjectContainer<Configuration>
@@ -39,25 +42,50 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
     private final DomainObjectContext context;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final ProjectFinder projectFinder;
+    private final Set<MutationValidator> mutationValidators = new LinkedHashSet<MutationValidator>();
+    private final MutationValidator childValidator = new MutationValidator() {
+        @Override
+        public void validateMutation(MutationType type) {
+            for (MutationValidator validator : mutationValidators) {
+                validator.validateMutation(type);
+            }
+        }
+    };
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
-                                         DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                         DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder) {
         super(Configuration.class, instantiator, new Configuration.Namer());
         this.resolver = resolver;
         this.instantiator = instantiator;
         this.context = context;
         this.listenerManager = listenerManager;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.projectFinder = projectFinder;
+
+        // Track mutation
+        whenObjectAdded(new Action<Configuration>() {
+            @Override
+            public void execute(Configuration configuration) {
+                ((ConfigurationInternal) configuration).addMutationValidator(childValidator);
+            }
+        });
+        whenObjectRemoved(new Action<Configuration>() {
+            @Override
+            public void execute(Configuration configuration) {
+                ((ConfigurationInternal) configuration).removeMutationValidator(childValidator);
+            }
+        });
     }
 
     @Override
     protected Configuration doCreate(String name) {
         return instantiator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name),
                 name, this, resolver, listenerManager,
-                dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class));
+                dependencyMetaDataProvider, instantiator.newInstance(DefaultResolutionStrategy.class), projectFinder);
     }
 
     public Set<Configuration> getAll() {
@@ -84,7 +112,7 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(
                 name, name, detachedConfigurationsProvider, resolver,
-                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy());
+                listenerManager, dependencyMetaDataProvider, new DefaultResolutionStrategy(), projectFinder);
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
@@ -107,5 +135,15 @@ public class DefaultConfigurationContainer extends AbstractNamedDomainObjectCont
         }
         
         return reply.toString();
+    }
+
+    @Override
+    public void addMutationValidator(MutationValidator validator) {
+        mutationValidators.add(validator);
+    }
+
+    @Override
+    public void removeMutationValidator(MutationValidator validator) {
+        mutationValidators.remove(validator);
     }
 }

@@ -230,7 +230,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<SelfResolvingDependency> externalDependencies = new ArrayList<SelfResolvingDependency>();
 
         for (Dependency dependency : configuration.getAllDependencies()) {
-            if (dependency instanceof SelfResolvingDependency && !(dependency instanceof ProjectDependency)) {
+            if (dependency instanceof SelfResolvingDependency) {
                 externalDependencies.add((SelfResolvingDependency) dependency);
             }
         }
