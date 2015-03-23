@@ -59,7 +59,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
-    public ConsoleOutput getConsoleOutput() { return consoleOutput; }
+    public ConsoleOutput getConsoleOutput() {
+        return consoleOutput;
+    }
 
     public OutputStream getOriginalStdOut() {
         return originalStdOut;
@@ -103,7 +105,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private void addStandardErrorListener() {
         synchronized (lock) {
             originalStdErr = System.err;
-            if(stdErrListener != null) {
+            if (stdErrListener != null) {
                 stderrListeners.remove(stdErrListener);
             }
             stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
@@ -127,7 +129,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     private void removeStandardErrorListener() {
         synchronized (lock) {
-            if(stdErrListener != null) {
+            if (stdErrListener != null) {
                 stderrListeners.remove(stdErrListener);
                 stdErrListener = null;
             }

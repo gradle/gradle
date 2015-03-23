@@ -114,10 +114,14 @@ public class GroovyRuntime {
     }
 
     private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
-        if (classpath == null) { return null; }
+        if (classpath == null) {
+            return null;
+        }
         for (File file : classpath) {
             GroovyJarFile groovyJar = GroovyJarFile.parse(file);
-            if (groovyJar != null) { return groovyJar; }
+            if (groovyJar != null) {
+                return groovyJar;
+            }
         }
         return null;
     }

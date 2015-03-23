@@ -43,7 +43,11 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private final Chmod chmod;
 
     public MapFileTree(final File tmpDir, Chmod chmod) {
-        this(new Factory<File>() { public File create() { return tmpDir; }}, chmod);
+        this(new Factory<File>() {
+            public File create() {
+                return tmpDir;
+            }
+        }, chmod);
     }
 
     public MapFileTree(Factory<File> tmpDirSource, Chmod chmod) {

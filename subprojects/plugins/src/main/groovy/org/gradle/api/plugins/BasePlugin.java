@@ -123,10 +123,14 @@ public class BasePlugin implements Plugin<Project> {
         configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
-                if (uploadArchives == null) { return; }
+                if (uploadArchives == null) {
+                    return;
+                }
 
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
-                if (!hasIvyRepo) { return; } // Maven repos are handled by MavenPlugin
+                if (!hasIvyRepo) {
+                    return;
+                } // Maven repos are handled by MavenPlugin
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 ModuleInternal module = configuration.getModule();
