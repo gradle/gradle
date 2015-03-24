@@ -23,7 +23,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultBuildableComponentSelectionResult extends DefaultResourceAwareResolveResult implements BuildableComponentSelectionResult {
+public class DefaultBuildableComponentSelectionResult implements BuildableComponentSelectionResult {
     private State state = State.Unknown;
     private ModuleComponentIdentifier moduleComponentIdentifier;
     private ModuleVersionResolveException failure;

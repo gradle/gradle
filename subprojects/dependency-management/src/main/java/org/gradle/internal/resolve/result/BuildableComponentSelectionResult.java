@@ -23,7 +23,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 /**
  * The result of resolving some dynamic version selector to a particular component id.
  */
-public interface BuildableComponentSelectionResult extends ResolveResult, ResourceAwareResolveResult {
+public interface BuildableComponentSelectionResult extends ResolveResult {
     static enum State {
         Match, NoMatch, Failed, Unknown
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -82,7 +83,6 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     private void notFound(BuildableComponentIdResolveResult result, ModuleVersionSelector requested, List<RepositoryResolveState> resolveStates) {
         Set<String> unmatchedVersions = new LinkedHashSet<String>();
         Set<String> rejectedVersions = new LinkedHashSet<String>();
-
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.applyTo(result, unmatchedVersions, rejectedVersions);
         }
@@ -147,17 +147,34 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         return versionedComponentChooser.selectNewestComponent(one.module, two.module) == one.module ? one : two;
     }
 
+    private static class AttemptCollector implements Action<ResourceAwareResolveResult> {
+        private final List<String> attempts = new ArrayList<String>();
+
+        @Override
+        public void execute(ResourceAwareResolveResult resourceAwareResolveResult) {
+            attempts.addAll(resourceAwareResolveResult.getAttempted());
+        }
+
+        public void applyTo(ResourceAwareResolveResult result) {
+            for (String url : attempts) {
+                result.attempted(url);
+            }
+        }
+    }
+
     private class RepositoryResolveState {
         private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        private final Map<String, CandidateResult> candidateComponents = new HashMap<String, CandidateResult>();
+        private final DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
+        private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
         private final VersionListResult versionListingResult;
         private final ModuleComponentRepository repository;
+        private final AttemptCollector attemptCollector;
         private final DependencyMetaData dependency;
-        private final DefaultBuildableComponentSelectionResult componentSelectionResult = new DefaultBuildableComponentSelectionResult();
 
         public RepositoryResolveState(DependencyMetaData dependency, ModuleComponentRepository repository) {
             this.dependency = dependency;
             this.repository = repository;
+            this.attemptCollector = new AttemptCollector();
             versionListingResult = new VersionListResult(dependency, repository);
         }
 
@@ -187,7 +204,6 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
-                    componentSelectionResult.applyTo(resolveResult);
                     resolveResult.missing();
                     break;
                 // Found version matching in list: resolve component
@@ -209,7 +225,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             for (String version : versionListingResult.result.getVersions()) {
                 CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {
-                    candidateResult = new CandidateResult(dependency, version, repository);
+                    candidateResult = new CandidateResult(dependency, version, repository, attemptCollector);
                     candidateComponents.put(version, candidateResult);
                 }
                 candidates.add(candidateResult);
@@ -219,7 +235,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         protected void applyTo(ResourceAwareResolveResult target, Set<String> unmatchedVersions, Set<String> rejectedVersions) {
             versionListingResult.applyTo(target);
-            resolveResult.applyTo(target);
+            attemptCollector.applyTo(target);
             unmatchedVersions.addAll(componentSelectionResult.getUnmatchedVersions());
             rejectedVersions.addAll(componentSelectionResult.getRejectedVersions());
         }
@@ -228,16 +244,18 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
     private static class CandidateResult implements ModuleComponentResolveState {
         private final ModuleComponentIdentifier identifier;
         private final ModuleComponentRepository repository;
+        private final AttemptCollector attemptCollector;
         private final DependencyMetaData dependencyMetaData;
         private final String version;
         private boolean searchedLocally;
         private boolean searchedRemotely;
         private final DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
 
-        public CandidateResult(DependencyMetaData dependencyMetaData, String version, ModuleComponentRepository repository) {
+        public CandidateResult(DependencyMetaData dependencyMetaData, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector) {
             this.dependencyMetaData = dependencyMetaData;
             this.version = version;
             this.repository = repository;
+            this.attemptCollector = attemptCollector;
             ModuleVersionSelector requested = dependencyMetaData.getRequested();
             this.identifier = DefaultModuleComponentIdentifier.newId(requested.getGroup(), requested.getName(), version);
         }
@@ -256,7 +274,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         public BuildableModuleComponentMetaDataResolveResult resolve() {
             if (!searchedLocally) {
                 searchedLocally = true;
-                repository.getLocalAccess().resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, result);
+                process(repository.getLocalAccess());
                 if (result.hasResult() && result.isAuthoritative()) {
                     // Authoritative result means don't do remote search
                     searchedRemotely = true;
@@ -267,9 +285,14 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
             }
             if (!searchedRemotely) {
                 searchedRemotely = true;
-                repository.getRemoteAccess().resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, result);
+                process(repository.getRemoteAccess());
             }
             return result;
+        }
+
+        private void process(ModuleComponentRepositoryAccess access) {
+            access.resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, result);
+            attemptCollector.execute(result);
         }
 
         public void resolve(DefaultBuildableModuleComponentMetaDataResolveResult target) {

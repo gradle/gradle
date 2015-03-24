@@ -232,7 +232,17 @@ Required by:
         repo2Artifact.expectHeadMissing()
 
         then:
-        runAndFail 'retrieve'
+        fails 'retrieve'
+
+        and:
+        failure.assertHasCause("""Could not find group:projectA:1.0.
+Searched in the following locations:
+    ${repo1Module.pom.uri}
+    ${repo1Module.artifact.uri}
+    ${repo2Module.pom.uri}
+    ${repo2Module.artifact.uri}
+Required by:
+""")
 
         when:
         repo1Module.pom.expectGetMissing()
@@ -241,7 +251,16 @@ Required by:
         repo2Artifact.expectHeadMissing()
 
         then:
-        runAndFail 'retrieve'
+        fails 'retrieve'
+
+        failure.assertHasCause("""Could not find group:projectA:1.0.
+Searched in the following locations:
+    ${repo1Module.pom.uri}
+    ${repo1Module.artifact.uri}
+    ${repo2Module.pom.uri}
+    ${repo2Module.artifact.uri}
+Required by:
+""")
 
         when:
         server.resetExpectations()
@@ -303,14 +322,24 @@ Required by:
         when:
         server.resetExpectations()
         repo1Module.rootMetaData.expectGet()
+        repo2Module.rootMetaData.expectGet()
         repo1Module.pom.expectGetMissing()
         repo1Module.artifact.expectHeadMissing()
-        repo2Module.rootMetaData.expectGet()
         repo2Module.pom.expectGetMissing()
         repo2Module.artifact.expectHeadMissing()
 
         then:
         fails 'retrieve'
+        failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
+Searched in the following locations:
+    ${repo1Module.rootMetaData.uri}
+    ${repo1Module.pom.uri}
+    ${repo1Module.artifact.uri}
+    ${repo2Module.rootMetaData.uri}
+    ${repo2Module.pom.uri}
+    ${repo2Module.artifact.uri}
+Required by:
+""")
 
         when:
         server.resetExpectations()
@@ -323,6 +352,16 @@ Required by:
 
         then:
         fails 'retrieve'
+        failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
+Searched in the following locations:
+    ${repo1Module.rootMetaData.uri}
+    ${repo1Module.pom.uri}
+    ${repo1Module.artifact.uri}
+    ${repo2Module.rootMetaData.uri}
+    ${repo2Module.pom.uri}
+    ${repo2Module.artifact.uri}
+Required by:
+""")
 
         when:
         server.resetExpectations()
