@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,6 +45,12 @@ import java.util.zip.ZipFile;
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry, GradleDistributionLocator {
+    public static final FileFilter DIRECTORY_FILTER = new FileFilter() {
+        public boolean accept(File pathname) {
+            return pathname.isDirectory();
+        }
+    };
+
     private final ClassLoader classLoader;
     private final File distDir;
     private final Map<String, Module> modules = new HashMap<String, Module>();
@@ -66,9 +73,20 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
         }
 
         if (distDir != null) {
-            libDirs.add(new File(distDir, "lib"));
-            libDirs.add(new File(distDir, "lib/plugins"));
-            libDirs.add(new File(distDir, "lib/plugins/sonar"));
+            libDirs.addAll(findLibDirs(distDir));
+        }
+    }
+
+    private List<File> findLibDirs(File distDir) {
+        List<File> libDirAndSubdirs = new ArrayList<File>();
+        collectWithSubdirectories(new File(distDir, "lib"), libDirAndSubdirs);
+        return libDirAndSubdirs;
+    }
+
+    private void collectWithSubdirectories(File root, Collection<File> collection) {
+        collection.add(root);
+        for (File subdirectory : root.listFiles(DIRECTORY_FILTER)) {
+            collectWithSubdirectories(subdirectory, collection);
         }
     }
 

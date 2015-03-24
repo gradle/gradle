@@ -236,7 +236,7 @@ class DefaultModuleRegistryTest extends Specification {
         module.runtimeClasspath.empty
     }
 
-    def "also looks in sonar subdirectory of plugins directory when searching for external modules"() {
+    def "also looks in subdirectories of plugins directory when searching for external modules"() {
         given:
         def cl = new URLClassLoader([] as URL[])
         def registry = new DefaultModuleRegistry(cl, distDir)
