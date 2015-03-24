@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.ParallelizableTask
+
 /**
  * Assembles a JAR archive.
  */
