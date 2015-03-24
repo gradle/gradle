@@ -44,7 +44,7 @@ class ConfigureLogging extends ExternalResource {
 
     public void attachListener() {
         context.outputEventListener = listener
-        logger.level = LogLevel.DEBUG
+        context.level = LogLevel.DEBUG
     }
 
     @Override
@@ -58,6 +58,6 @@ class ConfigureLogging extends ExternalResource {
     }
 
     public void setLevel(LogLevel level) {
-        logger.level = level
+        context.level = level
     }
 }

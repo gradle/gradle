@@ -21,34 +21,41 @@ import org.gradle.internal.Actions;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.slf4j.Logger.ROOT_LOGGER_NAME;
-
 public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
-    private final Map<String, OutputEventListenerBackedLogger> loggers = new ConcurrentHashMap<String, OutputEventListenerBackedLogger>();
-    private final OutputEventListenerBackedLogger root;
+    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.LIFECYCLE;
+
+    static final String HTTP_CLIENT_WIRE_LOGGER_NAME = "org.apache.http.wire";
+    static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
+
+    private final Map<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
     private final OutputStream defaultOutputStream;
     private final OutputStream defaultErrorStream;
+    private volatile LogLevel level;
 
-    private OutputEventListener outputEventListener;
+    private volatile OutputEventListener outputEventListener;
 
     public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream) {
         this.defaultOutputStream = defaultOutputStream;
         this.defaultErrorStream = defaultErrorStream;
+        level = DEFAULT_LOG_LEVEL;
         setDefaultOutputEventListener();
-        root = new OutputEventListenerBackedLogger(ROOT_LOGGER_NAME, null, this);
-        root.setLevel(LogLevel.LIFECYCLE);
-        configureDefaultLevels();
+        applyDefaultLoggersConfig();
     }
 
-    private void configureDefaultLevels() {
-        getLogger("org.apache.http.wire").disable();
-        getLogger("org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule").setLevel(LogLevel.ERROR);
+    private void applyDefaultLoggersConfig() {
+        addNoOpLogger(HTTP_CLIENT_WIRE_LOGGER_NAME);
+        addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
+    }
+
+    private void addNoOpLogger(String name) {
+        loggers.put(name, new NoOpLogger(name));
     }
 
     private void setDefaultOutputEventListener() {
@@ -66,42 +73,35 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         return outputEventListener;
     }
 
-    public OutputEventListenerBackedLogger getLogger(String name) {
-        if (ROOT_LOGGER_NAME.equals(name)) {
-            return root;
+    public Logger getLogger(String name) {
+        Logger logger = loggers.get(name);
+        if (logger != null) {
+            return logger;
         }
 
-        OutputEventListenerBackedLogger childLogger = loggers.get(name);
-        if (childLogger != null) {
-            return childLogger;
-        }
-
-        OutputEventListenerBackedLogger logger = root;
-        int separatorIndex = 0;
-
-        while (true) {
-            int nextSeparatorIndex = OutputEventListenerBackedLogger.getSeparatorIndex(name, separatorIndex);
-            String childName = nextSeparatorIndex == -1 ? name : name.substring(0, nextSeparatorIndex);
-            separatorIndex = nextSeparatorIndex + 1;
-
-            synchronized (logger) {
-                childLogger = logger.getChildByName(childName);
-                if (childLogger == null) {
-                    childLogger = logger.createChildByName(childName);
-                    loggers.put(childName, childLogger);
-                }
+        synchronized (loggers) {
+            logger = loggers.get(name);
+            if (logger == null) {
+                logger = new OutputEventListenerBackedLogger(name, this);
+                loggers.put(name, logger);
             }
-
-            logger = childLogger;
-            if (nextSeparatorIndex == -1) {
-                return childLogger;
-            }
+            return logger;
         }
     }
 
     public void reset() {
+        level = DEFAULT_LOG_LEVEL;
         setDefaultOutputEventListener();
-        root.reset();
-        root.setLevel(LogLevel.LIFECYCLE);
+    }
+
+    public LogLevel getLevel() {
+        return level;
+    }
+
+    public void setLevel(LogLevel level) {
+        if (level == null) {
+            throw new IllegalArgumentException("Global log level cannot be set to null");
+        }
+        this.level = level;
     }
 }

@@ -175,33 +175,4 @@ class Slf4jLoggingConfigurerTest extends Specification {
         1 * listener.onOutput({it.message == 'error' && it.logLevel == LogLevel.ERROR})
         0 * listener._
     }
-
-    def "respects per-logger log level if either logger log level or event log level is one of ERROR, INFO, TRACE"() {
-        configurer.configure(LogLevel.INFO)
-        logger.level = LogLevel.DEBUG
-
-        when:
-        logger.debug("message")
-
-        then:
-        1 * listener._
-
-        when:
-        logger.level = LogLevel.ERROR
-        logger.warn("message")
-
-        then:
-        0 * listener._
-    }
-
-    def "respects per-logger log level if both logger log level and event log level are WARN"() {
-        configurer.configure(LogLevel.ERROR)
-        logger.level = LogLevel.WARN
-
-        when:
-        logger.warn("message")
-
-        then:
-        1 * listener._
-    }
 }

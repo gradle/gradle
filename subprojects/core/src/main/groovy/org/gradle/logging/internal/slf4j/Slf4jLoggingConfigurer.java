@@ -19,7 +19,6 @@ package org.gradle.logging.internal.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.internal.LoggingConfigurer;
 import org.gradle.logging.internal.OutputEventListener;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -47,6 +46,6 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
         }
 
         currentLevel = logLevel;
-        context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(logLevel);
+        context.setLevel(logLevel);
     }
 }

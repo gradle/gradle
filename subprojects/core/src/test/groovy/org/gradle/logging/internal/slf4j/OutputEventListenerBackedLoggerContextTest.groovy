@@ -16,7 +16,6 @@
 
 package org.gradle.logging.internal.slf4j
 
-import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -48,21 +47,26 @@ class OutputEventListenerBackedLoggerContextTest extends Specification {
         name << [ROOT_LOGGER_NAME, "foo", "foo.bar"]
     }
 
-    def "default log level is INFO"() {
+    def "default log level is LIFECYCLE"() {
         expect:
-        logger(name).effectiveLevel == LIFECYCLE
-
-        where:
-        name << [ROOT_LOGGER_NAME, "foo", "foo.bar"]
+        context.level == LIFECYCLE
+    }
+    def "uses a noop logger for Apache HTTP wire logging by default"() {
+        expect:
+        context.getLogger(OutputEventListenerBackedLoggerContext.HTTP_CLIENT_WIRE_LOGGER_NAME) instanceof NoOpLogger
     }
 
-    def "turns off Apache HTTP wire logging by default"() {
+    def "uses a noop logger for MetaInfExtensionModule logger by default"() {
         expect:
-        logger("org.apache.http.wire").disabled
+        context.getLogger(OutputEventListenerBackedLoggerContext.META_INF_EXTENSION_MODULE_LOGGER_NAME) instanceof NoOpLogger
     }
 
-    def "sets MetaInfExtensionModule log level to ERROR by default"() {
-        expect:
-        logger("org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule").effectiveLevel == LogLevel.ERROR;
+    def "cannot set global level to null"() {
+        when:
+        context.level = null
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Global log level cannot be set to null"
     }
 }

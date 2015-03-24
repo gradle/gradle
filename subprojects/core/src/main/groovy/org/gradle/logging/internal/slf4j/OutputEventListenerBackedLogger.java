@@ -24,24 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.helpers.MessageFormatter;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class OutputEventListenerBackedLogger implements Logger {
 
     private final String name;
-    private final OutputEventListenerBackedLogger parent;
     private final OutputEventListenerBackedLoggerContext context;
 
-    private List<OutputEventListenerBackedLogger> childrenList;
-
-    private LogLevel level;
-    private LogLevel effectiveLevel;
-    private boolean disabled;
-
-    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLogger parent, OutputEventListenerBackedLoggerContext context) {
+    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context) {
         this.name = name;
-        this.parent = parent;
         this.context = context;
     }
 
@@ -49,89 +38,8 @@ public class OutputEventListenerBackedLogger implements Logger {
         return name;
     }
 
-    public synchronized void setLevel(LogLevel newLevel) {
-        if (level == newLevel) {
-            return;
-        }
-        if (newLevel == null && isRoot()) {
-            throw new IllegalArgumentException("The level of the root logger cannot be set to null");
-        }
-        level = newLevel;
-        effectiveLevel = newLevel == null ? parent.effectiveLevel : newLevel;
-        informChildrenAboutNewLevel(effectiveLevel);
-    }
-
-    public synchronized void disable() {
-        this.disabled = true;
-        if (childrenList != null) {
-            for (OutputEventListenerBackedLogger child : childrenList) {
-                child.disable();
-            }
-        }
-    }
-
-    private boolean isRoot() {
-        return parent == null;
-    }
-
-    private void informChildrenAboutNewLevel(LogLevel level) {
-        if (childrenList != null) {
-            for (OutputEventListenerBackedLogger child : childrenList) {
-                child.parentLevelChanged(level);
-            }
-        }
-    }
-
-    private synchronized void parentLevelChanged(LogLevel newLevel) {
-        if (level == null) {
-            effectiveLevel = newLevel;
-            informChildrenAboutNewLevel(newLevel);
-        }
-    }
-
-    public LogLevel getEffectiveLevel() {
-        return effectiveLevel;
-    }
-
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    OutputEventListenerBackedLogger getChildByName(String name) {
-        if (childrenList == null) {
-            return null;
-        } else {
-            for (OutputEventListenerBackedLogger child : childrenList) {
-                if (child.name.equals(name)) {
-                    return child;
-                }
-            }
-            return null;
-        }
-    }
-
-    OutputEventListenerBackedLogger createChildByName(final String childName) {
-        if (childrenList == null) {
-            childrenList = new LinkedList<OutputEventListenerBackedLogger>();
-        }
-        OutputEventListenerBackedLogger childLogger = new OutputEventListenerBackedLogger(childName, this, context);
-        childLogger.effectiveLevel = effectiveLevel;
-        childLogger.disabled = disabled;
-        childrenList.add(childLogger);
-        return childLogger;
-    }
-
-    static int getSeparatorIndex(String name, int fromIndex) {
-        int i = name.indexOf('.', fromIndex);
-        if (i != -1) {
-            return i;
-        } else {
-            return name.indexOf('$', fromIndex);
-        }
-    }
-
-    private boolean isNotDisabledAndLevelIsAtMost(LogLevel levelLimit) {
-        return !disabled && levelLimit.compareTo(effectiveLevel) >= 0;
+    private boolean isLevelAtMost(LogLevel levelLimit) {
+        return levelLimit.compareTo(context.getLevel()) >= 0;
     }
 
     public boolean isTraceEnabled() {
@@ -143,7 +51,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     public boolean isDebugEnabled() {
-        return isNotDisabledAndLevelIsAtMost(LogLevel.DEBUG);
+        return isLevelAtMost(LogLevel.DEBUG);
     }
 
     public boolean isDebugEnabled(Marker marker) {
@@ -151,21 +59,21 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     public boolean isInfoEnabled() {
-        return isNotDisabledAndLevelIsAtMost(LogLevel.INFO);
+        return isLevelAtMost(LogLevel.INFO);
     }
 
     public boolean isInfoEnabled(Marker marker) {
         if (marker == Logging.LIFECYCLE) {
-            return isNotDisabledAndLevelIsAtMost(LogLevel.LIFECYCLE);
+            return isLevelAtMost(LogLevel.LIFECYCLE);
         }
         if (marker == Logging.QUIET) {
-            return isNotDisabledAndLevelIsAtMost(LogLevel.QUIET);
+            return isLevelAtMost(LogLevel.QUIET);
         }
         return isInfoEnabled();
     }
 
     public boolean isWarnEnabled() {
-        return isNotDisabledAndLevelIsAtMost(LogLevel.WARN);
+        return isLevelAtMost(LogLevel.WARN);
     }
 
     public boolean isWarnEnabled(Marker marker) {
@@ -173,7 +81,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     public boolean isErrorEnabled() {
-        return !disabled;
+        return true;
     }
 
     public boolean isErrorEnabled(Marker marker) {
@@ -483,17 +391,6 @@ public class OutputEventListenerBackedLogger implements Logger {
     public void error(Marker marker, String msg, Throwable t) {
         if (isErrorEnabled(marker)) {
             log(LogLevel.ERROR, t, msg);
-        }
-    }
-
-    public void reset() {
-        level = null;
-        effectiveLevel = null;
-        disabled = false;
-        if (childrenList != null) {
-            for (OutputEventListenerBackedLogger child : childrenList) {
-                child.reset();
-            }
         }
     }
 }
