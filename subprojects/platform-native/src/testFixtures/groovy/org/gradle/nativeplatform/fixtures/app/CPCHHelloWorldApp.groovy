@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class CHelloWorldApp extends IncrementalHelloWorldApp {
+class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getMainSource() {
@@ -37,7 +37,13 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getLibraryHeader() {
-        sourceFile("headers", "hello.h", """
+        getLibraryHeader("")
+    }
+
+    SourceFile getLibraryHeader(String path) {
+        sourceFile("headers/${path}", "hello.h", """
+            #ifndef HELLO_H
+            #define HELLO_H
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
@@ -46,41 +52,70 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
             void DLL_FUNC sayHello();
             int DLL_FUNC sum(int a, int b);
+
+            #pragma message("<==== compiling hello.h ====>")
+            #endif
         """);
     }
 
-    List<SourceFile> librarySources = [
-        sourceFile("c", "hello.c", """
-            #include <stdio.h>
-            #include "hello.h"
+    @Override
+    List<SourceFile> getLibrarySources() {
+        return getLibrarySources("")
+    }
 
-            #ifdef FRENCH
-            char* greeting() {
-                return "${HELLO_WORLD_FRENCH}";
-            }
-            #endif
-            #ifdef CUSTOM
-            char* greeting() {
-                return CUSTOM;
-            }
-            #endif
-            void DLL_FUNC sayHello() {
-                #if defined(FRENCH) || defined(CUSTOM)
-                printf("%s\\n", greeting());
-                #else
-                printf("${HELLO_WORLD}\\n");
+    List<SourceFile> getLibrarySources(String headerPath) {
+        return [
+                sourceFile("c", "hello.c", """
+                #include "${headerPath}hello.h"
+                #include <stdio.h>
+
+                #ifdef FRENCH
+                char* greeting() {
+                    return "${HELLO_WORLD_FRENCH}";
+                }
                 #endif
-                fflush(stdout);
-            }
-        """),
-        sourceFile("c", "sum.c","""
-            #include "hello.h"
+                #ifdef CUSTOM
+                char* greeting() {
+                    return CUSTOM;
+                }
+                #endif
+                void DLL_FUNC sayHello() {
+                    #if defined(FRENCH) || defined(CUSTOM)
+                    printf("%s\\n", greeting());
+                    #else
+                    printf("${HELLO_WORLD}\\n");
+                    #endif
+                    fflush(stdout);
+                }
+            """),
+                sourceFile("c", "sum.c", """
+                #include "${headerPath}hello.h"
 
-            int DLL_FUNC sum(int a, int b) {
-                return a + b;
-            }
+                int DLL_FUNC sum(int a, int b) {
+                    return a + b;
+                }
+            """)
+        ]
+    }
+
+    SourceFile getSystemHeader() {
+        return getSystemHeader("")
+    }
+
+    SourceFile getSystemHeader(String path) {
+        sourceFile("headers/${path}", "systemHeader.h", """
+            #ifndef SYSTEMHEADER_H
+            #define SYSTEMHEADER_H
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
+            void DLL_FUNC systemCall();
+            #pragma message("<==== compiling systemHeader.h ====>")
+            #endif
         """)
-    ]
+    }
 
     SourceFile getAlternateMainSource() {
         sourceFile("c", "main.c", """

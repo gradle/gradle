@@ -18,20 +18,18 @@ package org.gradle.nativeplatform.sourceset
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CPCHHelloWorldApp
 
 class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def "can set a precompiled header on a source set" () {
+    def "can set a precompiled header on a source set for a relative source header" () {
         given:
-        def app = new CHelloWorldApp()
+        def app = new CPCHHelloWorldApp()
         settingsFile << "rootProject.name = 'test'"
-        app.mainSource.writeToDir(file("src/main"))
-        app.libraryHeader.writeToDir(file("src/hello")).append('\n#pragma message("<==== compiling header ====>")')
-        app.librarySources.each {
-            def noHeaderInclude = new SourceFile(it.path, it.name, modifyContent(it.content))
-            noHeaderInclude.writeToDir(file("src/hello"))
+        app.getLibraryHeader(path).writeToDir(file("src/hello"))
+        app.getLibrarySources(path).each {
+            it.writeToDir(file("src/hello"))
         }
-        assert file("src/hello/headers/hello.h").exists()
+        assert file("src/hello/headers/${path}hello.h").exists()
 
         when:
         buildFile << """
@@ -39,14 +37,16 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
 
             model {
                 components {
-                    main(NativeExecutableSpec) {
-                        binaries.all {
-                            lib library: 'hello'
-                        }
-                    }
                     hello(NativeLibrarySpec) {
                         sources {
-                            c.preCompiledHeader file("src/hello/headers/hello.h")
+                            c.preCompiledHeader file("src/hello/headers/${path}hello.h")
+                        }
+                        binaries.all {
+                            if (toolChain in VisualCpp) {
+                                cCompiler.args "/showIncludes"
+                            } else {
+                                cCompiler.args "-H"
+                            }
                         }
                     }
                 }
@@ -56,7 +56,7 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         then:
         args("--info")
         succeeds "compileHelloSharedLibraryCPreCompiledHeader"
-        output.contains("<==== compiling header ====>")
+        output.contains("<==== compiling hello.h ====>")
         def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
@@ -65,14 +65,117 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         args("--info")
         succeeds "compileHelloSharedLibraryHelloC"
         skipped ":compileHelloSharedLibraryCPreCompiledHeader"
-        ! output.contains("<==== compiling header ====>")
+        ! output.contains("<==== compiling hello.h ====>")
+
+        where:
+        path << [ "", "subdir/to/header/" ]
+    }
+
+    def "can set a precompiled header on a source set for a source header in include path" () {
+        given:
+        def app = new CPCHHelloWorldApp()
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader(path).writeToDir(file("src/include"))
+        app.getLibrarySources(path).each {
+            it.writeToDir(file("src/hello"))
+        }
+        assert file("src/include/headers/${path}hello.h").exists()
+
+        when:
+        def headerDir = file("src/include/headers")
+        buildFile << """
+            apply plugin: 'c'
+
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            c.preCompiledHeader file("src/include/headers/${path}hello.h")
+                        }
+                        binaries.all {
+                            if (toolChain in VisualCpp) {
+                                cCompiler.args "/I${headerDir.absolutePath}", "/showIncludes"
+                            } else {
+                                cCompiler.args "-I${headerDir.absolutePath}", "-H"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        output.contains("<==== compiling hello.h ====>")
+        def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
+        assert outputDirectories.size() == 1
+        assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
+
+        and:
+        args("--info")
+        succeeds "compileHelloSharedLibraryHelloC"
+        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        ! output.contains("<==== compiling hello.h ====>")
+
+        where:
+        path << [ "", "subdir/" ]
+    }
+
+    def "can set a precompiled header on a source set for a system header" () {
+        given:
+        def app = new CPCHHelloWorldApp()
+        settingsFile << "rootProject.name = 'test'"
+        app.libraryHeader.writeToDir(file("src/hello"))
+        app.getSystemHeader(path).writeToDir(file("src/systemHeader"))
+        app.librarySources.each {
+            SourceFile library = new SourceFile(it.path, it.name, "#include <${path}systemHeader.h>\n" + it.content)
+            library.writeToDir(file("src/hello"))
+        }
+        assert file("src/systemHeader/headers/${path}systemHeader.h").exists()
+
+        when:
+        def systemHeaderDir = file("src/systemHeader/headers")
+        buildFile << """
+            apply plugin: 'c'
+
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            c.preCompiledHeader file("src/systemHeader/headers/${path}systemHeader.h")
+                        }
+                        binaries.all {
+                            if (toolChain in VisualCpp) {
+                                cCompiler.args "/I${systemHeaderDir.absolutePath}", "/showIncludes"
+                            } else {
+                                cCompiler.args "-I${systemHeaderDir.absolutePath}", "-H"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        output.contains("<==== compiling systemHeader.h ====>")
+        def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
+        assert outputDirectories.size() == 1
+        assert outputDirectories[0].assertContainsDescendants("systemHeader.${getSuffix()}")
+
+        and:
+        args("--info")
+        succeeds "compileHelloSharedLibraryHelloC"
+        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        ! output.contains("<==== compiling systemHeader.h ====>")
+
+        where:
+        path << [ "", "subdir/" ]
     }
 
     String getSuffix() {
         return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
-    }
-
-    String modifyContent(content) {
-        return toolChain.displayName == "visual c++" ? content : content - "#include \"hello.h\""
     }
 }
