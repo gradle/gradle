@@ -22,9 +22,11 @@ import java.io.File;
 
 public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
     private Exception problem;
+    private final String displayName;
 
-    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file) {
+    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, String displayName, File file) {
         super(declaredConfiguration, file);
+        this.displayName = displayName;
     }
 
     public Exception getProblem() {
@@ -33,5 +35,9 @@ public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependen
 
     public void setProblem(Exception problem) {
         this.problem = problem;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 }

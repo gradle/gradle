@@ -28,6 +28,8 @@ import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
@@ -43,6 +45,8 @@ import java.io.File;
 import java.util.*;
 
 public class IdeDependenciesExtractor {
+
+    private static final Logger logger = Logging.getLogger(IdeDependenciesExtractor.class);
 
     private final IdeDependencyResolver ideDependencyResolver = new DefaultIdeDependencyResolver();
 
@@ -88,6 +92,13 @@ public class IdeDependenciesExtractor {
         Collection<IdeExtendedRepoFileDependency> resolvedAndUnresolved = new ArrayList<IdeExtendedRepoFileDependency>(unresolvedDependencies.size() + resolvedDependencies.size());
         resolvedAndUnresolved.addAll(resolvedDependencies);
         resolvedAndUnresolved.addAll(unresolvedDependencies);
+
+        // we lose information about unresolved dependencies as
+        // soon as we leave this method so we log it here
+        for (UnresolvedIdeRepoFileDependency unresolvedDep : unresolvedDependencies) {
+            logger.warn("Could not resolve: " + unresolvedDep.getDisplayName() + " (" + unresolvedDep.getDeclaredConfiguration() + ")");
+        }
+
         return resolvedAndUnresolved;
     }
 

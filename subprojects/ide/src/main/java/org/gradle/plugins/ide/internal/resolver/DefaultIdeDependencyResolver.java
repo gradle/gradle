@@ -72,7 +72,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<UnresolvedIdeRepoFileDependency> unresolvedIdeRepoFileDependencies = new ArrayList<UnresolvedIdeRepoFileDependency>();
 
         for (ComponentSelector componentSelector : componentSelectors) {
-            UnresolvedIdeRepoFileDependency unresolvedIdeRepoFileDependency = new UnresolvedIdeRepoFileDependency(configuration, new File(unresolvedFileName(componentSelector)));
+            String displayName = componentSelector.getDisplayName();
+            File file = new File(unresolvedFileName(componentSelector));
+            UnresolvedIdeRepoFileDependency unresolvedIdeRepoFileDependency = new UnresolvedIdeRepoFileDependency(configuration, displayName, file);
             unresolvedIdeRepoFileDependencies.add(unresolvedIdeRepoFileDependency);
         }
 
