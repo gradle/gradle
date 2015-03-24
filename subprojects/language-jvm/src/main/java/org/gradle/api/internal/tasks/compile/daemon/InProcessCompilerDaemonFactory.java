@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.*;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
@@ -30,11 +30,10 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
-    private static final InProcessCompilerDaemonFactory INSTANCE = new InProcessCompilerDaemonFactory();
-    private final ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
+    private final ClassLoaderFactory classLoaderFactory;
 
-    public static InProcessCompilerDaemonFactory getInstance() {
-        return INSTANCE;
+    public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory) {
+        this.classLoaderFactory = classLoaderFactory;
     }
 
     public CompilerDaemon getDaemon(File workingDir, final DaemonForkOptions forkOptions) {
@@ -46,10 +45,10 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
                     filteredGroovy.allowPackage(packageName);
                 }
 
-                FilteringClassLoader loggingClassLoader = new FilteringClassLoader(compiler.getClass().getClassLoader());
+                FilteringClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader());
                 loggingClassLoader.allowPackage("org.slf4j");
 
-                MultiParentClassLoader groovyAndLoggingClassLoader = new MultiParentClassLoader(loggingClassLoader, filteredGroovy);
+                ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 
                 ClassLoader workerClassLoader = new MutableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
 

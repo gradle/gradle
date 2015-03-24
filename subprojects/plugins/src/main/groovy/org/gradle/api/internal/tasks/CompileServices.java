@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.DefaultJarSnapshotC
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.JdkToolsInitializer;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
@@ -50,8 +51,8 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory() {
-            return new InProcessCompilerDaemonFactory();
+        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory) {
+            return new InProcessCompilerDaemonFactory(classLoaderFactory);
         }
 
         GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {
