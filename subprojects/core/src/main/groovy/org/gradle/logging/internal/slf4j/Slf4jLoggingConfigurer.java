@@ -44,9 +44,6 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
 
         if (currentLevel == null) {
             context.setOutputEventListener(outputEventListener);
-
-            context.getLogger("org.apache.http.wire").disable();
-            context.getLogger("org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule").setLevel(LogLevel.ERROR);
         }
 
         currentLevel = logLevel;

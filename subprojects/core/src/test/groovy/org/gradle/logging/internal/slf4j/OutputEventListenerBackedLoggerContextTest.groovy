@@ -16,6 +16,7 @@
 
 package org.gradle.logging.internal.slf4j
 
+import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -53,5 +54,15 @@ class OutputEventListenerBackedLoggerContextTest extends Specification {
 
         where:
         name << [ROOT_LOGGER_NAME, "foo", "foo.bar"]
+    }
+
+    def "turns off Apache HTTP wire logging by default"() {
+        expect:
+        logger("org.apache.http.wire").disabled
+    }
+
+    def "sets MetaInfExtensionModule log level to ERROR by default"() {
+        expect:
+        logger("org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule").effectiveLevel == LogLevel.ERROR;
     }
 }

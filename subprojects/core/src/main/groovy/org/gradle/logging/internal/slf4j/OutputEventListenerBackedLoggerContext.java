@@ -43,6 +43,12 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         setDefaultOutputEventListener();
         root = new OutputEventListenerBackedLogger(ROOT_LOGGER_NAME, null, this);
         root.setLevel(LogLevel.LIFECYCLE);
+        configureDefaultLevels();
+    }
+
+    private void configureDefaultLevels() {
+        getLogger("org.apache.http.wire").disable();
+        getLogger("org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule").setLevel(LogLevel.ERROR);
     }
 
     private void setDefaultOutputEventListener() {

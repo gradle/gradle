@@ -176,25 +176,6 @@ class Slf4jLoggingConfigurerTest extends Specification {
         0 * listener._
     }
 
-    def "turns off Apache HTTP wire logging"() {
-        def wireLogger = LoggerFactory.getLogger("org.apache.http.wire")
-        configurer.configure(LogLevel.DEBUG)
-
-        when:
-        wireLogger.debug("debug message")
-
-        then:
-        0 * _
-
-        // check that changing log level doesn't reactivate wire logging
-        when:
-        configurer.configure(LogLevel.INFO)
-        wireLogger.info("info message")
-
-        then:
-        0 * _
-    }
-
     def "respects per-logger log level if either logger log level or event log level is one of ERROR, INFO, TRACE"() {
         configurer.configure(LogLevel.INFO)
         logger.level = LogLevel.DEBUG
