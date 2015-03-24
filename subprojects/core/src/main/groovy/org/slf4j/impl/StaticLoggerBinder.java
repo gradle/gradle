@@ -20,6 +20,7 @@ import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLoggerContext;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
+@SuppressWarnings("UnusedDeclaration")
 public class StaticLoggerBinder implements LoggerFactoryBinder {
 
     private static final StaticLoggerBinder SINGLETON = new StaticLoggerBinder();
