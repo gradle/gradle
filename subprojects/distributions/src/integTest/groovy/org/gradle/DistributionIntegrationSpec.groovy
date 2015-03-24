@@ -42,12 +42,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     def "no duplicate entries"() {
         given:
-        ZipFile zipFile = new ZipFile(zip)
+        def entriesByPath = zipEntries.findAll { !it.name.contains('/META-INF/services/') }.groupBy { it.name }
+        def dupes = entriesByPath.findAll { it.value.size() > 1 }
 
         when:
-        def entries = zipFile.entries().toList()
-        def entriesByPath = entries.groupBy { ZipEntry zipEntry -> zipEntry.name }
-        def dupes = entriesByPath.findAll { it.value.size() > 1 && !it.key.contains('/META-INF/services/') }
         def dupesWithCount = dupes.collectEntries { [it.key, it.value.size()]}
 
         then:
@@ -75,9 +73,16 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected List<? extends ZipEntry> getLibZipEntries() {
+        zipEntries.findAll { !it.isDirectory() && it.name.tokenize("/")[1] == "lib" }
+    }
+
+    protected List<? extends ZipEntry> getZipEntries() {
         ZipFile zipFile = new ZipFile(zip)
-        def entries = zipFile.entries().toList()
-        entries.findAll { !it.isDirectory() && it.name.tokenize("/")[1] == "lib" }
+        try {
+            zipFile.entries().toList()
+        } finally {
+            zipFile.close()
+        }
     }
 
     protected TestFile unpackDistribution(type = getDistributionLabel()) {
