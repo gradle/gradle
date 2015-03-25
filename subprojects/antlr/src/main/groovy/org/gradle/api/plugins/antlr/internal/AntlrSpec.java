@@ -29,11 +29,27 @@ public class AntlrSpec implements Serializable {
     private String maxHeapSize;
     private File outputDirectory;
 
-    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, File outputDirectory, String maxHeapSize) {
+    private boolean trace;
+    private boolean traceLexer;
+    private boolean traceParser;
+    private boolean traceTreeWalker;
+
+    public AntlrSpec(List<String> arguments,
+                     Set<File> grammarFiles,
+                     File outputDirectory,
+                     String maxHeapSize,
+                     boolean trace,
+                     boolean traceLexer,
+                     boolean traceParser,
+                     boolean traceTreeWalker) {
         this.arguments = arguments;
         this.grammarFiles = grammarFiles;
         this.outputDirectory = outputDirectory;
         this.maxHeapSize = maxHeapSize;
+        this.trace = trace;
+        this.traceLexer = traceLexer;
+        this.traceParser = traceParser;
+        this.traceTreeWalker = traceTreeWalker;
     }
 
     public List<String> getArguments() {
@@ -54,5 +70,21 @@ public class AntlrSpec implements Serializable {
 
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
+    }
+
+    public boolean isTrace() {
+        return trace;
+    }
+
+    public boolean isTraceLexer() {
+        return traceLexer;
+    }
+
+    public boolean isTraceParser() {
+        return traceParser;
+    }
+
+    public boolean isTraceTreeWalker() {
+        return traceTreeWalker;
     }
 }

@@ -365,6 +365,12 @@ This causes unexpected build results when source accidentally ends up on the cla
 
 This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
+### AntlrTask.buildArguments() has been removed
+
+Due to our rework on supporting different Antlr versions,
+the calculation of the final commandline arguments for Antlr have been removed from the
+AntlrTask.
+
 ### Upgraded libraries in the Gradle API
 
 Some dependencies used in Gradle have been updated. We updated

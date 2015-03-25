@@ -192,11 +192,15 @@ public class AntlrTask extends SourceTask {
             GFileUtils.cleanDirectory(outputDirectory);
             grammarFiles.addAll(sourceFiles);
         }
-        List<String> args = buildCommonArguments();
+
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = new AntlrSpec(args, grammarFiles, getOutputDirectory(), maxHeapSize);
+        AntlrSpec spec = createAntlrSpec(grammarFiles);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluateAntlrResult(result);
+    }
+
+    AntlrSpec createAntlrSpec(Set<File> grammarFiles) {
+        return new AntlrSpec(arguments, grammarFiles, getOutputDirectory(), maxHeapSize, trace, traceLexer, traceParser, traceTreeWalker);
     }
 
     public void evaluateAntlrResult(AntlrResult result) {
@@ -208,38 +212,5 @@ public class AntlrTask extends SourceTask {
                     + errorCount
                     + " errors during grammar generation", result.getException());
         }
-    }
-
-    /**
-     * Generates the list of common arguments that will be sent to the ANTLR tool.
-     * The passing of the grammar files is done in the AntlrExecuter as it differs
-     * depending on the antlr version.
-     */
-    List<String> buildCommonArguments() {
-        List<String> args = new ArrayList<String>();    // List for finalized arguments
-
-        // Output file
-        args.add("-o");
-        args.add(outputDirectory.getAbsolutePath());
-
-        // Custom arguments
-        for (String argument : arguments) {
-            args.add(argument);
-        }
-
-        // Add trace parameters, if they don't already exist
-        if (isTrace() && !arguments.contains("-trace")) {
-            args.add("-trace");
-        }
-        if (isTraceLexer() && !arguments.contains("-traceLexer")) {
-            args.add("-traceLexer");
-        }
-        if (isTraceParser() && !arguments.contains("-traceParser")) {
-            args.add("-traceParser");
-        }
-        if (isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
-            args.add("-traceTreeWalker");
-        }
-        return args;
     }
 }

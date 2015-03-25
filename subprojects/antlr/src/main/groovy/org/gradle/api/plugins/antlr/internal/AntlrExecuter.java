@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +38,7 @@ public class AntlrExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
-        List<String> arguments = spec.getArguments();
+        List<String> arguments = buildCommonArguments(spec);
         Set<File> grammarFiles = spec.getGrammarFiles();
 
         String[] allArguments = new String[arguments.size() + grammarFiles.size()];
@@ -71,13 +72,15 @@ public class AntlrExecuter {
         try {
             Object toolObj = loadTool("antlr.Tool", null);
             LOGGER.info("Processing with ANTLR 2");
-            return processV2(toolObj, spec);
+            return processV2(toolObj, arguments, grammarFiles, spec.getOutputDirectory());
         } catch (ClassNotFoundException e) {
             LOGGER.debug("ANTLR 2 not found on classpath");
         }
 
         throw new IllegalStateException("No Antlr implementation available");
     }
+
+
 
     /**
      * Utility method to create an instance of the Tool class.
@@ -101,11 +104,9 @@ public class AntlrExecuter {
         }
     }
 
-    AntlrResult processV2(Object tool, AntlrSpec spec) {
-        List<String> arguments = spec.getArguments();
-        Set<File> grammarFiles = spec.getGrammarFiles();
+    AntlrResult processV2(Object tool, List<String> arguments, Set<File> grammarFiles, File outputDirectory) {
         XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
-        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
         for (GenerationPlan generationPlan : generationPlans) {
             String[] argArr = arguments.toArray(new String[arguments.size() + 1]);
             argArr[arguments.size()] = generationPlan.getSource().getAbsolutePath();
@@ -122,5 +123,34 @@ public class AntlrExecuter {
     AntlrResult processV4(Object tool) {
         JavaReflectionUtil.method(tool, Void.class, "processGrammarsOnCommandLine").invoke(tool);
         return new AntlrResult(JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool));
+    }
+
+    List<String> buildCommonArguments(AntlrSpec spec) {
+        List<String> args = new ArrayList<String>();    // List for finalized arguments
+
+        // Output file
+        args.add("-o");
+        args.add(spec.getOutputDirectory().getAbsolutePath());
+
+        // Custom arguments
+        List<String> arguments = spec.getArguments();
+        for (String argument : arguments) {
+            args.add(argument);
+        }
+
+        // Add trace parameters, if they don't already exist
+        if (spec.isTrace() && !arguments.contains("-trace")) {
+            args.add("-trace");
+        }
+        if (spec.isTraceLexer() && !arguments.contains("-traceLexer")) {
+            args.add("-traceLexer");
+        }
+        if (spec.isTraceParser() && !arguments.contains("-traceParser")) {
+            args.add("-traceParser");
+        }
+        if (spec.isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
+            args.add("-traceTreeWalker");
+        }
+        return args;
     }
 }
