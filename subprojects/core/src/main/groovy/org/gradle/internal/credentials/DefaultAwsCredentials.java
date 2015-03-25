@@ -16,7 +16,7 @@
 
 package org.gradle.internal.credentials;
 
-import org.gradle.api.artifacts.repositories.AwsCredentials;
+import org.gradle.api.credentials.AwsCredentials;
 
 public class DefaultAwsCredentials implements AwsCredentials {
 

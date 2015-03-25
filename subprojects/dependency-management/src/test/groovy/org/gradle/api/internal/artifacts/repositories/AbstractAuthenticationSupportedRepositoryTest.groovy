@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.Action
-import org.gradle.api.artifacts.repositories.AwsCredentials
+import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
