@@ -30,10 +30,9 @@ import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTranspo
 import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.WrapUtil;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -77,9 +76,7 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Credentials credentials) {
-        Set<String> schemes = new HashSet<String>();
-        schemes.add(scheme);
-        return createTransport(schemes, name, credentials);
+        return createTransport(Collections.singleton(scheme), name, credentials);
     }
 
     /**
@@ -97,7 +94,7 @@ public class RepositoryTransportFactory {
         validateSchemes(schemes);
 
         // File resources are handled slightly differently at present.
-        if (WrapUtil.toSet("file").containsAll(schemes)) {
+        if (Collections.singleton("file").containsAll(schemes)) {
             return new FileTransport(name);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);

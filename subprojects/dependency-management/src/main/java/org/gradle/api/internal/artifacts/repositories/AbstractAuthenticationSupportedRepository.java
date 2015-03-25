@@ -45,9 +45,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         } else if (!(clazz.isAssignableFrom(credentials.getClass()))) {
             throw new IllegalStateException(String.format("Credentials already configured. Requested credentials must be of type '%s'.", credentials.getClass().getName()));
         }
-        return (T) credentials;
+        return clazz.cast(credentials);
     }
-
 
     public void credentials(Closure closure) {
         credentials(new ClosureBackedAction<PasswordCredentials>(closure));
@@ -58,15 +57,14 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
-        credentials = getCredentials(clazz);
-        action.execute((T) credentials);
+        action.execute(getCredentials(clazz));
     }
 
     private <T extends Credentials> T newCredentials(Class<T> clazz) {
         if (clazz == AwsCredentials.class) {
-            return (T) instantiator.newInstance(DefaultAwsCredentials.class);
+            return clazz.cast(instantiator.newInstance(DefaultAwsCredentials.class));
         } else if (clazz == PasswordCredentials.class) {
-            return (T) instantiator.newInstance(DefaultPasswordCredentials.class);
+            return clazz.cast(instantiator.newInstance(DefaultPasswordCredentials.class));
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials type: '%s'.", clazz.getName()));
         }
