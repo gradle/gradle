@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.model.build;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
@@ -32,6 +34,7 @@ public interface GradleEnvironment {
      *
      * @since 2.4
      */
+    @Incubating
     File getGradleUserHome();
 
     /**
