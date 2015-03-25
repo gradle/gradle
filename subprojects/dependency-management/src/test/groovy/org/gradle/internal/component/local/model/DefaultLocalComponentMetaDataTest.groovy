@@ -15,7 +15,6 @@
  */
 
 package org.gradle.internal.component.local.model
-
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor

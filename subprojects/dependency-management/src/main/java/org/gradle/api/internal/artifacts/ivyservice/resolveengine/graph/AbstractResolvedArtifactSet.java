@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -31,11 +31,11 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractResolvedArtifactSet implements ResolvedArtifactSet {
-    protected final ModuleVersionIdentifier moduleVersionIdentifier;
-    protected final ComponentResolveMetaData component;
-    protected final ArtifactResolver artifactResolver;
-    protected final long id;
+abstract class AbstractResolvedArtifactSet implements ResolvedArtifactSet {
+    private final ModuleVersionIdentifier moduleVersionIdentifier;
+    private final ComponentResolveMetaData component;
+    private final ArtifactResolver artifactResolver;
+    private final long id;
     private Set<ResolvedArtifact> resolvedArtifacts;
 
     public AbstractResolvedArtifactSet(long id, ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {

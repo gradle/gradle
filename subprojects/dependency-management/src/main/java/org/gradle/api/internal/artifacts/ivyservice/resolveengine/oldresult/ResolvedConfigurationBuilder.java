@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedArtifactSet;
 
 //builds old model of resolved dependency graph based on the result events
 public interface ResolvedConfigurationBuilder {

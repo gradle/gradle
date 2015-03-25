@@ -44,6 +44,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
+    private boolean artifactsResolved;
 
     public DefaultLocalComponentMetaData(DefaultModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
         this.moduleDescriptor = moduleDescriptor;
@@ -60,17 +61,21 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public void addArtifacts(String configuration, PublishArtifactSet artifacts) {
+        if (artifactsResolved) {
+            throw new IllegalStateException("Cannot add artifacts after resolve");
+        }
         configurationArtifacts.put(configuration, artifacts);
     }
 
     private void resolveArtifacts() {
-        if (artifactsById.isEmpty()) {
+        if (!artifactsResolved) {
             for (String configuration : configurationArtifacts.keySet()) {
                 PublishArtifactSet artifacts = configurationArtifacts.get(configuration);
                 for (PublishArtifact artifact : artifacts) {
                     addArtifact(configuration, createIvyArtifact(artifact), artifact.getFile());
                 }
             }
+            artifactsResolved = true;
         }
     }
 
@@ -86,7 +91,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
     }
 
-    private void addArtifact(String configuration, IvyArtifactName artifact, File file) {
+    void addArtifact(String configuration, IvyArtifactName artifact, File file) {
         Artifact ivyArtifact = new MDArtifact(moduleDescriptor, artifact.getName(), artifact.getType(), artifact.getExtension(), null, artifact.getAttributes());
 
         DefaultLocalArtifactMetaData artifactMetaData = new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifact, file);

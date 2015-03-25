@@ -21,10 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.AbstractResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.PredeterminedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.id.IdGenerator;
@@ -86,10 +82,10 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private ResolvedArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
         long id = idGenerator.generateId();
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
-        if (artifacts.isEmpty()) {
-            return new ConfigurationArtifactsSet(childConfiguration, dependency.getSelector(), artifactResolver, id);
+        if (!artifacts.isEmpty()) {
+            return new DependencyArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver, id);
         }
-        return new PredeterminedArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver, id);
+        return new ConfigurationArtifactsSet(childConfiguration, dependency.getSelector(), artifactResolver, id);
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {
@@ -179,20 +175,4 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    // TODO:DAZ Probably want to resolve early for external modules, and only hang onto Configuration node for local components
-    private static class ConfigurationArtifactsSet extends AbstractResolvedArtifactSet {
-        private final DependencyGraphBuilder.ConfigurationNode childConfiguration;
-        private final ModuleResolutionFilter selector;
-
-        public ConfigurationArtifactsSet(DependencyGraphBuilder.ConfigurationNode childConfiguration, ModuleResolutionFilter selector, ArtifactResolver artifactResolver, long id) {
-            super(id, childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifactResolver);
-            this.childConfiguration = childConfiguration;
-            this.selector = selector;
-        }
-
-        @Override
-        protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
-            return childConfiguration.getArtifacts(selector);
-        }
-    }
 }

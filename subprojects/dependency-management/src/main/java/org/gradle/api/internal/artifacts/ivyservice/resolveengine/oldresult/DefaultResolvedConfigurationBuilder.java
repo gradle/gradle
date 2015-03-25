@@ -20,16 +20,18 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedArtifactSet;
 
 import java.util.*;
 
 public class DefaultResolvedConfigurationBuilder implements
         ResolvedConfigurationBuilder, ResolvedConfigurationResults, ResolvedContentsMapping {
 
-    private final Map<Long, ResolvedArtifactSet> artifactSets = new LinkedHashMap<Long, ResolvedArtifactSet>();
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
-    private Set<ResolvedArtifact> artifacts;
+    private List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<ResolvedArtifactSet>();
+    private Map<Long, Set<ResolvedArtifact>> resolvedArtifactsById;
+    private Set<ResolvedArtifact> allResolvedArtifacts;
 
     private final TransientConfigurationResultsBuilder builder;
 
@@ -58,7 +60,7 @@ public class DefaultResolvedConfigurationBuilder implements
 
     public void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifactSet) {
         builder.parentSpecificArtifacts(child, parent, artifactSet.getId());
-        artifactSets.put(artifactSet.getId(), artifactSet);
+        resolvedArtifactSets.add(artifactSet);
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
@@ -76,27 +78,33 @@ public class DefaultResolvedConfigurationBuilder implements
     // TODO:DAZ Move the artifact-related stuff off ResolvedConfigurationBuilder into a new builder
     public Set<ResolvedArtifact> getArtifacts() {
         assertArtifactsResolved();
-        return new LinkedHashSet<ResolvedArtifact>(artifacts);
+        return new LinkedHashSet<ResolvedArtifact>(allResolvedArtifacts);
     }
 
     public Set<ResolvedArtifact> getArtifacts(long artifactId) {
         assertArtifactsResolved();
-        ResolvedArtifactSet a = artifactSets.get(artifactId);
+        Set<ResolvedArtifact> a = resolvedArtifactsById.get(artifactId);
         assert a != null : "Unable to find artifacts for id: " + artifactId;
-        return a.getArtifacts();
+        return a;
     }
 
     public void resolveArtifacts() {
-        if (artifacts == null) {
-            artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (ResolvedArtifactSet artifactSet : artifactSets.values()) {
-                artifacts.addAll(artifactSet.getArtifacts());
+        if (allResolvedArtifacts == null) {
+            allResolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
+            resolvedArtifactsById = new LinkedHashMap<Long, Set<ResolvedArtifact>>();
+            for (ResolvedArtifactSet artifactSet : resolvedArtifactSets) {
+                Set<ResolvedArtifact> resolvedArtifacts = artifactSet.getArtifacts();
+                allResolvedArtifacts.addAll(resolvedArtifacts);
+                resolvedArtifactsById.put(artifactSet.getId(), resolvedArtifacts);
             }
+
+            // Release ResolvedArtifactSet instances so we're not holding onto state
+            resolvedArtifactSets = null;
         }
     }
 
     private void assertArtifactsResolved() {
-        if (artifacts == null) {
+        if (allResolvedArtifacts == null) {
             throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
         }
     }

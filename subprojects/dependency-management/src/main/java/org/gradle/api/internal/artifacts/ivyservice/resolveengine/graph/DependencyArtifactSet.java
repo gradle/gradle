@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
@@ -23,10 +23,10 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
 import java.util.Set;
 
-public class PredeterminedArtifactSet extends AbstractResolvedArtifactSet {
+class DependencyArtifactSet extends AbstractResolvedArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
-    public PredeterminedArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver, long id) {
+    public DependencyArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver, long id) {
         super(id, ownerId, component, artifactResolver);
         this.artifacts = artifacts;
     }
