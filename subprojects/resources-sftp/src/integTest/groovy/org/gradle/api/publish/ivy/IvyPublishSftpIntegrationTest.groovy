@@ -177,7 +177,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
                 .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("Could not create resource 'sftp://$ivySftpRepo.uri.host:$ivySftpRepo.uri.port/repo'.")
+                .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
     }
 
     def "publishing to a SFTP repo when file uploading fails"() {
@@ -197,6 +197,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
                 .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("Could not write to resource 'sftp://${ivySftpRepo.uri.host}:${ivySftpRepo.uri.port}${module.jar.pathOnServer}'.")
+                .assertHasCause("Could not write to resource '${module.jar.uri}'.")
     }
 }
