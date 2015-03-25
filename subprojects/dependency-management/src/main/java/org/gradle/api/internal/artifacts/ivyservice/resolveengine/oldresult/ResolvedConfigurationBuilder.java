@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
 
 //builds old model of resolved dependency graph based on the result events
 public interface ResolvedConfigurationBuilder {
@@ -29,7 +29,7 @@ public interface ResolvedConfigurationBuilder {
 
     void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
 
-    void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifacts);
+    void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ArtifactSet artifacts);
 
     void newResolvedDependency(ResolvedConfigurationIdentifier id);
 

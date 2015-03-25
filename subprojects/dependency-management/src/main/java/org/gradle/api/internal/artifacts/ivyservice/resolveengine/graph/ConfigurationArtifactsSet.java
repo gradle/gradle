@@ -23,7 +23,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import java.util.Set;
 
 // TODO:DAZ Probably want to resolve early for external modules, and only hang onto Configuration node for local components
-class ConfigurationArtifactsSet extends AbstractResolvedArtifactSet {
+class ConfigurationArtifactsSet extends AbstractArtifactSet {
     private final DependencyGraphBuilder.ConfigurationNode childConfiguration;
     private final ModuleResolutionFilter selector;
 
@@ -35,6 +35,6 @@ class ConfigurationArtifactsSet extends AbstractResolvedArtifactSet {
 
     @Override
     protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
-        return childConfiguration.getArtifacts(selector);
+        return childConfiguration.getArtifacts(selector, getArtifactResolver());
     }
 }

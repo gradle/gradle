@@ -23,7 +23,7 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 
 import java.util.Set;
 
-class DependencyArtifactSet extends AbstractResolvedArtifactSet {
+class DependencyArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
     public DependencyArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver, long id) {

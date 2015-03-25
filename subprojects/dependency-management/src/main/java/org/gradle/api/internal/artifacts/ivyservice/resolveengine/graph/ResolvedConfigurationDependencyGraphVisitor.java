@@ -79,7 +79,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    private ResolvedArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+    private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
         long id = idGenerator.generateId();
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
         if (!artifacts.isEmpty()) {

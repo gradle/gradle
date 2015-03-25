@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
 
 import java.util.*;
 
@@ -29,7 +29,7 @@ public class DefaultResolvedConfigurationBuilder implements
 
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
-    private List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<ResolvedArtifactSet>();
+    private List<ArtifactSet> artifactSets = new ArrayList<ArtifactSet>();
     private Map<Long, Set<ResolvedArtifact>> resolvedArtifactsById;
     private Set<ResolvedArtifact> allResolvedArtifacts;
 
@@ -58,9 +58,9 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.parentChildMapping(parent, child);
     }
 
-    public void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifactSet) {
+    public void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ArtifactSet artifactSet) {
         builder.parentSpecificArtifacts(child, parent, artifactSet.getId());
-        resolvedArtifactSets.add(artifactSet);
+        artifactSets.add(artifactSet);
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
@@ -92,14 +92,14 @@ public class DefaultResolvedConfigurationBuilder implements
         if (allResolvedArtifacts == null) {
             allResolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
             resolvedArtifactsById = new LinkedHashMap<Long, Set<ResolvedArtifact>>();
-            for (ResolvedArtifactSet artifactSet : resolvedArtifactSets) {
+            for (ArtifactSet artifactSet : artifactSets) {
                 Set<ResolvedArtifact> resolvedArtifacts = artifactSet.getArtifacts();
                 allResolvedArtifacts.addAll(resolvedArtifacts);
                 resolvedArtifactsById.put(artifactSet.getId(), resolvedArtifacts);
             }
 
             // Release ResolvedArtifactSet instances so we're not holding onto state
-            resolvedArtifactSets = null;
+            artifactSets = null;
         }
     }
 

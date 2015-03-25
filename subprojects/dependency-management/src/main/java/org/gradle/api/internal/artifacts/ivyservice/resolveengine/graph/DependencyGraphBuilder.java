@@ -652,10 +652,11 @@ public class DependencyGraphBuilder {
         }
 
         // TODO:DAZ Move this into the ArtifactSet: we don't want to keep all of these references.
-        public Set<ComponentArtifactMetaData> getArtifacts(ModuleResolutionFilter moduleResolutionFilter) {
+        // The main question is how to maintain the cache of all artifacts pre-filtered.
+        public Set<ComponentArtifactMetaData> getArtifacts(ModuleResolutionFilter moduleResolutionFilter, ArtifactResolver artifactResolver) {
             if (artifacts == null) {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-                resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
+                artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
                 artifacts = result.getArtifacts();
             }
 

@@ -31,14 +31,14 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-abstract class AbstractResolvedArtifactSet implements ResolvedArtifactSet {
+abstract class AbstractArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ComponentResolveMetaData component;
     private final ArtifactResolver artifactResolver;
     private final long id;
     private Set<ResolvedArtifact> resolvedArtifacts;
 
-    public AbstractResolvedArtifactSet(long id, ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
+    public AbstractArtifactSet(long id, ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
         this.id = id;
         this.moduleVersionIdentifier = ownerId;
         this.component = component;
@@ -64,6 +64,10 @@ abstract class AbstractResolvedArtifactSet implements ResolvedArtifactSet {
         // TODO:DAZ Need to avoid hanging onto state when artifacts are not used: for now maybe resolve artifact sets explicitly even when not required
         // TODO:DAZ ArtifactResolver should be provided when resolving, not when constructing
         return resolvedArtifacts;
+    }
+
+    protected ArtifactResolver getArtifactResolver() {
+        return artifactResolver;
     }
 
     protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts();
