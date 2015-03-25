@@ -54,10 +54,6 @@ public class SftpResource extends AbstractExternalResource {
         return uri;
     }
 
-    public long getLastModified() {
-        return metaData.getLastModified().getTime();
-    }
-
     public long getContentLength() {
         return metaData.getContentLength();
     }
