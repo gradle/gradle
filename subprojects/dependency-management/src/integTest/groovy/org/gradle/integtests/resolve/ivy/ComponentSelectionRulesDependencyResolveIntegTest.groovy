@@ -58,6 +58,12 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         then:
         succeeds 'resolveConf'
 
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds 'resolveConf'
+
         where:
         selector             | rule            | chosen | candidates                            | downloadedMetadata
         "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
@@ -111,8 +117,14 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 
         then:
         fails 'resolveConf'
-        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
-        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+
+        then:
+        fails 'resolveConf'
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         where:
@@ -127,8 +139,75 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "latest.milestone"   | "select 1.1"               | '["2.0"]'                             | ['2.1', '2.0']
     }
 
+    def "reports all candidates rejected by rule" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ${rules["reject all with metadata"]}
+                    }
+                }
+            }
+"""
+
+        when:
+        def dirList = ivyHttpRepo.directoryList("org.utils", "api")
+        dirList.expectGet()
+        modules["1.2"].ivy.expectGet()
+        modules["1.1"].ivy.expectGet()
+        modules["1.0"].ivy.expectGet()
+
+        then:
+        fails 'resolveConf'
+
+        and:
+        failureHasCause("""Could not find any version that matches org.utils:api:1.+.
+Versions that do not match:
+    2.1
+    2.0
+Versions rejected by component selection rules:
+    1.2
+    1.1
+    1.0
+Searched in the following locations:
+    ${dirList.uri}
+    ${modules["1.2"].ivy.uri}
+    ${modules["1.1"].ivy.uri}
+    ${modules["1.0"].ivy.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
+        dirList.expectGet()
+
+        then:
+        fails 'resolveConf'
+
+        and:
+        // TODO - this failure and the previous failure should report the same urls (whatever that happens to be)
+        failureHasCause("""Could not find any version that matches org.utils:api:1.+.
+Versions that do not match:
+    2.1
+    2.0
+Versions rejected by component selection rules:
+    1.2
+    1.1
+    1.0
+Searched in the following locations:
+    ${dirList.uri}
+Required by:
+""")
+    }
+
     @Unroll
-    def "uses '#rule' rule to reject all candidates for static version #selector" () {
+    def "uses '#rule' rule to reject candidate for static version #selector" () {
         buildFile << """
             $httpBaseBuildFile
 
@@ -164,8 +243,13 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 
         then:
         fails 'resolveConf'
-        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
-        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find org.utils:api:${selector}.")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails 'resolveConf'
         failureHasCause("Could not find org.utils:api:${selector}.")
 
         where:
