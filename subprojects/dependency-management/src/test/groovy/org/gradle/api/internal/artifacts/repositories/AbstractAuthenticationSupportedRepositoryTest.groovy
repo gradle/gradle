@@ -27,7 +27,7 @@ import spock.lang.Unroll
 
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
-    def "should configure default password credentials using a closure only"() {
+    def "should configure default password credentials using an action only"() {
         setup:
         DefaultPasswordCredentials passwordCredentials = new DefaultPasswordCredentials()
         enhanceCredentials(passwordCredentials, 'username', 'password')
@@ -37,13 +37,16 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
         AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
 
-        Closure cls = {
-            username "myUsername"
-            password "myPassword"
+        def configAction = new Action<PasswordCredentials>() {
+            @Override
+            void execute(PasswordCredentials credentials) {
+                credentials.username = "myUsername"
+                credentials.password = "myPassword"
+            }
         }
 
         when:
-        repo.credentials(cls)
+        repo.credentials(configAction)
 
         then:
         repo.getCredentials(PasswordCredentials.class)

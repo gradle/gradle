@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
@@ -42,24 +41,6 @@ public interface AuthenticationSupported {
      */
     @Incubating
     public <T extends Credentials> T getCredentials(Class<T> clazz);
-
-    /**
-     * Configures the {@link PasswordCredentials} for this repository using the supplied Closure.
-     *
-     * <pre autoTested=''>
-     * repositories {
-     *     maven {
-     *         credentials {
-     *              username = 'joe'
-     *              password = 'secret'
-     *         }
-     *     }
-     * }
-     * </pre>
-     *
-     * @throws ClassCastException when credentials are not of type PasswordCredentials.
-     */
-    void credentials(Closure closure);
 
     /**
      * Configure the credentials for this repository using the supplied action.

@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -45,10 +43,6 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
             credentials = newCredentials(clazz);
         }
         return Transformers.cast(clazz).transform(credentials);
-    }
-
-    public void credentials(Closure closure) {
-        credentials(new ClosureBackedAction<PasswordCredentials>(closure));
     }
 
     public void credentials(Action<? super PasswordCredentials> action) {
