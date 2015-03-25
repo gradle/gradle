@@ -68,10 +68,6 @@ public class AntlrSpec implements Serializable {
         return outputDirectory;
     }
 
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
-    }
-
     public boolean isTrace() {
         return trace;
     }
