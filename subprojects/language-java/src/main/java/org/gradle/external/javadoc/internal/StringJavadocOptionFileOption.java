@@ -28,9 +28,7 @@ public class StringJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if (value == null) {
-            writerContext.writeOption(option);
-        } else {
+        if (value != null) {
             writerContext.writeValueOption(option, value);
         }
     }

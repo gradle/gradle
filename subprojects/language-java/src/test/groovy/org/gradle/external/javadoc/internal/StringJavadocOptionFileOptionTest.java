@@ -17,16 +17,13 @@
 package org.gradle.external.javadoc.internal;
 
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-@RunWith(JMock.class)
 public class StringJavadocOptionFileOptionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private JavadocOptionFileWriterContext writerContextMock;
@@ -44,10 +41,6 @@ public class StringJavadocOptionFileOptionTest {
 
     @Test
     public void testWriteNullValue() throws IOException {
-        context.checking(new Expectations() {{
-            one(writerContextMock).writeOption(optionName);
-        }});
-
         stringOption.write(writerContextMock);
     }
 
