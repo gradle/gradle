@@ -32,7 +32,7 @@ If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge y
 
 ### Support for AWS S3 backed repositories
 
-Gradle now supports S3 backed repositories. Here's an example on how to declare a S3 backed maven repository in gradle:
+Gradle now supports S3 backed repositories. Here's an example on how to declare a S3 backed Maven repository in Gradle:
 
     repositories {
         maven {
@@ -138,7 +138,7 @@ This feature was contributed by [Will Erickson](https://github.com/Sarev0k).
 Previously to generate a Gradle wrapper with a specific version, or a custom distribution URL,
 you had to change the `build.gradle` file to contain a wrapper task with a configured `gradleVersion` property.
 
-Now the target gradle version or the distribution URL can be configured from the command-line, without having
+Now the target Gradle version or the distribution URL can be configured from the command-line, without having
 to add or modfify the task in `build.gradle`:
 
     gradle wrapper --gradle-version 2.3
@@ -240,7 +240,7 @@ If you were using StartParameter.getParallelThreadCount() to check if parallel-p
 
 ### Changing a configuration after it has been resolved
 
-todo
+TODO
 
 ### Dependency substitution changes
 
@@ -383,6 +383,10 @@ The default version for the following code quality plugins have been updated:
 * The `findbugs` plugin uses now version 3.0.1 as default. (was 3.0.0)
 * The `codenarc` plugin uses now version 0.23 as default. (was 0.21)
 
+### Repository credentials
+
+TODO - methods of `AuthenticationSupported` now work slightly differently, in particular will fail when credentials are not instance of `PasswordCredentials`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -394,20 +398,20 @@ We would like to thank the following community members for making contributions 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
 * [Victor Bronstein](https://github.com/victorbr)
     - Convert NotationParser implementations to NotationConverter
-    - Only parse Maven settings once per project to determine local maven repository location (GRADLE-3219)
+    - Only parse Maven settings once per project to determine local Maven repository location (GRADLE-3219)
 * [Vyacheslav Blinov](https://github.com/dant3) - fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
 * [Michal Bendowski](https://github.com/bendowski-google) - six webDist userguide example
 * [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
 * [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
-* [Roman Donchenko](https://github.com/SpecLad) - fix a bug in `org.gradle.api.specs.OrSpecTest`
+* [Roman Donchenko](https://github.com/SpecLad)
+    - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
+    - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
+    - Fix a bug in `org.gradle.api.specs.OrSpecTest`
 * [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
 * [Lorant Pinter](https://github.com/lptr) - add setting wrapper version on command-line
 * [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
-* [Роман Донченко](https://github.com/SpecLad)
-    - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
-    - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
 * [Noam Y. Tenne](https://github.com/noamt) - Declare a dependency on a specific timestamped Maven snapshot
 * [Thomas Broyer](https://github.com/tbroyer) - Better defaults for Java compilation source path
