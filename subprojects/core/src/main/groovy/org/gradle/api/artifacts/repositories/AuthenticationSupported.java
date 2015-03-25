@@ -37,7 +37,10 @@ public interface AuthenticationSupported {
      * Returns the credentials of the specified type used to authenticate with this repository.
      * Instantiates Credentials if not done already.
      *
+     * @param clazz type of the credential
      * @return The Credentials
+     *
+     * @throws ClassCastException when already configured credentials are not matching passed credentials type.
      */
     @Incubating
     public <T extends Credentials> T getCredentials(Class<T> clazz);
@@ -64,15 +67,17 @@ public interface AuthenticationSupported {
     /**
      * Configures strongly typed credentials for this repository using the supplied action.
      *
-     * repositories {
-     *     maven {
-     *         url "${url}"
-     *         credentials(AwsCredentials) {
-     *             accessKey "myAccessKey"
-     *             secretKey "mySecret"
+     * <pre autoTested=''>
+     *     repositories {
+     *         maven {
+     *             url "${url}"
+     *             credentials(AwsCredentials) {
+     *                 accessKey "myAccessKey"
+     *                 secretKey "mySecret"
+     *             }
      *         }
      *     }
-     * }
+     * </pre>
      *
      * @throws ClassCastException if passed credentials type is not assignable to an already set credentials type.
      */
