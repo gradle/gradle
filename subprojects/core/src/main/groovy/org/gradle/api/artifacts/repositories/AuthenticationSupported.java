@@ -62,6 +62,8 @@ public interface AuthenticationSupported {
      *     }
      * }
      * </pre>
+     *
+     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
      */
     void credentials(Closure closure);
 
@@ -79,6 +81,8 @@ public interface AuthenticationSupported {
      *         }
      *     }
      * </pre>
+     *
+     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
      */
     void credentials(Action<? super PasswordCredentials> action);
 
