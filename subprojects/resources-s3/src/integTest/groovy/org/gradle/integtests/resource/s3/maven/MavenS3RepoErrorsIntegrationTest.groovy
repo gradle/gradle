@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.resource.s3.maven
 
+import org.gradle.api.credentials.AwsCredentials
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 import org.gradle.util.TextUtil
@@ -79,7 +80,7 @@ repositories {
         then:
         //TODO would be good to have a reference of the wrong configured repository in the error message
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("Credentials must be an instance of 'org.gradle.api.artifacts.repositories.AwsCredentials'.")
+                .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
     def "fails when no credentials provided"() {
