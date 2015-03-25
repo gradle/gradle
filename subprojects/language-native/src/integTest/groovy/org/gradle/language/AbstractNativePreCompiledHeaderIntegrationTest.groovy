@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.sourceset
+package org.gradle.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
 import org.spockframework.util.TextUtil
 
-abstract class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     abstract PCHHelloWorldApp getApp()
     abstract String getPluginId()
     abstract String getSourceSet()
@@ -225,11 +225,11 @@ abstract class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalled
     }
 
     String getSuffix() {
-        return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
+        return AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "visual c++" ? "pch" : "h.gch"
     }
 
     String getUniquePragmaOutput(String message) {
-        return toolChain.displayName == "visual c++" ? message : "warning: ${message}"
+        return AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "visual c++" ? message : "warning: ${message}"
     }
 
     String getPCHCompileTaskName() {

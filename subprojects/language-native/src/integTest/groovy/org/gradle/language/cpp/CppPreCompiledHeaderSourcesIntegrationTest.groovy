@@ -18,9 +18,9 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppPCHHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
-import org.gradle.nativeplatform.sourceset.PreCompiledHeaderSourcesIntegrationTest
+import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 
-class CppPreCompiledHeaderSourcesIntegrationTest extends PreCompiledHeaderSourcesIntegrationTest {
+class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
     PCHHelloWorldApp getApp() {
         return new CppPCHHelloWorldApp()

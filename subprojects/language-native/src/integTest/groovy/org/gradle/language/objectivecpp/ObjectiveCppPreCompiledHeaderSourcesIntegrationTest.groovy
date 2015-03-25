@@ -18,12 +18,12 @@ package org.gradle.language.objectivecpp
 
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppPCHHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
-import org.gradle.nativeplatform.sourceset.PreCompiledHeaderSourcesIntegrationTest
+import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
-class ObjectiveCppPreCompiledHeaderSourcesIntegrationTest extends PreCompiledHeaderSourcesIntegrationTest {
+class ObjectiveCppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
     PCHHelloWorldApp getApp() {
         return new ObjectiveCppPCHHelloWorldApp()
