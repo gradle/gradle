@@ -68,14 +68,17 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return Unresolved IDE repositoru file dependencies
      */
     public List<UnresolvedIdeRepoFileDependency> getUnresolvedIdeRepoFileDependencies(Configuration configuration) {
-        List<ComponentSelector> componentSelectors = getUnresolvedComponentSelectors(configuration);
+        ResolutionResult result = getIncomingResolutionResult(configuration);
+        List<UnresolvedDependencyResult> unresolvedDependencies = findAllUnresolvedDependencyResults(result.getRoot().getDependencies());
         List<UnresolvedIdeRepoFileDependency> unresolvedIdeRepoFileDependencies = new ArrayList<UnresolvedIdeRepoFileDependency>();
 
-        for (ComponentSelector componentSelector : componentSelectors) {
+        for (UnresolvedDependencyResult unresolvedDependencyResult : unresolvedDependencies) {
+            Throwable failure = unresolvedDependencyResult.getFailure();
+            ComponentSelector componentSelector = unresolvedDependencyResult.getAttempted();
+
             String displayName = componentSelector.getDisplayName();
             File file = new File(unresolvedFileName(componentSelector));
-            UnresolvedIdeRepoFileDependency unresolvedIdeRepoFileDependency = new UnresolvedIdeRepoFileDependency(configuration, displayName, file);
-            unresolvedIdeRepoFileDependencies.add(unresolvedIdeRepoFileDependency);
+            unresolvedIdeRepoFileDependencies.add(new UnresolvedIdeRepoFileDependency(configuration, file, failure, displayName));
         }
 
         return unresolvedIdeRepoFileDependencies;
@@ -206,24 +209,6 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     private ResolutionResult getIncomingResolutionResult(Configuration configuration) {
         return configuration.getIncoming().getResolutionResult();
-    }
-
-    /**
-     * Gets unresolved component selectors for a given configuration.
-     *
-     * @param configuration Configuration
-     * @return List of unresolved component selectors
-     */
-    private List<ComponentSelector> getUnresolvedComponentSelectors(Configuration configuration) {
-        ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<UnresolvedDependencyResult> unresolvedDependencies = findAllUnresolvedDependencyResults(result.getRoot().getDependencies());
-        List<ComponentSelector> componentSelectors = new ArrayList<ComponentSelector>();
-
-        for (UnresolvedDependencyResult unresolvedDependencyResult : unresolvedDependencies) {
-            componentSelectors.add(unresolvedDependencyResult.getAttempted());
-        }
-
-        return componentSelectors;
     }
 
     /**
