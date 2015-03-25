@@ -365,6 +365,10 @@ This causes unexpected build results when source accidentally ends up on the cla
 
 This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
+### Changes in behaviour of AuthenticationSupported.getCredentials()
+
+`AuthenticationSupported.getCredentials()` now throws an IllegalStateException if the configured credentials are not of type `PasswordCredentials`.
+
 ### AntlrTask.buildArguments() has been removed
 
 Due to our rework on supporting different Antlr versions,

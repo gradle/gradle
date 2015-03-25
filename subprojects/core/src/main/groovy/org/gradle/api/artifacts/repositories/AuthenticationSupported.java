@@ -29,6 +29,8 @@ public interface AuthenticationSupported {
      * Returns the standard username and password credentials used to authenticate to this repository.
      *
      * @return The PasswordCredentials
+     *
+     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
      */
     PasswordCredentials getCredentials();
 
