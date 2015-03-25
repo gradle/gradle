@@ -56,7 +56,7 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("Could not get s3 resource: [s3://tests3bucket/maven/release/org/gradle/test/1.85/test-1.85.pom]. " +
+                .assertHasCause("Could not get s3 resource: [${module.pom.uri}]. " +
                 "The AWS Access Key Id you provided does not exist in our records.")
     }
 
@@ -65,7 +65,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "s3://${getBucket()}${getRepositoryPath()}"
+        url "${mavenS3Repo.uri}"
         credentials {
             username "someUserName"
             password "someSecret"
@@ -87,7 +87,7 @@ repositories {
         buildFile << """
 repositories {
     maven {
-        url "s3://${getBucket()}${getRepositoryPath()}"
+        url "${mavenS3Repo.uri}"
     }
 }
 """

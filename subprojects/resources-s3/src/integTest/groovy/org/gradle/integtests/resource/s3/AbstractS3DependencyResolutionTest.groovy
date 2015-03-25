@@ -25,7 +25,7 @@ import org.junit.Rule
 abstract class AbstractS3DependencyResolutionTest extends AbstractDependencyResolutionTest {
 
     @Rule
-    public final S3Server server = new S3Server()
+    public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
         executer.withArgument('-i')

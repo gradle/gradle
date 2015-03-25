@@ -44,7 +44,7 @@ class S3ClientIntegrationTest extends Specification {
     DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
 
     @Rule
-    public final S3Server server = new S3Server()
+    public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
         awsCredentials.setAccessKey(accessKey)

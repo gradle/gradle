@@ -18,20 +18,23 @@ package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
+import org.junit.Rule
 
 class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
 
     String bucket = 'tests3bucket'
 
-    public S3FileBackedServer server
+    @Rule
+    public S3FileBackedServer server = new S3FileBackedServer(file())
 
     def setup() {
-        server = new S3FileBackedServer(file())
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
     def "can publish to a S3 Ivy repository"() {
         given:
+        def ivyRepo = ivy(server.getBackingDir(bucket))
+
         settingsFile << 'rootProject.name = "publishS3Test"'
         buildFile << """
 apply plugin: 'java'
@@ -43,7 +46,7 @@ version = '1.0'
 publishing {
     repositories {
         ivy {
-            url "s3://${bucket}"
+            url "${ivyRepo.uri}"
             credentials(AwsCredentials) {
                 accessKey "someKey"
                 secretKey "someSecret"
@@ -62,7 +65,6 @@ publishing {
         succeeds 'publish'
 
         then:
-        def ivyRepo = ivy(server.getBackingDir(bucket))
         def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.assertPublishedAsJavaModule()
         // TODO Verify published checksums: move functionality from HttpArtifact to something that works for IvyFileRepository

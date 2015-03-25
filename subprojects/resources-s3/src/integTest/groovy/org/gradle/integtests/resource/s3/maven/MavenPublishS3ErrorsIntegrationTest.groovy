@@ -16,6 +16,7 @@
 
 
 package org.gradle.integtests.resource.s3.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Server
@@ -30,14 +31,12 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
     String bucket = 'tests3bucket'
     String repositoryPath = '/maven/release/'
 
-
     @Rule
-    public final S3Server server = new S3Server()
+    public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}")
-
     }
 
     def "should fail with an authentication error"() {
@@ -70,14 +69,15 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
     """
 
         when:
-        mavenS3Repo.module("org.gradle", "publishS3Test", "1.45").artifact.expectPutAuthencicationError()
+        def module = mavenS3Repo.module("org.gradle", "publishS3Test", "1.45")
+        module.artifact.expectPutAuthencicationError()
 
         then:
         fails 'publish'
 
         failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
         failure.assertThatCause(startsWith("Failed to publish publication 'pub' to repository 'maven'"))
-                .assertHasCause("Could not put s3 resource: [s3://tests3bucket/maven/release/org/gradle/publishS3Test/1.45/publishS3Test-1.45.jar]. " +
+                .assertHasCause("Could not put s3 resource: [${module.artifact.uri}]. " +
                 "The AWS Access Key Id you provided does not exist in our records.")
     }
 

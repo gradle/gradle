@@ -18,20 +18,22 @@ package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
+import org.junit.Rule
 
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
 
     String bucket = 'tests3bucket'
 
-    public S3FileBackedServer server
+    @Rule
+    public S3FileBackedServer server = new S3FileBackedServer(file())
 
     def setup() {
-        server = new S3FileBackedServer(file())
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
     def "can publish to a S3 Maven repository"() {
         given:
+        def mavenRepo = maven(server.getBackingDir(bucket))
         settingsFile << 'rootProject.name = "publishS3Test"'
         buildFile << """
 apply plugin: 'java'
@@ -43,7 +45,7 @@ version = '1.0'
 publishing {
     repositories {
         maven {
-            url "s3://${bucket}"
+            url "${mavenRepo.uri}"
             credentials(AwsCredentials) {
                 accessKey "someKey"
                 secretKey "someSecret"
@@ -62,7 +64,6 @@ publishing {
         succeeds 'publish'
 
         then:
-        def mavenRepo = maven(server.getBackingDir(bucket))
         def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
