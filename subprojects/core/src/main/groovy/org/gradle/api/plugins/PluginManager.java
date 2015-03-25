@@ -97,8 +97,9 @@ public interface PluginManager {
      * Executes the given action when the specified plugin is applied.
      * <p>
      * If a plugin with the specified ID has already been applied, the supplied action will be executed immediately.
-     * Otherwise, the action will executed if and when a plugin with the specified ID is applied.
+     * Otherwise, the action will executed immediately after a plugin with the specified ID is applied.
      * <p>
+     * The given action is always executed after the plugin has been applied.
      *
      * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.
      * @param action the action to execute if/when the plugin is applied
