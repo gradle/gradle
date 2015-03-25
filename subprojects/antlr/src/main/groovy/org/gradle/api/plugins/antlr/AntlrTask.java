@@ -173,7 +173,7 @@ public class AntlrTask extends SourceTask {
                         File input = details.getFile();
                         if (sourceFiles.contains(input)) {
                             grammarFiles.add(input);
-                        }else {
+                        } else {
                             // classpath change?
                             cleanRebuild.set(true);
                         }
