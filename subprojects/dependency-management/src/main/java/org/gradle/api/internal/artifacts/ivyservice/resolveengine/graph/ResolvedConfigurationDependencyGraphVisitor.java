@@ -78,15 +78,16 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     }
 
     private Set<ResolvedArtifact> getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
-        Set<ComponentArtifactMetaData> dependencyArtifacts = dependency.getArtifacts(childConfiguration.metaData);
-        if (dependencyArtifacts.isEmpty()) {
-            return childConfiguration.getArtifacts(builder, dependency.getSelector());
+        Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
+        if (artifacts.isEmpty()) {
+            artifacts = childConfiguration.getArtifacts(dependency.getSelector());
         }
-        Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-        for (ComponentArtifactMetaData artifact : dependencyArtifacts) {
-            artifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, artifactResolver));
+
+        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
+        for (ComponentArtifactMetaData artifact : artifacts) {
+            resolvedArtifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, artifactResolver));
         }
-        return artifacts;
+        return resolvedArtifacts;
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {

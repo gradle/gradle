@@ -633,7 +633,6 @@ public class DependencyGraphBuilder {
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
         private Set<ComponentArtifactMetaData> artifacts;
-        private Map<IvyArtifactName, ResolvedArtifact> resolvedArtifacts = new HashMap<IvyArtifactName, ResolvedArtifact>();
 
         private ConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
             this.moduleRevision = moduleRevision;
@@ -652,26 +651,21 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationBuilder builder, ModuleResolutionFilter moduleResolutionFilter) {
+        public Set<ComponentArtifactMetaData> getArtifacts(ModuleResolutionFilter moduleResolutionFilter) {
             if (artifacts == null) {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
                 resolveState.artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
                 artifacts = result.getArtifacts();
             }
 
-            Set<ResolvedArtifact> result = new LinkedHashSet<ResolvedArtifact>();
+            Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
             ModuleIdentifier moduleId = id.getId().getModule();
             for (ComponentArtifactMetaData artifact : artifacts) {
                 IvyArtifactName artifactName = artifact.getName();
                 if (!moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
                     continue;
                 }
-                ResolvedArtifact resolvedArtifact = resolvedArtifacts.get(artifactName);
-                if (resolvedArtifact == null) {
-                    resolvedArtifact = builder.newArtifact(id, metaData.getComponent(), artifact, resolveState.artifactResolver);
-                    resolvedArtifacts.put(artifactName, resolvedArtifact);
-                }
-                result.add(resolvedArtifact);
+                result.add(artifact);
             }
 
             return result;
