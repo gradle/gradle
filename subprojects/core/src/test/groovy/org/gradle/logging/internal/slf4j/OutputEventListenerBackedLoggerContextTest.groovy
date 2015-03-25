@@ -51,15 +51,6 @@ class OutputEventListenerBackedLoggerContextTest extends Specification {
         expect:
         context.level == LIFECYCLE
     }
-    def "uses a noop logger for Apache HTTP wire logging by default"() {
-        expect:
-        context.getLogger(OutputEventListenerBackedLoggerContext.HTTP_CLIENT_WIRE_LOGGER_NAME) instanceof NoOpLogger
-    }
-
-    def "uses a noop logger for MetaInfExtensionModule logger by default"() {
-        expect:
-        context.getLogger(OutputEventListenerBackedLoggerContext.META_INF_EXTENSION_MODULE_LOGGER_NAME) instanceof NoOpLogger
-    }
 
     def "cannot set global level to null"() {
         when:

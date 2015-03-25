@@ -17,6 +17,7 @@
 package org.gradle.logging.internal.slf4j
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.logging.internal.LogEvent
 import org.gradle.logging.internal.OutputEventListener
@@ -91,8 +92,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         }
     }
 
-    private OutputEventListenerBackedLogger logger() {
-        context.getLogger(ROOT_LOGGER_NAME)
+    private Logger logger(String name) {
+        context.getLogger(name)
+    }
+
+    private Logger logger() {
+        logger(ROOT_LOGGER_NAME)
     }
 
     private void setGlobalLevel(LogLevel level) {
@@ -882,4 +887,22 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         e.printStackTrace(new PrintStream(stream))
         stream.toString()
     }
+
+    def "logging from Apache HTTP wire logger is suppressed"() {
+        when:
+        logger(OutputEventListenerBackedLoggerContext.HTTP_CLIENT_WIRE_LOGGER_NAME).error("message")
+
+        then:
+        singleLogEvent().verify(false)
+    }
+
+    def "logging from MetaInfExtensionModule logger is suppressed"() {
+        when:
+        logger(OutputEventListenerBackedLoggerContext.META_INF_EXTENSION_MODULE_LOGGER_NAME).error("message")
+
+        then:
+        singleLogEvent().verify(false)
+    }
+
+
 }
