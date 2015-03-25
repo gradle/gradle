@@ -31,7 +31,7 @@
         You install the wrapper into your project by running the <literal>wrapper</literal> task. (This task is always available, even if
         you don't add it to your build). To specify a Gradle version use <literal>--gradle-version</literal> on the command-line.
         You can also set the URL to download Gradle from directly via <literal>--gradle-distribution-url</literal>. If no version or distribution
-        URL is specified, the wrapper will be configured to use the gradle version the wrapper task is executed with..
+        URL is specified, the wrapper will be configured to use the gradle version the wrapper task is executed with.
         So if you run the wrapper task with Gradle 2.4 and the wrapper configuration will default to Gradle 2.4.
     </para>
     <sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the wrapper task">
