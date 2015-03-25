@@ -17,10 +17,10 @@
 package org.gradle.logging.internal.slf4j;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.logging.internal.LogEvent;
 import org.gradle.logging.internal.OutputEventListener;
-import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -63,13 +63,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     public boolean isInfoEnabled(Marker marker) {
-        if (marker == Logging.LIFECYCLE) {
-            return isLevelAtMost(LogLevel.LIFECYCLE);
-        }
-        if (marker == Logging.QUIET) {
-            return isLevelAtMost(LogLevel.QUIET);
-        }
-        return isInfoEnabled();
+        return isLevelAtMost(toLogLevel(marker));
     }
 
     public boolean isWarnEnabled() {
@@ -86,6 +80,16 @@ public class OutputEventListenerBackedLogger implements Logger {
 
     public boolean isErrorEnabled(Marker marker) {
         return isErrorEnabled();
+    }
+
+    @Override
+    public boolean isLifecycleEnabled() {
+        return isLevelAtMost(LogLevel.LIFECYCLE);
+    }
+
+    @Override
+    public boolean isQuietEnabled() {
+        return isLevelAtMost(LogLevel.QUIET);
     }
 
     public void trace(String msg) {
@@ -222,6 +226,75 @@ public class OutputEventListenerBackedLogger implements Logger {
     public void info(String format, Object... arguments) {
         if (isInfoEnabled()) {
             log(LogLevel.INFO, null, format, arguments);
+        }
+    }
+
+    @Override
+    public void lifecycle(String message) {
+        if (isLifecycleEnabled()) {
+            log(LogLevel.LIFECYCLE, null, message);
+        }
+    }
+
+    @Override
+    public void lifecycle(String message, Object... objects) {
+        if (isLifecycleEnabled()) {
+            log(LogLevel.LIFECYCLE, null, message, objects);
+        }
+    }
+
+    @Override
+    public void lifecycle(String message, Throwable throwable) {
+        if (isLifecycleEnabled()) {
+            log(LogLevel.LIFECYCLE, throwable, message);
+        }
+    }
+
+
+    @Override
+    public void quiet(String message) {
+        if (isQuietEnabled()) {
+            log(LogLevel.QUIET, null, message);
+        }
+    }
+
+    @Override
+    public void quiet(String message, Object... objects) {
+        if (isQuietEnabled()) {
+            log(LogLevel.QUIET, null, message, objects);
+        }
+    }
+
+    @Override
+    public void quiet(String message, Throwable throwable) {
+        if (isQuietEnabled()) {
+            log(LogLevel.QUIET, throwable, message);
+        }
+    }
+
+    @Override
+    public boolean isEnabled(LogLevel level) {
+        return isLevelAtMost(level);
+    }
+
+    @Override
+    public void log(LogLevel level, String message) {
+        if (isEnabled(level)) {
+            log(level, null, message);
+        }
+    }
+
+    @Override
+    public void log(LogLevel level, String message, Object... objects) {
+        if (isEnabled(level)) {
+            log(level, null, message, objects);
+        }
+    }
+
+    @Override
+    public void log(LogLevel level, String message, Throwable throwable) {
+        if (isEnabled(level)) {
+            log(level, throwable, message);
         }
     }
 

@@ -118,6 +118,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         logger().debugEnabled == enabled
         logger().isDebugEnabled(null) == enabled
+        logger().isEnabled(DEBUG) == enabled
 
 
         where:
@@ -137,7 +138,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         logger().infoEnabled == enabled
         logger().isInfoEnabled(null) == enabled
-
+        logger().isEnabled(INFO) == enabled
 
         where:
         level     | enabled
@@ -155,7 +156,8 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         then:
         logger().isInfoEnabled(Logging.LIFECYCLE) == enabled
-
+        logger().lifecycleEnabled == enabled
+        logger().isEnabled(LIFECYCLE) == enabled
 
         where:
         level     | enabled
@@ -173,6 +175,8 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         then:
         logger().isInfoEnabled(Logging.QUIET) == enabled
+        logger().quietEnabled == enabled
+        logger().isEnabled(QUIET) == enabled
 
 
         where:
@@ -192,6 +196,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         logger().warnEnabled == enabled
         logger().isWarnEnabled(null) == enabled
+        logger().isEnabled(WARN) == enabled
 
 
         where:
@@ -204,23 +209,18 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         ERROR     | false
     }
 
-    def "isErrorEnabled returns #enabled when level is #level"() {
+    def "isErrorEnabled returns true when level is #level"() {
         when:
         globalLevel = level
 
         then:
-        logger().errorEnabled == enabled
-        logger().isErrorEnabled(null) == enabled
+        logger().errorEnabled
+        logger().isErrorEnabled(null)
+        logger().isEnabled(ERROR)
 
 
         where:
-        level     | enabled
-        DEBUG     | true
-        INFO      | true
-        LIFECYCLE | true
-        WARN      | true
-        QUIET     | true
-        ERROR     | true
+        level << LogLevel.values()
     }
 
     def "trace calls do nothing when level is #level"() {
@@ -266,7 +266,19 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).verify(eventExpected)
 
         when:
+        logger().log(DEBUG, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+
+        when:
         logger().debug("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(DEBUG, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(DEBUG).timestamp(now).verify(eventExpected)
@@ -285,6 +297,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         when:
         logger().debug("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        when:
+        logger().log(DEBUG, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).throwable(throwable).verify(eventExpected)
@@ -346,7 +364,19 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(INFO).timestamp(now).verify(eventExpected)
 
         when:
+        logger().log(INFO, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(INFO).timestamp(now).verify(eventExpected)
+
+        when:
         logger().info("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(INFO).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(INFO, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(INFO).timestamp(now).verify(eventExpected)
@@ -365,6 +395,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         when:
         logger().info("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(INFO).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        when:
+        logger().log(INFO, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(INFO).timestamp(now).throwable(throwable).verify(eventExpected)
@@ -465,6 +501,74 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         arg3 = "arg3"
     }
 
+    def "lifecycle calls work as expected when level is #level"() {
+        given:
+        globalLevel = level
+
+        when:
+        logger().lifecycle("message")
+
+        then:
+        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(LIFECYCLE, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().lifecycle("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(LIFECYCLE, "{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().lifecycle("{} {}", arg1, arg2)
+
+        then:
+        singleLogEvent().message("arg1 arg2").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().lifecycle("{} {} {}", arg1, arg2, arg3)
+
+        then:
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().lifecycle("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        when:
+        logger().log(LIFECYCLE, "message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        where:
+        level     | eventExpected
+        DEBUG     | true
+        INFO      | true
+        LIFECYCLE | true
+        WARN      | false
+        QUIET     | false
+        ERROR     | false
+
+        now = System.currentTimeMillis()
+        throwable = new Throwable()
+        arg1 = "arg1"
+        arg2 = "arg2"
+        arg3 = "arg3"
+    }
+
     def "info calls with QUIET marker work as expected when level is #level"() {
         given:
         globalLevel = level
@@ -515,6 +619,74 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         arg3 = "arg3"
     }
 
+    def "quiet calls work as expected when level is #level"() {
+        given:
+        globalLevel = level
+
+        when:
+        logger().quiet("message")
+
+        then:
+        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(QUIET, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().quiet("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(QUIET, "{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().quiet("{} {}", arg1, arg2)
+
+        then:
+        singleLogEvent().message("arg1 arg2").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().quiet("{} {} {}", arg1, arg2, arg3)
+
+        then:
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().quiet("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        when:
+        logger().log(QUIET, "message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        where:
+        level     | eventExpected
+        DEBUG     | true
+        INFO      | true
+        LIFECYCLE | true
+        WARN      | true
+        QUIET     | true
+        ERROR     | false
+
+        now = System.currentTimeMillis()
+        throwable = new Throwable()
+        arg1 = "arg1"
+        arg2 = "arg2"
+        arg3 = "arg3"
+    }
+
     def "warn calls work as expected when level is #level"() {
         given:
         globalLevel = level
@@ -526,7 +698,19 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(WARN).timestamp(now).verify(eventExpected)
 
         when:
+        logger().log(WARN, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(WARN).timestamp(now).verify(eventExpected)
+
+        when:
         logger().warn("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(WARN).timestamp(now).verify(eventExpected)
+
+        when:
+        logger().log(WARN, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(WARN).timestamp(now).verify(eventExpected)
@@ -545,6 +729,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         when:
         logger().warn("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(WARN).timestamp(now).throwable(throwable).verify(eventExpected)
+
+        when:
+        logger().log(WARN, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(WARN).timestamp(now).throwable(throwable).verify(eventExpected)
@@ -606,7 +796,19 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         singleLogEvent().message("message").logLevel(ERROR).timestamp(now).verify(true)
 
         when:
+        logger().log(ERROR, "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).verify(true)
+
+        when:
         logger().error("{}", arg1)
+
+        then:
+        singleLogEvent().message("arg1").logLevel(ERROR).timestamp(now).verify(true)
+
+        when:
+        logger().log(ERROR, "{}", arg1)
 
         then:
         singleLogEvent().message("arg1").logLevel(ERROR).timestamp(now).verify(true)
@@ -625,6 +827,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         when:
         logger().error("message", throwable)
+
+        then:
+        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).throwable(throwable).verify(true)
+
+        when:
+        logger().log(ERROR, "message", throwable)
 
         then:
         singleLogEvent().message("message").logLevel(ERROR).timestamp(now).throwable(throwable).verify(true)

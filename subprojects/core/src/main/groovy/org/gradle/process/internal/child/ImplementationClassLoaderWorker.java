@@ -18,6 +18,7 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -58,6 +59,8 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
 
         FilteringClassLoader filteredWorkerClassLoader = new FilteringClassLoader(getClass().getClassLoader());
         filteredWorkerClassLoader.allowPackage("org.slf4j");
+        filteredWorkerClassLoader.allowClass(Logger.class);
+        filteredWorkerClassLoader.allowClass(LogLevel.class);
         filteredWorkerClassLoader.allowClass(Action.class);
         filteredWorkerClassLoader.allowClass(WorkerContext.class);
 

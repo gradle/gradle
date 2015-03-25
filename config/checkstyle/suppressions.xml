@@ -34,5 +34,8 @@
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]javascript[/\\].+"/>
 
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]logging[/\\]LogLevel.java"/>
+
 
 </suppressions>

@@ -16,7 +16,8 @@
 
 package org.gradle.logging.internal.slf4j;
 
-import org.slf4j.Logger;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.slf4j.Marker;
 
 public class NoOpLogger implements Logger {
@@ -100,7 +101,24 @@ public class NoOpLogger implements Logger {
     }
 
     @Override
+    public boolean isLifecycleEnabled() {
+        return false;
+    }
+
+    @Override
     public void debug(String format, Object... arguments) {
+    }
+
+    @Override
+    public void lifecycle(String message) {
+    }
+
+    @Override
+    public void lifecycle(String message, Object... objects) {
+    }
+
+    @Override
+    public void lifecycle(String message, Throwable throwable) {
     }
 
     @Override
@@ -151,6 +169,40 @@ public class NoOpLogger implements Logger {
 
     @Override
     public void info(String format, Object... arguments) {
+    }
+
+    @Override
+    public boolean isQuietEnabled() {
+        return false;
+    }
+
+    @Override
+    public void quiet(String message) {
+    }
+
+    @Override
+    public void quiet(String message, Object... objects) {
+    }
+
+    @Override
+    public void quiet(String message, Throwable throwable) {
+    }
+
+    @Override
+    public boolean isEnabled(LogLevel level) {
+        return false;
+    }
+
+    @Override
+    public void log(LogLevel level, String message) {
+    }
+
+    @Override
+    public void log(LogLevel level, String message, Object... objects) {
+    }
+
+    @Override
+    public void log(LogLevel level, String message, Throwable throwable) {
     }
 
     @Override

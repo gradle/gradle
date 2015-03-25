@@ -98,11 +98,27 @@ public enum LogLevel {
             logger.error(message, throwable);
         }};
 
+    /**
+     * @deprecated This method is not used anymore and will be removed in the next major Gradle version.
+     */
+    @Deprecated
     abstract boolean isEnabled(Logger logger);
 
+    /**
+     * @deprecated This method is not used anymore and will be removed in the next major Gradle version.
+     */
+    @Deprecated
     abstract void log(Logger logger, String message);
 
+    /**
+     * @deprecated This method is not used anymore and will be removed in the next major Gradle version.
+     */
+    @Deprecated
     abstract void log(Logger logger, String message, Object... objects);
 
+    /**
+     * @deprecated This method is not used anymore and will be removed in the next major Gradle version.
+     */
+    @Deprecated
     abstract void log(Logger logger, String message, Throwable throwable);
 }

@@ -41,7 +41,9 @@ class NoOpLoggerTest extends Specification {
         !logger.isInfoEnabled()
         !logger.isInfoEnabled(null)
         !logger.isInfoEnabled(Logging.LIFECYCLE)
+        !logger.lifecycleEnabled
         !logger.isInfoEnabled(Logging.QUIET)
+        !logger.quietEnabled
         !logger.isWarnEnabled()
         !logger.isWarnEnabled(null)
         !logger.isErrorEnabled()
