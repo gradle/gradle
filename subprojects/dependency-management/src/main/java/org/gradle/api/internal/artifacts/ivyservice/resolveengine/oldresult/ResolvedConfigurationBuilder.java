@@ -28,9 +28,11 @@ public interface ResolvedConfigurationBuilder {
 
     void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
 
-    void done(ResolvedConfigurationIdentifier root);
-
     void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifacts);
 
     void newResolvedDependency(ResolvedConfigurationIdentifier id);
+
+    void done(ResolvedConfigurationIdentifier root);
+
+    void resolveArtifacts();
 }

@@ -122,7 +122,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
                 ResolvedProjectConfigurationResultBuilder projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder();
 
+                // Resolve the dependency graph
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder, projectModelBuilder);
+
+                // Resolve the artifacts : this should not happen when resolving the task dependencies for a configuration, but only for a public resolve.
+                oldModelBuilder.resolveArtifacts();
+                // TODO:DAZ Need to ensure that all resources are released at this point.
+
                 DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
                 results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete(), projectModelBuilder.complete());
             }

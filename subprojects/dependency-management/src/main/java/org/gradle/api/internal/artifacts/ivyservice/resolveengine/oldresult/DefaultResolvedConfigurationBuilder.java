@@ -27,9 +27,9 @@ public class DefaultResolvedConfigurationBuilder implements
         ResolvedConfigurationBuilder, ResolvedConfigurationResults, ResolvedContentsMapping {
 
     private final Map<Long, ResolvedArtifactSet> artifactSets = new LinkedHashMap<Long, ResolvedArtifactSet>();
-    private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
+    private Set<ResolvedArtifact> artifacts;
 
     private final TransientConfigurationResultsBuilder builder;
 
@@ -59,11 +59,6 @@ public class DefaultResolvedConfigurationBuilder implements
     public void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifactSet) {
         builder.parentSpecificArtifacts(child, parent, artifactSet.getId());
         artifactSets.put(artifactSet.getId(), artifactSet);
-
-        // TODO:DAZ Defer this resolution until a separate 'resolveArtifacts' step (or on demand)
-        for (ResolvedArtifact artifact : artifactSet.getArtifacts()) {
-            artifacts.add(artifact);
-        }
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
@@ -78,14 +73,32 @@ public class DefaultResolvedConfigurationBuilder implements
         return builder.load(this);
     }
 
+    // TODO:DAZ Move the artifact-related stuff off ResolvedConfigurationBuilder into a new builder
     public Set<ResolvedArtifact> getArtifacts() {
+        assertArtifactsResolved();
         return new LinkedHashSet<ResolvedArtifact>(artifacts);
     }
 
     public Set<ResolvedArtifact> getArtifacts(long artifactId) {
+        assertArtifactsResolved();
         ResolvedArtifactSet a = artifactSets.get(artifactId);
         assert a != null : "Unable to find artifacts for id: " + artifactId;
         return a.getArtifacts();
+    }
+
+    public void resolveArtifacts() {
+        if (artifacts == null) {
+            artifacts = new LinkedHashSet<ResolvedArtifact>();
+            for (ResolvedArtifactSet artifactSet : artifactSets.values()) {
+                artifacts.addAll(artifactSet.getArtifacts());
+            }
+        }
+    }
+
+    private void assertArtifactsResolved() {
+        if (artifacts == null) {
+            throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
+        }
     }
 
     public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
