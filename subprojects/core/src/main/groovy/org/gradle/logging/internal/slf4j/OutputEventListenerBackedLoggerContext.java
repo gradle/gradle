@@ -18,6 +18,7 @@ package org.gradle.logging.internal.slf4j;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Actions;
+import org.gradle.internal.TimeProvider;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.slf4j.ILoggerFactory;
@@ -38,13 +39,15 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     private final Map<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
     private final OutputStream defaultOutputStream;
     private final OutputStream defaultErrorStream;
-    private volatile LogLevel level;
+    private final TimeProvider timeProvider;
 
+    private volatile LogLevel level;
     private volatile OutputEventListener outputEventListener;
 
-    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream) {
+    public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream, TimeProvider timeProvider) {
         this.defaultOutputStream = defaultOutputStream;
         this.defaultErrorStream = defaultErrorStream;
+        this.timeProvider = timeProvider;
         level = DEFAULT_LOG_LEVEL;
         setDefaultOutputEventListener();
         applyDefaultLoggersConfig();
@@ -83,7 +86,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         synchronized (loggers) {
             logger = loggers.get(name);
             if (logger == null) {
-                logger = new OutputEventListenerBackedLogger(name, this);
+                logger = new OutputEventListenerBackedLogger(name, this, timeProvider);
                 loggers.put(name, logger);
             }
             return logger;

@@ -31,11 +31,11 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME
 @Unroll
 class OutputEventListenerBackedLoggerTest extends Specification {
 
-    List<LogEvent> events = []
-    OutputEventListenerBackedLoggerContext context
+    final List<LogEvent> events = []
+    final long now = System.currentTimeMillis()
+    final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, { now })
 
     def setup() {
-        context = new OutputEventListenerBackedLoggerContext(System.out, System.err)
         context.outputEventListener = Mock(OutputEventListener) {
             onOutput(_) >> { LogEvent event -> events << event }
         }
@@ -86,7 +86,7 @@ class OutputEventListenerBackedLoggerTest extends Specification {
             LogEvent event = events.remove(0)
             assert event.category == category
             assert event.message == message
-            assert event.timestamp >= timestamp
+            assert event.timestamp == now
             assert event.throwable == throwable
             assert event.logLevel == logLevel
         }
@@ -268,79 +268,79 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().debug("message")
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().log(DEBUG, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().log(DEBUG, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).verify(eventExpected)
 
         when:
         logger().log(DEBUG, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).verify(eventExpected)
 
         when:
         logger().debug((Marker)null, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug((Marker)null, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug((Marker)null, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug((Marker)null, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(DEBUG).verify(eventExpected)
 
         when:
         logger().debug((Marker)null, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(DEBUG).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -351,7 +351,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -366,79 +365,79 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().info("message")
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().log(INFO, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().log(INFO, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).verify(eventExpected)
 
         when:
         logger().log(INFO, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).verify(eventExpected)
 
         when:
         logger().info((Marker)null, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info((Marker)null, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info((Marker)null, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info((Marker)null, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(INFO).verify(eventExpected)
 
         when:
         logger().info((Marker)null, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(INFO).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(INFO).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -449,7 +448,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -464,31 +462,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().info(Logging.LIFECYCLE, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().info(Logging.LIFECYCLE, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().info(Logging.LIFECYCLE, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().info(Logging.LIFECYCLE, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().info(Logging.LIFECYCLE, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -499,7 +497,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -514,49 +511,49 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().lifecycle("message")
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().log(LIFECYCLE, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().lifecycle("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().log(LIFECYCLE, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().lifecycle("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().lifecycle("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(LIFECYCLE).verify(eventExpected)
 
         when:
         logger().lifecycle("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).verify(eventExpected)
 
         when:
         logger().log(LIFECYCLE, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(LIFECYCLE).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -567,7 +564,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -582,31 +578,31 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().info(Logging.QUIET, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().info(Logging.QUIET, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().info(Logging.QUIET, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().info(Logging.QUIET, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().info(Logging.QUIET, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -617,7 +613,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | true
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -632,49 +627,49 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().quiet("message")
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().log(QUIET, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().quiet("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().log(QUIET, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().quiet("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().quiet("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(QUIET).verify(eventExpected)
 
         when:
         logger().quiet("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).verify(eventExpected)
 
         when:
         logger().log(QUIET, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(QUIET).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -685,7 +680,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | true
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -700,79 +694,79 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().warn("message")
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().log(WARN, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().log(WARN, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).verify(eventExpected)
 
         when:
         logger().log(WARN, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).verify(eventExpected)
 
         when:
         logger().warn((Marker)null, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn((Marker)null, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn((Marker)null, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn((Marker)null, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).timestamp(now).verify(eventExpected)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(WARN).verify(eventExpected)
 
         when:
         logger().warn((Marker)null, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(WARN).timestamp(now).throwable(throwable).verify(eventExpected)
+        singleLogEvent().message("message").logLevel(WARN).throwable(throwable).verify(eventExpected)
 
         where:
         level     | eventExpected
@@ -783,7 +777,6 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         QUIET     | false
         ERROR     | false
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"
@@ -798,84 +791,83 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         logger().error("message")
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).verify(true)
 
         when:
         logger().log(ERROR, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).verify(true)
 
         when:
         logger().error("{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1").logLevel(ERROR).verify(true)
 
         when:
         logger().log(ERROR, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1").logLevel(ERROR).verify(true)
 
         when:
         logger().error("{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1 arg2").logLevel(ERROR).verify(true)
 
         when:
         logger().error("{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR).verify(true)
 
         when:
         logger().error("message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).throwable(throwable).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable).verify(true)
 
         when:
         logger().log(ERROR, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).throwable(throwable).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable).verify(true)
 
         when:
         logger().error((Marker)null, "message")
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).verify(true)
 
         when:
         logger().error((Marker)null, "{}", arg1)
 
         then:
-        singleLogEvent().message("arg1").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1").logLevel(ERROR).verify(true)
 
         when:
         logger().error((Marker)null, "{} {}", arg1, arg2)
 
         then:
-        singleLogEvent().message("arg1 arg2").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1 arg2").logLevel(ERROR).verify(true)
 
         when:
         logger().error((Marker)null, "{} {} {}", arg1, arg2, arg3)
 
         then:
-        singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR).timestamp(now).verify(true)
+        singleLogEvent().message("arg1 arg2 arg3").logLevel(ERROR).verify(true)
 
         when:
         logger().error((Marker)null, "message", throwable)
 
         then:
-        singleLogEvent().message("message").logLevel(ERROR).timestamp(now).throwable(throwable).verify(true)
+        singleLogEvent().message("message").logLevel(ERROR).throwable(throwable).verify(true)
 
         where:
         level << LogLevel.values()
 
-        now = System.currentTimeMillis()
         throwable = new Throwable()
         arg1 = "arg1"
         arg2 = "arg2"

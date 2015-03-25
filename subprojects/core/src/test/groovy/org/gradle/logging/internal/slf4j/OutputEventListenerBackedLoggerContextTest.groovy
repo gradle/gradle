@@ -16,6 +16,7 @@
 
 package org.gradle.logging.internal.slf4j
 
+import org.gradle.internal.TrueTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,7 +26,7 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME
 @Unroll
 class OutputEventListenerBackedLoggerContextTest extends Specification {
 
-    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err);
+    OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(System.out, System.err, new TrueTimeProvider());
 
     private OutputEventListenerBackedLogger logger(String name) {
         context.getLogger(name)

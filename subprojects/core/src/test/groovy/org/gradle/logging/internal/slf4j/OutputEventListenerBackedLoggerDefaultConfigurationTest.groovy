@@ -17,6 +17,7 @@
 package org.gradle.logging.internal.slf4j
 
 import org.gradle.api.logging.Logging
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.util.TextUtil
 import org.slf4j.Logger
 import spock.lang.Specification
@@ -26,7 +27,7 @@ class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specificat
     def outStream = new ByteArrayOutputStream()
     def errStream = new ByteArrayOutputStream()
 
-    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream))
+    def context = new OutputEventListenerBackedLoggerContext(new PrintStream(outStream), new PrintStream(errStream), new TrueTimeProvider())
 
     String getOut() {
         outStream.toString()

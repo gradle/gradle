@@ -19,6 +19,7 @@ package org.gradle.logging.internal.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.TimeProvider;
 import org.gradle.logging.internal.LogEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.slf4j.Marker;
@@ -28,10 +29,12 @@ public class OutputEventListenerBackedLogger implements Logger {
 
     private final String name;
     private final OutputEventListenerBackedLoggerContext context;
+    private final TimeProvider timeProvider;
 
-    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context) {
+    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context, TimeProvider timeProvider) {
         this.name = name;
         this.context = context;
+        this.timeProvider = timeProvider;
     }
 
     public String getName() {
@@ -123,7 +126,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        LogEvent logEvent = new LogEvent(System.currentTimeMillis(), name, logLevel, message, throwable);
+        LogEvent logEvent = new LogEvent(timeProvider.getCurrentTime(), name, logLevel, message, throwable);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
             outputEventListener.onOutput(logEvent);
