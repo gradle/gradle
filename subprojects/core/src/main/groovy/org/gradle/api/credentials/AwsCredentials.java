@@ -17,7 +17,6 @@
 package org.gradle.api.credentials;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.credentials.Credentials;
 
 /**
  * Represents credentials used to authenticate with Amazon Web Services.

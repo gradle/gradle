@@ -25,7 +25,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.*;
 import com.google.common.base.Optional;
-import org.gradle.api.artifacts.repositories.AwsCredentials;
+import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
