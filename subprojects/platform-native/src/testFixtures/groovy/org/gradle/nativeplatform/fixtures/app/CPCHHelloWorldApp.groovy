@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
+class CPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     SourceFile getMainSource() {
@@ -40,6 +40,7 @@ class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
         getLibraryHeader("")
     }
 
+    @Override
     SourceFile getLibraryHeader(String path) {
         sourceFile("headers/${path}", "hello.h", """
             #ifndef HELLO_H
@@ -63,6 +64,7 @@ class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
         return getLibrarySources("")
     }
 
+    @Override
     List<SourceFile> getLibrarySources(String headerPath) {
         return [
                 sourceFile("c", "hello.c", """
@@ -98,10 +100,12 @@ class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
         ]
     }
 
+    @Override
     SourceFile getSystemHeader() {
         return getSystemHeader("")
     }
 
+    @Override
     SourceFile getSystemHeader(String path) {
         sourceFile("headers/${path}", "systemHeader.h", """
             #ifndef SYSTEMHEADER_H
@@ -115,6 +119,11 @@ class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
             #pragma message("<==== compiling systemHeader.h ====>")
             #endif
         """)
+    }
+
+    @Override
+    String getIOHeader() {
+        return "stdio.h"
     }
 
     SourceFile getAlternateMainSource() {
@@ -156,49 +165,4 @@ class CPCHHelloWorldApp extends IncrementalHelloWorldApp {
     ]
 
     String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
-
-    TestNativeComponent getCunitTests() {
-        return new TestNativeComponent() {
-            List<SourceFile> sourceFiles = [
-                    sourceFile("c", "test.c", """
-#include <CUnit/Basic.h>
-#include "hello.h"
-#include "gradle_cunit_register.h"
-
-int init_test(void) {
-    return 0;
-}
-
-int clean_test(void) {
-    return 0;
-}
-
-void test_sum(void) {
-  CU_ASSERT(sum(0, 2) == 2);
-#ifndef ONE_TEST
-  CU_ASSERT(sum(0, -2) == -2);
-  CU_ASSERT(sum(2, 2) == 4);
-#endif
-}
-
-void gradle_cunit_register() {
-    CU_pSuite pSuiteMath = CU_add_suite("hello test", init_test, clean_test);
-    CU_add_test(pSuiteMath, "test_sum", test_sum);
-}
-                    """),
-            ]
-            List<SourceFile> headerFiles = [
-            ]
-
-            String testOutput = """
-Suite: hello test
-  Test: test of sum ...passed
-
-Run Summary:    Type  Total    Ran Passed Failed Inactive
-              suites      1      1    n/a      0        0
-               tests      1      1      1      0        0
-             asserts      3      3      3      0      n/a
-"""
-        };
-    }
 }
