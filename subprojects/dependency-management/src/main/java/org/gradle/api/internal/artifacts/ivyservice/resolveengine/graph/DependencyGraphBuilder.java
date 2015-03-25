@@ -651,6 +651,7 @@ public class DependencyGraphBuilder {
             return String.format("%s(%s)", moduleRevision, metaData.getName());
         }
 
+        // TODO:DAZ Move this into the ArtifactSet: we don't want to keep all of these references.
         public Set<ComponentArtifactMetaData> getArtifacts(ModuleResolutionFilter moduleResolutionFilter) {
             if (artifacts == null) {
                 BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();

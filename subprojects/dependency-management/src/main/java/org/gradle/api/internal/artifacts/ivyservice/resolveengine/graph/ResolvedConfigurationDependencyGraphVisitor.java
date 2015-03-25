@@ -21,11 +21,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.AbstractResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.PredeterminedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -74,7 +75,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         ResolvedConfigurationIdentifier parent = dependency.from.id;
         ResolvedConfigurationIdentifier child = childConfiguration.id;
         oldModelBuilder.addChild(parent, child);
-        oldModelBuilder.addArtifacts(child, parent, getArtifacts(dependency, childConfiguration, oldModelBuilder));
+        oldModelBuilder.addArtifacts(child, parent, getArtifacts(dependency, childConfiguration));
 
         if (parent == root.id) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();
@@ -82,17 +83,13 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    private ResolvedArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
+    private ResolvedArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+        long id = idGenerator.generateId();
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
         if (artifacts.isEmpty()) {
-            artifacts = childConfiguration.getArtifacts(dependency.getSelector());
+            return new ConfigurationArtifactsSet(childConfiguration, dependency.getSelector(), artifactResolver, id);
         }
-        return newArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver);
-    }
-
-    private ResolvedArtifactSet newArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifact, ArtifactResolver artifactResolver) {
-        long id = idGenerator.generateId();
-        return new DefaultResolvedArtifactSet(ownerId, component, artifact, artifactResolver, id);
+        return new PredeterminedArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver, id);
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {
@@ -179,6 +176,23 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
 
         private BrokenDependency(ModuleVersionResolveException failure) {
             this.failure = failure;
+        }
+    }
+
+    // TODO:DAZ Probably want to resolve early for external modules, and only hang onto Configuration node for local components
+    private static class ConfigurationArtifactsSet extends AbstractResolvedArtifactSet {
+        private final DependencyGraphBuilder.ConfigurationNode childConfiguration;
+        private final ModuleResolutionFilter selector;
+
+        public ConfigurationArtifactsSet(DependencyGraphBuilder.ConfigurationNode childConfiguration, ModuleResolutionFilter selector, ArtifactResolver artifactResolver, long id) {
+            super(id, childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifactResolver);
+            this.childConfiguration = childConfiguration;
+            this.selector = selector;
+        }
+
+        @Override
+        protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
+            return childConfiguration.getArtifacts(selector);
         }
     }
 }

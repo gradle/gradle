@@ -31,22 +31,20 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultResolvedArtifactSet implements ResolvedArtifactSet {
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final ComponentResolveMetaData component;
-    private final Set<ComponentArtifactMetaData> artifacts;
-    private final ArtifactResolver artifactResolver;
-    private final long id;
+public abstract class AbstractResolvedArtifactSet implements ResolvedArtifactSet {
+    protected final ModuleVersionIdentifier moduleVersionIdentifier;
+    protected final ComponentResolveMetaData component;
+    protected final ArtifactResolver artifactResolver;
+    protected final long id;
     private Set<ResolvedArtifact> resolvedArtifacts;
 
-    public DefaultResolvedArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver, long id) {
+    public AbstractResolvedArtifactSet(long id, ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
+        this.id = id;
         this.moduleVersionIdentifier = ownerId;
         this.component = component;
-        this.artifacts = artifacts;
         this.artifactResolver = artifactResolver;
-        this.id = id;
     }
-    
+
     public long getId() {
         return id;
     }
@@ -54,8 +52,9 @@ public class DefaultResolvedArtifactSet implements ResolvedArtifactSet {
     public Set<ResolvedArtifact> getArtifacts() {
         if (resolvedArtifacts == null) {
             // TODO:DAZ Cut the state that we hold to just what is absolutely required for artifact resolution
-            resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
-            for (ComponentArtifactMetaData artifact : artifacts) {
+            Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts();
+            resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
+            for (ComponentArtifactMetaData artifact : componentArtifacts) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource, id);
                 resolvedArtifacts.add(resolvedArtifact);
@@ -66,6 +65,8 @@ public class DefaultResolvedArtifactSet implements ResolvedArtifactSet {
         // TODO:DAZ ArtifactResolver should be provided when resolving, not when constructing
         return resolvedArtifacts;
     }
+
+    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts();
 
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
