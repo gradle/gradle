@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.*;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -47,6 +49,8 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
 
                 FilteringClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader());
                 loggingClassLoader.allowPackage("org.slf4j");
+                loggingClassLoader.allowClass(Logger.class);
+                loggingClassLoader.allowClass(LogLevel.class);
 
                 ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 
