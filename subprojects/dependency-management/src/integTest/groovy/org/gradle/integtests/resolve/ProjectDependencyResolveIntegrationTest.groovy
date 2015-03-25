@@ -234,7 +234,8 @@ project(':b') {
             apply plugin: 'base'
             configurations { compile }
             task configureJar << {
-                tasks.aJar.archiveName = "modified-artifact.txt"
+                tasks.aJar.extension = "txt"
+                tasks.aJar.classifier = "modified"
             }
             task aJar(type: Jar) {
                 dependsOn configureJar
@@ -248,8 +249,8 @@ project(':b') {
             }
             dependencies { compile project(path: ':a', configuration: 'compile') }
             task test(dependsOn: [configurations.compile, configurations.testCompile]) << {
-                assert configurations.compile.collect { it.name } == ['modified-artifact.txt']
-                assert configurations.testCompile.collect { it.name } == ['modified-artifact.txt']
+                assert configurations.compile.collect { it.name } == ['a-modified.txt']
+                assert configurations.testCompile.collect { it.name } == ['a-modified.txt']
             }
 '''
 
