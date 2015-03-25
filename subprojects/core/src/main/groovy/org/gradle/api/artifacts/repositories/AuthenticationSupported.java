@@ -99,7 +99,7 @@ public interface AuthenticationSupported {
      *     }
      * }
      *
-     * @throws IllegalStateException if explicit credentials have been already set.
+     * @throws IllegalStateException if passed credentials type is not assignable to an already set credentials type.
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException;
