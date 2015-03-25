@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
@@ -24,6 +25,7 @@ import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser;
 import org.gradle.nativeplatform.toolchain.Clang;
@@ -33,6 +35,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private final Compiler<T> delegateCompiler;
@@ -63,10 +67,21 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
                 return processor.processSourceFiles(spec.getSourceFiles());
             }
         });
+
+        spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilationStateCacheFactory.create(task.getPath()).get()));
+
         if (spec.isIncrementalCompile()) {
             return doIncrementalCompile(compilation, spec);
         }
         return doCleanIncrementalCompile(spec);
+    }
+
+    private Map<File, SourceIncludes> mapIncludes(List<File> files, CompilationState compilationState) {
+        Map<File, SourceIncludes> map = Maps.newHashMap();
+        for (File file : files) {
+            map.put(file, compilationState.getState(file).getSourceIncludes());
+        }
+        return map;
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {

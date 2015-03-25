@@ -26,7 +26,7 @@ class DefaultObjectFileExtensionCalculatorTest extends Specification {
             getObjectFileExtension() >> ".o"
         }
         def spec = Mock(NativeCompileSpec) {
-            isPreCompiledHeader() >> isPreCompiledHeader
+            isPrefixHeaderCompile() >> isPrefixHeaderCompile
         }
         ObjectFileExtensionCalculator calculator = new DefaultObjectFileExtensionCalculator(os)
 
@@ -34,7 +34,7 @@ class DefaultObjectFileExtensionCalculatorTest extends Specification {
         calculator.transform(spec) == extension
 
         where:
-        isPreCompiledHeader | extension
+        isPrefixHeaderCompile | extension
         true                | ".pch"
         false               | ".o"
     }

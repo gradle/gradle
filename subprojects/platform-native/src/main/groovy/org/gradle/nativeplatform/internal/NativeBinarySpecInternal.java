@@ -63,4 +63,6 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
     void binaryInputs(FileCollection files);
 
     Map<DependentSourceSet, FileCollection> getPreCompiledHeaderObjectMappings();
+
+    Map<DependentSourceSet, File> getPrefixHeaderFileMappings();
 }

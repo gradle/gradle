@@ -21,6 +21,7 @@ import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,5 +41,15 @@ class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCom
         OptionsFileArgsWriter writer = new GccOptionsFileArgsWriter(tempDir);
         // modifies args in place
         writer.execute(args);
+    }
+
+    @Override
+    protected List<String> getPCHArgs(T spec) {
+        List<String> pchArgs = new ArrayList<String>();
+        if (spec.getPrefixHeaderFile() != null) {
+            pchArgs.add("-include");
+            pchArgs.add(spec.getPrefixHeaderFile().getAbsolutePath());
+        }
+        return pchArgs;
     }
 }

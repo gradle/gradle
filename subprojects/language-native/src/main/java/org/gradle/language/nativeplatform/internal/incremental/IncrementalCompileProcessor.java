@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

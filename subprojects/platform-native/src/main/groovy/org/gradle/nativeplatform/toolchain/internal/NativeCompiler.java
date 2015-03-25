@@ -17,16 +17,20 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -95,6 +99,8 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
+    protected abstract List<String> getPCHArgs(T spec);
+
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
@@ -109,15 +115,42 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
+    protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
+        if (spec.getPreCompiledHeaders() == null) {
+            return Lists.newArrayList();
+        }
+
+        final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
+        boolean usePCH = CollectionUtils.every(spec.getPreCompiledHeaders(), new Spec<String>() {
+            @Override
+            public boolean isSatisfiedBy(String header) {
+                List<String> headerIncludes;
+                if (header.startsWith("<")) {
+                    header = header.substring(1, header.length()-1);
+                    headerIncludes = includes.getSystemIncludes();
+                } else {
+                    headerIncludes = includes.getQuotedIncludes();
+                }
+                return headerIncludes.contains(header);
+            }
+        });
+        if (usePCH) {
+            return getPCHArgs(spec);
+        } else {
+            return Lists.newArrayList();
+        }
+    }
+
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
         String objectFileSuffix = objectFileExtensionCalculator.transform(spec);
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
-        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs), spec.getOperationLogger());
+        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
     }
 
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
-        return Iterables.concat(genericArgs, sourceArgs, outputArgs);
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        return Iterables.concat(genericArgs, pchArgs, sourceArgs, outputArgs);
     }
 }

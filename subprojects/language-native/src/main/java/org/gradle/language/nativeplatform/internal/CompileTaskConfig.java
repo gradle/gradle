@@ -106,14 +106,30 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
 
         // If this task is for compiling a pre-compiled header
         if (sourceSet instanceof PreCompiledHeaderExportingSourceSetInternal && ((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet() != null) {
-            DependentSourceSet consumingSourceSet = ((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet();
+            final DependentSourceSet consumingSourceSet = ((PreCompiledHeaderExportingSourceSetInternal)sourceSet).getConsumingSourceSet();
             task.setIsPreCompiledHeader(true);
+            task.includes(new Callable<Set<File>>() {
+                public Set<File> call() throws Exception {
+                    return ((HeaderExportingSourceSet) consumingSourceSet).getExportedHeaders().getSrcDirs();
+                }
+            });
+            task.includes(new Callable<List<FileCollection>>() {
+                public List<FileCollection> call() {
+                    Collection<NativeDependencySet> libs = binary.getLibs(consumingSourceSet);
+                    return CollectionUtils.collect(libs, new Transformer<FileCollection, NativeDependencySet>() {
+                        public FileCollection transform(NativeDependencySet original) {
+                            return original.getIncludeRoots();
+                        }
+                    });
+                }
+            });
             binary.getPreCompiledHeaderObjectMappings().put(consumingSourceSet, task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch", "**/*.gch")));
         }
 
         // If this task uses a pre-compiled header
-        if (sourceSet instanceof DependentSourceSet && ((DependentSourceSet)sourceSet).getPreCompiledHeader() != null) {
-            task.setPreCompiledHeaderFile(((DependentSourceSet) sourceSet).getPreCompiledHeader());
+        if (sourceSet instanceof DependentSourceSet && org.apache.commons.collections.CollectionUtils.isNotEmpty(((DependentSourceSet) sourceSet).getPreCompiledHeaders())) {
+            task.setPrefixHeaderFile(binary.getPrefixHeaderFileMappings().get(sourceSet));
+            task.setPreCompiledHeaders(((DependentSourceSet) sourceSet).getPreCompiledHeaders());
             task.preCompiledHeaderInclude(new Callable<FileCollection>() {
                 public FileCollection call() {
                     return binary.getPreCompiledHeaderObjectMappings().get(sourceSet);

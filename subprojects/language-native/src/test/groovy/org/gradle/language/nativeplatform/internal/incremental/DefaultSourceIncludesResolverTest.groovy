@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import org.gradle.language.nativeplatform.internal.SourceIncludes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

@@ -16,12 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
@@ -65,15 +67,23 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setIncrementalCompile(boolean flag);
 
-    boolean isPreCompiledHeader();
+    boolean isPrefixHeaderCompile();
 
-    void setIsPreCompiledHeader(boolean flag);
+    void setIsPrefixHeaderCompile(boolean flag);
 
-    File getPreCompiledHeaderFile();
+    File getPrefixHeaderFile();
 
-    void setPreCompiledHeaderFile(File preCompiledHeaderFile);
+    void setPrefixHeaderFile(File prefixHeaderFile);
 
     File getPreCompiledHeaderObjectFile();
 
     void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile);
+
+    Set<String> getPreCompiledHeaders();
+
+    void setPreCompiledHeaders(Set<String> headers);
+
+    Map<File, SourceIncludes> getSourceFileIncludes();
+
+    void setSourceFileIncludes(Map<File, SourceIncludes> map);
 }

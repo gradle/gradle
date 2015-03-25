@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.gcc;
+package org.gradle.nativeplatform.toolchain.internal;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.io.IOException;
 
-public class GccPCHObjectDirectoryGeneratorUtil {
-    static <T extends NativeCompileSpec> File generatePCHObjectDirectory(T spec) {
-        File generatedDir = new File(spec.getTempDir(), "preCompiledHeaders");
+public class PCHObjectDirectoryGeneratorUtil {
+    public static File generatePCHObjectDirectory(File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
+        File generatedDir = new File(tempDir, "preCompiledHeaders");
         generatedDir.mkdirs();
-        File generatedHeader = new File(generatedDir, spec.getPreCompiledHeaderFile().getName());
-        File generatedPCH = new File(generatedDir, spec.getPreCompiledHeaderObjectFile().getName());
+        File generatedHeader = new File(generatedDir, prefixHeaderFile.getName());
+        File generatedPCH = new File(generatedDir, preCompiledHeaderObjectFile.getName());
         try {
-            FileUtils.copyFile(spec.getPreCompiledHeaderFile(), generatedHeader);
-            FileUtils.copyFile(spec.getPreCompiledHeaderObjectFile(), generatedPCH);
-            return generatedHeader;
+            FileUtils.copyFile(prefixHeaderFile, generatedHeader);
+            FileUtils.copyFile(preCompiledHeaderObjectFile, generatedPCH);
+            return generatedDir;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

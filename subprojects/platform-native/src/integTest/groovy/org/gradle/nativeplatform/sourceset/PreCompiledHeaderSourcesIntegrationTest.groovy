@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.sourceset
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CPCHHelloWorldApp
+import org.spockframework.util.TextUtil
 
 class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can set a precompiled header on a source set for a relative source header" () {
@@ -39,10 +40,10 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            c.preCompiledHeader file("src/hello/headers/${path}hello.h")
+                            c.preCompiledHeader "${path}hello.h"
                         }
                         binaries.all {
-                            if (toolChain in VisualCpp) {
+                            if (toolChain.name == "visualCpp") {
                                 cCompiler.args "/showIncludes"
                             } else {
                                 cCompiler.args "-H"
@@ -56,15 +57,16 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         then:
         args("--info")
         succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        executed ":generateHelloSharedLibraryCPrefixHeaderFile"
         output.contains("<==== compiling hello.h ====>")
         def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
-        assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
+        assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
         succeeds "compileHelloSharedLibraryHelloC"
-        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        skipped ":generateHelloSharedLibraryCPrefixHeaderFile", ":compileHelloSharedLibraryCPreCompiledHeader"
         ! output.contains("<==== compiling hello.h ====>")
 
         where:
@@ -83,6 +85,7 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
 
         when:
         def headerDir = file("src/include/headers")
+        def safeHeaderDirPath = TextUtil.escape(headerDir.absolutePath)
         buildFile << """
             apply plugin: 'c'
 
@@ -90,13 +93,13 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            c.preCompiledHeader file("src/include/headers/${path}hello.h")
+                            c.preCompiledHeader "${path}hello.h"
                         }
                         binaries.all {
-                            if (toolChain in VisualCpp) {
-                                cCompiler.args "/I${headerDir.absolutePath}", "/showIncludes"
+                            if (toolChain.name == "visualCpp") {
+                                cCompiler.args "/I${safeHeaderDirPath}", "/showIncludes"
                             } else {
-                                cCompiler.args "-I${headerDir.absolutePath}", "-H"
+                                cCompiler.args "-I${safeHeaderDirPath}", "-H"
                             }
                         }
                     }
@@ -107,15 +110,16 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         then:
         args("--info")
         succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        executed ":compileHelloSharedLibraryCPreCompiledHeader"
         output.contains("<==== compiling hello.h ====>")
         def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
-        assert outputDirectories[0].assertContainsDescendants("hello.${getSuffix()}")
+        assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
         succeeds "compileHelloSharedLibraryHelloC"
-        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        skipped ":generateHelloSharedLibraryCPrefixHeaderFile", ":compileHelloSharedLibraryCPreCompiledHeader"
         ! output.contains("<==== compiling hello.h ====>")
 
         where:
@@ -136,6 +140,7 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
 
         when:
         def systemHeaderDir = file("src/systemHeader/headers")
+        def safeHeaderDirPath = TextUtil.escape(systemHeaderDir.absolutePath)
         buildFile << """
             apply plugin: 'c'
 
@@ -143,13 +148,14 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            c.preCompiledHeader file("src/systemHeader/headers/${path}systemHeader.h")
+                            c.preCompiledHeader "<${path}systemHeader.h>"
                         }
                         binaries.all {
-                            if (toolChain in VisualCpp) {
-                                cCompiler.args "/I${systemHeaderDir.absolutePath}", "/showIncludes"
+                            println toolChain
+                            if (toolChain.name == "visualCpp") {
+                                cCompiler.args "/I${safeHeaderDirPath}", "/showIncludes"
                             } else {
-                                cCompiler.args "-I${systemHeaderDir.absolutePath}", "-H"
+                                cCompiler.args "-I${safeHeaderDirPath}", "-H"
                             }
                         }
                     }
@@ -160,22 +166,68 @@ class PreCompiledHeaderSourcesIntegrationTest extends AbstractInstalledToolChain
         then:
         args("--info")
         succeeds "compileHelloSharedLibraryCPreCompiledHeader"
+        executed ":compileHelloSharedLibraryCPreCompiledHeader"
         output.contains("<==== compiling systemHeader.h ====>")
         def outputDirectories = file("build/objs/helloSharedLibrary/CPreCompiledHeader").listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
-        assert outputDirectories[0].assertContainsDescendants("systemHeader.${getSuffix()}")
+        assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
         succeeds "compileHelloSharedLibraryHelloC"
-        skipped ":compileHelloSharedLibraryCPreCompiledHeader"
+        skipped ":compileHelloSharedLibraryCPreCompiledHeader", ":compileHelloSharedLibraryCPreCompiledHeader"
         ! output.contains("<==== compiling systemHeader.h ====>")
 
         where:
         path << [ "", "subdir/" ]
     }
 
+    def "can set multiple precompiled headers on a source set" () {
+        given:
+        def app = new CPCHHelloWorldApp()
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        app.getLibrarySources().each {
+            it.writeToDir(file("src/hello"))
+        }
+        assert file("src/hello/headers/hello.h").exists()
+
+        when:
+        buildFile << """
+            apply plugin: 'c'
+
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            c.preCompiledHeader "hello.h"
+                            c.preCompiledHeader "<stdio.h>"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                cCompiler.args "/showIncludes"
+                            } else {
+                                cCompiler.args "-H"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds "compileHelloSharedLibraryHelloC"
+        executed ":generateHelloSharedLibraryCPrefixHeaderFile", ":compileHelloSharedLibraryCPreCompiledHeader"
+        // once for PCH compile, once for compile of sum.c, but not for hello.c
+        output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 2
+    }
+
     String getSuffix() {
         return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
+    }
+
+    String getUniquePragmaOutput(String message) {
+        return toolChain.displayName == "visual c++" ? message : "warning: ${message}"
     }
 }

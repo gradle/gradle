@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.nativeplatform.internal.incremental;
+package org.gradle.language.nativeplatform.internal;
 
 import java.util.List;
 

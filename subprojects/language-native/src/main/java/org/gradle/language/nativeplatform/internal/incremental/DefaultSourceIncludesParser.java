@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
 
 import java.io.File;

@@ -27,7 +27,7 @@ public class DefaultCompilerArgsTransformerFactory<T extends NativeCompileSpec> 
 
     @Override
     public ArgsTransformer<T> create(T spec) {
-        if (spec.isPreCompiledHeader()) {
+        if (spec.isPrefixHeaderCompile()) {
             return pchArgsTransformer;
         } else {
             return objectArgsTransformer;

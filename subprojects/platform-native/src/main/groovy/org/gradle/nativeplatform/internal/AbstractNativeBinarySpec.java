@@ -34,6 +34,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -53,6 +54,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private BuildType buildType;
     private NativeDependencyResolver resolver;
     private Map<DependentSourceSet, FileCollection> preCompiledHeaderObjectMappings = Maps.newLinkedHashMap();
+    private Map<DependentSourceSet, File> prefixHeaderFileMappings = Maps.newLinkedHashMap();
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -170,5 +172,10 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     @Override
     public Map<DependentSourceSet, FileCollection> getPreCompiledHeaderObjectMappings() {
         return preCompiledHeaderObjectMappings;
+    }
+
+    @Override
+    public Map<DependentSourceSet, File> getPrefixHeaderFileMappings() {
+        return prefixHeaderFileMappings;
     }
 }

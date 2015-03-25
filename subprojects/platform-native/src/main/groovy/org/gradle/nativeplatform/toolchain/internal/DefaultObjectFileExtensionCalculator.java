@@ -25,7 +25,7 @@ public class DefaultObjectFileExtensionCalculator implements ObjectFileExtension
 
     @Override
     public String transform(NativeCompileSpec nativeCompileSpec) {
-        if (nativeCompileSpec.isPreCompiledHeader()) {
+        if (nativeCompileSpec.isPrefixHeaderCompile()) {
             return toolProvider.getPCHFileExtension();
         }
         return toolProvider.getObjectFileExtension();

@@ -15,6 +15,8 @@
  */
 package org.gradle.nativeplatform.plugins;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.file.SourceDirectorySet;
@@ -45,6 +47,7 @@ import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.*;
@@ -199,18 +202,29 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderSourceSets(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageRegistry languageRegistry) {
+        void configurePreCompiledHeaderSourceSets(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageRegistry languageRegistry, final @Path("buildDir") File buildDir) {
             binaries.all(new Action<NativeBinarySpecInternal>() {
                 @Override
                 public void execute(final NativeBinarySpecInternal nativeBinarySpec) {
                     nativeBinarySpec.getSource().withType(DependentSourceSet.class, new Action<DependentSourceSet>() {
                         @Override
-                        public void execute(DependentSourceSet dependentSourceSet) {
-                            if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                LanguageSourceSet pchSourceSet = createPreCompiledHeaderSourceSet(dependentSourceSet, serviceRegistry, languageRegistry);
-                                pchSourceSet.getSource().srcDir(dependentSourceSet.getPreCompiledHeader().getParent());
-                                pchSourceSet.getSource().include(dependentSourceSet.getPreCompiledHeader().getName());
+                        public void execute(final DependentSourceSet dependentSourceSet) {
+                            if (CollectionUtils.isNotEmpty(dependentSourceSet.getPreCompiledHeaders())) {
+                                final DependentSourceSet pchSourceSet = (DependentSourceSet) createPreCompiledHeaderSourceSet(dependentSourceSet, serviceRegistry, languageRegistry);
+                                String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", nativeBinarySpec.getName(), dependentSourceSet.getName());
+                                File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
+                                final File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
+                                nativeBinarySpec.getTasks().create(String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName())), PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {
+                                    @Override
+                                    public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
+                                        prefixHeaderFileGenerateTask.setHeaders(dependentSourceSet.getPreCompiledHeaders());
+                                        prefixHeaderFileGenerateTask.setPrefixHeaderFile(prefixHeaderFile);
+                                        pchSourceSet.builtBy(prefixHeaderFileGenerateTask);
+                                    }
+                                });
+                                pchSourceSet.getSource().srcDir(prefixHeaderDir);
                                 ((PreCompiledHeaderExportingSourceSetInternal)pchSourceSet).setConsumingSourceSet(dependentSourceSet);
+                                nativeBinarySpec.getPrefixHeaderFileMappings().put(dependentSourceSet, prefixHeaderFile);
                                 nativeBinarySpec.source(pchSourceSet);
                             }
                         }

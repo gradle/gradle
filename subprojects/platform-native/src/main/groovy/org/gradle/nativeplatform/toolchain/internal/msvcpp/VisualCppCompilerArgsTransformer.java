@@ -48,10 +48,6 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {
-        if (spec.getPreCompiledHeaderObjectFile() != null) {
-            args.add("/Yu".concat(spec.getPreCompiledHeaderFile().getName()));
-            args.add("/Fp".concat(spec.getPreCompiledHeaderObjectFile().getAbsolutePath()));
-        }
         for (File file : spec.getIncludeRoots()) {
             args.add("/I" + file.getAbsolutePath());
         }

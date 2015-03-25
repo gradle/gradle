@@ -33,9 +33,11 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File objectFileDir;
     private boolean positionIndependentCode;
     private BuildOperationLogger oplogger;
-    private boolean isPreCompiledHeader;
-    private File preCompiledHeaderFile;
+    private boolean isPrefixHeaderCompile;
+    private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
+    private Map<File, SourceIncludes> sourceFileIncludes;
+    private Set<String> preCompiledHeaders;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -116,13 +118,13 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public boolean isPreCompiledHeader() {
-        return isPreCompiledHeader;
+    public boolean isPrefixHeaderCompile() {
+        return isPrefixHeaderCompile;
     }
 
     @Override
-    public void setIsPreCompiledHeader(boolean preCompiledHeader) {
-        this.isPreCompiledHeader = preCompiledHeader;
+    public void setIsPrefixHeaderCompile(boolean preCompiledHeader) {
+        this.isPrefixHeaderCompile = preCompiledHeader;
     }
 
     @Override
@@ -136,13 +138,22 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public File getPreCompiledHeaderFile() {
-        return preCompiledHeaderFile;
+    public File getPrefixHeaderFile() {
+        return prefixHeaderFile;
     }
 
     @Override
-    public void setPreCompiledHeaderFile(File pchFile) {
-        this.preCompiledHeaderFile = pchFile;
+    public void setPrefixHeaderFile(File pchFile) {
+        this.prefixHeaderFile = pchFile;
+    }
+
+    @Override
+    public Set<String> getPreCompiledHeaders() {
+        return preCompiledHeaders;
+    }
+
+    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
+        this.preCompiledHeaders = preCompiledHeaders;
     }
 
     private void addAll(List<File> list, Iterable<File> iterable) {
@@ -157,5 +168,15 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
 
     public void setOperationLogger(BuildOperationLogger oplogger) {
         this.oplogger = oplogger;
+    }
+
+    @Override
+    public Map<File, SourceIncludes> getSourceFileIncludes() {
+        return sourceFileIncludes;
+    }
+
+    @Override
+    public void setSourceFileIncludes(Map<File, SourceIncludes> map) {
+        this.sourceFileIncludes = map;
     }
 }

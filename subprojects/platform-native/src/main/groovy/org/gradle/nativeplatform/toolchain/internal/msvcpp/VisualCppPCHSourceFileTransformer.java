@@ -26,7 +26,7 @@ import java.util.List;
 public class VisualCppPCHSourceFileTransformer<T extends NativeCompileSpec> implements Transformer<T, T> {
     @Override
     public T transform(T original) {
-        if (original.isPreCompiledHeader()) {
+        if (original.isPrefixHeaderCompile()) {
             List<File> newSourceFiles = Lists.newArrayList();
             for (File sourceFile : original.getSourceFiles()) {
                 newSourceFiles.add(VisualCppPCHSourceFileGeneratorUtil.generatePCHSourceFile(original, sourceFile));

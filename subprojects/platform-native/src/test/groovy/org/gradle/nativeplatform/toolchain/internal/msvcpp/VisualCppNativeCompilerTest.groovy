@@ -32,7 +32,7 @@ abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
         def testDir = tmpDirProvider.testDirectory
         def outputFile = testDir.file("output.ext")
         def spec = Stub(NativeCompileSpec) {
-            isPreCompiledHeader() >> isPrecompiledHeader
+            isPrefixHeaderCompile() >> isPrecompiledHeader
         }
 
         when:

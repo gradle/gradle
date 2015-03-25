@@ -31,11 +31,13 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -51,8 +53,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private boolean isPreCompiledHeader;
-    private File preCompiledHeaderFile;
+    private boolean isPrefixHeaderCompile;
+    private File prefixHeaderFile;
+    private Set<String> preCompiledHeaders;
     private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
@@ -91,9 +94,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
-        spec.setIsPreCompiledHeader(isPreCompiledHeader());
-        spec.setPreCompiledHeaderFile(getPreCompiledHeaderFile());
-        spec.setPreCompiledHeaderObjectFile(preCompiledHeaderInclude.isEmpty() ? null : preCompiledHeaderInclude.getSingleFile());
+        spec.setIsPrefixHeaderCompile(isPrefixHeaderCompile());
+
+        if (!preCompiledHeaderInclude.isEmpty()) {
+            File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
+            spec.setPrefixHeaderFile(new File(pchDir, prefixHeaderFile.getName()));
+            spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
+            spec.setPreCompiledHeaders(getPreCompiledHeaders());
+        }
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         operationLogger.start();
@@ -210,23 +218,23 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Is this a compile task for a pre-compiled header?
      */
-    public boolean isPreCompiledHeader() {
-        return isPreCompiledHeader;
+    public boolean isPrefixHeaderCompile() {
+        return isPrefixHeaderCompile;
     }
 
     public void setIsPreCompiledHeader(boolean isPreCompiledHeader) {
-        this.isPreCompiledHeader = isPreCompiledHeader;
+        this.isPrefixHeaderCompile = isPreCompiledHeader;
     }
 
     /**
      * Returns the pre-compiled header file to be used during compilation
      */
-    public File getPreCompiledHeaderFile() {
-        return preCompiledHeaderFile;
+    public File getPrefixHeaderFile() {
+        return prefixHeaderFile;
     }
 
-    public void setPreCompiledHeaderFile(File preCompiledHeaderFile) {
-        this.preCompiledHeaderFile = preCompiledHeaderFile;
+    public void setPrefixHeaderFile(File prefixHeaderFile) {
+        this.prefixHeaderFile = prefixHeaderFile;
     }
 
     /**
@@ -242,5 +250,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      */
     public void preCompiledHeaderInclude(Object preCompiledHeader) {
         preCompiledHeaderInclude.from(preCompiledHeader);
+    }
+
+    public Set<String> getPreCompiledHeaders() {
+        return preCompiledHeaders;
+    }
+
+    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
+        this.preCompiledHeaders = preCompiledHeaders;
     }
 }
