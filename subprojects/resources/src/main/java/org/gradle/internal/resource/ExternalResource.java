@@ -37,13 +37,6 @@ public interface ExternalResource extends Closeable {
     public String getName();
 
     /**
-     * Get the resource size
-     *
-     * @return a <code>long</code> value representing the size of the resource in bytes.
-     */
-    public long getContentLength();
-
-    /**
      * Is this resource local to this host, i.e. is it on the file system?
      *
      * @return <code>boolean</code> value indicating if the resource is local.

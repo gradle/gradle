@@ -17,7 +17,6 @@ package org.gradle.internal.resource.transport.file;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -76,11 +75,6 @@ public class FileResourceConnector implements ExternalResourceConnector {
     public ExternalResourceMetaData getMetaData(URI location) throws IOException {
         ExternalResource resource = getResource(location);
         return resource == null ? null : resource.getMetaData();
-    }
-
-    public HashValue getResourceSha1(URI location) {
-        // TODO Read sha1 from published .sha1 file
-        return null;
     }
 
     private static File getFile(URI uri) {

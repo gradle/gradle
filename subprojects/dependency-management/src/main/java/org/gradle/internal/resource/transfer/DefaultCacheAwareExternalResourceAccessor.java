@@ -18,6 +18,8 @@ package org.gradle.internal.resource.transfer;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -111,7 +113,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             HashValue remoteChecksum = remoteMetaData.getSha1();
 
             if (remoteChecksum == null) {
-                remoteChecksum = delegate.getResourceSha1(location);
+                remoteChecksum = getResourceSha1(location);
             }
 
             if (remoteChecksum != null) {
@@ -129,6 +131,33 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
         // All local/cached options failed, get directly
         return copyToCache(location, fileStore, delegate.getResource(location));
+    }
+
+    private HashValue getResourceSha1(URI location) throws IOException {
+        try {
+            URI sha1Location = new URI(location.toASCIIString() + ".sha1");
+            ExternalResource resource = delegate.getResource(sha1Location);
+            if (resource == null) {
+                return null;
+            }
+            try {
+                return resource.withContent(new Transformer<HashValue, InputStream>() {
+                    @Override
+                    public HashValue transform(InputStream inputStream) {
+                        try {
+                            String sha = IOUtils.toString(inputStream, "us-ascii");
+                            return HashValue.parse(sha);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    }
+                });
+            } finally {
+                resource.close();
+            }
+        } catch (Exception e) {
+            throw new ResourceException(String.format("Failed to download SHA1 for resource '%s'.", location), e);
+        }
     }
 
     private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) {
@@ -163,7 +192,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 } finally {
                     resource.close();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new ResourceException(String.format("Failed to download resource '%s'.", source), e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);

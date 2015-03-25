@@ -110,11 +110,6 @@ class AbstractExternalResourceTest extends Specification {
         }
 
         @Override
-        long getContentLength() {
-            return 0
-        }
-
-        @Override
         boolean isLocal() {
             return false
         }

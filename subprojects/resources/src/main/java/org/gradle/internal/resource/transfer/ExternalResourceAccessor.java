@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,18 +39,6 @@ public interface ExternalResourceAccessor {
      */
     @Nullable
     ExternalResource getResource(URI location) throws IOException;
-
-    /**
-     * Obtain the SHA-1 checksum for the resource at the given location.
-     *
-     * Implementation is optional. If it is not feasible to obtain this without reading the
-     * entire resource, implementations should return null.
-     *
-     * @param location The address of the resource to obtain the sha-1 of
-     * @return The sha-1 if it can be cheaply obtained, otherwise null.
-     */
-    @Nullable
-    HashValue getResourceSha1(URI location);
 
     /**
      * Obtains only the metadata about the resource.

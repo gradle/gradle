@@ -18,14 +18,9 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.S3Object
-import com.amazonaws.services.s3.model.S3ObjectInputStream
-import org.apache.commons.io.IOUtils
-import org.gradle.internal.hash.HashValue
 import spock.lang.Specification
 
 class S3ResourceConnectorTest extends Specification {
-
-    public static final String SHA1_STRING = "06e7d22787ee800ce4c9a2b5e94805aee4d7f1f9"
     URI uri = new URI("http://somewhere")
 
     def "should list resources"() {
@@ -47,42 +42,5 @@ class S3ResourceConnectorTest extends Specification {
         S3Resource s3Resource = new S3ResourceConnector(s3Client).getResource(uri)
         then:
         s3Resource.getURI() == uri
-    }
-
-    def "should get a resource sha1"() {
-        given:
-        URI shaUri = new URI(uri.toString() + ".sha1")
-        S3Object s3Object = Mock()
-        S3ObjectInputStream s3ObjectInputStream = new S3ObjectInputStream(IOUtils.toInputStream(SHA1_STRING), null)
-        s3Object.getObjectContent() >> s3ObjectInputStream
-
-        S3Client s3Client = Mock()
-        1 * s3Client.getResource(_) >> { URI u ->
-            assert u == shaUri
-            return s3Object
-        }
-
-        when:
-        S3ResourceConnector connector = new S3ResourceConnector(s3Client)
-        HashValue sha1 = connector.getResourceSha1(uri)
-
-        then:
-        sha1.asHexString() == SHA1_STRING.substring(1, SHA1_STRING.length())
-    }
-
-    def "should return a null resource sha1 when sha cannot be read from input stream"() {
-        given:
-        S3Object s3Object = Mock()
-        s3Object.getObjectContent() >> Mock(S3ObjectInputStream)
-
-        S3Client s3Client = Mock()
-        1 * s3Client.getResource(_) >> s3Object
-
-        when:
-        S3ResourceConnector connector = new S3ResourceConnector(s3Client)
-        HashValue sha1 = connector.getResourceSha1(uri)
-
-        then:
-        sha1 == null
     }
 }

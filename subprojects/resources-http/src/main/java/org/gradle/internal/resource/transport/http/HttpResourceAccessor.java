@@ -19,12 +19,10 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.util.EntityUtils;
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,28 +101,6 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             }
         }
         openResources.clear();
-    }
-
-    public HashValue getResourceSha1(URI location) {
-        String checksumUrl = location + ".sha1";
-        return downloadSha1(checksumUrl);
-    }
-
-    private HashValue downloadSha1(String checksumUrl) {
-        try {
-            HttpResponse httpResponse = http.performRawGet(checksumUrl);
-            if (http.wasSuccessful(httpResponse)) {
-                String checksumValue = EntityUtils.toString(httpResponse.getEntity());
-                return HashValue.parse(checksumValue);
-            }
-            if (!http.wasMissing(httpResponse)) {
-                LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, httpResponse.getStatusLine());
-            }
-            return null;
-        } catch (Exception e) {
-            LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
-            return null;
-        }
     }
 
     private HttpResponseResource wrapResponse(URI uri, HttpResponse response) {

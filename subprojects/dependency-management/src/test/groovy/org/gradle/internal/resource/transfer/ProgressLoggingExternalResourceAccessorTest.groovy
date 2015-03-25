@@ -40,7 +40,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         1 * accessor."$method"(new URI("location"))
 
         where:
-        method << ['getMetaData', 'getResource', 'getResourceSha1']
+        method << ['getMetaData', 'getResource']
     }
 
     def "getResource returns null when delegate returns null"() {
@@ -182,6 +182,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * externalResource."$method"()
         where:
-        method << ['close', 'getMetaData', 'getName', 'getContentLength', 'isLocal']
+        method << ['close', 'getMetaData', 'getName', 'isLocal']
     }
 }

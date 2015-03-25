@@ -16,13 +16,10 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -33,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 public class S3ResourceConnector implements ExternalResourceConnector {
@@ -62,25 +58,6 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         } catch (S3Exception s3x) {
             throw new UncheckedIOException(s3x.getMessage(), s3x);
         }
-    }
-
-    public HashValue getResourceSha1(URI location) {
-        LOGGER.debug("Attempting to get resource sha1: {}", location);
-        try {
-            S3Object resource = s3Client.getResource(new URI(location.toString() + ".sha1"));
-            if (resource != null) {
-                InputStream objectContent = resource.getObjectContent();
-                String sha = IOUtils.toString(objectContent);
-                return HashValue.parse(sha);
-            }
-        } catch (AmazonS3Exception e) {
-            LOGGER.error("Could not get contents of resource sha", e);
-        } catch (IOException e) {
-            LOGGER.error("Could not get contents of resource sha", e);
-        } catch (URISyntaxException e) {
-            LOGGER.error("Could not create URI for sha resource", e);
-        }
-        return null;
     }
 
     public ExternalResourceMetaData getMetaData(URI location) throws IOException {

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer
 
+import org.gradle.api.Transformer
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResource
@@ -172,6 +173,96 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
+        0 * _._
+
+        and:
+        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * index.store("scheme:thing", cachedFile, remoteMetaData)
+        0 * _._
+    }
+
+    def "will download sha1 for finding candidates if not available in meta-data"() {
+        given:
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def candidate = tempDir.createFile("candidate-file")
+        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def cachedMetaData = Mock(ExternalResourceMetaData)
+        def remoteMetaData = Mock(ExternalResourceMetaData)
+        def localCandidate = Mock(LocallyAvailableResource)
+        def remoteSha1 = Mock(ExternalResource)
+        def uri = new URI("scheme:thing")
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result.localResource.file == cachedFile
+        result.metaData == remoteMetaData
+
+        and:
+        1 * index.lookup("scheme:thing") >> null
+        1 * accessor.getMetaData(uri) >> remoteMetaData
+        localCandidates.none >> false
+        remoteMetaData.sha1 >> null
+        remoteMetaData.etag >> null
+        remoteMetaData.lastModified >> null
+        cachedMetaData.etag >> null
+        cachedMetaData.lastModified >> null
+        1 * accessor.getResource(new URI("scheme:thing.sha1")) >> remoteSha1
+        1 * remoteSha1.withContent(_) >> { Transformer t ->
+            t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes))
+        }
+        1 * remoteSha1.close()
+        1 * localCandidates.findByHashValue(sha1) >> localCandidate
+        localCandidate.file >> candidate
+        0 * _._
+
+        and:
+        1 * cacheLockingManager.useCache(_, _) >> { String description, org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * index.store("scheme:thing", cachedFile, remoteMetaData)
+        0 * _._
+    }
+
+    def "downloads resource directly when no remote sha1 available"() {
+        given:
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def cachedMetaData = Mock(ExternalResourceMetaData)
+        def remoteMetaData = Mock(ExternalResourceMetaData)
+        def remoteResource = Mock(ExternalResource)
+        def uri = new URI("scheme:thing")
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+
+        when:
+        def result = cache.getResource(uri, fileStore, localCandidates)
+
+        then:
+        result.localResource.file == cachedFile
+        result.metaData == remoteMetaData
+
+        and:
+        1 * index.lookup("scheme:thing") >> null
+        1 * accessor.getMetaData(uri) >> remoteMetaData
+        localCandidates.none >> false
+        remoteMetaData.sha1 >> null
+        remoteMetaData.etag >> null
+        remoteMetaData.lastModified >> null
+        cachedMetaData.etag >> null
+        cachedMetaData.lastModified >> null
+        1 * accessor.getResource(new URI("scheme:thing.sha1")) >> null
+        1 * accessor.getResource(uri) >> remoteResource
+        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(), remoteMetaData)
+        }
+        1 * remoteResource.close()
         0 * _._
 
         and:

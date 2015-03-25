@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -42,12 +41,6 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
     @Override
     public ExternalResource getResource(URI location) throws IOException {
         return accessor.getResource(location);
-    }
-
-    @Nullable
-    @Override
-    public HashValue getResourceSha1(URI location) {
-        return accessor.getResourceSha1(location);
     }
 
     @Nullable
