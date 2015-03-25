@@ -78,7 +78,7 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     public boolean isErrorEnabled() {
-        return true;
+        return isLevelAtMost(LogLevel.ERROR);
     }
 
     public boolean isErrorEnabled(Marker marker) {

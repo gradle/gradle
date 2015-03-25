@@ -26,8 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 import java.io.OutputStream;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
@@ -36,45 +37,38 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     static final String HTTP_CLIENT_WIRE_LOGGER_NAME = "org.apache.http.wire";
     static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
 
-    private final Map<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
+    private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
     private final OutputStream defaultOutputStream;
     private final OutputStream defaultErrorStream;
+    private final AtomicReference<LogLevel> level = new AtomicReference<LogLevel>();
+    private final AtomicReference<OutputEventListener> outputEventListener = new AtomicReference<OutputEventListener>();
     private final TimeProvider timeProvider;
-
-    private volatile LogLevel level;
-    private volatile OutputEventListener outputEventListener;
 
     public OutputEventListenerBackedLoggerContext(OutputStream defaultOutputStream, OutputStream defaultErrorStream, TimeProvider timeProvider) {
         this.defaultOutputStream = defaultOutputStream;
         this.defaultErrorStream = defaultErrorStream;
         this.timeProvider = timeProvider;
-        level = DEFAULT_LOG_LEVEL;
-        setDefaultOutputEventListener();
         applyDefaultLoggersConfig();
+        reset();
     }
 
     private void applyDefaultLoggersConfig() {
         addNoOpLogger(HTTP_CLIENT_WIRE_LOGGER_NAME);
+        addNoOpLogger("org.apache.http.headers");
         addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
+        addNoOpLogger("org.littleshoot.proxy.HttpRequestHandler");
     }
 
     private void addNoOpLogger(String name) {
         loggers.put(name, new NoOpLogger(name));
     }
 
-    private void setDefaultOutputEventListener() {
-        OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
-        renderer.addStandardOutputListener(defaultOutputStream);
-        renderer.addStandardErrorListener(defaultErrorStream);
-        outputEventListener = renderer;
-    }
-
     public void setOutputEventListener(OutputEventListener outputEventListener) {
-        this.outputEventListener = outputEventListener;
+        this.outputEventListener.set(outputEventListener);
     }
 
     public OutputEventListener getOutputEventListener() {
-        return outputEventListener;
+        return outputEventListener.get();
     }
 
     public Logger getLogger(String name) {
@@ -83,30 +77,27 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
             return logger;
         }
 
-        synchronized (loggers) {
-            logger = loggers.get(name);
-            if (logger == null) {
-                logger = new OutputEventListenerBackedLogger(name, this, timeProvider);
-                loggers.put(name, logger);
-            }
-            return logger;
-        }
+        logger = loggers.putIfAbsent(name, new OutputEventListenerBackedLogger(name, this, timeProvider));
+        return logger != null ? logger : loggers.get(name);
     }
 
     public void reset() {
-        level = DEFAULT_LOG_LEVEL;
-        setDefaultOutputEventListener();
+        setLevel(DEFAULT_LOG_LEVEL);
+        OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
+        renderer.addStandardOutputListener(defaultOutputStream);
+        renderer.addStandardErrorListener(defaultErrorStream);
+        setOutputEventListener(renderer);
     }
 
     public LogLevel getLevel() {
-        return level;
+        return level.get();
     }
 
     public void setLevel(LogLevel level) {
         if (level == null) {
             throw new IllegalArgumentException("Global log level cannot be set to null");
         }
-        this.level = level;
+        this.level.set(level);
     }
 
     private static class NoOpLogger implements org.gradle.api.logging.Logger {
