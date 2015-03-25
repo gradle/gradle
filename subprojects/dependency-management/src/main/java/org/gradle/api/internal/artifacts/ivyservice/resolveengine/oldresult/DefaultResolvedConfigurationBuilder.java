@@ -19,25 +19,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 
-import java.io.File;
 import java.util.*;
 
 public class DefaultResolvedConfigurationBuilder implements
         ResolvedConfigurationBuilder, ResolvedConfigurationResults, ResolvedContentsMapping {
 
-    private final Map<Long, ResolvedArtifact> artifacts = new LinkedHashMap<Long, ResolvedArtifact>();
+    private final Map<Long, ResolvedArtifactSet> artifactSets = new LinkedHashMap<Long, ResolvedArtifactSet>();
+    private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
@@ -67,22 +59,18 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.parentChildMapping(parent, child);
     }
 
-    public void addParentSpecificArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, Set<ResolvedArtifact> artifacts) {
-        for (ResolvedArtifact a : artifacts) {
-            builder.parentSpecificArtifact(child, parent, ((DefaultResolvedArtifact) a).getId());
+    public void addArtifacts(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, ResolvedArtifactSet artifactSet) {
+        builder.parentSpecificArtifacts(child, parent, artifactSet.getId());
+        artifactSets.put(artifactSet.getId(), artifactSet);
+
+        // TODO:DAZ Defer this resolution
+        for (ResolvedArtifact artifact : artifactSet.getArtifacts()) {
+            artifacts.add(artifact);
         }
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
         builder.resolvedDependency(id);
-    }
-
-    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ComponentResolveMetaData component, ComponentArtifactMetaData artifact, ArtifactResolver artifactResolver) {
-        Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
-        long id = idGenerator.generateId();
-        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), artifact.getName(), artifactSource, id);
-        artifacts.put(id, newArtifact);
-        return newArtifact;
     }
 
     public boolean hasError() {
@@ -94,13 +82,13 @@ public class DefaultResolvedConfigurationBuilder implements
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
-        return new LinkedHashSet<ResolvedArtifact>(artifacts.values());
+        return new LinkedHashSet<ResolvedArtifact>(artifacts);
     }
 
-    public ResolvedArtifact getArtifact(long artifactId) {
-        ResolvedArtifact a = artifacts.get(artifactId);
-        assert a != null : "Unable to find artifact for id: " + artifactId;
-        return a;
+    public Set<ResolvedArtifact> getArtifacts(long artifactId) {
+        ResolvedArtifactSet a = artifactSets.get(artifactId);
+        assert a != null : "Unable to find artifacts for id: " + artifactId;
+        return a.getArtifacts();
     }
 
     public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
@@ -111,23 +99,5 @@ public class DefaultResolvedConfigurationBuilder implements
 
     public Set<UnresolvedDependency> getUnresolvedDependencies() {
         return unresolvedDependencies;
-    }
-
-    private static class LazyArtifactSource implements Factory<File> {
-        private final ArtifactResolver artifactResolver;
-        private final ModuleSource moduleSource;
-        private final ComponentArtifactMetaData artifact;
-
-        private LazyArtifactSource(ComponentArtifactMetaData artifact, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
-            this.artifact = artifact;
-            this.artifactResolver = artifactResolver;
-            this.moduleSource = moduleSource;
-        }
-
-        public File create() {
-            DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(artifact, moduleSource, result);
-            return result.getFile();
-        }
     }
 }

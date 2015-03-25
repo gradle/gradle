@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 import java.util.Set;
 
-public interface ResolvedContentsMapping {
-
-    Set<ResolvedArtifact> getArtifacts(long id);
-
-    ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id);
+public interface ResolvedArtifactSet {
+    long getId();
+    Set<ResolvedArtifact> getArtifacts();
 }

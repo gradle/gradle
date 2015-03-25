@@ -19,13 +19,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +38,7 @@ import java.util.*;
 class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolvedConfigurationDependencyGraphVisitor.class);
 
+    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final ResolvedConfigurationBuilder builder;
     private final ArtifactResolver artifactResolver;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
@@ -69,7 +74,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         ResolvedConfigurationIdentifier parent = dependency.from.id;
         ResolvedConfigurationIdentifier child = childConfiguration.id;
         oldModelBuilder.addChild(parent, child);
-        oldModelBuilder.addParentSpecificArtifacts(child, parent, getArtifacts(dependency, childConfiguration, oldModelBuilder));
+        oldModelBuilder.addArtifacts(child, parent, getArtifacts(dependency, childConfiguration, oldModelBuilder));
 
         if (parent == root.id) {
             ModuleDependency moduleDependency = dependency.getModuleDependency();
@@ -77,17 +82,17 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    private Set<ResolvedArtifact> getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
+    private ResolvedArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration, ResolvedConfigurationBuilder builder) {
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
         if (artifacts.isEmpty()) {
             artifacts = childConfiguration.getArtifacts(dependency.getSelector());
         }
+        return newArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver);
+    }
 
-        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
-        for (ComponentArtifactMetaData artifact : artifacts) {
-            resolvedArtifacts.add(builder.newArtifact(childConfiguration.id, childConfiguration.metaData.getComponent(), artifact, artifactResolver));
-        }
-        return resolvedArtifacts;
+    private ResolvedArtifactSet newArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifact, ArtifactResolver artifactResolver) {
+        long id = idGenerator.generateId();
+        return new DefaultResolvedArtifactSet(ownerId, component, artifact, artifactResolver, id);
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {
