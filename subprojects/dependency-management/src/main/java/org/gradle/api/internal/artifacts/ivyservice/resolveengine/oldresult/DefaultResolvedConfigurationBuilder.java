@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
 
 import java.util.*;
 
@@ -31,7 +29,6 @@ public class DefaultResolvedConfigurationBuilder implements
     private final Map<Long, ResolvedArtifactSet> artifactSets = new LinkedHashMap<Long, ResolvedArtifactSet>();
     private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
-    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
 
     private final TransientConfigurationResultsBuilder builder;
@@ -63,7 +60,7 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.parentSpecificArtifacts(child, parent, artifactSet.getId());
         artifactSets.put(artifactSet.getId(), artifactSet);
 
-        // TODO:DAZ Defer this resolution
+        // TODO:DAZ Defer this resolution until a separate 'resolveArtifacts' step (or on demand)
         for (ResolvedArtifact artifact : artifactSet.getArtifacts()) {
             artifacts.add(artifact);
         }

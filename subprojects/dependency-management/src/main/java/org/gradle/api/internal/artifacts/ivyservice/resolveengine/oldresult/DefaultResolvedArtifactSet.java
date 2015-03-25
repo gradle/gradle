@@ -53,18 +53,18 @@ public class DefaultResolvedArtifactSet implements ResolvedArtifactSet {
 
     public Set<ResolvedArtifact> getArtifacts() {
         if (resolvedArtifacts == null) {
+            // TODO:DAZ Cut the state that we hold to just what is absolutely required for artifact resolution
             resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
             for (ComponentArtifactMetaData artifact : artifacts) {
-                resolvedArtifacts.add(createResolvedArtifact(artifact));
+                Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource, id);
+                resolvedArtifacts.add(resolvedArtifact);
             }
         }
-        // TODO:DAZ Clear state that is no longer required to build the set of artifacts
+        // TODO:DAZ Once artifacts are built, clear all state that is no longer required
+        // TODO:DAZ Need to avoid hanging onto state when artifacts are not used: for now maybe resolve artifact sets explicitly even when not required
+        // TODO:DAZ ArtifactResolver should be provided when resolving, not when constructing
         return resolvedArtifacts;
-    }
-
-    private ResolvedArtifact createResolvedArtifact(ComponentArtifactMetaData artifact) {
-        Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
-        return new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource, id);
     }
 
     private static class LazyArtifactSource implements Factory<File> {
