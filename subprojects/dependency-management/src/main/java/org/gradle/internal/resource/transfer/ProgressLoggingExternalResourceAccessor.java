@@ -19,9 +19,9 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.*;
@@ -74,13 +74,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         }
 
         public void writeTo(OutputStream outputStream) throws IOException {
-            final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.download, getClass(), resource.getContentLength());
-            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, downloadOperation);
-            try {
-                resource.writeTo(progressLoggingOutputStream);
-            } finally {
-                downloadOperation.completed();
-            }
+            resource.writeTo(outputStream);
         }
 
         public void withContent(Action<? super InputStream> readAction) throws IOException {
@@ -89,6 +83,21 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
         public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
             return resource.withContent(readAction);
+        }
+
+        @Override
+        public <T> T withContent(final ContentAction<? extends T> readAction) throws IOException {
+            return resource.withContent(new ContentAction<T>() {
+                @Override
+                public T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
+                    final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.download, getClass(), metaData.getContentLength());
+                    try {
+                        return readAction.execute(new ProgressLoggingInputStream(inputStream, downloadOperation), metaData);
+                    } finally {
+                        downloadOperation.completed();
+                    }
+                }
+            });
         }
 
         public void close() throws IOException {
@@ -118,37 +127,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
         public String toString(){
             return resource.toString();
-        }
-    }
-
-    private class ProgressLoggingOutputStream extends OutputStream {
-        private OutputStream outputStream;
-        private final ResourceOperation resourceOperation;
-
-        public ProgressLoggingOutputStream(OutputStream outputStream, ResourceOperation resourceOperation) {
-            this.outputStream = outputStream;
-            this.resourceOperation = resourceOperation;
-        }
-
-        @Override
-        public void flush() throws IOException {
-            outputStream.flush();
-        }
-
-        @Override
-        public void close() throws IOException {
-            outputStream.close();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            outputStream.write(b);
-            resourceOperation.logProcessedBytes(1l);
-        }
-
-        public void write(byte b[], int off, int len) throws IOException {
-            outputStream.write(b, off, len);
-            resourceOperation.logProcessedBytes(len);
         }
     }
 }

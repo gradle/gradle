@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -61,36 +62,109 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         loadedResource instanceof ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource
     }
 
-    def "ProgressLoggingExternalResource.writeTo wraps delegate call in progress logger"() {
+    def "withContent() wraps delegate call in progress logger"() {
         setup:
+        def action = Mock(ExternalResource.ContentAction)
+        def metaData = Stub(ExternalResourceMetaData)
         accessor.getResource(new URI("location")) >> externalResource
         externalResource.getName() >> "test resource"
-        externalResource.getContentLength() >> 2060
-        externalResource.writeTo(_) >> { OutputStream stream ->
-            stream.write(12)
-            stream.write(2)
-            stream.write(112)
-            stream.write(new byte[1024])
+        metaData.getContentLength() >> 4096
+        externalResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(new byte[4096]), metaData)
         }
+        action.execute(_, _) >> { InputStream inputStream, ExternalResourceMetaData m ->
+            inputStream.read()
+            inputStream.read()
+            inputStream.read(new byte[560])
+            inputStream.read(new byte[1000])
+            inputStream.read(new byte[1600])
+            inputStream.read(new byte[1024])
+            inputStream.read(new byte[1024])
+        }
+
         when:
-        progressLoggerAccessor.getResource(new URI("location")).writeTo(new ByteArrayOutputStream())
+        progressLoggerAccessor.getResource(new URI("location")).withContent(action)
+
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * progressLogger.progress(_)
+        1 * progressLogger.progress('1 KB/4 KB downloaded')
+        1 * progressLogger.progress('3 KB/4 KB downloaded')
+        1 * progressLogger.completed()
+    }
+
+    def "fires complete event when action fails with partially read stream"() {
+        setup:
+        def action = Mock(ExternalResource.ContentAction)
+        def metaData = Stub(ExternalResourceMetaData)
+        def failure = new RuntimeException()
+
+        accessor.getResource(new URI("location")) >> externalResource
+        externalResource.getName() >> "test resource"
+        metaData.getContentLength() >> 4096
+        externalResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(new byte[4096]), metaData)
+        }
+        action.execute(_, _) >> { InputStream inputStream, ExternalResourceMetaData m ->
+            inputStream.read(new byte[1600])
+            throw failure
+        }
+
+        when:
+        progressLoggerAccessor.getResource(new URI("location")).withContent(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLogger.started()
+        1 * progressLogger.progress('1 KB/4 KB downloaded')
+        1 * progressLogger.completed()
+    }
+
+    def "fires complete event when action returns with partially read stream"() {
+        setup:
+        def action = Mock(ExternalResource.ContentAction)
+        def metaData = Stub(ExternalResourceMetaData)
+
+        accessor.getResource(new URI("location")) >> externalResource
+        externalResource.getName() >> "test resource"
+        metaData.getContentLength() >> 4096
+        externalResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(new byte[4096]), metaData)
+        }
+        action.execute(_, _) >> { InputStream inputStream, ExternalResourceMetaData m ->
+            inputStream.read(new byte[1600])
+        }
+
+        when:
+        progressLoggerAccessor.getResource(new URI("location")).withContent(action)
+
+        then:
+        1 * progressLoggerFactory.newOperation(_) >> progressLogger
+        1 * progressLogger.started()
+        1 * progressLogger.progress('1 KB/4 KB downloaded')
         1 * progressLogger.completed()
     }
 
     def "no progress events logged for resources smaller 1024 bytes"() {
         setup:
+        def action = Mock(ExternalResource.ContentAction)
         accessor.getResource(new URI("location")) >> externalResource
         externalResource.getName() >> "test resource"
         externalResource.getContentLength() >> 1023
-        externalResource.writeTo(_) >> { OutputStream stream ->
-            stream.write(new byte[1023])
+        externalResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(new byte[1023]), Stub(ExternalResourceMetaData))
         }
+        action.execute(_, _) >> { InputStream inputStream, ExternalResourceMetaData metaData ->
+            inputStream.read(new byte[1024])
+        }
+
         when:
-        progressLoggerAccessor.getResource(new URI("location")).writeTo(new ByteArrayOutputStream())
+        progressLoggerAccessor.getResource(new URI("location")).withContent(action)
+
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()

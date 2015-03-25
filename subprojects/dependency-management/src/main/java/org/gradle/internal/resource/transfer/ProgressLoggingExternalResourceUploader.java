@@ -30,6 +30,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         super(progressLoggerFactory);
         this.delegate = delegate;
     }
+
     public void upload(final Factory<InputStream> source, final Long contentLength, URI destination) throws IOException {
         final ResourceOperation uploadOperation = createResourceOperation(destination.toString(), ResourceOperation.Type.upload, getClass(), contentLength);
 
@@ -41,42 +42,6 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
             }, contentLength, destination);
         } finally {
             uploadOperation.completed();
-        }
-    }
-
-    private class ProgressLoggingInputStream extends InputStream {
-        private InputStream inputStream;
-        private final ResourceOperation resourceOperation;
-
-        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
-            this.inputStream = inputStream;
-            this.resourceOperation = resourceOperation;
-        }
-
-        @Override
-        public void close() throws IOException {
-            inputStream.close();
-        }
-
-        @Override
-        public int read() throws IOException {
-            int result = inputStream.read();
-            if (result >= 0) {
-                doLogProgress(1);
-            }
-            return result;
-        }
-
-        public int read(byte[] b, int off, int len) throws IOException {
-            int read = inputStream.read(b, off, len);
-            if (read > 0) {
-                doLogProgress(read);
-            }
-            return read;
-        }
-
-        private void doLogProgress(long numberOfBytes) {
-            resourceOperation.logProcessedBytes(numberOfBytes);
         }
     }
 }

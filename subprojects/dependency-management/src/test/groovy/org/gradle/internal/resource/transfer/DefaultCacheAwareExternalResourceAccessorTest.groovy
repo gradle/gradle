@@ -100,7 +100,9 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * localCandidates.isNone() >> true
         1 * accessor.getResource(uri) >> remoteResource
         _ * remoteResource.name >> "remoteResource"
-        1 * remoteResource.writeTo(tempFile)
+        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(), metaData)
+        }
         1 * remoteResource.close()
 
         and:
@@ -108,7 +110,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             return factory.create()
         }
         1 * fileStore.moveIntoCache(tempFile) >> localResource
-        1 * remoteResource.metaData >> metaData
         1 * index.store("scheme:thing", cachedFile, metaData)
         0 * _._
     }
@@ -220,7 +221,10 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
         1 * accessor.getResource(uri) >> remoteResource
-        1 * remoteResource.writeTo(tempFile)
+        1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(), remoteMetaData)
+        }
+        1 * remoteResource.close()
         0 * _._
 
         and:

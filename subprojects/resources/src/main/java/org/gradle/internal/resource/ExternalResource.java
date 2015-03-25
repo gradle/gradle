@@ -56,19 +56,24 @@ public interface ExternalResource extends Closeable {
     void writeTo(File destination) throws IOException;
 
     /**
-     * Copies the contents of this resource to the given stream. Does not close the stream.
+     * Copies the binary contents of this resource to the given stream. Does not close the stream.
      */
     void writeTo(OutputStream destination) throws IOException;
 
     /**
-     * Executes the given action against the contents of this resource.
+     * Executes the given action against the binary contents of this resource.
      */
     void withContent(Action<? super InputStream> readAction) throws IOException;
 
     /**
-     * Executes the given action against the contents of this resource.
+     * Executes the given action against the binary contents of this resource.
      */
     <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
+
+    /**
+     * Executes the given action against the binary contents and meta-data of this resource.
+     */
+    <T> T withContent(ContentAction<? extends T> readAction) throws IOException;
 
     void close() throws IOException;
 
@@ -76,4 +81,8 @@ public interface ExternalResource extends Closeable {
      * Returns the meta-data for this resource.
      */
     ExternalResourceMetaData getMetaData();
+
+    interface ContentAction<T> {
+        T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException;
+    }
 }

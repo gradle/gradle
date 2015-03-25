@@ -67,6 +67,16 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
+    @Override
+    public <T> T withContent(ContentAction<? extends T> readAction) throws IOException {
+        InputStream input = openStream();
+        try {
+            return readAction.execute(input, getMetaData());
+        } finally {
+            input.close();
+        }
+    }
+
     public void close() throws IOException {
     }
 }

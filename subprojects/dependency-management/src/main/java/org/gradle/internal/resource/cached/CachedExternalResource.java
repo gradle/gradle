@@ -23,9 +23,6 @@ import java.util.Date;
 
 /**
  * A record of some kind of external resource that has been cached locally (typically into the filestore).
- *
- * Note that this is not a kind of {@link org.gradle.internal.resource.ExternalResource}. There is an adapter that can represent a cached resource as an external resource as {@link
- * CachedExternalResourceAdapter}.
  */
 public interface CachedExternalResource extends CachedItem {
 
