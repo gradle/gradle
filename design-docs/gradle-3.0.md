@@ -28,6 +28,7 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 ## Archive tasks + base plugin
 
+* Remove `org.gradle.api.tasks.bundling.Jar`, replaced by `org.gradle.jvm.tasks.Jar`.
 * Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
 * Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for any other archive task.
 
@@ -69,7 +70,7 @@ Alternatively, default the group to `null` and status to `integration`.
 
 Currently required for in-process Ant-based compilation on Java 5. Dropping support for one of (in-process, ant-based, java 5) would allow us to remove this.
 
-## Decouple publishing DSL from Maven Ant tasks
+## Decouple publishing DSL from Maven classes
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
     * `MavenResolver.settings`

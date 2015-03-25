@@ -13,3 +13,5 @@
 - Can receive events from tests in `buildSrc`
 - Can receive events from tests in builds run using `GradleBuild`
 - Can receive events from tests in builds run from build using tooling API
+- Receives 'finished' test events when build is cancelled or daemon crashes
+- Receives 'finished' progress events when build is cancelled or daemon crashes
