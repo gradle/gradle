@@ -16,16 +16,16 @@
 
 package org.gradle.api.publish.maven.internal.publisher
 
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal
 import spock.lang.Specification
 
 class MavenRemoteRepositoryFactoryTest extends Specification {
 
     def "should not set repository authentication when alternative credentials are specified"() {
         setup:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
         mavenArtifactRepository.getAlternativeCredentials() >> Mock(Credentials)
@@ -43,7 +43,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
 
     def "should set authentication when password or username are specified"() {
         setup:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
         mavenArtifactRepository.getAlternativeCredentials() >> new DefaultPasswordCredentials(username, password)
@@ -68,7 +68,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
 
     def "should not set authentication when password and username are null"() {
         setup:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
         mavenArtifactRepository.getAlternativeCredentials() >> null

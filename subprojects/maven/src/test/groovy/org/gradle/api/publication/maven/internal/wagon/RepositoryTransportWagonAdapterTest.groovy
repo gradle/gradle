@@ -15,9 +15,10 @@
  */
 
 package org.gradle.api.publication.maven.internal.wagon
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
     @Unroll
     def "should determine the correct remote resource uri"() {
         given:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         mavenArtifactRepository.getUrl() >> repoUrl
         RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()
@@ -55,7 +56,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
     @Unroll
     def "should return the correct status to indicate if the remote resource was retrieved and writen"() {
         given:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         mavenArtifactRepository.getUrl() >> S3_URI
         RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()
@@ -78,7 +79,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
 
     def "should put a file to the correct uri"() {
         given:
-        MavenArtifactRepository mavenArtifactRepository = Mock()
+        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         mavenArtifactRepository.getUrl() >> S3_URI
         RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()

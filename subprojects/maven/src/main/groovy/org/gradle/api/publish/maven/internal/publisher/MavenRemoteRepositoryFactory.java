@@ -18,16 +18,16 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.Factory;
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 
 class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
 
-    private final MavenArtifactRepository artifactRepository;
+    private final MavenArtifactRepositoryInternal artifactRepository;
 
-    public MavenRemoteRepositoryFactory(MavenArtifactRepository artifactRepository) {
+    public MavenRemoteRepositoryFactory(MavenArtifactRepositoryInternal artifactRepository) {
         this.artifactRepository = artifactRepository;
     }
 

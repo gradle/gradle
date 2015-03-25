@@ -89,7 +89,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         PasswordCredentials | Mock(PasswordCredentials)
     }
 
-    def "getCredentials(Class) throws IllegalStateException when setting credentials with different type than already set"() {
+    def "getCredentials(Class) throws ClassCastException when setting credentials with different type than already set"() {
         Instantiator instantiator = Mock()
         AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
         1 * instantiator.newInstance(_) >> credentials
@@ -100,8 +100,8 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getCredentials(PasswordCredentials.class)
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == String.format("Credentials already configured. Requested credentials must be of type '%s'.", credentials.getClass().getName())
+        def ex = thrown(ClassCastException)
+        ex.message == String.format("Failed to cast object ${credentials.toString()} of type ${credentials.getClass().getName()} to target type ${PasswordCredentials.class.getName()}")
         where:
         credentials << Mock(AwsCredentials)
     }

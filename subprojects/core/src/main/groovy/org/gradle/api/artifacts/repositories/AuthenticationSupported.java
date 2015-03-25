@@ -30,7 +30,7 @@ public interface AuthenticationSupported {
      *
      * @return The PasswordCredentials
      *
-     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
+     * @throws ClassCastException when credentials are not of type PasswordCredentials.
      */
     PasswordCredentials getCredentials();
 
@@ -42,14 +42,6 @@ public interface AuthenticationSupported {
      */
     @Incubating
     public <T extends Credentials> T getCredentials(Class<T> clazz);
-
-    /**
-     * Returns the alternative credentials used to authenticate with this repository.
-     *
-     * @return The Credentials
-     */
-    @Incubating
-    Credentials getAlternativeCredentials();
 
     /**
      * Configures the {@link PasswordCredentials} for this repository using the supplied Closure.
@@ -65,7 +57,7 @@ public interface AuthenticationSupported {
      * }
      * </pre>
      *
-     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
+     * @throws ClassCastException when credentials are not of type PasswordCredentials.
      */
     void credentials(Closure closure);
 
@@ -84,7 +76,7 @@ public interface AuthenticationSupported {
      *     }
      * </pre>
      *
-     * @throws IllegalStateException when credentials are not of type PasswordCredentials.
+     * @throws ClassCastException when credentials are not of type PasswordCredentials.
      */
     void credentials(Action<? super PasswordCredentials> action);
 
@@ -101,7 +93,7 @@ public interface AuthenticationSupported {
      *     }
      * }
      *
-     * @throws IllegalStateException if passed credentials type is not assignable to an already set credentials type.
+     * @throws ClassCastException if passed credentials type is not assignable to an already set credentials type.
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException;

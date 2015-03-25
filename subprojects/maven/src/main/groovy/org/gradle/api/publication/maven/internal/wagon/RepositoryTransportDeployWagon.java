@@ -32,8 +32,8 @@ import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private Repository mutatingRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployWagon.class);
 
-    public static void init(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+    public static void init(MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
         RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
         currentDelegate.set(adapter);

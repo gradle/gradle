@@ -18,10 +18,10 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.mvn3.org.apache.maven.model.Model;
 import org.gradle.mvn3.org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -40,7 +40,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         this.delegate = delegate;
     }
 
-    public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
+    public void publish(MavenNormalizedPublication publication, MavenArtifactRepositoryInternal artifactRepository) {
         validateIdentity(publication);
         validateArtifacts(publication);
         checkNoDuplicateArtifacts(publication);

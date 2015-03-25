@@ -17,15 +17,16 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
-import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
-public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupported {
+public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
     private Credentials credentials;
     private final Instantiator instantiator;
 
@@ -42,10 +43,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     public <T extends Credentials> T getCredentials(Class<T> clazz) {
         if (credentials == null) {
             credentials = newCredentials(clazz);
-        } else if (!(clazz.isAssignableFrom(credentials.getClass()))) {
-            throw new IllegalStateException(String.format("Credentials already configured. Requested credentials must be of type '%s'.", credentials.getClass().getName()));
         }
-        return clazz.cast(credentials);
+        return Transformers.cast(clazz).transform(credentials);
     }
 
     public void credentials(Closure closure) {
@@ -62,9 +61,9 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     private <T extends Credentials> T newCredentials(Class<T> clazz) {
         if (clazz == AwsCredentials.class) {
-            return clazz.cast(instantiator.newInstance(DefaultAwsCredentials.class));
+            return Transformers.cast(clazz).transform(instantiator.newInstance(DefaultAwsCredentials.class));
         } else if (clazz == PasswordCredentials.class) {
-            return clazz.cast(instantiator.newInstance(DefaultPasswordCredentials.class));
+            return Transformers.cast(clazz).transform(instantiator.newInstance(DefaultPasswordCredentials.class));
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials type: '%s'.", clazz.getName()));
         }

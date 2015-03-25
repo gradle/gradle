@@ -20,6 +20,7 @@ import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class RepositoryTransportWagonAdapter {
     private final MavenArtifactRepository artifactRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportWagonAdapter.class);
 
-    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         this.artifactRepository = artifactRepository;
         transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
     }
