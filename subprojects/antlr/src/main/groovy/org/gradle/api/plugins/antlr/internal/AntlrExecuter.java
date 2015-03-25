@@ -22,7 +22,6 @@ import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
 import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -41,18 +39,19 @@ public class AntlrExecuter {
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
         List<String> arguments = spec.getArguments();
         Set<File> grammarFiles = spec.getGrammarFiles();
-        List<String> args = new ArrayList<String>();
-        args.addAll(arguments);
-        for (File file : grammarFiles) {
-            args.add(file.getAbsolutePath());
-        }
 
-        String[] argArr = new String[args.size()];
-        args.toArray(argArr);
+        String[] allArguments = new String[arguments.size() + grammarFiles.size()];
+        int i = 0;
+        for (String argument : arguments) {
+            allArguments[i++] = argument;
+        }
+        for (File grammarFile : grammarFiles) {
+            allArguments[i++] = grammarFile.getAbsolutePath();
+        }
 
         // Try ANTLR 4
         try {
-            Object toolObj = loadTool("org.antlr.v4.Tool", argArr);
+            Object toolObj = loadTool("org.antlr.v4.Tool", allArguments);
             LOGGER.info("Processing with ANTLR 4");
             return processV4(toolObj);
         } catch (ClassNotFoundException e) {
@@ -61,7 +60,7 @@ public class AntlrExecuter {
 
         // Try ANTLR 3
         try {
-            Object toolObj = loadTool("org.antlr.Tool", argArr);
+            Object toolObj = loadTool("org.antlr.Tool", allArguments);
             LOGGER.info("Processing with ANTLR 3");
             return processV3(toolObj);
         } catch (ClassNotFoundException e) {
@@ -108,9 +107,8 @@ public class AntlrExecuter {
         XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
         List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
         for (GenerationPlan generationPlan : generationPlans) {
-            List<String> args = CollectionUtils.flattenCollections(String.class, arguments, generationPlan.getSource().getAbsolutePath());
-            String[] argArr = new String[args.size()];
-            args.toArray(argArr);
+            String[] argArr = arguments.toArray(new String[arguments.size() + 1]);
+            argArr[arguments.size()] = generationPlan.getSource().getAbsolutePath();
             JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{argArr});
         }
         return new AntlrResult(0);  // ANTLR 2 always returning 0
