@@ -316,6 +316,19 @@ The feature will depend on the classloader caching feature.
 1. Error when model reuse enabled but not classloader caching
 1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
 
+## Rationalize realizing tasks during Gradle lifecycle
+
+Things are a bit tangled right now. There are at least the following aspects:
+
+1. Project.tasks.discoverTasks()
+2. Project.fireDeferredConfiguration()
+3. ProjectAccessListener
+4. TaskNameResolver
+
+This should be simplified.
+
+## Don't 
+
 # Open Questions
 
 - How to order mutations that may derive properties from the subject
@@ -375,6 +388,7 @@ These should be rationalised and ideally replaced with model rules.
 - Remove `ExtensionContainer` from model space
 - Semantics of model element removal are not well defined
 - `tasks.withType(Test).named("compileJava", SomeRules)` - withType() aspect is ignored and does not influence bindings
+- Cross project task lookup causes target project task container rules to be fired (and task container to be self closed), whether they are required or not (i.e. requested task may be completely legacy)
 
 ## Testing
 
