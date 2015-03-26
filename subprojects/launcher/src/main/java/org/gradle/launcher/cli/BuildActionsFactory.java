@@ -46,7 +46,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.util.GUtil;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -194,12 +193,14 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {
-        Map<String, String> systemProperties = new HashMap<String, String>();
-        GUtil.addToMap(systemProperties, daemonParameters.getEffectiveSystemProperties());
-        BuildActionParameters parameters = new DefaultBuildActionParameters(systemProperties, System.getenv(), SystemProperties.getInstance().getCurrentDir(),
-                startParameter.getLogLevel(), daemonParameters.isUsageConfiguredExplicitly());
-        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(),
-                parameters);
+        BuildActionParameters parameters = new DefaultBuildActionParameters(
+                daemonParameters.getEffectiveSystemProperties(),
+                System.getenv(),
+                SystemProperties.getInstance().getCurrentDir(),
+                startParameter.getLogLevel(),
+                daemonParameters.isUsageConfiguredExplicitly()
+        );
+        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters);
     }
 
     private long getBuildStartTime() {
