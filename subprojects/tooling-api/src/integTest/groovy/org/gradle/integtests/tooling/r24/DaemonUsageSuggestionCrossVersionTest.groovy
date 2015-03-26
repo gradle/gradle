@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ConfigurableOperation
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -40,7 +41,7 @@ class DaemonUsageSuggestionCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        !operation.standardOutput.contains("This build could be faster, please consider using the daemon")
+        !operation.standardOutput.contains(InProcessBuildActionExecuter.PLEASE_USE_DAEMON_MESSAGE_PREFIX)
     }
 
 }

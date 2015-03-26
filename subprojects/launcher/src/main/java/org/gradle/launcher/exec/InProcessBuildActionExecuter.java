@@ -32,6 +32,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+    public static final String PLEASE_USE_DAEMON_MESSAGE_PREFIX = "This build could be faster, please consider using the Gradle Daemon: ";
     private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
     private final StyledTextOutputFactory textOutputFactory;
@@ -68,7 +69,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
         StyledTextOutput styledTextOutput = textOutputFactory.create(InProcessBuildActionExecuter.class, LogLevel.LIFECYCLE);
         styledTextOutput.println();
-        styledTextOutput.println("This build could be faster, please consider using the Gradle Daemon: " + documentationRegistry.getDocumentationFor("gradle_daemon"));
+        styledTextOutput.println(PLEASE_USE_DAEMON_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("gradle_daemon"));
     }
 
     private static class DefaultBuildController implements BuildController {

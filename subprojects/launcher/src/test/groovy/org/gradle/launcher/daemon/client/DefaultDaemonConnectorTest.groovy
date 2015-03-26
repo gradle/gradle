@@ -203,7 +203,7 @@ class DefaultDaemonConnectorTest extends Specification {
         connector.connect({ true } as DummyExplainingSpec)
 
         then:
-        1 * progressLogger.start("Starting up a daemon", "Starting up a daemon, subsequent builds should be faster") >> progressLogger
+        1 * progressLogger.start(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE, DefaultDaemonConnector.STARTING_DAEMON_MESSAGE) >> progressLogger
         1 * progressLogger.completed()
     }
 }
