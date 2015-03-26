@@ -328,13 +328,12 @@ The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
 - Local repository location in user settings.xml _is_ honoured when deploying (it was always honoured when installing)
 
-### `PublishToMavenLocal` task ignores repository setting
+### `PublishToMavenLocal.repository` property has been removed
 
 Previously, the `PublishToMavenLocal` task could be configured with an `ArtifactRepository` instance, which would specify the
 location to `install` to. The default repository was `mavenLocal()`.
 
-It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
-will be ignored.
+It is no longer possible to provide a repository to the `PublishToMavenLocal` task. Use `PublishToMavenRepository` instead.
 
 ### `CommandLineToolConfiguration.withArguments()` semantics have changed
 
