@@ -156,7 +156,7 @@ allprojects {
 
             dependencies {
                 compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
-                runtime 'org.slf4j:slf4j-simple:1.7.2'
+                runtime 'org.slf4j:slf4j-simple:1.7.10'
             }
 
             mainClassName = 'Main'

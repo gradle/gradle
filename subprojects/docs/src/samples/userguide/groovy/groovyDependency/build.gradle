@@ -6,7 +6,7 @@ repositories {
 
 // START SNIPPET groovy-test-dependency
 dependencies {
-    testCompile "org.codehaus.groovy:groovy:2.3.9"
+    testCompile "org.codehaus.groovy:groovy:2.3.10"
 }
 // END SNIPPET groovy-test-dependency
 

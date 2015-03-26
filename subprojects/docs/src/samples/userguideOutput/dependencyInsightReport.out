@@ -1,3 +1,3 @@
-org.codehaus.groovy:groovy-all:2.3.9
+org.codehaus.groovy:groovy-all:2.3.10
 \--- project :api
      \--- compile

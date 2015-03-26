@@ -34,7 +34,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.9"
+                compile "org.codehaus.groovy:groovy:2.3.10"
                 testCompile "org.testng:testng:6.3.1"
             }
 
@@ -123,7 +123,7 @@ Gradle suite FAILED
             }
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:2.3.9"
+                compile "org.codehaus.groovy:groovy:2.3.10"
                 testCompile "org.testng:testng:6.3.1"
             }
 

@@ -67,13 +67,13 @@ dependencies {
 
 //START SNIPPET client-modules
 dependencies {
-    runtime module("org.codehaus.groovy:groovy:2.3.9") {
+    runtime module("org.codehaus.groovy:groovy:2.3.10") {
         dependency("commons-cli:commons-cli:1.0") {
             transitive = false
         }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.9.3') {
-            dependencies "org.apache.ant:ant-launcher:1.9.3@jar",
-                         "org.apache.ant:ant-junit:1.9.3"
+        module(group: 'org.apache.ant', name: 'ant', version: '1.9.4') {
+            dependencies "org.apache.ant:ant-launcher:1.9.4@jar",
+                         "org.apache.ant:ant-junit:1.9.4"
         }
     }
 }
@@ -87,9 +87,9 @@ dependencies {
 //END SNIPPET file-dependencies
 
 //START SNIPPET list-grouping
-List groovy = ["org.codehaus.groovy:groovy-all:2.3.9@jar",
+List groovy = ["org.codehaus.groovy:groovy-all:2.3.10@jar",
                "commons-cli:commons-cli:1.0@jar",
-               "org.apache.ant:ant:1.9.3@jar"]
+               "org.apache.ant:ant:1.9.4@jar"]
 List hibernate = ['org.hibernate:hibernate:3.0.5@jar',
                   'somegroup:someorg:1.0@jar']
 dependencies {

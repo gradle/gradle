@@ -6,6 +6,6 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.3.9'
+    compile 'org.codehaus.groovy:groovy-all:2.3.10'
     testCompile 'junit:junit:4.12'
 }
