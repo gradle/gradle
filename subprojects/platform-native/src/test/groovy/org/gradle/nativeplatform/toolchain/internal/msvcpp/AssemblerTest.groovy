@@ -46,6 +46,6 @@ class AssemblerTest extends VisualCppNativeCompilerTest {
         def outputArgs = [ 'path/to/output.o' ]
         def compiler = getCompiler()
         expect:
-        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs) as List == [ 'path/to/output.o', '/c', 'path/to/source.s' ]
+        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == [ 'path/to/output.o', '/c', 'path/to/source.s' ]
     }
 }

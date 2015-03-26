@@ -47,6 +47,6 @@ class WindowsResourceCompilerTest extends VisualCppNativeCompilerTest {
         def outputArgs = [ 'path/to/output.res' ]
         def compiler = getCompiler()
         expect:
-        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs) as List == [ '/nologo', 'path/to/output.res', 'path/to/source.rc' ]
+        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == [ '/nologo', 'path/to/output.res', 'path/to/source.rc' ]
     }
 }
