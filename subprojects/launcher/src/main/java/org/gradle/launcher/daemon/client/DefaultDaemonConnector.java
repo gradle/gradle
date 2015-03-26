@@ -39,6 +39,7 @@ import java.util.List;
 public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
+    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build (subsequent builds will be faster).";
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
@@ -107,22 +108,25 @@ public class DefaultDaemonConnector implements DaemonConnector {
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
         LOGGER.info("Starting Gradle daemon");
         ProgressLogger startupProgress = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
-                .start("Starting up a daemon", "Starting up a daemon, subsequent builds should be faster");
+                .start(STARTING_DAEMON_MESSAGE, STARTING_DAEMON_MESSAGE);
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
-        startupProgress.completed();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
-        do {
-            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
-            if (daemonConnection != null) {
-                return daemonConnection;
-            }
-            try {
-                Thread.sleep(200L);
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        } while (System.currentTimeMillis() < expiry);
+        try {
+            do {
+                DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
+                if (daemonConnection != null) {
+                    return daemonConnection;
+                }
+                try {
+                    Thread.sleep(200L);
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            } while (System.currentTimeMillis() < expiry);
+        } finally {
+            startupProgress.completed();
+        }
 
         throw new DaemonConnectionException("Timeout waiting to connect to the Gradle daemon.\n" + startupInfo.describe());
     }
