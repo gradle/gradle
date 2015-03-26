@@ -33,7 +33,8 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
         super(buildOperationProcessor, commandLineTool, invocationContext, getArgsTransformerFactory(), specTransformer, objectFileExtensionCalculator, useCommandFile);
     }
 
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         // RC has position sensitive arguments, the output args need to appear before the source file
         return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }

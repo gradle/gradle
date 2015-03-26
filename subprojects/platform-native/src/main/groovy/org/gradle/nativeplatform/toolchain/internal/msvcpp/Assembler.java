@@ -34,7 +34,8 @@ class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
         super(buildOperationProcessor, commandLineTool, invocationContext, getArgsTransformerFactory(), specTransformer, objectFileExtensionCalculator, useCommandFile);
     }
 
-    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs) {
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgss) {
         // ml/ml64 have position sensitive arguments,
         // e.g., /Fo must appear before /c and /c must appear before the source file.
 
