@@ -66,6 +66,7 @@ class GenerateVersionProperties extends DefaultTask {
         findLatest('scala-xml', "org.scala-lang.modules:scala-xml_${versionProperties.scala}:latest.release", versionProperties)
         findLatest('groovy', 'org.codehaus.groovy:groovy:latest.release', versionProperties)
         findLatest('junit', 'junit:junit:latest.release', versionProperties)
+        findLatest('slf4j', 'org.slf4j:slf4j-api:latest.release', versionProperties)
 
         outputFile.withOutputStream { outputStream ->
             versionProperties.store(outputStream, "Version values used in build-init templates")
