@@ -294,6 +294,13 @@ Get the pom files for all maven modules in a configuration:
         .withArtifacts(MavenModule, MavenPomArtifact)
         .execute()
     Set<File> pomFiles = artifactResult.getArtifactFiles()
+    
+## Story: IvyModule and MavenModule are symmetric with IvyPublication and MavenPublication
+
+These classes are the resolve / publish equivalents, so there should be:
+
+- Consistency in package structure
+- Consistency in type hierarchy (`IvyModule` and `MavenModule` are not `Component` subtypes)
 
 ## Story: Reliable mechanism for checking for success with new resolution result APIs
 
