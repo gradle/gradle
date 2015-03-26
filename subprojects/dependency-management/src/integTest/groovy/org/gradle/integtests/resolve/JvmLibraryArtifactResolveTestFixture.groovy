@@ -17,13 +17,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.resolve.ModuleVersionNotFoundException
-import org.gradle.internal.resolve.ArtifactNotFoundException
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 
 /**
  * A test fixture that injects a task into a build that uses the Artifact Query API to download some artifacts, validating the results.
@@ -34,10 +29,8 @@ class JvmLibraryArtifactResolveTestFixture {
     private ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("some.group", "some-artifact", "1.0")
     private artifactTypes = []
     private expectedSources = []
-    Throwable expectedSourceFailure
     private expectedJavadoc = []
-    Throwable expectedJavadocFailure
-    private Throwable unresolvedComponentFailure
+    private boolean unresolvedComponentFailure
 
     JvmLibraryArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
@@ -61,21 +54,19 @@ class JvmLibraryArtifactResolveTestFixture {
 
 
     JvmLibraryArtifactResolveTestFixture clearExpectations() {
-        this.unresolvedComponentFailure = null
+        unresolvedComponentFailure = false
         this.expectedSources = []
         this.expectedJavadoc = []
-        this.expectedSourceFailure = null
-        this.expectedJavadocFailure = null
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectComponentNotFound(List<String> searchLocations) {
-        this.unresolvedComponentFailure = new ModuleVersionNotFoundException(new DefaultModuleVersionIdentifier(id.group, id.module, id.version), searchLocations)
+    JvmLibraryArtifactResolveTestFixture expectComponentNotFound() {
+        unresolvedComponentFailure = true
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectComponentResolutionFailure(Throwable failure) {
-        unresolvedComponentFailure = failure
+    JvmLibraryArtifactResolveTestFixture expectComponentResolutionFailure() {
+        unresolvedComponentFailure = true
         this
     }
 
@@ -85,12 +76,10 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectSourceArtifactNotFound(String artifactClassifier) {
-        expectedSourceFailure = new ArtifactNotFoundException(new DefaultModuleComponentArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectSourceArtifactFailure(Throwable failure) {
-        expectedSourceFailure = failure
+    JvmLibraryArtifactResolveTestFixture expectSourceArtifactFailure() {
         this
     }
 
@@ -100,12 +89,10 @@ class JvmLibraryArtifactResolveTestFixture {
     }
 
     JvmLibraryArtifactResolveTestFixture expectJavadocArtifactNotFound(String artifactClassifier) {
-        expectedJavadocFailure = new ArtifactNotFoundException(new DefaultModuleComponentArtifactIdentifier(id, id.module, "jar", "jar", [classifier: artifactClassifier]), [])
         this
     }
 
-    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactFailure(Throwable failure) {
-        expectedJavadocFailure = failure
+    JvmLibraryArtifactResolveTestFixture expectJavadocArtifactFailure() {
         this
     }
 
@@ -120,8 +107,15 @@ configurations {
 dependencies {
     ${config} "${id.group}:${id.module}:${id.version}"
 }
+
+@org.gradle.internal.exceptions.Contextual
+class VerificationException extends org.gradle.internal.exceptions.DefaultMultiCauseException {
+    public VerificationException(String message, Iterable<? extends Throwable> causes) {
+        super(message, causes)
+    }
+}
 """
-        if (unresolvedComponentFailure != null) {
+        if (unresolvedComponentFailure) {
             prepareComponentNotFound()
         } else {
             createVerifyTask("verify")
@@ -136,7 +130,7 @@ task $taskName << {
     def componentId = deps[0].selected.id
 
     def result = dependencies.createArtifactResolutionQuery()
-        .forComponents(deps[0].selected.id)
+        .forComponents(componentId)
         .withArtifacts(JvmLibrary, $artifactTypesString)
         .execute()
 
@@ -145,15 +139,49 @@ task $taskName << {
     // Check generic component result
     def componentResult = result.components.iterator().next()
     assert componentResult.id.displayName == "${id.displayName}"
+    assert componentResult.id.group == "${id.group}"
+    assert componentResult.id.module == "${id.module}"
+    assert componentResult.id.version == "${id.version}"
     assert componentResult instanceof ComponentArtifactsResult
 
-    ${checkComponentResultArtifacts("componentResult", "sources", expectedSources, expectedSourceFailure)}
-    ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc, expectedJavadocFailure)}
+    def failures = []
+
+    ${checkComponentResultArtifacts("componentResult", "sources", expectedSources)}
+    ${checkComponentResultArtifacts("componentResult", "javadoc", expectedJavadoc)}
+
+    if (!failures.empty) {
+        throw new VerificationException("Artifact resolution failed", failures)
+    }
 }
 """
     }
 
-    private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles, def expectedFailure) {
+    void prepareComponentNotFound() {
+        buildFile << """
+task verify << {
+    def componentId = new org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier("${id.group}", "${id.module}", "${id.version}")
+
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponents(componentId)
+        .withArtifacts(JvmLibrary, $artifactTypesString)
+        .execute()
+
+    assert result.components.size() == 1
+
+    // Check generic component result
+    def componentResult = result.components.iterator().next()
+    assert componentResult.id.displayName == "${id.displayName}"
+    assert componentResult.id.group == "${id.group}"
+    assert componentResult.id.module == "${id.module}"
+    assert componentResult.id.version == "${id.version}"
+    assert componentResult instanceof UnresolvedComponentResult
+
+    throw componentResult.failure
+}
+"""
+    }
+
+    private static String checkComponentResultArtifacts(String componentResult, String type, def expectedFiles) {
         """
     def ${type}ArtifactResultFiles = []
     ${componentResult}.getArtifacts(${type.capitalize()}Artifact).each { artifactResult ->
@@ -164,52 +192,15 @@ task $taskName << {
             }
             ${type}ArtifactResultFiles << artifactResult.file.name
         } else {
-            ${checkException("artifactResult.failure", expectedFailure)}
+            failures << artifactResult.failure
         }
     }
     assert ${type}ArtifactResultFiles as Set == ${toQuotedList(expectedFiles)} as Set
 """
     }
 
-    private static String checkException(String reference, Throwable expected) {
-        if (expected == null) {
-            return "throw $reference"
-        }
-        String check = """
-    assert ${reference} instanceof ${expected.class.name}
-    assert ${reference}.message.startsWith('${TextUtil.toPlatformLineSeparators(expected.message.replace("\'", "\\\'").replace("\r", "\\r").replace("\n", "\\n"))}')
-"""
-        if (expected.cause != null) {
-            check += """
-    assert ${reference}.cause.message =~ "${expected.cause.message}"
-"""
-        }
-        return check
-    }
-
     private static String toQuotedList(def values) {
         return values.collect({"\"$it\""}).toListString()
-    }
-
-    private void prepareComponentNotFound() {
-        buildFile << """
-task verify << {
-    def unknownComponentId = [getGroup: {'${id.group}'}, getModule: {'${id.module}'}, getVersion: {'${id.version}'}, getDisplayName: {'unknown'}] as ModuleComponentIdentifier
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents(unknownComponentId)
-        .withArtifacts(JvmLibrary, $artifactTypesString)
-        .execute()
-
-    assert result.components.size() == 1
-    def component = result.components.iterator().next()
-    assert component instanceof UnresolvedComponentResult
-    assert component.id.group == "${id.group}"
-    assert component.id.module == "${id.module}"
-    assert component.id.version == "${id.version}"
-    assert component.id.displayName == 'unknown'
-    ${checkException("component.failure", unresolvedComponentFailure)}
-}
-"""
     }
 
     private String getArtifactTypesString() {

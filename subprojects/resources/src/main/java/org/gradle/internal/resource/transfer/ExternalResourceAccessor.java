@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
@@ -35,10 +36,10 @@ public interface ExternalResourceAccessor {
      *
      * @param location The address of the resource to obtain
      * @return The resource if it exists, otherwise null
-     * @throws IOException If the resource may exist, but not could be obtained for some reason
+     * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    ExternalResource getResource(URI location) throws IOException;
+    ExternalResource getResource(URI location) throws ResourceException;
 
     /**
      * Obtains only the metadata about the resource.

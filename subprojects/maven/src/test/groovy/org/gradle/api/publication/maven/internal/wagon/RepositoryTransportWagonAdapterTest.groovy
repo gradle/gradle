@@ -54,7 +54,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
     }
 
     @Unroll
-    def "should return the correct status to indicate if the remote resource was retrieved and writen"() {
+    def "should return the correct status to indicate if the remote resource was retrieved and written"() {
         given:
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         mavenArtifactRepository.getUrl() >> S3_URI

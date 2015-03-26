@@ -26,7 +26,6 @@ import org.gradle.internal.resource.PasswordCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -38,18 +37,18 @@ public class SftpClientFactory implements Stoppable {
     private final Object lock = new Object();
     private final ListMultimap<SftpHost, LockableSftpClient> clients = ArrayListMultimap.create();
 
-    public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) throws IOException {
+    public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) {
         synchronized (lock) {
             SftpHost sftpHost = new SftpHost(uri, credentials);
             return acquireClient(sftpHost);
         }
     }
 
-    private LockableSftpClient acquireClient(SftpHost sftpHost) throws IOException {
+    private LockableSftpClient acquireClient(SftpHost sftpHost) {
         return clients.containsKey(sftpHost) ? reuseExistingOrCreateNewClient(sftpHost) : sftpClientCreator.createNewClient(sftpHost);
     }
 
-    private LockableSftpClient reuseExistingOrCreateNewClient(SftpHost sftpHost) throws IOException {
+    private LockableSftpClient reuseExistingOrCreateNewClient(SftpHost sftpHost) {
         List<LockableSftpClient> clientsByHost = clients.get(sftpHost);
         if (clientsByHost.isEmpty()) {
             return sftpClientCreator.createNewClient(sftpHost);
@@ -60,7 +59,7 @@ public class SftpClientFactory implements Stoppable {
     private static class SftpClientCreator {
         private JSch jsch;
 
-        public LockableSftpClient createNewClient(SftpHost sftpHost) throws IOException {
+        public LockableSftpClient createNewClient(SftpHost sftpHost) {
             try {
                 Session session = createJsch().getSession(sftpHost.getUsername(), sftpHost.getHostname(), sftpHost.getPort());
                 session.setPassword(sftpHost.getPassword());

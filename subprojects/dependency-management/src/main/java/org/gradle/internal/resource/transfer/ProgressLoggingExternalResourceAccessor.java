@@ -34,7 +34,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public ExternalResource getResource(URI location) throws IOException {
+    public ExternalResource getResource(URI location) {
         ExternalResource resource = delegate.getResource(location);
         if (resource != null) {
             return new ProgressLoggingExternalResource(resource);

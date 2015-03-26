@@ -41,7 +41,7 @@ public class SftpResource extends AbstractExternalResource {
     }
 
     @Override
-    protected InputStream openStream() throws IOException {
+    protected InputStream openStream() {
         client = clientFactory.createSftpClient(uri, credentials);
         try {
             return client.getSftpClient().get(uri.getPath());

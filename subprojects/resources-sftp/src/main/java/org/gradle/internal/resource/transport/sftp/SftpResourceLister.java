@@ -20,7 +20,6 @@ import com.jcraft.jsch.ChannelSftp;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class SftpResourceLister implements ExternalResourceLister {
         this.credentials = credentials;
     }
 
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         LockableSftpClient client = sftpClientFactory.createSftpClient(parent, credentials);
 
         try {

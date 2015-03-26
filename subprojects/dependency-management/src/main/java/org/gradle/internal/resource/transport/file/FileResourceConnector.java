@@ -64,7 +64,7 @@ public class FileResourceConnector implements ExternalResourceConnector {
         }
     }
 
-    public LocallyAvailableExternalResource getResource(URI uri) throws IOException {
+    public LocallyAvailableExternalResource getResource(URI uri) {
         File localFile = getFile(uri);
         if (!localFile.exists()) {
             return null;

@@ -43,7 +43,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     }
 
     @Nullable
-    public HttpResponseResource getResource(final URI uri) throws IOException {
+    public HttpResponseResource getResource(final URI uri) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);

@@ -45,15 +45,19 @@ public class RepositoryTransportWagonAdapter {
         URI uriForResource = getUriForResource(resourceName);
         try {
             ExternalResource resource = transport.getRepository().getResource(uriForResource);
-            if (null != resource) {
-                resource.writeTo(destination);
-                return true;
+            if (resource == null) {
+                return false;
             }
+            try {
+                resource.writeTo(destination);
+            } finally {
+                resource.close();
+            }
+            return true;
         } catch (Exception e) {
             LOGGER.debug("Could get and write file:" , e);
             return false;
         }
-        return false;
     }
 
     public void putRemoteFile(File file, String resourceName) throws IOException {

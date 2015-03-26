@@ -46,7 +46,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         this.lister = lister;
     }
 
-    public ExternalResource getResource(URI source) throws IOException {
+    public ExternalResource getResource(URI source) {
         return accessor.getResource(source);
     }
 

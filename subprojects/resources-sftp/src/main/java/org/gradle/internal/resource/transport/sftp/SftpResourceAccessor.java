@@ -24,7 +24,6 @@ import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class SftpResourceAccessor implements ExternalResourceAccessor {
@@ -37,7 +36,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         this.credentials = credentials;
     }
 
-    public ExternalResourceMetaData getMetaData(URI uri) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI uri) {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
@@ -66,7 +65,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         return new DefaultExternalResourceMetaData(uri, lastModified, contentLength, null, null);
     }
 
-    public ExternalResource getResource(URI location) throws IOException {
+    public ExternalResource getResource(URI location) {
         ExternalResourceMetaData metaData = getMetaData(location);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
     }

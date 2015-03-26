@@ -16,7 +16,9 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-public class SftpException extends RuntimeException {
+import org.gradle.internal.resource.ResourceException;
+
+public class SftpException extends ResourceException {
     public SftpException(String message, Throwable cause) {
         super(message, cause);
     }

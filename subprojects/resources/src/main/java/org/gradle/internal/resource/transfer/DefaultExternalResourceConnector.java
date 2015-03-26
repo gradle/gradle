@@ -39,7 +39,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public ExternalResource getResource(URI location) throws IOException {
+    public ExternalResource getResource(URI location) {
         return accessor.getResource(location);
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.ivy
-import org.gradle.internal.resolve.ArtifactResolveException
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
@@ -147,10 +147,23 @@ if (project.hasProperty('nocache')) {
 
         when:
         module.ivy.expectGet()
-        module.getArtifact(classifier: "my-sources").expectGetMissing()
+        def sourceArtifact = module.getArtifact(classifier: "my-sources")
+        sourceArtifact.expectGetMissing()
 
         then:
-        checkArtifactsResolvedAndCached()
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${sourceArtifact.uri}""")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${sourceArtifact.uri}""")
 
         when:
         module.publishWithChangedContent()
@@ -163,7 +176,7 @@ if (project.hasProperty('nocache')) {
         module.ivy.expectHead()
         module.ivy.sha1.expectGet()
         module.ivy.expectGet()
-        module.getArtifact(classifier: "my-sources").expectGet()
+        sourceArtifact.expectGet()
 
         then:
         executer.withArgument(execArg)
@@ -230,14 +243,30 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
-        fixture.expectComponentNotFound([module.ivy.uri.toString(), module.jar.uri.toString()]).prepare()
+        fixture.expectComponentNotFound().prepare()
 
         when:
         module.ivy.expectGetMissing()
         module.jar.expectHeadMissing()
 
         then:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}""")
+
+        when:
+        server.resetExpectations()
+        module.ivy.expectGetMissing()
+        module.jar.expectHeadMissing()
+
+        then:
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${module.ivy.uri}
+    ${module.jar.uri}""")
     }
 
     def "reports failure to resolve missing artifacts"() {
@@ -247,11 +276,31 @@ if (project.hasProperty('nocache')) {
 
         when:
         module.ivy.expectGet()
-        module.getArtifact(classifier: "my-sources").expectGetMissing()
-        module.getArtifact(classifier: "my-javadoc").expectGetMissing()
+        def sourceArtifact = module.getArtifact(classifier: "my-sources")
+        sourceArtifact.expectGetMissing()
+        def javadocArtifact = module.getArtifact(classifier: "my-javadoc")
+        javadocArtifact.expectGetMissing()
 
         then:
-        checkArtifactsResolvedAndCached()
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${sourceArtifact.uri}""")
+        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${javadocArtifact.uri}""")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-sources.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${sourceArtifact.uri}""")
+        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${javadocArtifact.uri}""")
     }
 
     def "resolves when some artifacts are missing"() {
@@ -262,10 +311,23 @@ if (project.hasProperty('nocache')) {
         when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
-        module.getArtifact(classifier: "my-javadoc").expectGetMissing()
+        def javadocArtifact = module.getArtifact(classifier: "my-javadoc")
+        javadocArtifact.expectGetMissing()
 
         then:
-        checkArtifactsResolvedAndCached()
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${javadocArtifact.uri}""")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails("verify")
+        failure.assertHasCause("""Could not find some-artifact-my-javadoc.jar (some.group:some-artifact:1.0).
+Searched in the following locations:
+    ${javadocArtifact.uri}""")
     }
 
     def "resolves and recovers from broken artifacts"() {
@@ -274,23 +336,26 @@ if (project.hasProperty('nocache')) {
         module.publish()
 
         fixture.expectSourceArtifact("my-sources")
-                .expectSourceArtifactFailure(new ArtifactResolveException(
-                                                "Could not download some-artifact-broken-sources.jar (some.group:some-artifact:1.0)",
-                                                new Throwable("Received status code 500 from server: broken")))
-                .expectJavadocArtifactFailure(new ArtifactResolveException(
-                                                "Could not download some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)",
-                                                new Throwable("Received status code 500 from server: broken")))
+                .expectSourceArtifactFailure()
+                .expectJavadocArtifactFailure()
                 .prepare()
 
         when:
         module.ivy.expectGet()
         module.getArtifact(classifier: "my-sources").expectGet()
-        module.getArtifact(classifier: "broken-sources").expectGetBroken()
-
-        module.getArtifact(classifier: "my-javadoc").expectGetBroken()
+        def brokenSources = module.getArtifact(classifier: "broken-sources")
+        brokenSources.expectGetBroken()
+        def brokenJavadoc = module.getArtifact(classifier: "my-javadoc")
+        brokenJavadoc.expectGetBroken()
 
         then:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("Could not download some-artifact-broken-sources.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not get resource '${brokenSources.uri}'.")
+        failure.assertHasCause("Could not GET '${brokenSources.uri}'. Received status code 500 from server: broken")
+        failure.assertHasCause("Could not download some-artifact-my-javadoc.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not get resource '${brokenJavadoc.uri}'.")
+        failure.assertHasCause("Could not GET '${brokenJavadoc.uri}'. Received status code 500 from server: broken")
 
         when:
         fixture.clearExpectations()
@@ -302,8 +367,8 @@ if (project.hasProperty('nocache')) {
         and:
         server.resetExpectations()
         // Only the broken artifacts are not cached
-        module.getArtifact(classifier: "broken-sources").expectGet()
-        module.getArtifact(classifier: "my-javadoc").expectGet()
+        brokenSources.expectGet()
+        brokenJavadoc.expectGet()
 
         then:
         succeeds("verifyFixed")

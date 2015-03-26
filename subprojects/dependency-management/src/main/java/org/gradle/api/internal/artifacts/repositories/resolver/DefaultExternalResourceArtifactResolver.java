@@ -96,7 +96,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 if (resource != null) {
                     return resource;
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
             }
         }

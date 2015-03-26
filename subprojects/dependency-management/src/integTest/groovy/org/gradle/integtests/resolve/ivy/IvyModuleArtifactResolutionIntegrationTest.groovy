@@ -104,6 +104,7 @@ repositories {
                .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find ivy.xml (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
+        // TODO - should do single request
         module.ivy.expectGetMissing()
         module.ivy.expectGetMissing()
         module.jar.expectHead()
