@@ -25,8 +25,7 @@ import static org.gradle.util.TestPrecondition.WINDOWS
 
 class DaemonUsageSuggestionIntegrationTest extends AbstractIntegrationSpec {
 
-
-    public static final String DAEMON_USAGE_SUGGESTION_MESSAGE = "This build could be faster, please consider using the daemon"
+    public static final String DAEMON_USAGE_SUGGESTION_MESSAGE = "This build could be faster, please consider using the Gradle Daemon"
 
     @IgnoreIf({ GradleContextualExecuter.longLivingProcess || WINDOWS.fulfilled })
     def "prints a suggestion to use the daemon when daemon usage has not been explicitly configured"() {

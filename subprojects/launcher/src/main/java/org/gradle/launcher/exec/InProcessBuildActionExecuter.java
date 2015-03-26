@@ -68,7 +68,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
         StyledTextOutput styledTextOutput = textOutputFactory.create(InProcessBuildActionExecuter.class, LogLevel.LIFECYCLE);
         styledTextOutput.println();
-        styledTextOutput.println("This build could be faster, please consider using the daemon: " + documentationRegistry.getDocumentationFor("gradle_daemon"));
+        styledTextOutput.println("This build could be faster, please consider using the Gradle Daemon: " + documentationRegistry.getDocumentationFor("gradle_daemon"));
     }
 
     private static class DefaultBuildController implements BuildController {
