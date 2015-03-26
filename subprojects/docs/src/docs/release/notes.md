@@ -375,23 +375,26 @@ Due to our rework on supporting different Antlr versions,
 the calculation of the final commandline arguments for Antlr have been removed from the
 AntlrTask.
 
-### Upgraded libraries in the Gradle API
+### Updated libraries used by the Gradle API
 
-Some dependencies used in Gradle have been updated. We updated
+Some dependencies used in Gradle have been updated.
 
-* slf4j from 1.7.7 to 1.7.10
-* groovy from 2.3.9 to 2.3.10
-* ant from 1.9.3 to 1.9.4
+* **Slf4j** - 1.7.7 to 1.7.10
+* **Groovy** - 2.3.9 to 2.3.10
+* **Ant** - 1.9.3 to 1.9.4
 
-### Upgraded default versions for code quality plugins
+These libraries are expected to be fully backwards compatible.
+It is expected that no Gradle builds will be negatively affected by these changes.
 
-The default version for the following code quality plugins have been updated:
+### Updated default tool versions for code quality plugins
 
-* The `checkstyle` plugin uses now version 5.9 as default. (was 5.7)
-    (Note: The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant.)
-* The `pmd` plugin uses now version 5.2.3 as default. (was 5.1.1)
-* The `findbugs` plugin uses now version 3.0.1 as default. (was 3.0.0)
-* The `codenarc` plugin uses now version 0.23 as default. (was 0.21)
+The default version of the corresponding tool of the following code quality plugins have been updated:
+
+* The `checkstyle` plugin now uses version 5.9 as default (was 5.7).
+    (Note: The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant)
+* The `pmd` plugin now uses version 5.2.3 as default (was 5.1.1).
+* The `findbugs` plugin now uses version 3.0.1 as default (was 3.0.0).
+* The `codenarc` plugin now uses version 0.23 as default (was 0.21).
 
 ### Repository credentials
 
