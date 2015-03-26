@@ -16,9 +16,10 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
+import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.io.Serializable;
-
 import java.util.List;
 import java.util.Set;
 
@@ -29,27 +30,11 @@ public class AntlrSpec implements Serializable {
     private String maxHeapSize;
     private File outputDirectory;
 
-    private boolean trace;
-    private boolean traceLexer;
-    private boolean traceParser;
-    private boolean traceTreeWalker;
-
-    public AntlrSpec(List<String> arguments,
-                     Set<File> grammarFiles,
-                     File outputDirectory,
-                     String maxHeapSize,
-                     boolean trace,
-                     boolean traceLexer,
-                     boolean traceParser,
-                     boolean traceTreeWalker) {
+    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, File outputDirectory, String maxHeapSize) {
         this.arguments = arguments;
         this.grammarFiles = grammarFiles;
         this.outputDirectory = outputDirectory;
         this.maxHeapSize = maxHeapSize;
-        this.trace = trace;
-        this.traceLexer = traceLexer;
-        this.traceParser = traceParser;
-        this.traceTreeWalker = traceTreeWalker;
     }
 
     public List<String> getArguments() {
@@ -68,19 +53,23 @@ public class AntlrSpec implements Serializable {
         return outputDirectory;
     }
 
-    public boolean isTrace() {
-        return trace;
+    public List<String> asCommandLineWithoutFiles() {
+        List<String> commandLine = Lists.newLinkedList(arguments);
+
+        commandLine.add("-o");
+        commandLine.add(getOutputDirectory().getAbsolutePath());
+
+        return commandLine;
     }
 
-    public boolean isTraceLexer() {
-        return traceLexer;
+    public List<String> asCommandLineWithFiles() {
+        List<String> commandLine = Lists.newLinkedList(asCommandLineWithoutFiles());
+
+        for (File file : getGrammarFiles()) {
+            commandLine.add(file.getAbsolutePath());
+        }
+
+        return commandLine;
     }
 
-    public boolean isTraceParser() {
-        return traceParser;
-    }
-
-    public boolean isTraceTreeWalker() {
-        return traceTreeWalker;
-    }
 }

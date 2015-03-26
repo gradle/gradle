@@ -18,10 +18,7 @@ package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.antlr.internal.AntlrResult;
-import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
-import org.gradle.api.plugins.antlr.internal.AntlrSpec;
-import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.plugins.antlr.internal.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -194,16 +191,12 @@ public class AntlrTask extends SourceTask {
         }
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = createAntlrSpec(grammarFiles);
+        AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
-        evaluateAntlrResult(result);
+        evaluate(result);
     }
 
-    AntlrSpec createAntlrSpec(Set<File> grammarFiles) {
-        return new AntlrSpec(arguments, grammarFiles, getOutputDirectory(), maxHeapSize, trace, traceLexer, traceParser, traceTreeWalker);
-    }
-
-    public void evaluateAntlrResult(AntlrResult result) {
+    private void evaluate(AntlrResult result) {
         int errorCount = result.getErrorCount();
         if (errorCount == 1) {
             throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());

@@ -369,11 +369,10 @@ This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
 `AuthenticationSupported.getCredentials()` now throws an IllegalStateException if the configured credentials are not of type `PasswordCredentials`.
 
-### AntlrTask.buildArguments() has been removed
+### Changes to API of AntlrTask
 
-Due to our rework on supporting different Antlr versions,
-the calculation of the final commandline arguments for Antlr have been removed from the
-AntlrTask.
+The AntlrTask previous unnecessarily exposed the internal methods `buildArguments()` and `evaluateAntlrResult()`.
+These methods have been removed.
 
 ### Updated libraries used by the Gradle API
 
