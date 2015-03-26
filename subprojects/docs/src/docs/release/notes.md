@@ -282,6 +282,10 @@ Note that only `ModuleDependencySubstitution` has the `useVersion()` method. For
 
 Defining custom tasks named `build`, `clean` or `check` when using the standard Gradle lifecycle plugins (e.g. the `base` plugin) has been deprecated.
 
+### Changes to methods of `LogLevel`
+
+All usages of methods of `org.gradle.api.logging.LogLevel` have been removed from Gradle codebase therefore all methods defined by that enum type have been deprecated.
+
 ## Potential breaking changes
 
 ### Model DSL changes
