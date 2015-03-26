@@ -39,7 +39,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.withStackTraceChecksDisabled()
         succeeds(taskName)
         then:
-        output.contains(String.format(LifecycleBasePlugin.CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, taskName))
+        output.contains("Defining custom '$taskName' task when using the standard Gradle lifecycle plugins has been deprecated and is scheduled to be removed")
         where:
         taskName << ["check", "build"]
     }

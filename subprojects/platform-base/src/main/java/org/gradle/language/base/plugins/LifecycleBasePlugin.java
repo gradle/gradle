@@ -38,7 +38,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
-    public static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task is deprecated when using the standard Gradle lifecycle plugins";
+    public static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
 
     public void apply(ProjectInternal project) {
         addClean(project);
