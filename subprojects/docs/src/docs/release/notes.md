@@ -156,12 +156,12 @@ TODO
 Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Objective-C++/Assembler languages. This is automatically enabled for all builds. 
 Up until this release, Gradle compiled all native source files sequentially. 
 
-### New --workers option and system property
+### New `--workers` option and system property
 
 As a new incubating feature, you can control the number of "workers" Gradle is allowed to use. Currently, only parallel native compilation is influenced by this setting.
 The default is the number of available processors.
 
-You can specify the number of workers on the command line with --workers=N or in your gradle.properties by setting org.gradle.workers.max.
+You can specify the number of workers on the command line with `--workers=N` or in your `gradle.properties` by setting `org.gradle.workers.max`.
 
 ### Support for “annotation processing” of Groovy code
 
@@ -186,7 +186,7 @@ Previously to generate a Gradle wrapper with a specific version, or a custom dis
 you had to change the `build.gradle` file to contain a wrapper task with a configured `gradleVersion` property.
 
 Now the target Gradle version or the distribution URL can be configured from the command-line, without having
-to add or modfify the task in `build.gradle`:
+to add or modify the task in `build.gradle`:
 
     gradle wrapper --gradle-version 2.3
 
@@ -276,14 +276,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Setting number of threads with --parallel-threads
+### Setting number of threads with `--parallel-threads`
 
-Gradle still honors --parallel-threads for inter-project parallelization, but the method of specifying the number of worker threads will be changing in future releases.
+Gradle still honors `--parallel-threads` for inter-project parallelization, but the method of specifying the number of worker threads will be changing in future releases.
 As we add more parallelized work to Gradle, we need a more generic way of controlling the number of workers (threads, processes, etc) Gradle may use.
 
-If you were using --parallel-threads to enable parallel-project execution, please consider using just --parallel.
+If you were using `--parallel-threads` to enable parallel-project execution, please consider using just `--parallel`.
 
-If you were using StartParameter.getParallelThreadCount() to check if parallel-project execution was enabled, please consider using StartParameter.isParallelProjectExecutionEnabled().
+If you were using `StartParameter.getParallelThreadCount()` to check if parallel-project execution was enabled, please consider using `StartParameter.isParallelProjectExecutionEnabled()`.
 
 ### Changing a configuration after it has been resolved
 
@@ -320,15 +320,15 @@ Generally, the DSL should be the same, except:
 
 The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
 
-### MavenDeployer no longer uses global Maven settings.xml
+### `MavenDeployer` no longer uses global Maven `settings.xml`
 
-- User settings file was never used, but global settings.xml was considered
+- User settings file was never used, but global `settings.xml` was considered
 - Mirror settings no longer cause GRADLE-2681
 - Authentication and Proxy settings are not used
 
 - Local repository location in user settings.xml _is_ honoured when deploying (it was always honoured when installing)
 
-### PublishToMavenLocal task ignores repository setting
+### `PublishToMavenLocal` task ignores repository setting
 
 Previously, the `PublishToMavenLocal` task could be configured with an `ArtifactRepository` instance, which would specify the
 location to `install` to. The default repository was `mavenLocal()`.
@@ -336,7 +336,7 @@ location to `install` to. The default repository was `mavenLocal()`.
 It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
 will be ignored.
 
-### CommandLineToolConfiguration.withArguments() semantics have changed
+### `CommandLineToolConfiguration.withArguments()` semantics have changed
 
 `withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.
 The arguments passed to this would include the path to the source file and output file. This hook was intended to capture "overall"
@@ -382,9 +382,9 @@ This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
 ### Changes in behaviour of AuthenticationSupported.getCredentials()
 
-`AuthenticationSupported.getCredentials()` now throws an IllegalStateException if the configured credentials are not of type `PasswordCredentials`.
+`AuthenticationSupported.getCredentials()` now throws an `IllegalStateException` if the configured credentials are not of type `PasswordCredentials`.
 
-### Changes to API of AntlrTask
+### Changes to API of `AntlrTask`
 
 The AntlrTask previous unnecessarily exposed the internal methods `buildArguments()` and `evaluateAntlrResult()`.
 These methods have been removed.
