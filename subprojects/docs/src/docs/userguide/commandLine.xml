@@ -228,9 +228,7 @@
                 <option>--recompile-scripts</option>
             </term>
             <listitem>
-                <para>Specifies that cached build scripts are skipped and forced to be recompiled.
-                    See <xref linkend="sec:caching"/>.
-                </para>
+                <para>Forces scripts to be recompiled, bypassing caching.</para>
             </listitem>
         </varlistentry>
         <varlistentry>

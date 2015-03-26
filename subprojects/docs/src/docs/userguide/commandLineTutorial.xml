@@ -248,17 +248,6 @@
             execution.
         </para>
     </section>
-    <section id='sec:caching'>
-        <title>Caching</title>
-        <para>To improve responsiveness Gradle caches all compiled scripts by default. This includes all build scripts,
-            initialization scripts, and other scripts. The first time you run a build for a project, Gradle creates a
-            <filename>.gradle</filename> directory in which it puts the compiled script. The next time you run this
-            build, Gradle uses the compiled script, if the script has not changed since it was compiled.  Otherwise the
-            script gets compiled and the new version is stored in the cache. If you run Gradle with the
-            <option>--recompile-scripts</option> option, the cached script is discarded and the script is compiled and stored
-            in the cache. This way you can force Gradle to rebuild the cache.
-        </para>
-    </section>
     <section>
         <title>Summary</title>
         <para>In this chapter, you have seen some of the things you can do with Gradle from the command-line. You can
