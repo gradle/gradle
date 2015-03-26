@@ -32,8 +32,8 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String extension;
     private final Map<String, String> attributes;
 
-    public DefaultIvyArtifactName(Artifact a) {
-        this(a.getName(), a.getType(), a.getExt(), a.getAttributes());
+    public static DefaultIvyArtifactName forIvyArtifact(Artifact a) {
+        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getQualifiedExtraAttributes());
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {
