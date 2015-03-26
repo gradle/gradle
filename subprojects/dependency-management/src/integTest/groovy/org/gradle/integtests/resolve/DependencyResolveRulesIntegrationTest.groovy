@@ -18,8 +18,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
-import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -47,13 +45,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        if (it.requested.group == 'org.utils' && it.requested.module != 'optional-lib') {
-                            it.useVersion '1.5'
-                        }
+	            eachDependency {
+                    if (it.requested.group == 'org.utils' && it.requested.name != 'optional-lib') {
+                        it.useVersion '1.5'
                     }
-                }
+	            }
 	            failOnVersionConflict()
 	        }
 """
@@ -83,13 +79,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        if (it.requested.group == 'org.utils') {
-                            it.useVersion '1.5'
-                        }
+	            eachDependency {
+                    if (it.requested.group == 'org.utils') {
+                        it.useVersion '1.5'
                     }
-                }
+	            }
 	        }
 
 	        task check << {
@@ -108,34 +102,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Ignore("Deprecation not yet added")
-    void "warns about using deprecated resolution rules"()
-    {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
-        buildFile << """
-            $common
-
-            dependencies {
-                conf 'org.utils:api:1.3'
-            }
-
-            configurations.conf.resolutionStrategy {
-                eachDependency {
-                    it.useVersion "1.5"
-                }
-	        }
-"""
-
-        executer.withDeprecationChecksDisabled()
-
-        when:
-        succeeds()
-
-        then:
-        output.contains("The ResolutionStrategy.eachDependency() method has been deprecated and is scheduled to be removed in Gradle 3.0. Please use the DependencySubstitution.eachModule() method instead.")
-    }
-
     void "all rules are executed orderly and last one wins"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
@@ -152,76 +118,20 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        assert it.target == it.requested
-                        it.useVersion '1.4'
-                    }
-                    eachModule {
-                        assert it.target.version == '1.4'
-                        assert it.target.module == it.requested.module
-                        assert it.target.group == it.requested.group
-                        it.useVersion '1.5'
-                    }
-                    eachModule {
-                        assert it.target.version == '1.5'
-                        //don't change the version
-                    }
-                }
-	        }
-
-	        task check << {
-	            def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                assert deps.size() == 2
-                deps.each {
-	                assert it.selected.id.version == '1.5'
-	                assert it.selected.selectionReason.selectedByRule
-	                assert it.selected.selectionReason.description == 'selected by rule'
+	            eachDependency {
+	                assert it.target == it.requested
+                    it.useVersion '1.4'
 	            }
-	        }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
-    }
-
-    void "all rules are executed orderly and last one wins, including deprecated resolution rules"()
-    {
-        mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
-        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
-
-        mavenRepo.module("org.utils", "api", '1.3').publish()
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
-        buildFile << """
-            $common
-
-            dependencies {
-                conf 'org.utils:impl:1.3'
-            }
-
-            configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        assert it.target == it.requested
-                        it.useVersion '1.4'
-                    }
-                }
-                eachDependency {
-                    assert it.target.version == '1.4'
-                    assert it.target.module == it.requested.name
-                    assert it.target.group == it.requested.group
+	            eachDependency {
+	                assert it.target.version == '1.4'
+	                assert it.target.name == it.requested.name
+	                assert it.target.group == it.requested.group
                     it.useVersion '1.5'
-                }
-                dependencySubstitution {
-                    eachDependency {
-                        assert it.target.version == '1.5'
-                        //don't change the version
-                    }
-                }
+	            }
+	            eachDependency {
+	                assert it.target.version == '1.5'
+	                //don't change the version
+	            }
 	        }
 
 	        task check << {
@@ -234,7 +144,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	            }
 	        }
 """
-        executer.withDeprecationChecksDisabled()
 
         when:
         run("check")
@@ -261,11 +170,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-                dependencySubstitution {
-    	            eachModule {
-                        it.useVersion it.requested.version
-	                }
-                }
+	            eachDependency {
+                    it.useVersion it.requested.version
+	            }
 	        }
 
 	        task check << {
@@ -305,12 +212,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5", "org.utils:api:1.5")
 
-                dependencySubstitution {
-                    eachModule {
-                        assert it.target.version == '1.5'
-                        it.useVersion '1.3'
-                    }
-                }
+	            eachDependency {
+                    assert it.target.version == '1.5'
+                    it.useVersion '1.3'
+	            }
 	        }
 
 	        task check << {
@@ -350,12 +255,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy {
                 force("org.utils:impl:1.5")
 
-                dependencySubstitution {
-                    withModule("org.utils:api") {
+	            eachDependency {
+                    if (it.requested.name == 'api') {
                         assert it.target == it.requested
                         it.useVersion '1.5'
                     }
-                }
+	            }
 	        }
 
 	        task check << {
@@ -396,7 +301,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 it.useVersion '1.+'
 	        }
 
@@ -417,513 +322,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "can replace external dependency with project dependency"()
-    {
-        settingsFile << 'include "api", "impl"'
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf group: "org.utils", name: "api", version: "1.5", configuration: "conf"
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
-                    it.useTarget project(":api")
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can access built artifacts from substituted project dependency"()
-    {
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":api") {
-                task build << {
-                    mkdir(projectDir)
-                    file("artifact.txt") << "Lajos"
-                }
-
-                artifacts {
-                    conf (file("artifact.txt")) {
-                        builtBy build
-                    }
-                }
-            }
-
-            project(":impl") {
-                dependencies {
-                    conf group: "org.utils", name: "api", version: "1.5"
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule(group: "org.utils", name: "api") {
-                    it.useTarget project(":api")
-                }
-
-                task check(dependsOn: configurations.conf) << {
-                    def files = configurations.conf.files
-                    assert files*.name.sort() == ["artifact.txt"]
-                    assert files*.text.sort() == ["Lajos"]
-                }
-                // TODO:PREZI Remove this when PR#412 is merged
-                check.dependsOn project(":api").build
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can replace project dependency with external dependency"()
-    {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf project(path: ":api", configuration: "default")
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
-                    it.useTarget group: "org.utils", name: "api", version: "1.5"
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(projectId(":api"))
-                    assert deps[0].selected.componentId == moduleId("org.utils", "api", "1.5")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can replace transitive external dependency with project dependency"()
-    {
-        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
-        settingsFile << 'include "api", "test"'
-
-        buildFile << """
-            $common
-
-            project(":test") {
-                dependencies {
-                    conf group: "org.utils", name: "impl", version: "1.5"
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId == moduleId("org.utils", "impl", "1.5")
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule
-                    }
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                        it.selected.componentId == projectId(":api")
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule
-                    }
-                }
-            }
-"""
-
-        expect:
-        succeeds("test:check")
-    }
-
-    void "can replace client module dependency with project dependency"()
-    {
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf module(group: "org.utils", name: "api", version: "1.5")
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can replace client module's transitive dependency with project dependency"()
-    {
-        settingsFile << 'include "api", "impl"'
-        mavenRepo.module("org.utils", "bela", '1.5').publish()
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf module(group: "org.utils", name: "bela", version: "1.5") {
-                        dependencies group: "org.utils", name: "api", version: "1.5"
-                    }
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.selected.componentId == moduleId("org.utils", "bela", "1.5") &&
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule
-                    }
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5")) &&
-                        it.selected.componentId == projectId(":api") &&
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule
-                    }
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can replace external dependency declared in extended configuration with project dependency"()
-    {
-        mavenRepo.module("org.utils", "api", '1.5').publish()
-
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                configurations {
-                    testConf.extendsFrom conf
-                }
-
-                dependencies {
-                    conf group: "org.utils", name: "api", version: "1.5"
-                }
-
-                configurations.testConf.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
-                }
-
-                task checkConf << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == moduleId("org.utils", "api", "1.5")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert !deps[0].selected.selectionReason.selectedByRule
-                }
-
-                task checkTestConf << {
-                    def deps = configurations.testConf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-
-                task check(dependsOn: [ checkConf, checkTestConf ])
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "can replace forced external dependency with project dependency"()
-    {
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf group: "org.utils", name: "api", version: "1.5"
-                }
-
-                configurations.conf.resolutionStrategy {
-                    force("org.utils:api:1.3")
-
-                    dependencySubstitution.withModule("org.utils:api") {
-                        it.useTarget project(":api")
-                    }
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "replacing external module dependency with project dependency keeps the original configuration"()
-    {
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":api") {
-                configurations {
-                    archives
-                }
-
-                artifacts {
-                    archives file("archives.txt")
-                    conf file("conf.txt")
-                }
-            }
-
-            project(":impl") {
-                configurations {
-                    compile
-                }
-
-                dependencies {
-                    compile group: "org.utils", name: "api", version: "1.5", configuration: "conf"
-                }
-
-                configurations.compile.resolutionStrategy.dependencySubstitution.withModule("org.utils:api") {
-                    it.useTarget project(":api")
-                }
-
-                task check << {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["conf.txt"]
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    void "replacing external module dependency with project dependency keeps the original transitivity"()
-    {
-        mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
-        settingsFile << 'include "impl", "test"'
-
-        buildFile << """
-            $common
-
-            project(":test") {
-                dependencies {
-                    conf (group: "org.utils", name: "impl", version: "1.5") { transitive = false }
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:impl") {
-                    it.useTarget project(":impl")
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "impl", "1.5"))
-                        it.selected.componentId == projectId(":impl")
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule
-                    }
-                }
-            }
-"""
-
-        expect:
-        succeeds("test:check")
-    }
-
-    void "external dependency substituted for a project dependency participates in conflict resolution"()
-    {
-        mavenRepo.module("org.utils", "api", '2.0').publish()
-
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":impl") {
-                dependencies {
-                    conf project(":api")
-                    conf "org.utils:api:2.0"
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.withProject(":api") {
-                    it.useTarget "org.utils:api:1.6"
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(projectId(":api")) &&
-                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
-                        it.selected.componentId == moduleId("org.utils", "api", "2.0") &&
-                        !it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
-
-                    def resolvedDeps = configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
-                    resolvedDeps.size() == 1
-                    resolvedDeps[0].module.id == moduleId("org.utils", "api", "2.0")
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-    }
-
-    @Unroll
-    void "project dependency substituted for an external dependency participates in conflict resolution (version #apiProjectVersion)"()
-    {
-        mavenRepo.module("org.utils", "api", '2.0').publish()
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << """
-            $common
-
-            project(":api") {
-                group "org.utils"
-                version = $apiProjectVersion
-            }
-
-            project(":impl") {
-                dependencies {
-                    conf "org.utils:api:1.5"
-                    conf "org.utils:api:2.0"
-                }
-
-                configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
-                    if (it.requested.module == "api" && it.requested.version == "1.5") {
-                        it.useTarget project(":api")
-                    }
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "1.5")) &&
-                        it.selected.componentId == $winner &&
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule == $selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
-                    assert deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(moduleId("org.utils", "api", "2.0")) &&
-                        it.selected.componentId == $winner &&
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule == $selectedByRule &&
-                        it.selected.selectionReason.conflictResolution
-                    }
-                }
-            }
-"""
-
-        expect:
-        succeeds("impl:check")
-
-        where:
-        apiProjectVersion | winner                                | selectedByRule
-        "1.6"             | 'moduleId("org.utils", "api", "2.0")' | false
-        "3.0"             | 'projectId(":api")'                   | true
-    }
-
     void "can blacklist a version"()
     {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
@@ -938,9 +336,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 // a:1.2 is blacklisted, 1.4 should be used instead:
-                if (it.requested.module == 'a' && it.requested.version == '1.2') {
+                if (it.requested.name == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.4'
                 }
 	        }
@@ -976,9 +374,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 // a:1.2 is blacklisted, 1.2.1 should be used instead:
-                if (it.requested.module == 'a' && it.requested.version == '1.2') {
+                if (it.requested.name == 'a' && it.requested.version == '1.2') {
                     it.useVersion '1.2.1'
                 }
 	        }
@@ -1011,7 +409,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:default'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.version == 'default') {
                     it.useVersion '1.3'
                 }
@@ -1045,7 +443,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:impl:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.version == 'default') {
                     it.useVersion '1.3'
                 }
@@ -1079,7 +477,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:api:1.3'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 it.useVersion '1.123.15' //does not exist
 	        }
 
@@ -1134,11 +532,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             List requested = []
 
             configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        requested << "\$it.requested.module:\$it.requested.version"
-                    }
-                }
+	            eachDependency {
+                    requested << "\$it.requested.name:\$it.requested.version"
+	            }
 	        }
 
 	        task check << {
@@ -1170,14 +566,12 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.conf.resolutionStrategy {
-                dependencySubstitution {
-                    eachModule {
-                        it.useVersion '1.3' //happy
-                    }
-                    eachModule {
-                        throw new RuntimeException("Unhappy :(")
-                    }
-                }
+	            eachDependency {
+                    it.useVersion '1.3' //happy
+	            }
+                eachDependency {
+                    throw new RuntimeException("Unhappy :(")
+	            }
 	        }
 """
 
@@ -1204,8 +598,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:a:1.2', 'org.utils:b:2.0'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.withModule("org.utils:a") {
-                it.useTarget(it.requested.group + ':b:2.1')
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.name == 'a') {
+                    it.useTarget(it.requested.group + ':b:2.1')
+                }
 	        }
 
 	        task check << {
@@ -1245,9 +641,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:b:1.0'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.group == 'foo') {
-                    it.useTarget('org:' + it.requested.module + ':' + it.requested.version)
+                    it.useTarget('org:' + it.requested.name + ':' + it.requested.version)
                 }
 	        }
 """
@@ -1279,7 +675,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 if (it.requested.group == 'foo') {
                     it.useTarget group: 'org', name: 'b', version: '1.0'
                 }
@@ -1306,7 +702,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'foo:bar:baz'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
+            configurations.conf.resolutionStrategy.eachDependency {
                 it.useTarget "foobar"
 	        }
 """
@@ -1331,8 +727,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:a:1.0', 'org:a:2.0'
             }
 
-            configurations.conf.resolutionStrategy.dependencySubstitution.eachModule {
-                if (it.requested.module == 'a' && it.requested.version == '1.0') {
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.name == 'a' && it.requested.version == '1.0') {
                     it.useTarget group: 'org', name: 'c', version: '1.1'
                 }
 	        }
@@ -1388,30 +784,14 @@ conf
     }
 
     String getCommon() {
-        """
-        allprojects {
-            configurations {
-                conf
-            }
-            configurations.create("default").extendsFrom(configurations.conf)
-
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-
-            task resolveConf << { configurations.conf.files }
+        """configurations { conf }
+        repositories {
+            maven { url "${mavenRepo.uri}" }
         }
+        task resolveConf << { configurations.conf.files }
 
         //resolving the configuration at the end:
         gradle.startParameter.taskNames += 'resolveConf'
-
-        def moduleId(String group, String name, String version) {
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
-        }
-
-        def projectId(String projectPath) {
-            return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newId(projectPath)
-        }
         """
     }
 }

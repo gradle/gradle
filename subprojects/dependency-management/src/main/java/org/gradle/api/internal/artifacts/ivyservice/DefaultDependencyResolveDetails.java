@@ -17,14 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
 
@@ -50,22 +50,19 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
-        ComponentSelector target = getTarget();
-        if (target instanceof ModuleComponentSelector) {
-            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            if (!version.equals(moduleTarget.getVersion())) {
-                delegate.useTarget(DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), version), selectionReason);
-            } else {
-                delegate.useTarget(moduleTarget, selectionReason);
-            }
+        ModuleComponentSelector moduleTarget = (ModuleComponentSelector) delegate.getTarget();
+        if (!version.equals(moduleTarget.getVersion())) {
+            delegate.useTarget(DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), version), selectionReason);
         } else {
-            throw new ModuleVersionResolveException(target, "Cannot substitute %s with version '" + version + "'.");
+            // Still 'updated' with reason when version remains the same.
+            delegate.useTarget(moduleTarget, selectionReason);
         }
     }
 
     @Override
     public void useTarget(Object notation) {
-        delegate.useTarget(notation);
+        ModuleVersionSelector newTarget = ModuleVersionSelectorParsers.parser().parseNotation(notation);
+        delegate.useTarget(DefaultModuleComponentSelector.newSelector(newTarget), VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
     @Override
@@ -79,7 +76,8 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     @Override
-    public ComponentSelector getTarget() {
-        return delegate.getTarget();
+    public ModuleVersionSelector getTarget() {
+        ModuleComponentSelector realTarget = (ModuleComponentSelector) delegate.getTarget();
+        return DefaultModuleVersionSelector.newSelector(realTarget.getGroup(), realTarget.getModule(), realTarget.getVersion());
     }
 }

@@ -88,9 +88,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     public ResolutionStrategy eachDependency(Action<? super DependencyResolveDetails> rule) {
-//        DeprecationLogger.nagUserOfReplacedMethod("ResolutionStrategy.eachDependency()", "DependencySubstitution.eachModule()");
         mutationValidator.validateMutation(STRATEGY);
         dependencySubstitutions.allWithDependencyResolveDetails(rule);
         return this;

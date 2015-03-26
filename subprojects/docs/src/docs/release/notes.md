@@ -99,6 +99,53 @@ allows access to the `ComponentSelector` as well:
             }
         }
     }
+### Dependency substitution rules
+
+In previous Gradle versions you could replace an external dependency with another like this:
+
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
+                useVersion '1.3'
+            }
+        }
+    }
+
+This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
+These rules allow an external dependency to be replaced with a project dependency, and vice-versa. 
+
+You replace a project dependency with an external dependency like this:
+
+    resolutionStrategy {
+        dependencySubstitution {
+            withProject(project(":api")) { 
+                useTarget group: "org.utils", name: "api", version: "1.3" 
+            }
+        }
+    }
+
+And replace an external dependency with an project dependency like this:
+
+
+    resolutionStrategy {
+        dependencySubstitution {
+            withModule("com.example:my-module") {
+                useTarget project(":project1")  
+            }
+        }
+    }
+
+There are other options available to match module and project dependencies:
+
+    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
+    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
+    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
+    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
+    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
+
+It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
+as `eachDependency`).
+Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
 
 ### Unique Maven snapshots
 
@@ -242,42 +289,6 @@ If you were using StartParameter.getParallelThreadCount() to check if parallel-p
 
 TODO
 
-### Dependency substitution changes
-
-In previous Gradle versions you could replace an external dependency with another like this:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
-                useVersion '1.3'
-            }
-        }
-    }
-
-This method has been deprecated, and a new DSL has been introduced:
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withModule("com.example:my-module") { useVersion "1.3" }
-        }
-    }
-
-There are other options available to match module and project dependencies:
-
-    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
-    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
-    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
-    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
-
-Note that only `ModuleDependencySubstitution` has the `useVersion()` method. For the other substitutions you can use `useTarget()`:
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withProject(project(":api")) { useTarget group: "org.utils", name: "api", version: "1.3" }
-        }
-    }
-
 ### Lifecycle plugin changes
 
 Defining custom tasks named `build`, `clean` or `check` when using the standard Gradle lifecycle plugins (e.g. the `base` plugin) has been deprecated.
@@ -324,10 +335,6 @@ location to `install` to. The default repository was `mavenLocal()`.
 
 It is no longer possible to override this location by supplying a repository to the `PublishToMavenLocal` task. Any supplied repository
 will be ignored.
-
-### DependencyResolveDetails.getTarget() returns a `ComponentSelector`
-
-The `getTarget()` method on the now deprecated `DefaultDependencyResolveDetails` returns a `ComponentSelector` instead of a `ModuleVersionSelector`.
 
 ### CommandLineToolConfiguration.withArguments() semantics have changed
 

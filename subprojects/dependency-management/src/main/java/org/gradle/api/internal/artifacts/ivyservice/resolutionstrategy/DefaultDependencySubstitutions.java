@@ -72,7 +72,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule) {
         addRule(new DependencyResolveDetailsWrapperAction(rule));
         return this;
@@ -252,8 +251,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution<ComponentSelector>> {
+    private static class DependencyResolveDetailsWrapperAction implements Action<DependencySubstitution<? extends ComponentSelector>> {
         private final Action<? super DependencyResolveDetails> delegate;
 
         public DependencyResolveDetailsWrapperAction(Action<? super DependencyResolveDetails> delegate) {
@@ -261,7 +259,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
 
         @Override
-        public void execute(DependencySubstitution<ComponentSelector> substitution) {
+        public void execute(DependencySubstitution<? extends ComponentSelector> substitution) {
             DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal<?>) substitution);
             delegate.execute(details);
         }
