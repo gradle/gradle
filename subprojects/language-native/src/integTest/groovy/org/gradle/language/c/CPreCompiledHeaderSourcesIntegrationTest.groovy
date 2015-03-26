@@ -27,11 +27,6 @@ class CPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiled
     }
 
     @Override
-    String getPluginId() {
-        return "c"
-    }
-
-    @Override
     String getSourceSet() {
         return "c"
     }

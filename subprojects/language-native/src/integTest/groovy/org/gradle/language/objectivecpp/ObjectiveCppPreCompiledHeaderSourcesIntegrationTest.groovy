@@ -30,11 +30,6 @@ class ObjectiveCppPreCompiledHeaderSourcesIntegrationTest extends AbstractNative
     }
 
     @Override
-    String getPluginId() {
-        return "objective-cpp"
-    }
-
-    @Override
     String getSourceSet() {
         return "objcpp"
     }

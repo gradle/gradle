@@ -24,8 +24,12 @@ import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     abstract PCHHelloWorldApp getApp()
-    abstract String getPluginId()
     abstract String getSourceSet()
+
+    def "setup"() {
+        buildFile << app.pluginScript
+        buildFile << app.extraConfiguration
+    }
 
     def "can set a precompiled header on a source set for a relative source header" () {
         given:
@@ -38,8 +42,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         when:
         buildFile << """
-            apply plugin: '${pluginId}'
-
             model {
                 components {
                     hello(NativeLibrarySpec) {
@@ -90,8 +92,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         def headerDir = file("src/include/headers")
         def safeHeaderDirPath = TextUtil.escape(headerDir.absolutePath)
         buildFile << """
-            apply plugin: '${pluginId}'
-
             model {
                 components {
                     hello(NativeLibrarySpec) {
@@ -144,8 +144,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         def systemHeaderDir = file("src/systemHeader/headers")
         def safeHeaderDirPath = TextUtil.escape(systemHeaderDir.absolutePath)
         buildFile << """
-            apply plugin: '${pluginId}'
-
             model {
                 components {
                     hello(NativeLibrarySpec) {
@@ -195,8 +193,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         when:
         buildFile << """
-            apply plugin: '${pluginId}'
-
             model {
                 components {
                     hello(NativeLibrarySpec) {
@@ -231,6 +227,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     String getUniquePragmaOutput(String message) {
         if (toolChain.displayName == "clang") {
             return "warning: ${message}"
+        } else if (toolChain.displayName == "gcc") {
+            return "message: ${message}"
         } else {
             return message
         }

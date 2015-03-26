@@ -27,11 +27,6 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
     }
 
     @Override
-    String getPluginId() {
-        return "cpp"
-    }
-
-    @Override
     String getSourceSet() {
         return "cpp"
     }

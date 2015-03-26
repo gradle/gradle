@@ -30,11 +30,6 @@ class ObjectiveCPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePr
     }
 
     @Override
-    String getPluginId() {
-        return "objective-c"
-    }
-
-    @Override
     String getSourceSet() {
         return "objc"
     }
