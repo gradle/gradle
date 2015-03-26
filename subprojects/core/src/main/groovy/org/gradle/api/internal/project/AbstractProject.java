@@ -88,7 +88,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
-    private final ProjectAccessListener projectAccessListener;
     private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
@@ -150,8 +149,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory,
                            ClassLoaderScope selfClassLoaderScope,
-                           ClassLoaderScope baseClassLoaderScope,
-                           ProjectAccessListener projectAccessListener) {
+                           ClassLoaderScope baseClassLoaderScope) {
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         assert name != null;
@@ -162,7 +160,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
-        this.projectAccessListener = projectAccessListener;
 
         if (parent == null) {
             path = Path.ROOT;
@@ -587,7 +584,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
-                projectAccessListener.beforeRequestingTaskByPath((ProjectInternal) project);
+                getProjectAccessListener().beforeRequestingTaskByPath((ProjectInternal) project);
 
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
@@ -985,8 +982,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         getDeferredProjectConfiguration().fire();
     }
 
-    @Override
-    public ProjectAccessListener getProjectAccessListener() {
-        return projectAccessListener;
+    @Inject
+    protected ProjectAccessListener getProjectAccessListener() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
     }
 }

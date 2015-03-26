@@ -21,7 +21,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.NonExistentFileScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,8 +36,7 @@ class ProjectFactoryTest extends Specification {
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def projectAccessListener = Stub(ProjectAccessListener)
-    def factory = new ProjectFactory(instantiator, projectRegistry, projectAccessListener)
+    def factory = new ProjectFactory(instantiator, projectRegistry)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 
@@ -60,7 +58,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof UriScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope, projectAccessListener) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof UriScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -78,7 +76,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof NonExistentFileScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope, projectAccessListener) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, { it instanceof NonExistentFileScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -97,7 +95,7 @@ class ProjectFactoryTest extends Specification {
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope, projectAccessListener) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * parent.addChildProject(project)
         1 * projectRegistry.addProject(project)
     }
