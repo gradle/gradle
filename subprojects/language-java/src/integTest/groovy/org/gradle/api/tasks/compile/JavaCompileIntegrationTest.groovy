@@ -61,6 +61,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             subprojects {
                 apply plugin: 'java'
+                tasks.withType(JavaCompile) {
+                    options.compilerArgs << '-Xlint:all' << '-Werror'
+                }
             }
             project(':b') {
                 dependencies {

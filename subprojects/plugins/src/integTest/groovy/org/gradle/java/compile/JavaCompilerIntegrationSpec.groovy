@@ -19,8 +19,7 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
     def setup() {
         buildFile << """
         tasks.withType(JavaCompile) {
-            options.compilerArgs << '-Xlint:all'
-            options.compilerArgs << '-Werror'
+            options.compilerArgs << '-Xlint:all' << '-Werror'
         }
 """
     }
@@ -39,11 +38,9 @@ abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationS
             }
 
             def createJarFile(String libraryPath) {
-                FileOutputStream stream = new FileOutputStream(file(libraryPath));
-                def out = new java.util.jar.JarOutputStream(stream, new java.util.jar.Manifest());
-                out.close()
-                stream.close()
-                libraryPath
+                new java.util.jar.JarOutputStream(new FileOutputStream(file(libraryPath)), new java.util.jar.Manifest()).withStream {
+                    libraryPath
+                }
             }
         '''
 

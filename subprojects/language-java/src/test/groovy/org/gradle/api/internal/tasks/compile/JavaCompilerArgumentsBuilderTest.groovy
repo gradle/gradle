@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.tasks.compile
+
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
@@ -26,7 +27,7 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 class JavaCompilerArgumentsBuilderTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tempDir  = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
 
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
@@ -318,7 +319,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     String defaultEmptySourcePathRefFolder() {
-        return tempDir.file("tmp/$JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR").absolutePath
+        new File(spec.tempDir, JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR).absolutePath
     }
 
     def "can exclude customizations"() {
