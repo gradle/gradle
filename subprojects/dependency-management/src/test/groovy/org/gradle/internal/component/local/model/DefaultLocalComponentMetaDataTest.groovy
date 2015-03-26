@@ -15,8 +15,8 @@
  */
 
 package org.gradle.internal.component.local.model
+
 import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -79,7 +79,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         given:
         moduleDescriptor.addConfiguration(new Configuration("conf1"))
         moduleDescriptor.addConfiguration(new Configuration("conf2"))
-        moduleDescriptor.addConfiguration(new Configuration("conf3"))
 
         when:
         metaData.addArtifact("conf1", artifact, file)
@@ -194,10 +193,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishArtifact.artifact.type == artifact.type
         publishArtifact.artifact.ext == artifact.extension
         publishArtifact.file == file
-    }
-
-    def artifact() {
-        return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(), null, "artifact", "type", "ext")
     }
 
     def artifactName() {

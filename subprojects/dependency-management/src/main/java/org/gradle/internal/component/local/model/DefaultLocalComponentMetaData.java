@@ -19,7 +19,6 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.*;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
@@ -29,7 +28,6 @@ import org.gradle.internal.component.external.model.BuildableIvyModulePublishMet
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.*;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
@@ -66,28 +64,19 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         configurationArtifacts.put(configuration, artifacts);
     }
 
+    // TODO:DAZ We shouldn't need to 'resolve' the artifacts: just keep the configuration->PublishArtifactSet mapping for the life of this instance.
+    // This mapping is the source of truth for the artifacts for this component
     private void resolveArtifacts() {
         if (!artifactsResolved) {
             for (String configuration : configurationArtifacts.keySet()) {
                 PublishArtifactSet artifacts = configurationArtifacts.get(configuration);
                 for (PublishArtifact artifact : artifacts) {
-                    addArtifact(configuration, createIvyArtifact(artifact), artifact.getFile());
+                    IvyArtifactName ivyArtifact = DefaultIvyArtifactName.forPublishArtifact(artifact, id.getName());
+                    addArtifact(configuration, ivyArtifact, artifact.getFile());
                 }
             }
             artifactsResolved = true;
         }
-    }
-
-    private IvyArtifactName createIvyArtifact(PublishArtifact publishArtifact) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
-        if (GUtil.isTrue(publishArtifact.getClassifier())) {
-            extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
-        }
-        String name = publishArtifact.getName();
-        if (!GUtil.isTrue(name)) {
-            name = id.getName();
-        }
-        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
     }
 
     void addArtifact(String configuration, IvyArtifactName artifactName, File file) {
@@ -115,13 +104,13 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         moduleDescriptor.addExcludeRule(excludeRule);
     }
 
-    // TODO:DAZ Unit test only
+    // TODO:DAZ This is used in unit-tests only
     public Collection<? extends LocalArtifactMetaData> getArtifacts() {
         resolveArtifacts();
         return artifactsById.values();
     }
 
-    // TODO:DAZ Unit test only
+    // TODO:DAZ This is used in unit-tests only
     public LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier) {
         resolveArtifacts();
         return artifactsById.get(artifactIdentifier);
@@ -133,7 +122,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public BuildableIvyModulePublishMetaData toPublishMetaData() {
         resolveArtifacts();
-        // TODO:DAZ Need to construct Ivy Artifact instances for all configurations here
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id);
         for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
             IvyArtifactName artifactName = artifact.getName();
@@ -153,6 +141,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.putAll(artifact.getAttributes());
             attrs.put("file", file == null ? "null" : file.getAbsolutePath());
+            // TODO:DAZ The local artifact identifier should include the file directly, rather than hacking the IvyArtifactName in this way
             this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact.getName(), artifact.getType(), artifact.getExtension(), attrs);
             this.file = file;
         }
@@ -197,10 +186,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
             resolveArtifacts();
 
-            // TODO:DAZ Work out what this actually means: I think it's used for finding the _real_ artifact that matches one declared in a dependency
-            // In that case we should be inspecting the included PublishArtifact instances and building a ComponentArtifactMetaData for the matching one.
-            // TODO:DAZ Maybe fail if the artifacts have not yet been built for the component
-
+            // TODO:DAZ Find a matching PublishArtifact and build a ComponentArtifactMetaData from that
             DefaultLocalArtifactMetaData candidate = artifactsByIvyName.get(ivyArtifactName);
             return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
         }
@@ -214,8 +200,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         @Override
         protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
             resolveArtifacts();
-            // TODO:DAZ Build up from PublishArtifactSet here
-            // TODO:DAZ Maybe build them all at once
+
+            // TODO:DAZ Build up from configuration->PublishArtifactSet mapping directly here
             Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
             Set<ComponentArtifactIdentifier> seen = new HashSet<ComponentArtifactIdentifier>();
             for (String configName : configurationMetaData.getHierarchy()) {
