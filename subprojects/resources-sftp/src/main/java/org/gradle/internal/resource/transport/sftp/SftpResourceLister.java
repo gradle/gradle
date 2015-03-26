@@ -34,12 +34,12 @@ public class SftpResourceLister implements ExternalResourceLister {
         this.credentials = credentials;
     }
 
-    public List<String> list(URI parent) {
-        LockableSftpClient client = sftpClientFactory.createSftpClient(parent, credentials);
+    public List<String> list(URI directory) {
+        LockableSftpClient client = sftpClientFactory.createSftpClient(directory, credentials);
 
         try {
             @SuppressWarnings("unchecked")
-            Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(parent.getPath());
+            Vector<ChannelSftp.LsEntry> entries = client.getSftpClient().ls(directory.getPath());
             List<String> list = new ArrayList<String>();
             for (ChannelSftp.LsEntry entry : entries) {
                 list.add(entry.getFilename());
@@ -49,7 +49,7 @@ public class SftpResourceLister implements ExternalResourceLister {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw new SftpException(String.format("Could not list children for resource '%s'.", parent), e);
+            throw new SftpException(directory, String.format("Could not list children for resource '%s'.", directory), e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }

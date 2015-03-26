@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FileResourceConnector implements ExternalResourceConnector {
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
             String[] names = dir.list();
@@ -72,7 +72,7 @@ public class FileResourceConnector implements ExternalResourceConnector {
         return new DefaultLocallyAvailableExternalResource(uri, new DefaultLocallyAvailableResource(localFile));
     }
 
-    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) {
         ExternalResource resource = getResource(location);
         return resource == null ? null : resource.getMetaData();
     }

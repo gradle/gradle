@@ -50,7 +50,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return accessor.getResource(source);
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source) throws IOException {
+    public ExternalResourceMetaData getResourceMetaData(URI source) {
         return accessor.getMetaData(source);
     }
 

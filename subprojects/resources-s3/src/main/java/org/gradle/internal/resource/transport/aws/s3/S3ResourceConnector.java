@@ -40,7 +40,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         this.s3Client = s3Client;
     }
 
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
         return s3Client.list(parent);
     }

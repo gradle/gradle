@@ -19,13 +19,41 @@ package org.gradle.internal.resource;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
+import java.net.URI;
+
 @Contextual
 public class ResourceException extends GradleException {
-    public ResourceException(String message) {
+    private final URI location;
+
+    public ResourceException(URI location, String message) {
         super(message);
+        this.location = location;
+    }
+
+    public ResourceException(URI location, String message, Throwable cause) {
+        super(message, cause);
+        this.location = location;
     }
 
     public ResourceException(String message, Throwable cause) {
         super(message, cause);
+        this.location = null;
+    }
+
+    /**
+     * Wraps the given failure, unless it is a ResourceException with the specified location.
+     */
+    public static ResourceException failure(URI location, String message, Throwable failure) {
+        if (failure instanceof ResourceException) {
+            ResourceException resourceException = (ResourceException) failure;
+            if (location.equals(resourceException.getLocation())) {
+                return resourceException;
+            }
+        }
+        return new ResourceException(location, message, failure);
+    }
+
+    public URI getLocation() {
+        return location;
     }
 }

@@ -187,7 +187,7 @@ class MavenVersionListerTest extends Specification {
     }
 
     def "visit throws ResourceException when maven-metadata cannot be loaded"() {
-        def failure = new IOException()
+        def failure = new RuntimeException()
 
         when:
         def versionList = lister.newVisitor(module, [], result)

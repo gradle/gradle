@@ -45,7 +45,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw new SftpException(String.format("Could not get resource '%s'.", uri), e);
+            throw new SftpException(uri, String.format("Could not get resource '%s'.", uri), e);
         } finally {
             sftpClientFactory.releaseSftpClient(sftpClient);
         }

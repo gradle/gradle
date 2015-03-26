@@ -46,7 +46,7 @@ public class SftpResource extends AbstractExternalResource {
         try {
             return client.getSftpClient().get(uri.getPath());
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(String.format("Could not get resource at '%s'.", uri), e);
+            throw new SftpException(uri, String.format("Could not get resource at '%s'.", uri), e);
         }
     }
 

@@ -156,7 +156,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 resource.close();
             }
         } catch (Exception e) {
-            throw new ResourceException(String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            throw new ResourceException(location, String.format("Failed to download SHA1 for resource '%s'.", location), e);
         }
     }
 
@@ -193,7 +193,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                throw new ResourceException(String.format("Failed to download resource '%s'.", source), e);
+                 throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {

@@ -18,8 +18,10 @@ package org.gradle.internal.resource.transport.sftp;
 
 import org.gradle.internal.resource.ResourceException;
 
+import java.net.URI;
+
 public class SftpException extends ResourceException {
-    public SftpException(String message, Throwable cause) {
-        super(message, cause);
+    public SftpException(URI location, String message, Throwable cause) {
+        super(location, message, cause);
     }
 }

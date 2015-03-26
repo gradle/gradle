@@ -43,7 +43,7 @@ public class ApacheDirectoryListingParser {
     public List<String> parse(URI baseURI, InputStream content, String contentType) throws Exception {
         baseURI = addTrailingSlashes(baseURI);
         if (contentType == null || !contentType.startsWith("text/html")) {
-            throw new ResourceException(String.format("Unsupported ContentType %s for DirectoryListing", contentType));
+            throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
         String contentEncoding = UriResource.extractCharacterEncoding(contentType, "utf-8");
         final Reader htmlText = new InputStreamReader(content, contentEncoding);

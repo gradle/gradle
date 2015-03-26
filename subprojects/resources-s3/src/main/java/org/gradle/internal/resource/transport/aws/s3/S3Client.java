@@ -103,7 +103,7 @@ public class S3Client {
 
             amazonS3Client.putObject(putObjectRequest);
         } catch (AmazonClientException e) {
-            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
+            throw new S3Exception(destination, String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
         }
     }
 
@@ -184,7 +184,7 @@ public class S3Client {
             if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
                 return null;
             }
-            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
+            throw new S3Exception(uri, String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
         }
     }
 

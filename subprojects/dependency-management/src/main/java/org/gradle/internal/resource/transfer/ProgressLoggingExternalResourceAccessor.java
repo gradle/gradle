@@ -44,7 +44,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     }
 
     @Nullable
-    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) {
         return delegate.getMetaData(location);
     }
 

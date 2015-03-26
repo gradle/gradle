@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
@@ -74,8 +73,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 if (repository.getResourceMetaData(location.getUri()) != null) {
                     return true;
                 }
-            } catch (IOException e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
+            } catch (Exception e) {
+                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
             }
         }
         return false;
@@ -97,7 +96,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                     return resource;
                 }
             } catch (Exception e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
+                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
             }
         }
         return null;

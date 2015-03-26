@@ -68,10 +68,11 @@ public class SftpClientFactory implements Stoppable {
                 channel.connect();
                 return new DefaultLockableSftpClient(sftpHost, (ChannelSftp) channel, session);
             } catch (JSchException e) {
+                URI serverUri = URI.create(String.format("sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()));
                 if (e.getMessage().equals("Auth fail")) {
-                    throw new SftpException(String.format("Password authentication not supported or invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                    throw new SftpException(serverUri, String.format("Password authentication not supported or invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
                 }
-                throw new SftpException(String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                throw new SftpException(serverUri, String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
             }
         }
 

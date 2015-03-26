@@ -18,9 +18,10 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import org.gradle.internal.resource.ResourceException;
 
-public class S3Exception extends ResourceException {
+import java.net.URI;
 
-    public S3Exception(String message, Throwable cause) {
-        super(message, cause);
+public class S3Exception extends ResourceException {
+    public S3Exception(URI location, String message, Throwable cause) {
+        super(location, message, cause);
     }
 }

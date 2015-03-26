@@ -32,8 +32,8 @@ public class HttpResourceLister implements ExternalResourceLister {
         this.accessor = accessor;
     }
 
-    public List<String> list(final URI parent) throws IOException {
-        final HttpResponseResource resource = accessor.getResource(parent);
+    public List<String> list(final URI directory) throws IOException {
+        final HttpResponseResource resource = accessor.getResource(directory);
         if (resource == null) {
             return null;
         }
@@ -43,9 +43,9 @@ public class HttpResourceLister implements ExternalResourceLister {
                     String contentType = resource.getContentType();
                     ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
                     try {
-                        return directoryListingParser.parse(parent, inputStream, contentType);
+                        return directoryListingParser.parse(directory, inputStream, contentType);
                     } catch (Exception e) {
-                        throw new ResourceException("Unable to parse HTTP directory listing.", e);
+                        throw new ResourceException(directory, String.format("Unable to parse HTTP directory listing for '%s'.", directory), e);
                     }
                 }
             });

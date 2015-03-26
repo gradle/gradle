@@ -55,10 +55,8 @@ public class ResourceVersionLister implements VersionLister {
                     for (String versionString : versionStrings) {
                         dest.add(versionString);
                     }
-                } catch (ResourceException e) {
-                    throw e;
                 } catch (Exception e) {
-                    throw new ResourceException(String.format("Could not list versions using %s.", pattern), e);
+                    throw ResourceException.failure(versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);
                 }
             }
 
