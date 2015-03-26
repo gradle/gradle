@@ -280,7 +280,7 @@ Note that only `ModuleDependencySubstitution` has the `useVersion()` method. For
 
 ### Lifecycle plugin changes
 
-Defining custom tasks named `build` or `check` when using the standard Gradle lifecycle plugins (e.g. the `base` plugin) has been deprecated.
+Defining custom tasks named `build`, `clean` or `check` when using the standard Gradle lifecycle plugins (e.g. the `base` plugin) has been deprecated.
 
 ## Potential breaking changes
 

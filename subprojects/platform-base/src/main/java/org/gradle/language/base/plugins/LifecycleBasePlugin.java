@@ -49,13 +49,17 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         addDeprecationWarningsAboutCustomLifecycleTasks(project);
     }
 
-    private void addClean(final Project project) {
-        Delete clean = project.getTasks().create(CLEAN_TASK_NAME, Delete.class);
-        clean.setDescription("Deletes the build directory.");
-        clean.setGroup(BUILD_GROUP);
-        clean.delete(new Callable<File>() {
-            public File call() throws Exception {
-                return project.getBuildDir();
+    private void addClean(final ProjectInternal project) {
+        project.getTasks().addPlaceholderAction(CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete clean) {
+                clean.setDescription("Deletes the build directory.");
+                clean.setGroup(VERIFICATION_GROUP);
+                clean.delete(new Callable<File>() {
+                    public File call() throws Exception {
+                        return project.getBuildDir();
+                    }
+                });
             }
         });
     }
@@ -101,6 +105,9 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
                 }
                 if (task.getName().equals(CHECK_TASK_NAME)) {
                     DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, CHECK_TASK_NAME));
+                }
+                if (task.getName().equals(CLEAN_TASK_NAME)) {
+                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, CLEAN_TASK_NAME));
                 }
             }
         });

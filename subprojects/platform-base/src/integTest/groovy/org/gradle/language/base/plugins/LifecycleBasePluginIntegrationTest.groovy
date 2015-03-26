@@ -41,7 +41,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains("Defining custom '$taskName' task when using the standard Gradle lifecycle plugins has been deprecated and is scheduled to be removed")
         where:
-        taskName << ["check", "build"]
+        taskName << ["check", "clean", "build"]
     }
 
     def "can attach custom task as dependency to lifecycle task - #task"() {

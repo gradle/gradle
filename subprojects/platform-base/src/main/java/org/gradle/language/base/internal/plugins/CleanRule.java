@@ -45,7 +45,9 @@ public class CleanRule implements Rule {
         if (!taskName.startsWith(PREFIX)) {
             return;
         }
-
+        if (taskName.equals(PREFIX)) {
+            return;
+        }
         String targetTaskName = taskName.substring(PREFIX.length());
         if (Character.isLowerCase(targetTaskName.charAt(0))) {
             return;
