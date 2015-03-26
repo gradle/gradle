@@ -194,16 +194,15 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             return dependencies;
         }
 
-        public ComponentArtifactMetaData artifact(Artifact artifact) {
+        public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
             resolveArtifacts();
 
             // TODO:DAZ Work out what this actually means: I think it's used for finding the _real_ artifact that matches one declared in a dependency
             // In that case we should be inspecting the included PublishArtifact instances and building a ComponentArtifactMetaData for the matching one.
             // TODO:DAZ Maybe fail if the artifacts have not yet been built for the component
 
-            IvyArtifactName ivyName = DefaultIvyArtifactName.forIvyArtifact(artifact);
-            DefaultLocalArtifactMetaData candidate = artifactsByIvyName.get(ivyName);
-            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyName, null);
+            DefaultLocalArtifactMetaData candidate = artifactsByIvyName.get(ivyArtifactName);
+            return candidate != null ? candidate : new DefaultLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName, null);
         }
 
         // TODO:DAZ This is only used in unit tests

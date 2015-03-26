@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
@@ -197,9 +198,10 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
 
     def "can adapt an Ivy artifact to a Gradle artifact"() {
         def artifact = artifact("one")
+        def artifactName = DefaultIvyArtifactName.forIvyArtifact(artifact)
 
         expect:
-        def artifactMetaData = metaData.artifact(artifact)
+        def artifactMetaData = metaData.artifact(artifactName)
         artifactMetaData.componentId == metaData.componentId
         artifactMetaData.id.componentIdentifier == metaData.componentId
         artifactMetaData.name.name == "one"

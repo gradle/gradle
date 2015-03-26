@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
@@ -33,7 +34,11 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final Map<String, String> attributes;
 
     public static DefaultIvyArtifactName forIvyArtifact(Artifact a) {
-        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getQualifiedExtraAttributes());
+        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
+    }
+
+    public static DefaultIvyArtifactName forIvyArtifact(DependencyArtifactDescriptor a) {
+        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {

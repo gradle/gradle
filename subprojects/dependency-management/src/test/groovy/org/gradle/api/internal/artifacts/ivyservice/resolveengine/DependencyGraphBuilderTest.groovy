@@ -1084,7 +1084,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        ComponentArtifactMetaData artifact(Artifact artifact) {
+        ComponentArtifactMetaData artifact(IvyArtifactName artifact) {
             return null
         }
 

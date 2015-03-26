@@ -27,10 +27,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.model.AbstractModuleDescriptorBackedMetaData;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.*;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -82,7 +79,7 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         setId(DefaultModuleVersionIdentifier.newId(componentId));
     }
 
-    public ModuleComponentArtifactMetaData artifact(Artifact artifact) {
+    public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
         return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
     }
 
@@ -121,7 +118,7 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     private void populateArtifactsFromDescriptor() {
         Map<Artifact, ModuleComponentArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
         for (Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
-            ModuleComponentArtifactMetaData artifact = artifact(descriptorArtifact);
+            ModuleComponentArtifactMetaData artifact = new DefaultModuleComponentArtifactMetaData(getComponentId(), descriptorArtifact);
             artifactToMetaData.put(descriptorArtifact, artifact);
         }
 

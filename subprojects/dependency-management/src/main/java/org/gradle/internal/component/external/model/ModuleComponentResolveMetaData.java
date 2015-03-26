@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
@@ -32,8 +31,6 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
     ModuleComponentResolveMetaData withSource(ModuleSource source);
 
     Set<ModuleComponentArtifactMetaData> getArtifacts();
-
-    ModuleComponentArtifactMetaData artifact(Artifact artifact);
 
     ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
 
