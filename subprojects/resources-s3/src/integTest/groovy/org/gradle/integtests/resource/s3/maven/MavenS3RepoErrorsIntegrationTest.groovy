@@ -57,8 +57,8 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("Could not get s3 resource: [${module.pom.uri}]. " +
-                "The AWS Access Key Id you provided does not exist in our records.")
+                .assertHasCause("Could not get resource '${module.pom.uri}'.")
+                .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
     def "fails when providing PasswordCredentials with decent error"() {

@@ -20,6 +20,7 @@ import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class SftpResourceUploader implements ExternalResourceUploader {
                 sourceStream.close();
             }
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(destination, String.format("Could not write to resource '%s'.", destination), e);
+            throw ResourceException.putFailed(destination, e);
         } finally {
             sftpClientFactory.releaseSftpClient(client);
         }
@@ -67,14 +68,14 @@ public class SftpResourceUploader implements ExternalResourceUploader {
             return;
         } catch (com.jcraft.jsch.SftpException e) {
             if (e.id != ChannelSftp.SSH_FX_NO_SUCH_FILE) {
-                throw new SftpException(parent, String.format("Could not get resource '%s'.", parent), e);
+                throw new ResourceException(parent, String.format("Could not lstat resource '%s'.", parent), e);
             }
         }
         ensureParentDirectoryExists(channel, parent);
         try {
             channel.mkdir(parentPath);
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(parent, String.format("Could not create resource '%s'.", parent), e);
+            throw new ResourceException(parent, String.format("Could not create resource '%s'.", parent), e);
         }
     }
 }

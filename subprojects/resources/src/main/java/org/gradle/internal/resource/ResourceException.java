@@ -40,6 +40,14 @@ public class ResourceException extends GradleException {
         this.location = null;
     }
 
+    public static ResourceException getFailed(URI location, Throwable failure) {
+        return failure(location, String.format("Could not get resource '%s'.", location), failure);
+    }
+
+    public static ResourceException putFailed(URI location, Throwable failure) {
+        return failure(location, String.format("Could not write to resource '%s'.", location), failure);
+    }
+
     /**
      * Wraps the given failure, unless it is a ResourceException with the specified location.
      */

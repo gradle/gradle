@@ -22,8 +22,6 @@ import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
-import static org.hamcrest.Matchers.startsWith
-
 class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
 
     String mavenVersion = "1.45"
@@ -76,9 +74,9 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractIntegrationSpec {
         fails 'publish'
 
         failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
-        failure.assertThatCause(startsWith("Failed to publish publication 'pub' to repository 'maven'"))
-                .assertHasCause("Could not put s3 resource: [${module.artifact.uri}]. " +
-                "The AWS Access Key Id you provided does not exist in our records.")
+        failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
+        failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
+        failure.assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
     MavenS3Repository getMavenS3Repo() {

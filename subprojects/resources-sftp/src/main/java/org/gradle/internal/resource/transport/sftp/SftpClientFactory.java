@@ -23,6 +23,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +71,9 @@ public class SftpClientFactory implements Stoppable {
             } catch (JSchException e) {
                 URI serverUri = URI.create(String.format("sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()));
                 if (e.getMessage().equals("Auth fail")) {
-                    throw new SftpException(serverUri, String.format("Password authentication not supported or invalid credentials for SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                    throw new ResourceException(serverUri, String.format("Password authentication not supported or invalid credentials for SFTP server at %s", serverUri), e);
                 }
-                throw new SftpException(serverUri, String.format("Could not connect to SFTP server at sftp://%s:%d", sftpHost.getHostname(), sftpHost.getPort()), e);
+                throw new ResourceException(serverUri, String.format("Could not connect to SFTP server at %s", serverUri), e);
             }
         }
 
