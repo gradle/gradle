@@ -57,7 +57,7 @@ public class RepositoryTransportWagonAdapter {
     }
 
     public void putRemoteFile(File file, String resourceName) throws IOException {
-        transport.getRepository().putWithoutChecksum(file, getUriForResource(resourceName));
+        transport.getRepository().put(file, getUriForResource(resourceName));
     }
 
     private URI getUriForResource(String resource) {

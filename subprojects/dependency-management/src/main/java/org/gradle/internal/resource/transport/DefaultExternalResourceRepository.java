@@ -19,8 +19,6 @@ package org.gradle.internal.resource.transport;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -56,40 +54,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return accessor.getMetaData(source);
     }
 
-    public void put(File source, URI destination) throws IOException {
-        doPut(source, destination);
-        putChecksum("SHA1", 40, source, destination);
-    }
-
-    private void putChecksum(String algorithm, int checksumlength, File source, URI destination) throws IOException {
-        if (!destinationIsAChecksum(destination)) {
-            byte[] checksumFile = createChecksumFile(source, algorithm, checksumlength);
-            URI checksumDestination = URI.create(destination + "." + algorithm.toLowerCase());
-            doPut(checksumFile, checksumDestination);
-        }
-    }
-
-    @Override
-    public void putWithoutChecksum(File source, URI destination) throws IOException {
-        doPut(source, destination);
-    }
-
-    private boolean destinationIsAChecksum(URI destination) {
-        String dest = destination.toString().toLowerCase();
-        return dest.endsWith(".sha1") || dest.endsWith(".md5");
-    }
-
-    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
-        HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
-        try {
-            return formattedHashString.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private void doPut(final File source, URI destination) throws IOException {
+    public void put(final File source, URI destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         assert source.isFile();
         uploader.upload(new Factory<InputStream>() {
@@ -103,7 +68,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         }, source.length(), destination);
     }
 
-    private void doPut(final byte[] source, URI destination) throws IOException {
+    public void put(final byte[] source, URI destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
         uploader.upload(new Factory<InputStream>() {
             public InputStream create() {

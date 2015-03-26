@@ -33,8 +33,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.*;
 import org.gradle.internal.component.model.*;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
@@ -48,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.*;
 
@@ -289,6 +293,23 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private void put(File src, URI destination) throws IOException {
         repository.put(src, destination);
+        putChecksum(src, destination);
+    }
+
+    private void putChecksum(File source, URI destination) throws IOException {
+        byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
+        URI checksumDestination = URI.create(destination + ".sha1");
+        repository.put(checksumFile, checksumDestination);
+    }
+
+    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
+        HashValue hash = HashUtil.createHash(src, algorithm);
+        String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
+        try {
+            return formattedHashString.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     protected void addIvyPattern(ResourcePattern pattern) {
