@@ -34,8 +34,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +56,6 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
     private TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployWagon.class);
 
     public static void init(MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
@@ -81,33 +78,33 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_GET));
         try {
             if (!destination.exists()) {
-                LOGGER.debug("Wagon deployment supplied a file [{}] which does not exist, forcing create.", destination.getAbsolutePath());
                 destination.getParentFile().mkdirs();
                 destination.createNewFile();
             }
             if (!getDelegate().getRemoteFile(destination, resourceName)) {
-                throw new ResourceDoesNotExistException(String.format("'%s' does not exist", resourceName));
+                throw new ResourceDoesNotExistException(String.format("Resource '%s' does not exist", resourceName));
             }
             signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
             this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_GET));
-        } catch (IOException e) {
+        } catch (ResourceDoesNotExistException e) {
+            throw e;
+        } catch (Exception e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, TRANSFER_ERROR, REQUEST_GET));
-            throw new TransferFailedException(String.format("Cannot get and write file '%s'", resourceName), e);
+            throw new TransferFailedException(String.format("Could not get resource '%s'", resourceName), e);
         }
     }
 
     @Override
     public final void put(File file, String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
-        LOGGER.error("PUTTING " + resourceName + " WITH MAVEN WAGON ADAPTER");
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
             getDelegate().putRemoteFile(file, resourceName);
             signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
-        } catch (IOException e) {
+        } catch (Exception e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
-            throw new UncheckedIOException(e);
+            throw new TransferFailedException(String.format("Could not write to resource '%s'", resourceName), e);
         }
         this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_PUT));
     }

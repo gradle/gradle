@@ -23,18 +23,14 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
 public class RepositoryTransportWagonAdapter {
-
     private final RepositoryTransport transport;
     private final MavenArtifactRepository artifactRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportWagonAdapter.class);
 
     public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
         this.artifactRepository = artifactRepository;
@@ -43,21 +39,16 @@ public class RepositoryTransportWagonAdapter {
 
     public boolean getRemoteFile(File destination, String resourceName) throws IOException, ResourceDoesNotExistException {
         URI uriForResource = getUriForResource(resourceName);
-        try {
-            ExternalResource resource = transport.getRepository().getResource(uriForResource);
-            if (resource == null) {
-                return false;
-            }
-            try {
-                resource.writeTo(destination);
-            } finally {
-                resource.close();
-            }
-            return true;
-        } catch (Exception e) {
-            LOGGER.debug("Could get and write file:" , e);
+        ExternalResource resource = transport.getRepository().getResource(uriForResource);
+        if (resource == null) {
             return false;
         }
+        try {
+            resource.writeTo(destination);
+        } finally {
+            resource.close();
+        }
+        return true;
     }
 
     public void putRemoteFile(File file, String resourceName) throws IOException {

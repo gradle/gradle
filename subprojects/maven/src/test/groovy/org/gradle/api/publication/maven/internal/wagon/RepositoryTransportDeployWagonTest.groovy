@@ -171,7 +171,7 @@ class RepositoryTransportDeployWagonTest extends Specification {
         0 * transferListener._
 
         then:
-        def ex = thrown(org.gradle.api.UncheckedIOException)
+        def ex = thrown(TransferFailedException)
         ex.cause == failure
     }
 
