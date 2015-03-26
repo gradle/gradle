@@ -23,7 +23,10 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
@@ -55,19 +58,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             this.resource = resource;
         }
 
-        /**
-         * This redirect allows us to deprecate ExternalResource#writeto and replace usages later.
-         */
-        public void writeTo(File destination) throws IOException {
-            FileOutputStream output = new FileOutputStream(destination);
-            try {
-                writeTo(output);
-            } finally {
-                output.close();
-            }
+        public void writeTo(File destination) {
+            resource.writeTo(destination);
         }
 
-        public void writeTo(OutputStream outputStream) throws IOException {
+        public void writeTo(OutputStream outputStream) {
             resource.writeTo(outputStream);
         }
 

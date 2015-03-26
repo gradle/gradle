@@ -31,21 +31,29 @@ public abstract class AbstractExternalResource implements ExternalResource {
         return getURI().toString();
     }
 
-    public void writeTo(File destination) throws IOException {
-        FileOutputStream output = new FileOutputStream(destination);
+    public void writeTo(File destination) {
         try {
-            writeTo(output);
-        } finally {
-            output.close();
+            FileOutputStream output = new FileOutputStream(destination);
+            try {
+                writeTo(output);
+            } finally {
+                output.close();
+            }
+        } catch (Exception e) {
+            throw ResourceException.getFailed(getURI(), e);
         }
     }
 
-    public void writeTo(OutputStream output) throws IOException {
-        InputStream input = openStream();
+    public void writeTo(OutputStream output) {
         try {
-            IOUtils.copyLarge(input, output);
-        } finally {
-            input.close();
+            InputStream input = openStream();
+            try {
+                IOUtils.copyLarge(input, output);
+            } finally {
+                input.close();
+            }
+        } catch (Exception e) {
+            throw ResourceException.getFailed(getURI(), e);
         }
     }
 
