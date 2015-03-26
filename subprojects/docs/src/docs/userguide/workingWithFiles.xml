@@ -40,21 +40,6 @@
             directory, which can change depending on how the user runs Gradle.
         </para>
     </section>
-    
-    <section id='sec:directory_creation'>
-        <title>Directory creation</title>
-        <para>There is a common situation where multiple tasks depend on the existence of a directory. Of course you can
-            deal with this by adding a
-            <literal>mkdir</literal>
-            to the beginning of those tasks, but it's almost always a bad idea to repeat a sequence of code
-            that you only need once (Look up the <firstterm>DRY</firstterm> principle). A better solution would use the
-            <emphasis>dependsOn</emphasis> relationship between tasks to reuse the task to create the directory:
-        </para>
-        <sample id="makeDirectory" dir="userguide/tutorial/makeDirectory" title="Directory creation with mkdir">
-            <sourcefile file="build.gradle"/>
-            <output args="-q compile"/>
-        </sample>
-    </section>
 
     <section id="sec:file_collections">
         <title>File collections</title>
