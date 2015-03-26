@@ -225,11 +225,15 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getSuffix() {
-        return AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "visual c++" ? "pch" : "h.gch"
+        return toolChain.displayName == "visual c++" ? "pch" : "h.gch"
     }
 
     String getUniquePragmaOutput(String message) {
-        return AbstractInstalledToolChainIntegrationSpec.toolChain.displayName == "visual c++" ? message : "warning: ${message}"
+        if (toolChain.displayName == "clang") {
+            return "warning: ${message}"
+        } else {
+            return message
+        }
     }
 
     String getPCHCompileTaskName() {
