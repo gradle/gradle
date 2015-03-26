@@ -175,17 +175,6 @@
             <para>For further details on extra properties and their API, see the <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> class in the API documentation.</para>
         </section>
     </section>
-    <section id="sec:configuring_using_external_script">
-        <title>Configuring the project using an external build script</title>
-        <para>You can configure the current project using an external build script. All of the Gradle build language
-            is available in the external script. You can even apply other scripts from the external script.
-        </para>
-        <sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
-            <sourcefile file="build.gradle"/>
-            <sourcefile file="other.gradle"/>
-            <output args="-q hello"/>
-        </sample>
-    </section>
     <section id='sec:configuring_arbitrary_objects'>
         <title>Configuring arbitrary objects</title>
         <para>You can configure arbitrary objects in the following very readable way.
