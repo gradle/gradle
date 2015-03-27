@@ -18,29 +18,29 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.Factory
+import org.gradle.internal.resource.local.LocalResource
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class ProgressLoggingExternalResourceUploaderTest extends Specification {
-    ExternalResourceUploader uploader = Mock()
-    ProgressLoggerFactory progressLoggerFactory = Mock();
+    def uploader = Mock(ExternalResourceUploader)
+    def progressLoggerFactory = Mock(ProgressLoggerFactory);
     def progressLoggerUploader = new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory)
-    ProgressLogger progressLogger = Mock()
-    InputStream inputStream = Mock();
-    Factory<InputStream> delegateFactory = Mock();
+    def progressLogger = Mock(ProgressLogger)
+    def inputStream = Mock(InputStream)
+    def delegateResource = Mock(LocalResource)
 
     def "delegates upload to delegate uploader and logs progress"() {
         setup:
         startsProgress()
 
         when:
-        progressLoggerUploader.upload(inputStreamFactory(), 5 * 1024, new URI("http://a/remote/path"))
+        progressLoggerUploader.upload(localResource(), new URI("http://a/remote/path"))
         then:
-        1 * delegateFactory.create() >> inputStream
-        1 * uploader.upload(_, 5 * 1024, new URI("http://a/remote/path")) >> {factory, length, destination ->
-            def stream = factory.create();
+        1 * delegateResource.open() >> inputStream
+        1 * uploader.upload(_, new URI("http://a/remote/path")) >> {resource, destination ->
+            def stream = resource.open();
             assert stream.read(new byte[1024]) == 1024
             assert stream.read() == 48
         }
@@ -50,10 +50,16 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * progressLogger.completed()
     }
 
-    private Factory inputStreamFactory() {
-        new Factory<InputStream>() {
-            InputStream create() {
-                return delegateFactory.create()
+    private LocalResource localResource() {
+        return new LocalResource() {
+            @Override
+            InputStream open() {
+                return delegateResource.open()
+            }
+
+            @Override
+            long getContentLength() {
+                return delegateResource.contentLength
             }
         }
     }

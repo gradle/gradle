@@ -23,6 +23,7 @@ import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInterna
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.local.FileLocalResource;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class RepositoryTransportWagonAdapter {
     }
 
     public void putRemoteFile(File file, String resourceName) throws IOException {
-        transport.getRepository().withProgressLogging().put(file, getUriForResource(resourceName));
+        transport.getRepository().withProgressLogging().put(new FileLocalResource(file), getUriForResource(resourceName));
     }
 
     private URI getUriForResource(String resource) {

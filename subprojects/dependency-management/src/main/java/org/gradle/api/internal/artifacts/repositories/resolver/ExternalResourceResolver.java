@@ -41,6 +41,8 @@ import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.*;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.ByteArrayLocalResource;
+import org.gradle.internal.resource.local.FileLocalResource;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
@@ -292,14 +294,14 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private void put(File src, URI destination) throws IOException {
-        repository.withProgressLogging().put(src, destination);
+        repository.withProgressLogging().put(new FileLocalResource(src), destination);
         putChecksum(src, destination);
     }
 
     private void putChecksum(File source, URI destination) throws IOException {
         byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
         URI checksumDestination = URI.create(destination + ".sha1");
-        repository.put(checksumFile, checksumDestination);
+        repository.put(new ByteArrayLocalResource(checksumFile), checksumDestination);
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {

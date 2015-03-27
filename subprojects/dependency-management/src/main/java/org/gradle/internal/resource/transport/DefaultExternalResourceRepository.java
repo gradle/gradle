@@ -17,9 +17,8 @@
 package org.gradle.internal.resource.transport;
 
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.*;
 import org.slf4j.Logger;
@@ -69,27 +68,9 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return accessor.getMetaData(source);
     }
 
-    public void put(final File source, URI destination) throws IOException {
+    public void put(LocalResource source, URI destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
-        assert source.isFile();
-        uploader.upload(new Factory<InputStream>() {
-            public InputStream create() {
-                try {
-                    return new FileInputStream(source);
-                } catch (FileNotFoundException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        }, source.length(), destination);
-    }
-
-    public void put(final byte[] source, URI destination) throws IOException {
-        LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(new Factory<InputStream>() {
-            public InputStream create() {
-                return new ByteArrayInputStream(source);
-            }
-        }, (long) source.length, destination);
+        uploader.upload(source, destination);
     }
 
     public List<String> list(URI parent) {
@@ -99,4 +80,5 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     public String toString() {
         return name;
     }
+
 }

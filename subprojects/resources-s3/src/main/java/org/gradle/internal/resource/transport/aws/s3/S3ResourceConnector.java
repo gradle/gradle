@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
-import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -69,11 +69,12 @@ public class S3ResourceConnector implements ExternalResourceConnector {
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
     }
 
-    public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {
+    @Override
+    public void upload(LocalResource resource, URI destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
-        InputStream inputStream = sourceFactory.create();
+        InputStream inputStream = resource.open();
         try {
-            s3Client.put(inputStream, contentLength, destination);
+            s3Client.put(inputStream, resource.getContentLength(), destination);
         } finally {
             inputStream.close();
         }

@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
@@ -37,13 +37,14 @@ public class SftpResourceUploader implements ExternalResourceUploader {
         this.credentials = credentials;
     }
 
-    public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {
+    @Override
+    public void upload(LocalResource resource, URI destination) throws IOException {
         LockableSftpClient client = sftpClientFactory.createSftpClient(destination, credentials);
 
         try {
             ChannelSftp channel = client.getSftpClient();
             ensureParentDirectoryExists(channel, destination);
-            InputStream sourceStream = sourceFactory.create();
+            InputStream sourceStream = resource.open();
             try {
                 channel.put(sourceStream, destination.getPath());
             } finally {

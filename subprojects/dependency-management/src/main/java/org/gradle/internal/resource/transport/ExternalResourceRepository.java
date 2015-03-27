@@ -19,9 +19,9 @@ package org.gradle.internal.resource.transport;
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -44,20 +44,11 @@ public interface ExternalResourceRepository {
     /**
      * Transfer a resource to the repository
      *
-     * @param source The local file to be transferred.
+     * @param source The local resource to be transferred.
      * @param destination Where to transfer the resource.
      * @throws IOException On publication failure.
      */
-    void put(File source, URI destination) throws IOException;
-
-    /**
-     * Transfer a resource to the repository
-     *
-     * @param content The binary content for the resource.
-     * @param destination Where to transfer the resource.
-     * @throws IOException On publication failure.
-     */
-    void put(byte[] content, URI destination) throws IOException;
+    void put(LocalResource source, URI destination) throws IOException;
 
     /**
      * Fetches only the metadata for the result.

@@ -15,17 +15,17 @@
  */
 package org.gradle.internal.resource.transport.file;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -48,27 +48,23 @@ public class FileResourceConnector implements ExternalResourceRepository {
     }
 
     @Override
-    public void put(File source, URI destination) throws IOException {
+    public void put(LocalResource source, URI destination) throws IOException {
         File target = getFile(destination);
         if (!target.canWrite()) {
             target.delete();
         } // if target is writable, the copy will overwrite it without requiring a delete
         GFileUtils.mkdirs(target.getParentFile());
-        GFileUtils.copyFile(source, target);
-    }
 
-    @Override
-    public void put(byte[] content, URI destination) throws IOException {
-        File target = getFile(destination);
-        if (!target.canWrite()) {
-            target.delete();
-        } // if target is writable, the copy will overwrite it without requiring a delete
-        GFileUtils.mkdirs(target.getParentFile());
-        FileOutputStream fileOutputStream = new FileOutputStream(target);
+        InputStream input = source.open();
         try {
-            fileOutputStream.write(content);
+            FileOutputStream output = new FileOutputStream(target);
+            try {
+                IOUtils.copy(input, output);
+            } finally {
+                IOUtils.closeQuietly(output);
+            }
         } finally {
-            fileOutputStream.close();
+            IOUtils.closeQuietly(input);
         }
     }
 

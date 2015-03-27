@@ -106,6 +106,6 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         delegate.putRemoteFile(null, 'something.jar')
 
         then:
-        1 * externalResourceRepo.put(null, { it.toString() == 's3://somewhere/maven/something.jar'})
+        1 * externalResourceRepo.put(_, { it.toString() == 's3://somewhere/maven/something.jar'})
     }
 }

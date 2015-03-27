@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transfer;
+package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.local.LocalResource;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
-import java.io.IOException;
-import java.net.URI;
+public class ByteArrayLocalResource implements LocalResource {
+    private final byte[] source;
 
-public interface ExternalResourceUploader {
-    void upload(LocalResource resource, URI destination) throws IOException;
+    public ByteArrayLocalResource(byte[] source) {
+        this.source = source;
+    }
+
+    @Override
+    public long getContentLength() {
+        return source.length;
+    }
+
+    @Override
+    public InputStream open() {
+        return new ByteArrayInputStream(source);
+    }
 }
