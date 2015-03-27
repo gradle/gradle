@@ -72,7 +72,10 @@ public class S3ResourceConnector implements ExternalResourceConnector {
     public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
         InputStream inputStream = sourceFactory.create();
-        s3Client.put(inputStream, contentLength, destination);
-        inputStream.close();
+        try {
+            s3Client.put(inputStream, contentLength, destination);
+        } finally {
+            inputStream.close();
+        }
     }
 }
