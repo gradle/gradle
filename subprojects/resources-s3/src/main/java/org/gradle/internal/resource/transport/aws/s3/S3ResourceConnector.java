@@ -22,6 +22,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         if (s3Object == null) {
             return null;
         }
-        return new S3Resource(s3Object, location);
+        return new DefaultExternalResource(location, new S3Resource(s3Object, location));
     }
 
     public ExternalResourceMetaData getMetaData(URI location) {

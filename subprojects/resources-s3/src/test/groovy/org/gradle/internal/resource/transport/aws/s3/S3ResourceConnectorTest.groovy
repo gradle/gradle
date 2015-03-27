@@ -38,8 +38,10 @@ class S3ResourceConnectorTest extends Specification {
                 getObjectMetadata() >> objectMetadata
             }
         }
+
         when:
-        S3Resource s3Resource = new S3ResourceConnector(s3Client).getResource(uri)
+        def s3Resource = new S3ResourceConnector(s3Client).getResource(uri)
+
         then:
         s3Resource.getURI() == uri
     }

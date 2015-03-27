@@ -16,15 +16,15 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.InputStream;
 import java.net.URI;
 
-public class SftpResource extends AbstractExternalResource {
+public class SftpResource implements ExternalResourceReadResponse {
 
     private final SftpClientFactory clientFactory;
     private final ExternalResourceMetaData metaData;
@@ -41,7 +41,7 @@ public class SftpResource extends AbstractExternalResource {
     }
 
     @Override
-    protected InputStream openStream() {
+    public InputStream openStream() {
         client = clientFactory.createSftpClient(uri, credentials);
         try {
             return client.getSftpClient().get(uri.getPath());

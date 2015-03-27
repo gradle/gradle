@@ -26,7 +26,7 @@ import java.net.URI;
 public interface ExternalResourceAccessor {
 
     /**
-     * Obtain the resource at the given location.
+     * Read the resource at the given location.
      *
      * If the resource does not exist, this method should return null.
      *
@@ -34,7 +34,7 @@ public interface ExternalResourceAccessor {
      * must throw an {@link ResourceException} to indicate a fatal condition.
      *
      * @param location The address of the resource to obtain
-     * @return The resource if it exists, otherwise null
+     * @return The resource if it exists, otherwise null. Caller is responsible for closing the result.
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
