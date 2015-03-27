@@ -133,7 +133,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return copyToCache(location, fileStore, delegate.getResource(location));
     }
 
-    private HashValue getResourceSha1(URI location) throws IOException {
+    private HashValue getResourceSha1(URI location) {
         try {
             URI sha1Location = new URI(location.toASCIIString() + ".sha1");
             ExternalResource resource = delegate.getResource(sha1Location);

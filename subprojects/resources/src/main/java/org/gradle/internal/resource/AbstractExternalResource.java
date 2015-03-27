@@ -27,6 +27,24 @@ public abstract class AbstractExternalResource implements ExternalResource {
      */
     protected abstract InputStream openStream() throws IOException;
 
+    private InputStream openBuffered() {
+        try {
+            return new BufferedInputStream(openStream());
+        } catch (FileNotFoundException e) {
+            throw new ResourceNotFoundException(getURI(), String.format("Could not get resource '%s' as it does not exist.", getURI()), e);
+        } catch (IOException e) {
+            throw ResourceException.getFailed(getURI(), e);
+        }
+    }
+
+    private void close(InputStream input) {
+        try {
+            input.close();
+        } catch (IOException e) {
+            throw ResourceException.getFailed(getURI(), e);
+        }
+    }
+
     public String getName() {
         return getURI().toString();
     }
@@ -57,34 +75,38 @@ public abstract class AbstractExternalResource implements ExternalResource {
         }
     }
 
-    public void withContent(Action<? super InputStream> readAction) throws IOException {
-        InputStream input = openStream();
+    public void withContent(Action<? super InputStream> readAction) {
+        InputStream input = openBuffered();
         try {
             readAction.execute(input);
         } finally {
-            input.close();
+            close(input);
         }
     }
 
-    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
-        InputStream input = openStream();
+    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) {
+        InputStream input = openBuffered();
         try {
             return readAction.transform(input);
         } finally {
-            input.close();
+            close(input);
         }
     }
 
     @Override
-    public <T> T withContent(ContentAction<? extends T> readAction) throws IOException {
-        InputStream input = openStream();
+    public <T> T withContent(ContentAction<? extends T> readAction) {
+        InputStream input = openBuffered();
         try {
-            return readAction.execute(input, getMetaData());
+            try {
+                return readAction.execute(input, getMetaData());
+            } catch (IOException e) {
+                throw ResourceException.getFailed(getURI(), e);
+            }
         } finally {
-            input.close();
+            close(input);
         }
     }
 
-    public void close() throws IOException {
+    public void close() {
     }
 }

@@ -33,6 +33,7 @@ public interface ExternalResourceRepository {
      * @return null if the resource is not found.
      * @throws ResourceException On failure to fetch resource.
      */
+    @Nullable
     ExternalResource getResource(URI source) throws ResourceException;
 
     /**
@@ -68,8 +69,8 @@ public interface ExternalResourceRepository {
      *
      * @param parent The parent directory from which to generate the listing.
      * @return A listing of the direct children of the given parent. Returns null when the parent resource does not exist.
-     * @throws IOException On listing failure.
+     * @throws ResourceException On listing failure.
      */
     @Nullable
-    List<String> list(URI parent) throws IOException;
+    List<String> list(URI parent) throws ResourceException;
 }

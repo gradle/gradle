@@ -90,7 +90,7 @@ public class PomReader implements PomParent {
     private final Element projectElement;
     private final Element parentElement;
 
-    public PomReader(final LocallyAvailableExternalResource resource) throws IOException, SAXException {
+    public PomReader(final LocallyAvailableExternalResource resource) throws SAXException {
         final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
         Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
             public Document transform(InputStream inputStream) {

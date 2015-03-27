@@ -25,4 +25,8 @@ public class ResourceNotFoundException extends ResourceException {
     public ResourceNotFoundException(URI location, String message) {
         super(location, message);
     }
+
+    public ResourceNotFoundException(URI location, String message, Throwable cause) {
+        super(location, message, cause);
+    }
 }

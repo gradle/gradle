@@ -66,16 +66,16 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             resource.writeTo(outputStream);
         }
 
-        public void withContent(Action<? super InputStream> readAction) throws IOException {
+        public void withContent(Action<? super InputStream> readAction) {
             resource.withContent(readAction);
         }
 
-        public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
+        public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) {
             return resource.withContent(readAction);
         }
 
         @Override
-        public <T> T withContent(final ContentAction<? extends T> readAction) throws IOException {
+        public <T> T withContent(final ContentAction<? extends T> readAction) {
             return resource.withContent(new ContentAction<T>() {
                 @Override
                 public T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
@@ -89,7 +89,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             });
         }
 
-        public void close() throws IOException {
+        public void close() {
             resource.close();
         }
 

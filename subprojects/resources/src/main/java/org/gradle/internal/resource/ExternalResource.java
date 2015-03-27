@@ -59,22 +59,31 @@ public interface ExternalResource extends Closeable {
 
     /**
      * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
      */
-    void withContent(Action<? super InputStream> readAction) throws IOException;
+    void withContent(Action<? super InputStream> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
      */
-    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
+    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
      * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
      */
-    <T> T withContent(ContentAction<? extends T> readAction) throws IOException;
+    <T> T withContent(ContentAction<? extends T> readAction) throws ResourceException;
 
-    void close() throws IOException;
+    void close() throws ResourceException;
 
     /**
      * Returns the meta-data for this resource.

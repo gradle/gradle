@@ -115,15 +115,9 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
                     }
                 }
             });
-        } catch (IOException e) {
-            throw new org.gradle.api.UncheckedIOException(e);
         } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                LOGGER.warn("Error closing HTTP resource", e);
+            if (response != null) {
+                response.close();
             }
         }
     }

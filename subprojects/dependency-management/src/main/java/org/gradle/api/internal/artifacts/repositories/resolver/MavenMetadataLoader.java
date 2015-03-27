@@ -53,7 +53,7 @@ class MavenMetadataLoader {
         return metadata;
     }
 
-    private void parseMavenMetadataInfo(final URI metadataLocation, final MavenMetadata metadata) throws Exception {
+    private void parseMavenMetadataInfo(final URI metadataLocation, final MavenMetadata metadata) {
         ExternalResource resource = repository.getResource(metadataLocation);
         if (resource == null) {
             throw new ResourceNotFoundException(metadataLocation, String.format("Maven meta-data not available: %s", metadataLocation));
@@ -65,7 +65,7 @@ class MavenMetadataLoader {
         }
     }
 
-    private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) throws IOException, SAXException, ParserConfigurationException {
+    private void parseMavenMetadataInto(ExternalResource metadataResource, final MavenMetadata mavenMetadata) {
         LOGGER.debug("parsing maven-metadata: {}", metadataResource);
         metadataResource.withContent(new ErroringAction<InputStream>() {
             public void doExecute(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {

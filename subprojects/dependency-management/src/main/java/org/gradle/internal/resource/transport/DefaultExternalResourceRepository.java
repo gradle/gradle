@@ -77,7 +77,7 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         }, (long) source.length, destination);
     }
 
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         return lister.list(parent);
     }
 

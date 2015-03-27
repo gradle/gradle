@@ -21,6 +21,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
 import org.gradle.internal.resource.AbstractExternalResource;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.hash.HashValue;
@@ -120,8 +121,12 @@ public class HttpResponseResource extends AbstractExternalResource {
     }
 
     @Override
-    public void close() throws IOException {
-        EntityUtils.consume(response.getEntity());
+    public void close() {
+        try {
+            EntityUtils.consume(response.getEntity());
+        } catch (IOException e) {
+            throw new ResourceException(getURI(), "Could not close resource.", e);
+        }
     }
 
     private static String getEtag(HttpResponse response) {

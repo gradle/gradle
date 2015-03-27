@@ -21,6 +21,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
      * Same as #getResource except that it always gives access to the response body,
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
-    public HttpResponseResource getRawResource(final URI uri) throws IOException {
+    public HttpResponseResource getRawResource(final URI uri) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
@@ -96,7 +97,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             LOGGER.warn("Forcing close on abandoned resource: " + openResource);
             try {
                 openResource.close();
-            } catch (IOException e) {
+            } catch (ResourceException e) {
                 LOGGER.warn("Failed to close abandoned resource", e);
             }
         }
@@ -106,7 +107,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     private HttpResponseResource wrapResponse(URI uri, HttpResponse response) {
         return new HttpResponseResource("GET", uri, response) {
             @Override
-            public void close() throws IOException {
+            public void close() {
                 super.close();
                 HttpResourceAccessor.this.openResources.remove(this);
             }

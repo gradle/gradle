@@ -18,15 +18,14 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,7 +60,7 @@ public class ResourceVersionLister implements VersionLister {
             }
 
             // lists all the values a revision token listed by a given url lister
-            private List<String> listRevisionToken(ExternalResourceName versionListPattern) throws IOException {
+            private List<String> listRevisionToken(ExternalResourceName versionListPattern) {
                 String pattern = versionListPattern.getPath();
                 if (!pattern.contains(REVISION_TOKEN)) {
                     LOGGER.debug("revision token not defined in pattern {}.", pattern);
@@ -132,7 +131,7 @@ public class ResourceVersionLister implements VersionLister {
                 return true;
             }
 
-            private List<String> listAll(ExternalResourceName parent) throws IOException {
+            private List<String> listAll(ExternalResourceName parent)  {
                 if (!directories.add(parent)) {
                     return Collections.emptyList();
                 }

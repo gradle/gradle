@@ -17,10 +17,9 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.transfer.ExternalResourceLister;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -32,7 +31,7 @@ public class HttpResourceLister implements ExternalResourceLister {
         this.accessor = accessor;
     }
 
-    public List<String> list(final URI directory) throws IOException {
+    public List<String> list(final URI directory) {
         final HttpResponseResource resource = accessor.getResource(directory);
         if (resource == null) {
             return null;

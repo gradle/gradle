@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ResourceException;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class RepositoryTransportWagonAdapter {
         transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
     }
 
-    public boolean getRemoteFile(File destination, String resourceName) throws IOException, ResourceDoesNotExistException {
+    public boolean getRemoteFile(File destination, String resourceName) throws ResourceException, ResourceDoesNotExistException {
         URI uriForResource = getUriForResource(resourceName);
         ExternalResource resource = transport.getRepository().getResource(uriForResource);
         if (resource == null) {
