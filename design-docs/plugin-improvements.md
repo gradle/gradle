@@ -93,6 +93,7 @@ The escape behavior can also be changed from the outside by either adding new re
 
     public interface EscapeHandler {
         void addReplacement(String target, String replacement);
+        void removeReplacement(String target);
         Map<String, String> getReplacements();
         String escape(String source);
     }
@@ -112,6 +113,10 @@ generator:
 
         public void addReplacement(String target, String replacement) {
             replacements.put(target, replacement);
+        }
+
+        public void removeReplacement(String target) {
+            replacements.remove(target);
         }
 
         public Map<String, String> getReplacements() {
