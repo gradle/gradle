@@ -37,13 +37,29 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
+    private final ExternalResourceAccessor loggingAccessor;
+    private final ExternalResourceUploader loggingUploader;
 
-    public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader,
-                                             ExternalResourceLister lister) {
+    public DefaultExternalResourceRepository(String name,
+                                             ExternalResourceAccessor accessor,
+                                             ExternalResourceUploader uploader,
+                                             ExternalResourceLister lister,
+                                             ExternalResourceAccessor loggingAccessor,
+                                             ExternalResourceUploader loggingUploader) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
+        this.loggingAccessor = loggingAccessor;
+        this.loggingUploader = loggingUploader;
+    }
+
+    @Override
+    public ExternalResourceRepository withProgressLogging() {
+        if (loggingAccessor == accessor && loggingUploader == uploader) {
+            return this;
+        }
+        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader);
     }
 
     public ExternalResource getResource(URI source) {

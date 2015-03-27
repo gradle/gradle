@@ -34,7 +34,7 @@ public class FileTransport extends AbstractRepositoryTransport {
         super(name);
         FileResourceConnector connector = new FileResourceConnector();
         resourceAccessor = new NoOpCacheAwareExternalResourceAccessor(connector);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector);
+        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, connector, connector);
     }
 
     public boolean isLocal() {

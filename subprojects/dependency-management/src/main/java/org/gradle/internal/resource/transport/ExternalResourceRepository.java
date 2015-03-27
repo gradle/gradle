@@ -28,6 +28,11 @@ import java.util.List;
 
 public interface ExternalResourceRepository {
     /**
+     * Returns a copy of this repository with progress logging enabled.
+     */
+    ExternalResourceRepository withProgressLogging();
+
+    /**
      * Attempts to fetch the given resource.
      *
      * @return null if the resource is not found.

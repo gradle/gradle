@@ -292,7 +292,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private void put(File src, URI destination) throws IOException {
-        repository.put(src, destination);
+        repository.withProgressLogging().put(src, destination);
         putChecksum(src, destination);
     }
 

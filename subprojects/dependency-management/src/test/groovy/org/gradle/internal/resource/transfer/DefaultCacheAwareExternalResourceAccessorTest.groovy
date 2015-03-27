@@ -36,6 +36,7 @@ import spock.lang.Specification
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     final repository = Mock(ExternalResourceRepository)
+    final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)
     final timeProvider = Mock(BuildCommencedTimeProvider)
     final tempFile = tempDir.file("temp-file")
@@ -60,7 +61,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         and:
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
-        1 * repository.getResource(uri) >> null
+        1 * repository.withProgressLogging() >> progressLoggingRepo
+        1 * progressLoggingRepo.getResource(uri) >> null
         0 * _._
     }
 
@@ -100,7 +102,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         and:
         1 * index.lookup("scheme:thing") >> null
         1 * localCandidates.isNone() >> true
-        1 * repository.getResource(uri) >> remoteResource
+        1 * repository.withProgressLogging() >> progressLoggingRepo
+        1 * progressLoggingRepo.getResource(uri) >> remoteResource
         _ * remoteResource.name >> "remoteResource"
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), metaData)
@@ -259,7 +262,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.etag >> null
         cachedMetaData.lastModified >> null
         1 * repository.getResource(new URI("scheme:thing.sha1")) >> null
-        1 * repository.getResource(uri) >> remoteResource
+        1 * repository.withProgressLogging() >> progressLoggingRepo
+        1 * progressLoggingRepo.getResource(uri) >> remoteResource
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
@@ -312,7 +316,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
-        1 * repository.getResource(uri) >> remoteResource
+        1 * repository.withProgressLogging() >> progressLoggingRepo
+        1 * progressLoggingRepo.getResource(uri) >> remoteResource
         1 * remoteResource.withContent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }

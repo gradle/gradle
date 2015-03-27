@@ -75,7 +75,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return copyToCache(location, fileStore, delegate.getResource(location));
+            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
         }
 
         // We might be able to use a cached/locally available version
@@ -131,7 +131,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // All local/cached options failed, get directly
-        return copyToCache(location, fileStore, delegate.getResource(location));
+        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
     }
 
     private HashValue getResourceSha1(URI location) {

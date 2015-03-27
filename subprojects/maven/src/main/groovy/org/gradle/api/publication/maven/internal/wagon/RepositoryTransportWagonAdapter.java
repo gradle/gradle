@@ -53,7 +53,7 @@ public class RepositoryTransportWagonAdapter {
     }
 
     public void putRemoteFile(File file, String resourceName) throws IOException {
-        transport.getRepository().put(file, getUriForResource(resourceName));
+        transport.getRepository().withProgressLogging().put(file, getUriForResource(resourceName));
     }
 
     private URI getUriForResource(String resource) {

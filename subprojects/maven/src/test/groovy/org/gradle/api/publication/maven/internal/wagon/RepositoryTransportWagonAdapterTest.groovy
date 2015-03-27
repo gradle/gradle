@@ -97,6 +97,7 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
+        externalResourceRepo.withProgressLogging() >> externalResourceRepo
         repositoryTransportFactory.createTransport(*_) >> repositoryTransport
 
         RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
