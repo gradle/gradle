@@ -65,16 +65,4 @@ class DaemonUsageSuggestionIntegrationTest extends AbstractIntegrationSpec {
         then:
         !output.contains(DAEMON_USAGE_SUGGESTION_MESSAGE)
     }
-
-    @IgnoreIf({!GradleContextualExecuter.longLivingProcess})
-    def "does not print suggestion to use the daemon for a single use daemon"() {
-        given:
-        executer.requireIsolatedDaemons()
-
-        when:
-        succeeds()
-
-        then:
-        !output.contains(DAEMON_USAGE_SUGGESTION_MESSAGE)
-    }
 }
