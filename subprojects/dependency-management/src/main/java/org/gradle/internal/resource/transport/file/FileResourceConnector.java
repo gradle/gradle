@@ -15,25 +15,27 @@
  */
 package org.gradle.internal.resource.transport.file;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.Factory;
 import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-public class FileResourceConnector implements ExternalResourceConnector {
+public class FileResourceConnector implements ExternalResourceRepository {
+    @Override
+    public ExternalResourceRepository withProgressLogging() {
+        return this;
+    }
+
     public List<String> list(URI parent) {
         File dir = getFile(parent);
         if (dir.exists() && dir.isDirectory()) {
@@ -45,7 +47,18 @@ public class FileResourceConnector implements ExternalResourceConnector {
         return null;
     }
 
-    public void upload(Factory<InputStream> source, Long contentLength, URI destination) throws IOException {
+    @Override
+    public void put(File source, URI destination) throws IOException {
+        File target = getFile(destination);
+        if (!target.canWrite()) {
+            target.delete();
+        } // if target is writable, the copy will overwrite it without requiring a delete
+        GFileUtils.mkdirs(target.getParentFile());
+        GFileUtils.copyFile(source, target);
+    }
+
+    @Override
+    public void put(byte[] content, URI destination) throws IOException {
         File target = getFile(destination);
         if (!target.canWrite()) {
             target.delete();
@@ -53,12 +66,7 @@ public class FileResourceConnector implements ExternalResourceConnector {
         GFileUtils.mkdirs(target.getParentFile());
         FileOutputStream fileOutputStream = new FileOutputStream(target);
         try {
-            InputStream sourceInputStream = source.create();
-            try {
-                IOUtils.copyLarge(sourceInputStream, fileOutputStream);
-            } finally {
-                sourceInputStream.close();
-            }
+            fileOutputStream.write(content);
         } finally {
             fileOutputStream.close();
         }
@@ -72,7 +80,7 @@ public class FileResourceConnector implements ExternalResourceConnector {
         return new DefaultLocallyAvailableExternalResource(uri, new DefaultLocallyAvailableResource(localFile));
     }
 
-    public ExternalResourceMetaData getMetaData(URI location) {
+    public ExternalResourceMetaData getResourceMetaData(URI location) {
         ExternalResource resource = getResource(location);
         return resource == null ? null : resource.getMetaData();
     }

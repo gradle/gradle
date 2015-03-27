@@ -38,7 +38,7 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    ExternalResource getResource(URI location) throws ResourceException;
+    ExternalResourceReadResponse openResource(URI location) throws ResourceException;
 
     /**
      * Obtains only the metadata about the resource.

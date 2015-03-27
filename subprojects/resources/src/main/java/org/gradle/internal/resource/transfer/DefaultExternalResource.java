@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.resource.AbstractExternalResource;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
@@ -50,5 +51,14 @@ public class DefaultExternalResource extends AbstractExternalResource {
     @Override
     protected InputStream openStream() throws IOException {
         return response.openStream();
+    }
+
+    @Override
+    public void close() {
+        try {
+            response.close();
+        } catch (IOException e) {
+            throw new ResourceException(uri, String.format("Could not close resource '%s'.", uri), e);
+        }
     }
 }

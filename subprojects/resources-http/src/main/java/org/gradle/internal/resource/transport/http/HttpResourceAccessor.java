@@ -20,7 +20,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     }
 
     @Nullable
-    public ExternalResource getResource(final URI uri) {
+    public HttpResponseResource openResource(final URI uri) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
@@ -107,7 +106,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     private HttpResponseResource wrapResponse(URI uri, HttpResponse response) {
         return new HttpResponseResource("GET", uri, response) {
             @Override
-            public void close() {
+            public void close() throws IOException {
                 super.close();
                 HttpResourceAccessor.this.openResources.remove(this);
             }

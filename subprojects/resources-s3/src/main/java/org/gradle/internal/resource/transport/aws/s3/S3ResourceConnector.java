@@ -19,11 +19,10 @@ package org.gradle.internal.resource.transport.aws.s3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +45,13 @@ public class S3ResourceConnector implements ExternalResourceConnector {
         return s3Client.list(parent);
     }
 
-    public ExternalResource getResource(URI location) {
+    public ExternalResourceReadResponse openResource(URI location) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location);
         if (s3Object == null) {
             return null;
         }
-        return new DefaultExternalResource(location, new S3Resource(s3Object, location));
+        return new S3Resource(s3Object, location);
     }
 
     public ExternalResourceMetaData getMetaData(URI location) {

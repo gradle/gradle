@@ -21,9 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.gradle.internal.resource.transfer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +61,8 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     }
 
     public ExternalResource getResource(URI source) {
-        return accessor.getResource(source);
+        ExternalResourceReadResponse response = accessor.openResource(source);
+        return response == null ? null : new DefaultExternalResource(source, response);
     }
 
     public ExternalResourceMetaData getResourceMetaData(URI source) {

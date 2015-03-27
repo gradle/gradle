@@ -16,17 +16,12 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
@@ -37,10 +32,10 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public ExternalResource getResource(URI location) {
-        ExternalResource resource = delegate.getResource(location);
+    public ExternalResourceReadResponse openResource(URI location) {
+        ExternalResourceReadResponse resource = delegate.openResource(location);
         if (resource != null) {
-            return new ProgressLoggingExternalResource(resource);
+            return new ProgressLoggingExternalResource(location, resource);
         } else {
             return null;
         }
@@ -51,59 +46,31 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         return delegate.getMetaData(location);
     }
 
-    private class ProgressLoggingExternalResource implements ExternalResource {
-        private ExternalResource resource;
+    private class ProgressLoggingExternalResource implements ExternalResourceReadResponse {
+        private final ExternalResourceReadResponse resource;
+        private final ResourceOperation downloadOperation;
 
-        private ProgressLoggingExternalResource(ExternalResource resource) {
+        private ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
             this.resource = resource;
-        }
-
-        public void writeTo(File destination) {
-            resource.writeTo(destination);
-        }
-
-        public void writeTo(OutputStream outputStream) {
-            resource.writeTo(outputStream);
-        }
-
-        public void withContent(Action<? super InputStream> readAction) {
-            resource.withContent(readAction);
-        }
-
-        public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) {
-            return resource.withContent(readAction);
+            downloadOperation = createResourceOperation(location.toString(), ResourceOperation.Type.download, getClass(), resource.getMetaData().getContentLength());
         }
 
         @Override
-        public <T> T withContent(final ContentAction<? extends T> readAction) {
-            return resource.withContent(new ContentAction<T>() {
-                @Override
-                public T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
-                    final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.download, getClass(), metaData.getContentLength());
-                    try {
-                        return readAction.execute(new ProgressLoggingInputStream(inputStream, downloadOperation), metaData);
-                    } finally {
-                        downloadOperation.completed();
-                    }
-                }
-            });
+        public InputStream openStream() throws IOException {
+            return new ProgressLoggingInputStream(resource.openStream(), downloadOperation);
         }
 
-        public void close() {
-            resource.close();
+        public void close() throws IOException {
+            try {
+                resource.close();
+            } finally {
+                downloadOperation.completed();
+            }
         }
 
         @Nullable
         public ExternalResourceMetaData getMetaData() {
             return resource.getMetaData();
-        }
-
-        public URI getURI() {
-            return resource.getURI();
-        }
-
-        public String getName() {
-            return resource.getName();
         }
 
         public boolean isLocal() {

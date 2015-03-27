@@ -18,13 +18,12 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DefaultExternalResource;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.net.URI;
 
@@ -67,8 +66,8 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         return new DefaultExternalResourceMetaData(uri, lastModified, contentLength);
     }
 
-    public ExternalResource getResource(URI location) {
+    public ExternalResourceReadResponse openResource(URI location) {
         ExternalResourceMetaData metaData = getMetaData(location);
-        return metaData != null ? new DefaultExternalResource(location, new SftpResource(sftpClientFactory, metaData, location, credentials)) : null;
+        return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
     }
 }

@@ -40,9 +40,9 @@ class S3ResourceConnectorTest extends Specification {
         }
 
         when:
-        def s3Resource = new S3ResourceConnector(s3Client).getResource(uri)
+        def s3Resource = new S3ResourceConnector(s3Client).openResource(uri)
 
         then:
-        s3Resource.getURI() == uri
+        s3Resource != null
     }
 }
