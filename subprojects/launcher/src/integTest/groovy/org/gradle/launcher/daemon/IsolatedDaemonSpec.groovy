@@ -28,8 +28,6 @@ abstract class IsolatedDaemonSpec extends AbstractIntegrationSpec {
 
     @Override
     protected void cleanupWhileTestFilesExist() {
-        // Need to kill daemons before test files are cleaned up, as the log files and registry are used to locate the daemons and these live under
-        // the test file directory.
         daemons.killAll()
     }
 

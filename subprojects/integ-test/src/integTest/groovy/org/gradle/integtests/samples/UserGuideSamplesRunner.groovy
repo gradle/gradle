@@ -33,6 +33,8 @@ import org.junit.runner.notification.RunNotifier
 
 import java.util.regex.Pattern
 
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
+
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.instance.lineSeparator
 
@@ -128,7 +130,11 @@ class UserGuideSamplesRunner extends Runner {
         try {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
-            executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.noExtraLogging()
+                    .inDirectory(run.executionDir)
+                    .withArguments(run.args as String[])
+                    .withEnvironmentVars(run.envs)
+                    .withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions

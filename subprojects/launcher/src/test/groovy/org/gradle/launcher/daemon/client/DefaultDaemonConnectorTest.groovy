@@ -21,8 +21,6 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.Address
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.ConnectException
@@ -35,7 +33,6 @@ class DefaultDaemonConnectorTest extends Specification {
     def javaHome = new File("tmp")
     def connectTimeoutSecs = 1
     def daemonCounter = 0
-    def progressLogger = Mock(ProgressLogger)
 
     class OutgoingConnectorStub implements OutgoingConnector {
         ConnectCompletion connect(Address address) throws ConnectException {
@@ -55,15 +52,10 @@ class DefaultDaemonConnectorTest extends Specification {
     }
 
     def createConnector() {
-        def progressLoggerFactory = Mock(ProgressLoggerFactory) {
-            newOperation(DefaultDaemonConnector) >> progressLogger
-        }
-        progressLogger.start(_, _) >> progressLogger
         def connector = Spy(DefaultDaemonConnector, constructorArgs: [
                 new EmbeddedDaemonRegistry(),
                 Spy(OutgoingConnectorStub),
-                { startBusyDaemon() } as DaemonStarter,
-                progressLoggerFactory]
+                { startBusyDaemon() } as DaemonStarter]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
@@ -196,14 +188,5 @@ class DefaultDaemonConnectorTest extends Specification {
         !connection
 
         registry.all.empty
-    }
-
-    def "connect() logs daemon startup progress"() {
-        when:
-        connector.connect({ true } as DummyExplainingSpec)
-
-        then:
-        1 * progressLogger.start(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE, DefaultDaemonConnector.STARTING_DAEMON_MESSAGE) >> progressLogger
-        1 * progressLogger.completed()
     }
 }

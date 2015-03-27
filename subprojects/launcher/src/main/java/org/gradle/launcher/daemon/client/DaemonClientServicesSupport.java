@@ -93,7 +93,7 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), new TrueTimeProvider());
     }
 
-    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, progressLoggerFactory);
+    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter) {
+        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter);
     }
 }
