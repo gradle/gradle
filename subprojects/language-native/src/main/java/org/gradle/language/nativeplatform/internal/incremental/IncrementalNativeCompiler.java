@@ -62,13 +62,14 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
             public IncrementalCompilation create() {
                 DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-                IncrementalCompileProcessor processor = createProcessor(sourceIncludesParser, spec.getIncludeRoots());
+                PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
+                IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
                 // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
-                return processor.processSourceFiles(spec.getSourceFiles());
+                IncrementalCompilation incrementalCompilation = processor.processSourceFiles(spec.getSourceFiles());
+                spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compileStateCache.get()));
+                return incrementalCompilation;
             }
         });
-
-        spec.setSourceFileIncludes(mapIncludes(spec.getSourceFiles(), compilationStateCacheFactory.create(task.getPath()).get()));
 
         if (spec.isIncrementalCompile()) {
             return doIncrementalCompile(compilation, spec);
@@ -111,9 +112,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         return task;
     }
 
-    private IncrementalCompileProcessor createProcessor(SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
-        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
-
+    private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
         return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, fileSnapshotter);
