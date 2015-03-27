@@ -16,9 +16,11 @@
 
 package org.gradle.internal.resource;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.transfer.DefaultExternalResource;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,31 +29,29 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class UrlExternalResource extends AbstractExternalResource {
-    private final URL url;
+public class UrlExternalResource implements ExternalResourceReadResponse {
+    private final URI uri;
     private final URLConnection connection;
     private final DefaultExternalResourceMetaData metaData;
 
-    public UrlExternalResource(URL url) throws IOException {
-        this.url = url;
-        connection = url.openConnection();
-
+    public static ExternalResource open(URL url) throws IOException {
         URI uri;
         try {
             uri = url.toURI();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        return new DefaultExternalResource(uri, new UrlExternalResource(uri, url));
+    }
 
-        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), null, null);
+    private UrlExternalResource(URI uri, URL url) throws IOException {
+        connection = url.openConnection();
+        this.uri = uri;
+        metaData = new DefaultExternalResourceMetaData(uri, connection.getLastModified(), connection.getContentLength(), connection.getContentType(), null, null);
     }
 
     public URI getURI() {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return uri;
     }
 
     public ExternalResourceMetaData getMetaData() {
@@ -59,7 +59,7 @@ public class UrlExternalResource extends AbstractExternalResource {
     }
 
     public boolean isLocal() {
-        return url.getProtocol().equalsIgnoreCase("file");
+        return uri.getScheme().equalsIgnoreCase("file");
     }
 
     public long getContentLength() {
@@ -72,5 +72,9 @@ public class UrlExternalResource extends AbstractExternalResource {
 
     public InputStream openStream() throws IOException {
         return connection.getInputStream();
+    }
+
+    @Override
+    public void close() {
     }
 }

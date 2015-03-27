@@ -718,12 +718,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throws ParseException, IOException {
             URL url = relativeUrlResolver.getURL(descriptorURL, location);
             LOGGER.debug("Trying to load included ivy file from " + url.toString());
-            UrlExternalResource resource = new UrlExternalResource(url);
+            ExternalResource resource = UrlExternalResource.open(url);
             try {
                 return parseModuleDescriptor(resource, url);
             } catch (ResourceNotFoundException e) {
                 // Ignore
                 return null;
+            } finally {
+                resource.close();
             }
         }
 
@@ -763,7 +765,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
             // create a new temporary parser to read the configurations from
             // the specified file.
-            Parser parser = newParser(new UrlExternalResource(url), url);
+            Parser parser = newParser(UrlExternalResource.open(url), url);
             ParserHelper.parse(url , null, parser);
 
             // add the configurations from this temporary parser to this module descriptor
