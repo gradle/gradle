@@ -208,6 +208,14 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         void expectMetadataRetrieveBroken() {
             expectHeadBroken()
         }
+
+        @Override
+        void verifyChecksums() {
+            // MD5 not published for ivy modules
+            def sha1File = getSha1File()
+            sha1File.assertIsFile()
+            assert new BigInteger(sha1File.text, 16) == new BigInteger(getHash(getFile(), "sha1"), 16)
+        }
     }
 }
 
