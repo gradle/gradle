@@ -320,7 +320,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     <info organisation="myorg"
           module="parent"
           revision="parentrev"
-          status="integration"
+          status="not-the-default"
           publication="20041101110000"
     />
     <configurations>

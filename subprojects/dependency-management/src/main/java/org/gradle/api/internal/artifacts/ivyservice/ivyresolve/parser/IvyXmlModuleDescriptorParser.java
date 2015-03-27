@@ -44,6 +44,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.UrlExternalResource;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
@@ -94,7 +95,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
-    private DefaultIvyModuleResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
+    private DefaultIvyModuleResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws ParseException {
         parser.setValidate(validate);
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
@@ -481,7 +482,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return parseContext;
         }
 
-        public void parse() throws ParseException, IOException {
+        public void parse() throws ParseException {
             getResource().withContent(new Action<InputStream>() {
                 public void execute(InputStream inputStream) {
                     URL schemaURL = validate ? getSchemaURL() : null;
@@ -587,43 +588,33 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase();
             List<String> extendTypes = Arrays.asList(extendType.split(","));
 
-            ModuleDescriptor parent = null;
+            ModuleDescriptor parent;
             try {
                 LOGGER.debug("Trying to parse included ivy file :" + location);
                 parent = parseOtherIvyFileOnFileSystem(location);
-
-                //verify that the parsed descriptor is the correct parent module.
-                ModuleId expected = IvyUtil.createModuleId(parentOrganisation, parentModule);
-                ModuleId pid = parent.getModuleRevisionId().getModuleId();
-                if (!expected.equals(pid)) {
-                    LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
-                    parent = null;
+                if (parent != null) {
+                    //verify that the parsed descriptor is the correct parent module.
+                    ModuleId expected = IvyUtil.createModuleId(parentOrganisation, parentModule);
+                    ModuleId pid = parent.getModuleRevisionId().getModuleId();
+                    if (!expected.equals(pid)) {
+                        LOGGER.warn("Ignoring parent Ivy file " + location + "; expected " + expected + " but found " + pid);
+                        parent = null;
+                    }
                 }
 
-            } catch (ParseException e) {
-                LOGGER.debug("Unable to parse included ivy file " + location + ": " + e.getMessage());
-            } catch (IOException e) {
-                LOGGER.debug("Unable to parse included ivy file " + location + ": " + e.getMessage());
-            }
-
-            // if the included ivy file is not found on file system, tries to resolve using
-            // repositories
-            if (parent == null) {
-                try {
+                // if the included ivy file is not found on file system, tries to resolve using
+                // repositories
+                if (parent == null) {
                     LOGGER.debug("Trying to parse included ivy file by asking repository for module :"
-                                            + parentOrganisation
-                                            + "#"
-                                            + parentModule
-                                            + ";"
-                                            + parentRevision);
+                            + parentOrganisation
+                            + "#"
+                            + parentModule
+                            + ";"
+                            + parentRevision);
                     parent = parseOtherIvyFile(parentOrganisation, parentModule, parentRevision);
-                } catch(IOException e) {
-                    LOGGER.warn("Unable to access included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
-                } catch (ParseException e) {
-                    LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
-                } catch(SAXException e) {
-                    LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
                 }
+            } catch(Exception e) {
+                throw (ParseException) new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision, 0).initCause(e);
             }
 
             if (parent == null) {
@@ -727,7 +718,13 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throws ParseException, IOException {
             URL url = relativeUrlResolver.getURL(descriptorURL, location);
             LOGGER.debug("Trying to load included ivy file from " + url.toString());
-            return parseModuleDescriptor(new UrlExternalResource(url), url);
+            UrlExternalResource resource = new UrlExternalResource(url);
+            try {
+                return parseModuleDescriptor(resource, url);
+            } catch (ResourceNotFoundException e) {
+                // Ignore
+                return null;
+            }
         }
 
         protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation, String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
@@ -737,7 +734,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
         }
 
-        private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws IOException, ParseException {
+        private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws ParseException {
             Parser parser = newParser(externalResource, descriptorURL);
             parser.parse();
             return parser.getModuleDescriptor();
