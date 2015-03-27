@@ -20,11 +20,11 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.util.EntityUtils;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class HttpResponseResource extends AbstractExternalResource {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), etag, getSha1(response, etag));
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag));
     }
 
     public URI getURI() {

@@ -18,8 +18,6 @@ package org.gradle.internal.resource;
 
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,12 +63,8 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     public ExternalResourceMetaData getMetaData() {
         if (metaData == null) {
-            metaData = new DefaultExternalResourceMetaData(source, getLastModifiedTime(), getContentLength(), null, null);
+            metaData = new DefaultExternalResourceMetaData(source, getLastModifiedTime(), getContentLength());
         }
         return metaData;
-    }
-
-    protected HashValue getSha1(File contentFile) {
-        return HashUtil.createHash(contentFile, "SHA1");
     }
 }

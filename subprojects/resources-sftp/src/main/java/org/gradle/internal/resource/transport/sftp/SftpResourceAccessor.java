@@ -64,7 +64,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             contentLength = attributes.getSize();
         }
 
-        return new DefaultExternalResourceMetaData(uri, lastModified, contentLength, null, null);
+        return new DefaultExternalResourceMetaData(uri, lastModified, contentLength);
     }
 
     public ExternalResource getResource(URI location) {

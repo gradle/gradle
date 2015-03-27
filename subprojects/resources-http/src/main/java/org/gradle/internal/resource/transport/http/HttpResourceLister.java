@@ -16,10 +16,12 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -32,14 +34,15 @@ public class HttpResourceLister implements ExternalResourceLister {
     }
 
     public List<String> list(final URI directory) {
-        final HttpResponseResource resource = accessor.getResource(directory);
+        final ExternalResource resource = accessor.getResource(directory);
         if (resource == null) {
             return null;
         }
         try {
-            return resource.withContent(new Transformer<List<String>, InputStream>() {
-                public List<String> transform(InputStream inputStream) {
-                    String contentType = resource.getContentType();
+            return resource.withContent(new ExternalResource.ContentAction<List<String>>() {
+                @Override
+                public List<String> execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
+                    String contentType = metaData.getContentType();
                     ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
                     try {
                         return directoryListingParser.parse(directory, inputStream, contentType);

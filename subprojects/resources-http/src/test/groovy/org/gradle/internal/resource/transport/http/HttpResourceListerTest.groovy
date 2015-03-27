@@ -16,13 +16,14 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.api.Transformer
+import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
-
     HttpResourceAccessor accessorMock = Mock()
-    HttpResponseResource externalResource = Mock()
+    ExternalResource externalResource = Mock()
+    ExternalResourceMetaData metaData = Mock()
     HttpResourceLister lister = new HttpResourceLister(accessorMock)
 
     def "consumeExternalResource closes resource after reading into stream"() {
@@ -31,8 +32,8 @@ class HttpResourceListerTest extends Specification {
         when:
         lister.list(new URI("http://testrepo/"))
         then:
-        1 * externalResource.withContent(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
-        1 * externalResource.getContentType() >> "text/html"
+        1 * externalResource.withContent(_) >> {ExternalResource.ContentAction action -> return action.execute(new ByteArrayInputStream("<a href='child'/>".bytes), metaData)}
+        1 * metaData.getContentType() >> "text/html"
         1 * externalResource.close()
     }
 
