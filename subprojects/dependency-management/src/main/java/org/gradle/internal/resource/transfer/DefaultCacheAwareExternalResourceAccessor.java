@@ -38,6 +38,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -53,14 +54,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheAwareExternalResourceAccessor.class);
 
-    private final ExternalResourceAccessor delegate;
+    private final ExternalResourceRepository delegate;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -83,7 +84,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // Get the metadata first to see if it's there
-        final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(location);
+        final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location);
         if (remoteMetaData == null) {
             return null;
         }
