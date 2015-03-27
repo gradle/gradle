@@ -710,7 +710,7 @@ compile - Compile classpath for source set 'main'.
                     compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
                 }
 
-                configurations.compile.resolutionStrategy.eachDependency {
+                configurations.compile.resolutionStrategy.dependencySubstitution.all {
                     if (it.requested.version == '1.3') {
                         it.useTarget project(":api")
                     }
@@ -757,7 +757,7 @@ compile
                     compile group: 'org.utils', name: 'api', version: '1.3', configuration: 'compile'
                 }
 
-                configurations.compile.resolutionStrategy.eachDependency {
+                configurations.compile.resolutionStrategy.dependencySubstitution.all {
                     if (it.requested.version == '1.3') {
                         it.useTarget project(":api2")
                     }
