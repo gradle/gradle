@@ -84,12 +84,12 @@ public class RepositoryTransportDeployWagon implements Wagon {
             if (!getDelegate().getRemoteFile(destination, resourceName)) {
                 throw new ResourceDoesNotExistException(String.format("Resource '%s' does not exist", resourceName));
             }
-            signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
             this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_GET));
         } catch (ResourceDoesNotExistException e) {
+            this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_GET));
             throw e;
         } catch (Exception e) {
-            this.transferEventSupport.fireTransferError(transferEvent(resource, TRANSFER_ERROR, REQUEST_GET));
+            this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_GET));
             throw new TransferFailedException(String.format("Could not get resource '%s'", resourceName), e);
         }
     }
@@ -101,7 +101,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
             getDelegate().putRemoteFile(file, resourceName);
-            signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
+            signalMavenToGenerateChecksums(file, resource);
         } catch (Exception e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
             throw new TransferFailedException(String.format("Could not write to resource '%s'", resourceName), e);
@@ -267,8 +267,8 @@ public class RepositoryTransportDeployWagon implements Wagon {
      * @param file - the file which has been uploaded
      * @param resource - the maven resource
      */
-    private void signalMavenToGenerateChecksums(File file, Resource resource, int requestMethod) {
-        TransferEvent transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, requestMethod);
+    private void signalMavenToGenerateChecksums(File file, Resource resource) {
+        TransferEvent transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, REQUEST_PUT);
         FileInputStream in = null;
         try {
             in = new FileInputStream(file);

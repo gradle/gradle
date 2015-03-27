@@ -198,8 +198,6 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * delegate.getRemoteFile(file, resourceName) >> true
         then:
-        1 * transferListener.transferProgress(*_)
-        then:
         1 * transferListener.transferCompleted(*_)
         then:
         0 * transferListener._
