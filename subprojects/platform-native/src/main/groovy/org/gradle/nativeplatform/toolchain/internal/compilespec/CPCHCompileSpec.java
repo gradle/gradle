@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
-import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-public interface PreCompiledHeaderExportingSourceSetInternal extends HeaderExportingSourceSet {
-    boolean isPreCompiledHeader();
-
-    void setIsPreCompiledHeader(boolean isPreCompiledHeader);
-
-    DependentSourceSet getConsumingSourceSet();
-
-    void setConsumingSourceSet(DependentSourceSet dependentSourceSet);
+public interface CPCHCompileSpec extends NativeCompileSpec {
 }

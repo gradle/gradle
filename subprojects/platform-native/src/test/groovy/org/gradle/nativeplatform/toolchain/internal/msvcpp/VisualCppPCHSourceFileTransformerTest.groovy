@@ -33,7 +33,6 @@ class VisualCppPCHSourceFileTransformerTest extends Specification {
         def spec = Mock(CCompileSpec) {
             getTempDir() >> tempDir
             getSourceFiles() >> [ sourceFile ]
-            isPrefixHeaderCompile() >> true
         }
 
         when:
@@ -46,17 +45,5 @@ class VisualCppPCHSourceFileTransformerTest extends Specification {
             assert sourceFiles[0].name == "test.c"
             assert sourceFiles[0].parentFile == pchSourceDir
         }
-    }
-
-    def "does not transform specs that are not pre-compiled headers" () {
-        def spec = Mock(CCompileSpec) {
-            isPrefixHeaderCompile() >> false
-        }
-
-        when:
-        transformer.transform(spec)
-
-        then:
-        0 * spec.setSourceFiles(_)
     }
 }

@@ -26,11 +26,11 @@ import java.io.File;
 public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final Compiler<T> compiler;
-    private final ObjectFileExtensionCalculator objectFileExtensionCalculator;
+    private final String outputFileSuffix;
 
-    public OutputCleaningCompiler(Compiler<T> compiler, ObjectFileExtensionCalculator objectFileExtensionCalculator) {
+    public OutputCleaningCompiler(Compiler<T> compiler, String outputFileSuffix) {
         this.compiler = compiler;
-        this.objectFileExtensionCalculator = objectFileExtensionCalculator;
+        this.outputFileSuffix = outputFileSuffix;
     }
 
     public WorkResult execute(T spec) {
@@ -49,7 +49,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     private boolean deleteOutputsForRemovedSources(NativeCompileSpec spec) {
         boolean didRemove = false;
         for (File removedSource : spec.getRemovedSourceFiles()) {
-            File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource, objectFileExtensionCalculator.transform(spec));
+            File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
             if (objectFile.delete()) {
                 didRemove = true;
                 objectFile.getParentFile().delete();
@@ -58,7 +58,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
         return didRemove;
     }
 
-    private File getObjectFile(File objectFileRoot, File sourceFile, String outputFileSuffix) {
+    private File getObjectFile(File objectFileRoot, File sourceFile) {
         return new CompilerOutputFileNamingScheme()
                         .withObjectFileNameSuffix(outputFileSuffix)
                         .withOutputBaseFolder(objectFileRoot)

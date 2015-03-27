@@ -26,13 +26,11 @@ import java.util.List;
 public class VisualCppPCHSourceFileTransformer<T extends NativeCompileSpec> implements Transformer<T, T> {
     @Override
     public T transform(T original) {
-        if (original.isPrefixHeaderCompile()) {
-            List<File> newSourceFiles = Lists.newArrayList();
-            for (File sourceFile : original.getSourceFiles()) {
-                newSourceFiles.add(VisualCppPCHSourceFileGeneratorUtil.generatePCHSourceFile(original, sourceFile));
-            }
-            original.setSourceFiles(newSourceFiles);
+        List<File> newSourceFiles = Lists.newArrayList();
+        for (File sourceFile : original.getSourceFiles()) {
+            newSourceFiles.add(VisualCppPCHSourceFileGeneratorUtil.generatePCHSourceFile(original, sourceFile));
         }
+        original.setSourceFiles(newSourceFiles);
         return original;
     }
 }

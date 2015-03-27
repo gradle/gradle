@@ -18,31 +18,19 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
 class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, getArgsTransformerFactory(), Transformers.<AssembleSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), Transformers.<AssembleSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {
         protected String getLanguage() {
             return "assembler";
         }
-    }
-
-    private static ArgsTransformerFactory<AssembleSpec> getArgsTransformerFactory() {
-        return new ArgsTransformerFactory<AssembleSpec>() {
-            @Override
-            public ArgsTransformer<AssembleSpec> create(AssembleSpec spec) {
-                return new AssemblerArgsTransformer();
-            }
-        };
     }
 }

@@ -73,6 +73,5 @@ public class CppLangPlugin implements Plugin<Project> {
         public SourceTransformTaskConfig getTransformTask() {
             return new CompileTaskConfig(this, CppCompile.class);
         }
-
     }
 }

@@ -27,8 +27,8 @@ import java.util.List;
 
 class GccCompatibleNativeCompiler<T extends NativeCompileSpec> extends NativeCompiler<T> {
 
-    GccCompatibleNativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, final ArgsTransformerFactory<T> argsTransformerFactory, Transformer<T, T> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, argsTransformerFactory, specTransformer, objectFileExtensionCalculator, useCommandFile);
+    GccCompatibleNativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, final ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, argsTransformer, specTransformer, objectFileExtension, useCommandFile);
     }
 
     @Override

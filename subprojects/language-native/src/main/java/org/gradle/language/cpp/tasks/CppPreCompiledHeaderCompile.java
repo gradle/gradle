@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.language.cpp.tasks;
 
-import org.gradle.nativeplatform.internal.BinaryToolSpec;
+import org.gradle.language.cpp.internal.DefaultCppPCHCompileSpec;
+import org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-public interface ArgsTransformerFactory<T extends BinaryToolSpec> {
-    ArgsTransformer<T> create(T spec);
+/**
+ * Compiles C++ header source files into object files.
+ */
+public class CppPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
+    @Override
+    protected NativeCompileSpec createCompileSpec() {
+        return new DefaultCppPCHCompileSpec();
+    }
 }

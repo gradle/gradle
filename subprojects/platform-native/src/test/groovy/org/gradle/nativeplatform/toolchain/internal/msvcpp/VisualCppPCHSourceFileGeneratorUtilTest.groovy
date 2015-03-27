@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,7 +46,7 @@ class VisualCppPCHSourceFileGeneratorUtilTest extends Specification {
 
         where:
         type           | extension
-        CCompileSpec   | "c"
-        CppCompileSpec | "cpp"
+        CPCHCompileSpec   | "c"
+        CppPCHCompileSpec | "cpp"
     }
 }

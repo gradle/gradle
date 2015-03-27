@@ -44,35 +44,63 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtensionCalculator());
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool(cppCompilerTool), context(cppCompilerTool), getObjectFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createCppPCHCompiler() {
+        GccCommandLineToolConfigurationInternal cppCompilerTool = toolRegistry.getTool(ToolType.CPP_COMPILER);
+        CppPCHCompiler cppPCHCompiler = new CppPCHCompiler(buildOperationProcessor, commandLineTool(cppCompilerTool), context(cppCompilerTool), getPCHFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<CppPCHCompileSpec>(cppPCHCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtensionCalculator());
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool(cCompilerTool), context(cCompilerTool), getObjectFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createCPCHCompiler() {
+        GccCommandLineToolConfigurationInternal cCompilerTool = toolRegistry.getTool(ToolType.C_COMPILER);
+        CPCHCompiler cpchCompiler = new CPCHCompiler(buildOperationProcessor, commandLineTool(cCompilerTool), context(cCompilerTool), getPCHFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<CPCHCompileSpec>(cpchCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<ObjectiveCppCompileSpec> createObjectiveCppCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
-        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(buildOperationProcessor, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getObjectFileExtensionCalculator());
+        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(buildOperationProcessor, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getObjectFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createObjectiveCppPCHCompiler() {
+        GccCommandLineToolConfigurationInternal objectiveCppCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVECPP_COMPILER);
+        ObjectiveCppPCHCompiler objectiveCppPCHCompiler = new ObjectiveCppPCHCompiler(buildOperationProcessor, commandLineTool(objectiveCppCompilerTool), context(objectiveCppCompilerTool), getPCHFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCppPCHCompileSpec>(objectiveCppPCHCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<ObjectiveCCompileSpec> createObjectiveCCompiler() {
         GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
-        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(buildOperationProcessor, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getObjectFileExtensionCalculator(), useCommandFile);
-        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getObjectFileExtensionCalculator());
+        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(buildOperationProcessor, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getObjectFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createObjectiveCPCHCompiler() {
+        GccCommandLineToolConfigurationInternal objectiveCCompilerTool = toolRegistry.getTool(ToolType.OBJECTIVEC_COMPILER);
+        ObjectiveCPCHCompiler objectiveCPCHCompiler = new ObjectiveCPCHCompiler(buildOperationProcessor, commandLineTool(objectiveCCompilerTool), context(objectiveCCompilerTool), getPCHFileExtension(), useCommandFile);
+        return new OutputCleaningCompiler<ObjectiveCPCHCompileSpec>(objectiveCPCHCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         GccCommandLineToolConfigurationInternal assemblerTool = toolRegistry.getTool(ToolType.ASSEMBLER);
-        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), getObjectFileExtensionCalculator(), useCommandFile);
+        return new Assembler(buildOperationProcessor, commandLineTool(assemblerTool), context(assemblerTool), getObjectFileExtension(), useCommandFile);
     }
 
     @Override

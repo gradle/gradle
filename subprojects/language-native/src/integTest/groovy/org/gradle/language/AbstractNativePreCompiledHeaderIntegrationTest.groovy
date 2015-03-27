@@ -239,7 +239,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getGeneratePrefixHeaderTaskName() {
-        return "generateHelloSharedLibrary${StringUtils.capitalize(sourceSet)}PrefixHeaderFile"
+        return "generate${StringUtils.capitalize(sourceSet)}PrefixHeaderFile"
     }
 
     String getLibraryCompileTaskName() {
@@ -247,6 +247,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getPCHHeaderDirName() {
-        return "build/objs/helloSharedLibrary/${StringUtils.capitalize(sourceSet)}PreCompiledHeader"
+        return "build/objs/helloSharedLibrary/hello${StringUtils.capitalize(sourceSet)}PreCompiledHeader"
     }
 }

@@ -39,19 +39,19 @@ import java.util.List;
 abstract public class NativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
-    private final ArgsTransformerFactory<T> argsTransformerFactory;
+    private final ArgsTransformer<T> argsTransformer;
     private final Transformer<T, T> specTransformer;
     private final CommandLineToolContext invocationContext;
-    private final ObjectFileExtensionCalculator objectFileExtensionCalculator;
+    private final String objectFileExtension;
     private final boolean useCommandFile;
 
     private final BuildOperationProcessor buildOperationProcessor;
 
-    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformerFactory<T> argsTransformerFactory, Transformer<T, T> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
+    public NativeCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ArgsTransformer<T> argsTransformer, Transformer<T, T> specTransformer, String objectFileExtension, boolean useCommandFile) {
         this.invocationContext = invocationContext;
-        this.objectFileExtensionCalculator = objectFileExtensionCalculator;
+        this.objectFileExtension = objectFileExtension;
         this.useCommandFile = useCommandFile;
-        this.argsTransformerFactory = argsTransformerFactory;
+        this.argsTransformer = argsTransformer;
         this.specTransformer = specTransformer;
         this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
         this.buildOperationProcessor = buildOperationProcessor;
@@ -76,7 +76,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected List<String> getArguments(T spec) {
-        ArgsTransformer<T> argsTransformer = argsTransformerFactory.create(spec);
         List<String> args = argsTransformer.transform(spec);
 
         Action<List<String>> userArgTransformer = invocationContext.getArgAction();
@@ -142,7 +141,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
-        String objectFileSuffix = objectFileExtensionCalculator.transform(spec);
+        String objectFileSuffix = objectFileExtension;
         List<String> sourceArgs = getSourceArgs(sourceFile);
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);

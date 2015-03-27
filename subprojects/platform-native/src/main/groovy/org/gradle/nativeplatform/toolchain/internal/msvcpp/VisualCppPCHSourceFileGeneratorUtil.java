@@ -22,8 +22,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,11 +48,11 @@ public class VisualCppPCHSourceFileGeneratorUtil {
     static class SourceFileExtensionCalculator implements Transformer<String, Class<? extends NativeCompileSpec>> {
         @Override
         public String transform(Class<? extends NativeCompileSpec> specClass) {
-            if (CCompileSpec.class.isAssignableFrom(specClass)) {
+            if (CPCHCompileSpec.class.isAssignableFrom(specClass)) {
                 return ".c";
             }
 
-            if (CppCompileSpec.class.isAssignableFrom(specClass)) {
+            if (CppPCHCompileSpec.class.isAssignableFrom(specClass)) {
                 return ".cpp";
             }
 

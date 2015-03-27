@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.language.objectivec.internal;
 
-import org.gradle.api.Transformer;
+import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec;
 
-public interface ObjectFileExtensionCalculator extends Transformer<String, NativeCompileSpec> {
-
+public class DefaultObjectiveCPCHCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCPCHCompileSpec {
 }

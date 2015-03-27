@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal;
+package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
-public class DefaultObjectFileExtensionCalculator implements ObjectFileExtensionCalculator {
-    private final AbstractPlatformToolProvider toolProvider;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
-    public DefaultObjectFileExtensionCalculator(AbstractPlatformToolProvider toolProvider) {
-        this.toolProvider = toolProvider;
-    }
-
-    @Override
-    public String transform(NativeCompileSpec nativeCompileSpec) {
-        if (nativeCompileSpec.isPrefixHeaderCompile()) {
-            return toolProvider.getPCHFileExtension();
-        }
-        return toolProvider.getObjectFileExtension();
-    }
+public interface CppPCHCompileSpec extends NativeCompileSpec {
 }

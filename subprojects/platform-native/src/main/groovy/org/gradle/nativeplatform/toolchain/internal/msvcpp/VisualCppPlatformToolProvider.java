@@ -29,7 +29,9 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.*;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
@@ -62,21 +64,35 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), allSpecTransforms(CppCompileSpec.class), getObjectFileExtensionCalculator(), true);
-        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtensionCalculator());
+        CppCompiler cppCompiler = new CppCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), getObjectFileExtension(), true);
+        return new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createCppPCHCompiler() {
+        CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
+        CppPCHCompiler cppPCHCompiler = new CppPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), allSpecTransforms(CppPCHCompileSpec.class), getPCHFileExtension(), true);
+        return new OutputCleaningCompiler<CppPCHCompileSpec>(cppPCHCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), allSpecTransforms(CCompileSpec.class), getObjectFileExtensionCalculator(), true);
-        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtensionCalculator());
+        CCompiler cCompiler = new CCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), getObjectFileExtension(), true);
+        return new OutputCleaningCompiler<CCompileSpec>(cCompiler, getObjectFileExtension());
+    }
+
+    @Override
+    protected Compiler<?> createCPCHCompiler() {
+        CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
+        CPCHCompiler cpchCompiler = new CPCHCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), allSpecTransforms(CPCHCompileSpec.class), getPCHFileExtension(), true);
+        return new OutputCleaningCompiler<CPCHCompileSpec>(cpchCompiler, getPCHFileExtension());
     }
 
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-        return new Assembler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), getObjectFileExtensionCalculator(), false);
+        return new Assembler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), getObjectFileExtension(), false);
     }
 
     @Override
@@ -92,14 +108,9 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-        ObjectFileExtensionCalculator windowsResourceOutputFileCalculator = new ObjectFileExtensionCalculator() {
-            @Override
-            public String transform(NativeCompileSpec nativeCompileSpec) {
-                return ".res";
-            }
-        };
-        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), windowsResourceOutputFileCalculator, false);
-        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, windowsResourceOutputFileCalculator);
+        String objectFileExtension = ".res";
+        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), objectFileExtension, false);
+        return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, objectFileExtension);
     }
 
     @Override

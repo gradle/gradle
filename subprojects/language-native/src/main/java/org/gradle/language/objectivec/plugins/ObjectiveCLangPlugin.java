@@ -73,6 +73,5 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
         public SourceTransformTaskConfig getTransformTask() {
             return new CompileTaskConfig(this, ObjectiveCCompile.class);
         }
-
     }
 }
