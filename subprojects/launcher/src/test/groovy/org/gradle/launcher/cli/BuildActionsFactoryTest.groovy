@@ -19,6 +19,7 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
+import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -28,8 +29,7 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.internal.invocation.BuildActionRunner
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
+import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.OutputEventListener
@@ -134,7 +134,7 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof InProcessBuildActionExecuter
+        assert action.executer instanceof DaemonUsageSuggestingBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

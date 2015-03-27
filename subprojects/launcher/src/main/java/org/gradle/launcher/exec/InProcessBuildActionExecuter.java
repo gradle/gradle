@@ -17,35 +17,21 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.BuildResult;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    public static final String PLEASE_USE_DAEMON_MESSAGE_PREFIX = "This build could be faster, please consider using the Gradle Daemon: ";
     private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
-    private final StyledTextOutputFactory textOutputFactory;
-    private final GradleBuildEnvironment buildEnvironment;
-    private final DocumentationRegistry documentationRegistry;
 
-    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner, StyledTextOutputFactory textOutputFactory,
-                                        GradleBuildEnvironment buildEnvironment, DocumentationRegistry documentationRegistry) {
+    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.buildActionRunner = buildActionRunner;
-        this.textOutputFactory = textOutputFactory;
-        this.buildEnvironment = buildEnvironment;
-        this.documentationRegistry = documentationRegistry;
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
@@ -53,23 +39,10 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         try {
             DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
             buildActionRunner.run(action, buildController);
-            possiblySuggestUsingDaemon(actionParameters);
             return buildController.result;
         } finally {
             gradleLauncher.stop();
         }
-    }
-
-    private void possiblySuggestUsingDaemon(BuildActionParameters actionParameters) {
-        if (actionParameters.isDaemonUsageConfiguredExplicitly()
-                || buildEnvironment.isLongLivingProcess()
-                || OperatingSystem.current().isWindows()
-                || actionParameters.getEnvVariables().get("CI") != null) {
-            return;
-        }
-        StyledTextOutput styledTextOutput = textOutputFactory.create(InProcessBuildActionExecuter.class, LogLevel.LIFECYCLE);
-        styledTextOutput.println();
-        styledTextOutput.println(PLEASE_USE_DAEMON_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("gradle_daemon"));
     }
 
     private static class DefaultBuildController implements BuildController {

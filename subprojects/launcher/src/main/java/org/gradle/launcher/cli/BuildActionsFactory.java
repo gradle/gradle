@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
@@ -41,10 +42,8 @@ import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.*;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 
 import java.lang.management.ManagementFactory;
@@ -163,7 +162,10 @@ class BuildActionsFactory implements CommandLineAction {
                 .provider(new GlobalScopeServices(false))
                 .build();
         InProcessBuildActionExecuter executer = globalServices.get(InProcessBuildActionExecuter.class);
-        return runBuild(startParameter, daemonParameters, executer);
+        StyledTextOutputFactory textOutputFactory = globalServices.get(StyledTextOutputFactory.class);
+        DocumentationRegistry documentationRegistry = globalServices.get(DocumentationRegistry.class);
+        DaemonUsageSuggestingBuildActionExecuter daemonUsageSuggestingExecuter = new DaemonUsageSuggestingBuildActionExecuter(executer, textOutputFactory, documentationRegistry);
+        return runBuild(startParameter, daemonParameters, daemonUsageSuggestingExecuter);
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
