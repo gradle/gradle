@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule

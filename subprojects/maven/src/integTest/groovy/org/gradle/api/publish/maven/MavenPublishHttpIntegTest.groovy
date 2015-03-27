@@ -15,16 +15,15 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Unroll
 
-class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
+class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule HttpServer server
 

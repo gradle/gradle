@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.s3.ivy
 
-import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
 import org.junit.Rule
 

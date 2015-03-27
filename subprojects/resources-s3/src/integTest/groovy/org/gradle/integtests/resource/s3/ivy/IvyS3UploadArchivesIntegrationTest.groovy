@@ -15,12 +15,11 @@
  */
 
 package org.gradle.integtests.resource.s3.ivy
-
-import org.gradle.integtests.ivy.AbstractIvyPublishIntegTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
 import org.junit.Rule
 
-class IvyS3UploadArchivesIntegrationTest extends AbstractIvyPublishIntegTest {
+class IvyS3UploadArchivesIntegrationTest extends AbstractIntegrationSpec {
 
     String bucket = 'tests3bucket'
 

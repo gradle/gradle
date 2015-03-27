@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.ivy
+package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
