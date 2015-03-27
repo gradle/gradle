@@ -105,7 +105,7 @@ generator:
     public class UnixJvmOptEscapeHandler implements EscapeHandler {
         private final Map<String, String> replacements = new HashMap<String, String>();
 
-        public EscapeHandler() {
+        public UnixJvmOptEscapeHandler() {
             addReplacement("$", "\\$");
             // add more replacements
         }
