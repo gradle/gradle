@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
+package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.DefaultExternalResource;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
