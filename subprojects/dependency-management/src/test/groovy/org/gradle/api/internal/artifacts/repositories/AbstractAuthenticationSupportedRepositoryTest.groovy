@@ -151,7 +151,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.credentials(AwsCredentials, action)
 
         then:
-        repo.alternativeCredentials instanceof AwsCredentials
+        repo.configuredCredentials instanceof AwsCredentials
     }
 
     private void enhanceCredentials(Credentials credentials, String... props) {

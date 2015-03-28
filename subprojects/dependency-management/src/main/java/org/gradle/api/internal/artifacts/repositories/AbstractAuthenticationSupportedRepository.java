@@ -63,7 +63,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         }
     }
 
-    public Credentials getAlternativeCredentials() {
+    public Credentials getConfiguredCredentials() {
         return credentials;
     }
 }

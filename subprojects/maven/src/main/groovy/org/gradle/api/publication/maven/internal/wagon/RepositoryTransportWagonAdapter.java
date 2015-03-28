@@ -36,7 +36,7 @@ public class RepositoryTransportWagonAdapter {
     private final URI rootUri;
 
     public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getAlternativeCredentials();
+        Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getConfiguredCredentials();
         transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), credentials);
         rootUri = artifactRepository.getUrl();
     }

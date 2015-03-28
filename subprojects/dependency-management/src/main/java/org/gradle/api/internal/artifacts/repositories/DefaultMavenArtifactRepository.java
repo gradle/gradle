@@ -119,7 +119,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     protected RepositoryTransport getTransport(String scheme) {
-        return transportFactory.createTransport(scheme, getName(), getAlternativeCredentials());
+        return transportFactory.createTransport(scheme, getName(), getConfiguredCredentials());
     }
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> getLocallyAvailableResourceFinder() {

@@ -17,15 +17,15 @@
 package org.gradle.internal.artifacts.repositories;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.credentials.Credentials;
 
 public interface AuthenticationSupportedInternal extends AuthenticationSupported {
     /**
-     * Returns the alternative credentials used to authenticate with this repository.
-     *
-     * @return The Credentials
+     * Returns the configured credentials used to authenticate with this repository, or <code>null</code> if no credentials have been configured.
      */
     @Incubating
-    Credentials getAlternativeCredentials();
+    @Nullable
+    Credentials getConfiguredCredentials();
 }

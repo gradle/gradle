@@ -69,7 +69,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
-        mavenArtifactRepository.getAlternativeCredentials() >> null
+        mavenArtifactRepository.getConfiguredCredentials() >> null
         mavenArtifactRepository.getCredentials() >> new DefaultPasswordCredentials(null, null)
         MavenRemoteRepositoryFactory mavenRemoteRepositoryFactory = new MavenRemoteRepositoryFactory(mavenArtifactRepository)
 
