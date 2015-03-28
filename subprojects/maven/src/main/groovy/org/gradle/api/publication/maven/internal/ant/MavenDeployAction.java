@@ -30,9 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-/**
- * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
- */
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
