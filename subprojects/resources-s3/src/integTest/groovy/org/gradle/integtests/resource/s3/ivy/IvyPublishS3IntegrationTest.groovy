@@ -67,7 +67,5 @@ publishing {
         then:
         def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.assertPublishedAsJavaModule()
-        // TODO Verify published checksums: move functionality from HttpArtifact to something that works for IvyFileRepository
-
     }
 }

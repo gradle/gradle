@@ -64,4 +64,10 @@ class MavenLocalModule extends AbstractMavenModule {
     protected boolean publishesHashFiles() {
         false
     }
+
+    /* No checksums published for local modules */
+    @Override
+    void assertArtifactsPublished(String... names) {
+        assert moduleDir.list() as Set == names as Set
+    }
 }

@@ -148,7 +148,6 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         return new IvyModuleHttpArtifact(server, prefix, backingModule.jarFilePath, jarFile)
     }
 
-
     void assertIvyAndJarFilePublished() {
         backingModule.assertIvyAndJarFilePublished()
     }

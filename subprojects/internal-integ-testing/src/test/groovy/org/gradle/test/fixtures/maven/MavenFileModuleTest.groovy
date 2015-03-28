@@ -191,7 +191,7 @@ class MavenFileModuleTest extends Specification {
         publishedFiles.find { it.name == 'maven-metadata.xml' }.exists()
         new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.timestamp.text() == '20100101.120001'
         new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.buildNumber.text() == '1'
-        snapshotMavenFileModule.assertArtifactsPublished('my-artifact-1.0-20100101.120001-1.jar', 'my-artifact-1.0-20100101.120001-1.pom')
+        snapshotMavenFileModule.assertArtifactsPublished('maven-metadata.xml', 'my-artifact-1.0-20100101.120001-1.jar', 'my-artifact-1.0-20100101.120001-1.pom')
     }
 
     def "Publish artifacts for non-unique snapshot"() {
