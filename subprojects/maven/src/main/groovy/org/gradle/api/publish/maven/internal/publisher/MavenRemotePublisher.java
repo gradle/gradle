@@ -32,7 +32,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import java.io.File;
 import java.net.URI;
 
-public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployAction> {
+public class MavenRemotePublisher extends AbstractMavenPublisher {
     private final Factory<File> temporaryDirFactory;
     private final RepositoryTransportFactory repositoryTransportFactory;
 

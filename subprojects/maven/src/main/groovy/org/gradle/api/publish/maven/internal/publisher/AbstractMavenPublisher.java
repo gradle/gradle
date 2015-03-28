@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-abstract public class AbstractMavenPublisher<T extends MavenPublishAction> implements MavenPublisher {
+abstract public class AbstractMavenPublisher implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     private static Logger logger = LoggerFactory.getLogger(AbstractMavenPublisher.class);
@@ -42,12 +42,12 @@ abstract public class AbstractMavenPublisher<T extends MavenPublishAction> imple
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         logger.info("Publishing to repository {}", artifactRepository);
-        T deployTask = createDeployTask(publication.getPomFile(), mavenRepositoryLocator, artifactRepository);
+        MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected T createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();

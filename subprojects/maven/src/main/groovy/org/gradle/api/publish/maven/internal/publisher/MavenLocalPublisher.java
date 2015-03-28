@@ -24,7 +24,7 @@ import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
-public class MavenLocalPublisher extends AbstractMavenPublisher<MavenInstallAction> {
+public class MavenLocalPublisher extends AbstractMavenPublisher {
     public MavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(loggingManagerFactory, mavenRepositoryLocator);
     }
