@@ -19,8 +19,10 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.Factory;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.internal.resource.PasswordCredentials;
 
 class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
 
@@ -34,14 +36,17 @@ class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
         RemoteRepository remoteRepository = new RemoteRepository();
         remoteRepository.setUrl(artifactRepository.getUrl().toString());
 
-        PasswordCredentials credentials = artifactRepository.getCredentials();
-        String username = credentials.getUsername();
-        String password = credentials.getPassword();
-        if (username != null || password != null) {
-            Authentication authentication = new Authentication();
-            authentication.setUserName(username);
-            authentication.setPassword(password);
-            remoteRepository.addAuthentication(authentication);
+        Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getConfiguredCredentials();
+        if (credentials != null && credentials instanceof PasswordCredentials) {
+            PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
+            String username = passwordCredentials.getUsername();
+            String password = passwordCredentials.getPassword();
+            if (username != null || password != null) {
+                Authentication authentication = new Authentication();
+                authentication.setUserName(username);
+                authentication.setPassword(password);
+                remoteRepository.addAuthentication(authentication);
+            }
         }
         return remoteRepository;
 
