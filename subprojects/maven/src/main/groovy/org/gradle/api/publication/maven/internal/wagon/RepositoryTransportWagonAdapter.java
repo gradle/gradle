@@ -17,9 +17,11 @@
 package org.gradle.api.publication.maven.internal.wagon;
 
 import org.apache.maven.wagon.ResourceDoesNotExistException;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceException;
@@ -33,8 +35,9 @@ public class RepositoryTransportWagonAdapter {
     private final RepositoryTransport transport;
     private final URI rootUri;
 
-    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
+    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getAlternativeCredentials();
+        transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), credentials);
         rootUri = artifactRepository.getUrl();
     }
 

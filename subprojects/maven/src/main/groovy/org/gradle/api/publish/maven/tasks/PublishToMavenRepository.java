@@ -27,7 +27,6 @@ import org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 
 import javax.inject.Inject;
 
@@ -66,7 +65,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        MavenArtifactRepositoryInternal repository = (MavenArtifactRepositoryInternal) getRepository();
+        MavenArtifactRepository repository = getRepository();
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
@@ -74,7 +73,7 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         doPublish(publicationInternal, repository);
     }
 
-    private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepositoryInternal repository) {
+    private void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
         new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() throws Exception {

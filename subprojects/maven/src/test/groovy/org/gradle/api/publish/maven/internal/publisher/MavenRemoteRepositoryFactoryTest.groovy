@@ -15,30 +15,28 @@
  */
 
 package org.gradle.api.publish.maven.internal.publisher
-
-import org.gradle.api.credentials.Credentials
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal
 import spock.lang.Specification
 
 class MavenRemoteRepositoryFactoryTest extends Specification {
 
-    def "should not set repository authentication when alternative credentials are specified"() {
+    def "fails to create maven repository when non-password credentials are specified"() {
         setup:
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
-        mavenArtifactRepository.getAlternativeCredentials() >> Mock(Credentials)
+        mavenArtifactRepository.getCredentials() >> {
+            throw new ClassCastException()
+        }
         MavenRemoteRepositoryFactory mavenRemoteRepositoryFactory = new MavenRemoteRepositoryFactory(mavenArtifactRepository)
 
         when:
-        def createdRepo = mavenRemoteRepositoryFactory.create()
+        mavenRemoteRepositoryFactory.create()
 
         then:
-        createdRepo.authentication == null
-
-        and:
-        createdRepo.getUrl() == someUrl
+        thrown ClassCastException
     }
 
     def "should set authentication when password or username are specified"() {
@@ -46,7 +44,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
-        mavenArtifactRepository.getAlternativeCredentials() >> new DefaultPasswordCredentials(username, password)
+        mavenArtifactRepository.getCredentials() >> new DefaultPasswordCredentials(username, password)
         MavenRemoteRepositoryFactory mavenRemoteRepositoryFactory = new MavenRemoteRepositoryFactory(mavenArtifactRepository)
 
         when:
@@ -83,6 +81,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
 
         and:
         createdRepo.getUrl() == someUrl
-
     }
+
+    private interface MavenArtifactRepositoryInternal extends MavenArtifactRepository, AuthenticationSupportedInternal {}
 }

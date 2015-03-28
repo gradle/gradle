@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
@@ -23,7 +24,6 @@ import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeploy
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -38,7 +38,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepositoryInternal artifactRepository) {
+    protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
         MavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(new MavenRemoteRepositoryFactory(artifactRepository).create(), null);
@@ -47,11 +47,11 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
     }
 
     private static class GradleWagonMavenDeployAction extends MavenDeployAction {
-        private final MavenArtifactRepositoryInternal artifactRepository;
+        private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
         private final WagonRegistry wagonRegistry;
 
-        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
             super(pomFile);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
