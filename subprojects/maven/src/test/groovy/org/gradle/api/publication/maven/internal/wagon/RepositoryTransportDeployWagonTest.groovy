@@ -24,11 +24,11 @@ import org.apache.maven.wagon.proxy.ProxyInfo
 import org.apache.maven.wagon.proxy.ProxyInfoProvider
 import org.apache.maven.wagon.repository.Repository
 import org.gradle.api.GradleException
+import org.gradle.internal.resource.local.LocalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RepositoryTransportDeployWagonTest extends Specification {
 
@@ -101,20 +101,25 @@ class RepositoryTransportDeployWagonTest extends Specification {
         !wagon.isInteractive()
     }
 
-    @Unroll
-    def "should signal #expectedProgressCount progress events on a successful upload of #byteSize bytes"() {
+    def "should signal progress events when input stream is read"() {
         setup:
-        TransferListener transferListener = Mock()
+        def transferListener = Mock(TransferListener)
         RepositoryTransportWagonAdapter delegate = Mock()
+        delegate.putRemoteFile(*_) >> { LocalResource resource, String resourceName ->
+            def is = resource.open()
+            // 3 reads >> 3 events
+            is.read()
+            is.read(new byte[3])
+            is.read(new byte[3], 1, 2)
+            is.close()
+        }
 
-        RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
-        byte[] b = new byte[byteSize]
-        new Random().nextBytes(b)
-        file << b
+        file << "here is some file content"
 
         def resourceName = '/some/resource.jar'
 
+        RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         wagon.addTransferListener(transferListener)
         wagon.contextualize(delegate)
 
@@ -127,29 +132,23 @@ class RepositoryTransportDeployWagonTest extends Specification {
         then:
         1 * transferListener.transferStarted(_)
         then:
-        1 * delegate.putRemoteFile(file, resourceName)
-        then:
-        expectedProgressCount * transferListener.transferProgress(*_)
+        3 * transferListener.transferProgress(*_)
         then:
         1 * transferListener.transferCompleted(_)
         then:
         0 * transferListener._
-
-        where:
-        byteSize | expectedProgressCount
-        4096     | 1
-        4097     | 2
-        8192     | 2
-        8193     | 3
     }
 
     def "should signal correct events on a failed upload"() {
         setup:
         SessionListener sessionListener = Mock()
         TransferListener transferListener = Mock()
-        RepositoryTransportWagonAdapter delegate = Mock()
         def failure = new IOException("failed")
-        delegate.putRemoteFile(*_) >> { throw failure }
+        RepositoryTransportWagonAdapter delegate = Mock()
+        delegate.putRemoteFile(*_) >> { LocalResource resource, String resourceName ->
+            resource.open()
+            throw failure
+        }
 
         RepositoryTransportDeployWagon wagon = new RepositoryTransportDeployWagon()
         def file = testDirectory.createFile('target.jar')
