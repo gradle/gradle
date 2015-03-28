@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
-import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
+import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;

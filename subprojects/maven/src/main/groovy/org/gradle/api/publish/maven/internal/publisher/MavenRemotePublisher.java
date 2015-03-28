@@ -21,7 +21,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
+import org.gradle.api.publication.maven.internal.action.MavenDeployAction;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;

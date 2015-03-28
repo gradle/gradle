@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.publication.maven.internal.ant.MavenPublishAction;
+import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;

@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publication.maven.internal.ant.BaseMavenInstaller;
-import org.gradle.api.publication.maven.internal.ant.DefaultGroovyMavenDeployer;
+import org.gradle.api.publication.maven.internal.deployer.BaseMavenInstaller;
+import org.gradle.api.publication.maven.internal.deployer.DefaultGroovyMavenDeployer;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
