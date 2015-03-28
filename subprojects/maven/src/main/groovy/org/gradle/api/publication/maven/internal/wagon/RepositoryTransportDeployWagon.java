@@ -30,8 +30,6 @@ import org.apache.maven.wagon.proxy.ProxyInfoProvider;
 import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.resource.local.FileLocalResource;
 import org.gradle.internal.resource.local.LocalResource;
 
@@ -56,12 +54,6 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
     private TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
-
-    public static void init(MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-        RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
-        currentDelegate.set(adapter);
-    }
 
     public static void contextualize(RepositoryTransportWagonAdapter adapter) {
         currentDelegate.set(adapter);

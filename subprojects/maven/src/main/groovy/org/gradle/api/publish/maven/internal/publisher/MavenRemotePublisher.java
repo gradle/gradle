@@ -17,16 +17,20 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
+import java.net.URI;
 
 public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployAction> {
     private final Factory<File> temporaryDirFactory;
@@ -69,13 +73,20 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
         @Override
         public void publish() {
             String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-            RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
+            RepositoryTransportWagonAdapter adapter = createAdapter(protocol, artifactRepository, repositoryTransportFactory);
             RepositoryTransportDeployWagon.contextualize(adapter);
             try {
                 super.publish();
             } finally {
                 RepositoryTransportDeployWagon.decontextualize();
             }
+        }
+
+        private RepositoryTransportWagonAdapter createAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getConfiguredCredentials();
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), credentials);
+            URI rootUri = artifactRepository.getUrl();
+            return new RepositoryTransportWagonAdapter(transport, rootUri);
         }
     }
 }
