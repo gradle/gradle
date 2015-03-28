@@ -53,7 +53,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
 
         and:
         final module = repo.module('gradle', 'conditional', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
+        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
     }
 
     MavenFileRepository getRepo() {
