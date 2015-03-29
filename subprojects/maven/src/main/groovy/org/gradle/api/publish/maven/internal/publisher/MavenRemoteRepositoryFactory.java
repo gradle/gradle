@@ -19,10 +19,10 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.apache.maven.artifact.ant.Authentication;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
-import org.gradle.internal.resource.PasswordCredentials;
 
 class MavenRemoteRepositoryFactory implements Factory<RemoteRepository> {
 

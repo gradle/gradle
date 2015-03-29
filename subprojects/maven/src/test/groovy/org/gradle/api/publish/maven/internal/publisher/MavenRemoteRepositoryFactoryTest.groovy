@@ -15,28 +15,31 @@
  */
 
 package org.gradle.api.publish.maven.internal.publisher
+
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal
 import spock.lang.Specification
 
 class MavenRemoteRepositoryFactoryTest extends Specification {
 
-    def "fails to create maven repository when non-password credentials are specified"() {
+    def "should not set repository authentication when alternative credentials are specified"() {
         setup:
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
-        mavenArtifactRepository.getCredentials() >> {
-            throw new ClassCastException()
-        }
+        mavenArtifactRepository.getConfiguredCredentials() >> Mock(Credentials)
         MavenRemoteRepositoryFactory mavenRemoteRepositoryFactory = new MavenRemoteRepositoryFactory(mavenArtifactRepository)
 
         when:
-        mavenRemoteRepositoryFactory.create()
+        def createdRepo = mavenRemoteRepositoryFactory.create()
 
         then:
-        thrown ClassCastException
+        createdRepo.authentication == null
+
+        and:
+        createdRepo.getUrl() == someUrl
     }
 
     def "should set authentication when password or username are specified"() {
@@ -44,7 +47,7 @@ class MavenRemoteRepositoryFactoryTest extends Specification {
         MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
         def someUrl = "http://localhost/somewhere"
         mavenArtifactRepository.getUrl() >> new URI(someUrl)
-        mavenArtifactRepository.getCredentials() >> new DefaultPasswordCredentials(username, password)
+        mavenArtifactRepository.getConfiguredCredentials() >> new DefaultPasswordCredentials(username, password)
         MavenRemoteRepositoryFactory mavenRemoteRepositoryFactory = new MavenRemoteRepositoryFactory(mavenArtifactRepository)
 
         when:
