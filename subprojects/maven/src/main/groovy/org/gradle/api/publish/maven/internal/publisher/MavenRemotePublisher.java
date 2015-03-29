@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -45,9 +46,15 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
         MavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
-        deployTask.setRepositories(new MavenRemoteRepositoryFactory(artifactRepository).create(), null);
+        deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         deployTask.setUniqueVersion(true);
         return deployTask;
+    }
+
+    private RemoteRepository createMavenRemoteRepository(MavenArtifactRepository repository) {
+        RemoteRepository remoteRepository = new RemoteRepository();
+        remoteRepository.setUrl(repository.getUrl().toString());
+        return remoteRepository;
     }
 
     private static class GradleWagonMavenDeployAction extends MavenDeployAction {
