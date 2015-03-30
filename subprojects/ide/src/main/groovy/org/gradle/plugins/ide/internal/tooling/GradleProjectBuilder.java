@@ -16,18 +16,18 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.beust.jcommander.internal.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.impl.LaunchableGradleProjectTask;
 import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -67,20 +67,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                 .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
-
-        Collection<Task> tasks = taskLister.listProjectTasks(project);
-        List<LaunchableGradleTask> launchableTasks = Lists.newArrayList(tasks.size());
-        for (Task task : tasks) {
-            launchableTasks.add(new LaunchableGradleProjectTask()
-                            .setProject(gradleProject)
-                            .setPath(task.getPath())
-                            .setName(task.getName())
-                            .setDisplayName(task.toString())
-                            .setDescription(task.getDescription())
-                            .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
-            );
-        }
-        gradleProject.setTasks(launchableTasks);
+        gradleProject.setTasks(tasks(gradleProject, (TaskContainerInternal) project.getTasks()));
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
@@ -89,4 +76,22 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
+    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
+        List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
+        for (String taskName : tasks.getNames()) {
+            Task t = tasks.findByName(taskName);
+            if (t != null) {
+                out.add(new LaunchableGradleProjectTask()
+                                .setProject(owner)
+                                .setPath(t.getPath())
+                                .setName(t.getName())
+                                .setDisplayName(t.toString())
+                                .setDescription(t.getDescription())
+                                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))
+                );
+            }
+        }
+
+        return out;
+    }
 }
