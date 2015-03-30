@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.samples
+
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
@@ -32,8 +33,6 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 
 import java.util.regex.Pattern
-
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
 
 class UserGuideSamplesRunner extends Runner {
     private static final String NL = SystemProperties.instance.lineSeparator
@@ -68,7 +67,6 @@ class UserGuideSamplesRunner extends Runner {
 
         // have to copy everything upfront because build scripts of some samples refer to files of other samples
         buildContext.samplesDir.copyTo(baseExecutionDir)
-        executer.withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
     }
 
     private Pattern initDirFilterPattern() {

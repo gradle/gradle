@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.launcher.daemon.testing.DaemonsFixture
 
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
-
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     String output
 
@@ -33,7 +31,7 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer = new DaemonGradleExecuter(distribution, temporaryFolder)
-        executer.requireIsolatedDaemons().withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
+        executer.requireIsolatedDaemons()
     }
 
     @Override

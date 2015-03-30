@@ -282,4 +282,6 @@ public interface GradleExecuter {
      * @return The passed in executer
      */
     GradleExecuter copyTo(GradleExecuter executer);
+
+    GradleExecuter withDaemonStartingMessageEnabled();
 }

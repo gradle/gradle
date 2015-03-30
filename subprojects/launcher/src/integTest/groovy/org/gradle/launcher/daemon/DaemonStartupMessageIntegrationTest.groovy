@@ -25,6 +25,10 @@ import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_S
 @IgnoreIf({ !GradleContextualExecuter.daemon })
 class DaemonStartupMessageIntegrationTest extends IsolatedDaemonSpec {
 
+    def setup() {
+        executer.withDaemonStartingMessageEnabled()
+    }
+
     def "a message is logged when a new daemon is started"() {
         when:
         succeeds()

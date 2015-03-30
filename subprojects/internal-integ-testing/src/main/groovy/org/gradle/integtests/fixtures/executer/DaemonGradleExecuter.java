@@ -23,6 +23,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
@@ -53,8 +54,12 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected List<String> getGradleOpts() {
+        List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
+        if (isDaemonStartingMessageDisabled()) {
+            gradleOpts.add("-D" + DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY + "=true");
+        }
         if (isNoDefaultJvmArgs()) {
-            return super.getGradleOpts();
+            return gradleOpts;
         } else {
             // Workaround for https://issues.gradle.org/browse/GRADLE-2629
             // Instead of just adding these as standalone opts, we need to add to
@@ -70,7 +75,6 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
                 }
             }));
 
-            List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
             gradleOpts.add("-Dorg.gradle.jvmArgs=" +  quotedArgs);
             return gradleOpts;
         }
