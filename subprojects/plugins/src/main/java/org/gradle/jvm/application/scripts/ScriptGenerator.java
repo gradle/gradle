@@ -22,16 +22,14 @@ import java.io.Writer;
 
 /**
  * Interface for generating scripts with the provided details.
- *
- * @param <T> Script generation details
  */
 @Incubating
-public interface ScriptGenerator<T extends ScriptGenerationDetails> {
+public interface ScriptGenerator {
     /**
      * Generates a script.
      *
      * @param details Script generation details
      * @param destination Target script destination
      */
-    void generateScript(T details, Writer destination);
+    void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination);
 }

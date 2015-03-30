@@ -17,7 +17,6 @@
 package org.gradle.api.internal.plugins
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
-import org.gradle.jvm.application.scripts.ScriptGenerationDetails
 import org.gradle.util.TextUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -115,7 +114,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
     }
 
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails() {
-        ScriptGenerationDetails details = new JavaAppStartScriptGenerationDetails()
+        JavaAppStartScriptGenerationDetails details = new JavaAppStartScriptGenerationDetails()
         details.applicationName = "TestApp"
         details.classpath = WrapUtil.toList("path/to/Jar.jar")
         details.scriptRelPath = "bin"

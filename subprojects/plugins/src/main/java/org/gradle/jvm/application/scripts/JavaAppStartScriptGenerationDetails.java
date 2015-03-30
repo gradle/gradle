@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * Details for generating Java-based application start scripts.
  */
 @Incubating
-public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
+public class JavaAppStartScriptGenerationDetails {
     /**
      * The display name of the application.
      */

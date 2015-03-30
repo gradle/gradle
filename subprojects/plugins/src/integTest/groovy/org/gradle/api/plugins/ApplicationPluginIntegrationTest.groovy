@@ -85,7 +85,7 @@ startScripts {
     windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
 }
 
-class CustomUnixStartScriptGenerator implements ScriptGenerator<JavaAppStartScriptGenerationDetails> {
+class CustomUnixStartScriptGenerator implements ScriptGenerator {
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
             destination << "\${details.applicationName} start up script for UN*X"
@@ -95,7 +95,7 @@ class CustomUnixStartScriptGenerator implements ScriptGenerator<JavaAppStartScri
     }
 }
 
-class CustomWindowsStartScriptGenerator implements ScriptGenerator<JavaAppStartScriptGenerationDetails> {
+class CustomWindowsStartScriptGenerator implements ScriptGenerator {
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
             destination << "\${details.applicationName} start up script for Windows"

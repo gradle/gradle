@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator<JavaAppStartScriptGenerationDetails> {
+public abstract class AbstractTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
     private final TemplateEngine templateEngine;
     private Reader template;
 

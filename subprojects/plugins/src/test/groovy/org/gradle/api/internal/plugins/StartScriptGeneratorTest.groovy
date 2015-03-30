@@ -33,8 +33,8 @@ class StartScriptGeneratorTest extends Specification {
     private static final String SCRIPT_REL_PATH = 'bin/gradle'
     private static final String APP_NAME_SYS_PROP = 'org.gradle.appname'
 
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator = Mock()
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator = Mock()
+    ScriptGenerator unixStartScriptGenerator = Mock()
+    ScriptGenerator windowsStartScriptGenerator = Mock()
     StartScriptGenerator.UnixFileOperation unixFileOperation = Mock()
     StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
     @Rule TestNameTestDirectoryProvider temporaryFolder

@@ -24,11 +24,9 @@ import java.util.Map;
 
 /**
  * Interface for generating scripts with the provided details based on a provided template.
- *
- * @param <T> Script generation details
  */
 @Incubating
-public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
+public interface TemplateBasedScriptGenerator extends ScriptGenerator {
     /**
      * Sets the template text resource used for generating script.
      *
@@ -49,5 +47,5 @@ public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails>
      * @param details Script generation details
      * @return Binding key and value mapping
      */
-    Map<String, String> createBinding(T details);
+    Map<String, String> createBinding(JavaAppStartScriptGenerationDetails details);
 }

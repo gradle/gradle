@@ -55,22 +55,19 @@ class StartScriptGenerator {
      */
     String appNameSystemProperty
 
-    private final ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator
-    private final ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator
+    private final ScriptGenerator unixStartScriptGenerator
+    private final ScriptGenerator windowsStartScriptGenerator
     private final UnixFileOperation unixFileOperation
 
     StartScriptGenerator() {
         this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator())
     }
 
-    StartScriptGenerator(ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator,
-                         ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator) {
+    StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator) {
         this(unixStartScriptGenerator, windowsStartScriptGenerator, new AntUnixFileOperation())
     }
 
-    StartScriptGenerator(ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator,
-                         ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator,
-                         UnixFileOperation unixFileOperation) {
+    StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
         this.unixStartScriptGenerator = unixStartScriptGenerator
         this.windowsStartScriptGenerator = windowsStartScriptGenerator
         this.unixFileOperation = unixFileOperation
