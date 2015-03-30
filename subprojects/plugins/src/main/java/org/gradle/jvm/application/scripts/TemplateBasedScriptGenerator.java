@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.resources.TextResource;
 
 import java.io.Reader;
-import java.util.Map;
 
 /**
  * Interface for generating scripts with the provided details based on a provided template.
@@ -40,12 +39,4 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      * @return Template reader
      */
     Reader getTemplate();
-
-    /**
-     * Creates a binding used for the template expression replacement.
-     *
-     * @param details Script generation details
-     * @return Binding key and value mapping
-     */
-    Map<String, String> createBinding(JavaAppStartScriptGenerationDetails details);
 }

@@ -123,4 +123,5 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
 
     abstract String getDefaultTemplateFilename();
     abstract String getLineSeparator();
+    abstract Map<String, String> createBinding(JavaAppStartScriptGenerationDetails details);
 }
