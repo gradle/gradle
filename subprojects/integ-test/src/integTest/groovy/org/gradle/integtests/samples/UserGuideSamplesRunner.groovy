@@ -68,6 +68,7 @@ class UserGuideSamplesRunner extends Runner {
 
         // have to copy everything upfront because build scripts of some samples refer to files of other samples
         buildContext.samplesDir.copyTo(baseExecutionDir)
+        executer.withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
     }
 
     private Pattern initDirFilterPattern() {
@@ -134,7 +135,6 @@ class UserGuideSamplesRunner extends Runner {
                     .inDirectory(run.executionDir)
                     .withArguments(run.args as String[])
                     .withEnvironmentVars(run.envs)
-                    .withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions
