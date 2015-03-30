@@ -22,15 +22,13 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.util.Requires
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
-import static org.gradle.util.TestPrecondition.WINDOWS
 
 class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
     static final String DAEMON_DOCS_URL = "gradle-daemon-docs-url"
@@ -45,7 +43,8 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         getDocumentationFor("gradle_daemon") >> DAEMON_DOCS_URL
     }
 
-    final DaemonUsageSuggestingBuildActionExecuter executer = new DaemonUsageSuggestingBuildActionExecuter(delegate, textOutputFactory, documentationRegistry)
+    final OperatingSystem os = Mock(OperatingSystem)
+    final DaemonUsageSuggestingBuildActionExecuter executer = new DaemonUsageSuggestingBuildActionExecuter(delegate, textOutputFactory, documentationRegistry, os)
     final StartParameter startParameter = Mock()
     final BuildAction action = Mock() {
         getStartParameter() >> startParameter
@@ -66,11 +65,11 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         result == executionResult
     }
 
-    @Requires(NOT_WINDOWS)
     def "suggests using daemon when not on windows, daemon usage is not explicitly specified and CI env var is not specified"() {
         given:
         params.daemonUsage >> IMPLICITLY_DISABLED
         params.envVariables >> [CI: null]
+        os.windows >> false
 
         when:
         executer.execute(action, buildRequestContext, params)
@@ -82,24 +81,12 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         1 * textOutput.println(DaemonUsageSuggestingBuildActionExecuter.PLEASE_USE_DAEMON_MESSAGE_PREFIX + DAEMON_DOCS_URL)
     }
 
-    @Requires(WINDOWS)
-    def "does not suggests using daemon when on windows"() {
-        given:
-        params.daemonUsage >> IMPLICITLY_DISABLED
-        params.envVariables >> [CI: null]
-
-        when:
-        executer.execute(action, buildRequestContext, params)
-
-        then:
-        0 * textOutput.println()
-    }
-
     @Unroll
-    def "does not suggest using daemon [#daemonUsage, #ciEnvValue]"() {
+    def "does not suggest using daemon [#daemonUsage, #ciEnvValue, #isWindows]"() {
         given:
         params.daemonUsage >> daemonUsage
         params.getEnvVariables() >> [CI: ciEnvValue]
+        os.windows >> isWindows
 
         when:
         executer.execute(action, buildRequestContext, params)
@@ -108,6 +95,17 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         0 * textOutput._
 
         where:
-        [daemonUsage, ciEnvValue] << ([[IMPLICITLY_DISABLED, EXPLICITLY_ENABLED, EXPLICITLY_DISABLED], [null, "true"]].combinations() - [[IMPLICITLY_DISABLED, null]])
+        daemonUsage         | ciEnvValue | isWindows
+        IMPLICITLY_DISABLED | null       | true
+        IMPLICITLY_DISABLED | "true"     | true
+        IMPLICITLY_DISABLED | "true"     | false
+        EXPLICITLY_DISABLED | null       | true
+        EXPLICITLY_DISABLED | null       | false
+        EXPLICITLY_DISABLED | "true"     | true
+        EXPLICITLY_DISABLED | "true"     | false
+        EXPLICITLY_ENABLED  | null       | true
+        EXPLICITLY_ENABLED  | null       | false
+        EXPLICITLY_ENABLED  | "true"     | true
+        EXPLICITLY_ENABLED  | "true"     | false
     }
 }

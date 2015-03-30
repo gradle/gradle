@@ -30,12 +30,19 @@ public class DaemonUsageSuggestingBuildActionExecuter implements BuildActionExec
     private final BuildActionExecuter<BuildActionParameters> executer;
     private final StyledTextOutputFactory textOutputFactory;
     private final DocumentationRegistry documentationRegistry;
+    private final OperatingSystem operatingSystem;
 
     public DaemonUsageSuggestingBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, StyledTextOutputFactory textOutputFactory,
                                                     DocumentationRegistry documentationRegistry) {
+        this(executer, textOutputFactory, documentationRegistry, OperatingSystem.current());
+    }
+
+    DaemonUsageSuggestingBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, StyledTextOutputFactory textOutputFactory,
+                                                    DocumentationRegistry documentationRegistry, OperatingSystem operatingSystem) {
         this.executer = executer;
         this.textOutputFactory = textOutputFactory;
         this.documentationRegistry = documentationRegistry;
+        this.operatingSystem = operatingSystem;
     }
 
     @Override
@@ -47,7 +54,7 @@ public class DaemonUsageSuggestingBuildActionExecuter implements BuildActionExec
 
     private void possiblySuggestUsingDaemon(BuildActionParameters actionParameters) {
         if (actionParameters.getDaemonUsage().isExplicitlySet()
-                || OperatingSystem.current().isWindows()
+                || operatingSystem.isWindows()
                 || actionParameters.getEnvVariables().get("CI") != null) {
             return;
         }
