@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -23,9 +24,9 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
@@ -44,6 +45,8 @@ import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base plugin for language support.
@@ -145,13 +148,44 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Mutate
         void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, BinaryContainer binaries) {
+            List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
                     if (binary.isBuildable()) {
                         assemble.dependsOn(binary);
                     } else {
-                        ((AssembleBinariesTask) assemble).notBuildable(binary);
+                        notBuildable.add(binary);
                     }
+                }
+            }
+            if (!notBuildable.isEmpty()) {
+                assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
+            }
+        }
+
+        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
+            private final List<BinarySpecInternal> notBuildable;
+
+            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
+                this.notBuildable = notBuildable;
+            }
+
+            @Override
+            public void execute(Task task) {
+                Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
+
+                if (taskDependencies.size() == 0 && notBuildable.size() > 0) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("No buildable binaries found");
+                    formatter.startChildren();
+                    for (BinarySpecInternal binary : notBuildable) {
+                        formatter.node(binary.getName());
+                        formatter.startChildren();
+                        binary.getBuildAbility().explain(formatter);
+                        formatter.endChildren();
+                    }
+                    formatter.endChildren();
+                    throw new GradleException(formatter.toString());
                 }
             }
         }

@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
-import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -73,7 +72,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addAssemble(ProjectInternal project) {
-        project.getTasks().addPlaceholderAction(ASSEMBLE_TASK_NAME, AssembleBinariesTask.class, new Action<TaskInternal>() {
+        project.getTasks().addPlaceholderAction(ASSEMBLE_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
             @Override
             public void execute(TaskInternal assembleTask) {
                 assembleTask.setDescription("Assembles the outputs of this project.");

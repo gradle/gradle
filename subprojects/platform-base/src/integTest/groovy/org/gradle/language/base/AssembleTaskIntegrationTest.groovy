@@ -19,7 +19,7 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
 
-class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
+class AssembleTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """rootProject.name = 'assemble-binary'"""
         buildFile << """
@@ -27,6 +27,16 @@ class AssembleBinariesTaskIntegrationTest extends AbstractIntegrationSpec {
                 id 'language-base'
             }
         """
+    }
+
+    def "is up to date when there are no not buildable binaries"() {
+        withBinaries("sampleBinary")
+
+        when:
+        succeeds "assemble"
+
+        then:
+        skipped ":assemble"
     }
 
     def "produces sensible error when no binaries are buildable" () {
