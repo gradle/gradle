@@ -42,18 +42,21 @@ public class ScalaBasePluginTest {
         project.pluginManager.apply(ScalaBasePlugin)
     }
 
-    @Test void appliesTheJavaPluginToTheProject() {
+    @Test
+    void appliesTheJavaPluginToTheProject() {
         assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin))
     }
 
-    @Test void addsZincConfigurationToTheProject() {
+    @Test
+    void addsZincConfigurationToTheProject() {
         def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
+        assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertTrue(configuration.transitive)
     }
 
-    @Test void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
+    @Test
+    void preconfiguresZincClasspathForCompileTasksThatUseZinc() {
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
         task.scalaCompileOptions.useAnt = false
@@ -61,7 +64,8 @@ public class ScalaBasePluginTest {
         assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
     }
 
-    @Test void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
+    @Test
+    void doesNotPreconfigureZincClasspathForCompileTasksThatUseAnt() {
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
         task.scalaCompileOptions.useAnt = true
@@ -69,13 +73,15 @@ public class ScalaBasePluginTest {
         assert task.zincClasspath.empty
     }
 
-    @Test void addsScalaConventionToNewSourceSet() {
+    @Test
+    void addsScalaConventionToNewSourceSet() {
         def sourceSet = project.sourceSets.create('custom')
         assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
     }
 
-    @Test void addsCompileTaskForNewSourceSet() {
+    @Test
+    void addsCompileTaskForNewSourceSet() {
         project.sourceSets.create('custom')
         def task = project.tasks['compileCustomScala']
         assertThat(task, instanceOf(ScalaCompile.class))
@@ -85,7 +91,8 @@ public class ScalaBasePluginTest {
         assertThat(task, dependsOn('compileCustomJava'))
     }
 
-    @Test void preconfiguresIncrementalCompileOptions() {
+    @Test
+    void preconfiguresIncrementalCompileOptions() {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
@@ -95,7 +102,8 @@ public class ScalaBasePluginTest {
         assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(project.tasks['customJar'].archivePath))
     }
 
-    @Test void incrementalCompileOptionsCanBeOverridden() {
+    @Test
+    void incrementalCompileOptionsCanBeOverridden() {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
@@ -106,20 +114,23 @@ public class ScalaBasePluginTest {
         assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile, equalTo(new File("/my/file")))
         assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode, equalTo(new File("/my/published/code.jar")))
     }
-    
-    @Test void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+
+    @Test
+    void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomScala')))
     }
 
-    @Test void configuresCompileTasksDefinedByTheBuildScript() {
+    @Test
+    void configuresCompileTasksDefinedByTheBuildScript() {
         def task = project.task('otherCompile', type: ScalaCompile)
         assertThat(task.source, isEmpty())
         assertThat(task, dependsOn())
     }
 
-    @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
+    @Test
+    void configuresScalaDocTasksDefinedByTheBuildScript() {
         def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))

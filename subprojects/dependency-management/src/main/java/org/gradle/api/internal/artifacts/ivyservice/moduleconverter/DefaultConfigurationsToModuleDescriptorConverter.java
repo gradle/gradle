@@ -29,7 +29,7 @@ public class DefaultConfigurationsToModuleDescriptorConverter implements Configu
     }
 
     private void addConfiguration(MutableLocalComponentMetaData metaData, Configuration configuration) {
-        String[] superConfigs = Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]);
+        String[] superConfigs = Configurations.getNames(configuration.getExtendsFrom()).toArray(new String[configuration.getExtendsFrom().size()]);
         Arrays.sort(superConfigs);
         metaData.addConfiguration(configuration.getName(), configuration.isVisible(), configuration.getDescription(), superConfigs, configuration.isTransitive());
     }

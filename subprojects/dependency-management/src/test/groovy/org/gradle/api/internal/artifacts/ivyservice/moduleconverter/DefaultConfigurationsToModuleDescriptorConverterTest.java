@@ -69,7 +69,7 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
                 configuration.getName(),
                 configuration.isVisible() ? org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC : org.apache.ivy.core.module.descriptor.Configuration.Visibility.PRIVATE,
                 configuration.getDescription(),
-                Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]),
+                Configurations.getNames(configuration.getExtendsFrom()).toArray(new String[configuration.getExtendsFrom().size()]),
                 configuration.isTransitive(),
                 null);
     }
