@@ -31,7 +31,7 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLa
         false
     }
 
-    @Ignore("Demos a problem with clang on ubuntu creating randomly differerent object files")
+    @Ignore("Demos a problem with clang on ubuntu creating randomly different object files")
     def "generates always exactly same object file"() {
         setup:
         def recordings = []

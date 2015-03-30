@@ -48,4 +48,6 @@ public abstract class IncrementalHelloWorldApp extends HelloWorldApp {
 
     public abstract List<SourceFile> getAlternateLibrarySources();
     public abstract String getAlternateLibraryOutput();
+
+    protected abstract SourceFile getBrokenFile();
 }
