@@ -35,12 +35,14 @@ task c
         GradleProject project = withConnection { connection -> connection.getModel(GradleProject.class) }
 
         then:
-        project.tasks*.name.toSet() == (["a", "b", "c"] + rootProjectImplicitTasks).toSet()
+        project.tasks.count { it.name.length() == 1 } == 3
         def taskA = project.tasks.find { it.name == 'a' }
         taskA != null
         taskA.path == ':a'
         taskA.description == 'this is task a'
         taskA.project == project
+        project.tasks.find { it.name == 'b' }
+        project.tasks.find { it.name == 'c' }
     }
 
     def "can execute a build for a project"() {
