@@ -287,7 +287,10 @@ TODO
 
 ### Lifecycle plugin changes
 
-Defining custom tasks named `build`, `clean` or `check` when using the standard Gradle lifecycle plugins (e.g. the `base` plugin) has been deprecated.
+The tasks `build`, `clean`, `assemble` and `check` are part of the standard build lifecycle and are added by most plugins, typically implicitly through the `base` or `language-base` plugins.
+Due to the way these tasks are implemented, it is possible to redefine them simply by creating your own task of the same name.
+This behavior has been deprecated and will not be supported in Gradle 3.0.
+That is, attempting to define a task with the same name as one of these lifecycle tasks when they are present will become an error just like any other attempt to create a task with the same name as an existing task.
 
 ### Changes to methods of `LogLevel`
 
