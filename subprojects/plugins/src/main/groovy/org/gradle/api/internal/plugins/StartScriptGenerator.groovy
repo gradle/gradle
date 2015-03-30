@@ -16,8 +16,8 @@
 package org.gradle.api.internal.plugins
 
 import org.apache.tools.ant.taskdefs.Chmod
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerator
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.util.AntUtil
 
 class StartScriptGenerator {

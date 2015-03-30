@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerator
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that enable script generation.
+ * Classes that enable JVM application script generation.
  */
-package org.gradle.api.scripting;
+package org.gradle.jvm.application.scripts;

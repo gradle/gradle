@@ -20,8 +20,8 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerator
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.api.tasks.*
 import org.gradle.util.GUtil
 

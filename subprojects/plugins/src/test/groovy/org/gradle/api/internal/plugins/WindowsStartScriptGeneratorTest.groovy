@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerationDetails
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerationDetails
 import org.gradle.util.TextUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification

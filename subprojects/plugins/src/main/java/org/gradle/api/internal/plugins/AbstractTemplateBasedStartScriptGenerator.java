@@ -19,8 +19,8 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails;
-import org.gradle.api.scripting.TemplateBasedScriptGenerator;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.TextUtil;
 

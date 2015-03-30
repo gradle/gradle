@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.jvm.application.scripts;
 
 import org.gradle.api.Incubating;
 

@@ -139,14 +139,14 @@ Unix and Windows start scripts. While these properties allow for a certain level
 used for generating the scripts.
 
 In this release, the task type `org.gradle.api.tasks.application.CreateStartScripts` the API has been enhanced. The class now exposes two properties of type
-`org.gradle.api.scripting.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
+`org.gradle.jvm.application.scripts.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
 the Windows script generation named `windowsStartScriptGenerator`. By default Gradle assigns instances of `ScriptGenerator` implementing the logic known from previous releases.
 
 #### Providing a custom script generation implementation
 
 Provide a custom implementation for generating start scripts is as simple as writing an implementation of `ScriptGenerator`. `ScriptGenerator`
 requires to implement a single method `void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination)`. The parameter of type
-`org.gradle.api.scripting.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
+`org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
 start script file. The following example demonstrates the use case:
 
     startScripts {
@@ -177,7 +177,7 @@ start script file. The following example demonstrates the use case:
 #### Changing the default script template
 
 Providing a custom start script generator is powerful but sometimes changing the underlying template used for the script generation is good enough. For that purpose the default implementations of
- `ScriptGenerator` also implement the interface `org.gradle.api.scripting.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
+ `ScriptGenerator` also implement the interface `org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
 `void setTemplate(Reader reader)`. The following code snippet shows how to assign custom templates:
 
 

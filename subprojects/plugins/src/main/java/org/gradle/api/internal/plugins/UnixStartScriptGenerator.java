@@ -19,7 +19,7 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.util.TextUtil;
 
 import java.util.HashMap;
