@@ -84,7 +84,6 @@ class CustomUnixStartScriptGenerator implements ScriptGenerator<JavaAppStartScri
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
             destination << "\${details.applicationName} start up script for UN*X"
-            destination.flush()
         } finally {
             destination.close()
         }
@@ -95,7 +94,6 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator<JavaAppStartS
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
             destination << "\${details.applicationName} start up script for Windows"
-            destination.flush()
         } finally {
             destination.close()
         }

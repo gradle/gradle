@@ -198,14 +198,14 @@ application. Generation-relevant data like the main classname or the classpath c
 Unix and Windows start scripts. While these properties allow for a certain level of customization, the approach is limiting. A user cannot easily change the generation logic or any of the templates
 used for generating the scripts.
 
-In this release, we enhanced the API available to the task type `org.gradle.api.tasks.application.CreateStartScripts`. The class now exposes two properties of type
+In this release, the task type `org.gradle.api.tasks.application.CreateStartScripts` the API has been enhanced. The class now exposes two properties of type
 `org.gradle.api.scripting.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
-the Windows script generation named `windowsStartScriptGenerator`. By default Gradle assigns instances of `ScriptGenerator` implementing the logic you know from previous releases.
+the Windows script generation named `windowsStartScriptGenerator`. By default Gradle assigns instances of `ScriptGenerator` implementing the logic known from previous releases.
 
 #### Providing a custom script generation implementation
 
-Let's say you'd want to provide your own implementation for generating start scripts. It's as simple as writing your own implementation of `ScriptGenerator`. `ScriptGenerator`
-requires you to implement a single method `void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination)`. The parameter of type
+Provide a custom implementation for generating start scripts is as simple as writing an implementation of `ScriptGenerator`. `ScriptGenerator`
+requires to implement a single method `void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination)`. The parameter of type
 `org.gradle.api.scripting.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
 start script file. The following example demonstrates the use case:
 
@@ -218,7 +218,6 @@ start script file. The following example demonstrates the use case:
         void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
             try {
                 destination << "\${details.applicationName} start up script for UN*X"
-                destination.flush()
             } finally {
                 destination.close()
             }
@@ -229,7 +228,6 @@ start script file. The following example demonstrates the use case:
         void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
             try {
                 destination << "\${details.applicationName} start up script for Windows"
-                destination.flush()
             } finally {
                 destination.close()
             }
@@ -238,9 +236,9 @@ start script file. The following example demonstrates the use case:
 
 #### Changing the default script template
 
-Sometimes you just want to change the underlying template used for the script generation. For that purpose the default implementations of `ScriptGenerator` also implement
-the interface `org.gradle.api.scripting.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
-`void setTemplate(Reader reader)`. The following code snippets shows how to assign your own templates:
+Providing a custom start script generator is powerful but sometimes changing the underlying template used for the script generation is good enough. For that purpose the default implementations of
+ `ScriptGenerator` also implement the interface `org.gradle.api.scripting.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
+`void setTemplate(Reader reader)`. The following code snippet shows how to assign custom templates:
 
 
     startScripts {
