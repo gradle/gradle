@@ -16,6 +16,8 @@
 
 package org.gradle.api.scripting;
 
+import org.gradle.api.Incubating;
+
 import java.io.Writer;
 
 /**
@@ -23,6 +25,7 @@ import java.io.Writer;
  *
  * @param <T> Script generation details
  */
+@Incubating
 public interface ScriptGenerator<T extends ScriptGenerationDetails> {
     /**
      * Generates a script.

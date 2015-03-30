@@ -16,6 +16,8 @@
 
 package org.gradle.api.scripting;
 
+import org.gradle.api.Incubating;
+
 import java.io.Reader;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ import java.util.Map;
  *
  * @param <T> Script generation details
  */
+@Incubating
 public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
     /**
      * Sets the template reader used for generating script.

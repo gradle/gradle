@@ -16,8 +16,11 @@
 
 package org.gradle.api.scripting;
 
+import org.gradle.api.Incubating;
+
 /**
  * Marker interface for providing data for logic that generates OS-specific scripts.
  */
+@Incubating
 public interface ScriptGenerationDetails {
 }

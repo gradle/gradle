@@ -16,11 +16,14 @@
 
 package org.gradle.api.scripting;
 
+import org.gradle.api.Incubating;
+
 import java.util.ArrayList;
 
 /**
  * Details for generating Java-based application start scripts.
  */
+@Incubating
 public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
     /**
      * The display name of the application.
