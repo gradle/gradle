@@ -19,9 +19,9 @@ package org.gradle.launcher.daemon.server
 import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
+import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
-import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
@@ -39,13 +39,15 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.IMPLICITLY_DISABLED
+
 class DaemonServerExceptionHandlingTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, false)
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter

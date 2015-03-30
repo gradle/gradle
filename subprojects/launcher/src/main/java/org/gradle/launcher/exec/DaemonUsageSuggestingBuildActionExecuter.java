@@ -46,7 +46,7 @@ public class DaemonUsageSuggestingBuildActionExecuter implements BuildActionExec
     }
 
     private void possiblySuggestUsingDaemon(BuildActionParameters actionParameters) {
-        if (actionParameters.isDaemonUsageConfiguredExplicitly()
+        if (actionParameters.getDaemonUsage().isExplicitlySet()
                 || OperatingSystem.current().isWindows()
                 || actionParameters.getEnvVariables().get("CI") != null) {
             return;

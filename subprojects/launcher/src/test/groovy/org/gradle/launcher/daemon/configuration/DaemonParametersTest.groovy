@@ -29,8 +29,7 @@ class DaemonParametersTest extends Specification {
 
     def "has reasonable default values"() {
         expect:
-        !parameters.enabled
-        !parameters.usageConfiguredExplicitly
+        parameters.daemonUsage == DaemonUsage.IMPLICITLY_DISABLED
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         parameters.systemProperties.isEmpty()
@@ -64,8 +63,7 @@ class DaemonParametersTest extends Specification {
         def parametersWithEnabledDaemon = parameters().setEnabled(true)
 
         then:
-        parametersWithEnabledDaemon.usageConfiguredExplicitly
-        parametersWithEnabledDaemon.enabled
+        parametersWithEnabledDaemon.daemonUsage == DaemonUsage.EXPLICITLY_ENABLED
     }
 
     def "can explicitly disable the daemon"() {
@@ -73,7 +71,6 @@ class DaemonParametersTest extends Specification {
         def parametersWithDisabledDaemon = parameters().setEnabled(false)
 
         then:
-        parametersWithDisabledDaemon.usageConfiguredExplicitly
-        !parametersWithDisabledDaemon.enabled
+        parametersWithDisabledDaemon.daemonUsage == DaemonUsage.EXPLICITLY_DISABLED
     }
 }

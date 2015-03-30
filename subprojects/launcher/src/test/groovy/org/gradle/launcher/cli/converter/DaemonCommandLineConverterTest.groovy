@@ -22,6 +22,8 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
+
 class DaemonCommandLineConverterTest extends Specification {
 
     @Unroll
@@ -30,15 +32,14 @@ class DaemonCommandLineConverterTest extends Specification {
         def converted = convert(options)
 
         then:
-        converted.enabled == enabled
-        converted.usageConfiguredExplicitly == explicitlySet
+        converted.daemonUsage == usage
 
         where:
-        options                     | enabled | explicitlySet
-        []                          | false   | false
-        ['--no-daemon']             | false   | true
-        ['--daemon']                | true    | true
-        ['--no-daemon', '--daemon'] | true    | true
+        options                     | usage
+        []                          | IMPLICITLY_DISABLED
+        ['--no-daemon']             | EXPLICITLY_DISABLED
+        ['--daemon']                | EXPLICITLY_ENABLED
+        ['--no-daemon', '--daemon'] | EXPLICITLY_ENABLED
     }
 
     private DaemonParameters convert(Iterable args) {

@@ -125,7 +125,7 @@ class BuildActionsFactory implements CommandLineAction {
                     daemonParameters.getUid(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout());
             return new ForegroundDaemonAction(loggingServices, conf);
         }
-        if (daemonParameters.isEnabled()) {
+        if (daemonParameters.getDaemonUsage().isEnabled()) {
             return runBuildWithDaemon(startParameter, daemonParameters, loggingServices);
         }
         if (canUseCurrentProcess(daemonParameters)) {
@@ -200,8 +200,7 @@ class BuildActionsFactory implements CommandLineAction {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.isUsageConfiguredExplicitly()
-        );
+                daemonParameters.getDaemonUsage());
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters);
     }
 

@@ -28,6 +28,7 @@ import org.gradle.util.Requires
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 import static org.gradle.util.TestPrecondition.NOT_WINDOWS
 import static org.gradle.util.TestPrecondition.WINDOWS
 
@@ -56,7 +57,7 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         given:
         def executionResult = new Object()
         delegate.execute(action, buildRequestContext, params) >> executionResult
-        params.daemonUsageConfiguredExplicitly >> true
+        params.daemonUsage >> EXPLICITLY_ENABLED
 
         when:
         def result = executer.execute(action, buildRequestContext, params)
@@ -68,7 +69,7 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
     @Requires(NOT_WINDOWS)
     def "suggests using daemon when not on windows, daemon usage is not explicitly specified and CI env var is not specified"() {
         given:
-        params.daemonUsageConfiguredExplicitly >> false
+        params.daemonUsage >> IMPLICITLY_DISABLED
         params.envVariables >> [CI: null]
 
         when:
@@ -84,7 +85,7 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
     @Requires(WINDOWS)
     def "does not suggests using daemon when on windows"() {
         given:
-        params.daemonUsageConfiguredExplicitly >> false
+        params.daemonUsage >> IMPLICITLY_DISABLED
         params.envVariables >> [CI: null]
 
         when:
@@ -95,9 +96,9 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
     }
 
     @Unroll
-    def "does not suggest using daemon [#deamonUsageConfiguredExplicitly, #ciEnvValue]"() {
+    def "does not suggest using daemon [#daemonUsage, #ciEnvValue]"() {
         given:
-        params.daemonUsageConfiguredExplicitly >> deamonUsageConfiguredExplicitly
+        params.daemonUsage >> daemonUsage
         params.getEnvVariables() >> [CI: ciEnvValue]
 
         when:
@@ -107,6 +108,6 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         0 * textOutput._
 
         where:
-        [deamonUsageConfiguredExplicitly, ciEnvValue] << ([[true, false], [null, "true"]].combinations() - [[false, null]])
+        [daemonUsage, ciEnvValue] << ([[IMPLICITLY_DISABLED, EXPLICITLY_ENABLED, EXPLICITLY_DISABLED], [null, "true"]].combinations() - [[IMPLICITLY_DISABLED, null]])
     }
 }
