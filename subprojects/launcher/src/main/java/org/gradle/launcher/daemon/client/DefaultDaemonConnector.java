@@ -81,7 +81,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        return startDaemon(constraint);
+        return startDaemonWithAnnouncing(constraint);
     }
 
     private DaemonClientConnection findConnection(List<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
@@ -102,10 +102,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
+    private DaemonClientConnection startDaemonWithAnnouncing(ExplainingSpec<DaemonContext> constraint) {
         if (!Boolean.getBoolean(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY)) {
             LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
         }
+        return startDaemon(constraint);
+    }
+
+    public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;

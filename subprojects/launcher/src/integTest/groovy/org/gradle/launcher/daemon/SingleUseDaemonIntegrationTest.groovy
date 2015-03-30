@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
@@ -157,6 +158,17 @@ assert System.getProperty('some-prop') == 'some-value'
 
         then:
         !output.contains(DaemonUsageSuggestionIntegrationTest.DAEMON_USAGE_SUGGESTION_MESSAGE)
+    }
+
+    def "does not print daemon startup message for a single use daemon"() {
+        given:
+        requireJvmArg('-Xmx32m')
+
+        when:
+        succeeds()
+
+        then:
+        !output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
     }
 
     private def requireJvmArg(String jvmArg) {
