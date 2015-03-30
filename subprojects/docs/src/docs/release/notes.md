@@ -83,66 +83,6 @@ There is a new API `GradleEnvironment#getGradleUserHome` that returns the Gradle
 You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
 test progress events are of a sub-type of `TestProgressEvent`.
 
-### Dependency substitution accepts projects
-
-You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
-allows access to the `ComponentSelector` as well:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
-                useTarget project(":my-module")
-            }
-        }
-    }
-### Dependency substitution rules
-
-In previous Gradle versions you could replace an external dependency with another like this:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
-                useVersion '1.3'
-            }
-        }
-    }
-
-This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
-These rules allow an external dependency to be replaced with a project dependency, and vice-versa. 
-
-You replace a project dependency with an external dependency like this:
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withProject(project(":api")) { 
-                useTarget group: "org.utils", name: "api", version: "1.3" 
-            }
-        }
-    }
-
-And replace an external dependency with an project dependency like this:
-
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withModule("com.example:my-module") {
-                useTarget project(":project1")  
-            }
-        }
-    }
-
-There are other options available to match module and project dependencies:
-
-    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
-    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
-    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
-    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
-
-It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).
-Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
-
 ### Unique Maven snapshots
 
 TODO
@@ -278,10 +218,6 @@ As we add more parallelized work to Gradle, we need a more generic way of contro
 If you were using `--parallel-threads` to enable parallel-project execution, please consider using just `--parallel`.
 
 If you were using `StartParameter.getParallelThreadCount()` to check if parallel-project execution was enabled, please consider using `StartParameter.isParallelProjectExecutionEnabled()`.
-
-### Changing a configuration after it has been resolved
-
-TODO
 
 ### Lifecycle plugin changes
 

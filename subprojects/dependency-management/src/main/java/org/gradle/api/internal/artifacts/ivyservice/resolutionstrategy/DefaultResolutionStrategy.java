@@ -138,12 +138,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
-    @Override
     public DependencySubstitutionsInternal getDependencySubstitution() {
         return dependencySubstitutions;
     }
 
-    @Override
     public ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action) {
         action.execute(dependencySubstitutions);
         return this;
