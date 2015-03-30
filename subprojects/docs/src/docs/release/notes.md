@@ -60,10 +60,6 @@ A big thank you goes to Adrian Kelly for implementing this feature.
 
 - TBD
 
-### Google Test support (i)
-
-- TBD
-
 ### Model rules
 
 A number of improvements have been made to the model rules execution used by the native language plugins:
