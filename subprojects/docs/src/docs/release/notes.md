@@ -178,12 +178,11 @@ start script file. The following example demonstrates the use case:
 
 Providing a custom start script generator is powerful but sometimes changing the underlying template used for the script generation is good enough. For that purpose the default implementations of
  `ScriptGenerator` also implement the interface `org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
-`void setTemplate(Reader reader)`. The following code snippet shows how to assign custom templates:
-
+`void setTemplate(TextResource template)`. The following code snippet shows how to assign custom templates:
 
     startScripts {
-        unixStartScriptGenerator.template = new FileReader('customUnixStartScript.txt')
-        windowsStartScriptGenerator.template = new FileReader('customWindowsStartScript.txt')
+        unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
+        windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
     }
 
 ## Promoted features

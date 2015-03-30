@@ -17,6 +17,7 @@
 package org.gradle.jvm.application.scripts;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.resources.TextResource;
 
 import java.io.Reader;
 import java.util.Map;
@@ -29,11 +30,11 @@ import java.util.Map;
 @Incubating
 public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
     /**
-     * Sets the template reader used for generating script.
+     * Sets the template text resource used for generating script.
      *
-     * @param reader Template reader
+     * @param template Template text resource
      */
-    void setTemplate(Reader reader);
+    void setTemplate(TextResource template);
 
     /**
      * Gets the template reader used for generating script.

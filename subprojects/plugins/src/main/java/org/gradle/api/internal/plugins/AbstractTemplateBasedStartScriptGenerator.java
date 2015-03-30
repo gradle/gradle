@@ -19,9 +19,10 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.resources.TextResource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.TextUtil;
 
 import java.io.*;
@@ -52,8 +53,8 @@ public abstract class AbstractTemplateBasedStartScriptGenerator implements Templ
         }
     }
 
-    public void setTemplate(Reader reader) {
-        this.template = reader;
+    public void setTemplate(TextResource template) {
+        this.template = template.asReader();
     }
 
     public Reader getTemplate() {

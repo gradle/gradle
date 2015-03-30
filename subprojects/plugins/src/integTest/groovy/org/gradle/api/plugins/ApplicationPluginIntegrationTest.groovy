@@ -59,8 +59,8 @@ class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 startScripts {
     applicationName = 'myApp'
-    unixStartScriptGenerator.template = new FileReader('customUnixStartScript.txt')
-    windowsStartScriptGenerator.template = new FileReader('customWindowsStartScript.txt')
+    unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
+    windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
 }
 """
         when:
