@@ -16,6 +16,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -112,6 +116,50 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator<JavaAppStartS
         File windowsStartScript = new File(scriptOutputDir, 'myApp.bat')
         windowsStartScript.exists()
         windowsStartScript.text == 'myApp start up script for Windows'
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATE)
+    def "can execute generated Unix start script"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        TestFile startScriptDir = file('build/install/sample/bin')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$startScriptDir.canonicalPath'
+    commandLine './sample'
+}
+"""
+        ExecutionResult result = succeeds('execStartScript')
+
+        then:
+        result.output.contains('Hello World!')
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "can execute generated Windows start script"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        TestFile startScriptDir = file('build/install/sample/bin')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$startScriptDir.canonicalPath'
+    commandLine 'cmd', '/c', 'sample.bat'
+}
+"""
+        ExecutionResult result = succeeds('execStartScript')
+
+        then:
+        result.output.contains('Hello World!')
     }
 
     private void createSampleProjectSetup() {
