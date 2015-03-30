@@ -39,6 +39,16 @@ class AssembleTaskIntegrationTest extends AbstractIntegrationSpec {
         skipped ":assemble"
     }
 
+    def "is up to date when there are both buildable and not buildable binaries"() {
+        withBinaries("sampleBinary", "notBuildableBinary")
+
+        when:
+        succeeds "assemble"
+
+        then:
+        skipped ":assemble"
+    }
+
     def "produces sensible error when no binaries are buildable" () {
         withBinaries("notBuildableBinary1", "notBuildableBinary2")
 

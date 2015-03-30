@@ -149,16 +149,18 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Mutate
         void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, BinaryContainer binaries) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
+            boolean hasBuildableBinaries = false;
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
                 if (!binary.isLegacyBinary()) {
                     if (binary.isBuildable()) {
                         assemble.dependsOn(binary);
+                        hasBuildableBinaries = true;
                     } else {
                         notBuildable.add(binary);
                     }
                 }
             }
-            if (!notBuildable.isEmpty()) {
+            if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
             }
         }
