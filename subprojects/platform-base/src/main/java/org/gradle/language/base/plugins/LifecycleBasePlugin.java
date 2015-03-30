@@ -40,8 +40,8 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
-    public static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
 
+    private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
     private static final List<String> PLACEHOLDER_TASKS = Arrays.asList(BUILD_TASK_NAME, CHECK_TASK_NAME, CLEAN_TASK_NAME, ASSEMBLE_TASK_NAME);
 
     public void apply(ProjectInternal project) {
