@@ -33,6 +33,17 @@ class DaemonStartupMessageIntegrationTest extends IsolatedDaemonSpec {
         output.contains DefaultDaemonConnector.STARTING_DAEMON_MESSAGE
     }
 
+    def "the message is not shown when quiet log level is requested"() {
+        given:
+        executer.withArgument("-q")
+
+        when:
+        succeeds()
+
+        then:
+        !output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
+    }
+
     def "daemon starting message can be disabled"() {
         given:
         executer.withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
