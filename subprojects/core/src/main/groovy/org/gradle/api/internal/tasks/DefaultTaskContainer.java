@@ -188,6 +188,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public void realize() {
+        discoverTasks();
         project.getModelRegistry().realizeNode(modelNode.getPath());
 
         new CachingDirectedGraphWalker<Task, Void>(new DirectedGraph<Task, Void>() {
