@@ -15,119 +15,239 @@
   -->
 <chapter id='gradle_daemon'>
     <title>The Gradle Daemon</title>
-
-    <section id='enter_the_daemon'>
-        <title>Enter the daemon</title>
-        <para><emphasis>The Gradle daemon</emphasis> (sometimes referred as <emphasis>the build daemon</emphasis>)
-            aims to improve the startup and execution time of Gradle.
-        </para>
-
+    <section id='what_is_the_daemon'>
+        <title>What is the Gradle Daemon?</title>
+        <para>From Wikipedia…</para>
+        <blockquote>
+            A daemon is a computer program that runs as a background process,
+            rather than being under the direct control of an interactive user.
+        </blockquote>
         <para>
-            We came up with several use cases where the daemon is very useful.
-            For some workflows, the user invokes Gradle many times to execute a small number of relatively quick tasks.
-            For example:
-            <itemizedlist>
-                <listitem>When using test driven development, where the unit tests are executed many times.</listitem>
-                <listitem>When developing a web application, where the application is assembled many times.</listitem>
-                <listitem>When discovering what a build can do, where <userinput>gradle tasks</userinput> is executed a number of times.</listitem>
-            </itemizedlist>
-            For these workflows, it is important that the startup cost of invoking Gradle is as small as possible.
+            The Gradle Daemon is a background process that does the heavy lifting of running builds, then stays alive between builds waiting for the next build.
+            This allows data and code that is likely to be required in the next build to be kept in memory, ready to go.
+            This <emphasis>dramatically</emphasis> improves the performance of subsequent builds.
+            Enabling the Gradle Daemon is an extremely cheap way to decrease build times.
         </para>
         <para>
-            In addition, user interfaces can provide some interesting features if the Gradle model can be built relatively quickly.
-            For example, the daemon might be useful for the following scenarios:
-            <itemizedlist>
-                <listitem>Content assistance in the IDE</listitem>
-                <listitem>Live visualisation of the build in a GUI</listitem>
-                <listitem>Tab completion in a CLI</listitem>
-            </itemizedlist>
+            <emphasis>It is strongly recommended that the Gradle Daemon be enabled on all developer machines</emphasis>.
+            It is recommend to <emphasis>not enable</emphasis> the Daemon for Continuous Integration and build server environments (see <xref linkend="when_should_i_not_use_the_gradle_daemon"/>).
         </para>
         <para>
-            In general, snappy behavior of the build tool is always handy.
-            If you try using the daemon for your local builds, you won't want to go back.
-        </para>
-        <para>
-            The Tooling API (see <xref linkend="embedding"/>)
-            uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
-            This means that whenever you are using the STS Gradle plugin for Eclipse or the Gradle support in Intellij IDEA,
-            you're already using the Gradle Daemon.
-        </para>
-        <para>In the future, there are plans for more features in the daemon:
-            <itemizedlist>
-                <listitem>Snappy up-to-date checks: use native file system change notifications (e.g. via jdk7 nio.2)
-                    to preemptively perform up-to-date analysis.</listitem>
-                <listitem>Even faster builds: preemptively evaluate projects, so that the model is ready
-                    when the user next invokes Gradle.</listitem>
-                <listitem>Did we mention faster builds? The daemon can potentially preemptively download dependencies
-                    or check for new versions of snapshot dependencies.</listitem>
-                <listitem>Utilize a pool of reusable processes available for compilation and testing.
-                    For example, both the Groovy and Scala compilers have a large startup cost.
-                    The build daemon could maintain a process with Groovy and/or Scala already loaded.</listitem>
-                <listitem>Preemptive execution of certain tasks, for example compilation. Quicker feedback.</listitem>
-                <listitem>Fast and accurate bash tab completion.</listitem>
-                <listitem>Periodically garbage collect the Gradle caches.</listitem>
-            </itemizedlist>
+            Gradle manages the Daemon automatically.
+            If the build environment is configured to leverage the Daemon, Gradle will automatically start a Daemon process if none are available, or use any existing <emphasis>compatible</emphasis> daemons that are not currently busy.
+            If a Daemon process has not been used for 3 hours, it will terminate itself.
+            Once a development environment is configured to use the Daemon, it is typically transparent and able to be forgotten about.
         </para>
     </section>
-
-    <section id='reusing_daemons'>
-        <title>Reusing and expiration of daemons</title>
-        <para>The basic idea is that the Gradle command forks a daemon process, which performs the actual build.
-            Subsequent invocations of the Gradle command will reuse the daemon, avoiding the startup costs.
-            Sometimes we cannot use an existing daemon because it is busy or its Java version or jvm arguments are different.
-            For exact details on when exactly a new daemon process is forked read the dedicated section below.
-            The daemon process automatically expires after 3 hours of idle time.
+    <section>
+        <title>Management and configuration</title>
+        <section>
+            <title>How do I enable the Gradle Daemon?</title>
+            <para>
+                The <literal>--daemon</literal> and <literal>--no-daemon</literal> command line switches enable and disable usage of the Daemon for individual build invocations when using the Gradle command line interface.
+                Typically, it is more convenient to enable the Daemon for an environment (e.g. a user account) so that all builds use the Daemon without requiring to remember to supply the <literal>--daemon</literal> switch.
+            </para>
+            <para>
+                There are two recommended ways to enable the Daemon persistently for an environment:
+            </para>
+            <itemizedlist>
+            <listitem>
+                <para>Via environment variables - add the flag <literal>-Dorg.gradle.daemon=true</literal> to the <literal>GRADLE_OPTS</literal> environment variable</para>
+                <para>Via properties file - add <literal>org.gradle.daemon=true</literal> to the <literal>«GRADLE_USER_HOME»/gradle.properties</literal> file</para>
+            </listitem>
+            </itemizedlist>
+            <note>
+                <para>
+                    Note, <literal>«GRADLE_USER_HOME»</literal> defaults to <literal>«USER_HOME»/.gradle</literal>, where <literal>«USER_HOME»</literal> is the home directory of the current user.
+                    This location can be configured via the <literal>-g</literal> and <literal>--gradle-user-home</literal> command line switches,
+                    as well as by the <literal>GRADLE_USER_HOME</literal> environment variable and <literal>org.gradle.user.home</literal> JVM system property.
+                </para>
+            </note>
+            <para>
+                Both approaches have the same effect.
+                Which one to use is up to personal preference.
+                Most Gradle users choose the second option and add the entry to the user <literal>gradle.properties</literal> file.
+            </para>
+            <para>
+                On Windows, this command will enable the Daemon for the current user:
+                <programlisting>
+                    (if not exist "%HOMEPATH%/.gradle" mkdir "%HOMEPATH%/.gradle") &amp;&amp; (echo foo >> "%HOMEPATH%/.gradle/gradle.properties")
+                </programlisting>
+                On UNIX-like operating systems, the following Bash shell command will enable the Daemon for the current user:
+                <programlisting>
+                    touch ~/.gradle/gradle.properties &amp;&amp; echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
+                </programlisting>
+                Once the Daemon is enabled for a build environment in this way, all builds will implicitly use a Daemon.
+            </para>
+        </section>
+        <section>
+            <title>How do I disable the Gradle Daemon?</title>
+            <para>
+                The Gradle Daemon is not enabled by default.
+                However, once it is enabled it is sometimes desirable to disable for some projects or for some build invocations.
+            </para>
+            <para>
+                The <literal>--no-daemon</literal> command line switch can be used to force that a Daemon not be used for that build.
+                This is rarely used, but can sometimes be useful when debugging issues with certain builds or Gradle plugins.
+                This command line switch has the <emphasis>highest</emphasis> precedence when considering the build environment.
+            </para>
+        </section>
+        <section>
+            <title>How do I suppress the “please consider using the Gradle Daemon” message?</title>
+            <para>
+                Gradle may emit a warning at the end of the build suggesting that you use the Gradle Daemon.
+                To avoid this warning you can enable the Daemon via the methods above, or explicitly disable the Daemon.
+                You can explicitly disable the Daemon by using the <literal>--no-daemon</literal> command line switch as described above,
+                or use one of the methods for enabling the daemon mentioned above but using a value of <literal>false</literal> for the <literal>org.gradle.daemon</literal> property instead of <literal>true</literal>.
+            </para>
+            <para>
+                As it is not recommend to use the Daemon for Continuous Integration builds, Gradle will not emit the message if the <literal>CI</literal> environment variable is present.
+            </para>
+        </section>
+        <section>
+            <title>Why is there more than one Daemon process on my machine?</title>
+            <para>
+                There are several reasons why Gradle will create a new Daemon, instead of using one that is already running.
+                A new Daemon will be started if there are no idle, compatible, Daemons.
+            </para>
+            <para>
+                An <emphasis>idle</emphasis> Daemon is one that is not currently executing a build or doing other useful work.
+            </para>
+            <para>
+                A <emphasis>compatible</emphasis> Daemon is one that can (or can be made to) meet the requirements of the requested build environment.
+                The Java installation to use to run the build is an example of an aspect of the build environment.
+                Required JVM system properties for the build runtime is another example.
+            </para>
+            <para>
+                Some aspects of the requested build environment may not be able to be met by an already running Java process.
+                If the Daemon is running with a Java 7 runtime, but the requested environment calls for Java 8 then the Daemon is not compatible and another must be started.
+                Moreover, certain properties of a Java runtime cannot be changed once the JVM has started.
+                It is not possible to change the memory allocation (e.g. <literal>-Xmx1024m</literal>), default text encoding, default locale, etc of a running JVM.
+            </para>
+            <para>
+                The “requested build environment” is typically constructed implicitly from aspects of the build client’s (e.g. Gradle command line client, IDE etc.) environment and explicitly via command line switches and settings.
+                See <xref linkend="build_environment"/> for details on how to specify and control the build environment.
+            </para>
+            <para>
+                The following JVM system properties are effectively immutable.
+                If the requested build environment requires any of these properties, with a different value than a Daemon’s JVM has for this property, the Daemon is not compatible.
+            </para>
+            <itemizedlist>
+                <listitem>file.encoding</listitem>
+                <listitem>user.language</listitem>
+                <listitem>user.country</listitem>
+                <listitem>user.variant</listitem>
+                <listitem>com.sun.management.jmxremote</listitem>
+            </itemizedlist>
+            <para>
+                The following JVM attributes, controlled by startup arguments, are also effectively immutable.
+                The corresponding attributes of the requested build environment and the Daemon’s environment must match exactly in order for a Daemon to be compatible.
+            </para>
+            <itemizedlist>
+                <listitem>The maximum heap size (i.e. the -Xmx JVM argument)</listitem>
+                <listitem>The minimum heap size (i.e. the -Xms JVM argument)</listitem>
+                <listitem>The boot classpath (i.e. the -Xbootclasspath argument)</listitem>
+                <listitem>The “assertion” status (i.e. the -ea argument)</listitem>
+            </itemizedlist>
+            <para>
+                The required Gradle version is another aspect of the requested build environment.
+                Daemon processes are coupled to a specific Gradle runtime.
+                Working on multiple Gradle projects during a session that use different Gradle versions is a common reason for having more than one running Daemon process.
+            </para>
+        </section>
+        <section>
+            <title>How much memory does the Daemon use and can I give it more?</title>
+            <para>
+                If the requested build environment does not specify a maximum heap size, the Daemon will use up to 1GB of heap.
+                It will use your the JVM's default minimum heap size.
+                1GB is more than enough for most builds.
+                Larger builds with hundreds of subprojects, lots of configuration, and source code may require, or perform better, with more memory.
+            </para>
+            <para>
+                To increase the amount of memory the Daemon can use, specify the appropriate flags as part of the requested build environment.
+                Please see <xref linkend="build_environment"/> for details.
+            </para>
+        </section>
+        <section>
+            <title>How can I stop a Daemon?</title>
+            <para>
+                Daemon processes will automatically terminate themselves after 3 hours of inactivity.
+                If you wish to stop a Daemon process before this, you can either kill the process via your operating system or run the <literal>gradle --stop</literal> command.
+                The <literal>--stop</literal> switch causes Gradle to request that <emphasis>all</emphasis> running Daemon processes, <emphasis>of the same Gradle version used to run the command</emphasis>, terminate themselves.
+            </para>
+        </section>
+        <section>
+            <title>What can go wrong with Daemon?</title>
+            <para>
+                Considerable engineering effort has gone into making the Daemon robust, transparent and unobtrusive during day to day development.
+                However, Daemon processes can occasionally be corrupted or exhausted.
+                A Gradle build executes arbitrary code from multiple sources.
+                While Gradle itself is designed for and heavily tested with the Daemon, user build scripts and third party plugins can destabilize the Daemon process through defects such as memory leaks or global state corruption.
+            </para>
+            <para>
+                It is also possible to destabilize the Daemon (and build environment in general) by running builds that do not release resources correctly.
+                This is a particularly poignant problem when using Microsoft Windows as it is less forgiving of programs that fail to close files after reading or writing.
+            </para>
+            <para>
+                If it is suspected that the Daemon process has become unstable, it can simply be killed.
+                Recall that the <literal>--no-daemon</literal> switch can be specified for a build to prevent use of the Daemon.
+                This can be useful to diagnose whether or not the Daemon is actually the culprit of a problem.
+            </para>
+        </section>
+    </section>
+    <section id="when_should_i_not_use_the_gradle_daemon">
+        <title>When should I not use the Gradle Daemon?</title>
+        <para>
+            It is recommended that the Daemon is used in all developer environments.
+            It is recommend to <emphasis>not enable</emphasis> the Daemon for Continuous Integration and build server environments.
         </para>
         <para>
-            Here are all situations in which we fork a new daemon process:
-            <itemizedlist>
-                <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
-                <listitem>We fork a separate daemon process per Java home. So even if there is some idle daemon waiting
-                    for build requests but you happen to run a build with a different Java home then a brand new daemon will be forked.</listitem>
-                <listitem>We fork a separate daemon process if the jvm arguments for the build are sufficiently different.
-                    For example we will not fork a new daemon if a some system property has changed.
-                    However if the -Xmx memory setting changed or some fundamental immutable system property changed (e.g. file.encoding)
-                    then a new daemon will be forked.
-                </listitem>
-                <listitem>At the moment the daemon is coupled with a particular version of Gradle.
-                    This means that even if some daemon is idle but you are running the build
-                    with a different version of Gradle, a new daemon will be started.
-                    This also has a consequence for the <literal>--stop</literal> command line instruction:
-                    this command will only stop daemons that were started with Gradle version that is executing <literal>--stop</literal>.
-                </listitem>
-            </itemizedlist>
-            We plan to improve the functionality of managing and pooling the daemons in the future.
+            The Daemon enables faster builds, which is particularly important when a human is sitting in front of the build.
+            For CI builds, stability and predictability is of utmost importance.
+            Using a fresh runtime (i.e. process) for each build is more reliable as the runtime is <emphasis>completely</emphasis> isolated from previous builds.
         </para>
     </section>
-
-    <section id='daemon_usage_and_troubleshooting'>
-        <title>Usage and troubleshooting</title>
-        <para>For command line usage, look at the dedicated section in <xref linkend="gradle_command_line"/>.
-            If you are tired of using the same command line options again and again, take a look at
-            <xref linkend="sec:gradle_configuration_properties"/>.
-            This section contains information on how to configure certain behavior of the daemon
-            (including turning on the daemon by default) in a more 'persistent' way.
+    <section>
+        <title>Tools &amp; IDEs</title>
+        <para>
+            The Gradle Tooling API (see <xref linkend="embedding"/>), that is used by IDEs and other tools to integrate with Gradle, <emphasis>always</emphasis> use the Gradle Daemon to execute builds.
+            If you are executing Gradle builds from within you're IDE you are using the Gradle Daemon and do not need to enable it for your environment.
         </para>
         <para>
-            Some ways of troubleshooting the Gradle daemon:
-            <itemizedlist>
-                <listitem>If you have a problem with your build, try temporarily disabling the daemon
-                    (you can pass the command line switch <literal>--no-daemon</literal>).</listitem>
-                <listitem>Occasionally, you may want to stop the daemons either via the <literal>--stop</literal>
-                    command line option or in a more forceful way.</listitem>
-                <listitem>There is a daemon log file, which by default is located in the
-                    Gradle user home directory.</listitem>
-                <listitem>You may want to start the daemon in <literal>--foreground</literal>
-                    mode to observe how the build is executed.</listitem>
-            </itemizedlist>
+            However, unless you have explicitly enabled the Gradle Daemon for you environment your builds from the command line will not use the Gradle Daemon.
         </para>
     </section>
-
-    <section id="sec:daemon_properties">
-        <title>Configuring the daemon</title>
-        <para>Some daemon settings, such as JVM arguments, memory settings or the Java home, can be configured.
-            Please find more information in <xref linkend="sec:gradle_configuration_properties"/>
+    <section>
+        <title>How does the Gradle Daemon make builds faster?</title>
+        <para>
+            The Gradle Daemon is a <emphasis>long lived</emphasis> build process.
+            In between builds it waits idly for the next build.
+            This has the obvious benefit of only requiring Gradle to be loaded into memory once for multiple builds, as opposed to once for each build.
+            This in itself is a significant performance optimization, but that's not where it stops.
         </para>
+        <para>
+            A significant part of the story for modern JVM performance is runtime code optimization.
+            For example, HotSpot (the JVM implementation provided by Oracle and used as the basis of OpenJDK) applies optimization to code while it is running.
+            The optimization is progressive and not instantaneous.
+            That is, the code is progressively optimized during execution which means that subsequent builds can be faster purely due to this optimization process.
+            Experiments with HotSpot have shown that it takes somewhere between 5 and 10 builds for optimization to stabilize.
+            The difference in perceived build time between the first build and the 10th for a Daemon can be quite dramatic.
+        </para>
+        <para>
+            The Daemon also allows more effective in memory caching across builds.
+            For example, the classes needed by the build (e.g. plugins, build scripts) can be held in memory between builds.
+            Similarly, Gradle can maintain in-memory caches of build data such as the hashes of task inputs and outputs, used for incremental building.
+        </para>
+        <section>
+            <title>Potential future enhancements</title>
+            <para>
+                Currently, the Daemon makes builds faster by effectively supporting in memory caching and by the JVM optimizer making the code faster.
+                In future Gradle versions, the Daemon will become even smarter and perform work <emphasis>preemptively</emphasis>.
+                It could, for example, start downloading dependencies immediately after the build script has been edited under the assumption that the build is about to be run and the newly changed or added dependencies will be required.
+            </para>
+            <para>
+                There are many other ways in that the Gradle Daemon will enable even faster builds in future Gradle versions.
+            </para>
+        </section>
     </section>
-
 </chapter>
