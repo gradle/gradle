@@ -21,9 +21,12 @@ package org.gradle.api.reporting.components
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY
+
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
+        executer.withGradleOpts("-D${DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY}=true")
     }
 
     boolean outputMatches(String actualOutput, String expectedOutput) {
