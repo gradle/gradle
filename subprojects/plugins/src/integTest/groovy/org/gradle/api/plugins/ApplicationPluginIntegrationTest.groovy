@@ -150,9 +150,10 @@ task execStartScript(type: Exec) {
 
         when:
         TestFile startScriptDir = file('build/install/sample/bin')
+        String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
         buildFile << """
 task execStartScript(type: Exec) {
-    workingDir '$startScriptDir.canonicalPath'
+    workingDir '$escapedStartScriptDir'
     commandLine 'cmd', '/c', 'sample.bat'
 }
 """
