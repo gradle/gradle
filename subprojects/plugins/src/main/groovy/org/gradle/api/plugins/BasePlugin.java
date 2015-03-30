@@ -31,11 +31,16 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.model.internal.core.ActionBackedModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -72,7 +77,7 @@ public class BasePlugin implements Plugin<Project> {
         configureUploadArchivesTask();
         configureArchiveDefaults(project, convention);
         configureConfigurations(project);
-        configureAssemble(project);
+        configureAssemble((ProjectInternal) project);
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
@@ -162,8 +167,13 @@ public class BasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureAssemble(Project project) {
-        Task assembleTask = project.getTasks().getByName(ASSEMBLE_TASK_NAME);
-        assembleTask.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+    private void configureAssemble(final ProjectInternal project) {
+        // Note, this is implicitly retaining the project instance which is a problem for reuse
+        project.getModelRegistry().configure(ModelActionRole.Mutate, ActionBackedModelAction.of(ModelReference.of("tasks.assemble", Task.class), new SimpleModelRuleDescriptor("BasePlugin#configureAssemble"), new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            }
+        }));
     }
 }

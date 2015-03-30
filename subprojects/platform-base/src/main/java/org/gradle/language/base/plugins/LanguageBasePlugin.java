@@ -28,8 +28,8 @@ import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.tasks.AssembleBinariesTask;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -143,27 +143,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }
 
-        /**
-         * Rules.
-         */
-        static class AssembleRule extends RuleSource {
-            @Mutate
-            void addDependency(Task assemble, BinaryContainer binaries) {
-                for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
-                    if (!binary.isLegacyBinary()) {
-                        if (binary.isBuildable()) {
-                            assemble.dependsOn(binary);
-                        } else {
-                            ((AssembleBinariesTask) assemble).notBuildable(binary);
-                        }
+        @Mutate
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, BinaryContainer binaries) {
+            for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                if (!binary.isLegacyBinary()) {
+                    if (binary.isBuildable()) {
+                        assemble.dependsOn(binary);
+                    } else {
+                        ((AssembleBinariesTask) assemble).notBuildable(binary);
                     }
                 }
             }
-        }
-
-        @Mutate
-        void attachBinariesToAssembleLifecycle(CollectionBuilder<Task> tasks) {
-            tasks.named("assemble", AssembleRule.class);
         }
     }
 }
