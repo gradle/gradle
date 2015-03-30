@@ -68,9 +68,6 @@ public class SonarRunner extends DefaultTask {
             LOGGER.warn("Found 'sonar-project.properties' in project directory: Sonar Runner may read this file to override the Gradle 'sonarRunner' configuration.");
         }
 
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Executing Sonar Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
-        }
 
         JavaExecHandleBuilder javaExec = new JavaExecHandleBuilder(getFileResolver());
         getForkOptions().copyTo(javaExec);
@@ -81,6 +78,15 @@ public class SonarRunner extends DefaultTask {
         propertiesObject.putAll(properties);
         File propertyFile = new File(getTemporaryDir(), "sonar-project.properties");
         GUtil.saveProperties(propertiesObject, propertyFile);
+
+        if (LOGGER.isInfoEnabled()) {
+            for(Map.Entry<String, Object> elem: properties.entrySet()){
+                if(elem.getKey().contains("sonar.jdbc.password")||elem.getKey().contains("sonar.password")) {
+                    elem.setValue("***********");
+                }
+            }
+            LOGGER.info("Executing Sonar Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
+        }
 
         return javaExec
                 .systemProperty("project.settings", propertyFile.getAbsolutePath())
