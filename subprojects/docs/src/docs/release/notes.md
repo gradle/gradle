@@ -71,7 +71,7 @@ Gradle now supports S3 backed repositories. Here's an example on how to declare 
 
 S3 backed repositories can be used with both the `ivy-publish` and `maven-publish` plugins, as well as an Ivy repository associated with an `Upload` task.
 
-A big thank you goes to Adrian Kelly for implementing this feature.
+This improvement was contributed by [Adrian Kelly](https://github.com/adrianbk).
 
 ### Can use `maven-publish` for publishing via SFTP to Maven repositories
 
