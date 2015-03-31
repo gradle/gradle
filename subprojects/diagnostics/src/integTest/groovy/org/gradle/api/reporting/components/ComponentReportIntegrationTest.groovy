@@ -24,7 +24,7 @@ class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationT
     static {
         NativeServicesTestFixture.initialize()
     }
-    
+
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
