@@ -15,11 +15,16 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
 
 class SingletonFileTreeTest extends Specification {
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
+
     def hasUsefulDisplayName() {
         File f = new File('test-file')
         SingletonFileTree tree = new SingletonFileTree(f)

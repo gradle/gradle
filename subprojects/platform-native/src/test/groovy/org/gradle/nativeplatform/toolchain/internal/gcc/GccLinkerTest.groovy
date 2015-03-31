@@ -29,6 +29,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -44,6 +45,10 @@ class GccLinkerTest extends Specification {
     BuildOperationQueue queue = Mock(BuildOperationQueue)
 
     GccLinker linker = new GccLinker(buildOperationProcessor, commandLineTool, invocationContext, false)
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     def "links all object files in a single execution"() {
         given:

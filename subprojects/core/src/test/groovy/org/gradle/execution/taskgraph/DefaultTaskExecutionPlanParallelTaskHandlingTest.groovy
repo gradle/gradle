@@ -26,9 +26,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -42,7 +42,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    FileSystem fs = NativeServices.instance.get(FileSystem)
+    FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
     DefaultProject root = createRootProject()

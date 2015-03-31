@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -55,6 +56,7 @@ public class DirectoryFileTreeTest {
 
     @Before
     public void setUp() {
+        NativeServicesTestFixture.initialize();
         visitor = context.mock(FileVisitor.class);
     }
 

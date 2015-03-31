@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+
 import java.util.concurrent.Callable
 
 import org.gradle.api.internal.file.FileResolver
@@ -28,6 +30,10 @@ import org.gradle.api.tasks.TaskOutputs
 class DefaultFileCollectionResolveContextTest extends Specification {
     final FileResolver resolver = Mock()
     final DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver)
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     def resolveAsFileCollectionReturnsEmptyListWhenContextIsEmpty() {
         expect:

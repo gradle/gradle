@@ -18,6 +18,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -30,7 +31,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -39,11 +39,21 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ProjectBuilderImpl {
     static {
-        NativeServices.initialize(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
+        try {
+            File nativeDir = File.createTempFile("native", "dir");
+            nativeDir.delete();
+            nativeDir.mkdirs();
+            nativeDir.deleteOnExit();
+            NativeServices.initialize(nativeDir);
+        } catch(IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
+
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder
             .builder()
             .displayName("global services")

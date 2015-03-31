@@ -20,6 +20,7 @@ import org.gradle.api.Transformer
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
@@ -64,6 +65,10 @@ class GccVersionDeterminerTest extends Specification {
 #define __clang_patchlevel__ 0
 #define __clang_version__ "5.0 (clang-500.2.79)"
 """
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     @Unroll
     "can scrape version from output of GCC #version"() {

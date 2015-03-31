@@ -19,11 +19,16 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
 class DefaultTaskInputsTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
+
     private final File treeFile = new File('tree')
     private final FileTree tree = [getFiles: { [treeFile] as Set}] as FileTree
     private final FileResolver resolver = [

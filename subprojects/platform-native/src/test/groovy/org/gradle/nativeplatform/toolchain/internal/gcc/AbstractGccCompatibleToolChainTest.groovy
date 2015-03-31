@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConf
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
@@ -62,6 +63,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
     def dummyArch = Architectures.forInput("x86_64")
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:

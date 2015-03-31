@@ -37,6 +37,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -56,6 +57,10 @@ public class DefaultFileOperationsTest extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     def resolvesFile() {
         when:
