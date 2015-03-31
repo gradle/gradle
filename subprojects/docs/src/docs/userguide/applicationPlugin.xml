@@ -149,5 +149,18 @@
                 <output args="distZip"/>
             </sample>
     </section>
+
+    <section>
+        <title>Customizing start script generation</title>
+        <para>The application plugin comes with default implementations for generating Unix and Windows start scripts. Start scripts
+            are based on templates shipped with the Gradle distribution. At runtime the task type <apilink class="org.gradle.api.tasks.application.CreateStartScripts"/>
+            replaces the dynamic portions of the template (e.g. the main class name) with actual values.
+        </para>
+        <para>
+            The default start script generation behavior is customizable. The task type allows for replacing the default templates with custom templates. For full control
+            over the generation logic, you can provide an implementation of <apilink class="org.gradle.jvm.application.scripts.ScriptGenerator"/>. Please refer to the
+            documentation of <apilink class="org.gradle.api.tasks.application.CreateStartScripts"/> for more details.
+        </para>
+    </section>
     
 </chapter>

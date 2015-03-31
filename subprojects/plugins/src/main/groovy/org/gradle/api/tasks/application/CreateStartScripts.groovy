@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.application
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
@@ -25,23 +26,74 @@ import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.util.GUtil
 
 /**
- * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
+ * <p>A {@link org.gradle.api.Task} for creating OS-specific start scripts. It provides default implementations for
+ * generating start scripts for Unix and Windows runtime environments.</p>
+ *
+ * Example:
+ *
+ * <pre autoTested=''>
+ * task createStartScripts(type: CreateStartScripts) {
+ *   outputDir = file('build/sample')
+ *   mainClassName = 'org.gradle.test.Main'
+ *   applicationName = 'myApp'
+ *   classpath = files('path/to/some.jar')
+ * }
+ * </pre>
+ * <p>The standard start script generation logic can be changed by assigning custom start script generator classes that implement the interface
+ * {@link org.gradle.jvm.application.scripts.ScriptGenerator}. {@code ScriptGenerator} requires you to implement a single method. The parameter of type
+ * {@link org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails} represents the data e.g. classpath, application name. The parameter of type
+ * {@code java.io.Writer} writes to the target start script file.</p>
+ *
+ * Example:
+ *
+ * <pre autoTested=''>
+ * createStartScripts {
+ *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
+ *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
+ * }
+ *
+ * class CustomUnixStartScriptGenerator implements ScriptGenerator {
+ *   void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+ *     // implementation
+ *   }
+ * }
+ *
+ * class CustomWindowsStartScriptGenerator implements ScriptGenerator {
+ *   void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+ *     // implementation
+ *   }
+ * }
+ * </pre>
+ * <p>Providing a custom start script generator is powerful. Sometimes changing the underlying template used for the script generation is good enough.
+ * For that purpose the default implementations of {@link org.gradle.jvm.application.scripts.ScriptGenerator} also implement the interface {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
+ * The method {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator#setTemplate(org.gradle.api.resources.TextResource)} can be used to provide a custom template. Within the template files
+ * the following variables can be used: {@code applicationName}, {@code optsEnvironmentVar}, {@code exitEnvironmentVar}, {@code mainClassName}, {@code defaultJvmOpts}, {@code appNameSystemProperty},
+ * {@code appHomeRelativePath} and {@code classpath}.</p>
+ *
+ * Example:
+ *
+ * <pre autoTested=''>
+ * createStartScripts {
+ *   unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
+ *   windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
+ * }
+ * </pre>
  */
 public class CreateStartScripts extends ConventionTask {
-
     /**
      * The directory to write the scripts into.
      */
+    @OutputDirectory
     File outputDir
 
     /**
-     * The application's main class.
+     * The main classname used to start the Java application.
      */
     @Input
     String mainClassName
 
     /**
-     * The application's default JVM options.
+     * The application's default JVM options. Defaults to an empty list.
      */
     @Input
     @Optional
@@ -53,8 +105,18 @@ public class CreateStartScripts extends ConventionTask {
     @Input
     String applicationName
 
+    /**
+     * The environment variable to use to provide additional options to the JVM.
+     */
+    @Input
+    @Optional
     String optsEnvironmentVar
 
+    /**
+     * The environment variable to use to control exit value (Windows only).
+     */
+    @Input
+    @Optional
     String exitEnvironmentVar
 
     /**
@@ -77,6 +139,9 @@ public class CreateStartScripts extends ConventionTask {
         return "${GUtil.toConstant(getApplicationName())}_OPTS"
     }
 
+    /**
+     * Returns the exit environment variable.
+     */
     @Input
     String getExitEnvironmentVar() {
         if (exitEnvironmentVar) {
@@ -88,24 +153,34 @@ public class CreateStartScripts extends ConventionTask {
         return "${GUtil.toConstant(getApplicationName())}_EXIT_CONSOLE"
     }
 
+    /**
+     * Returns the full path to the Unix script. The target directory is represented by the output directory,
+     * the file name is the application name without a file extension.
+     */
     @OutputFile
     File getUnixScript() {
         return new File(getOutputDir(), getApplicationName())
     }
 
+    /**
+     * Returns the full path to the Windows script. The target directory is represented by the output directory,
+     * the file name is the application name plus the file extension .bat.
+     */
     @OutputFile
     File getWindowsScript() {
         return new File(getOutputDir(), "${getApplicationName()}.bat")
     }
 
     /**
-     * The Unix start script generator.
+     * The Unix start script generator. Defaults to a standard implementation.
      */
+    @Incubating
     ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator()
 
     /**
-     * The Windows start script generator.
+     * The Windows start script generator. Defaults to a standard implementation.
      */
+    @Incubating
     ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator()
 
     @TaskAction

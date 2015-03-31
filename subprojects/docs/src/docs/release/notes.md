@@ -149,58 +149,14 @@ And with a distribution URL:
 
 ### Customization of application plugin start script generation
 
-The [application plugin](http://gradle.org/docs/current/userguide/application_plugin.html) provides a task named `startScripts` responsible for generating OS-specific start scripts for a Java-based
-application. Generation-relevant data like the main classname or the classpath can be tweaked through the
-[task's properties](http://gradle.org/docs/current/dsl/org.gradle.api.tasks.application.CreateStartScripts.html). At runtime the task feeds this data to an internal class responsible for generating
-Unix and Windows start scripts. While these properties allow for a certain level of customization, the approach is limiting. A user cannot easily change the generation logic or any of the templates
-used for generating the scripts.
+The [application plugin](userguide/application_plugin.html) provides a task named `startScripts` responsible for generating OS-specific start scripts for a Java-based
+application. Generation-relevant data like the main class name or the classpath can be tweaked through the properties of the task type `CreateStartScripts`. At runtime the task feeds this data to an
+internal class responsible for generating Unix and Windows start scripts. While these properties allow for a certain level of customization, the approach is limiting. A user cannot easily change the
+generation logic or any of the templates used for generating the scripts.
 
-In this release, the task type `org.gradle.api.tasks.application.CreateStartScripts` the API has been enhanced. The class now exposes two properties of type
-`org.gradle.jvm.application.scripts.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
-the Windows script generation named `windowsStartScriptGenerator`. By default Gradle assigns instances of `ScriptGenerator` implementing the logic known from previous releases.
-
-#### Providing a custom script generation implementation
-
-Provide a custom implementation for generating start scripts is as simple as writing an implementation of `ScriptGenerator`. `ScriptGenerator`
-requires to implement a single method `void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination)`. The parameter of type
-`org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
-start script file. The following example demonstrates the use case:
-
-    startScripts {
-        unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
-        windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
-    }
-
-    class CustomUnixStartScriptGenerator implements ScriptGenerator {
-        void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
-            try {
-                destination << "\${details.applicationName} start up script for UN*X"
-            } finally {
-                destination.close()
-            }
-        }
-    }
-
-    class CustomWindowsStartScriptGenerator implements ScriptGenerator {
-        void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
-            try {
-                destination << "\${details.applicationName} start up script for Windows"
-            } finally {
-                destination.close()
-            }
-        }
-    }
-
-#### Changing the default script template
-
-Providing a custom start script generator is powerful but sometimes changing the underlying template used for the script generation is good enough. For that purpose the default implementations of
- `ScriptGenerator` also implement the interface `org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
-`void setTemplate(TextResource template)`. The following code snippet shows how to assign custom templates:
-
-    startScripts {
-        unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
-        windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
-    }
+In this release, the API for the task type `CreateStartScripts` has been enhanced. The class now allows for providing a custom script generation implementation (GRADLE-2207, GRADLE-1783).
+Furthermore, the default script templates can be replaced by custom templates (GRADLE-2299). Please see [`CreateStartScripts`](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) for usage
+examples.
 
 ## Fixed issues
 
