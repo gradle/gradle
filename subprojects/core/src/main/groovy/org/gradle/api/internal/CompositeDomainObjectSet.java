@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
@@ -113,7 +114,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public int size() {
         //avoiding duplicates in the results
         //noinspection unchecked
-        return new LinkedHashSet<T>(getStore()).size();
+        return new HashSet<T>(getStore()).size();
     }
 
     public void all(Action<? super T> action) {
