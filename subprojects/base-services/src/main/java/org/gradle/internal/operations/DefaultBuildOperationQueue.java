@@ -94,7 +94,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    class OperationHolder implements Runnable {
+    private class OperationHolder implements Runnable {
         private final T operation;
 
         OperationHolder(T operation) {
@@ -106,7 +106,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         public String toString() {
-            return String.format("Worker %s for operation %s", worker.getDisplayName(), operation.getDescription());
+            return "Worker ".concat(worker.getDisplayName()).concat(" for operationavoi ").concat(operation.getDescription());
         }
     }
 }
