@@ -33,7 +33,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private boolean waitingForCompletion;
 
     DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.executor =  MoreExecutors.listeningDecorator(executor);
+        this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
     }
@@ -69,7 +69,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private String getFailureMessage(List<Throwable> failures) {
-        if (failures.size()==1) {
+        if (failures.size() == 1) {
             return "A build operation failed.";
         }
         return "Multiple build operations failed.";
