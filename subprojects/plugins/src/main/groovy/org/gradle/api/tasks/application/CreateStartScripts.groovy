@@ -47,7 +47,8 @@ import org.gradle.util.GUtil
  * Example:
  *
  * <pre autoTested=''>
- * createStartScripts {
+ *
+ * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
  *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
  * }
@@ -72,10 +73,10 @@ import org.gradle.util.GUtil
  *
  * Example:
  *
- * <pre autoTested=''>
- * createStartScripts {
- *   unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
- *   windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
+ * <pre>
+ * task createStartScripts(type: CreateStartScripts) {
+ *   unixStartScriptGenerator.template = resources.text.fromFile('customUnixStartScript.txt')
+ *   windowsStartScriptGenerator.template = resources.text.fromFile('customWindowsStartScript.txt')
  * }
  * </pre>
  */
