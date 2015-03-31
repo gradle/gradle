@@ -176,7 +176,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             public void execute(Task task) {
                 Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
 
-                if (taskDependencies.size() == 0 && notBuildable.size() > 0) {
+                if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();
                     formatter.node("No buildable binaries found");
                     formatter.startChildren();
