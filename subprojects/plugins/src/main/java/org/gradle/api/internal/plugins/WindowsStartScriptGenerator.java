@@ -62,6 +62,10 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
     }
 
     private String createJoinedDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+        if(defaultJvmOpts == null) {
+            return "";
+        }
+
         Iterable<String> quotedDefaultJvmOpts = Iterables.transform(defaultJvmOpts, new Function<String, String>() {
             public String apply(String jvmOpt) {
                 StringBuilder quotedDefaultJvmOpt = new StringBuilder();

@@ -59,6 +59,10 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
     }
 
     private String createJoinedDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
+        if(defaultJvmOpts == null) {
+            return "";
+        }
+
         Iterable<String> quotedDefaultJvmOpts = Iterables.transform(defaultJvmOpts, new Function<String, String>() {
             public String apply(String jvmOpt) {
                 //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them

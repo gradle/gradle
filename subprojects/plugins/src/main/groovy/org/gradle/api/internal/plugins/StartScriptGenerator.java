@@ -114,16 +114,7 @@ public class StartScriptGenerator {
 
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        JavaAppStartScriptGenerationDetails scriptGenerationDetails = new JavaAppStartScriptGenerationDetails();
-        scriptGenerationDetails.setApplicationName(applicationName);
-        scriptGenerationDetails.setOptsEnvironmentVar(optsEnvironmentVar);
-        scriptGenerationDetails.setExitEnvironmentVar(exitEnvironmentVar);
-        scriptGenerationDetails.setMainClassName(mainClassName);
-        scriptGenerationDetails.setDefaultJvmOpts(defaultJvmOpts);
-        scriptGenerationDetails.setClasspath(classpath);
-        scriptGenerationDetails.setScriptRelPath(scriptRelPath);
-        scriptGenerationDetails.setAppNameSystemProperty(appNameSystemProperty);
-        return scriptGenerationDetails;
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, defaultJvmOpts, classpath, scriptRelPath, appNameSystemProperty);
     }
 
     public void generateUnixScript(File unixScript) {

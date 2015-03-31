@@ -81,15 +81,6 @@ class StartScriptGeneratorTest extends Specification {
     }
 
     private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
-        JavaAppStartScriptGenerationDetails scriptGenerationDetails = new JavaAppStartScriptGenerationDetails()
-        scriptGenerationDetails.applicationName = APP_NAME
-        scriptGenerationDetails.optsEnvironmentVar = OPTS_ENV_VAR
-        scriptGenerationDetails.exitEnvironmentVar = EXIT_ENV_VAR
-        scriptGenerationDetails.mainClassName = MAIN_CLASSNAME
-        scriptGenerationDetails.defaultJvmOpts = DEFAULT_JVM_OPTS
-        scriptGenerationDetails.classpath = CLASSPATH
-        scriptGenerationDetails.scriptRelPath = SCRIPT_REL_PATH
-        scriptGenerationDetails.appNameSystemProperty = APP_NAME_SYS_PROP
-        scriptGenerationDetails
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
     }
 }
