@@ -41,11 +41,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
-
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def projectIdentity = Mock(IvyPublicationIdentity)
@@ -55,6 +50,7 @@ class DefaultIvyPublicationTest extends Specification {
     File artifactFile
 
     def "setup"() {
+        NativeServicesTestFixture.initialize()
         descriptorFile = new File(testDirectoryProvider.testDirectory, "pom-file")
         artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
         artifactFile << "some content"

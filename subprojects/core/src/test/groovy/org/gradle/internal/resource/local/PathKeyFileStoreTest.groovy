@@ -25,11 +25,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PathKeyFileStoreTest extends Specification {
-
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     TestFile fsBase
     PathKeyFileStore store
@@ -37,6 +32,7 @@ class PathKeyFileStoreTest extends Specification {
     def pathCounter = 0
 
     def setup() {
+        NativeServicesTestFixture.initialize()
         fsBase = dir.file("fs")
         store = new PathKeyFileStore(fsBase)
     }

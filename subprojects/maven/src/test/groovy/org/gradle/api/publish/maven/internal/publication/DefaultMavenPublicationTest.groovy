@@ -46,11 +46,8 @@ public class DefaultMavenPublicationTest extends Specification {
     TestFile pomFile
     File artifactFile
 
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     def "setup"() {
+        NativeServicesTestFixture.initialize()
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")
         artifactFile = pomDir.createFile("artifact-file")

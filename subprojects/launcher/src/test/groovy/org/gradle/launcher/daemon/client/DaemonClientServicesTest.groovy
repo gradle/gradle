@@ -29,6 +29,10 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
+
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters()).setBaseDir(tmp.testDirectory)
     final parentServices = ServiceRegistryBuilder.builder()

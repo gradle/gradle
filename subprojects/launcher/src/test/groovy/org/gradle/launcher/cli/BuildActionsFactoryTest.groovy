@@ -47,10 +47,6 @@ class BuildActionsFactoryTest extends Specification {
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
 
-    static {
-        NativeServicesTestFixture.initialize();
-    }
-
     BuildActionsFactory factory = new BuildActionsFactory(
             loggingServices, Stub(DefaultCommandLineConverter), new DaemonCommandLineConverter(),
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
@@ -58,6 +54,7 @@ class BuildActionsFactoryTest extends Specification {
             propertiesToDaemonParametersConverter)
 
     def setup() {
+        NativeServicesTestFixture.initialize()
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []

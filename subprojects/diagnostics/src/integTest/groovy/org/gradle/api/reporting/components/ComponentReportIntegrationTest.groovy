@@ -17,18 +17,13 @@
 package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 
 class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJava = "java" + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
-    private String currentNative = NativePlatforms.defaultPlatformName
+    private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
     def "informs the user when project has no components defined"() {
         when:

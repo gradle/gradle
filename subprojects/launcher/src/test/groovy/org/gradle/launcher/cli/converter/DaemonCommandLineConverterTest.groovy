@@ -26,10 +26,6 @@ import spock.lang.Unroll
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 
 class DaemonCommandLineConverterTest extends Specification {
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     @Unroll
     def "converts daemon options - #options"() {
         when:
@@ -47,6 +43,7 @@ class DaemonCommandLineConverterTest extends Specification {
     }
 
     private DaemonParameters convert(Iterable args) {
+        NativeServicesTestFixture.initialize()
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonCommandLineConverter()
         converter.configure(parser)
