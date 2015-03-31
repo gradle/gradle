@@ -446,80 +446,6 @@ Play plugin:
 
 - Defines a distribution that bundles a Play server and Play application.
 
-##Feature: Developer adds default Play repositories to build script
-
-This allows the developer to easily add repositories to the build script using a convenience extension on the RepositoryContainer object.
-
-```gradle
-buildscript {
-    repositories {
-        gradlePlay()
-    }
-}
-```
- 
-This should point to a virtual repository (play-public) at gradle.repo.org that's backed by the default repositories required for play functionality.
-Currently the following repositories would be required:
-- https://repo.typesafe.com/typesafe/maven-releases (play support)
-- https://repo.gradle.org/gradle/javascript-public (coffeescript and other javascript artifacts)
-
-#### Test Cases
-- Can build a basic play application using the convenience extension to specify repositories
-- Can build a coffeescript-enabled play application using the convenience extension to specify repositories
-
-# Milestone 1B
-
-## Feature: Developer includes compiled assets in Play application (Javascript, LESS, CoffeeScript)
-
-Extend the standard build lifecycle to compile the front end assets to CSS and Javascript.
-
-- Compiled assets
-    - Coffeescript -> Javascript
-    - LESSCSS -> CSS
-    - Javascript > Javascript via Google Closure
-    - Javascript minification, requirejs optimization
-- Include the compiled assets in the Jar
-- Include the `public/` assets in the Jar
-- Include Play config files in the Jar (e.g. `conf/play.plugins`)
-- Define source sets for each type of source file
-- Compilation should be incremental and remove stale outputs
-- Expose some compiler options
-
-### Implementation
-
-JavaScript language plugin:
-
-- Defines JavaScript library component and associated JavaScript bundle binary.
-- Defines JavaScript source set type (a JavaScript bundle and JavaScript source set should be usable in either role).
-- Defines transformation from JavaScript source set to JavaScript bundle.
-
-CSS language plugin:
-
-- Defines CSS library component and associated CSS bundle binary.
-- Defines CSS source set type (a CSS bundle and CSS source set should be usable in either role).
-- Defines transformation from CSS source set to CSS bundle.
-
-CoffeeScript plugin:
-
-- Defines CoffeeScript source set type and transformation to JavaScript bundle.
-
-LESSCSS plugin:
-
-- Defines LESSCSS source set type and transformation to CSS bundle.
-
-Google Closure plugin:
-
-- Defines transformation from JavaScript source set to JavaScript bundle.
-
-Play plugin:
-
-- Defines JavaScript and CSS components for the Play application.
-- Wires in the appropriate outputs to assemble the Jar.
-
-### Open issues
-
-- Integration with existing Gradle javascript plugins.
-
 ## Feature: Developer chooses target Play, Scala and/or Java platform
 
 ### Story: Compilation and building is incremental with respect to changes in Play platform
@@ -579,130 +505,131 @@ model {
 }
 ```
 
-### Story: New target platform DSL for JVM components
-
-```gradle
-model {
-    components {
-        jvmLib(JvmLibrarySpec) {
-            platform java: "1.8"
-        }
-    }
-}
-```
-
-### Story: New target platform DSL for native components
-
-```gradle
-model {
-    components {
-        nativeLib(NativeLibrarySpec) {
-            platform os: "windows", arch: "x86"
-        }
-    }
-}
-```
-
 ## Feature: Developer builds and runs Play application
 
 Introduce some lifecycle tasks to allow the developer to run or start the Play application. For example, the
 developer may run `gradle run` to run the application or `gradle start` to start the application.
 
-- Add basic server + service domain model and some lifecycle tasks
-- Model Play application as service
-- Lifecycle to run in foreground, or start in background, as per `play run` and `play start`
+# Milestone 2
+
+## Feature: Keep running Play application up-to-date when source changes
+
+### Story: Domain model for Web Applications
+
+This story generalises the current 'PlayRun' task, adding a basic web-application + deployment domain model and some lifecycle tasks
+associated with this domain model.
 
 Note that this story does not address reloading the application when source files change. This is addressed by a later story.
 
-### Implementation
+#### Implementation
 
 Web application plugin:
 
-- Defines the concept of a web application.
-- Defines the concept of a server that can host a web application.
-- Defines lifecycle tasks for a given deployment.
+- Defines the concept of a 'web application'.
+- Defines the concept of a 'web server' that can host a web application.
+- Defines the concept of a 'web deployment': a web application hosted by a web server
+- Defines `run` lifecycle task for a deployment
 
 Play plugin:
 
 - Defines a Play application as-a web application
 - Provides a Play server implementation that can host a Play application.
 
-## Further features
+When the `run` task is executed for a deployment, Gradle will:
 
-- Internal mechanism for plugin to inject renderer(s) into components report.
-- Model language transformations, and change Play support to allow a Play application to take any JVM language as input.
-- Declare dependencies on other Java/Scala libraries
-- Control joint compilation of sources based on source set dependencies.
-- Build multiple variants of a Play application.
-- Generate an application install, eg with launcher scripts and so on.
+- Build the web application
+- Start the web server
+- Deploy the web application to the web server
+- Add the running deployment to the container of 'running deployments' for the build
 
-# Milestone 2
+At the end of the build, Gradle will check to see if there are any running deployments. If so, it will wait for Ctrl-C before stopping
+each deployment and exiting. This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
 
-## Feature: Long running compiler daemon
+### Story: Developer triggers play application stop/rebuild/start by console input
 
-Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
+This story starts to add support for making Play applications reloadable. By adding a simple manual trigger for reloading
+the app, this story concentrates on adding the lifecycle required for rebuilding and restarting a Play application
+within a single Gradle invocation.
 
-### Implementation
+#### Implementation
 
-- Maintain a registry of compiler daemons in ~/.gradle
-- Daemons expire some time after build, with much shorter expiry than the build daemon.
-- Reuse infrastructure from build daemon.
+After the `run` task has been executed for a deployment, Gradle will wait for any input. On input (other than Ctrl-C):
 
-## Feature: Keep running Play application up-to-date when source changes
+- Stop the deployment
+    - Undeploy the web application from the web server
+    - Stop the web server
+- Execute the `run` task again, waiting for user input.
 
-This story adds an equivalent of Play's continuous mode (i.e. developer adds ~ before a command such as play ~run), where Gradle
-monitors the source files for changes and rebuilds and restarts the application when some change is detected. Note that 'restart'
-here means a logical restart.
+### Story: Developer triggers play application rebuild/reload by console input
 
-Add a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. For example,
-a developer may run `gradle --watch <tasks>`.
+To ensure performant reloading of the running Play application, this story retains much of the running Play container infrastructure
+when a Play application is reloaded. Instead of restarting the Play application server, we should only need to replace the
+ClassLoader containing the application classes once the App is rebuilt.
 
-- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
-- Monitor files that are inputs to the model for changes too.
-- When the tasks start a service, stop and restart the service(s) after rebuilding, or reload if supported by the service container.
-- The Play application container must support reload. According to the Play docs the plugin can simply recreate the application
-  ClassLoader.
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+#### Implementation
 
-So:
+The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
+to supply the modified application ClassLoader to the Play web server. 
 
-- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
-  restart the application.
-- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
-  Gradle would rerun the tests, rebuild and restart the Play application.
-- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+- Add an optional `reload` operation to web deployment, in addition to `start` and `stop`
+- When a deployment supports reload, and an application reload is triggered
+    - Execute the `run` task again, leaving the deployment (and web server) running
+    - When the application is rebuilt, the run task will check if the deployment is already running
+        - If yes, and the deployment supports reload, ask the deployment to reload
+- Play app deployment implements reload by providing a `BuildLink` implementation that allows Gradle to replace the
+  Application ClassLoader. 
+    - When the deployment is reloaded, the app is rebuilt and the ClassLoader replaced.
+    - First subsequent response to `BuildLink.reload` should provide the updated ClassLoader. All other responses are `false`.
 
-Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
-For example, running `gradle --watch test run` would restart the application if a test source file changes.
+### Story: Optimise incremental build when everything is up-to-date
 
-### Implementation
+This story improves the reload behaviour of a running Play application, by avoiding any sort of rebuild or reload when none of
+the input files have changed for the application. Gradle will track all of the inputs that are used to build the Application,
+and monitor changes to these files for the life of the PlayRun task (or longer).
 
-- Uses Gradle daemon to run build.
-- Collect up all input files as build runs.
-- Monitor changes to these input files. On change:
-    - If previous build started any service, stop that service.
-    - Trigger build.
-- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
+- When the Play application is built for running, Gradle asks the daemon to watch files that are inputs to a task but not outputs of some other task.
+- When the Play application is reloaded, Gradle asks the daemon if any of those files have changed since the previous build
+    - If not, no reload is required
+    
+- Not included in this story (but to do later):
+    - Monitor files that are inputs to the model for changes too.
+    - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
 
-## Feature: Developer triggers rebuild of running Play application
+### Story: Developer triggers play application reload by browser refresh
 
-This story adds an equivalent of Play's run command, where a build is triggered by the developer reloading the application in the browser
-and some source files have changed.
+This story finishes the equivalent functionality of the Play `run` command, 
+where a build is triggered by the developer reloading the application in the browser.
 
-The plugin will need to depend on Play's [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library.
+#### Implementation
+
+The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
+to inform Gradle when the application needs to be reloaded. 
 See [Play's BuildLink.java](https://github.com/playframework/playframework/blob/master/framework/src/build-link/src/main/java/play/core/BuildLink.java)
-for good documentation about interfacing between Play and the build system. Gradle must implement the BuildLink interface and provide
-it to Play's NettyServer. When a new request comes in, Play will call Gradle's implementation of BuildLink.reload and if any files have
-changed then Gradle will have to recompile and return a new classloader to Play. See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
+for good documentation about interfacing between Play and the build system. 
+Gradle will implement the `BuildLink` interface and provide it to the application hosting NettyServer. 
+When a new request comes in, the Play application will call `BuildLink.reload` and Gradle return a new ClassLoader containing the rebuilt application to Play.
+If the application is up-to-date, `BuildLink.reload` can return `false`.
+
+See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
 and [PlayReloader](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayReloader.scala) for
 the SBT implementation of this logic, which may be a helpful guide.
 
-To determine if files have changed and the application needs to be reloaded it may be helpful to use Play's
-[runsupport](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/run-support_2.11/) library, which provides a FileWatchService. The FileWatchService
-chooses a watcher implementation to optimally watch the file system with JDK7 NIO, JNotify, or polling depending on what works best for the given platform.
-The FileWatchService was originally written only for Scala and will be callable from Java/Groovy only in version 2.4.0-M3 or greater. Note that it is perfectly
-fine to use runsupport 2.4.0 with older versions of Play. The version of the runsupport library that is used does not need to match the version of Play since
-it only provides file system watching independent of Play.
+## Feature: Developer views compile and other build failures in Play application
+
+### Story: Developer views build failure message in Play application
+
+Adapt a generic build failure exception to a `PlayException` that renders the exception message.
+
+### Story: Developer views Java and Scala compilation failure in Play application
+
+Adapt compilation failures so that the failure and content of the failing file is displayed in the Play application.
+
+### Story: Developer views Asset compilation failures in Play application
+
+Failures in CoffeeScript compilation are rendered with content of the failing file. 
+This mechanism will be generally applicable to custom asset compilation tasks.
+
+### Story: Developer views build failure stack trace in Play application
 
 ## Feature: Resources are built on demand when running Play application
 
@@ -715,16 +642,87 @@ by the client.
   trigger a restart of the application at the appropriate time.
 - Failures need to be forwarded to the application for display.
 
-## Feature: Developer views compile and other build failures in Play application
+## Feature: Long running compiler daemon
 
-Adapt compiler output to the format expected by Play:
+Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
 
-- Model configuration problems
-- Java and scala compilation failures
-- Asset compilation failures
-- Other verification task failures?
+### Implementation
 
-# Milestone 3
+- Maintain a registry of compiler daemons in ~/.gradle
+- Daemons expire some time after build, with much shorter expiry than the build daemon.
+- Reuse infrastructure from build daemon.
+
+## Feature: Developer adds default Play repositories to build script
+
+This allows the developer to easily add repositories to the build script using a convenience extension on the RepositoryContainer object.
+
+```gradle
+buildscript {
+    repositories {
+        gradlePlay()
+    }
+}
+```
+ 
+This should point to a virtual repository (play-public) at gradle.repo.org that's backed by the default repositories required for play functionality.
+Currently the following repositories would be required:
+- https://repo.typesafe.com/typesafe/maven-releases (play support)
+- https://repo.gradle.org/gradle/javascript-public (coffeescript and other javascript artifacts)
+
+#### Test Cases
+- Can build a basic play application using the convenience extension to specify repositories
+- Can build a coffeescript-enabled play application using the convenience extension to specify repositories
+
+## Feature: Build author provides plugin for asset processing in Play application (Javascript, LESS, CoffeeScript)
+
+Extend the standard build lifecycle to compile the front end assets to CSS and Javascript.
+
+- Provide some built-in implementations of asset plugins
+    - Coffeescript -> Javascript
+    - LESSCSS -> CSS
+    - Javascript > Javascript via Google Closure
+    - Javascript minification, requirejs optimization
+- For built-in asset plugins
+    - Build on public API
+    - Include the compiled assets in the Jar
+    - Define source sets for each type of source file
+    - Compilation should be incremental and remove stale outputs
+    - Expose some compiler options
+
+### Implementation
+
+JavaScript language plugin:
+
+- Defines JavaScript library component and associated JavaScript bundle binary.
+- Defines JavaScript source set type (a JavaScript bundle and JavaScript source set should be usable in either role).
+- Defines transformation from JavaScript source set to JavaScript bundle.
+
+CSS language plugin:
+
+- Defines CSS library component and associated CSS bundle binary.
+- Defines CSS source set type (a CSS bundle and CSS source set should be usable in either role).
+- Defines transformation from CSS source set to CSS bundle.
+
+CoffeeScript plugin:
+
+- Defines CoffeeScript source set type and transformation to JavaScript bundle.
+
+LESSCSS plugin:
+
+- Defines LESSCSS source set type and transformation to CSS bundle.
+
+Google Closure plugin:
+
+- Defines transformation from JavaScript source set to JavaScript bundle.
+
+Play plugin:
+
+- Defines JavaScript and CSS components for the Play application.
+- Wires in the appropriate outputs to assemble the Jar.
+
+### Open issues
+
+- Integration with existing Gradle javascript plugins.
 
 ## Documentation
 
@@ -777,3 +775,37 @@ Some candidates for later work:
 - Improve the HTML test report to render a tree of test executions, for better reporting of Specs 2 execution (and other test frameworks)
 - Support the new Java and Scala language plugins
 - Improve watch mode so that only those tasks affected be a given change are executed
+
+## Further features
+
+- Internal mechanism for plugin to inject renderer(s) into components report.
+- Model language transformations, and change Play support to allow a Play application to take any JVM language as input.
+- Declare dependencies on other Java/Scala libraries
+- Control joint compilation of sources based on source set dependencies.
+- Build multiple variants of a Play application.
+- Generate an application install, eg with launcher scripts and so on.
+
+
+### Story: New target platform DSL for JVM components
+
+```gradle
+model {
+    components {
+        jvmLib(JvmLibrarySpec) {
+            platform java: "1.8"
+        }
+    }
+}
+```
+
+### Story: New target platform DSL for native components
+
+```gradle
+model {
+    components {
+        nativeLib(NativeLibrarySpec) {
+            platform os: "windows", arch: "x86"
+        }
+    }
+}
+```
