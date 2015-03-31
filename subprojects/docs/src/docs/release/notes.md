@@ -2,9 +2,18 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Performance improvements
+### Significant configuration time performance improvements
 
-TODO - needs some detail
+Gradle 2.4 features a collection of performance improvements particularly targeted at “configuration time”
+(i.e. the part of the build lifecycle where Gradle is comprehending the definition of the build by executing build scripts and plugins).
+Several users of early Gradle 2.4 builds have reported build time improvements of around 20% just by upgrading to Gradle 2.4.
+
+Most performance improvements were realized by optimizing internal algorithms along with data and caching structures.
+Builds that have more configuration (i.e. more projects, more build scripts, more plugins, larger build scripts) stand to gain more from the improvements.
+The Gradle build itself, which is of non trivial complexity, realized improved configuration times of 34%.
+Stress tests run as part of Gradle's own build pipeline have demonstrated an 80% improvement in configuration time with Gradle 2.4.
+
+No change is required to builds to leverage the performance improvements.
 
 ### Improved performance of Gradle Daemon via class reuse
 
@@ -16,7 +25,6 @@ The Daemon is a persistent process.
 For a long time it has reused the Gradle core infrastructure and plugins across builds.
 This allows these classes to be loaded _once_ during a “session”, instead of for each build (as is the case when not using the Daemon).
 The level of class reuse has been greatly improved in Gradle 2.4 to also cover build scripts and third-party plugins.
-
 This improves performance in several ways.
 Class loading is expensive and by reusing classes this just happens less.
 Classes also reside in memory and with the Daemon being a persistent process reuse also reduces memory usage.
@@ -29,6 +37,15 @@ The [Tooling API](userguide/embedding.html), which allows Gradle to be embedded 
 The Gradle integration in IDEs such as Android Studio, Eclipse, IntelliJ IDEA and NetBeans also benefits from these performance improvements.
 
 If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge you to try it out with Gradle 2.4.
+
+### Reduced memory consumption when compiling Java source code with Java 7 and 8
+
+By working around JDK bug [JDK-7177211](https://bugs.openjdk.java.net/browse/JDK-7177211), Java compilation requires less memory in Gradle 2.4.
+This JDK bug causes what was intended to be a performance improvement to not improve compilation performance and use more memory.
+The workaround is to implicitly apply the internal compiler flag `-XDuseUnsharedTable=true` to all compilation operations.
+
+Very large Java projects (building with Java 7 or 8) may notice dramatically improved build times due to the decreased memory throughput which in turn
+requires less aggressive garbage collection in the build process.
 
 ### Support for AWS S3 backed repositories
 
