@@ -11,6 +11,12 @@ repositories {
     mavenCentral()
 }
 
+<% if (binding.hasVariable("projectDependencies")) { %>
+    configurations {
+        compile.extendsFrom projectsConfiguration
+    }
+<% } %>
+
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"
@@ -22,6 +28,9 @@ dependencies {
 
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
+    <% } %>
+    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
+    projectsConfiguration project(":project${it}") <% } %>
     <% } %>
 }
 
@@ -47,6 +56,12 @@ tasks.withType(ScalaCompile) {
         fork = true
         forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
     }
+}
+<% } %>
+
+<% if (binding.hasVariable("resolveDependenciesTask")) { %>
+task resolveDependencies {
+    dependsOn configurations.testRuntime
 }
 <% } %>
 

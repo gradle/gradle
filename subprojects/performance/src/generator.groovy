@@ -16,10 +16,12 @@ class TestProject {
     Integer linesOfCodePerSourceFile
     List<MavenModule> dependencies
     MavenRepository repository;
+    Integer subprojectNumber
 
-    TestProject(String name, Object defaults) {
+    TestProject(String name, Object defaults, Integer subprojectNumber = null) {
         this.name = name
         this.defaults = defaults
+        this.subprojectNumber = subprojectNumber
     }
 
     int getSourceFiles() {
@@ -74,7 +76,7 @@ class ProjectGeneratorTask extends DefaultTask {
             projects.subList(projectCount, projects.size()).clear()
         } else {
             while (projects.size() < projectCount) {
-                def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this)
+                def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
                 projects << project
             }
         }
@@ -180,7 +182,7 @@ class ProjectGeneratorTask extends DefaultTask {
             }
         }
 
-        args += [projectName  : testProject.name, groovyProject: groovyProject, scalaProject: scalaProject,
+        args += [projectName  : testProject.name, subprojectNumber: testProject.subprojectNumber, groovyProject: groovyProject, scalaProject: scalaProject,
                  propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies: testProject.dependencies,
                  testProject  : testProject
         ]

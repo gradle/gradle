@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.measure.DataAmount
+import org.junit.experimental.categories.Category
 
-import static org.gradle.performance.measure.Duration.millis
+@Category(Experiment)
+class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerformanceTest {
-
-    def run() {
+    def "resolving dependencies"() {
         given:
-        runner.testId = "many empty projects help"
-        runner.testProject = "bigEmpty"
-        runner.tasksToRun = ['help']
-        runner.maxExecutionTimeRegression = millis(2000)
-        runner.maxMemoryRegression = DataAmount.mbytes(200)
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', 'last']
+        runner.testId = "resolving dependencies lotProjectDependencies"
+        runner.testProject = "lotProjectDependencies"
+        runner.tasksToRun = ['resolveDependencies']
+        runner.useDaemon = true
+        runner.targetVersions = ['2.2.1', '2.3', '2.4', 'last']
 
         when:
         def result = runner.run()
