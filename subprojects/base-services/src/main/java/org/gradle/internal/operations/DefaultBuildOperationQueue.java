@@ -40,7 +40,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     public void add(final T operation) {
         if (waitingForCompletion) {
-            throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
+            throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
         ListenableFuture<?> future = executor.submit(new OperationHolder(operation));
         operations.add(future);
