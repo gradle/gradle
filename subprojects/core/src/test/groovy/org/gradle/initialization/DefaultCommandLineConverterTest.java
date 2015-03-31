@@ -67,6 +67,7 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedOffline;
     private boolean expectedRecompileScripts;
     private int expectedParallelExecutorCount;
+    private int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
     private boolean expectedConfigureOnDemand;
 
     @Test
@@ -108,6 +109,7 @@ public class DefaultCommandLineConverterTest {
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
         assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
         assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
+        assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
     }
 
     @Test
@@ -390,6 +392,19 @@ public class DefaultCommandLineConverterTest {
     public void withInvalidParallelExecutorThreads() {
         checkConversion("--parallel-threads", "foo");
     }
+
+
+    @Test
+    public void withMaxWorkers() {
+        expectedMaxWorkersCount = 5;
+        checkConversion("--max-workers", "5");
+    }
+
+    @Test(expected = CommandLineArgumentException.class)
+    public void withInvalidMaxWorkers() {
+        checkConversion("--max-workers", "foo");
+    }
+
 
     @Test
     public void withConfigureOnDemand() {

@@ -46,7 +46,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PARALLEL = "parallel";
     private static final String PARALLEL_THREADS = "parallel-threads";
 
-    private static final String WORKERS = "workers";
+    private static final String WORKERS = "max-workers";
 
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
