@@ -37,7 +37,7 @@ public class WindowsSdk implements Named {
     private static final String[] BINPATHS_ARM = {
         "bin/arm"
     };
-    private static final String LIBPATH_SDK8 = "Lib/win8/";
+    private static final String LIBPATH_SDK8 = "Lib/win8/um/";
     private static final String LIBPATH_SDK81 = "Lib/winv6.3/um/";
     private static final String[] LIBPATHS_X86 = {
         LIBPATH_SDK81 + "x86",
