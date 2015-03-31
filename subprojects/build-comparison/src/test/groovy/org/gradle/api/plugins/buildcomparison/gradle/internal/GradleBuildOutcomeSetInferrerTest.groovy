@@ -38,7 +38,7 @@ class GradleBuildOutcomeSetInferrerTest extends Specification {
     static {
         NativeServicesTestFixture.initialize()
     }
-    
+
     def inferBase = dir.createDir("infer-base")
     def store = new PathNormalisingKeyFileStore(dir.createDir("fs"))
     def transformer = new GradleBuildOutcomeSetTransformer(store, "source")

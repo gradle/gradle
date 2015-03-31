@@ -21,12 +21,17 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
 
 class DaemonServicesTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
+    
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, asList()),
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))

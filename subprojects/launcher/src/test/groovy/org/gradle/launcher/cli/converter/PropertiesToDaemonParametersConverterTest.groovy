@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,6 +31,9 @@ import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
 class PropertiesToDaemonParametersConverterTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

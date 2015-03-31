@@ -33,6 +33,7 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -44,6 +45,10 @@ public class DefaultMavenPublicationTest extends Specification {
     TestFile pomDir
     TestFile pomFile
     File artifactFile
+
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     def "setup"() {
         pomDir = testDirectoryProvider.testDirectory

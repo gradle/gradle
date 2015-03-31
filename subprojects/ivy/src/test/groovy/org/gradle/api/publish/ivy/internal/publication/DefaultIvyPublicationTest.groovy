@@ -36,10 +36,15 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Shared
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
+
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
