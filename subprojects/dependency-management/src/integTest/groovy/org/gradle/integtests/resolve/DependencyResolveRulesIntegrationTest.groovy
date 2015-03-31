@@ -23,6 +23,48 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
+    /**
+     * Test demonstrating current (not necessarily desired) behaviour
+     */
+    void "can replace project dependency with external dependency"() {
+        mavenRepo.module("org.gradle.test", "a", '1.3').publish()
+
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            project(':a') {
+                apply plugin: 'base'
+                group = 'org.gradle.test'
+                version = '1.2'
+                configurations { 'default' }
+            }
+
+            project(':b') {
+                $common
+                dependencies {
+                    conf project(':a')
+                }
+                configurations.conf.resolutionStrategy {
+                    eachDependency {
+                        assert it.requested.toString() == 'org.gradle.test:a:1.2'
+                        assert it.target.toString() == 'org.gradle.test:a:1.2'
+                        it.useVersion('1.3')
+                        assert it.target.toString() == 'org.gradle.test:a:1.3'
+                    }
+                }
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0].selected.id instanceof ModuleComponentIdentifier
+                    assert deps[0].selected.id.version == '1.3'
+                }
+            }
+"""
+        expect:
+        // Force resolve to catch failures
+        succeeds("resolveConf")
+        succeeds("check")
+    }
+
     void "forces multiple modules by rule"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
@@ -146,6 +188,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 """
 
         when:
+        succeeds("resolveConf")
         run("check")
 
         then:
