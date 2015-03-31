@@ -49,7 +49,7 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
     }
 
     private String getDescription(PublishArtifact artifact) {
-        return String.format("Publish artifact '%s'", artifact.toString());
+        return "Publish artifact '".concat(artifact.toString()).concat("'");
     }
 
     private String getTypeIdentifier(PublishArtifact artifact) {
