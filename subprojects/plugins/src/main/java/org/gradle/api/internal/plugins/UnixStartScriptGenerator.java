@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
 
     private String createJoinedClasspath(Iterable<String> classpath) {
         Joiner colonJoiner = Joiner.on(":");
-        return colonJoiner.join(Iterables.transform(classpath, new Function<String, String>() {
+        return colonJoiner.join(Iterables.transform(CollectionUtils.toStringList(classpath), new Function<String, String>() {
             public String apply(String input) {
                 StringBuilder classpath = new StringBuilder();
                 classpath.append("$APP_HOME/");
@@ -63,7 +64,7 @@ public class UnixStartScriptGenerator extends AbstractTemplateBasedStartScriptGe
             return "";
         }
 
-        Iterable<String> quotedDefaultJvmOpts = Iterables.transform(defaultJvmOpts, new Function<String, String>() {
+        Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
             public String apply(String jvmOpt) {
                 //quote ', ", \, $. Probably not perfect. TODO: identify non-working cases, fail-fast on them
                 jvmOpt = jvmOpt.replace("\\", "\\\\");

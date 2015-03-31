@@ -26,29 +26,50 @@ class ApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
         createSampleProjectSetup()
     }
 
-    def "can generate start scripts with expected content"() {
+    def "can generate start scripts with minimal user configuration"() {
         when:
         succeeds('startScripts')
 
         then:
-        File scriptOutputDir = file('build/scripts')
-        File unixStartScript = new File(scriptOutputDir, 'sample')
-        unixStartScript.exists()
-        unixStartScript.canRead()
-        unixStartScript.canExecute()
+        File unixStartScript = assertGeneratedUnixStartScript()
         String unixStartScriptContent = unixStartScript.text
         unixStartScriptContent.contains('##  sample start up script for UN*X')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
         unixStartScriptContent.contains('exec "\$JAVACMD" "\${JVM_OPTS[@]}" -classpath "\$CLASSPATH" org.gradle.test.Main "\$@"')
-        File windowsStartScript = new File(scriptOutputDir, 'sample.bat')
-        windowsStartScript.exists()
+        File windowsStartScript = assertGeneratedWindowsStartScript()
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
         windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+    }
+
+    def "can generate starts script generation with custom user configuration"() {
+        given:
+        buildFile << """
+applicationName = 'myApp'
+applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
+"""
+
+        when:
+        succeeds('startScripts')
+
+        then:
+        File unixStartScript = assertGeneratedUnixStartScript('myApp')
+        String unixStartScriptContent = unixStartScript.text
+        unixStartScriptContent.contains('##  myApp start up script for UN*X')
+        unixStartScriptContent.contains('APP_NAME="myApp"')
+        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
+        unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\${JVM_OPTS[@]}" -classpath "\$CLASSPATH" org.gradle.test.Main "\$@"')
+        File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
+        String windowsStartScriptContentText = windowsStartScript.text
+        windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
+        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS="-Dgreeting.language=en" "-DappId=sample"')
+        windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
     }
 
     def "can change template file for default start script generators"() {
@@ -67,12 +88,9 @@ startScripts {
         succeeds('startScripts')
 
         then:
-        File scriptOutputDir = file('build/scripts')
-        File unixStartScript = new File(scriptOutputDir, 'myApp')
-        unixStartScript.exists()
+        File unixStartScript = assertGeneratedUnixStartScript('myApp')
         unixStartScript.text == 'myApp start up script for UN*X'
-        File windowsStartScript = new File(scriptOutputDir, 'myApp.bat')
-        windowsStartScript.exists()
+        File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
         windowsStartScript.text == 'myApp start up script for Windows'
     }
 
@@ -109,12 +127,9 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         succeeds('startScripts')
 
         then:
-        File scriptOutputDir = file('build/scripts')
-        File unixStartScript = new File(scriptOutputDir, 'myApp')
-        unixStartScript.exists()
+        File unixStartScript = assertGeneratedUnixStartScript('myApp')
         unixStartScript.text == 'myApp start up script for UN*X'
-        File windowsStartScript = new File(scriptOutputDir, 'myApp.bat')
-        windowsStartScript.exists()
+        File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
         windowsStartScript.text == 'myApp start up script for Windows'
     }
 
@@ -164,6 +179,12 @@ task execStartScript(type: Exec) {
     }
 
     private void createSampleProjectSetup() {
+        createMainClass()
+        populateBuildFile()
+        populateSettingsFile()
+    }
+
+    private void createMainClass() {
         file('src/main/java/org/gradle/test/Main.java') << """
 package org.gradle.test;
 
@@ -173,13 +194,38 @@ public class Main {
     }
 }
 """
+    }
+
+    private void populateBuildFile() {
         buildFile << """
 apply plugin: 'application'
 
 mainClassName = 'org.gradle.test.Main'
 """
+    }
+
+    private void populateSettingsFile() {
         settingsFile << """
 rootProject.name = 'sample'
 """
+    }
+
+    private File assertGeneratedUnixStartScript(String filename = 'sample') {
+        File startScript = getGeneratedStartScript(filename)
+        assert startScript.exists()
+        assert startScript.canRead()
+        assert startScript.canExecute()
+        startScript
+    }
+
+    private File assertGeneratedWindowsStartScript(String filename = 'sample.bat') {
+        File startScript = getGeneratedStartScript(filename)
+        assert startScript.exists()
+        startScript
+    }
+
+    private File getGeneratedStartScript(String filename) {
+        File scriptOutputDir = file('build/scripts')
+        new File(scriptOutputDir, filename)
     }
 }
