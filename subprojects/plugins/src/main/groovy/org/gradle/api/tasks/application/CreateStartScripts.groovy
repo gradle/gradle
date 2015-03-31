@@ -47,7 +47,6 @@ import org.gradle.util.GUtil
  * Example:
  *
  * <pre autoTested=''>
- *
  * task createStartScripts(type: CreateStartScripts) {
  *   unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
  *   windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
