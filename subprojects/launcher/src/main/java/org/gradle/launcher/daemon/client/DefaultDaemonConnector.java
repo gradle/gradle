@@ -81,7 +81,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        return startDaemonWithAnnouncing(constraint);
+        if (!Boolean.getBoolean(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY)) {
+            LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
+        }
+        return startDaemon(constraint);
     }
 
     private DaemonClientConnection findConnection(List<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
@@ -100,13 +103,6 @@ public class DefaultDaemonConnector implements DaemonConnector {
             }
         }
         return null;
-    }
-
-    private DaemonClientConnection startDaemonWithAnnouncing(ExplainingSpec<DaemonContext> constraint) {
-        if (!Boolean.getBoolean(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY)) {
-            LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
-        }
-        return startDaemon(constraint);
     }
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
