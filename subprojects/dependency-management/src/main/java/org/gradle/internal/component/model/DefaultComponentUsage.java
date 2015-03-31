@@ -28,6 +28,6 @@ public class DefaultComponentUsage implements ComponentUsage {
 
     @Override
     public String toString() {
-        return String.format("artifacts for configuration '%s'", configurationName);
+        return "artifacts for configuration '" + configurationName + "'";
     }
 }
