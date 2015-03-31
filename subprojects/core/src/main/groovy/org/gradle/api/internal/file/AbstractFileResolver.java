@@ -40,6 +40,8 @@ import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
+    private static final Pattern FILE_SEPARATOR_PATTERN = Pattern.compile("[/" + Pattern.quote(File.separator) + "]");
+
     private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
 
@@ -94,8 +96,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
-
-            String[] segments = file.getPath().split(String.format("[/%s]", Pattern.quote(File.separator)));
+            String[] segments = FILE_SEPARATOR_PATTERN.split(file.getPath());
             List<String> path = new ArrayList<String>(segments.length);
             for (String segment : segments) {
                 if (segment.equals("..")) {
