@@ -157,7 +157,9 @@ public class Javadoc extends SourceTask {
      * Sets the tool resolver which will be used to find the tool to generate the Javadoc.
      */
     @Incubating
-    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
+    public void setToolResolver(ToolResolver toolResolver) {
+        throw new UnsupportedOperationException();
+    }
 
     private Platform getPlatform() {
         return new DefaultJavaPlatform(JavaVersion.current());
