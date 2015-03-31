@@ -20,7 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.tasks.bundling.*;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.api.tasks.bundling.Tar;
+import org.gradle.api.tasks.bundling.War;
+import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.plugins.ear.Ear;
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome;
 
