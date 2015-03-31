@@ -342,7 +342,8 @@ It is expected that no Gradle builds will be negatively affected by these change
 The default version of the corresponding tool of the following code quality plugins have been updated:
 
 * The `checkstyle` plugin now uses version 5.9 as default (was 5.7).
-    (Note: The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant)
+   - The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant
+   - Be aware that there is was a breaking change of the `LeftCurly` rule introduced in checkstyle 5.8 (see https://github.com/checkstyle/checkstyle/issues/247)
 * The `pmd` plugin now uses version 5.2.3 as default (was 5.1.1).
 * The `findbugs` plugin now uses version 3.0.1 as default (was 3.0.0).
 * The `codenarc` plugin now uses version 0.23 as default (was 0.21).
