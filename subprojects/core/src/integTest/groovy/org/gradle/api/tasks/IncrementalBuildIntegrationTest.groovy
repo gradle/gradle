@@ -110,16 +110,15 @@ task c
         // Change an input property of the first task (the content format)
         def snapshot = outputFileA.snapshot()
         testFile('build.gradle').text += '''
-a.format = ' %s '
+a.format = '     %s     '
 '''
-
-
         def run = inTestDirectory().withTasks('b').run()
         outputFileA.assertHasChangedSince(snapshot)
+
         run.assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
-        assertThat(outputFileA.text, equalTo(' new content '))
-        assertThat(outputFileB.text, equalTo('[ new content ]'))
+        assertThat(outputFileA.text, equalTo('     new content     '))
+        assertThat(outputFileB.text, equalTo('[     new content     ]'))
 
         // Change final output file destination
 
