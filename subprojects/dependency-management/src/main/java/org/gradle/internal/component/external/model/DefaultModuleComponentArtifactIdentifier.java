@@ -47,7 +47,12 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
     }
 
     public String getDisplayName() {
-        return String.format("%s (%s)", name, componentIdentifier);
+        StringBuilder builder = new StringBuilder();
+        builder.append(name.toString());
+        builder.append(" (");
+        builder.append(componentIdentifier.toString());
+        builder.append(")");
+        return builder.toString();
     }
 
     public IvyArtifactName getName() {
