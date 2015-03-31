@@ -18,10 +18,15 @@ package org.gradle.internal.resource.local
 
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
 class UniquePathKeyFileStoreTest extends Specification {
+
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();

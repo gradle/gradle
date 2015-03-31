@@ -31,7 +31,7 @@ class DaemonServicesTest extends Specification {
     static {
         NativeServicesTestFixture.initialize()
     }
-    
+
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, asList()),
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))

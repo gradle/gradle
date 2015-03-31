@@ -36,12 +36,16 @@ import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.IMPLICITLY_DISABLED
 
 class DaemonServerExceptionHandlingTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def buildRequestContext = Stub(BuildRequestContext) {
