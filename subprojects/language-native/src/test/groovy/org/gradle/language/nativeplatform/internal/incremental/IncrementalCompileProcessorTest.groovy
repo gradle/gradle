@@ -395,7 +395,9 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def getState() {
-        incrementalCompileProcessor.processSourceFiles(sourceFiles)
+        def incrementalState = incrementalCompileProcessor.processSourceFiles(sourceFiles)
+        stateCache.set(incrementalState.finalState)
+        return incrementalState
     }
 
     def sourceFile(def name) {

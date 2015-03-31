@@ -20,9 +20,8 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerator
 import org.gradle.api.tasks.*
+import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.util.GUtil
 
 /**
@@ -102,12 +101,12 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The Unix start script generator.
      */
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator = new UnixStartScriptGenerator()
+    ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator()
 
     /**
      * The Windows start script generator.
      */
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator = new WindowsStartScriptGenerator()
+    ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator()
 
     @TaskAction
     void generate() {

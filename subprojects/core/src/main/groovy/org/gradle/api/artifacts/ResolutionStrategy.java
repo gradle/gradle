@@ -240,10 +240,12 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
+/*
 
     @Incubating
     DependencySubstitutions getDependencySubstitution();
 
     @Incubating
     ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
+*/
 }

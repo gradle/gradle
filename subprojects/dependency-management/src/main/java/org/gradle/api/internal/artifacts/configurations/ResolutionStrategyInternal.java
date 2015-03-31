@@ -57,7 +57,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      */
     ComponentSelectionRulesInternal getComponentSelection();
 
-    @Override
     DependencySubstitutionsInternal getDependencySubstitution();
 
     /**

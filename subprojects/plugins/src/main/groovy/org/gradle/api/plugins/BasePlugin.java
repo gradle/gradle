@@ -34,8 +34,8 @@ import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.internal.core.ActionBackedModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -128,10 +128,14 @@ public class BasePlugin implements Plugin<Project> {
         configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
-                if (uploadArchives == null) { return; }
+                if (uploadArchives == null) {
+                    return;
+                }
 
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
-                if (!hasIvyRepo) { return; } // Maven repos are handled by MavenPlugin
+                if (!hasIvyRepo) {
+                    return;
+                } // Maven repos are handled by MavenPlugin
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 ModuleInternal module = configuration.getModule();

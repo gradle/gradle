@@ -17,10 +17,13 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
@@ -33,14 +36,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private boolean waitingForCompletion;
 
     DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
-        this.executor =  MoreExecutors.listeningDecorator(executor);
+        this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
     }
 
     public void add(final T operation) {
         if (waitingForCompletion) {
-            throw new IllegalStateException("OperationQueue cannot be reused once it has started completion.");
+            throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
         ListenableFuture<?> future = executor.submit(new OperationHolder(operation));
         operations.add(future);
@@ -50,7 +53,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         waitingForCompletion = true;
 
         CountDownLatch finished = new CountDownLatch(operations.size());
-        List<Throwable> failures = Lists.newCopyOnWriteArrayList();
+        Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
 
         for (ListenableFuture operation : operations) {
             Futures.addCallback(operation, new CompletionCallback(finished, failures));
@@ -68,8 +71,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    private String getFailureMessage(List<Throwable> failures) {
-        if (failures.size()==1) {
+    private String getFailureMessage(Collection<Throwable> failures) {
+        if (failures.size() == 1) {
             return "A build operation failed.";
         }
         return "Multiple build operations failed.";
@@ -77,9 +80,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private static class CompletionCallback implements FutureCallback {
         private final CountDownLatch finished;
-        private final List<Throwable> failures;
+        private final Collection<Throwable> failures;
 
-        private CompletionCallback(CountDownLatch finished, List<Throwable> failures) {
+        private CompletionCallback(CountDownLatch finished, Collection<Throwable> failures) {
             this.finished = finished;
             this.failures = failures;
         }
@@ -94,7 +97,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    class OperationHolder implements Runnable {
+    private class OperationHolder implements Runnable {
         private final T operation;
 
         OperationHolder(T operation) {
@@ -106,7 +109,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         public String toString() {
-            return String.format("Worker %s for operation %s", worker.getDisplayName(), operation.getDescription());
+            return "Worker ".concat(worker.getDisplayName()).concat(" for operation ").concat(operation.getDescription());
         }
     }
 }

@@ -52,7 +52,9 @@ class ProjectDependencyArtifactIdExtractorHack {
     public String extract() {
         Collection<Upload> tasks = project.getTasks().withType(Upload.class);
         Collection<ArtifactRepository> repositories = getRepositories(tasks);
-        if (!onlyContainsMavenResolvers(repositories)) { return project.getName(); }
+        if (!onlyContainsMavenResolvers(repositories)) {
+            return project.getName();
+        }
 
         Collection<MavenDeployer> deployers = getMavenDeployers(repositories);
         Set<String> artifactIds = getArtifactIds(deployers);

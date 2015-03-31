@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerator
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -33,8 +33,8 @@ class StartScriptGeneratorTest extends Specification {
     private static final String SCRIPT_REL_PATH = 'bin/gradle'
     private static final String APP_NAME_SYS_PROP = 'org.gradle.appname'
 
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> unixStartScriptGenerator = Mock()
-    ScriptGenerator<JavaAppStartScriptGenerationDetails> windowsStartScriptGenerator = Mock()
+    ScriptGenerator unixStartScriptGenerator = Mock()
+    ScriptGenerator windowsStartScriptGenerator = Mock()
     StartScriptGenerator.UnixFileOperation unixFileOperation = Mock()
     StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
     @Rule TestNameTestDirectoryProvider temporaryFolder
@@ -81,15 +81,6 @@ class StartScriptGeneratorTest extends Specification {
     }
 
     private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
-        JavaAppStartScriptGenerationDetails scriptGenerationDetails = new JavaAppStartScriptGenerationDetails()
-        scriptGenerationDetails.applicationName = APP_NAME
-        scriptGenerationDetails.optsEnvironmentVar = OPTS_ENV_VAR
-        scriptGenerationDetails.exitEnvironmentVar = EXIT_ENV_VAR
-        scriptGenerationDetails.mainClassName = MAIN_CLASSNAME
-        scriptGenerationDetails.defaultJvmOpts = DEFAULT_JVM_OPTS
-        scriptGenerationDetails.classpath = CLASSPATH
-        scriptGenerationDetails.scriptRelPath = SCRIPT_REL_PATH
-        scriptGenerationDetails.appNameSystemProperty = APP_NAME_SYS_PROP
-        scriptGenerationDetails
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
     }
 }

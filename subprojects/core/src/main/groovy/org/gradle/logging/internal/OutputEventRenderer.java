@@ -59,7 +59,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
-    public ConsoleOutput getConsoleOutput() { return consoleOutput; }
+    public ConsoleOutput getConsoleOutput() {
+        return consoleOutput;
+    }
 
     public OutputStream getOriginalStdOut() {
         return originalStdOut;

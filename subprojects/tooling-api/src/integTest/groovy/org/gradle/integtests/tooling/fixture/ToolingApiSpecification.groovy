@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.fixture
+
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -29,6 +30,7 @@ import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
+
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -174,6 +176,22 @@ abstract class ToolingApiSpecification extends Specification {
             return []
         }
         return rootProjectImplicitTasks
+    }
+
+    /**
+     * Returns the set of implicit tasks returned by GradleProject.getTasks()
+     *
+     * <p>Note that in some versions the handling of implicit tasks was broken, so this method may return a different value
+     * to {@link #getRootProjectImplicitTasks()}.
+     */
+    Set<String> getRootProjectImplicitTasksForGradleProjectModel() {
+        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
+        if (targetVersion == GradleVersion.version("1.6")) {
+            // Implicit tasks were ignored, and setupBuild was added as a regular task
+            return ['setupBuild']
+        }
+
+        targetVersion < GradleVersion.version("2.3") ? [] : rootProjectImplicitTasks
     }
 
 }

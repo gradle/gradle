@@ -17,6 +17,8 @@ dependencies {
     integTestRuntime project(':plugins')
 
     startScriptGenerator project(':plugins')
+
+    testFixturesCompile project(':internalTesting')
 }
 
 useTestFixtures()

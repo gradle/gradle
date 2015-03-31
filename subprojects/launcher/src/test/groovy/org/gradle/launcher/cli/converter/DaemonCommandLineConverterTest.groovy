@@ -19,13 +19,13 @@ package org.gradle.launcher.cli.converter
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 
 class DaemonCommandLineConverterTest extends Specification {
-
     @Unroll
     def "converts daemon options - #options"() {
         when:
@@ -43,6 +43,7 @@ class DaemonCommandLineConverterTest extends Specification {
     }
 
     private DaemonParameters convert(Iterable args) {
+        NativeServicesTestFixture.initialize()
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonCommandLineConverter()
         converter.configure(parser)

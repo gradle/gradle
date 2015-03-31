@@ -22,6 +22,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.Generated
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.tooling.model.internal.outcomes.GradleBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
@@ -33,6 +34,10 @@ import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcom
 class GradleBuildOutcomeSetInferrerTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+
+    static {
+        NativeServicesTestFixture.initialize()
+    }
 
     def inferBase = dir.createDir("infer-base")
     def store = new PathNormalisingKeyFileStore(dir.createDir("fs"))

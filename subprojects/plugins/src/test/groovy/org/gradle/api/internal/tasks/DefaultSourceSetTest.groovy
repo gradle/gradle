@@ -19,6 +19,8 @@ import org.gradle.api.Task
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.SourceSet
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.junit.Before
 import org.junit.Test
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
@@ -32,6 +34,11 @@ class DefaultSourceSetTest {
         def s = new DefaultSourceSet(name, fileResolver)
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
+    }
+
+    @Before
+    public void setup() {
+        NativeServicesTestFixture.initialize()
     }
 
     @Test

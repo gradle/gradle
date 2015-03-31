@@ -17,31 +17,30 @@
 package org.gradle.internal.operations;
 
 /**
- * Queue for holding build operations and submitting them to an underlying executor.
- *
+ * An individual active, single use, queue of build operations.
  * <p>
- * Once an OperationQueue has started to wait for the completion of previously added operations,
- * no new operations may be added to the queue. OperationQueues are not thread safe, so you
- * cannot add operations from multiple threads.
- * </p>
+ * The queue is active in that operations are potentially executed as soon as they are added.
+ * The queue is single use in that no further work can be added once {@link #waitForCompletion()} is called.
+ * <p>
+ * A queue instance is not threadsafe and MUST only be used from a single thread.
  *
- * @param <T> Type of build operations to hold.
+ * @param <T> type of build operations to hold
  */
 public interface BuildOperationQueue<T extends BuildOperation> {
+
     /**
-     * Adds an operation to be executed.
+     * Adds an operation to be executed, potentially executing it instantly.
      *
-     * @param operation operation to execute.
+     * @param operation operation to execute
      */
     public void add(T operation);
 
     /**
      * Waits for all previously added operations to complete.
      * <p>
-     * On failure, some effort is made to cancel any operations
-     * that have not started.
-     * </p>
-     * @throws MultipleBuildOperationFailures if <em>any</em> operation failed.
+     * On failure, some effort is made to cancel any operations that have not started.
+     *
+     * @throws MultipleBuildOperationFailures if <em>any</em> operation failed
      */
     public void waitForCompletion() throws MultipleBuildOperationFailures;
 }

@@ -19,6 +19,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class DefaultTaskOutputsTest extends Specification {
@@ -28,6 +29,10 @@ class DefaultTaskOutputsTest extends Specification {
     }
     private final TaskInternal task = [toString: {'task'}] as TaskInternal
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
+
+    def setup() {
+        NativeServicesTestFixture.initialize()
+    }
 
     public void hasNoOutputsByDefault() {
         setup:

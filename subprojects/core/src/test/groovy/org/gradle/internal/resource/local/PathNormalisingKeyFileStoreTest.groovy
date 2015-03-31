@@ -19,11 +19,11 @@ package org.gradle.internal.resource.local
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
 class PathNormalisingKeyFileStoreTest extends Specification {
-
     @Rule
     TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     TestFile fsBase
@@ -32,6 +32,7 @@ class PathNormalisingKeyFileStoreTest extends Specification {
     def pathCounter = 0
 
     def setup() {
+        NativeServicesTestFixture.initialize()
         fsBase = dir.createDir("fs")
         store = new PathNormalisingKeyFileStore(new PathKeyFileStore(fsBase))
     }

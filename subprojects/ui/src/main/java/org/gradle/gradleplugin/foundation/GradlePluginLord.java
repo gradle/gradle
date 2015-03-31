@@ -34,6 +34,7 @@ import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
@@ -258,6 +259,10 @@ public class GradlePluginLord {
             File currentDirectory = getCurrentDirectory();
             File gradleHomeDirectory = getGradleHomeDirectory();
             File customGradleExecutor = getCustomGradleExecutor();
+
+            //We don't have any information to use here (user home dir or daemon dir) so we just initialize
+            //using the default temp directory
+            NativeServices.initialize(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
 
             //the protocol handles the command line to launch gradle and messaging between us and said externally launched gradle.
             ProcessLauncherServer.Protocol serverProtocol = request.createServerProtocol(logLevel, stackTraceLevel, currentDirectory, gradleHomeDirectory, customGradleExecutor);

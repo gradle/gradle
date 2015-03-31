@@ -273,7 +273,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 messagingServer,
                 classPathRegistry,
                 fileResolver,
-                new LongIdGenerator());
+                new LongIdGenerator(),
+                startParameter.getGradleUserHomeDir());
     }
 
     protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {

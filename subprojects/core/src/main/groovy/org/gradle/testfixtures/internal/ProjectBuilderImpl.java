@@ -18,6 +18,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -38,8 +39,21 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ProjectBuilderImpl {
+    static {
+        try {
+            File nativeDir = File.createTempFile("native", "dir");
+            nativeDir.delete();
+            nativeDir.mkdirs();
+            nativeDir.deleteOnExit();
+            NativeServices.initialize(nativeDir);
+        } catch(IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder
             .builder()
             .displayName("global services")

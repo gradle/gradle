@@ -17,7 +17,6 @@
 
 
 package org.gradle.api.tasks
-
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -109,12 +108,15 @@ task c
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
 
         // Change an input property of the first task (the content format)
-
+        def snapshot = outputFileA.snapshot()
         testFile('build.gradle').text += '''
 a.format = ' %s '
 '''
 
-        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        def run = inTestDirectory().withTasks('b').run()
+        outputFileA.assertHasChangedSince(snapshot)
+        run.assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
         assertThat(outputFileA.text, equalTo(' new content '))
         assertThat(outputFileB.text, equalTo('[ new content ]'))

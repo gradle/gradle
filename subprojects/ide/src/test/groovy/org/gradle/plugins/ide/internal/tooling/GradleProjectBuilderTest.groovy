@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.project.ProjectTaskLister
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -26,7 +25,7 @@ import spock.lang.Specification
 class GradleProjectBuilderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
-    def builder = new GradleProjectBuilder(Stub(ProjectTaskLister))
+    def builder = new GradleProjectBuilder()
 
     def "builds basics for project"() {
         def buildFile = tmpDir.file("build.gradle") << "//empty"

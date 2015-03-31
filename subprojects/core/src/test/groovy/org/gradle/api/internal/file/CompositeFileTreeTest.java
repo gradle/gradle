@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.TestUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -29,6 +30,8 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,6 +52,11 @@ public class CompositeFileTreeTest {
             context.add(source2);
         }
     };
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void matchingWithClosureReturnsUnionOfFilteredSets() {

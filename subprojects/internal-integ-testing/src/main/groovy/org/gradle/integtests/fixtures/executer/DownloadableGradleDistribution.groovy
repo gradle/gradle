@@ -20,8 +20,8 @@ import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.*
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
@@ -34,7 +34,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
         return new DefaultCacheFactory(
                 new DefaultFileLockManager(
                         new DefaultProcessMetaDataProvider(
-                                NativeServices.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment)),
+                                NativeServicesTestFixture.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment)),
                         20 * 60 * 1000 // allow up to 20 minutes to download a distribution
                 , new NoOpFileLockContentionHandler()))
     }

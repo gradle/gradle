@@ -2,9 +2,18 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Performance improvements
+### Significant configuration time performance improvements
 
-TODO - needs some detail
+Gradle 2.4 features a collection of performance improvements particularly targeted at “configuration time”
+(i.e. the part of the build lifecycle where Gradle is comprehending the definition of the build by executing build scripts and plugins).
+Several users of early Gradle 2.4 builds have reported build time improvements of around 20% just by upgrading to Gradle 2.4.
+
+Most performance improvements were realized by optimizing internal algorithms along with data and caching structures.
+Builds that have more configuration (i.e. more projects, more build scripts, more plugins, larger build scripts) stand to gain more from the improvements.
+The Gradle build itself, which is of non trivial complexity, realized improved configuration times of 34%.
+Stress tests run as part of Gradle's own build pipeline have demonstrated an 80% improvement in configuration time with Gradle 2.4.
+
+No change is required to builds to leverage the performance improvements.
 
 ### Improved performance of Gradle Daemon via class reuse
 
@@ -16,7 +25,6 @@ The Daemon is a persistent process.
 For a long time it has reused the Gradle core infrastructure and plugins across builds.
 This allows these classes to be loaded _once_ during a “session”, instead of for each build (as is the case when not using the Daemon).
 The level of class reuse has been greatly improved in Gradle 2.4 to also cover build scripts and third-party plugins.
-
 This improves performance in several ways.
 Class loading is expensive and by reusing classes this just happens less.
 Classes also reside in memory and with the Daemon being a persistent process reuse also reduces memory usage.
@@ -29,6 +37,15 @@ The [Tooling API](userguide/embedding.html), which allows Gradle to be embedded 
 The Gradle integration in IDEs such as Android Studio, Eclipse, IntelliJ IDEA and NetBeans also benefits from these performance improvements.
 
 If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge you to try it out with Gradle 2.4.
+
+### Reduced memory consumption when compiling Java source code with Java 7 and 8
+
+By working around JDK bug [JDK-7177211](https://bugs.openjdk.java.net/browse/JDK-7177211), Java compilation requires less memory in Gradle 2.4.
+This JDK bug causes what was intended to be a performance improvement to not improve compilation performance and use more memory.
+The workaround is to implicitly apply the internal compiler flag `-XDuseUnsharedTable=true` to all compilation operations.
+
+Very large Java projects (building with Java 7 or 8) may notice dramatically improved build times due to the decreased memory throughput which in turn
+requires less aggressive garbage collection in the build process.
 
 ### Support for AWS S3 backed repositories
 
@@ -54,7 +71,7 @@ Gradle now supports S3 backed repositories. Here's an example on how to declare 
 
 S3 backed repositories can be used with both the `ivy-publish` and `maven-publish` plugins, as well as an Ivy repository associated with an `Upload` task.
 
-A big thank you goes to Adrian Kelly for implementing this feature.
+This improvement was contributed by [Adrian Kelly](https://github.com/adrianbk).
 
 ### Can use `maven-publish` for publishing via SFTP to Maven repositories
 
@@ -82,66 +99,6 @@ There is a new API `GradleEnvironment#getGradleUserHome` that returns the Gradle
 
 You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
 test progress events are of a sub-type of `TestProgressEvent`.
-
-### Dependency substitution accepts projects
-
-You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
-allows access to the `ComponentSelector` as well:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
-                useTarget project(":my-module")
-            }
-        }
-    }
-### Dependency substitution rules
-
-In previous Gradle versions you could replace an external dependency with another like this:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
-                useVersion '1.3'
-            }
-        }
-    }
-
-This behaviour has been enhanced and extended, with the introduction of 'Dependency Substitution Rules'.
-These rules allow an external dependency to be replaced with a project dependency, and vice-versa. 
-
-You replace a project dependency with an external dependency like this:
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withProject(project(":api")) { 
-                useTarget group: "org.utils", name: "api", version: "1.3" 
-            }
-        }
-    }
-
-And replace an external dependency with an project dependency like this:
-
-
-    resolutionStrategy {
-        dependencySubstitution {
-            withModule("com.example:my-module") {
-                useTarget project(":project1")  
-            }
-        }
-    }
-
-There are other options available to match module and project dependencies:
-
-    all { DependencySubstitution<ComponentSelector> details -> /* ... */ }
-    eachModule() { ModuleDependencySubstitution details -> /* ... */ }
-    withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
-    eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
-
-It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
-as `eachDependency`).
-Note that the `ModuleDependencySubstitution` has a convenience `useVersion()` method. For the other substitutions you should use `useTarget()`.
 
 ### Unique Maven snapshots
 
@@ -199,14 +156,14 @@ Unix and Windows start scripts. While these properties allow for a certain level
 used for generating the scripts.
 
 In this release, the task type `org.gradle.api.tasks.application.CreateStartScripts` the API has been enhanced. The class now exposes two properties of type
-`org.gradle.api.scripting.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
+`org.gradle.jvm.application.scripts.ScriptGenerator` responsible for the script generation: one for the Unix script generation named `unixStartScriptGenerator` and one for
 the Windows script generation named `windowsStartScriptGenerator`. By default Gradle assigns instances of `ScriptGenerator` implementing the logic known from previous releases.
 
 #### Providing a custom script generation implementation
 
 Provide a custom implementation for generating start scripts is as simple as writing an implementation of `ScriptGenerator`. `ScriptGenerator`
 requires to implement a single method `void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination)`. The parameter of type
-`org.gradle.api.scripting.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
+`org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails` represents the data e.g. classpath, application name. The parameter of type `java.io.Writer` writes to the target
 start script file. The following example demonstrates the use case:
 
     startScripts {
@@ -214,7 +171,7 @@ start script file. The following example demonstrates the use case:
         windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
     }
 
-    class CustomUnixStartScriptGenerator implements ScriptGenerator<JavaAppStartScriptGenerationDetails> {
+    class CustomUnixStartScriptGenerator implements ScriptGenerator {
         void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
             try {
                 destination << "\${details.applicationName} start up script for UN*X"
@@ -224,7 +181,7 @@ start script file. The following example demonstrates the use case:
         }
     }
 
-    class CustomWindowsStartScriptGenerator implements ScriptGenerator<JavaAppStartScriptGenerationDetails> {
+    class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
             try {
                 destination << "\${details.applicationName} start up script for Windows"
@@ -237,25 +194,13 @@ start script file. The following example demonstrates the use case:
 #### Changing the default script template
 
 Providing a custom start script generator is powerful but sometimes changing the underlying template used for the script generation is good enough. For that purpose the default implementations of
- `ScriptGenerator` also implement the interface `org.gradle.api.scripting.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
-`void setTemplate(Reader reader)`. The following code snippet shows how to assign custom templates:
-
+ `ScriptGenerator` also implement the interface `org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator`. `TemplateBasedScriptGenerator` exposes a method for setting the template:
+`void setTemplate(TextResource template)`. The following code snippet shows how to assign custom templates:
 
     startScripts {
-        unixStartScriptGenerator.template = new FileReader('customUnixStartScript.txt')
-        windowsStartScriptGenerator.template = new FileReader('customWindowsStartScript.txt')
+        unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
+        windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
     }
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
@@ -278,10 +223,6 @@ As we add more parallelized work to Gradle, we need a more generic way of contro
 If you were using `--parallel-threads` to enable parallel-project execution, please consider using just `--parallel`.
 
 If you were using `StartParameter.getParallelThreadCount()` to check if parallel-project execution was enabled, please consider using `StartParameter.isParallelProjectExecutionEnabled()`.
-
-### Changing a configuration after it has been resolved
-
-TODO
 
 ### Lifecycle plugin changes
 
@@ -401,7 +342,8 @@ It is expected that no Gradle builds will be negatively affected by these change
 The default version of the corresponding tool of the following code quality plugins have been updated:
 
 * The `checkstyle` plugin now uses version 5.9 as default (was 5.7).
-    (Note: The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant)
+   - The latest checkstyle version currently available is 6.4.1 but be aware that this version is not java 1.6 compliant
+   - Be aware that there is was a breaking change of the `LeftCurly` rule introduced in checkstyle 5.8 (see https://github.com/checkstyle/checkstyle/issues/247)
 * The `pmd` plugin now uses version 5.2.3 as default (was 5.1.1).
 * The `findbugs` plugin now uses version 3.0.1 as default (was 3.0.0).
 * The `codenarc` plugin now uses version 0.23 as default (was 0.21).

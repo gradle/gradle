@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
@@ -27,18 +26,13 @@ import org.gradle.tooling.internal.impl.LaunchableGradleTask;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
 
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
-    private final ProjectTaskLister taskLister;
-
-    public GradleProjectBuilder(ProjectTaskLister taskLister) {
-        this.taskLister = taskLister;
-    }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
@@ -77,8 +71,10 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
-        List<LaunchableGradleTask> out = new LinkedList<LaunchableGradleTask>();
-        for (String taskName : tasks.getNames()) {
+        tasks.discoverTasks();
+        SortedSet<String> taskNames = tasks.getNames();
+        List<LaunchableGradleTask> out = new ArrayList<LaunchableGradleTask>(taskNames.size());
+        for (String taskName : taskNames) {
             Task t = tasks.findByName(taskName);
             if (t != null) {
                 out.add(new LaunchableGradleProjectTask()

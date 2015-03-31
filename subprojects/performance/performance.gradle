@@ -111,6 +111,17 @@ task lotDependencies(type: ProjectGeneratorTask, description: 'Generates a small
     }
 }
 
+task lotProjectDependencies(type: ProjectGeneratorTask, description: 'Generates a large multi-project build with a large Dependency Graph and plenty of project dependencies') {
+    projects = 100
+    sourceFiles = 1
+    templateArgs = [resolveDependenciesTask: true, projectDependencies: true]
+
+    dependencyGraph {
+        size = 400
+        depth = 6
+    }
+}
+
 task manyProjects(type: ProjectGeneratorTask) {
     projects = 100
     sourceFiles = 0
@@ -342,7 +353,7 @@ task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUn
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative,
                                 smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-                                bigOldJavaMoreSource])
+                                bigOldJavaMoreSource, lotProjectDependencies])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")

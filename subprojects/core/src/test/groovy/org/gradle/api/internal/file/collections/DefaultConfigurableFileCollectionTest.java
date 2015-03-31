@@ -22,11 +22,13 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +53,11 @@ public class DefaultConfigurableFileCollectionTest {
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     private final DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock,
             taskResolverStub);
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void resolvesSpecifiedFilesUseFileResolver() {

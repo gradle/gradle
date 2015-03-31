@@ -17,8 +17,10 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,6 +33,11 @@ import static org.junit.Assert.fail;
 public class UnionFileTreeTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final UnionFileTree set = new UnionFileTree("<display name>");
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void canAddFileTree() {

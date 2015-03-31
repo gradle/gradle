@@ -17,11 +17,9 @@
 package org.gradle.performance
 
 import org.gradle.performance.measure.DataAmount
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(Experiment)
 class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def run() {

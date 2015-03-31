@@ -38,7 +38,6 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -49,6 +48,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.instanceOf;
@@ -58,7 +58,7 @@ import static org.junit.Assert.assertThat;
 public class GlobalScopeServicesTest {
 
     private ServiceRegistry registry(boolean longLiving) {
-        return new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(longLiving));
+        return new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(longLiving));
     }
 
     private ServiceRegistry longLivingProcessRegistry() {

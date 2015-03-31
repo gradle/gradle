@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.jvm.application.scripts;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.resources.TextResource;
 
 import java.io.Reader;
-import java.util.Map;
 
 /**
  * Interface for generating scripts with the provided details based on a provided template.
- *
- * @param <T> Script generation details
  */
-public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails> extends ScriptGenerator<T> {
+@Incubating
+public interface TemplateBasedScriptGenerator extends ScriptGenerator {
     /**
-     * Sets the template reader used for generating script.
+     * Sets the template text resource used for generating script.
      *
-     * @param reader Template reader
+     * @param template Template text resource
      */
-    void setTemplate(Reader reader);
+    void setTemplate(TextResource template);
 
     /**
      * Gets the template reader used for generating script.
@@ -38,12 +39,4 @@ public interface TemplateBasedScriptGenerator<T extends ScriptGenerationDetails>
      * @return Template reader
      */
     Reader getTemplate();
-
-    /**
-     * Creates a binding used for the template expression replacement.
-     *
-     * @param details Script generation details
-     * @return Binding key and value mapping
-     */
-    Map<String, String> createBinding(T details);
 }

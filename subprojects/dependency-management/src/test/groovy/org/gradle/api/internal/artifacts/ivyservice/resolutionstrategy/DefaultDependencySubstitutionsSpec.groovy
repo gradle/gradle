@@ -79,12 +79,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.allWithDependencyResolveDetails(action)
 
         def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
+        def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
         def moduleDetails = Mock(ModuleDependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(moduleDetails)
 
         then:
+        _ * moduleDetails.target >> moduleTarget
         _ * moduleDetails.oldRequested >> moduleOldRequested
         1 * action.execute({ DependencyResolveDetailsInternal details ->
             details.requested == moduleOldRequested
@@ -92,12 +94,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
+        def projectTarget = DefaultProjectComponentSelector.newSelector(":api")
         def projectDetails = Mock(ProjectDependencySubstitutionInternal)
 
         when:
         substitutions.dependencySubstitutionRule.execute(projectDetails)
 
         then:
+        _ * projectDetails.target >> projectTarget
         _ * projectDetails.oldRequested >> projectOldRequested
         1 * action.execute({ DependencyResolveDetailsInternal details ->
             details.requested == projectOldRequested

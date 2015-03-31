@@ -486,14 +486,14 @@ public abstract class CollectionUtils {
             throw new NullPointerException("The 'objects' cannot be null");
         }
 
-        boolean first = true;
         StringBuilder string = new StringBuilder();
-        for (Object object : objects) {
-            if (!first) {
+        Iterator<?> iterator = objects.iterator();
+        if (iterator.hasNext()) {
+            string.append(iterator.next().toString());
+            while (iterator.hasNext()) {
                 string.append(separator);
+                string.append(iterator.next().toString());
             }
-            string.append(object.toString());
-            first = false;
         }
         return string.toString();
     }

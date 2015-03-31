@@ -16,9 +16,13 @@
 
 package org.gradle.process.internal
 
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class ExecHandleBuilderTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
     private final ExecHandleBuilder builder = new ExecHandleBuilder()
 
     def handlesCommandLineWithNoArgs() {

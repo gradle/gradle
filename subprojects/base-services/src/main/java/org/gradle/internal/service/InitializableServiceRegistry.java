@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.internal.service;
 
 /**
- * Marker interface for providing data for logic that generates OS-specific scripts.
+ * A registry of services that can be initialized.
  */
-public interface ScriptGenerationDetails {
+public interface InitializableServiceRegistry extends ServiceRegistry {
+    /**
+     * Returns an initialized instance (and only an initialized instance) of the service registry
+     *
+     * @return the service registry
+     */
+    public ServiceRegistry getInitialized();
 }

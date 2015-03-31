@@ -17,11 +17,15 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileCollection
 
 class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specification {
+    static {
+        NativeServicesTestFixture.initialize()
+    }
     final BuildDependenciesOnlyFileCollectionResolveContext context = new BuildDependenciesOnlyFileCollectionResolveContext()
 
     def resolveAsBuildableReturnsEmptyListWhenContextIsEmpty() {

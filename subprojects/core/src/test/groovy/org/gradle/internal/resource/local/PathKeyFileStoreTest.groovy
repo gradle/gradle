@@ -20,11 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
 
 class PathKeyFileStoreTest extends Specification {
-
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
     TestFile fsBase
     PathKeyFileStore store
@@ -32,6 +32,7 @@ class PathKeyFileStoreTest extends Specification {
     def pathCounter = 0
 
     def setup() {
+        NativeServicesTestFixture.initialize()
         fsBase = dir.file("fs")
         store = new PathKeyFileStore(fsBase)
     }

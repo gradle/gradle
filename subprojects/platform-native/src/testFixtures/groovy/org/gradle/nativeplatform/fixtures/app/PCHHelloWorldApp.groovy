@@ -24,4 +24,8 @@ abstract class PCHHelloWorldApp extends IncrementalHelloWorldApp {
     abstract SourceFile getSystemHeader()
     abstract SourceFile getSystemHeader(String path)
     abstract String getIOHeader()
+
+    public SourceFile getBrokenFile() {
+        return null
+    }
 }

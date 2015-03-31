@@ -19,7 +19,8 @@ package org.gradle.api.internal.plugins;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.TextUtil;
 
 import java.text.CharacterIterator;
@@ -51,7 +52,7 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
 
     private String createJoinedClasspath(Iterable<String> classpath) {
         Joiner semicolonJoiner = Joiner.on(";");
-        return semicolonJoiner.join(Iterables.transform(classpath, new Function<String, String>() {
+        return semicolonJoiner.join(Iterables.transform(CollectionUtils.toStringList(classpath), new Function<String, String>() {
             public String apply(String input) {
                 StringBuilder classpath = new StringBuilder();
                 classpath.append("%APP_HOME%\\");
@@ -62,7 +63,11 @@ public class WindowsStartScriptGenerator extends AbstractTemplateBasedStartScrip
     }
 
     private String createJoinedDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
-        Iterable<String> quotedDefaultJvmOpts = Iterables.transform(defaultJvmOpts, new Function<String, String>() {
+        if(defaultJvmOpts == null) {
+            return "";
+        }
+
+        Iterable<String> quotedDefaultJvmOpts = Iterables.transform(CollectionUtils.toStringList(defaultJvmOpts), new Function<String, String>() {
             public String apply(String jvmOpt) {
                 StringBuilder quotedDefaultJvmOpt = new StringBuilder();
                 quotedDefaultJvmOpt.append("\"");

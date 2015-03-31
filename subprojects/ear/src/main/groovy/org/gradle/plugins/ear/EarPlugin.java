@@ -158,10 +158,14 @@ public class EarPlugin implements Plugin<Project> {
         project.getTasks().withType(Ear.class, new Action<Ear>() {
             public void execute(Ear task) {
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
-                    public String call() throws Exception { return earConvention.getLibDirName(); }
+                    public String call() throws Exception {
+                        return earConvention.getLibDirName();
+                    }
                 });
                 task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
-                    public DeploymentDescriptor call() throws Exception { return earConvention.getDeploymentDescriptor(); }
+                    public DeploymentDescriptor call() throws Exception {
+                        return earConvention.getDeploymentDescriptor();
+                    }
                 });
             }
         });

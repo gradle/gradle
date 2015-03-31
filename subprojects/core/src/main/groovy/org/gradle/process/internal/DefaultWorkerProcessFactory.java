@@ -33,6 +33,7 @@ import org.gradle.process.internal.child.WorkerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,15 +45,17 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
+    private final File gradleUserHomeDir;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator) {
+                                       IdGenerator<?> idGenerator, File gradleUserHomeDir) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
         this.idGenerator = idGenerator;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public WorkerProcessBuilder create() {
@@ -63,6 +66,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         public DefaultWorkerProcessBuilder() {
             super(resolver);
             setLogLevel(workerLogLevel);
+            setGradleUserHomeDir(gradleUserHomeDir);
         }
 
         @Override

@@ -14,7 +14,22 @@
  * limitations under the License.
  */
 
+package org.gradle.jvm.application.scripts;
+
+import org.gradle.api.Incubating;
+
+import java.io.Writer;
+
 /**
- * Classes that enable script generation.
+ * Interface for generating scripts with the provided details.
  */
-package org.gradle.api.scripting;
+@Incubating
+public interface ScriptGenerator {
+    /**
+     * Generates a script.
+     *
+     * @param details Script generation details
+     * @param destination Target script destination
+     */
+    void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination);
+}

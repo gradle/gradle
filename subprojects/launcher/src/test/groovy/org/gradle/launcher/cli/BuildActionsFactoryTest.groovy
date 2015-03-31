@@ -34,6 +34,7 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -53,6 +54,7 @@ class BuildActionsFactoryTest extends Specification {
             propertiesToDaemonParametersConverter)
 
     def setup() {
+        NativeServicesTestFixture.initialize()
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []

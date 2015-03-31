@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.jvm.application.scripts;
 
-import java.io.Writer;
+import org.gradle.api.Incubating;
 
 /**
- * Interface for generating scripts with the provided details.
- *
- * @param <T> Script generation details
+ * Details for generating Java-based application start scripts.
  */
-public interface ScriptGenerator<T extends ScriptGenerationDetails> {
-    /**
-     * Generates a script.
-     *
-     * @param details Script generation details
-     * @param destination Target script destination
-     */
-    void generateScript(T details, Writer destination);
+@Incubating
+public interface JavaAppStartScriptGenerationDetails {
+    String getApplicationName();
+    String getOptsEnvironmentVar();
+    String getExitEnvironmentVar();
+    String getMainClassName();
+    Iterable<String> getDefaultJvmOpts();
+    Iterable<String> getClasspath();
+    String getScriptRelPath();
+    String getAppNameSystemProperty();
 }
+

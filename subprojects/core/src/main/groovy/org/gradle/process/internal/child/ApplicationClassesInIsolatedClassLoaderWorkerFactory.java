@@ -99,7 +99,7 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
 
     private ImplementationClassLoaderWorker create() {
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
-                displayName, serverAddress);
+                displayName, serverAddress, processBuilder.getGradleUserHomeDir());
         return new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
                 processBuilder.getSharedPackages(), implementationClassPath, GUtil.serialize(injectedWorker));
     }

@@ -20,17 +20,17 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 import java.util.*;
 
 public class InstalledJvmLocator {
     private final OperatingSystem operatingSystem = OperatingSystem.current();
-    private final WindowsRegistry windowsRegistry = NativeServices.getInstance().get(WindowsRegistry.class);
-    private final SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class);
-    private final FileCanonicalizer fileCanonicalizer = NativeServices.getInstance().get(FileCanonicalizer.class);
+    private final WindowsRegistry windowsRegistry = NativeServicesTestFixture.getInstance().get(WindowsRegistry.class);
+    private final SystemInfo systemInfo = NativeServicesTestFixture.getInstance().get(SystemInfo.class);
+    private final FileCanonicalizer fileCanonicalizer = NativeServicesTestFixture.getInstance().get(FileCanonicalizer.class);
     private final Jvm currentJvm = Jvm.current();
 
     /**

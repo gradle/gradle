@@ -14,116 +14,93 @@
  * limitations under the License.
  */
 
-package org.gradle.api.scripting;
+package org.gradle.api.internal.plugins;
 
-import java.util.ArrayList;
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 
-/**
- * Details for generating Java-based application start scripts.
- */
-public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDetails {
+public final class DefaultJavaAppStartScriptGenerationDetails implements JavaAppStartScriptGenerationDetails {
     /**
      * The display name of the application.
      */
-    private String applicationName;
+    private final String applicationName;
 
     /**
      * The environment variable to use to provide additional options to the JVM.
      */
-    private String optsEnvironmentVar;
+    private final String optsEnvironmentVar;
 
     /**
      * The environment variable to use to control exit value (Windows only).
      */
-    private String exitEnvironmentVar;
+    private final String exitEnvironmentVar;
 
     /**
      * The main classname used to start the Java application.
      */
-    private String mainClassName;
+    private final String mainClassName;
 
     /**
      * The default JVM options.
      */
-    private Iterable<String> defaultJvmOpts = new ArrayList<String>();
+    private final Iterable<String> defaultJvmOpts;
 
     /**
      * The classpath, relative to the application home directory.
      */
-    private Iterable<String> classpath;
+    private final Iterable<String> classpath;
 
     /**
      * The path of the script, relative to the application home directory.
      */
-    private String scriptRelPath;
+    private final String scriptRelPath;
 
     /**
      * This system property to use to pass the script name to the application. May be null.
      */
-    private String appNameSystemProperty;
+    private final String appNameSystemProperty;
+
+    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName, Iterable<String> defaultJvmOpts,
+                                                      Iterable<String> classpath, String scriptRelPath, String appNameSystemProperty) {
+        this.applicationName = applicationName;
+        this.optsEnvironmentVar = optsEnvironmentVar;
+        this.exitEnvironmentVar = exitEnvironmentVar;
+        this.mainClassName = mainClassName;
+        this.defaultJvmOpts = defaultJvmOpts;
+        this.classpath = classpath;
+        this.scriptRelPath = scriptRelPath;
+        this.appNameSystemProperty = appNameSystemProperty;
+    }
 
     public String getApplicationName() {
         return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
     }
 
     public String getOptsEnvironmentVar() {
         return optsEnvironmentVar;
     }
 
-    public void setOptsEnvironmentVar(String optsEnvironmentVar) {
-        this.optsEnvironmentVar = optsEnvironmentVar;
-    }
-
     public String getExitEnvironmentVar() {
         return exitEnvironmentVar;
-    }
-
-    public void setExitEnvironmentVar(String exitEnvironmentVar) {
-        this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
     public String getMainClassName() {
         return mainClassName;
     }
 
-    public void setMainClassName(String mainClassName) {
-        this.mainClassName = mainClassName;
-    }
-
     public Iterable<String> getDefaultJvmOpts() {
         return defaultJvmOpts;
-    }
-
-    public void setDefaultJvmOpts(Iterable<String> defaultJvmOpts) {
-        this.defaultJvmOpts = defaultJvmOpts;
     }
 
     public Iterable<String> getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(Iterable<String> classpath) {
-        this.classpath = classpath;
-    }
-
     public String getScriptRelPath() {
         return scriptRelPath;
     }
 
-    public void setScriptRelPath(String scriptRelPath) {
-        this.scriptRelPath = scriptRelPath;
-    }
-
     public String getAppNameSystemProperty() {
         return appNameSystemProperty;
-    }
-
-    public void setAppNameSystemProperty(String appNameSystemProperty) {
-        this.appNameSystemProperty = appNameSystemProperty;
     }
 
     @Override
@@ -135,7 +112,7 @@ public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDeta
             return false;
         }
 
-        JavaAppStartScriptGenerationDetails that = (JavaAppStartScriptGenerationDetails) o;
+        DefaultJavaAppStartScriptGenerationDetails that = (DefaultJavaAppStartScriptGenerationDetails) o;
 
         if (appNameSystemProperty != null ? !appNameSystemProperty.equals(that.appNameSystemProperty) : that.appNameSystemProperty != null) {
             return false;
@@ -178,4 +155,3 @@ public class JavaAppStartScriptGenerationDetails implements ScriptGenerationDeta
         return result;
     }
 }
-

@@ -26,11 +26,13 @@ import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetect
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
+import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.InitializableServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +44,11 @@ import java.lang.reflect.Proxy;
 /**
  * Provides various native platform integration services.
  */
-public class NativeServices extends DefaultServiceRegistry {
+public class NativeServices extends DefaultServiceRegistry implements InitializableServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
+    private static boolean initialized;
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
@@ -68,14 +71,24 @@ public class NativeServices extends DefaultServiceRegistry {
             // JNA is still being used by jansi
             new JnaBootPathConfigurer().configure(nativeDir);
         }
+        initialized = true;
     }
 
     public static NativeServices getInstance() {
-        return INSTANCE;
+        return INSTANCE.getInitialized();
+    }
+
+    public NativeServices getInitialized() {
+        if (!initialized) {
+            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
+        }
+        return this;
     }
 
     private NativeServices() {
-        addProvider(new FileSystemServices());
+        // We initialize FileSystemServices with this instance because calling NativeServices.getInstance() from inside
+        // FileSystemServices would create a class cycle across packages.
+        addProvider(new FileSystemServices(this));
     }
 
     @Override
@@ -154,6 +167,17 @@ public class NativeServices extends DefaultServiceRegistry {
             }
         }
         return new DefaultProcessLauncher();
+    }
+
+    protected PosixFiles createPosixFiles() {
+        if (useNativePlatform) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform posix files is not available.  Continuing with fallback.");
+            }
+        }
+        return notAvailable(UnavailablePosixFiles.class);
     }
 
     private <T> T notAvailable(Class<T> type) {

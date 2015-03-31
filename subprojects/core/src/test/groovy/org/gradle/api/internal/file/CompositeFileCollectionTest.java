@@ -21,11 +21,13 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,6 +45,11 @@ public class CompositeFileCollectionTest {
     private final AbstractFileCollection source1 = context.mock(AbstractFileCollection.class, "source1");
     private final AbstractFileCollection source2 = context.mock(AbstractFileCollection.class, "source2");
     private final TestCompositeFileCollection collection = new TestCompositeFileCollection(source1, source2);
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void containsUnionOfAllSourceCollections() {
