@@ -39,8 +39,8 @@ public class DefaultTaskInputs implements TaskInputs {
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
         this.taskMutator = taskMutator;
-        inputFiles = new DefaultConfigurableFileCollection(String.format("%s input files", task), resolver, null);
-        sourceFiles = new DefaultConfigurableFileCollection(String.format("%s source files", task), resolver, null);
+        inputFiles = new DefaultConfigurableFileCollection(task + " input files", resolver, null);
+        sourceFiles = new DefaultConfigurableFileCollection(task + " source files", resolver, null);
     }
 
     public boolean getHasInputs() {
