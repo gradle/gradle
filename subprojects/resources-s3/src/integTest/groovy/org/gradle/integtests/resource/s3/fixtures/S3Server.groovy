@@ -47,14 +47,16 @@ class S3Server extends HttpServer implements RepositoryServer {
     public static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
     public static final String SERVER_AMAZON_S3 = 'AmazonS3'
 
-    final URI endpoint
-
     TestDirectoryProvider testDirectoryProvider
 
     S3Server(TestDirectoryProvider testDirectoryProvider) {
         super()
         this.testDirectoryProvider = testDirectoryProvider;
-        this.endpoint = new URI(getAddress())
+    }
+
+    @Override
+    protected void before() {
+        start()
     }
 
     void assertRequest(HttpStub httpStub, HttpServletRequest request) {

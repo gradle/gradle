@@ -61,7 +61,7 @@ class S3ClientIntegrationTest extends Specification {
         server.stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
         S3ConnectionProperties s3SystemProperties = Mock {
-            getEndpoint() >> Optional.of(server.endpoint)
+            getEndpoint() >> Optional.of(server.uri)
             getProxy() >> Optional.fromNullable(null)
             getMaxErrorRetryCount() >> Optional.absent()
         }

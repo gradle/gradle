@@ -62,7 +62,7 @@ task retrieve(type: Sync) {
 
         when:
         executer.withArguments(
-                "-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}",
+                "-Dorg.gradle.s3.endpoint=${server.uri}",
                 "-Dhttp.proxyHost=localhost",
                 "-Dhttp.proxyPort=${proxyServer.port}",
                 "-Dhttp.nonProxyHosts=foo",
@@ -101,7 +101,7 @@ task retrieve(type: Sync) {
 
         when:
         executer.withArguments(
-                "-Dorg.gradle.s3.endpoint=${server.endpoint.toString()}",
+                "-Dorg.gradle.s3.endpoint=${server.uri}",
                 "-Dhttp.proxyHost=localhost",
                 "-Dhttp.proxyPort=${proxyServer.port}",
                 "-Dhttp.nonProxyHosts=localhost",
