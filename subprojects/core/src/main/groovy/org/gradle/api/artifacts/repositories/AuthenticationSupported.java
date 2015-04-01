@@ -25,28 +25,31 @@ import org.gradle.api.credentials.Credentials;
 public interface AuthenticationSupported {
 
     /**
-     * Returns the standard username and password credentials used to authenticate to this repository.
+     * Returns the username and password credentials used to authenticate to this repository.
+     * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and returned.
      *
-     * @return The PasswordCredentials
+     * @return The credentials.
      *
-     * @throws ClassCastException when credentials are not of type PasswordCredentials.
+     * @throws ClassCastException when the credentials assigned to this repository are not of type {@link PasswordCredentials}.
      */
     PasswordCredentials getCredentials();
 
     /**
      * Returns the credentials of the specified type used to authenticate with this repository.
-     * Instantiates Credentials if not done already.
+     * If no credentials have been assigned to this repository, an empty set of credentials of the specified type is assigned to this repository and returned.
      *
      * @param clazz type of the credential
-     * @return The Credentials
+     * @return The credentials
      *
-     * @throws ClassCastException when already configured credentials are not matching passed credentials type.
+     * @throws ClassCastException when the credentials assigned to this repository are not assignable to the specified type.
      */
     @Incubating
     public <T extends Credentials> T getCredentials(Class<T> clazz);
 
     /**
-     * Configure the credentials for this repository using the supplied action.
+     * Configures the username and password credentials for this repository using the supplied action.
+     * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and passed
+     * to the action.
      *
      * <pre autoTested=''>
      *     repositories {
@@ -60,12 +63,13 @@ public interface AuthenticationSupported {
      *     }
      * </pre>
      *
-     * @throws ClassCastException when credentials are not of type PasswordCredentials.
+     * @throws ClassCastException when the credentials assigned to this repository are not of type {@link PasswordCredentials}.
      */
     void credentials(Action<? super PasswordCredentials> action);
 
     /**
-     * Configures strongly typed credentials for this repository using the supplied action.
+     * Configures the credentials for this repository using the supplied action.
+     * If no credentials have been assigned to this repository, an empty set of credentials of the specified type is assigned to this repository and returned.
      *
      * <pre autoTested=''>
      *     repositories {
@@ -79,8 +83,8 @@ public interface AuthenticationSupported {
      *     }
      * </pre>
      *
-     * @throws ClassCastException if passed credentials type is not assignable to an already set credentials type.
+     * @throws ClassCastException when the credentials assigned to this repository are not assignable to the specified type.
      */
     @Incubating
-    <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException;
+    <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action);
 }

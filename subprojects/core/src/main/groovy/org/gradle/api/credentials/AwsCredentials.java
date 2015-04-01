@@ -23,13 +23,24 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface AwsCredentials extends Credentials {
+    /**
+     * Returns the access key to use to authenticate with AWS.
+     */
+    String getAccessKey();
 
-    public String getAccessKey();
+    /**
+     * Sets the access key to use to authenticate with AWS.
+     */
+    void setAccessKey(String accessKey);
 
-    public void setAccessKey(String accessKey);
+    /**
+     * Returns the secret key to use to authenticate with AWS.
+     */
+    String getSecretKey();
 
-    public String getSecretKey();
-
-    public void setSecretKey(String secretKey);
+    /**
+     * Sets the secret key to use to authenticate with AWS.
+     */
+    void setSecretKey(String secretKey);
 
 }
