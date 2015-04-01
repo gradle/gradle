@@ -153,8 +153,8 @@ The [application plugin](userguide/application_plugin.html) can be used to creat
 While certain values in the generated scripts (e.g. main class name, classpath) were customizable, the script content was generally hardcoded and cumbersome to change.
 With Gradle 2.4, it is now much easier to fully customise the start scripts.
 
-The generation of the scripts is performed by a [`CreateStartScripts`](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) task.
-Please consult its [DSL reference](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) for customization examples.
+The generation of the scripts is performed by a [`CreateStartScripts`](dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html) task.
+Please consult its [DSL reference](dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html) for customization examples.
 
 ## Fixed issues
 

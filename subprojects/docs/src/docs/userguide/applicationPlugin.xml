@@ -119,7 +119,7 @@
             </para>
             <para>
                 The start scripts are completely customizable.
-                Please refer to the documentation of <apilink class="org.gradle.api.tasks.application.CreateStartScripts"/> for more details and customization examples.
+                Please refer to the documentation of <apilink class="org.gradle.jvm.application.tasks.CreateStartScripts"/> for more details and customization examples.
             </para>
         </section>
     </section>

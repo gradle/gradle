@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.application;
+package org.gradle.jvm.application.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
