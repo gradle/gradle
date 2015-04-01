@@ -575,7 +575,7 @@ to supply the modified application ClassLoader to the Play web server.
     - When the deployment is reloaded, the app is rebuilt and the ClassLoader replaced.
     - First subsequent response to `BuildLink.reload` should provide the updated ClassLoader. All other responses are `false`.
 
-### Story: Optimise incremental build when everything is up-to-date
+### Story: Play application reload is skipped when all inputs are up-to-date
 
 This story improves the reload behaviour of a running Play application, by avoiding any sort of rebuild or reload when none of
 the input files have changed for the application. Gradle will track all of the inputs that are used to build the Application,
@@ -645,6 +645,36 @@ Reuse the compiler daemon across builds to keep the Scala compiler warmed up. Th
 - Maintain a registry of compiler daemons in ~/.gradle
 - Daemons expire some time after build, with much shorter expiry than the build daemon.
 - Reuse infrastructure from build daemon.
+
+## Feature: Gradle watch mode
+
+This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. 
+For example, a developer may run `gradle --watch <tasks>`.
+
+- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
+- Monitor files that are inputs to the model for changes too.
+- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
+- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+
+So:
+
+- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+  restart the application.
+- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+  Gradle would rerun the tests, rebuild and restart the Play application.
+- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+
+Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
+For example, running `gradle --watch test run` would restart the application if a test source file changes.
+
+### Implementation
+
+- Uses Gradle daemon to run build.
+- Collect up all input files as build runs.
+- Monitor changes to these input files. On change:
+    - If previous build started any service, stop that service.
+    - Trigger build.
+- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
 # Later milestones
 
