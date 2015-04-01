@@ -16,50 +16,26 @@
 package org.gradle.api.internal.plugins;
 
 import org.apache.tools.ant.taskdefs.Chmod;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Action;
+import org.gradle.internal.IoActions;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.AntUtil;
+import org.gradle.util.CollectionUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
+import java.util.Collections;
 
 public class StartScriptGenerator {
-    /**
-     * The display name of the application
-     */
+
     private String applicationName;
-
-    /**
-     * The environment variable to use to provide additional options to the JVM
-     */
     private String optsEnvironmentVar;
-
-    /**
-     * The environment variable to use to control exit value (windows only)
-     */
     private String exitEnvironmentVar;
-
     private String mainClassName;
-
-    private Iterable<String> defaultJvmOpts = new ArrayList<String>();
-
-    /**
-     * The classpath, relative to the application home directory.
-     */
+    private Iterable<String> defaultJvmOpts = Collections.emptyList();
     private Iterable<String> classpath;
-
-    /**
-     * The path of the script, relative to the application home directory.
-     */
     private String scriptRelPath;
-
-    /**
-     * This system property to use to pass the script name to the application. May be null.
-     */
     private String appNameSystemProperty;
 
     private final ScriptGenerator unixStartScriptGenerator;
@@ -106,32 +82,32 @@ public class StartScriptGenerator {
         this(unixStartScriptGenerator, windowsStartScriptGenerator, new AntUnixFileOperation());
     }
 
-    private StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
+    StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
         this.unixStartScriptGenerator = unixStartScriptGenerator;
         this.windowsStartScriptGenerator = windowsStartScriptGenerator;
         this.unixFileOperation = unixFileOperation;
     }
 
-
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, defaultJvmOpts, classpath, scriptRelPath, appNameSystemProperty);
+        return new DefaultJavaAppStartScriptGenerationDetails(
+                applicationName,
+                optsEnvironmentVar,
+                exitEnvironmentVar,
+                mainClassName,
+                CollectionUtils.toStringList(defaultJvmOpts),
+                CollectionUtils.toStringList(classpath),
+                scriptRelPath,
+                appNameSystemProperty
+        );
     }
 
-    public void generateUnixScript(File unixScript) {
-        unixStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), createWriter(unixScript));
+    public void generateUnixScript(final File unixScript) {
+        IoActions.writeTextFile(unixScript, new Generate(createStartScriptGenerationDetails(), unixStartScriptGenerator));
         unixFileOperation.createExecutablePermission(unixScript);
     }
 
     public void generateWindowsScript(File windowsScript) {
-        windowsStartScriptGenerator.generateScript(createStartScriptGenerationDetails(), createWriter(windowsScript));
-    }
-
-    private Writer createWriter(File script) {
-        try {
-            return new FileWriter(script);
-        } catch(IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        IoActions.writeTextFile(windowsScript, new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
     }
 
     static interface UnixFileOperation {
@@ -145,6 +121,21 @@ public class StartScriptGenerator {
             chmod.setPerm("ugo+rx");
             chmod.setProject(AntUtil.createProject());
             chmod.execute();
+        }
+    }
+
+    private class Generate implements Action<BufferedWriter> {
+        private final JavaAppStartScriptGenerationDetails startScriptGenerationDetails;
+        private final ScriptGenerator unixStartScriptGenerator;
+
+        public Generate(JavaAppStartScriptGenerationDetails startScriptGenerationDetails, ScriptGenerator unixStartScriptGenerator) {
+            this.startScriptGenerationDetails = startScriptGenerationDetails;
+            this.unixStartScriptGenerator = unixStartScriptGenerator;
+        }
+
+        @Override
+        public void execute(BufferedWriter writer) {
+            unixStartScriptGenerator.generateScript(startScriptGenerationDetails, writer);
         }
     }
 }

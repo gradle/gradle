@@ -22,13 +22,8 @@ import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class UnixStartScriptGeneratorTest extends Specification {
-    UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
 
-    def "uses expected template and line separator"() {
-        expect:
-        generator.defaultTemplateFilename == 'unixStartScript.txt'
-        generator.lineSeparator == TextUtil.unixLineSeparator
-    }
+    UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
 
     def "classpath for unix script uses slashes as path separator"() {
         given:

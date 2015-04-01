@@ -18,18 +18,46 @@ package org.gradle.jvm.application.scripts;
 
 import org.gradle.api.Incubating;
 
+import java.util.List;
+
 /**
  * Details for generating Java-based application start scripts.
  */
 @Incubating
 public interface JavaAppStartScriptGenerationDetails {
+
+    /**
+     * The display name of the application
+     */
     String getApplicationName();
+
+    /**
+     * The environment variable to use to provide additional options to the JVM
+     */
     String getOptsEnvironmentVar();
+
+    /**
+     * The environment variable to use to control exit value (windows only)
+     */
     String getExitEnvironmentVar();
+
     String getMainClassName();
-    Iterable<String> getDefaultJvmOpts();
-    Iterable<String> getClasspath();
+
+    List<String> getDefaultJvmOpts();
+
+    /**
+     * The classpath, relative to the application home directory.
+     */
+    List<String> getClasspath();
+
+    /**
+     * The path of the script, relative to the application home directory.
+     */
     String getScriptRelPath();
+
+    /**
+     * This system property to use to pass the script name to the application. May be null.
+     */
     String getAppNameSystemProperty();
 }
 

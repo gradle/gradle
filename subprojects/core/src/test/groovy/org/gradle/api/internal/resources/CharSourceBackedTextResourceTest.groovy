@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.internal.resources
 
-import java.io.Reader;
-import java.util.Map;
+import com.google.common.io.CharSource
+import spock.lang.Specification
 
-public interface TemplateEngine {
-    String generate(Reader template, Map<String, String> binding);
+class CharSourceBackedTextResourceTest extends Specification {
+
+    def "can use char source text resource"() {
+        when:
+        def r = new CharSourceBackedTextResource(CharSource.wrap("foo"))
+
+        then:
+        r.asString() == "foo"
+        r.asReader().text == "foo"
+    }
 }

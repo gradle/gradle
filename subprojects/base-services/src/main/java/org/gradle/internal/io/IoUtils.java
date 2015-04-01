@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.internal.io;
 
-import groovy.lang.Writable;
-import groovy.text.SimpleTemplateEngine;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.Transformer;
+import org.gradle.internal.concurrent.CompositeStoppable;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Map;
+import java.io.Closeable;
 
-public class GroovySimpleTemplateEngine implements TemplateEngine {
-    private SimpleTemplateEngine engine = new SimpleTemplateEngine();
+public abstract class IoUtils {
 
-    public String generate(Reader template, Map<String, String> binding) {
+    // TODO merge in IoActions
+
+    public static <T, C extends Closeable> T get(C resource, Transformer<T, ? super C> transformer) {
         try {
-            Writable output = engine.createTemplate(template).make(binding);
-            return output.toString();
-        } catch(IOException e) {
-            throw new UncheckedIOException(e);
+            return transformer.transform(resource);
+        } finally {
+            CompositeStoppable.stoppable(resource).stop();
         }
     }
 }
