@@ -87,7 +87,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
                 if (stream == null) {
                     throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
-                return new BufferedReader(new InputStreamReader(stream, CharsetUtil.UTF_8));
+                return new BufferedReader(new InputStreamReader(stream, CharsetUtil.UTF_8.name()));
             }
         });
     }
