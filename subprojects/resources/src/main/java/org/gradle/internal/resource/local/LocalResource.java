@@ -16,9 +16,15 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.ResourceException;
+
 import java.io.InputStream;
 
 public interface LocalResource {
-    InputStream open();
+    /**
+     * Unbuffered input stream to read contents of resource.
+     */
+    InputStream open() throws ResourceException;
+
     long getContentLength();
 }
