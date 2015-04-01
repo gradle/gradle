@@ -42,7 +42,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -56,7 +56,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -69,7 +69,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         keyStore.configureIncorrectServerCert(executer)
@@ -83,7 +83,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
 
     def "decent error message when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         executer.withStackTraceChecksDisabled() // Jetty logs stuff to console
@@ -114,7 +114,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         true
     }
 
-    def initBuild(HttpServer server) {
+    def initBuild() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
             apply plugin: 'java'
@@ -125,7 +125,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url 'https://localhost:${server.sslPort}/repo'
+                        url '${ivyRemoteRepo.uri}'
                     }
                 }
                 publications {

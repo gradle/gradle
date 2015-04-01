@@ -28,7 +28,7 @@ abstract class HttpResource {
     }
 
     URI getUri() {
-        return new URI("http", "localhost:${server.port}", path, null, null)
+        return new URI(server.uri.scheme, server.uri.authority, path, null, null)
     }
 
     void allowGetOrHead() {

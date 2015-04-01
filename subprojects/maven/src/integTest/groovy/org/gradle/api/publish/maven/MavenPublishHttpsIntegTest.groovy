@@ -35,14 +35,13 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         server.start()
 
         mavenRemoteRepo = new MavenHttpRepository(server, "/repo", mavenRepo)
-        module = mavenRemoteRepo.module('org.gradle', 'publish', '2').allowAll()
-
+        module = mavenRemoteRepo.module('org.gradle', 'publish', '2')
     }
 
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -56,7 +55,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
-        initBuild(server)
+        initBuild()
 
         when:
         expectPublication()
@@ -69,7 +68,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         keyStore.configureIncorrectServerCert(executer)
@@ -85,7 +84,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
 
     def "decent error message when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
-        initBuild(server)
+        initBuild()
 
         when:
         executer.withStackTraceChecksDisabled() // Jetty logs stuff to console
@@ -127,7 +126,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         true
     }
 
-    def initBuild(HttpServer server) {
+    def initBuild() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
             apply plugin: 'java'
@@ -138,7 +137,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url 'https://localhost:${server.sslPort}/repo'
+                        url '${mavenRemoteRepo.uri}'
                     }
                 }
                 publications {

@@ -37,7 +37,7 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
     }
 
     URI getUri() {
-        return new URI("http://localhost:${server.port}${contextPath}")
+        return new URI("${server.uri}${contextPath}")
     }
 
     String getIvyPattern() {
