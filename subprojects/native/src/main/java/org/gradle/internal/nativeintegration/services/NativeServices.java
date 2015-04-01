@@ -203,7 +203,7 @@ public class NativeServices extends DefaultServiceRegistry implements Initializa
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
         }
     }
 }
