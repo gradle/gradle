@@ -26,19 +26,17 @@ import org.gradle.initialization.ProjectAccessListener;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private ProjectInternal dependencyProject;
-    private final boolean buildProjectDependencies;
     private final ProjectAccessListener projectAccessListener;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
-        this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
+    public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener) {
+        this(dependencyProject, null, projectAccessListener);
     }
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, String configuration,
-                                    ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
+                                    ProjectAccessListener projectAccessListener) {
         super(configuration);
         this.dependencyProject = dependencyProject;
         this.projectAccessListener = projectAccessListener;
-        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public Project getDependencyProject() {
@@ -63,7 +61,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-                getConfiguration(), projectAccessListener, buildProjectDependencies);
+                getConfiguration(), projectAccessListener);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -114,15 +112,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getConfiguration().equals(that.getConfiguration())) {
             return false;
         }
-        if (this.buildProjectDependencies != that.buildProjectDependencies) {
-            return false;
-        }
         return true;
     }
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
+        return getDependencyProject().hashCode() ^ getConfiguration().hashCode();
     }
 
 

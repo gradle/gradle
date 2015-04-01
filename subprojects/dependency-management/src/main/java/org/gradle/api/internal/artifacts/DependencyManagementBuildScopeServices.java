@@ -76,11 +76,10 @@ class DependencyManagementBuildScopeServices {
 
     DependencyFactory createDependencyFactory(Instantiator instantiator,
                                               ProjectAccessListener projectAccessListener,
-                                              StartParameter startParameter,
                                               ClassPathRegistry classPathRegistry,
                                               FileLookup fileLookup) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-                projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
+                projectAccessListener, instantiator);
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
