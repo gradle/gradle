@@ -16,12 +16,10 @@
 
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.File;
-import java.io.IOException;
 
 public class NativeServicesTestFixture {
     static NativeServices nativeServices;
