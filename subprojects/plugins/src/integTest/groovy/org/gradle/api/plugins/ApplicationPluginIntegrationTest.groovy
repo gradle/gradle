@@ -133,7 +133,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         windowsStartScript.text == 'myApp start up script for Windows'
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATE)
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
