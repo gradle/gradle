@@ -16,16 +16,13 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultConnectionTest extends Specification {
     def connection = new DefaultConnection()
-
-    static {
-        NativeServicesTestFixture.initialize()
-    }
 
     def "adapts from consumer to provider parameters"() {
         def consumerParams = ConsumerOperationParameters.builder().setColorOutput(true).build()

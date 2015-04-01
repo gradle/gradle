@@ -19,11 +19,12 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.specs.Spec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
+@UsesNativeServices
 class SingleIncludePatternFileTreeSpec extends Specification {
     @Shared @ClassRule TestNameTestDirectoryProvider tempDir
 
@@ -32,7 +33,6 @@ class SingleIncludePatternFileTreeSpec extends Specification {
     def fileTree
 
     def setupSpec() {
-        NativeServicesTestFixture.initialize()
         tempDir.testDirectory.create {
             dir1 {
                 file("file1")

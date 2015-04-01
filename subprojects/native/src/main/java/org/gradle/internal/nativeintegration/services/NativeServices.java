@@ -80,7 +80,9 @@ public class NativeServices extends DefaultServiceRegistry implements Initializa
 
     public NativeServices getInitialized() {
         if (!initialized) {
-            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
+            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize()." +
+                    "\nIf this occurs while running gradle or running integration tests, it is indicative of a problem." +
+                    "\nIf this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.");
         }
         return this;
     }

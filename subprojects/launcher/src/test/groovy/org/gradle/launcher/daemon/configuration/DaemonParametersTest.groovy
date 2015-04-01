@@ -16,16 +16,13 @@
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import static java.lang.Boolean.parseBoolean
 
+@UsesNativeServices
 class DaemonParametersTest extends Specification {
-    static {
-        NativeServicesTestFixture.initialize()
-    }
-
     final DaemonParameters parameters = parameters()
 
     private DaemonParameters parameters() {

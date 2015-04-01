@@ -51,4 +51,13 @@ class FileUtilsTest extends Specification {
         def e = thrown(GradleException);
         e.message.contains("exceeds windows path limitation of 260 character.")
     }
+
+    def "can create a temp directory" () {
+        when:
+        def tempDir = FileUtils.createTempDir("tempTest")
+
+        then:
+        tempDir.exists()
+        tempDir.isDirectory()
+    }
 }

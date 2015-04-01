@@ -17,6 +17,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.File;
@@ -28,15 +29,8 @@ public class NativeServicesTestFixture {
 
     public static void initialize() {
         if (!initialized) {
-            try {
-                File nativeDir = File.createTempFile("native", "dir");
-                nativeDir.delete();
-                nativeDir.mkdirs();
-                nativeDir.deleteOnExit();
-                NativeServices.initialize(nativeDir);
-            } catch(IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            File nativeDir = FileUtils.createTempDir("native");
+            NativeServices.initialize(nativeDir);
         }
     }
 

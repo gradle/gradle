@@ -36,10 +36,11 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import spock.lang.Shared
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultIvyPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
@@ -50,7 +51,6 @@ class DefaultIvyPublicationTest extends Specification {
     File artifactFile
 
     def "setup"() {
-        NativeServicesTestFixture.initialize()
         descriptorFile = new File(testDirectoryProvider.testDirectory, "pom-file")
         artifactFile = new File(testDirectoryProvider.testDirectory, "artifact-file")
         artifactFile << "some content"

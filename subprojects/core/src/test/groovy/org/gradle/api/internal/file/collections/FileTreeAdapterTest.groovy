@@ -20,14 +20,11 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class FileTreeAdapterTest extends Specification {
-    def setup() {
-        NativeServicesTestFixture.initialize()
-    }
-
     def toStringUsesDisplayName() {
         MinimalFileTree tree = Mock()
         _ * tree.displayName >> 'display name'

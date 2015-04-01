@@ -20,8 +20,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -29,13 +29,10 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 
+@UsesNativeServices
 @Timeout(60)
 class DefaultExecHandleSpec extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-
-    def setup() {
-        NativeServicesTestFixture.initialize()
-    }
 
     void "forks process"() {
         given:

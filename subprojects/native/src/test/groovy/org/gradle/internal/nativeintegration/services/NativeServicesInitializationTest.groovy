@@ -35,7 +35,7 @@ class NativeServicesInitializationTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot get an instance of NativeServices without first calling initialize()."
+        e.message.startsWith("Cannot get an instance of NativeServices without first calling initialize().")
     }
 
     def "no public constructors on NativeServices" () {

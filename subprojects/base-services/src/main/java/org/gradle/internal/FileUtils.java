@@ -17,8 +17,10 @@
 package org.gradle.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.IOException;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
@@ -53,5 +55,17 @@ public class FileUtils {
 
         }
         return file;
+    }
+
+    public static File createTempDir(String prefix) {
+        try {
+            File tempDir = File.createTempFile(prefix, "dir");
+            tempDir.delete();
+            tempDir.mkdirs();
+            tempDir.deleteOnExit();
+            return tempDir;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
