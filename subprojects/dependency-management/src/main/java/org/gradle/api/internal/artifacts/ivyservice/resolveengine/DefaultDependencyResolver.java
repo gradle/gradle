@@ -68,10 +68,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final IvyContextManager ivyContextManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final VersionComparator versionComparator;
+    private final boolean buildProjectDependencies;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
-                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator) {
+                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator, boolean buildProjectDependencies) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -80,6 +81,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.ivyContextManager = ivyContextManager;
         this.storeFactory = storeFactory;
         this.versionComparator = versionComparator;
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public void resolve(final ConfigurationInternal configuration,
