@@ -25,12 +25,14 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.*;
@@ -337,7 +339,7 @@ public class DefaultConfigurationTest {
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
         context.checking(new Expectations() {{
             ResolverResults result = new ResolverResults();
-            result.resolved(resolvedConfiguration, context.mock(ResolutionResult.class), context.mock(ResolvedProjectConfigurationResults.class));
+            result.resolved(resolvedConfiguration, context.mock(ResolutionResult.class), projectConfigurationResults);
             allowing(dependencyResolver).resolve(configuration);
             will(returnValue(result));
             allowing(resolvedConfiguration).hasError();
@@ -358,12 +360,12 @@ public class DefaultConfigurationTest {
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
         return new DefaultConfiguration(confName, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), null);
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), context.mock(ProjectAccessListener.class), context.mock(ProjectFinder.class));
     }
     
     private DefaultConfiguration createNamedConfiguration(String path, String confName) {
         return new DefaultConfiguration(path, confName, configurationContainer,
-                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), null);
+                dependencyResolver, listenerManager, metaDataProvider, new DefaultResolutionStrategy(), context.mock(ProjectAccessListener.class), context.mock(ProjectFinder.class));
     }
 
     @SuppressWarnings("unchecked")
