@@ -149,14 +149,12 @@ And with a distribution URL:
 
 ### Customization of application plugin start script generation
 
-The [application plugin](userguide/application_plugin.html) provides a task named `startScripts` responsible for generating OS-specific start scripts for a Java-based
-application. Generation-relevant data like the main class name or the classpath can be tweaked through the properties of the task type `CreateStartScripts`. At runtime the task feeds this data to an
-internal class responsible for generating Unix and Windows start scripts. While these properties allow for a certain level of customization, the approach is limiting. A user cannot easily change the
-generation logic or any of the templates used for generating the scripts.
+The [application plugin](userguide/application_plugin.html) can be used to create “executable” distributions Java-based application, including operating system specific start scripts.
+While certain values in the generated scripts (e.g. main class name, classpath) were customizable, the script content was generally hardcoded and cumbersome to change.
+With Gradle 2.4, it is now much easier to fully customise the start scripts.
 
-In this release, the API for the task type `CreateStartScripts` has been enhanced. The class now allows for providing a custom script generation implementation (GRADLE-2207, GRADLE-1783).
-Furthermore, the default script templates can be replaced by custom templates (GRADLE-2299). Please see [`CreateStartScripts`](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) for usage
-examples.
+The generation of the scripts is performed by a [`CreateStartScripts`](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) task.
+Please consult its [DSL reference](dsl/org.gradle.api.tasks.application.CreateStartScripts.html) for customization examples.
 
 ## Fixed issues
 
