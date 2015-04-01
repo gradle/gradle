@@ -28,7 +28,10 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResult;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -280,7 +283,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        return allDependencies.getBuildDependencies();
+        DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        taskDependency.add(allDependencies.getBuildDependencies());
+
+        resolveNow();
+        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
+            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            for (String targetConfigName : projectResult.getTargetConfigurations()) {
+                Configuration targetConfig = project.getConfigurations().getByName(targetConfigName);
+                taskDependency.add(targetConfig);
+                taskDependency.add(targetConfig.getAllArtifacts());
+            }
+        }
+
+        return taskDependency;
     }
 
     /**

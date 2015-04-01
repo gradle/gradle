@@ -484,8 +484,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert files*.name.sort() == ["artifact.txt"]
                     assert files*.text.sort() == ["Lajos"]
                 }
-                // TODO:PREZI Remove this when PR#412 is merged
-                check.dependsOn project(":api").build
             }
 """
 
