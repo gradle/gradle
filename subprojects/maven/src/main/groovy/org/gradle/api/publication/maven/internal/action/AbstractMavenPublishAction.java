@@ -149,14 +149,6 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         return container;
     }
 
-    public void addWagonJar(File jar) {
-        try {
-            getContainer().addJarResource(jar);
-        } catch (PlexusContainerException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private Artifact createMainArtifact(ParsedMavenPom pom) {
         return new DefaultArtifact(pom.getGroup(), pom.getArtifactId(), VersionRange.createFromVersion(pom.getVersion()),
                 null, pom.getPackaging(), null, artifactHandler(pom.getPackaging()));

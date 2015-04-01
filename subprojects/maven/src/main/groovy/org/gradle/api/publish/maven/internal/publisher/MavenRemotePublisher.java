@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.publication.maven.internal.action.MavenDeployAction;
+import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
@@ -43,8 +44,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
         deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         deployTask.setUniqueVersion(true);
@@ -57,6 +58,9 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         return remoteRepository;
     }
 
+    /**
+     * A deploy action that uses a Gradle provided wagon implementation.
+     */
     private static class GradleWagonMavenDeployAction extends MavenDeployAction {
         private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
