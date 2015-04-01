@@ -40,7 +40,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.*;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.ByteArrayLocalResource;
 import org.gradle.internal.resource.local.FileLocalResource;
 import org.gradle.internal.resource.local.FileStore;

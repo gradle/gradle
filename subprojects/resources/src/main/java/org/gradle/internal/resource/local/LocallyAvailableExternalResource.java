@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
+package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.resource.ExternalResource;
 
 /**
  * Represents an external resource whose meta-data and content is available locally. The content and meta-data may be a copy of some original resource and the original may or may not be a local

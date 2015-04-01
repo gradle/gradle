@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource;
+package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.LocalFileStandInExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.net.URI;
 
