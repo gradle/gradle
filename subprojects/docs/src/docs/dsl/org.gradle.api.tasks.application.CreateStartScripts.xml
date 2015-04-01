@@ -11,6 +11,8 @@
             <tr><td>defaultJvmOpts</td></tr>
             <tr><td>outputDir</td></tr>
             <tr><td>optsEnvironmentVar</td></tr>
+            <tr><td>unixStartScriptGenerator</td></tr>
+            <tr><td>windowsStartScriptGenerator</td></tr>
         </table>
     </section>
     <section>

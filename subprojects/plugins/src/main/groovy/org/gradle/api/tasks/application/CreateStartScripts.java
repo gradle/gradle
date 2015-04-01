@@ -16,8 +16,7 @@ import org.gradle.util.GUtil;
 import java.io.File;
 
 /**
- * A {@link org.gradle.api.Task} for creating OS-specific start scripts.
- * It provides default implementations for generating start scripts for Unix and Windows runtime environments.
+ * Creates start scripts for launching JVM applications.
  * <p>
  * Example:
  * <pre autoTested=''>
@@ -29,10 +28,10 @@ import java.io.File;
  * }
  * </pre>
  * <p>
- * The standard start script generation logic can be changed by assigning custom start script generator classes that implement the interface {@link ScriptGenerator}.
- * {@code ScriptGenerator} requires you to implement a single method.
- * The parameter of type {@link org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails} represents the data e.g. classpath, application name.
- * The parameter of type {@code java.io.Writer} writes to the target start script file.
+ * Note: the Gradle {@code "application"} plugin adds a pre-configured task of this type named {@code "createStartScripts"}.
+ * <p>
+ * The task generates separate scripts targeted at Microsoft Windows environments and UNIX-like environments (e.g. Linux, Mac OS X).
+ * The actual generation is implemented by the {@link #getWindowsStartScriptGenerator()} and {@link #getUnixStartScriptGenerator()} properties, of type {@link ScriptGenerator}.
  * <p>
  * Example:
  * <pre autoTested=''>
@@ -54,11 +53,12 @@ import java.io.File;
  * }
  * </pre>
  * <p>
- * Providing a custom start script generator is powerful.
- * Sometimes changing the underlying template used for the script generation is good enough.
- * For that purpose the default implementations of {@link ScriptGenerator} also implement the interface {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
- * The method {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator#setTemplate(org.gradle.api.resources.TextResource)} can be used to provide a custom template.
- * Within the template files the following variables can be used:
+ * The default generators are of the type {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}, with default templates.
+ * This templates can be changed via the {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator#setTemplate(org.gradle.api.resources.TextResource)} method.
+ * <p>
+ * The default implementations used by this task use <a href="http://docs.groovy-lang.org/latest/html/documentation/template-engines.html#_simpletemplateengine">Groovy's SimpleTemplateEngine</a>
+ * to parse the template, with the following variables available:
+ * <p>
  * <ul>
  * <li>{@code applicationName}</li>
  * <li>{@code optsEnvironmentVar}</li>
@@ -68,7 +68,8 @@ import java.io.File;
  * <li>{@code appNameSystemProperty}</li>
  * <li>{@code appHomeRelativePath}</li>
  * <li>{@code classpath}</li>
- * <ul>
+ * </ul>
+ * <p>
  * Example:
  * <p>
  * <pre>
@@ -210,7 +211,9 @@ public class CreateStartScripts extends ConventionTask {
     }
 
     /**
-     * The Unix start script generator. Defaults to a standard implementation.
+     * The UNIX-like start script generator.
+     * <p>
+     * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Incubating
     public ScriptGenerator getUnixStartScriptGenerator() {
@@ -222,7 +225,9 @@ public class CreateStartScripts extends ConventionTask {
     }
 
     /**
-     * The Windows start script generator. Defaults to a standard implementation.
+     * The Windows start script generator.
+     * <p>
+     * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Incubating
     public ScriptGenerator getWindowsStartScriptGenerator() {
