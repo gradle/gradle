@@ -62,7 +62,7 @@ This would involve adding support for dependency resolution, as well as for publ
 
 ## Support publishing to a Ivy repository backed by AWS S3
 
-## Support publishing to a maven repository declared with 'sftp' as the URL scheme, using password credentials
+## Support publishing to a Maven repository declared with 'sftp' as the URL scheme, using password credentials
 
 ### Test cases
 
@@ -74,6 +74,10 @@ In many cases, this may be a matter of adapting existing test coverage to run ag
     - publish with invalid credentials
     - publish where cannot connect to server
     - publish where server throws exception
+
+## Support publishing to a Maven or Ivy SFTP repository using legacy publishing plugins
+
+## Support publishing to a Maven or Ivy AWS S3 repository using legacy publishing plugins
 
 ## Make it easier to add a repository transport implementation
 
@@ -91,6 +95,7 @@ In many cases, this may be a matter of adapting existing test coverage to run ag
     - Each resource connector project will provide a fixture that allows it to be executed against the ResourceConnector test suite
     - Should include specific transport tests, together with some publish/resolve smoke tests
 - Remove coverage of different transports from dependency management integration suite
+- Verify artifact reuse
 
 ## All repository transports support using `sha1` resources to avoid downloads
 
