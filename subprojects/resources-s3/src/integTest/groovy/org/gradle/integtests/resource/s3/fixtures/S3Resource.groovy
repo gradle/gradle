@@ -68,7 +68,7 @@ class S3Resource implements RemoteResource {
     }
 
     void expectUpload() {
-        server.stubPutFile()
+        server.stubPutFile(file, relativeFilePath())
     }
 
     @Override

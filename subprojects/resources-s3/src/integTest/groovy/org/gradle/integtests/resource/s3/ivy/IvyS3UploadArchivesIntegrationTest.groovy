@@ -15,24 +15,22 @@
  */
 
 package org.gradle.integtests.resource.s3.ivy
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
 class IvyS3UploadArchivesIntegrationTest extends AbstractIntegrationSpec {
-
-    String bucket = 'tests3bucket'
-
     @Rule
-    public S3FileBackedServer server = new S3FileBackedServer(file())
+    public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
-        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
+        executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }
 
     def "can publish archives to ivy repository"() {
         given:
-        def ivyRepo = ivy(server.getBackingDir(bucket))
+        def ivyRepo = server.remoteIvyRepo
 
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
@@ -64,10 +62,15 @@ uploadArchives {
 """
 
         when:
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+        ivyModule.jar.expectUpload()
+        ivyModule.jar.sha1.expectUpload()
+        ivyModule.ivy.expectUpload()
+        ivyModule.ivy.sha1.expectUpload()
+
         run "uploadArchives"
 
         then:
-        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertPublished()
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
         ivyModule.parsedIvy.expectArtifact(ivyModule.module, "jar").hasAttributes("jar", "jar", ["archives", "runtime"], null)

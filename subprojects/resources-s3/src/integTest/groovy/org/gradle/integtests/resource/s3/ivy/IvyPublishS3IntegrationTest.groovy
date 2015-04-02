@@ -17,23 +17,20 @@
 package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
-import org.gradle.integtests.resource.s3.fixtures.S3FileBackedServer
+import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
 class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
-
-    String bucket = 'tests3bucket'
-
     @Rule
-    public S3FileBackedServer server = new S3FileBackedServer(file())
+    public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    def "can publish to a S3 Ivy repository"() {
+    def "can publish to an S3 Ivy repository"() {
         given:
-        def ivyRepo = ivy(server.getBackingDir(bucket))
+        def ivyRepo = server.remoteIvyRepo
 
         settingsFile << 'rootProject.name = "publishS3Test"'
         buildFile << """
@@ -62,10 +59,15 @@ publishing {
 """
 
         when:
+        def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
+        module.jar.expectUpload()
+        module.jar.sha1.expectUpload()
+        module.ivy.expectUpload()
+        module.ivy.sha1.expectUpload()
+
         succeeds 'publish'
 
         then:
-        def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.assertPublishedAsJavaModule()
     }
 }

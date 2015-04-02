@@ -19,7 +19,6 @@ import groovy.xml.StreamingMarkupBuilder
 import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.joda.time.DateTimeZone
@@ -65,9 +64,6 @@ class S3Server extends HttpServer implements RepositoryServer {
         assert path.startsWith('/')
         assert path == request.pathInfo
         assert stubRequest.method == request.method
-        if (stubRequest.body) {
-            assert stubRequest.body == request.getInputStream().bytes
-        }
         assert stubRequest.params.every {
             request.getParameterMap()[it.key] == it.value
         }
@@ -82,22 +78,22 @@ class S3Server extends HttpServer implements RepositoryServer {
     }
 
     @Override
-    RemoteIvyRepository getRemoteIvyRepo() {
+    IvyS3Repository getRemoteIvyRepo() {
         new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME)
     }
 
     @Override
-    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern) {
+    IvyS3Repository getRemoteIvyRepo(boolean m2Compatible, String dirPattern) {
         new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern)
     }
 
     @Override
-    RemoteIvyRepository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern) {
+    IvyS3Repository getRemoteIvyRepo(boolean m2Compatible, String dirPattern, String ivyFilePattern, String artifactFilePattern) {
         new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME/ivy"), "/ivy", BUCKET_NAME, m2Compatible, dirPattern, ivyFilePattern, artifactFilePattern)
     }
 
     @Override
-    RemoteIvyRepository getRemoteIvyRepo(String contextPath) {
+    IvyS3Repository getRemoteIvyRepo(String contextPath) {
         new IvyS3Repository(this, testDirectoryProvider.testDirectory.file("$BUCKET_NAME$contextPath"), "$contextPath", BUCKET_NAME)
     }
 
@@ -119,8 +115,10 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Content-Type': 'application/octet-stream',
                         'Connection'  : 'Keep-Alive'
                 ]
-                body = file.getBytes()
-
+                body = { InputStream content ->
+                    file.parentFile.mkdirs()
+                    file.bytes = content.bytes
+                }
             }
             response {
                 status = 200
@@ -128,7 +126,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'x-amz-id-2'      : X_AMZ_ID_2,
                         'x-amz-request-id': X_AMZ_REQUEST_ID,
                         'Date'            : DATE_HEADER,
-                        "ETag"            : calculateEtag(file),
+                        "ETag"            : { calculateEtag(file) },
                         'Server'          : SERVER_AMAZON_S3
                 ]
             }
@@ -152,7 +150,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'x-amz-id-2'      : X_AMZ_ID_2,
                         'x-amz-request-id': X_AMZ_REQUEST_ID,
                         'Date'            : DATE_HEADER,
-                        'ETag'            : calculateEtag(file),
+                        'ETag'            : { calculateEtag(file) },
                         'Server'          : SERVER_AMAZON_S3,
                         'Accept-Ranges'   : 'bytes',
                         'Content-Type'    : 'application/octet-stream',
@@ -212,14 +210,14 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'x-amz-id-2'      : X_AMZ_ID_2,
                         'x-amz-request-id': X_AMZ_REQUEST_ID,
                         'Date'            : DATE_HEADER,
-                        'ETag'            : calculateEtag(file),
+                        'ETag'            : { calculateEtag(file) },
                         'Server'          : SERVER_AMAZON_S3,
                         'Accept-Ranges'   : 'bytes',
                         'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "${file.length()}",
+                        'Content-Length'  : { file.length()},
                         'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
                 ]
-                body = file.getBytes()
+                body = { file.bytes }
             }
         }
         expect(httpStub)
@@ -301,7 +299,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Server'          : SERVER_AMAZON_S3,
                         'Content-Type'    : 'application/xml',
                 ]
-                body = xml.toString()
+                body = { xml.toString() }
             }
         }
         expect(httpStub)
@@ -336,12 +334,11 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Server'          : SERVER_AMAZON_S3,
                         'Content-Type'    : 'application/xml',
                 ]
-                body = xml.toString()
+                body = { xml.toString() }
             }
         }
         expect(httpStub)
     }
-
 
     def stubPutFileAuthFailure(String url) {
         def xml = new StreamingMarkupBuilder().bind {
@@ -372,7 +369,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Server'          : SERVER_AMAZON_S3,
                         'Content-Type'    : 'application/xml',
                 ]
-                body = xml.toString()
+                body = { xml.toString() }
             }
         }
         expect(httpStub)
@@ -407,7 +404,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Server'          : SERVER_AMAZON_S3,
                         'Content-Type'    : 'application/xml',
                 ]
-                body = xml.toString()
+                body = { xml.toString() }
             }
         }
         expect(httpStub)
@@ -441,7 +438,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         'Server'          : SERVER_AMAZON_S3,
                         'Content-Type'    : 'application/xml',
                 ]
-                body = xml.toString()
+                body = { xml.toString() }
             }
 
         }
@@ -455,12 +452,15 @@ class S3Server extends HttpServer implements RepositoryServer {
     private HttpServer.ActionSupport stubAction(HttpStub httpStub) {
         new HttpServer.ActionSupport("Generic stub handler") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
+                if (httpStub.request.body) {
+                    httpStub.request.body.call(request.getInputStream())
+                }
                 httpStub.response?.headers?.each {
-                    response.addHeader(it.key, it.value)
+                    response.addHeader(it.key, it.value instanceof Closure ? it.value.call().toString() : it.value.toString())
                 }
                 response.setStatus(httpStub.response.status)
                 if (httpStub.response?.body) {
-                    response.outputStream.bytes = httpStub.response.body
+                    response.outputStream.bytes = httpStub.response.body.call()
                 }
             }
         }
@@ -474,7 +474,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
                     if (expectation.run) {
-                        println("This expectation for the request [${request.method} :${request.pathInfo}] was already handeled - skipping")
+                        println("This expectation for the request [${request.method} :${request.pathInfo}] was already handled - skipping")
                         return
                     }
                     if (!((Request) request).isHandled()) {
