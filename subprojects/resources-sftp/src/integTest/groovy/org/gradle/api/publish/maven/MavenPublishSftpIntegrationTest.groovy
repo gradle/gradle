@@ -61,11 +61,17 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
 
         when:
         module.artifact.expectMkdirs()
-        module.artifact.expectFileAndChecksumsUpload()
+        module.artifact.expectFileUpload()
+        module.artifact.sha1.expectFileUpload()
+        module.artifact.md5.expectFileUpload()
 
         module.rootMavenMetadata.expectLstatMissing()
-        module.rootMavenMetadata.expectFileAndChecksumsUpload()
-        module.pom.expectFileAndChecksumsUpload()
+        module.rootMavenMetadata.expectFileUpload()
+        module.rootMavenMetadata.sha1.expectFileUpload()
+        module.rootMavenMetadata.md5.expectFileUpload()
+        module.pom.expectFileUpload()
+        module.pom.sha1.expectFileUpload()
+        module.pom.md5.expectFileUpload()
 
         and:
         succeeds 'publish'

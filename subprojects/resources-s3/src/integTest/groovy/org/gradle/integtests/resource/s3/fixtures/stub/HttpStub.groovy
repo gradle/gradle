@@ -23,7 +23,7 @@ class HttpStub {
     StubRequest request
     StubResponse response
 
-    static stubInteraction(Closure closure) {
+    static stubInteraction(Closure<?> closure) {
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         HttpStub stub = new HttpStub()
         closure.delegate = stub
@@ -31,7 +31,7 @@ class HttpStub {
         stub
     }
 
-    def request(Closure closure){
+    def request(Closure<?> closure){
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         StubRequest stubRequest = new StubRequest()
         closure.delegate = stubRequest
@@ -39,7 +39,7 @@ class HttpStub {
         request = stubRequest
     }
 
-    def response(Closure closure){
+    def response(Closure<?> closure){
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         StubResponse stubResponse= new StubResponse()
         closure.delegate = stubResponse

@@ -67,6 +67,10 @@ class S3Resource implements RemoteResource {
         server.stubGetFileBroken(relativeFilePath())
     }
 
+    void expectUpload() {
+        server.stubPutFile()
+    }
+
     @Override
     void expectMetadataRetrieveBroken() {
         server.stubMetaDataBroken(relativeFilePath())

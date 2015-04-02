@@ -18,8 +18,9 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.resource.RemoteArtifact
 
-abstract class HttpArtifact extends HttpResource {
+abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
 
     String modulePath
 

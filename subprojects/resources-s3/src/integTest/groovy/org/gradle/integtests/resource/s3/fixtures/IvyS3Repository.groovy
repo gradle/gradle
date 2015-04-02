@@ -15,8 +15,9 @@
  */
 
 package org.gradle.integtests.resource.s3.fixtures
+
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
 class IvyS3Repository implements RemoteIvyRepository {
@@ -26,7 +27,7 @@ class IvyS3Repository implements RemoteIvyRepository {
     IvyFileRepository backingRepository
     String repositoryPath
 
-    public IvyS3Repository(S3Server server, File repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
+    public IvyS3Repository(S3Server server, TestFile repoDir, String repositoryPath, String bucket, boolean m2Compatible = false, String dirPattern = null, String ivyFilePattern = null, String artifactFilePattern = null) {
         assert !bucket.startsWith('/')
         this.server = server
         this.bucket = bucket
@@ -44,12 +45,12 @@ class IvyS3Repository implements RemoteIvyRepository {
     }
 
     @Override
-    RemoteIvyModule module(String organisation, String module) {
+    IvyS3Module module(String organisation, String module) {
         return new IvyS3Module(server, backingRepository.module(organisation, module), repositoryPath, bucket)
     }
 
     @Override
-    RemoteIvyModule module(String organisation, String module, Object revision) {
+    IvyS3Module module(String organisation, String module, Object revision) {
         return new IvyS3Module(server, backingRepository.module(organisation, module, revision), repositoryPath, bucket)
     }
 

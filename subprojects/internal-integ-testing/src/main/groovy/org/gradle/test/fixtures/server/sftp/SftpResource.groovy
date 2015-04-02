@@ -69,15 +69,8 @@ class SftpResource implements RemoteResource {
         server.expectFileDownload(pathOnServer)
     }
 
-    void expectFileAndSha1Upload() {
+    void expectFileUpload() {
         server.expectFileUpload(pathOnServer)
-        server.expectFileUpload("${pathOnServer}.sha1")
-    }
-
-    void expectFileAndChecksumsUpload() {
-        server.expectFileUpload(pathOnServer)
-        server.expectFileUpload("${pathOnServer}.sha1")
-        server.expectFileUpload("${pathOnServer}.md5")
     }
 
     void expectMetadataRetrieveBroken() {

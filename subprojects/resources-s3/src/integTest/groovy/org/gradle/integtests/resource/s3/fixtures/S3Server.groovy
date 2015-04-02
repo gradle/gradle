@@ -110,7 +110,6 @@ class S3Server extends HttpServer implements RepositoryServer {
         }"""
     }
 
-
     def stubPutFile(File file, String url) {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {

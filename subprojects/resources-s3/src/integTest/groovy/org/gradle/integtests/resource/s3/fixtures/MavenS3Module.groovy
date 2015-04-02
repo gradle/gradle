@@ -35,27 +35,19 @@ class MavenS3Module extends DelegatingMavenModule<MavenS3Module> implements Mave
         this.repositoryPath = repositoryPath
     }
 
-    S3Resource getPom() {
-        new S3Resource(server, pomFile, repositoryPath, bucket)
+    S3Artifact getPom() {
+        return new S3Artifact(server, pomFile, repositoryPath, bucket)
     }
 
-    S3Resource getArtifact() {
-        new S3Resource(server, artifactFile, repositoryPath, bucket)
+    S3Artifact getArtifact() {
+        return new S3Artifact(server, artifactFile, repositoryPath, bucket)
     }
 
-    S3Resource getMetaData() {
-        new S3Resource(server, backingModule.metaDataFile, repositoryPath, bucket)
+    S3Artifact getMetaData() {
+        new S3Artifact(server, backingModule.metaDataFile, repositoryPath, bucket)
     }
 
-    S3Resource getArtifactSha1() {
-        new S3Resource(server, backingModule.sha1File(artifactFile), repositoryPath, bucket)
-    }
-
-    S3Resource getPomSha1() {
-        new S3Resource(server, backingModule.sha1File(pomFile), repositoryPath, bucket)
-    }
-
-    S3Resource getMavenRootMetaData() {
-        new S3Resource(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
+    S3Artifact getMavenRootMetaData() {
+        new S3Artifact(server, backingModule.rootMetaDataFile, repositoryPath, bucket)
     }
 }
