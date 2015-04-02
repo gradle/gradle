@@ -24,11 +24,25 @@ public interface RemoteResource {
 
     void expectDownloadMissing()
 
+    void expectDownloadBroken()
+
     void expectMetadataRetrieve()
 
     void expectMetadataRetrieveMissing()
 
-    void expectDownloadBroken()
-
     void expectMetadataRetrieveBroken()
+
+    /**
+     * Expects that the parent directories of this resource be created, for those resources where this is required. May be a no-op.
+     */
+    void expectParentMkdir()
+
+    /**
+     * Expects that the parent directories of this resource be checked, for those resources where this is required. May be a no-op.
+     */
+    void expectParentCheckdir()
+
+    void expectUpload()
+
+    void expectUploadBroken()
 }

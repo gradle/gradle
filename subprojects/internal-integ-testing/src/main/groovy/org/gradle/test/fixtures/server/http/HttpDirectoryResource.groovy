@@ -62,4 +62,14 @@ class HttpDirectoryResource extends AbstractHttpResource {
     void expectHeadMissing() {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    void expectPut() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectPutBroken() {
+        throw new UnsupportedOperationException()
+    }
 }

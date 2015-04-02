@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.integtests.publish.ivy
 
-import org.gradle.test.fixtures.resource.RemoteArtifact
+import org.gradle.api.publish.ivy.AbstractIvyRemoteLegacyPublishIntegrationTest
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
+import org.junit.Rule
 
-interface RemoteIvyModule extends IvyModule {
-    RemoteArtifact getIvy()
-    RemoteArtifact getJar()
+class IvyHttpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
+    @Rule RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 }

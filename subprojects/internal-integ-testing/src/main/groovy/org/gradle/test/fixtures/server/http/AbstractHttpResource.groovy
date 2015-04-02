@@ -45,6 +45,10 @@ abstract class AbstractHttpResource implements RemoteResource {
 
     abstract void expectHeadMissing()
 
+    abstract void expectPut()
+
+    abstract void expectPutBroken()
+
     @Override
     void expectDownload() {
         expectGet()
@@ -73,5 +77,25 @@ abstract class AbstractHttpResource implements RemoteResource {
     @Override
     void expectMetadataRetrieveMissing() {
         expectHeadMissing()
+    }
+
+    @Override
+    void expectParentMkdir() {
+        // Not required
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        // Not required
+    }
+
+    @Override
+    void expectUpload() {
+        expectPut()
+    }
+
+    @Override
+    void expectUploadBroken() {
+        expectPutBroken()
     }
 }

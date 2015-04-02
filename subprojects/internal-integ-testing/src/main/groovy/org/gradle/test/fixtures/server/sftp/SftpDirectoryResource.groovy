@@ -62,4 +62,24 @@ class SftpDirectoryResource implements RemoteResource {
     void expectDownloadBroken() {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    void expectParentMkdir() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectUpload() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectUploadBroken() {
+        throw new UnsupportedOperationException()
+    }
 }

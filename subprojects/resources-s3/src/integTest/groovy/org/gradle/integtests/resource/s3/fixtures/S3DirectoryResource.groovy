@@ -68,6 +68,26 @@ class S3DirectoryResource implements RemoteResource {
         throw new UnsupportedOperationException()
     }
 
+    @Override
+    void expectParentMkdir() {
+        // Not required
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        // Not required
+    }
+
+    @Override
+    void expectUpload() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectUploadBroken() {
+        throw new UnsupportedOperationException()
+    }
+
     public void expectGet() {
         server.stubListFile(directory, bucket, path)
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.ivy
+package org.gradle.api.publish.ivy
 
-import org.gradle.test.fixtures.resource.RemoteArtifact
+import org.gradle.test.fixtures.server.sftp.SFTPServer
+import org.junit.Rule
 
-interface RemoteIvyModule extends IvyModule {
-    RemoteArtifact getIvy()
-    RemoteArtifact getJar()
+class IvySftpLegacyPublishIntegrationTest extends AbstractIvyRemoteLegacyPublishIntegrationTest {
+    @Rule
+    final SFTPServer server = new SFTPServer(this)
 }
