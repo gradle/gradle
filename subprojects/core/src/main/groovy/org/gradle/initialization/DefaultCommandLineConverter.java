@@ -80,9 +80,11 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
-        parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").deprecated("Prefer to use --parallel if you want to build in parallel.").incubating();
+        parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").
+                deprecated("Prefer to use --parallel if you want to build in parallel and use --max-workers to set the number of executor threads.").incubating();
         parser.option(WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
+
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -168,7 +170,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (options.hasOption(PARALLEL_THREADS)) {
             try {
                 int parallelThreads = Integer.parseInt(options.option(PARALLEL_THREADS).getValue());
-                startParameter.setParallelProjectExecutionEnabled(true);
                 startParameter.setParallelThreadCount(parallelThreads);
             } catch (NumberFormatException e) {
                 throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", PARALLEL_THREADS));

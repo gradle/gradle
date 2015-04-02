@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization
+import org.gradle.StartParameter
+import org.gradle.api.logging.LogLevel
+import org.gradle.cli.CommandLineArgumentException
+import org.gradle.logging.ConsoleOutput
+import org.gradle.logging.ShowStacktrace
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import org.junit.Test
+import spock.lang.Specification
+import spock.lang.Unroll
 
-import org.gradle.StartParameter;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.logging.ConsoleOutput;
-import org.gradle.logging.ShowStacktrace;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.junit.Rule;
-import org.junit.Test;
+import static java.util.Arrays.asList
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static java.util.Arrays.asList;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-public class DefaultCommandLineConverterTest {
+public class DefaultCommandLineConverterTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
 
@@ -66,6 +63,7 @@ public class DefaultCommandLineConverterTest {
     private boolean expectedContinue;
     private boolean expectedOffline;
     private boolean expectedRecompileScripts;
+    private boolean expectedParallelProjectExecution;
     private int expectedParallelExecutorCount;
     private int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
     private boolean expectedConfigureOnDemand;
@@ -378,13 +376,15 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withParallelExecutor() {
-        expectedParallelExecutorCount = -1;
+        expectedParallelProjectExecution = true;
+        expectedParallelExecutorCount = expectedMaxWorkersCount;
         checkConversion("--parallel");
     }
 
     @Test
     public void withParallelExecutorThreads() {
-        expectedParallelExecutorCount = 5;
+        expectedParallelProjectExecution = true;
+        expectedMaxWorkersCount = expectedParallelExecutorCount = 5;
         checkConversion("--parallel-threads", "5");
     }
 
@@ -410,5 +410,36 @@ public class DefaultCommandLineConverterTest {
     public void withConfigureOnDemand() {
         expectedConfigureOnDemand = true;
         checkConversion("--configure-on-demand");
+    }
+
+    final static int NUM_OF_PROCS = Runtime.getRuntime().availableProcessors()
+    final static int N = 3
+    final static int M = 5
+
+    @Test
+    @Unroll("check combinations using #args")
+    public void checkCombinationsOfWorkersAndParallelOptions(List args, int maxWorkers, int parallelThreads, boolean isParallel) {
+        given:
+        expectedMaxWorkersCount = maxWorkers
+        expectedParallelExecutorCount = parallelThreads
+        expectedParallelProjectExecution = isParallel
+
+        expect:
+        checkConversion(*args)
+
+        where:
+        args                                            | maxWorkers    | parallelThreads   | isParallel
+        []                                              | NUM_OF_PROCS  | 0                 | false
+        [ "--parallel" ]                                | NUM_OF_PROCS  | NUM_OF_PROCS      | true
+        [ "--parallel-threads=$N" ]                     | N             | N                 | true
+        [ "--max-workers=$N" ]                          | N             | 0                 | false
+        [ "--parallel", "--max-workers=$N" ]            | N             | N                 | true
+        [ "--parallel-threads=$N", "--max-workers=$M" ] | M             | M                 | true
+// TODO:[ "--max-workers=$N", "--parallel-threads=$M" ] | M             | M                 | true
+        [ "--parallel-threads=-1" ]                     | NUM_OF_PROCS  | NUM_OF_PROCS      | true
+        [ "--parallel-threads=0" ]                      | 1             | 0                 | false
+        [ "--parallel-threads=1" ]                      | 1             | 1                 | true
+        [ "--parallel", "--max-workers=0" ]             | 1             | 1                 | true
+        [ "--parallel", "--max-workers=1" ]             | 1             | 1                 | true
     }
 }
