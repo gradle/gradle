@@ -32,7 +32,7 @@ class PropertiesToStartParameterConverterTest extends Specification {
         expect:
         converter.convert([(WORKERS_PROPERTY): "invalid"], new StartParameter()).maxWorkerCount == defaultValue.maxWorkerCount
         converter.convert([(WORKERS_PROPERTY): "37"], new StartParameter()).maxWorkerCount == 37
-        converter.convert([(PARALLEL_PROPERTY): "true"], new StartParameter()).parallelThreadCount == -1
+        converter.convert([(PARALLEL_PROPERTY): "true"], new StartParameter()).parallelProjectExecutionEnabled
         converter.convert([(PARALLEL_PROPERTY): "false"], new StartParameter()).parallelThreadCount == 0
         converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "TRUE"], new StartParameter()).configureOnDemand
         !converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "xxx"], new StartParameter()).configureOnDemand

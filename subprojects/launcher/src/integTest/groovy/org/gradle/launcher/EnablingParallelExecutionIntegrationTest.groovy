@@ -32,7 +32,7 @@ class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "parallel mode enabled via gradle.properties"() {
         file("gradle.properties") << "org.gradle.parallel=true"
-        buildFile << "assert gradle.startParameter.parallelThreadCount == -1"
+        buildFile << "assert gradle.startParameter.parallelProjectExecutionEnabled"
         expect:
         run()
     }
