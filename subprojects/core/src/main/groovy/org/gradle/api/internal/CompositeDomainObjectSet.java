@@ -25,6 +25,7 @@ import org.gradle.internal.Actions;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 /**
  * A domain object collection that presents a combined view of one or more collections.
@@ -105,7 +106,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     @SuppressWarnings({"NullableProblems", "unchecked"})
     @Override
     public Iterator<T> iterator() {
-        return Iterators.unmodifiableIterator(new HashSet<T>(getStore()).iterator());
+        return Iterators.unmodifiableIterator(new LinkedHashSet<T>(getStore()).iterator());
     }
 
     @SuppressWarnings("unchecked")
