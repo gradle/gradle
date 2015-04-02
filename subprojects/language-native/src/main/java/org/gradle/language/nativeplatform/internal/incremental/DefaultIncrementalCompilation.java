@@ -42,7 +42,11 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
         return removed;
     }
 
-    public Map<File, SourceIncludes> getSourceFileIncludes() { return sourceIncludes; }
+    public Map<File, SourceIncludes> getSourceFileIncludes() {
+        return sourceIncludes;
+    }
 
-    public CompilationState getFinalState() { return finalState; }
+    public CompilationState getFinalState() {
+        return finalState;
+    }
 }
