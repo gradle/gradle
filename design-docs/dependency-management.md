@@ -407,10 +407,6 @@ TBD
 - Get meta-data of a component
 - Get certain artifacts of a component. Includes meta-data artifacts
 
-## Story: Resolution result exposes excluded dependencies
-
-TBD
-
 # Open issues
 
 - When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).

@@ -22,3 +22,4 @@ Improved dependency resolution reporting
 - Finalise the API of the `DependencyInsightReportTask` type.
 - If there is a single configuration in the project, should it be used by default by the dependency insight report?
 - The dependency insight report needs to work with the C++ plugins in the same way it works with the java plugin.
+- Dependency reports should show excluded things.
