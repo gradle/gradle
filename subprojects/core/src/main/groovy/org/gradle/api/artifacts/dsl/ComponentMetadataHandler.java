@@ -137,7 +137,7 @@ public interface ComponentMetadataHandler {
      * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
      */
     @Deprecated
-     void eachComponent(Action<? super ComponentMetadataDetails> rule);
+    void eachComponent(Action<? super ComponentMetadataDetails> rule);
 
      /**
       * Adds a rule to modify the metadata of depended-on software components.
