@@ -18,11 +18,10 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.FixedBuildCancellationToken;
-import org.gradle.internal.SystemProperties;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.reflect.*;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -77,7 +76,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     private File getGradleUserHomeFromParameters(ConnectionParameters parameters) {
         // If we have a ConnectionParameters object that exposes gradleUserHomeDir, then we use
         // that, otherwise we just use the default temp directory
-        File fallback = new File(SystemProperties.getInstance().getJavaIoTmpDir());
+        File fallback = FileUtils.createTempDir("native");
         return new CompatibleIntrospector(parameters).getSafely(fallback, "getGradleUserHomeDir");
     }
 
