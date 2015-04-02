@@ -146,7 +146,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
-        return invocationContext.createInvocation(String.format("compiling %s", sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
+        return invocationContext.createInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());
     }
 
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {

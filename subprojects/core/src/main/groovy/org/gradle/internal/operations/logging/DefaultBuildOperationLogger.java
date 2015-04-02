@@ -27,6 +27,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
     private final Logger logger;
     private final PrintWriter logWriter;
 
+    private boolean started;
     private int numberOfFailedOperationsSeen;
 
     DefaultBuildOperationLogger(BuildOperationLogInfo configuration, Logger logger, PrintWriter logWriter) {
@@ -35,33 +36,40 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
         this.logWriter = logWriter;
 
         this.numberOfFailedOperationsSeen = 0;
+        this.started = false;
     }
 
     @Override
     public void start() {
+        assert !started;
         logInBoth(LogLevel.INFO, String.format("See %s for all output for %s.", formatOutputFileAsUrl(), configuration.getTaskName()));
+        started = true;
     }
 
     @Override
     public synchronized void operationSuccess(String description, String output) {
-        logInBoth(LogLevel.DEBUG, String.format("%s successful.", description));
+        assert started;
+        logInBoth(LogLevel.DEBUG, description.concat(" successful."));
         maybeShowSuccess(output);
     }
 
     @Override
     public synchronized void operationFailed(String description, String output) {
-        logInBoth(LogLevel.DEBUG, String.format("%s failed.", description));
+        assert started;
+        logInBoth(LogLevel.DEBUG, description.concat(" failed."));
         maybeShowFailure(output);
     }
 
     @Override
     public void done() {
+        assert started;
         int suppressedCount = numberOfFailedOperationsSeen - configuration.getMaximumFailedOperationsShown();
         if (suppressedCount > 0) {
             logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, formatOutputFileAsUrl()));
         }
-        logInBoth(LogLevel.INFO, String.format("Done %s, full log %s.", configuration.getTaskName(), formatOutputFileAsUrl()));
+        logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), formatOutputFileAsUrl()));
         logWriter.close();
+        started = false;
     }
 
     private void maybeShowSuccess(String output) {
