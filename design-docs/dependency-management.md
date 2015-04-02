@@ -350,31 +350,11 @@ detect and resolve conflicts.
 
 - Excludes should not apply to local components. This is a breaking change.
 
-## Story: Model the native binary dependencies as requirements
-
-This story introduces a new API which can take an arbitrary set of requirements and some usage context and produce a set of files which
-meet the requirements.
-
-- Split up `NativeDependencyResolver` into several pieces:
-    - A public API that takes a collection of objects plus some object that represents a usage and returns a buildable collection of files. This API should not
-      refer to any native domain concepts.
-    - A service that implements the API.
-    - A registry of requirement -> buildable file collection converters.
-- Add some way to query the resolved include roots, link files and runtime files for a native binary.
-
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
 
 Note: This is a breaking change.
-
-## Story: Generate and publish component meta-data artifact
-
-Introduce a native Gradle component descriptor file, generate and publish this.
-
-## Story: Dependency resolution uses component meta-data artifact
-
-Use the component descriptor, if present, during resolution.
 
 ## Story: Improve error messages when things cannot be found
 
@@ -387,7 +367,7 @@ Handle the following reasons why no matching component cannot be found for a sel
 - Typo in repository configuration:
     - Inform which URLs were used to locate the module and versions
     - Inform about a missing meta-data artifact
-- No repositories declared
+- ~~No repositories declared~~
 
 Handle the following reasons why a given artifact cannot be found:
 
@@ -398,10 +378,10 @@ Handle the following reasons why a given artifact cannot be found:
 
 ### Open issues
 
-- Test cases for dynamic selector used with maven repo.
-- Error message should include some candidate versions for dynamic version when some versions found.
+- ~~Test cases for dynamic selector used with maven repo.~~
+- ~~Error message should include some candidate versions for dynamic version when some versions found.~~
 - Error message should include some candidate artifacts when artifact not found.
-- Error messages should distinguish between no versions found and no matching versions found.
+- ~~Error messages should distinguish between no versions found and no matching versions found.~~
 - Fix case where static selector is used multiple times in same build for missing module.
 - Fix case where dynamic selector is used multiple times in same build for module with no versions.
 - Fix case where maven local contains pom and not artifact. Currently the error message implies that the pom is not there.
@@ -420,10 +400,6 @@ In order to remove an old feature, we should promote the replacement API.
 ## Story: Remove old dependency graph model
 
 TBD
-
-## Story: declarative substitution of group, module and version
-
-Allow some substitutions to be expressed declaratively, rather than imperatively as a rule.
 
 ## Feature: Expose APIs for additional questions that can be asked about components
 
