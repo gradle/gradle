@@ -24,11 +24,14 @@ This would involve adding support for dependency resolution, as well as for publ
     - Each resource connector project will provide a fixture that allows it to be executed against the ResourceConnector test suite
     - Should include specific transport tests, together with some publish/resolve smoke tests
 - Remove coverage of different transports from dependency management integration suite
-- Verify artifact reuse
 
 ## All repository transports support using `sha1` resources to avoid downloads
 
 Currently only the HTTP transports support using for a `.sha1` resource.
+
+### Test cases
+
+- Verify artifact reuse when checksum is or is not present.
 
 ## Support 'scp' scheme for ivy and maven repository URL
 
@@ -37,9 +40,9 @@ Currently only the HTTP transports support using for a `.sha1` resource.
 Provide some way in the repository DSL to specify that public key authentication be used for any transport that
 supports it. For sftp and scp, provide a way to use the user's SSH settings.
 
-## Apply build scripts from an sftp/scp URL
+## Apply build scripts from an sftp/scp/s3 URL
 
-Generalise the repository transports so that they can be reused to download build scripts. This will add sftp/scp support.
+Generalise the repository transports so that they can be reused to download build scripts. This will add sftp/scp/s3 support.
 
 * Add some way to provide credentials, possibly by modelling as a plugin repository.
 
