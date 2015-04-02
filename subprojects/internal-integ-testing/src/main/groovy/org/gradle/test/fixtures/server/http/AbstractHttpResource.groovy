@@ -14,29 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resource.s3.fixtures
+package org.gradle.test.fixtures.server.http
 
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteResource
 
-class S3DirectoryResource implements RemoteResource {
+abstract class AbstractHttpResource implements RemoteResource {
 
-    private final S3Server server
-    private final TestFile directory
-    private String bucket
-    private final String path
+    protected HttpServer server
 
-    S3DirectoryResource(S3Server server, String bucket, TestFile directory) {
-        this.bucket = bucket
-        this.directory = directory
+    public AbstractHttpResource(HttpServer server) {
         this.server = server
-        def directoryUri = directory.toURI().toString()
-        this.path = directoryUri.substring(directoryUri.indexOf(bucket) + bucket.length() + 1)
     }
 
+    @Override
     URI getUri() {
-        return new URI("s3", bucket, path, null, null)
+        return new URI(server.uri.scheme, server.uri.authority, path, null, null)
     }
+
+    abstract protected String getPath();
+
+    abstract void expectGet()
+
+    abstract void expectGetBroken()
+
+    abstract void expectGetMissing()
+
+    abstract void expectHead()
+
+    abstract void expectHeadBroken()
+
+    abstract void expectHeadMissing()
 
     @Override
     void expectDownload() {
@@ -55,28 +62,16 @@ class S3DirectoryResource implements RemoteResource {
 
     @Override
     void expectMetadataRetrieve() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    void expectMetadataRetrieveMissing() {
-        throw new UnsupportedOperationException()
+        expectHead()
     }
 
     @Override
     void expectMetadataRetrieveBroken() {
-        throw new UnsupportedOperationException()
+        expectHeadBroken()
     }
 
-    public void expectGet() {
-        server.stubListFile(directory, bucket, path)
-    }
-
-    public void expectGetMissing() {
-        server.expectGetMissing("/$bucket")
-    }
-
-    public void expectGetBroken() {
-        server.expectGetBroken("/$bucket")
+    @Override
+    void expectMetadataRetrieveMissing() {
+        expectHeadMissing()
     }
 }

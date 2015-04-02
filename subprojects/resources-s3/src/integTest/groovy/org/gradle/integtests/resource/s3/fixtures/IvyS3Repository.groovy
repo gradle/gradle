@@ -67,10 +67,6 @@ class IvyS3Repository implements RemoteIvyRepository {
     }
 
     S3DirectoryResource directoryList(String organisation, String module) {
-        return new S3DirectoryResource(server, bucket, backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
-    }
-
-    void expectDirectoryList(String organisation, String module) {
-        directoryList(organisation, module).expectGet()
+        return new S3DirectoryResource(server, bucket, backingRepository.moduleDir(organisation, module))
     }
 }

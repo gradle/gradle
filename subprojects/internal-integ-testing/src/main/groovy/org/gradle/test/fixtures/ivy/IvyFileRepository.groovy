@@ -56,6 +56,10 @@ class IvyFileRepository implements IvyRepository {
         M2CompatibleIvyPatternHelper.substitute(dirPattern, organisation, module, revision, m2Compatible)
     }
 
+    TestFile moduleDir(String organisation, String module) {
+        return this.module(organisation, module).moduleDir.parentFile
+    }
+
     IvyFileModule module(String organisation, String module, Object revision = '1.0') {
         return createModule(organisation, module, revision as String)
     }

@@ -36,6 +36,21 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
+    void assertPublished() {
+        backingModule.assertPublished()
+    }
+
+    @Override
+    void assertArtifactsPublished(String... names) {
+        backingModule.assertArtifactsPublished(names)
+    }
+
+    @Override
+    void assertPublishedAsJavaModule() {
+        backingModule.assertPublishedAsJavaModule()
+    }
+
+    @Override
     String getOrganisation() {
         return backingModule.getOrganisation()
     }

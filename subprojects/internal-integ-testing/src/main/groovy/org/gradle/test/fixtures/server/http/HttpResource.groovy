@@ -18,61 +18,23 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.resource.RemoteResource
 
-abstract class HttpResource implements RemoteResource {
-
-    protected HttpServer server
-
+abstract class HttpResource extends AbstractHttpResource {
     public HttpResource(HttpServer server) {
-        this.server = server
-    }
-
-    @Override
-    URI getUri() {
-        return new URI(server.uri.scheme, server.uri.authority, path, null, null)
+        super(server)
     }
 
     void allowGetOrHead() {
         server.allowGetOrHead(getPath(), file)
     }
 
+    @Override
     void expectGet() {
         server.expectGet(getPath(), file)
     }
 
     void allowGetOrHead(String userName, String password) {
         server.allowGetOrHead(getPath(), userName, password, file)
-    }
-
-    @Override
-    void expectDownload() {
-        expectGet()
-    }
-
-    @Override
-    void expectDownloadBroken() {
-        expectGetBroken()
-    }
-
-    @Override
-    void expectDownloadMissing() {
-        expectGetMissing()
-    }
-
-    @Override
-    void expectMetadataRetrieve() {
-        expectHead()
-    }
-
-    @Override
-    void expectMetadataRetrieveBroken() {
-        expectHeadBroken()
-    }
-
-    @Override
-    void expectMetadataRetrieveMissing() {
-        expectHeadMissing()
     }
 
     void expectGet(String userName, String password) {
@@ -116,6 +78,4 @@ abstract class HttpResource implements RemoteResource {
     }
 
     abstract TestFile getFile();
-
-    abstract protected String getPath();
 }
