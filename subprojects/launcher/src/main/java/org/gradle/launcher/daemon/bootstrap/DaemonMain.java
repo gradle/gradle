@@ -36,7 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +71,8 @@ public class DaemonMain extends EntryPoint {
 
         String daemonUid = args[3];
 
-        List<String> startupOpts = new LinkedList<String>();
+        List<String> startupOpts = new ArrayList<String>(args.length - 4);
+        //noinspection ManualArrayToCollectionCopy
         for (int i = 4; i < args.length; i++) {
             startupOpts.add(args[i]);
         }
