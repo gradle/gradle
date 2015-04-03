@@ -44,6 +44,18 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    NativeExecutableSpec getApplication();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    NativeExecutableSpec getComponent();
+
+    /**
      * The executable file.
      */
     File getExecutableFile();
@@ -56,5 +68,6 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     /**
      * {@inheritDoc}
      */
+    @Override
     TasksCollection getTasks();
 }

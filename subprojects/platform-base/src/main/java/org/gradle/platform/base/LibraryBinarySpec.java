@@ -23,4 +23,8 @@ import org.gradle.api.Incubating;
  * */
 @Incubating
  public interface LibraryBinarySpec extends BinarySpec {
+    /**
+     * The library that this binary belongs to.
+     */
+    LibrarySpec getLibrary();
 }

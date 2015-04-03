@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.platform.base.LibraryBinarySpec;
 
 import java.io.File;
@@ -29,6 +30,15 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
+    @Override
+    public NativeLibrarySpec getComponent() {
+        return (NativeLibrarySpec) super.getComponent();
+    }
+
+    @Override
+    public NativeLibrarySpec getLibrary() {
+        return getComponent();
+    }
 
     protected boolean hasSources() {
         for (LanguageSourceSet sourceSet : getSource()) {

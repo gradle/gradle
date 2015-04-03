@@ -24,4 +24,15 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
  */
 @Incubating
 public interface GoogleTestTestSuiteBinarySpec extends NativeTestSuiteBinarySpec {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    GoogleTestTestSuiteSpec getTestSuite();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    GoogleTestTestSuiteSpec getComponent();
 }

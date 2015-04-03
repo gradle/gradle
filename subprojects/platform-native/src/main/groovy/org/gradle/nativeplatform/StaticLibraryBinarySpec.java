@@ -56,5 +56,6 @@ public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
      * {@inheritDoc}
      */
+    @Override
     TasksCollection getTasks();
 }

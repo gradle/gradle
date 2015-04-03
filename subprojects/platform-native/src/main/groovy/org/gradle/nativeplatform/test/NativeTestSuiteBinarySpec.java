@@ -50,6 +50,18 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    NativeTestSuiteSpec getTestSuite();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    NativeTestSuiteSpec getComponent();
+
+    /**
      * The tested binary.
      */
     NativeBinarySpec getTestedBinary();
@@ -67,5 +79,6 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     /**
      * {@inheritDoc}
      */
+    @Override
     TasksCollection getTasks();
 }

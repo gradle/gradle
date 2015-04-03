@@ -28,6 +28,7 @@ import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.JvmClasses;
+import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.platform.PlayPlatform;
 
@@ -45,10 +46,21 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
     private File assetsJarFile;
     private FileCollection classpath;
     private ToolResolver toolResolver;
+    private PlayApplicationSpec application;
 
     @Override
     protected String getTypeName() {
         return "Play Application Jar";
+    }
+
+    @Override
+    public PlayApplicationSpec getApplication() {
+        return application;
+    }
+
+    @Override
+    public void setApplication(PlayApplicationSpec application) {
+        this.application = application;
     }
 
     public PlayPlatform getTargetPlatform() {

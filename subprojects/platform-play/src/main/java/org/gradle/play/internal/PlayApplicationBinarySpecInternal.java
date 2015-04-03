@@ -20,11 +20,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 import org.gradle.play.PlayApplicationBinarySpec;
+import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
 
 public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinarySpec, BinarySpecInternal {
+    void setApplication(PlayApplicationSpec application);
+
     void setTargetPlatform(PlayPlatform platform);
 
     void setToolResolver(ToolResolver toolResolver);
