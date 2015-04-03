@@ -129,6 +129,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return tasks;
     }
 
+    @Override
+    public void tasks(Action<? super BinaryTasksCollection> action) {
+        action.execute(tasks);
+    }
+
     public boolean isLegacyBinary() {
         return false;
     }

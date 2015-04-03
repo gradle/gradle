@@ -42,7 +42,7 @@ public interface ComponentSpec extends Named {
     DomainObjectSet<LanguageSourceSet> getSource();
 
     /**
-     * Configure the source sets used to build this component.
+     * Configures the source sets used to build this component.
      */
     void sources(Action<? super PolymorphicDomainObjectContainer<LanguageSourceSet>> action);
 
@@ -50,4 +50,9 @@ public interface ComponentSpec extends Named {
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
     DomainObjectSet<BinarySpec> getBinaries();
+
+    /**
+     * Configures the binaries that are produced for this component.
+     */
+    void binaries(Action<? super DomainObjectSet<BinarySpec>> action);
 }
