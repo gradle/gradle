@@ -13,8 +13,6 @@ The goal for this milestone is to expose something like the following structure 
     |   +-- <component-name>
     |       +-- sources
     |       |   +-- <source-set-name>
-    |       |       +-- tasks
-    |       |           +-- <task-name>
     |       +-- binaries
     |           +-- <binary-name>
     |               +-- tasks
@@ -60,7 +58,7 @@ This milestone changes the software model to introduce 'managed map' types inste
 - The property `BinarySpec.tasks`, a collection of `Task`, should allow any `Task` implementation to be added.
 
 At the completion of this milestone, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component,
-and the tasks of these things. These rules will be executed as required.
+and the tasks of a binary. These rules will be executed as required.
 
 ## Implementation
 
@@ -102,7 +100,59 @@ It is a non-goal of this milestone to add any further capabilities to managed ty
 This milestone will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
 individual nodes.
 
-# Milestone 4: References between key objects in the software model are visible to rules
+# Milestone 4: Build logic defines tasks for generated source sets and intermediate outputs
+
+This milestone generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
+and intermediate outputs.
+
+The goals for this milestone:
+
+- Introduce an abstraction that represents a physical thing, where a binary, a source set and intermediate outputs are all physical things.
+- Allow the inputs to a physical thing to be declared. These inputs are also physical things.
+- Allow a rule to define the tasks that build the physical thing.
+- Allow navigation from the model for the physical thing to the tasks that are responsible for building it.
+- Expose native object files, jvm class files, and generated source for play applications as intermediate outputs.
+
+It is a non-goal of this milestone to provide a public way for a plugin author to define the intermediate outputs for a binary.
+
+## Implementation
+
+Many of these pieces are already present, and the implementation should formalize these concepts.
+
+Currently:
+
+- `BuildableModelElement` represents a physical thing.
+- `BinarySpec.tasks` and properties on `BuildableModelElement` represent the tasks that build the thing.
+- `BinarySpec.sources` represents the inputs to a binary.
+- A `@BinaryTasks` rule defines the tasks that build the binary.
+- Various types, such as `JvmClasses` and `PublicAssets` represent intermediate outputs.
+
+The implementation would be responsible for coordinating the rules when assembling the task graph, so that when a physical thing is to be built, the
+tasks that build its inputs should be configured, then added as dependencies of the tasks the build the target.
+
+The `components` report should show details of the intermediate outputs of a binary, the relationships between physical things and the entry point
+task to build the thing.
+
+# Milestone 5: Build logic defines tasks to run executable things
+
+This milestone generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
+
+The goals for this milestone:
+
+- Introduce an abstraction that represents an executable thing, where an installed executable or a test suite variant are executable things.
+- Allow a rule to define the tasks that run the executable thing.
+- Allow navigation from the model for the executable thing to the tasks that run it.
+- Expose an installed native executable and a test suite variant as executable things.
+
+This milestone should sync with the plan for play application execution.
+
+## Implementation
+
+The implementation would be responsible for building the executable things, and then configuring and running the appropriate tasks.
+
+The `components` report should show details of the executable things, which as the entry point task to run the thing.
+
+# Milestone 6: References between key objects in the software model are visible to rules
 
 The relationships exposed in milestone 1 represent ownership, where the relationship is one between a parent and child.
 This milestone exposes other key 'non-ownership' relationships present in the software model.
