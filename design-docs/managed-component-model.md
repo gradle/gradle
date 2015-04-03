@@ -51,16 +51,16 @@ Possibly a better implementation would be to change `CollectionBuilder` into a '
 
 The rest TBD
 
-# Milestone 2: Software model uses managed collections
+# Milestone 2: Configuration of key parts of the software model is deferred until required
 
 This milestone changes the software model to introduce 'managed map' types instead of `DomainObjectSet`.
 
-- Collection of `LanguageSourceSet` should allow any `LanguageSourceSet` type registered using a `@LanguageType` rule to be added.
-- Collection of `BinarySpec` should allow any `BinarySpec` type registered using a `@BinaryType` rule to be added.
-- Collection of `Task` should allow any `Task` implementation to be added.
+- The property `ComponentSpec.sources`, a collection of `LanguageSourceSet`, should allow any `LanguageSourceSet` type registered using a `@LanguageType` rule to be added.
+- The property `ComponentSpec.binaries`, a collection of `BinarySpec`, should allow any `BinarySpec` type registered using a `@BinaryType` rule to be added.
+- The property `BinarySpec.tasks`, a collection of `Task`, should allow any `Task` implementation to be added.
 
 At the completion of this milestone, it should be possible to write 'before-each', 'after-each', 'all with type' etc rules for the source sets and binaries of a component,
-and the tasks of these things.
+and the tasks of these things. These rules will be executed as required.
 
 ## Implementation
 
@@ -70,7 +70,39 @@ as configuration for the elements of these collections will be deferred, whereas
 This milestone requires a managed map implementation whose values are unmanaged, which means some kind of internal factory will be required for this implementation
 (such as `NamedEntityInstantiator`).
 
-# Milestone 3: References between key objects in the software model are visible to rules
+Currently the DSL supports nested, eager, configuration of these elements:
+
+    model {
+        component {
+            someThing {
+                sources {
+                    cpp { ... }
+                }
+                binaries {
+                    all { ... }
+                }
+            }
+        }
+    }
+
+Some replacement for this nesting should be offered, and the configuration deferred.
+
+# Milestone 3: Plugin author uses managed types to extend the software model
+
+This milestone allows a plugin author to extend certain key types using a managed type:
+
+- `ComponentSpec`
+- `LanguageSourceSet`
+- `BinarySpec`
+
+It is a non-goal of this milestone to add any further capabilities to managed types, or to migrate any of the existing subtypes to managed types.
+
+## Implementation
+
+This milestone will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
+individual nodes.
+
+# Milestone 4: References between key objects in the software model are visible to rules
 
 The relationships exposed in milestone 1 represent ownership, where the relationship is one between a parent and child.
 This milestone exposes other key 'non-ownership' relationships present in the software model.
@@ -91,18 +123,3 @@ For a binary's input source sets, one option would be to change the behaviour so
 copies would then be owned by the binary and can be further customized in the context of the binary.
 
 For a test suite's component under test, one option would be to restructure the relationship, so that test suite(s) become a child of the component under test.
-
-# Milestone 4: Plugin author uses managed types to extend the software model
-
-This milestone allows a plugin author to extend certain key types using a managed type:
-
-- `ComponentSpec`
-- `LanguageSourceSet`
-- `BinarySpec`
-
-It is a non-goal of this milestone to add any further capabilities to managed types, or to migrate any of the existing subtypes to managed types.
-
-## Implementation
-
-This milestone will require some state for a given object to be unmanaged, possibly attached as node private data, and some state to be managed, backed by
-individual nodes.
