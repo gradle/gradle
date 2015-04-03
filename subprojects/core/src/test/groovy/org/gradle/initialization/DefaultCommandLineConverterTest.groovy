@@ -435,7 +435,7 @@ public class DefaultCommandLineConverterTest extends Specification {
         [ "--max-workers=$N" ]                          | N             | 0                 | false
         [ "--parallel", "--max-workers=$N" ]            | N             | N                 | true
         [ "--parallel-threads=$N", "--max-workers=$M" ] | M             | M                 | true
-// TODO:[ "--max-workers=$N", "--parallel-threads=$M" ] | M             | M                 | true
+        [ "--max-workers=$N", "--parallel-threads=$M" ] | M             | M                 | true
         [ "--parallel-threads=-1" ]                     | NUM_OF_PROCS  | NUM_OF_PROCS      | true
         [ "--parallel-threads=0" ]                      | 1             | 0                 | false
         [ "--parallel-threads=1" ]                      | 1             | 1                 | true

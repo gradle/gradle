@@ -46,7 +46,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PARALLEL = "parallel";
     private static final String PARALLEL_THREADS = "parallel-threads";
 
-    private static final String WORKERS = "max-workers";
+    private static final String MAX_WORKERS = "max-workers";
 
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
 
@@ -82,9 +82,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
         parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").
                 deprecated("Prefer to use --parallel if you want to build in parallel and use --max-workers to set the number of executor threads.").incubating();
-        parser.option(WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
+        parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
-
+        parser.allowOneOf(MAX_WORKERS, PARALLEL_THREADS);
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -163,7 +163,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(PARALLEL)) {
+        if (options.hasOption(PARALLEL) || options.hadOptionRemoved(PARALLEL_THREADS)) {
             startParameter.setParallelProjectExecutionEnabled(true);
         }
 
@@ -176,12 +176,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             }
         }
 
-        if (options.hasOption(WORKERS)) {
+        if (options.hasOption(MAX_WORKERS)) {
             try {
-                int workerCount = Integer.parseInt(options.option(WORKERS).getValue());
+                int workerCount = Integer.parseInt(options.option(MAX_WORKERS).getValue());
                 startParameter.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", WORKERS));
+                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", MAX_WORKERS));
             }
         }
 
