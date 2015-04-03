@@ -25,6 +25,12 @@ public class NativeServicesTestFixture {
     static NativeServices nativeServices;
     static boolean initialized;
 
+    public static void initialize(File gradleUserHomeDir) {
+        if (!initialized) {
+            NativeServices.initialize(gradleUserHomeDir);
+        }
+    }
+
     public static void initialize() {
         if (!initialized) {
             File nativeDir = FileUtils.createTempDir("native");
