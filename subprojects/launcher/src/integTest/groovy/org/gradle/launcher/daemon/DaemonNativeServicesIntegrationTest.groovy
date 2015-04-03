@@ -18,12 +18,17 @@ package org.gradle.launcher.daemon
 
 class DaemonNativeServicesIntegrationTest extends DaemonIntegrationSpec {
     def "native services use daemon base dir" () {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        def nativeDir = new File(executer.gradleUserHomeDir, "native")
+
+        expect:
+        !nativeDir.exists()
+
         when:
         executer.withArguments("-q").run()
 
         then:
-        def nativeDir = new File(executer.daemonBaseDir, "native")
-        nativeDir.exists()
-        nativeDir.isDirectory()
+        nativeDir.directory
     }
 }

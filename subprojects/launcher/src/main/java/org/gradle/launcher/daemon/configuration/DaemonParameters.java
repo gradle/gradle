@@ -33,6 +33,7 @@ public class DaemonParameters {
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
 
     private final String uid;
+    private final File gradleUserHomeDir;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
@@ -49,6 +50,7 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
+        gradleUserHomeDir = layout.getGradleUserHomeDir();
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
@@ -62,6 +64,10 @@ public class DaemonParameters {
 
     public File getBaseDir() {
         return baseDir;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
     }
 
     public int getIdleTimeout() {
