@@ -38,7 +38,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         if (componentSpecContainer == null) {
             throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
         }
-        DomainObjectSet<NativeBinarySpec> projectBinaries = componentSpecContainer.withType(NativeLibrarySpec.class).getByName(requirement.getLibraryName()).getNativeBinaries();
+        DomainObjectSet<NativeBinarySpec> projectBinaries = componentSpecContainer.withType(NativeLibrarySpec.class).getByName(requirement.getLibraryName()).getBinaries().withType(NativeBinarySpec.class);
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
         // TODO:DAZ Convert, don't cast
         for (NativeBinarySpec nativeBinarySpec : projectBinaries) {

@@ -21,9 +21,9 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
-import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
 import org.gradle.platform.base.ComponentSpecContainer
@@ -40,7 +40,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
-        library.nativeBinaries >> binaries
+        library.binaries >> binaries
     }
 
     def "locates binaries for library in same project"() {
