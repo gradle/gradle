@@ -25,17 +25,11 @@ import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.InitializableServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSystemServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemServices.class);
-    private final InitializableServiceRegistry nativeServices;
-
-    public FileSystemServices(InitializableServiceRegistry nativeServices) {
-        this.nativeServices = nativeServices;
-    }
 
     @SuppressWarnings("UnusedDeclaration")
     public FileCanonicalizer createFileCanonicalizer() {
@@ -43,14 +37,12 @@ public class FileSystemServices {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem) throws Exception {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new WindowsSymlink());
         }
 
-        // Use the native-platform integration, if available
-        PosixFiles posixFiles = nativeServices.getInitialized().get(PosixFiles.class);
         if (posixFiles instanceof UnavailablePosixFiles) {
             LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
         } else {
