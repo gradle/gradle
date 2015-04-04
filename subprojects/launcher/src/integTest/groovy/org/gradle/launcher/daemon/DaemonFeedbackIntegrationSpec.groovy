@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -185,9 +186,9 @@ task sleep << {
 
     List<File> getLogs(baseDir) {
         //the gradle version dir
-        def daemonDirs = baseDir.listFiles().findAll { it.name != "native" }
-        assert daemonDirs.size() == 1
-        def daemonFiles = daemonDirs[0].listFiles()
+        def daemonDir = new File(baseDir, GradleVersion.current().version)
+        assert daemonDir.exists()
+        def daemonFiles = daemonDir.listFiles()
 
         daemonFiles.findAll { it.name.endsWith('.log') }
     }
