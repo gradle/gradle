@@ -76,9 +76,9 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     public static NativeServices getInstance() {
         if (!initialized) {
-            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize()."
-                    + "\nIf this occurs while running gradle or running integration tests, it is indicative of a problem."
-                    + "\nIf this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.");
+            // If this occurs while running gradle or running integration tests, it is indicative of a problem.
+            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
+            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
         return INSTANCE;
     }
