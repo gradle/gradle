@@ -16,8 +16,8 @@
 
 package org.gradle.testfixtures.internal;
 
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.io.File;
 
@@ -33,7 +33,7 @@ public class NativeServicesTestFixture {
 
     public static void initialize() {
         if (!initialized) {
-            File nativeDir = FileUtils.createTempDir("native");
+            File nativeDir = TestNameTestDirectoryProvider.newInstance().getTestDirectory();
             NativeServices.initialize(nativeDir);
         }
     }
