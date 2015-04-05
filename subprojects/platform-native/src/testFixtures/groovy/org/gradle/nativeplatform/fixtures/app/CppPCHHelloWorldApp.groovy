@@ -35,6 +35,21 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
         """);
     }
 
+    SourceFile getAlternateMainSource() {
+        sourceFile("cpp", "main.cpp", """
+            #include <iostream>
+            #include "hello.h"
+
+            int main () {
+              Greeter greeter;
+              greeter.sayHello();
+              return 0;
+            }
+        """)
+    }
+
+    String alternateOutput = "$HELLO_WORLD\n"
+
     @Override
     SourceFile getLibraryHeader() {
         getLibraryHeader("")
@@ -57,50 +72,9 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
             };
 
             int DLL_FUNC sum(int a, int b);
-            #ifdef FRENCH
-            #pragma message("<==== compiling bonjour.h ====>")
-            #else
             #pragma message("<==== compiling hello.h ====>")
             #endif
-            #endif
         """);
-    }
-
-    @Override
-    TestApp getAlternate() {
-        return new TestApp() {
-            @Override
-            SourceFile getMainSource() {
-                return getAlternateMainSource()
-            }
-
-            @Override
-            SourceFile getLibraryHeader() {
-                return sourceFile("headers", "hello.h", """
-                    #ifndef HELLO_H
-                    #define HELLO_H
-                    #ifdef _WIN32
-                    #define DLL_FUNC __declspec(dllexport)
-                    #else
-                    #define DLL_FUNC
-                    #endif
-
-                    class Greeter {
-                        public:
-                        void DLL_FUNC sayHello();
-                    };
-
-                    int DLL_FUNC sum(int a, int b);
-                    #pragma message("<==== compiling althello.h ====>")
-                    #endif
-                """);
-            }
-
-            @Override
-            List<SourceFile> getLibrarySources() {
-                return getAlternateLibrarySources()
-            }
-        }
     }
 
     @Override
@@ -165,23 +139,29 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
         return "iostream"
     }
 
-    @Override
-    SourceFile getAlternateMainSource() {
-        return getMainSource()
-    }
+    List<SourceFile> alternateLibrarySources = [
+        sourceFile("cpp", "hello.cpp", """
+            #include <iostream>
+            #include "hello.h"
 
-    @Override
-    String getAlternateOutput() {
-        return null
-    }
+            void DLL_FUNC Greeter::sayHello() {
+                std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
+            }
 
-    @Override
-    List<SourceFile> getAlternateLibrarySources() {
-        return getLibrarySources()
-    }
+            // Extra function to ensure library has different size
+            int anotherFunction() {
+                return 1000;
+            }
+        """),
+        sourceFile("cpp", "sum.cpp", """
+            #include "hello.h"
 
-    @Override
-    String getAlternateLibraryOutput() {
-        return null
-    }
+            int DLL_FUNC sum(int a, int b) {
+                return a + b;
+            }
+        """)
+    ]
+
+    String alternateLibraryOutput = "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\n12"
+
 }

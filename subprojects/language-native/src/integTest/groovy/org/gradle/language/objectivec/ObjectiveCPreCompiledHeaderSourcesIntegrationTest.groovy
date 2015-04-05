@@ -28,4 +28,9 @@ class ObjectiveCPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePr
     PCHHelloWorldApp getApp() {
         return new ObjectiveCPCHHelloWorldApp()
     }
+
+    @Override
+    String getSourceSet() {
+        return "objc"
+    }
 }

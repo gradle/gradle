@@ -25,4 +25,9 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
     PCHHelloWorldApp getApp() {
         return new CppPCHHelloWorldApp()
     }
+
+    @Override
+    String getSourceSet() {
+        return "cpp"
+    }
 }
