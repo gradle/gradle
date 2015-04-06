@@ -341,12 +341,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
 
-        and:
-        args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
-        ! output.contains("<==== compiling hello.h ====>")
-
         when:
         app.alternate.libraryHeader.writeToDir(file("src/hello"))
 
@@ -355,12 +349,6 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds PCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling althello.h ====>")
-
-        and:
-        args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
-        ! output.contains("<==== compiling althello.h ====>")
     }
 
     String getSuffix() {
