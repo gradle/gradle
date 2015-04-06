@@ -297,7 +297,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         expect: succeeds()
     }
 
-    def "does not allow changing a dependency project's dependencies after configuration is resolved"() {
+    def "warns about changing a dependency project's dependencies after included in resolution"() {
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
@@ -320,7 +320,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 """
         executer.withDeprecationChecksDisabled()
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change configuration ':compile' after it has been resolved.")
+        when: succeeds()
+        then: output.contains("Attempting to change configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 }
