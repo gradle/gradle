@@ -30,7 +30,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -41,18 +40,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class ProjectBuilderImpl {
-    static {
-        File nativeDir = FileUtils.createTempDir("native");
-        NativeServices.initialize(nativeDir);
-    }
-
-    private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder
-            .builder()
-            .displayName("global services")
-            .parent(new TestGlobalScopeServices.TestLoggingServices())
-            .parent(NativeServices.getInstance())
-            .provider(new TestGlobalScopeServices())
-            .build();
+    private static ServiceRegistry globalServices;
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {
@@ -79,9 +67,12 @@ public class ProjectBuilderImpl {
         final File homeDir = new File(projectDir, "gradleHome");
 
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
+        File userHomeDir = new File(projectDir, "userHome");
+        startParameter.setGradleUserHomeDir(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
+        NativeServices.initialize(userHomeDir);
+
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -94,6 +85,19 @@ public class ProjectBuilderImpl {
         gradle.setDefaultProject(project);
 
         return project;
+    }
+
+    private ServiceRegistry getGlobalServices() {
+        if (globalServices == null) {
+            globalServices = ServiceRegistryBuilder
+                    .builder()
+                    .displayName("global services")
+                    .parent(new TestGlobalScopeServices.TestLoggingServices())
+                    .parent(NativeServices.getInstance())
+                    .provider(new TestGlobalScopeServices())
+                    .build();
+        }
+        return globalServices;
     }
 
     public File prepareProjectDir(File projectDir) {

@@ -26,7 +26,7 @@ import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.hamcrest.Matcher;
 
 import java.io.*;
@@ -365,7 +365,7 @@ public class TestFile extends File {
     }
 
     public void createLink(String target) {
-        NativeServicesTestFixture.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+        NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
     }
 
     public String readLink() {
