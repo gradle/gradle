@@ -306,6 +306,11 @@ The default version of the corresponding tool of the following code quality plug
 
 TODO - methods of `AuthenticationSupported` now work slightly differently, in particular will fail when credentials are not instance of `PasswordCredentials`.
 
+### Deprecated ComponentMetadataHandler.eachComponent() has been removed
+
+This method (and all overloads) has been removed in 2.4, after [being deprecated in Gradle 2.3](http://gradle.org/docs/2.3/release-notes#component-metadata-rule-enhancements)
+and superseded by the [`all()` method](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all\(org.gradle.api.Action\)).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
