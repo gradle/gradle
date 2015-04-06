@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
 
 import java.io.File;
@@ -58,10 +59,9 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
 
                 MutableLocalComponentMetaData allConfigurationsComponentMetaData = publishLocalComponentFactory.convert(allConfigurations, module);
                 if (descriptor != null) {
-                    // TODO:DAZ Ensure the artifacts are resolved. We need to improve this.
-                    allConfigurationsComponentMetaData.toPublishMetaData();
                     ModuleDescriptor moduleDescriptor = allConfigurationsComponentMetaData.getModuleDescriptor();
-                    ivyModuleDescriptorWriter.write(moduleDescriptor, descriptor);
+                    IvyModulePublishMetaData publishMetaData = allConfigurationsComponentMetaData.toPublishMetaData();
+                    ivyModuleDescriptorWriter.write(moduleDescriptor, publishMetaData.getArtifacts(), descriptor);
                 }
 
                 // Need to convert a second time, to determine which artifacts to publish (and yes, this isn't a great way to do things...)

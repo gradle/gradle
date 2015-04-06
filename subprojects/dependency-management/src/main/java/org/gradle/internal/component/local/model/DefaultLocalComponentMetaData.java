@@ -82,16 +82,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         if (artifactsById.containsKey(artifactMetaData.getId())) {
             artifactMetaData = artifactsById.get(artifactMetaData.getId());
         } else {
-            artifactMetaData.ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, artifactName.getAttributes());
-
             artifactsById.put(artifactMetaData.id, artifactMetaData);
             // TODO:DAZ It's a bit broken that artifactMetaData.id.name != artifactName
             artifactsByIvyName.put(artifactName, artifactMetaData);
         }
         artifactMetaData.addConfiguration(configuration);
-
-        // TODO:DAZ The Ivy Artifact is only required for publishing so that we generate the right ivy.xml file. Should change the generation code and remove this.
-        moduleDescriptor.addArtifact(configuration, artifactMetaData.ivyArtifact);
     }
 
     public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
@@ -128,7 +123,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id);
         for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
             IvyArtifactName artifactName = artifact.getName();
-            Artifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, artifactName.getAttributes());
+            MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, artifactName.getAttributes());
+            for (String configuration : artifact.configurations) {
+                ivyArtifact.addConfiguration(configuration);
+            }
             publishMetaData.addArtifact(ivyArtifact, artifact.file);
         }
         return publishMetaData;
@@ -139,7 +137,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private final DefaultLocalArtifactIdentifier id;
         private final File file;
         private final Set<String> configurations = Sets.newHashSet();
-        private MDArtifact ivyArtifact;
 
         private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, IvyArtifactName artifact, File file) {
             this.componentIdentifier = componentIdentifier;
@@ -153,7 +150,6 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
         void addConfiguration(String configuration) {
             configurations.add(configuration);
-            ivyArtifact.addConfiguration(configuration);
         }
 
         @Override
