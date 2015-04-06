@@ -517,6 +517,7 @@ public class DefaultConfigurationTest {
 
             allowing(otherConfiguration).addMutationValidator(with(any(MutationValidator.class)));
 
+            allowing(otherConfiguration).triggerWhenEmptyActionsIfNecessary();
             allowing(otherConfiguration).markAsObserved();
 
             allowing(fileCollectionDependencyStub).getBuildDependencies();
