@@ -24,8 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Artifact
 
 import java.util.*;
 
-public class DefaultResolvedConfigurationBuilder implements
-        ResolvedConfigurationBuilder, ResolvedConfigurationResults, ResolvedContentsMapping {
+public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
 
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
     private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
@@ -67,27 +66,6 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.resolvedDependency(id);
     }
 
-    public boolean hasError() {
-        return !unresolvedDependencies.isEmpty();
-    }
-
-    public TransientConfigurationResults more() {
-        return builder.load(this);
-    }
-
-    // TODO:DAZ Move the artifact-related stuff off ResolvedConfigurationBuilder into a new builder
-    public Set<ResolvedArtifact> getArtifacts() {
-        assertArtifactsResolved();
-        return new LinkedHashSet<ResolvedArtifact>(allResolvedArtifacts);
-    }
-
-    public Set<ResolvedArtifact> getArtifacts(long artifactId) {
-        assertArtifactsResolved();
-        Set<ResolvedArtifact> a = resolvedArtifactsById.get(artifactId);
-        assert a != null : "Unable to find artifacts for id: " + artifactId;
-        return a;
-    }
-
     public void resolveArtifacts() {
         if (allResolvedArtifacts == null) {
             allResolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
@@ -109,13 +87,26 @@ public class DefaultResolvedConfigurationBuilder implements
         }
     }
 
-    public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
-        ModuleDependency m = modulesMap.get(id);
-        assert m != null : "Unable to find module dependency for id: " + id;
-        return m;
+    @Override
+    public ResolvedConfigurationResults complete() {
+        assertArtifactsResolved();
+        return new DefaultResolvedConfigurationResults(unresolvedDependencies, allResolvedArtifacts, builder, new ContentMapping());
     }
 
-    public Set<UnresolvedDependency> getUnresolvedDependencies() {
-        return unresolvedDependencies;
+    private class ContentMapping implements ResolvedContentsMapping {
+        @Override
+        public Set<ResolvedArtifact> getArtifacts(long id) {
+            assertArtifactsResolved();
+            Set<ResolvedArtifact> a = resolvedArtifactsById.get(id);
+            assert a != null : "Unable to find artifacts for id: " + id;
+            return a;
+        }
+
+        @Override
+        public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
+            ModuleDependency m = modulesMap.get(id);
+            assert m != null : "Unable to find module dependency for id: " + id;
+            return m;
+        }
     }
 }

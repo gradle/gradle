@@ -83,10 +83,10 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     private DefaultLenientConfiguration resolve() {
-        def results = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
-        builder.resolve(configuration, resultBuilder, results, projectModelBuilder)
-        results.resolveArtifacts()
-        new DefaultLenientConfiguration(configuration, results, Stub(CacheLockingManager))
+        def modelBuilder = new DefaultResolvedConfigurationBuilder(new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore()))
+        builder.resolve(configuration, resultBuilder, modelBuilder, projectModelBuilder)
+        modelBuilder.resolveArtifacts()
+        new DefaultLenientConfiguration(configuration, modelBuilder.complete(), Stub(CacheLockingManager))
     }
 
     def "does not resolve a given module selector more than once"() {

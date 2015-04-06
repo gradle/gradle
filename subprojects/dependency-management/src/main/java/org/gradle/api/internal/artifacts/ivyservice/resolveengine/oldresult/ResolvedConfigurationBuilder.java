@@ -36,4 +36,6 @@ public interface ResolvedConfigurationBuilder {
     void done(ResolvedConfigurationIdentifier root);
 
     void resolveArtifacts();
+
+    ResolvedConfigurationResults complete();
 }

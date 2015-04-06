@@ -136,7 +136,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 oldModelBuilder.resolveArtifacts();
                 // TODO:DAZ Need to ensure that all resources are released at this point.
 
-                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
+                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder.complete(), cacheLockingManager);
                 results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete(), projectModelBuilder.complete());
             }
         });
