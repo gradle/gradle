@@ -1,8 +1,7 @@
-This feature is a bucket for improvements to core Gradle plugins. Most of these improvements are not strategic.
-
-As this 'feature' is a list of bug fixes, this feature spec will not follow the usual template.
-
 # Application plugin
+
+This feature is a bucket for improvements to the Gradle `application` plugin.
+Most of these improvements are not strategic.
 
 ## Allow custom templates for the start scripts
 
