@@ -77,6 +77,17 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.attributes = Collections.emptyMap();
     }
 
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
+        this.name = name;
+        this.type = type;
+        this.extension = extension;
+        if (classifier == null) {
+            this.attributes = Collections.emptyMap();
+        } else {
+            this.attributes = Collections.singletonMap(CLASSIFIER, classifier);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();

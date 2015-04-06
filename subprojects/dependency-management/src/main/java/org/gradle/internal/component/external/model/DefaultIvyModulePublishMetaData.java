@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -60,7 +61,7 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         private final File file;
 
         private DefaultIvyModuleArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleComponentArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
+            this.id = new DefaultModuleComponentArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), DefaultIvyArtifactName.forIvyArtifact(artifact));
             this.artifact = artifact;
             this.file = file;
         }

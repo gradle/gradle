@@ -28,10 +28,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 public class DefaultModuleComponentArtifactMetaData implements ModuleComponentArtifactMetaData {
     private final DefaultModuleComponentArtifactIdentifier id;
 
-    public DefaultModuleComponentArtifactMetaData(ModuleComponentIdentifier componentIdentifier, Artifact artifact) {
-        this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
-    }
-
     public DefaultModuleComponentArtifactMetaData(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
     }

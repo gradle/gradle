@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,7 +28,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.*;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -84,9 +82,8 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     }
 
     public ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, extension, extraAttributes);
-        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
+        return new DefaultModuleComponentArtifactMetaData(getComponentId(), ivyArtifactName);
     }
 
     public Set<ModuleComponentArtifactMetaData> getArtifacts() {
@@ -118,7 +115,8 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     private void populateArtifactsFromDescriptor() {
         Map<Artifact, ModuleComponentArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
         for (Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
-            ModuleComponentArtifactMetaData artifact = new DefaultModuleComponentArtifactMetaData(getComponentId(), descriptorArtifact);
+            IvyArtifactName artifactName = DefaultIvyArtifactName.forIvyArtifact(descriptorArtifact);
+            ModuleComponentArtifactMetaData artifact = new DefaultModuleComponentArtifactMetaData(getComponentId(), artifactName);
             artifactToMetaData.put(descriptorArtifact, artifact);
         }
 
