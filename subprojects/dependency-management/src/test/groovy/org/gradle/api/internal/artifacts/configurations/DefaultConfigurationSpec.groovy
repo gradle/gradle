@@ -356,4 +356,72 @@ class DefaultConfigurationSpec extends Specification {
         def exArtifact = thrown(InvalidUserDataException);
         exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
     }
+
+    def "whenEmpty action does not trigger when config has dependencies"() {
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.whenEmpty whenEmptyAction
+        conf.dependencies.add(Mock(Dependency))
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        0 * _
+    }
+
+    def "second whenEmpty action does not trigger if first one already added dependencies"() {
+        def conf = conf("conf")
+        def whenEmptyAction1 = Mock(Action)
+        def whenEmptyAction2 = Mock(Action)
+        conf.whenEmpty whenEmptyAction1
+        conf.whenEmpty whenEmptyAction2
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction1.execute(conf.dependencies) >> {
+            conf.dependencies.add(Mock(Dependency))
+        }
+        0 * _
+    }
+
+    def "whenEmpty action is called even if parent config has dependencies"() {
+        def parent = conf("parent", ":parent")
+        parent.dependencies.add(Mock(Dependency))
+
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.extendsFrom parent
+        conf.whenEmpty whenEmptyAction
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction.execute(conf.dependencies)
+        0 * _
+    }
+
+    def "whenEmpty action is called on self first, then on parent"() {
+        def parentWhenEmptyAction = Mock(Action)
+        def parent = conf("parent", ":parent")
+        parent.whenEmpty parentWhenEmptyAction
+
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.extendsFrom parent
+        conf.whenEmpty whenEmptyAction
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction.execute(conf.dependencies)
+
+        then:
+        1 * parentWhenEmptyAction.execute(parent.dependencies)
+        0 * _
+    }
 }

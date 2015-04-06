@@ -60,12 +60,10 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     @Override
     protected void configureTaskDefaults(JDepend task, String baseName) {
         def config = project.configurations['jdepend']
-        config.incoming.beforeResolve {
-            if (config.dependencies.empty) {
-                project.dependencies {
-                    jdepend "jdepend:jdepend:$extension.toolVersion"
-                    jdepend("org.apache.ant:ant-jdepend:1.9.4")
-                }
+        config.whenEmpty { dependencies ->
+            project.dependencies {
+                jdepend "jdepend:jdepend:$extension.toolVersion"
+                jdepend("org.apache.ant:ant-jdepend:1.9.4")
             }
         }
         task.conventionMapping.with {

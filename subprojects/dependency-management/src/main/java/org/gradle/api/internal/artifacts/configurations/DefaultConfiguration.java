@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
@@ -61,6 +62,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencySet dependencies;
     private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private final DefaultDependencySet allDependencies;
+    private final List<Action<? super DependencySet>> whenEmptyActions = new ArrayList<Action<? super DependencySet>>();
     private final DefaultPublishArtifactSet artifacts;
     private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private final DefaultPublishArtifactSet allArtifacts;
@@ -206,6 +208,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
+    public Configuration whenEmpty(Action<? super DependencySet> action) {
+        validateMutation(MutationType.CONTENT);
+        this.whenEmptyActions.add(action);
+        return this;
+    }
+
+    @Override
+    public Configuration whenEmpty(Closure action) {
+        return whenEmpty(new ClosureBackedAction(action, Closure.OWNER_FIRST));
+    }
+
+    @Override
+    public void triggerWhenEmptyActionsIfNecessary() {
+        if (!whenEmptyActions.isEmpty()) {
+            for (Action<? super DependencySet> action : whenEmptyActions) {
+                if (!dependencies.isEmpty()) {
+                    break;
+                }
+                action.execute(dependencies);
+            }
+        }
+        for (Configuration superConfig : extendsFrom) {
+            ((ConfigurationInternal) superConfig).triggerWhenEmptyActionsIfNecessary();
+        }
+    }
+
     public Set<Configuration> getAll() {
         return configurationsProvider.getAll();
     }
@@ -260,6 +289,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
+                triggerWhenEmptyActionsIfNecessary();
                 cachedResolverResults = resolver.resolve(this);
                 for (Configuration configuration : extendsFrom) {
                     ((ConfigurationInternal) configuration).includedInResolveResult();
@@ -363,6 +393,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.visibility = visibility;
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
+
+        copiedConfiguration.whenEmptyActions.addAll(whenEmptyActions);
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
