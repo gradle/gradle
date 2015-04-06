@@ -16,8 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.*;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -35,7 +34,6 @@ import java.util.*;
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ComponentArtifactIdentifier, DefaultLocalArtifactMetaData>();
     private final Map<IvyArtifactName, DefaultLocalArtifactMetaData> artifactsByIvyName = new LinkedHashMap<IvyArtifactName, DefaultLocalArtifactMetaData>();
-    private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final Map<String, PublishArtifactSet> configurationArtifacts = new LinkedHashMap<String, PublishArtifactSet>();
     private final List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
     private final DefaultModuleDescriptor moduleDescriptor;
@@ -84,11 +82,16 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         if (artifactsById.containsKey(artifactMetaData.getId())) {
             artifactMetaData = artifactsById.get(artifactMetaData.getId());
         } else {
+            artifactMetaData.ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, artifactName.getAttributes());
+
             artifactsById.put(artifactMetaData.id, artifactMetaData);
             // TODO:DAZ It's a bit broken that artifactMetaData.id.name != artifactName
             artifactsByIvyName.put(artifactName, artifactMetaData);
         }
-        artifactsByConfig.put(configuration, artifactMetaData);
+        artifactMetaData.addConfiguration(configuration);
+
+        // TODO:DAZ The Ivy Artifact is only required for publishing so that we generate the right ivy.xml file. Should change the generation code and remove this.
+        moduleDescriptor.addArtifact(configuration, artifactMetaData.ivyArtifact);
     }
 
     public void addConfiguration(String name, boolean visible, String description, String[] superConfigs, boolean transitive) {
@@ -135,6 +138,8 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         private final ComponentIdentifier componentIdentifier;
         private final DefaultLocalArtifactIdentifier id;
         private final File file;
+        private final Set<String> configurations = Sets.newHashSet();
+        private MDArtifact ivyArtifact;
 
         private DefaultLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String displayName, IvyArtifactName artifact, File file) {
             this.componentIdentifier = componentIdentifier;
@@ -144,6 +149,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             // TODO:DAZ The local artifact identifier should include the file directly, rather than hacking the IvyArtifactName in this way
             this.id = new DefaultLocalArtifactIdentifier(componentIdentifier, displayName, artifact.getName(), artifact.getType(), artifact.getExtension(), attrs);
             this.file = file;
+        }
+
+        void addConfiguration(String configuration) {
+            configurations.add(configuration);
+            ivyArtifact.addConfiguration(configuration);
         }
 
         @Override
@@ -201,13 +211,11 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
             resolveArtifacts();
 
-            // TODO:DAZ Build up from configuration->PublishArtifactSet mapping directly here
             Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
-            Set<ComponentArtifactIdentifier> seen = new HashSet<ComponentArtifactIdentifier>();
             for (String configName : configurationMetaData.getHierarchy()) {
-                for (DefaultLocalArtifactMetaData localArtifactMetaData : artifactsByConfig.get(configName)) {
-                    if (seen.add(localArtifactMetaData.id)) {
-                        result.add(localArtifactMetaData);
+                for (DefaultLocalArtifactMetaData artifactMetaData : artifactsById.values()) {
+                    if (artifactMetaData.configurations.contains(configName)) {
+                        result.add(artifactMetaData);
                     }
                 }
             }
