@@ -123,13 +123,20 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id);
         for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
             IvyArtifactName artifactName = artifact.getName();
-            MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, artifactName.getAttributes());
+            MDArtifact ivyArtifact = new MDArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), null, ivyArtifactAttributes(artifactName));
             for (String configuration : artifact.configurations) {
                 ivyArtifact.addConfiguration(configuration);
             }
             publishMetaData.addArtifact(ivyArtifact, artifact.file);
         }
         return publishMetaData;
+    }
+
+    private Map<String, String> ivyArtifactAttributes(IvyArtifactName ivyArtifactName) {
+        if (ivyArtifactName.getClassifier() == null) {
+            return Collections.emptyMap();
+        }
+        return Collections.singletonMap("m:classifier", ivyArtifactName.getClassifier());
     }
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {

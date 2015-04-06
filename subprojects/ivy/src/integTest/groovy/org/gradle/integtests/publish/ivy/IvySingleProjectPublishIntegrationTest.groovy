@@ -70,6 +70,49 @@ uploadPublish {
         ivyDescriptor.expectArtifact("jar2").conf == ["publish"]
     }
 
+    def "publish classified artifact"() {
+        settingsFile << "rootProject.name = 'publishTest'"
+        file("file1") << "some content"
+
+        buildFile << """
+apply plugin: "base"
+
+group = "org.gradle.test"
+version = 1.9
+
+configurations { publish }
+
+task jar1(type: Jar) {
+    baseName = "jar1"
+    classifier = "classy"
+    from "file1"
+}
+
+artifacts {
+    publish jar1
+}
+
+uploadPublish {
+    repositories {
+        ivy {
+            url "${ivyRepo.uri}"
+        }
+    }
+}
+        """
+
+        when:
+        run "uploadPublish"
+
+        then:
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
+        ivyModule.assertArtifactsPublished("ivy-1.9.xml", "jar1-1.9-classy.jar")
+
+        and:
+        def ivyDescriptor = ivyModule.parsedIvy
+        ivyDescriptor.expectArtifact("jar1").classifier == "classy"
+    }
+
     def "publish multiple artifacts in separate configurations"() {
         file("settings.gradle") << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
