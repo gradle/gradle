@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -81,11 +82,12 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
 
     private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
         long id = idGenerator.generateId();
+        ComponentResolveMetaData component = childConfiguration.metaData.getComponent();
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
         if (!artifacts.isEmpty()) {
-            return new DependencyArtifactSet(childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifacts, artifactResolver, id);
+            return new DependencyArtifactSet(id, component, artifacts, artifactResolver);
         }
-        return new ConfigurationArtifactsSet(childConfiguration, dependency.getSelector(), artifactResolver, id);
+        return new ConfigurationArtifactsSet(id, component, childConfiguration.id, dependency.getSelector(), artifactResolver);
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {

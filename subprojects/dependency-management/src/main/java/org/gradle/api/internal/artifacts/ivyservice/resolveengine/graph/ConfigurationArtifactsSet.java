@@ -16,25 +16,50 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.DefaultComponentUsage;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 // TODO:DAZ Probably want to resolve early for external modules, and only hang onto Configuration node for local components
 class ConfigurationArtifactsSet extends AbstractArtifactSet {
-    private final DependencyGraphBuilder.ConfigurationNode childConfiguration;
+    private final ResolvedConfigurationIdentifier configurationId;
     private final ModuleResolutionFilter selector;
+    private Set<ComponentArtifactMetaData> artifacts;
 
-    public ConfigurationArtifactsSet(DependencyGraphBuilder.ConfigurationNode childConfiguration, ModuleResolutionFilter selector, ArtifactResolver artifactResolver, long id) {
-        super(id, childConfiguration.toId(), childConfiguration.metaData.getComponent(), artifactResolver);
-        this.childConfiguration = childConfiguration;
+    public ConfigurationArtifactsSet(long id, ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector, ArtifactResolver artifactResolver) {
+        super(id, component.getId(), component, artifactResolver);
+        this.configurationId = configurationId;
         this.selector = selector;
     }
 
     @Override
-    protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
-        return childConfiguration.getArtifacts(selector, getArtifactResolver());
+    protected Set<ComponentArtifactMetaData> resolveComponentArtifacts(ComponentResolveMetaData component) {
+        if (artifacts == null) {
+            BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
+            getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
+            artifacts = result.getArtifacts();
+        }
+
+        Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
+        ModuleIdentifier moduleId = configurationId.getId().getModule();
+        for (ComponentArtifactMetaData artifact : artifacts) {
+            IvyArtifactName artifactName = artifact.getName();
+            if (!selector.acceptArtifact(moduleId, artifactName)) {
+                continue;
+            }
+            result.add(artifact);
+        }
+
+        return result;
     }
 }

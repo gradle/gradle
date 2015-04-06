@@ -87,7 +87,7 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(configuration.getModule(), configuration.getAll(), rootModule);
 
-        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver, artifactResolver);
+        ResolveState resolveState = new ResolveState(rootModule, configuration.getName(), idResolver, metaDataResolver, dependencyToConfigurationResolver);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
@@ -328,17 +328,14 @@ public class DependencyGraphBuilder {
         private final DependencyToComponentIdResolver idResolver;
         private final ComponentMetaDataResolver metaDataResolver;
         private final DependencyToConfigurationResolver dependencyToConfigurationResolver;
-        private final ArtifactResolver artifactResolver;
         private final Set<ConfigurationNode> queued = new HashSet<ConfigurationNode>();
         private final LinkedList<ConfigurationNode> queue = new LinkedList<ConfigurationNode>();
 
         public ResolveState(ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                            ComponentMetaDataResolver metaDataResolver, DependencyToConfigurationResolver dependencyToConfigurationResolver,
-                            ArtifactResolver artifactResolver) {
+                            ComponentMetaDataResolver metaDataResolver, DependencyToConfigurationResolver dependencyToConfigurationResolver) {
             this.idResolver = idResolver;
             this.metaDataResolver = metaDataResolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
-            this.artifactResolver = artifactResolver;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
@@ -367,7 +364,7 @@ public class DependencyGraphBuilder {
             ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.id, configurationName);
             ConfigurationNode configuration = nodes.get(id);
             if (configuration == null) {
-                configuration = new ConfigurationNode(module, id, this);
+                configuration = new ConfigurationNode(id, module, this);
                 nodes.put(id, configuration);
             }
             return configuration;
@@ -632,13 +629,12 @@ public class DependencyGraphBuilder {
 
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
-        private Set<ComponentArtifactMetaData> artifacts;
 
-        private ConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
+        private ConfigurationNode(ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
+            this.id = id;
             this.moduleRevision = moduleRevision;
             this.resolveState = resolveState;
             this.metaData = moduleRevision.metaData.getConfiguration(id.getConfiguration());
-            this.id = id;
             moduleRevision.addConfiguration(this);
         }
 
@@ -648,29 +644,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s(%s)", moduleRevision, metaData.getName());
-        }
-
-        // TODO:DAZ Move this into the ArtifactSet: we don't want to keep all of these references.
-        // The main question is how to maintain the cache of all artifacts pre-filtered.
-        public Set<ComponentArtifactMetaData> getArtifacts(ModuleResolutionFilter moduleResolutionFilter, ArtifactResolver artifactResolver) {
-            if (artifacts == null) {
-                BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
-                artifactResolver.resolveModuleArtifacts(metaData.getComponent(), new DefaultComponentUsage(metaData.getName()), result);
-                artifacts = result.getArtifacts();
-            }
-
-            Set<ComponentArtifactMetaData> result = new LinkedHashSet<ComponentArtifactMetaData>();
-            ModuleIdentifier moduleId = id.getId().getModule();
-            for (ComponentArtifactMetaData artifact : artifacts) {
-                IvyArtifactName artifactName = artifact.getName();
-                if (!moduleResolutionFilter.acceptArtifact(moduleId, artifactName)) {
-                    continue;
-                }
-                result.add(artifact);
-            }
-
-            return result;
+            return String.format("%s(%s)", id.getId(), id.getConfiguration());
         }
 
         public boolean isTransitive() {
@@ -808,7 +782,7 @@ public class DependencyGraphBuilder {
 
     private static class RootConfigurationNode extends ConfigurationNode {
         private RootConfigurationNode(ModuleVersionResolveState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState) {
-            super(moduleRevision, id, resolveState);
+            super(id, moduleRevision, resolveState);
         }
 
         @Override

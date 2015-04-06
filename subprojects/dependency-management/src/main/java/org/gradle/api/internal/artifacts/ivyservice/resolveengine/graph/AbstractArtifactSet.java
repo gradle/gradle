@@ -52,7 +52,7 @@ abstract class AbstractArtifactSet implements ArtifactSet {
     public Set<ResolvedArtifact> getArtifacts() {
         if (resolvedArtifacts == null) {
             // TODO:DAZ Cut the state that we hold to just what is absolutely required for artifact resolution
-            Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts();
+            Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts(component);
             resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
             for (ComponentArtifactMetaData artifact : componentArtifacts) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
@@ -70,7 +70,7 @@ abstract class AbstractArtifactSet implements ArtifactSet {
         return artifactResolver;
     }
 
-    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts();
+    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts(ComponentResolveMetaData component);
 
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;
