@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
+import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -182,5 +183,29 @@ task checkDeps
         then:
         fails 'checkDeps'
         failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3271")
+    def "gradleApi dependency implements contentEquals"() {
+        when:
+        buildFile << """
+            configurations {
+              conf
+            }
+
+            dependencies {
+              conf gradleApi()
+            }
+
+            task check << {
+              assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
+              assert dependencies.gradleApi().is(dependencies.gradleApi())
+              assert dependencies.gradleApi() == dependencies.gradleApi()
+              assert configurations.conf.dependencies.contains(dependencies.gradleApi())
+            }
+        """
+
+        then:
+        succeeds "check"
     }
 }

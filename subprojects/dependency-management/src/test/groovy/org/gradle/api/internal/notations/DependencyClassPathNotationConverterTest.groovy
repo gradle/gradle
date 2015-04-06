@@ -51,6 +51,13 @@ public class DependencyClassPathNotationConverterTest extends Specification {
 
         then:
         out.is dependency
+
+        when: // same instance is reused
+        def out2 = parse(DependencyFactory.ClassPathNotation.GRADLE_API)
+
+        then:
+        0 * instantiator._
+        out2.is out
     }
 
     def parse(def value) {
