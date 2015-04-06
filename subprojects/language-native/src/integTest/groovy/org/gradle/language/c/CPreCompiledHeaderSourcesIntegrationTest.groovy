@@ -25,9 +25,4 @@ class CPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiled
     PCHHelloWorldApp getApp() {
         return new CPCHHelloWorldApp()
     }
-
-    @Override
-    String getSourceSet() {
-        return "c"
-    }
 }

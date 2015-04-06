@@ -38,23 +38,6 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
-    SourceFile getAlternateMainSource() {
-        return sourceFile("objc", "main.m", """
-            #import "hello.h"
-
-            int main (int argc, const char * argv[])
-            {
-                Greeter* greeter = [Greeter new];
-                [greeter sayHello];
-                [greeter release];
-                return 0;
-            }
-        """);
-    }
-
-    String alternateOutput = "$HELLO_WORLD\n"
-
-    @Override
     SourceFile getLibraryHeader() {
         return getLibraryHeader("")
     }
@@ -72,9 +55,46 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
 
             int sum(int a, int b);
 
+            #ifdef FRENCH
+            #pragma message("<==== compiling bonjour.h ====>")
+            #else
             #pragma message("<==== compiling hello.h ====>")
             #endif
+            #endif
         """);
+    }
+
+    @Override
+    TestApp getAlternate() {
+        return new TestApp() {
+            @Override
+            SourceFile getMainSource() {
+                return getAlternateMainSource()
+            }
+
+            @Override
+            SourceFile getLibraryHeader() {
+                return sourceFile("headers", "hello.h", """
+                #ifndef HELLO_H
+                #define HELLO_H
+                #import <Foundation/Foundation.h>
+
+                @interface Greeter : NSObject
+                    - (void)sayHello;
+                @end
+
+                int sum(int a, int b);
+
+                #pragma message("<==== compiling althello.h ====>")
+                #endif
+            """);
+            }
+
+            @Override
+            List<SourceFile> getLibrarySources() {
+                return getAlternateLibrarySources()
+            }
+        }
     }
 
     @Override
@@ -131,34 +151,24 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
     }
 
     @Override
-    List<SourceFile> getAlternateLibrarySources() {
-        return [
-                sourceFile("objc", "hello.m", """
-            #import "hello.h"
-
-            @implementation Greeter
-            - (void) sayHello {
-                NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}";
-                fprintf(stdout, "%s\\n", [helloWorld UTF8String]);
-            }
-            @end
-
-            // Extra function to ensure library has different size
-            int anotherFunction() {
-                return 1000;
-            }
-        """),
-                sourceFile("objc", "sum.m", """
-            #import "hello.h"
-
-            int sum (int a, int b)
-            {
-                return a + b;
-            }
-        """)]
+    SourceFile getAlternateMainSource() {
+        return getMainSource()
     }
 
-    String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+    @Override
+    String getAlternateOutput() {
+        return null
+    }
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources() {
+        return getAlternateLibrarySources()
+    }
+
+    @Override
+    String getAlternateLibraryOutput() {
+        return null
+    }
 
     public String getExtraConfiguration(String binaryName = null) {
         return """

@@ -24,7 +24,6 @@ import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     abstract PCHHelloWorldApp getApp()
-    abstract String getSourceSet()
 
     def "setup"() {
         buildFile << app.pluginScript
@@ -46,13 +45,13 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            ${sourceSet}.preCompiledHeader "${path}hello.h"
+                            ${app.sourceType}.preCompiledHeader "${path}hello.h"
                         }
                         binaries.all {
                             if (toolChain.name == "visualCpp") {
-                                ${sourceSet}Compiler.args "/showIncludes"
+                                ${app.compilerArgs("/showIncludes")}
                             } else {
-                                ${sourceSet}Compiler.args "-H"
+                                ${app.compilerArgs("-H")}
                             }
                         }
                     }
@@ -96,13 +95,13 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            ${sourceSet}.preCompiledHeader "${path}hello.h"
+                            ${app.sourceType}.preCompiledHeader "${path}hello.h"
                         }
                         binaries.all {
                             if (toolChain.name == "visualCpp") {
-                                ${sourceSet}Compiler.args "/I${safeHeaderDirPath}", "/showIncludes"
+                                ${app.sourceType}Compiler.args "/I${safeHeaderDirPath}", "/showIncludes"
                             } else {
-                                ${sourceSet}Compiler.args "-I${safeHeaderDirPath}", "-H"
+                                ${app.sourceType}Compiler.args "-I${safeHeaderDirPath}", "-H"
                             }
                         }
                     }
@@ -148,14 +147,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            ${sourceSet}.preCompiledHeader "<${path}systemHeader.h>"
+                            ${app.sourceType}.preCompiledHeader "<${path}systemHeader.h>"
                         }
                         binaries.all {
                             println toolChain
                             if (toolChain.name == "visualCpp") {
-                                ${sourceSet}Compiler.args "/I${safeHeaderDirPath}", "/showIncludes"
+                                ${app.sourceType}Compiler.args "/I${safeHeaderDirPath}", "/showIncludes"
                             } else {
-                                ${sourceSet}Compiler.args "-I${safeHeaderDirPath}", "-H"
+                                ${app.sourceType}Compiler.args "-I${safeHeaderDirPath}", "-H"
                             }
                         }
                     }
@@ -197,14 +196,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
                 components {
                     hello(NativeLibrarySpec) {
                         sources {
-                            ${sourceSet}.preCompiledHeader "hello.h"
-                            ${sourceSet}.preCompiledHeader "<${app.IOHeader}>"
+                            ${app.sourceType}.preCompiledHeader "hello.h"
+                            ${app.sourceType}.preCompiledHeader "<${app.IOHeader}>"
                         }
                         binaries.all {
                             if (toolChain.name == "visualCpp") {
-                                ${sourceSet}Compiler.args "/showIncludes"
+                                ${app.compilerArgs("/showIncludes")}
                             } else {
-                                ${sourceSet}Compiler.args "-H"
+                                ${app.compilerArgs("-H")}
                             }
                         }
                     }
@@ -218,6 +217,150 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         executed ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
         // once for PCH compile, once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 2
+    }
+
+    def "can have source sets both with and without precompiled headers" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        assert file("src/hello/headers/hello.h").exists()
+
+        app.getLibraryHeader().writeToDir(file("src/hello2"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello2"))
+        assert file("src/hello2/headers/hello.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "hello.h"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                    hello2(NativeLibrarySpec)
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds PCHCompileTaskName
+        executed ":${generatePrefixHeaderTaskName}"
+        output.contains("<==== compiling hello.h ====>")
+
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName, libraryCompileTaskName.replaceAll("Hello", "Hello2")
+        executed ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        // once for hello2.c only
+        output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
+    }
+
+    def "compiler arguments set on the binary get used for the precompiled header" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        assert file("src/hello/headers/hello.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "hello.h"
+                        }
+                        binaries.all {
+                            ${app.compilerDefine("FRENCH")}
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds PCHCompileTaskName
+        executed ":${generatePrefixHeaderTaskName}"
+        output.contains("<==== compiling bonjour.h ====>")
+
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        ! output.contains("<==== compiling bonjour.h ====>")
+        ! output.contains("<==== compiling hello.h ====>")
+    }
+
+    def "precompiled header compile detects changes in header files" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        assert file("src/hello/headers/hello.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "hello.h"
+                            ${app.sourceType}.preCompiledHeader "<${app.IOHeader}>"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds PCHCompileTaskName
+        executed ":${generatePrefixHeaderTaskName}"
+        output.contains("<==== compiling hello.h ====>")
+
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        ! output.contains("<==== compiling hello.h ====>")
+
+        when:
+        app.alternate.libraryHeader.writeToDir(file("src/hello"))
+
+        then:
+        args("--info")
+        succeeds PCHCompileTaskName
+        executed ":${generatePrefixHeaderTaskName}"
+        output.contains("<==== compiling althello.h ====>")
+
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        ! output.contains("<==== compiling althello.h ====>")
     }
 
     String getSuffix() {
@@ -235,18 +378,18 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     String getPCHCompileTaskName() {
-        return "compileHelloSharedLibrary${StringUtils.capitalize(sourceSet)}PreCompiledHeader"
+        return "compileHelloSharedLibrary${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
     }
 
     String getGeneratePrefixHeaderTaskName() {
-        return "generate${StringUtils.capitalize(sourceSet)}PrefixHeaderFile"
+        return "generate${StringUtils.capitalize(app.sourceType)}PrefixHeaderFile"
     }
 
     String getLibraryCompileTaskName() {
-        return "compileHelloSharedLibraryHello${StringUtils.capitalize(sourceSet)}"
+        return "compileHelloSharedLibraryHello${StringUtils.capitalize(app.sourceType)}"
     }
 
     String getPCHHeaderDirName() {
-        return "build/objs/helloSharedLibrary/hello${StringUtils.capitalize(sourceSet)}PreCompiledHeader"
+        return "build/objs/helloSharedLibrary/hello${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
     }
 }
