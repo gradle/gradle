@@ -20,6 +20,8 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -306,7 +308,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         ! output.contains("<==== compiling bonjour.h ====>")
         ! output.contains("<==== compiling hello.h ====>")
     }
-
+    
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "precompiled header compile detects changes in header files" () {
         given:
         settingsFile << "rootProject.name = 'test'"
