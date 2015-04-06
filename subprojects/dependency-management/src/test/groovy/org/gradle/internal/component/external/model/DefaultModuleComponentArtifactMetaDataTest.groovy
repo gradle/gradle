@@ -50,17 +50,6 @@ class DefaultModuleComponentArtifactMetaDataTest extends Specification {
         noExtension.name.classifier == null
     }
 
-    def "converts to Ivy artifact"() {
-        expect:
-        def original = ivyArtifact("name", "type", "ext", ['classifier': 'classifier'])
-        def artifact = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), original)
-        def ivyArtifact = artifact.toIvyArtifact()
-        ivyArtifact.name == "name"
-        ivyArtifact.type == "type"
-        ivyArtifact.ext == "ext"
-        ivyArtifact.extraAttributes == [classifier: "classifier"]
-    }
-
     def ivyArtifact(String name, String type, String extension, Map attributes) {
         new DefaultIvyArtifactName(name, type, extension, attributes)
     }
