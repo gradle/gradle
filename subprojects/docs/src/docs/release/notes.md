@@ -47,7 +47,7 @@ The workaround is to implicitly apply the internal compiler flag `-XDuseUnshared
 Very large Java projects (building with Java 7 or 8) may notice dramatically improved build times due to the decreased memory throughput which in turn
 requires less aggressive garbage collection in the build process.
 
-### Support for Amazon Web Services S3 backed repositories
+### Support for Amazon Web Services S3 backed repositories (i)
 
 It is now possible to consume dependencies from, and publish to, [Amazon Web Services S3](http://aws.amazon.com/s3) stores
 when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) 
@@ -105,7 +105,7 @@ TODO - creation DSL
 TODO - changes to `ManagedSet` and `CollectionBuilder`
 TODO - other improvements
 
-### Tooling API improvements
+### Tooling API improvements (i)
 
 The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
 
@@ -138,7 +138,7 @@ Benchmarks for a project with a 500 source files on a machine with 8 processing 
 
 The degree of concurrency is determined by the new [“max workers” build setting](#new-“max-workers”-build-setting).
 
-### New “max workers” build setting
+### New “max workers” build setting (i)
 
 The new `--max-workers=«N»` command line switch, and synonymous `org.gradle.workers.max=«N»` build property (e.g. specified in `gradle.properties`) determines the degree of build concurrency.
 
@@ -189,7 +189,7 @@ And with a distribution URL:
 
 This feature was contributed by [Lóránt Pintér](https://github.com/lptr).
 
-### Customization of application plugin start script generation
+### Customization of application plugin start script generation (i)
 
 The [application plugin](userguide/application_plugin.html) can be used to create “executable” distributions Java-based application, including operating system specific start scripts.
 While certain values in the generated scripts (e.g. main class name, classpath) were customizable, the script content was generally hardcoded and cumbersome to change.
