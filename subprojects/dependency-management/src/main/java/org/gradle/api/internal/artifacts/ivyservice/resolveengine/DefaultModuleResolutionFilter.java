@@ -384,7 +384,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     merged.add(moduleSpec1);
                 }
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
             }
         }
 
@@ -403,8 +403,8 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     merged.add(spec2);
                 }
             } else {
-                throw new UnsupportedOperationException();
-            }
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
+             }
         }
 
         private void intersect(ModuleNameSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
@@ -419,7 +419,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                     merged.add(spec2);
                 }
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
             }
         }
     }
