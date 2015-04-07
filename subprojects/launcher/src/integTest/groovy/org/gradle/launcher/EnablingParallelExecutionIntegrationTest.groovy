@@ -43,4 +43,11 @@ class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         run("--parallel-threads=15")
     }
+
+    def "parallel-threads is deprecated"() {
+        when:
+        run("--parallel-threads=15")
+        then:
+        output.contains("--parallel-threads option is deprecated")
+    }
 }

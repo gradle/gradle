@@ -64,7 +64,7 @@ public class CommandLineParser {
     }
 
     public CommandLineParser(Writer deprecationPrinter) {
-        this.deprecationPrinter = new PrintWriter(deprecationPrinter);
+        this.deprecationPrinter = new PrintWriter(deprecationPrinter, true);
     }
 
     /**
