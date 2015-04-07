@@ -85,7 +85,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void withParallelThreads(int threadCount) {
-        executer.withArgument("--parallel-threads=$threadCount")
+        executer.withArgument("--parallel")
+        executer.withArgument("--max-workers=$threadCount")
     }
 
     def "feature toggle is required for tasks to run in parallel"() {
