@@ -43,6 +43,14 @@ public class SelfResolvingDependencyResolver implements ArtifactDependencyResolv
                         GlobalDependencyResolutionRules metadataHandler,
                         ResolverResults results) throws ResolveException {
         resolver.resolve(configuration, repositories, metadataHandler, results);
+    }
+
+    public void resolveArtifacts(ConfigurationInternal configuration,
+                                 List<? extends ResolutionAwareRepository> repositories,
+                                 GlobalDependencyResolutionRules metadataHandler,
+                                 ResolverResults results) throws ResolveException {
+        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
+
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
         Set<Dependency> dependencies = configuration.getAllDependencies();
         CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());

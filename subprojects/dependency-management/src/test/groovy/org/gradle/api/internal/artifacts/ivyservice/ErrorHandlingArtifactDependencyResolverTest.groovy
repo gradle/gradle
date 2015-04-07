@@ -80,10 +80,12 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
         resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolutionResult, projectConfigResult) }
+        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
+        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
 
         then:
         def result = results.resolvedConfiguration
@@ -107,10 +109,12 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolutionResult, projectConfigResult) }
+        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
+        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
 
         then:
         def result = results.resolvedConfiguration.lenientConfiguration
@@ -127,10 +131,12 @@ class ErrorHandlingArtifactDependencyResolverTest extends Specification {
 
         resolutionResult.root >> { throw failure }
 
-        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolvedConfiguration, resolutionResult, projectConfigResult) }
+        delegate.resolve(configuration, repositories, metadataHandler, results) >> { results.resolved(resolutionResult, projectConfigResult) }
+        delegate.resolveArtifacts(configuration, repositories, metadataHandler, results) >> { results.withResolvedConfiguration(resolvedConfiguration) }
 
         when:
         resolver.resolve(configuration, repositories, metadataHandler, results)
+        resolver.resolveArtifacts(configuration, repositories, metadataHandler, results)
 
         then:
         def result = results.resolutionResult

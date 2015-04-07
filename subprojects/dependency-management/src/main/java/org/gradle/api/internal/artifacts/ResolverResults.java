@@ -19,9 +19,11 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 
 public class ResolverResults {
+    private ResolvedConfigurationBuilder resolvedConfigurationBuilder;
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
@@ -29,7 +31,7 @@ public class ResolverResults {
 
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertHasResult();
+        assertHasArtifacts();
         return resolvedConfiguration;
     }
 
@@ -51,25 +53,38 @@ public class ResolverResults {
     }
 
     private void assertHasResult() {
-        if (resolvedConfiguration == null) {
+        if (resolutionResult == null && fatalFailure == null) {
             throw new IllegalStateException("Resolution result has not been attached.");
         }
     }
 
-    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
-        this.resolvedConfiguration = resolvedConfiguration;
+    private void assertHasArtifacts() {
+        if (resolvedConfiguration == null) {
+            throw new IllegalStateException("Resolution artifacts have not been attached.");
+        }
     }
 
-    public void resolved(ResolvedConfiguration resolvedConfiguration, ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
-        this.resolvedConfiguration = resolvedConfiguration;
+    public void resolved(ResolutionResult resolutionResult, ResolvedProjectConfigurationResults resolvedProjectConfigurationResults) {
         this.resolutionResult = resolutionResult;
         this.resolvedProjectConfigurationResults = resolvedProjectConfigurationResults;
         this.fatalFailure = null;
     }
 
-    public void failed(ResolvedConfiguration resolvedConfiguration, ResolveException failure) {
-        this.resolvedConfiguration = resolvedConfiguration;
+    public void failed(ResolveException failure) {
         this.resolutionResult = null;
         this.fatalFailure = failure;
+    }
+
+    public void retainConfigurationBuilder(ResolvedConfigurationBuilder builder) {
+        this.resolvedConfigurationBuilder = builder;
+    }
+
+    public ResolvedConfigurationBuilder getResolvedConfigurationBuilder() {
+        return resolvedConfigurationBuilder;
+    }
+
+    public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
+        this.resolvedConfigurationBuilder = null;
+        this.resolvedConfiguration = resolvedConfiguration;
     }
 }

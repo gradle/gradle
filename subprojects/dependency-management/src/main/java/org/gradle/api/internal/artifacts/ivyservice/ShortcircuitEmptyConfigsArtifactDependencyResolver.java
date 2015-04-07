@@ -53,9 +53,18 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(configuration.getModule());
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             ResolvedProjectConfigurationResults emptyProjectResult = new DefaultResolvedProjectConfigurationResultBuilder().complete();
-            results.resolved(new EmptyResolvedConfiguration(), emptyResult, emptyProjectResult);
+            results.resolved(emptyResult, emptyProjectResult);
         } else {
             dependencyResolver.resolve(configuration, repositories, metadataHandler, results);
+        }
+    }
+
+    @Override
+    public void resolveArtifacts(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ResolverResults results) throws ResolveException {
+        if (configuration.getAllDependencies().isEmpty()) {
+            results.withResolvedConfiguration(new EmptyResolvedConfiguration());
+        } else {
+            dependencyResolver.resolveArtifacts(configuration, repositories, metadataHandler, results);
         }
     }
 

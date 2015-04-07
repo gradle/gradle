@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedProjectConfigurationResultBuilder;
@@ -131,15 +132,23 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 // Resolve the dependency graph
                 builder.resolve(configuration, newModelBuilder, oldModelBuilder, projectModelBuilder);
-
-                // Resolve the artifacts : this should not happen when resolving the task dependencies for a configuration, but only for a public resolve.
-                oldModelBuilder.resolveArtifacts();
-                // TODO:DAZ Need to ensure that all resources are released at this point.
-
-                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder.complete(), cacheLockingManager);
-                results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete(), projectModelBuilder.complete());
+                results.resolved(newModelBuilder.complete(), projectModelBuilder.complete());
+                results.retainConfigurationBuilder(oldModelBuilder);
             }
         });
+    }
+
+    public void resolveArtifacts(final ConfigurationInternal configuration,
+                                 final List<? extends ResolutionAwareRepository> repositories,
+                                 final GlobalDependencyResolutionRules metadataHandler,
+                                 final ResolverResults results) throws ResolveException {
+        // TODO:DAZ Should not be holding onto all of this state
+        ResolvedConfigurationBuilder oldModelBuilder = results.getResolvedConfigurationBuilder();
+        // Resolve the artifacts : this should not happen when resolving the task dependencies for a configuration, but only for a public resolve.
+        oldModelBuilder.resolveArtifacts();
+
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder.complete(), cacheLockingManager);
+        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 
     private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {

@@ -80,7 +80,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     // This lock only protects the following fields
     private final Object lock = new Object();
     private InternalState state = InternalState.UNOBSERVED;
-    private ResolverResults cachedResolverResults;
+    private ResolverResults cachedResolverResults = new ResolverResults();
     private final ResolutionStrategyInternal resolutionStrategy;
     private final ProjectFinder projectFinder;
     private final Set<MutationValidator> mutationValidators = new LinkedHashSet<MutationValidator>();
@@ -323,6 +323,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveNow(InternalState requestedState) {
         synchronized (lock) {
             boolean needsResolve = false;
+            boolean needsArtifacts = requestedState == InternalState.RESULTS_RESOLVED;
             switch (state) {
                 case UNOBSERVED:
                 case OBSERVED:
@@ -332,6 +333,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     needsResolve = modified && requestedState == InternalState.RESULTS_RESOLVED;
                     break;
                 case RESULTS_RESOLVED:
+                    needsArtifacts = false;
                     break;
             }
             if (needsResolve) {
@@ -339,8 +341,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 triggerWhenEmptyActionsIfNecessary();
-                cachedResolverResults = resolver.resolve(this);
-                resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
+                resolver.resolve(this, cachedResolverResults);
 
                 // Mark all affected configurations as observed
                 markAsObserved();
@@ -360,6 +361,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 }
                 markAsResolved(requestedState);
             }
+
+            if (needsArtifacts) {
+                resolver.resolveArtifacts(this, cachedResolverResults);
+                resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
+            }
+            markAsResolved(requestedState);
         }
     }
 
