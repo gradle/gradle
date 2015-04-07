@@ -159,9 +159,8 @@
             <literal>org.gradle.workers.max</literal> system property.  We do not expect that you will usually need to adjust this setting.
         </para>
         <para>
-            Since Gradle does not run tasks in parallel from the same project, increasing the number of workers will not have much impact on single-project builds, even if you
-            have several separate native components.  If your build is a multi-project build that runs with <literal>--parallel</literal>, the workers are pooled and shared across
-            project boundaries.  So if workers is set to five and ten projects are building in parallel, Gradle will only use five total workers, not fifty.
+            If your build is a multi-project build that runs with <literal>--parallel</literal>, Gradle pools the workers and shares them across project boundaries.  
+            So if workers is set to five and ten projects are compiling in parallel, Gradle will only use five total workers, not fifty.
         </para>
     </section>
     <section>
