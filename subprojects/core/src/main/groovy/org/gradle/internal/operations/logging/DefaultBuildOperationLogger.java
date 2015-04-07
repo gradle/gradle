@@ -42,7 +42,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
     @Override
     public void start() {
         assert !started;
-        logInBoth(LogLevel.INFO, String.format("See %s for all output for %s.", formatOutputFileAsUrl(), configuration.getTaskName()));
+        logInBoth(LogLevel.INFO, String.format("See %s for all output for %s.", getLogLocation(), configuration.getTaskName()));
         started = true;
     }
 
@@ -65,9 +65,9 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
         assert started;
         int suppressedCount = numberOfFailedOperationsSeen - configuration.getMaximumFailedOperationsShown();
         if (suppressedCount > 0) {
-            logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, formatOutputFileAsUrl()));
+            logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, getLogLocation()));
         }
-        logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), formatOutputFileAsUrl()));
+        logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
         logWriter.close();
         started = false;
     }
@@ -90,7 +90,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
         logWriter.println(message);
     }
 
-    private String formatOutputFileAsUrl() {
+    public String getLogLocation() {
         return new ConsoleRenderer().asClickableFileUrl(configuration.getOutputFile());
     }
 }

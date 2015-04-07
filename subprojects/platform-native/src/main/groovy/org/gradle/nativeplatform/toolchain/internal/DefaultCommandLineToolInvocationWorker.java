@@ -80,7 +80,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             invocation.getLogger().operationSuccess(invocation.getDescription(), combineOutput(stdOutput, errOutput));
         } catch (ExecException e) {
             invocation.getLogger().operationFailed(invocation.getDescription(), combineOutput(stdOutput, errOutput));
-            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details.", name, invocation.getDescription()));
+            throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s; see the error output for details (log file: %s).", name, invocation.getDescription(), invocation.getLogger().getLogLocation()));
         }
     }
 

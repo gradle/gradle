@@ -21,4 +21,5 @@ public interface BuildOperationLogger {
     void operationSuccess(String description, String output);
     void operationFailed(String description, String output);
     void done();
+    String getLogLocation();
 }
