@@ -20,8 +20,6 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -308,8 +306,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         ! output.contains("<==== compiling bonjour.h ====>")
         ! output.contains("<==== compiling hello.h ====>")
     }
-    
-    @Requires(TestPrecondition.NOT_WINDOWS)
+
     def "precompiled header compile detects changes in header files" () {
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -344,14 +341,35 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
 
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        ! output.contains("<==== compiling hello.h ====>")
+
         when:
         app.alternate.libraryHeader.writeToDir(file("src/hello"))
+        maybeWait()
 
         then:
         args("--info")
         succeeds PCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling althello.h ====>")
+
+        and:
+        args("--info")
+        succeeds libraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        ! output.contains("<==== compiling althello.h ====>")
+    }
+
+    private void maybeWait() {
+        if (toolChain.visualCpp) {
+            def now = System.currentTimeMillis()
+            def nextSecond = now % 1000
+            Thread.sleep(1200 - nextSecond)
+        }
     }
 
     String getSuffix() {
