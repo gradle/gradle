@@ -178,6 +178,8 @@ And with a distribution URL:
 
 <pre><tt>gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip</tt></pre>
 
+This feature was contributed by [Lóránt Pintér](https://github.com/lptr).
+
 ### Customization of application plugin start script generation
 
 The [application plugin](userguide/application_plugin.html) can be used to create “executable” distributions Java-based application, including operating system specific start scripts.
@@ -371,8 +373,8 @@ We would like to thank the following community members for making contributions 
     - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
     - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
     - Fix a bug in `org.gradle.api.specs.OrSpecTest`
-* [Lorant Pinter](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
-* [Lorant Pinter](https://github.com/lptr) - add setting wrapper version on command-line
+* [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
+* [Lóránt Pintér](https://github.com/lptr) - add setting wrapper version on command-line
 * [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
