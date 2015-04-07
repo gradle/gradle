@@ -255,17 +255,22 @@ Generally, the DSL should be the same, except:
 - Using create syntax fails when the element already exists.
 - There are currently no query method on this interface.
 
-### Updated default zinc compiler version
+### Updated default Scala Zinc compiler version
 
-The default zinc compiler version has changed from 0.3.0 to 0.3.5.3
+The default version of the Scala Zinc compiler has changed from 0.3.0 to 0.3.5.3.
 
 ### `MavenDeployer` no longer uses global Maven `settings.xml`
 
-- User settings file was never used, but global `settings.xml` was considered
-- Mirror settings no longer cause GRADLE-2681
-- Authentication and Proxy settings are not used
+When publishing to a Maven repository using an `Upload` task (e.g. `uploadArchives`) and the `mavenDeployer` repository type,
+the global Maven `settings.xml` file is no longer consulted.
 
-- Local repository location in user settings.xml _is_ honoured when deploying (it was always honoured when installing)
+Previously, the “mirror”, “authentication” and “proxy” settings defined in the global `settings.xml` file were effecting publishing,
+making builds less portable which is no longer the case.
+
+This resolves [GRADLE-2681].
+
+The _user_ settings file (i.e. `~/.m2/settings.xml`) is still consulted for the location of the local repository when performing a local install
+(e.g. `gradle install` or `gradle publishToMavenLocal`).
 
 ### `PublishToMavenLocal.repository` property has been removed
 
