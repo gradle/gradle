@@ -107,12 +107,12 @@ TODO - other improvements
 
 ### Tooling API improvements
 
-There is a new API `GradleProject#getProjectDirectory` that returns the project directory of the project.
+The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
 
-There is a new API `GradleEnvironment#getGradleUserHome` that returns the Gradle user home directory used for all operations that are requested through the Tooling API.
+* [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--)
+* [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
 
-You can now listen to test progress through `LongRunningOperation#LongRunningOperation#addTestProgressListener`. All received
-test progress events are of a sub-type of `TestProgressEvent`.
+It is also now possible to receive test progress events via [`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
 
 ### Unique Maven snapshots
 
