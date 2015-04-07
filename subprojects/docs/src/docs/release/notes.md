@@ -127,7 +127,8 @@ In our internal performance tests, we have seen a 30 second to 2.5 minute reduct
 In multi-project builds, Gradle will only use a maximum number of background workers (see `--max-workers` below).  So when used in conjunction with `--parallel`, Gradle will share background workers 
 across projects and use a predictable number of native compiler processes.
 
-To support concurrent compilation, Gradle buffers the output from the compilers and only shows the output from the first 10 files that fail compilation.  All subsequent failures are suppressed from Gradle's output, but all output is available in a compilation log for each task.
+To support concurrent compilation, Gradle buffers the output from the compilers and only shows the output from the first 10 files that fail compilation.  All subsequent failures are suppressed 
+from Gradle's output, but all output is available in a compilation log for each task.
 
 ### New `--max-workers` option and system property
 
