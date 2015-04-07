@@ -120,15 +120,22 @@ TODO
 
 ### Parallel Native Compilation
 
-Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Objective-C++/Assembler languages. This is automatically enabled for all builds. 
-Up until this release, Gradle compiled all native source files sequentially. 
+Starting with 2.4, Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Objective-C++/Assembler languages. This is automatically enabled for all builds and works
+for all supported compilers (GCC, Clang, Visual C++). Up until this release, Gradle compiled all native source files sequentially.  
+In our internal performance tests, we have seen a 30 second to 2.5 minute reduction in the build time of large native projects over Gradle 2.3.
+
+In multi-project builds, Gradle will only use a maximum number of background workers (see `--max-workers` below).  So when used in conjunction with `--parallel`, Gradle will share background workers 
+across projects and use a predictable number of native compiler processes.
+
+To support concurrent compilation, Gradle buffers the output from the compilers and only shows the output from the first 10 files that fail compilation.  All subsequent failures are suppressed from Gradle's output, but all output is available in a compilation log for each task.
 
 ### New `--max-workers` option and system property
 
-As a new incubating feature, you can control the number of "workers" Gradle is allowed to use. Currently, only parallel native compilation is influenced by this setting.
-The default is the number of available processors.
+As a new incubating feature, you can control the number of "workers" Gradle is allowed to use. This impacts native compilation and parallel project execution.
+The default is the number of available processors returned by `Runtime.getRuntime().availableProcessors()`.
 
-You can specify the number of workers on the command line with `--max-workers=N` or in your `gradle.properties` by setting `org.gradle.workers.max`.
+You can specify the number of workers on the command line with `--max-workers=N` or in your `gradle.properties` by setting `org.gradle.workers.max`.  Command line options take precedence over 
+system properties.
 
 ### Support for “annotation processing” of Groovy code
 
@@ -185,12 +192,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Setting number of threads with `--parallel-threads`
 
-Gradle still honors `--parallel-threads` for inter-project parallelization, but the method of specifying the number of worker threads will be changing in future releases.
-As we add more parallelized work to Gradle, we need a more generic way of controlling the number of workers (threads, processes, etc) Gradle may use.
+Gradle still honors `--parallel-threads` for inter-project parallelization, but the method of specifying the number of worker threads has changed to `--max-workers`.
 
-If you were using `--parallel-threads` to enable parallel-project execution, please consider using just `--parallel`.
+If you were using `--parallel-threads=N` to enable parallel-project execution, please consider using just `--parallel`.  If you must change the number of parallel threads, use 
+`--parallel --max-workers=N`.  If you specify both `--parallel-threads` and `--max-workers` on the same command line, the last option wins.
 
-If you were using `StartParameter.getParallelThreadCount()` to check if parallel-project execution was enabled, please consider using `StartParameter.isParallelProjectExecutionEnabled()`.
+If you were using `StartParameter.getParallelThreadCount()` to check if inter-project parallel execution was enabled, please consider using `StartParameter.isParallelProjectExecutionEnabled()`.
 
 ### Lifecycle plugin changes
 
