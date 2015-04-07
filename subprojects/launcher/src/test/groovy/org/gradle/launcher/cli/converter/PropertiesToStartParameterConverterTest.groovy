@@ -15,26 +15,28 @@
  */
 
 package org.gradle.launcher.cli.converter
-
 import org.gradle.StartParameter
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.configuration.GradleProperties.CONFIGURE_ON_DEMAND_PROPERTY
-import static org.gradle.launcher.daemon.configuration.GradleProperties.PARALLEL_PROPERTY
-import static org.gradle.launcher.daemon.configuration.GradleProperties.WORKERS_PROPERTY
+import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
 class PropertiesToStartParameterConverterTest extends Specification {
 
     def converter = new PropertiesToStartParameterConverter()
-    def defaultValue = new StartParameter()
 
     def "converts"() {
         expect:
-        converter.convert([(WORKERS_PROPERTY): "invalid"], new StartParameter()).maxWorkerCount == defaultValue.maxWorkerCount
         converter.convert([(WORKERS_PROPERTY): "37"], new StartParameter()).maxWorkerCount == 37
         converter.convert([(PARALLEL_PROPERTY): "true"], new StartParameter()).parallelProjectExecutionEnabled
         converter.convert([(PARALLEL_PROPERTY): "false"], new StartParameter()).parallelThreadCount == 0
         converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "TRUE"], new StartParameter()).configureOnDemand
         !converter.convert([(CONFIGURE_ON_DEMAND_PROPERTY): "xxx"], new StartParameter()).configureOnDemand
+    }
+
+    def invalidMaxWorkersProperty() {
+        when:
+        converter.convert([(WORKERS_PROPERTY): "invalid"], new StartParameter())
+        then:
+        thrown(NumberFormatException)
     }
 }
