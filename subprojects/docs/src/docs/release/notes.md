@@ -81,9 +81,15 @@ Please see section [50.6. Repositories](userguide/dependency_management.html#sec
 
 This improvement was contributed by [Adrian Kelly](https://github.com/adrianbk).
 
-### Can use `maven-publish` for publishing via SFTP to Maven repositories
+### Support for publishing to Maven repositories over SFTP using `maven-publish` plugin
 
-- TBD
+In previous releases, it was not possible to publish to a Maven repository (via the [`maven-publish` plugin](userguide/publishing_maven.html))
+via SFTP in the same manner that it was for an Ivy repository or when downloading dependencies.
+This restriction has been lifted, with the publishing now supporting all of the transport protocols that Gradle currently supports (`file`, `http(s)`, `sftp` and `s3`).
+
+This change will also make it possible to seamlessly use any transports that Gradle will support in the future at that time.
+
+Please see section [50.6. Repositories](userguide/dependency_management.html#sec:repositories) of the User Guide for more information on configuring SFTP repository access.
 
 ### Model rules
 
