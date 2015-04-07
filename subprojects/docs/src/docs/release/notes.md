@@ -79,7 +79,7 @@ as well as when using an [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.
 
 Please see section [50.6. Repositories](userguide/dependency_management.html#sec:repositories) of the User Guide for more information on configuring S3 repository access.
 
-This improvement was contributed by [Adrian Kelly](https://github.com/adrianbk).
+This feature was contributed by [Adrian Kelly](https://github.com/adrianbk).
 
 ### Support for publishing to Maven repositories over SFTP using `maven-publish` plugin
 
