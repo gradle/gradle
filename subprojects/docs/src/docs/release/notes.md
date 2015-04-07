@@ -112,7 +112,8 @@ The following additions have been added to the respective [Tooling API](userguid
 * [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--)
 * [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
 
-It is also now possible to receive test progress events via [`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
+It is also now possible to receive test progress events via
+[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
 
 ### Depending on a particular Maven snapshot version
 
@@ -154,7 +155,7 @@ The default value is the number of processors available to the build JVM (as rep
 [`Runtime.availableProcessors()`](http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors\(\))).
 Alternatively, it can be set via the `--max-workers=«N»` command line switch or `org.gradle.workers.max=«N»` build property where `«N»` is a positive, non-zero, number.
 
-Please note: the `--parallel-threads` command line switch [has been deprecated](#setting-number-of-threads-with---parallel-threads) in favor of this new setting. 
+Please note: the `--parallel-threads` command line switch [has been deprecated](#setting-number-of-build-execution-threads-with---parallel-threads) in favor of this new setting.
 
 ### Support for “annotation processing” of Groovy code
 
