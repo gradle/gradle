@@ -47,9 +47,11 @@ The workaround is to implicitly apply the internal compiler flag `-XDuseUnshared
 Very large Java projects (building with Java 7 or 8) may notice dramatically improved build times due to the decreased memory throughput which in turn
 requires less aggressive garbage collection in the build process.
 
-### Support for AWS S3 backed repositories
+### Support for Amazon Web Services S3 backed repositories
 
-Gradle now supports S3 backed repositories. Here's an example on how to declare a S3 backed Maven repository in Gradle:
+It is now possible to consume dependencies from, and publish to, [Amazon Web Services S3](http://aws.amazon.com/s3) stores
+when using [`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) 
+or [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
 
     repositories {
         maven {
@@ -69,7 +71,13 @@ Gradle now supports S3 backed repositories. Here's an example on how to declare 
         }
     }
 
-S3 backed repositories can be used with both the `ivy-publish` and `maven-publish` plugins, as well as an Ivy repository associated with an `Upload` task.
+Downloading dependencies from S3 is supported for Maven and Ivy type repositories as above.
+
+Publishing to S3 is supported with both the [`ivy-publish`](userguide/publishing_ivy.html) and [`maven-publish`](userguide/publishing_maven.html) plugins, 
+as well as when using an [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html) with an [`Upload`](dsl/org.gradle.api.tasks.Upload.html) task
+(see section [8.6. Publishing artifacts](userguide/artifact_dependencies_tutorial.html#N10669) of the User Guide).
+
+Please see section [50.6. Repositories](userguide/dependency_management.html#sec:repositories) of the User Guide for more information on configuring S3 repository access.
 
 This improvement was contributed by [Adrian Kelly](https://github.com/adrianbk).
 

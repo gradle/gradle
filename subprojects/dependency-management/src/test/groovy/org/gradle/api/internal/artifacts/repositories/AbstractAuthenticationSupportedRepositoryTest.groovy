@@ -15,9 +15,10 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories
+
 import org.gradle.api.Action
-import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -115,7 +116,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.getCredentials(UnsupportedCredentials)
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == String.format("Unknown credentials type: '%s'.", UnsupportedCredentials.getName())
+        ex.message == "Unknown credentials type: '$UnsupportedCredentials.name' (supported types: $PasswordCredentials.name and $AwsCredentials.name)."
     }
 
     def "credentials(Class, Action) creates credentials on demand if required"() {

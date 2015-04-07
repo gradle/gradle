@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface AwsCredentials extends Credentials {
+
     /**
      * Returns the access key to use to authenticate with AWS.
      */

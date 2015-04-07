@@ -69,22 +69,30 @@ public interface AuthenticationSupported {
 
     /**
      * Configures the credentials for this repository using the supplied action.
-     * If no credentials have been assigned to this repository, an empty set of credentials of the specified type is assigned to this repository and returned.
-     *
+     * <p>
+     * If no credentials have been assigned to this repository, an empty set of credentials of the specified type will be assigned to this repository and given to the configuration action.
+     * If credentials have already been specified for this repository, they will be passed to the given configuration action.
      * <pre autoTested=''>
-     *     repositories {
-     *         maven {
-     *             url "${url}"
-     *             credentials(AwsCredentials) {
-     *                 accessKey "myAccessKey"
-     *                 secretKey "mySecret"
-     *             }
-     *         }
+     * repositories {
+     *   maven {
+     *     url "${url}"
+     *     credentials(AwsCredentials) {
+     *       accessKey "myAccessKey"
+     *       secretKey "mySecret"
      *     }
+     *   }
+     * }
      * </pre>
+     * <p>
+     * The following credential types are currently supported for the {@code credentialsType} argument:
+     * <ul>
+     * <li>{@link org.gradle.api.artifacts.repositories.PasswordCredentials}</li>
+     * <li>{@link org.gradle.api.credentials.AwsCredentials}</li>
+     * </ul>
      *
-     * @throws ClassCastException when the credentials assigned to this repository are not assignable to the specified type.
+     * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
+     * @throws ClassCastException if {@code credentialsType} is of a different type to the credentials previously specified for this repository
      */
     @Incubating
-    <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action);
+    <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
 }
