@@ -236,10 +236,6 @@ Due to the way these tasks are implemented, it is possible to redefine them simp
 This behavior has been deprecated and will not be supported in Gradle 3.0.
 That is, attempting to define a task with the same name as one of these lifecycle tasks when they are present will become an error just like any other attempt to create a task with the same name as an existing task.
 
-### Changes to methods of `LogLevel`
-
-All usages of methods of `org.gradle.api.logging.LogLevel` have been removed from Gradle codebase therefore all methods defined by that enum type have been deprecated.
-
 ## Potential breaking changes
 
 ### Model DSL changes
@@ -361,6 +357,10 @@ TODO - methods of `AuthenticationSupported` now work slightly differently, in pa
 
 This method (and all overloads) has been removed in 2.4, after [being deprecated in Gradle 2.3](http://gradle.org/docs/2.3/release-notes#component-metadata-rule-enhancements)
 and superseded by the [`all()` method](javadoc/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all\(org.gradle.api.Action\)).
+
+### Removal of package scoped methods of `LogLevel`
+
+The package scoped methods of the [`LogLevel`](javadoc/org/gradle/api/logging/LogLevel.html) enumeration have been removed.
 
 ## External contributions
 
