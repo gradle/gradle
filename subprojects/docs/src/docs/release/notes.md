@@ -172,11 +172,11 @@ you had to change the `build.gradle` file to contain a wrapper task with a confi
 Now the target Gradle version or the distribution URL can be configured from the command-line, without having
 to add or modify the task in `build.gradle`:
 
-    gradle wrapper --gradle-version 2.3
+<pre><tt>gradle wrapper --gradle-version 2.3</tt></pre>
 
 And with a distribution URL:
 
-    gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip
+<pre><tt>gradle wrapper --gradle-distribution-url https://myEnterpriseRepository:7070/gradle/distributions/gradle-2.3-bin.zip</tt></pre>
 
 ### Customization of application plugin start script generation
 
@@ -208,15 +208,15 @@ If not specified, the value specified for `--max-workers` will be used.
 
 If you were using an invocation such as:
 
-    ./gradlew build --parallel-threads=4
+<pre><tt>./gradlew build --parallel-threads=4</tt></pre>
 
 The replacement is now:
 
-    ./gradlew build --max-workers=4 --parallel
+<pre><tt>./gradlew build --max-workers=4 --parallel</tt></pre>
 
 Alternatively, the following can be used, which will use the default value for `--max-workers`:
 
-    ./gradlew build --parallel
+<pre><tt>./gradlew build --parallel</tt></pre>
 
 ### Lifecycle plugin changes
 
