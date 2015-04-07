@@ -48,11 +48,13 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                    | excludeAttributes | resolvedJars
-        'non-matching module'   | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching module'       | [module: 'b']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] // Module exclude does not apply to declaring module
-        'matching artifact'     | [name: 'b']       | ['a-1.0.jar', 'c-1.0.jar'] // Artifact exclude does apply to declaring module
+        name                           | excludeAttributes | resolvedJars
+        'non-matching module'          | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'non-matching artifact'        | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'module on other dependency'   | [module: 'c']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'artifact on other dependency' | [name: 'c']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching module'              | [module: 'b']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] // Module exclude does not apply to declaring module
+        'matching artifact'            | [name: 'b']       | ['a-1.0.jar', 'c-1.0.jar'] // Artifact exclude does apply to declaring module
     }
 
     /**
@@ -89,6 +91,36 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         'matching all modules'  | [module: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'matching module'       | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+    }
+    /**
+     * Exclude of transitive dependency involved in a dependency cycle.
+     *
+     * Dependency graph:
+     * a -> b -> c -> d -> c
+     *
+     * 'c' is excluded on dependency a->b
+     */
+    @Unroll
+    def "module involved in dependency cycle with excluded #name"() {
+        given:
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        moduleA.publish()
+        ivyRepo.module('b').dependsOn('c').publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        ivyRepo.module('d').dependsOn('c').publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name               | excludeAttributes | resolvedJars
+        'same module'      | [module: 'b']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'dependent module' | [module: 'c']     | ['a-1.0.jar', 'b-1.0.jar']
+        'artifact'         | [name: 'c']       | ['a-1.0.jar', 'b-1.0.jar', 'd-1.0.jar']
     }
 
     /**
