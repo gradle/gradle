@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.cli
 
+import org.gradle.StartParameter
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
@@ -47,11 +48,12 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
+    PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
 
     BuildActionsFactory factory = new BuildActionsFactory(
-            loggingServices, Stub(DefaultCommandLineConverter), new DaemonCommandLineConverter(),
+            loggingServices, new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
-            Stub(LayoutToPropertiesConverter), Stub(PropertiesToStartParameterConverter),
+            Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
             propertiesToDaemonParametersConverter)
 
     def setup() {
@@ -59,6 +61,18 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
+    }
+
+    def "check that --max-workers overrides org.gradle.workers.max"() {
+        when:
+        propertiesToStartParameterConverter.convert(_, _) >> { args ->
+            def startParameter = (StartParameter) args[1]
+            startParameter.setMaxWorkerCount(3)
+        }
+        RunBuildAction action = convert('--max-workers=5')
+
+        then:
+        action.startParameter.maxWorkerCount == 5
     }
 
     def "executes build"() {
