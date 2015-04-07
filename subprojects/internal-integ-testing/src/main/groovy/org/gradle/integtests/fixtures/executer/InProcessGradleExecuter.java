@@ -76,6 +76,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             .provider(new GlobalScopeServices(true))
             .build();
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
+    public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
 
     InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -216,7 +217,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected TestFile getTmpDir() {
-        return new TestFile(TestNameTestDirectoryProvider.newInstance().getTestDirectory(), "tmp");
+        // File.createTempFile sets the location of the temp directory to a static variable on the first call.  This prevents future
+        // changes to java.io.tmpdir from having any effect in the same process.  We set this to use a common tmp directory for all
+        // tests running in the same process so that we don't have a situation where one process initializes with a tmp directory
+        // that it then removes, causing an IOException for any future tests that run in the same process and call File.createTempFile.
+        return COMMON_TMP;
     }
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener {
