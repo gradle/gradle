@@ -114,9 +114,18 @@ The following additions have been added to the respective [Tooling API](userguid
 
 It is also now possible to receive test progress events via [`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
 
-### Unique Maven snapshots
+### Depending on a particular Maven snapshot version
 
-TODO
+It is now possible to depend on particular Maven snapshot, rather than just the “latest” published version.
+
+    depenencies {
+      compile "org.company:my-lib:1.0.0-20150102.010203-20"
+    }
+    
+The Maven snapshot version number is a timestamp and snapshot number.
+The snippet above is depending on the snapshot of version `1.0.0` published on the 2nd of January 2015, at 01:02:03 AM which was the 20th snapshot published.
+
+This feature was contributed by [Noam Y. Tenne](https://github.com/noamt).
 
 ### Parallel native compilation
 
