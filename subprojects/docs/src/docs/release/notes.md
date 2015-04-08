@@ -239,6 +239,15 @@ That is, attempting to define a task with the same name as one of these lifecycl
 
 ## Potential breaking changes
 
+### Incompatibility with Team City 9.0.3 and earlier
+
+An internal change to Gradle test execution has broken the Gradle integration provided by [JetBrains' TeamCity integration server](https://www.jetbrains.com/teamcity/).
+JetBrains have acknowledged the issue and have fixed the problem for the pending 9.0.4 release of TeamCity.
+
+Please see [https://youtrack.jetbrains.com/issue/TW-40615](https://youtrack.jetbrains.com/issue/TW-40615) for more information on the problem.
+
+If you are affected by this issue, you can install a pre-release version of the Gradle plugin for TeamCity which is available via the above link.
+
 ### Model DSL changes
 
 There have been some changes to the behaviour of the `model { ... }` block:
