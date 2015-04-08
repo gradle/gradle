@@ -410,6 +410,17 @@ class DefaultModuleResolutionFilterTest extends Specification {
         union == DefaultModuleResolutionFilter.all()
     }
 
+    def "union of a spec with exclude-all spec returns the original spec"() {
+        def rule1 = excludeRule("*", "*")
+        def rule2 = excludeRule("org", "module2")
+        def spec1 = DefaultModuleResolutionFilter.excludeAny(rule1)
+        def spec2 = DefaultModuleResolutionFilter.excludeAny(rule2)
+
+        expect:
+        spec1.union(spec2) == spec2
+        spec2.union(spec1) == spec2
+    }
+
     def "union of module spec and artifact spec uses the artifact spec"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("*", "module-2")

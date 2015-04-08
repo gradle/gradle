@@ -366,7 +366,11 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
         // Add filters to the list that will accept modules that are accepted by either of the candidate filters.
         private void intersect(DefaultModuleResolutionFilter spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
-            if (spec1 instanceof ArtifactExcludeSpec) {
+            if (spec1 instanceof ExcludeAllModulesSpec) {
+                merged.add(spec2);
+            } else if (spec2 instanceof ExcludeAllModulesSpec) {
+                merged.add(spec1);
+            } else if (spec1 instanceof ArtifactExcludeSpec) {
                 merged.add(spec1);
             } else if (spec2 instanceof ArtifactExcludeSpec) {
                 merged.add(spec2);
