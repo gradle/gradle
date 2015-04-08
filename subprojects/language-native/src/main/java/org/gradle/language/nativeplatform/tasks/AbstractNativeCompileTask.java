@@ -21,17 +21,19 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
-import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -102,13 +104,15 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         }
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        operationLogger.start();
-        try {
-            WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
-            setDidWork(result.getDidWork());
-        } finally {
-            operationLogger.done();
-        }
+        setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+    }
+
+    private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
+        Class<T> specType = Cast.uncheckedCast(spec.getClass());
+        Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
+        return loggingCompiler.execute(spec);
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
