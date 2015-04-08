@@ -21,20 +21,26 @@ import java.util.List;
 
 public class InternalTestProgressEvent implements Serializable {
 
-    private final String eventType;
+    private final String testStructure;
+    private final String testOutcome;
     private final long eventTime;
     private final InternalTestDescriptor descriptor;
     private final InternalTestResult result;
 
-    public InternalTestProgressEvent(String eventType, long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
-        this.eventType = eventType;
+    public InternalTestProgressEvent(String testStructure, String testOutcome, long eventTime, InternalTestDescriptor descriptor, InternalTestResult result) {
+        this.testStructure = testStructure;
+        this.testOutcome = testOutcome;
         this.eventTime = eventTime;
         this.descriptor = descriptor;
         this.result = result;
     }
 
-    public String getEventType() {
-        return eventType;
+    public String getTestStructure() {
+        return testStructure;
+    }
+
+    public String getTestOutcome() {
+        return testOutcome;
     }
 
     public long getEventTime() {

@@ -60,179 +60,183 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
-        String eventType = event.getEventType();
+        String testStructure = event.getTestStructure();
+        String testOutcome = event.getTestOutcome();
         final long eventTme = event.getEventTime();
-        if (TestProgressEventVersion1.TEST_SUITE_STARTED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            return new TestSuiteStartedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+        if (TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure)) {
+            if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
+                return new TestSuiteStartedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' started.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("TestSuite '%s' started.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_SUITE_SKIPPED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            return new TestSuiteSkippedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                return new TestSuiteSkippedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' skipped.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("TestSuite '%s' skipped.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_SUITE_SUCCEEDED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            final TestSuccess testSuccess = toTestSuccess(event.getResult());
-            return new TestSuiteSucceededEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                final TestSuccess testSuccess = toTestSuccess(event.getResult());
+                return new TestSuiteSucceededEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' succeeded.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("TestSuite '%s' succeeded.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
 
-                @Override
-                public TestSuccess getResult() {
-                    return testSuccess;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_SUITE_FAILED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            final TestFailure testFailure = toTestFailure(event.getResult());
-            return new TestSuiteFailedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestSuccess getResult() {
+                        return testSuccess;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                final TestFailure testFailure = toTestFailure(event.getResult());
+                return new TestSuiteFailedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' failed.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("TestSuite '%s' failed.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
 
-                @Override
-                public TestFailure getResult() {
-                    return testFailure;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_STARTED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-            return new TestStartedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestFailure getResult() {
+                        return testFailure;
+                    }
+                };
+            }
+        } else if (TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure)) {
+            if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
+                return new TestStartedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' started.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("Test '%s' started.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_SKIPPED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            return new TestSkippedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                return new TestSkippedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' skipped.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("Test '%s' skipped.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_SUCCEEDED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            final TestSuccess testSuccess = toTestSuccess(event.getResult());
-            return new TestSucceededEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                final TestSuccess testSuccess = toTestSuccess(event.getResult());
+                return new TestSucceededEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' succeeded.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("Test '%s' succeeded.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
 
-                @Override
-                public TestSuccess getResult() {
-                    return testSuccess;
-                }
-            };
-        } else if (TestProgressEventVersion1.TEST_FAILED.equals(eventType)) {
-            final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-            final TestFailure testFailure = toTestFailure(event.getResult());
-            return new TestFailedEvent() {
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
+                    @Override
+                    public TestSuccess getResult() {
+                        return testSuccess;
+                    }
+                };
+            } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
+                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
+                final TestFailure testFailure = toTestFailure(event.getResult());
+                return new TestFailedEvent() {
+                    @Override
+                    public long getEventTime() {
+                        return eventTme;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' failed.", getTestDescriptor().getName());
-                }
+                    @Override
+                    public String getDescription() {
+                        return String.format("Test '%s' failed.", getTestDescriptor().getName());
+                    }
 
-                @Override
-                public TestDescriptor getTestDescriptor() {
-                    return testDescriptor;
-                }
+                    @Override
+                    public TestDescriptor getTestDescriptor() {
+                        return testDescriptor;
+                    }
 
-                @Override
-                public TestFailure getResult() {
-                    return testFailure;
-                }
-            };
-        } else {
-            return null;
+                    @Override
+                    public TestFailure getResult() {
+                        return testFailure;
+                    }
+                };
+            }
         }
+        return null;
     }
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
