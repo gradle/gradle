@@ -22,7 +22,7 @@ import static java.util.Arrays.asList;
 
 public class Architectures {
 
-    public static final KnownArchitecture X86 = new KnownArchitecture("x86", "i386", "ia-32");
+    public static final KnownArchitecture X86 = new KnownArchitecture("x86", "i386", "ia-32", "i686");
     public static final KnownArchitecture X86_64 = new KnownArchitecture("x86-64", "x86_64", "amd64", "x64");
     public static final KnownArchitecture IA_64 = new KnownArchitecture("ia-64", "ia64");
     public static final KnownArchitecture ARM_V7 = new KnownArchitecture("arm-v7", "armv7", "arm", "arm32");
