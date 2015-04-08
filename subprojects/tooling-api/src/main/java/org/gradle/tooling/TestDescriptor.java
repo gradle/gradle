@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Describes a test.
@@ -45,6 +46,7 @@ public interface TestDescriptor {
      *
      * @return the parent of this test, can be null
      */
+    @Nullable
     TestDescriptor getParent();
 
 }
