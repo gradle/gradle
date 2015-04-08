@@ -100,6 +100,56 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         result.size() > 0
     }
 
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
+    def "receive current test progress event even if one of multiple test listeners throws an exception"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when: "launching a build"
+        List<TestProgressEvent> resultsOfFirstListener = new ArrayList<TestProgressEvent>()
+        List<TestProgressEvent> resultsOfLastListener = new ArrayList<TestProgressEvent>()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        resultsOfFirstListener.add(event)
+                    }
+                }).addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        throw new IllegalStateException("Throwing an exception on purpose")
+                    }
+                }).addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        resultsOfLastListener.add(event)
+                    }
+                }).run()
+        }
+
+        then: "current test progress event must still be forwarded to the attached listeners even if one of the listeners throws an exception"
+        thrown(BuildException)
+        resultsOfFirstListener.size() == 1
+        resultsOfLastListener.size() == 1
+    }
+
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
     def "receive test progress events for successful test run"() {
