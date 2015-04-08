@@ -506,13 +506,17 @@ model {
 
 # Milestone 2
 
-## Feature: Gradle watch mode
+## Feature: Gradle continuous mode
 
 This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. 
 For example, a developer may run `gradle --watch <tasks>`.
 
-- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
-- Monitor files that are inputs to the model for changes too.
+When run in continuous mode, Gradle will execute a build and determine any files that are inputs to that build.
+Gradle will then watch for changes to those input files, and re-execute the build when any file changes.
+
+Input files are determined as:
+- Files that are inputs to a task but not outputs of some other task
+- Files that are inputs to the model
 
 So:
 
@@ -527,7 +531,7 @@ For example, running `gradle --watch test run` would restart the application if 
 
 ### Story: Add continuous Gradle mode triggered by console input
 
-Gradle will be able to start, run a set of tasks and then wait for console input without exiting.
+Gradle will be able to start, run a set of tasks and then wait for console input before re-executing the build.
 
 #### Implementation
 
@@ -541,6 +545,10 @@ TBD
 - On Ctrl+C, Gradle exits.
 - On any other key, Gradle re-runs the same set of tasks.
 - Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
+
+#### Open Issues
+
+- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
 
 ### Story: Continuous Gradle mode triggered by file change
 
@@ -572,17 +580,18 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 - TBD
 
+#### Open Issues
+
+- Monitor files that are inputs to the model for changes too.
+
 ### Additional Notes 
 
 TODO: See if these make sense incorporated in another story/Feature.
 
 - When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+- If previous build started any service, stop that service before rebuilding.
 - Uses Gradle daemon to run build.
 - Collect up all input files as build runs.
-- Monitor changes to these input files. On change:
-    - If previous build started any service, stop that service.
-    - Trigger build.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
 ## Feature: Keep running Play application up-to-date when source changes
@@ -627,71 +636,44 @@ When the Run task is executed for a deployment, Gradle will:
 - Deploy the web application to the web server
 - Add the running deployment to the container of 'running deployments' for the build
 
-At the end of the build, Gradle will check to see if there are any running deployments. If so, it will wait for Ctrl-C before stopping
-each deployment and exiting. This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
+#### Open issues
 
-### Story: Domain model for Deployment hosts
+- Modelling for deployment hosts
+- Modelling of more general 'long-lived processes'
 
-TBD
+### Story: Gradle build stops any running deployments on exit
 
-### Story: Developer triggers play application stop/rebuild/start by console input
+At the end of the build, Gradle will check to see if there are any running deployments. 
+If so, it will wait for Ctrl-C before stopping each deployment and exiting.
+This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
 
-This story starts to add support for making Play applications reloadable. By adding a simple manual trigger for reloading
-the app, this story concentrates on adding the lifecycle required for rebuilding and restarting a Play application
-within a single Gradle invocation.
+When run in continuous mode, all running deployments should be stopped before re-executing the build.
 
-#### Implementation
+### Story: Gradle does not restart reloadable deployments when re-executing a build in continuous mode
 
-After the `run` task has been executed for a deployment, Gradle will wait for any input. On input (other than Ctrl-C):
+Integrate deployments with continuous mode, so that if a build completes with a running deployment then that
+deployment is not stopped and restarted when the build re-executes due to input file change.
 
-- Stop the deployment
-    - Undeploy the web application from the web server
-    - Stop the web server
-- Execute the `run` task again, waiting for user input.
+This should only apply for deployments that indicate that they are 'reloadable'. For now, the Play application
+deployment implementation will not be reloadable.
 
-### Story: Developer triggers play application rebuild/reload by console input
+#### Open Issues
 
-To ensure performant reloading of the running Play application, this story retains much of the running Play container infrastructure
-when a Play application is reloaded. Instead of restarting the Play application server, we should only need to replace the
-ClassLoader containing the application classes once the App is rebuilt.
+- New reloadable Jetty plugin that will reload changed content when run in continuous mode
 
-#### Implementation
+### Story: Play application reloads content on browser refresh
 
-TODO: Use Tooling API?
+Using a BuildLink implementation, allow the Play application deployment to be 'reloadable', and to automatically 
+reload the content on browser refresh.
 
-The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
-to supply the modified application ClassLoader to the Play web server. 
-
-- Add an optional `reload` operation to web deployment, in addition to `start` and `stop`
-- When a deployment supports reload, and an application reload is triggered
-    - Execute the `run` task again, leaving the deployment (and web server) running
-    - When the application is rebuilt, the run task will check if the deployment is already running
-        - If yes, and the deployment supports reload, ask the deployment to reload
-- Play app deployment implements reload by providing a `BuildLink` implementation that allows Gradle to replace the
-  Application ClassLoader. 
-    - When the deployment is reloaded, the app is rebuilt and the ClassLoader replaced.
-    - First subsequent response to `BuildLink.reload` should provide the updated ClassLoader. All other responses are `false`.
-
-### Story: Play application reload is skipped when all inputs are up-to-date
-
-This story improves the reload behaviour of a running Play application, by avoiding any sort of rebuild or reload when none of
-the input files have changed for the application. Gradle will track all of the inputs that are used to build the Application,
-and monitor changes to these files for the life of the PlayRun task (or longer).
-
-- When the Play application is built for running, Gradle asks the daemon to watch files that are inputs to a task but not outputs of some other task.
-- When the Play application is reloaded, Gradle asks the daemon if any of those files have changed since the previous build
-    - If not, no reload is required
-    
-- Not included in this story (but to do later):
-    - Monitor files that are inputs to the model for changes too.
-    - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-
-### Story: Developer triggers play application reload by browser refresh
-
-This story finishes the equivalent functionality of the Play `run` command, 
-where a build is triggered by the developer reloading the application in the browser.
+At this stage, the build will be re-executed whenever an input file changes, not only when requested by
+the BuildLink API.
 
 #### Implementation
+
+IDEA: Use Tooling API to allow Play BuildLink to connect to a build in continuous mode and:
+
+- Receive events when the build is re-executed, including build failures
 
 The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
 to inform Gradle when the application needs to be reloaded. 
@@ -713,6 +695,12 @@ See [PlayRun](https://github.com/playframework/playframework/blob/master/framewo
 [PlayReload](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/play/sbt/run/PlayReload.scala) and
 [Reloader](https://github.com/playframework/playframework/blob/master/framework/src/run-support/src/main/scala/play/runsupport/Reloader.scala)
 
+### Story: Play application triggers rebuild on browser refresh
+
+Instead of rebuilding the Play application on every source file change, the application should be rebuilt only if
+and input file has changed AND the BuildLink API requests a reload.
+
+??? Not sure if this will be required.
 
 ## Feature: Developer views compile and other build failures in Play application
 
