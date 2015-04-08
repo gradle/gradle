@@ -30,7 +30,7 @@ public interface TestSucceededEvent extends TestProgressEvent {
      *
      * @return The description
      */
-    TestDescriptor getDescriptor();
+    TestDescriptor getTestDescriptor();
 
     /**
      * The result of running the test successfully.
