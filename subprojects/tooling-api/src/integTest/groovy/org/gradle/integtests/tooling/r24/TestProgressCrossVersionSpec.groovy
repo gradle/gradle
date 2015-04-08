@@ -49,7 +49,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when: "asking for a model and specifying some test task(s) to run first"
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.model(BuildInvocations.class).forTasks('test').addTestProgressListener(new TestProgressListener() {
@@ -85,7 +85,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when: "launching a build"
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
@@ -122,7 +122,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
@@ -211,7 +211,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
@@ -303,7 +303,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        Queue<TestProgressEvent> result = new ConcurrentLinkedQueue<TestProgressEvent>()
+        List<TestProgressEvent> result = new ArrayList<TestProgressEvent>()
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
