@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.UncheckedException;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 
 import java.util.Map;
@@ -36,12 +36,20 @@ public class PropertiesToStartParameterConverter {
         String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
         if (workers != null) {
             try {
-                startParameter.setMaxWorkerCount(Integer.parseInt(workers));
+                int workerCount = Integer.parseInt(workers);
+                if (workerCount < 1) {
+                    invalidMaxWorkersPropValue(workers);
+                }
+                startParameter.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                UncheckedException.throwAsUncheckedException(e);
+                invalidMaxWorkersPropValue(workers);
             }
         }
 
         return startParameter;
+    }
+
+    private StartParameter invalidMaxWorkersPropValue(String value) {
+        throw new IllegalArgumentException(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, GradleProperties.WORKERS_PROPERTY));
     }
 }

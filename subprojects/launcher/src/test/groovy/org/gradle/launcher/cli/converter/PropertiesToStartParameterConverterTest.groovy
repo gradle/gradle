@@ -15,6 +15,7 @@
  */
 
 package org.gradle.launcher.cli.converter
+
 import org.gradle.StartParameter
 import spock.lang.Specification
 
@@ -37,6 +38,6 @@ class PropertiesToStartParameterConverterTest extends Specification {
         when:
         converter.convert([(WORKERS_PROPERTY): "invalid"], new StartParameter())
         then:
-        thrown(NumberFormatException)
+        thrown(IllegalArgumentException)
     }
 }

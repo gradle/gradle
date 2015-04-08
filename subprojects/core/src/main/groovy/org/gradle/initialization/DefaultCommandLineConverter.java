@@ -177,11 +177,15 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(MAX_WORKERS)) {
+            String value = options.option(MAX_WORKERS).getValue();
             try {
-                int workerCount = Integer.parseInt(options.option(MAX_WORKERS).getValue());
+                int workerCount = Integer.parseInt(value);
+                if (workerCount < 1) {
+                    invalidMaxWorkersSwitchValue(value);
+                }
                 startParameter.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", MAX_WORKERS));
+                invalidMaxWorkersSwitchValue(value);
             }
         }
 
@@ -190,6 +194,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         return startParameter;
+    }
+
+    private StartParameter invalidMaxWorkersSwitchValue(String value) {
+        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {
