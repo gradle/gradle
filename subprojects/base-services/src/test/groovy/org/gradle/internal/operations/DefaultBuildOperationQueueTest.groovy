@@ -26,6 +26,7 @@ import java.util.concurrent.Executors
 
 class DefaultBuildOperationQueueTest extends Specification {
 
+    public static final String LOG_LOCATION = "<log location>"
     abstract static class TestBuildOperation implements BuildOperation, Runnable {
         public String getDescription() { return toString() }
         public String toString() { return getClass().simpleName }
@@ -57,7 +58,7 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     void setupQueue(int threads) {
         ListeningExecutorService sameThreadExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threads))
-        operationQueue = new DefaultBuildOperationQueue(sameThreadExecutor, new SimpleWorker())
+        operationQueue = new DefaultBuildOperationQueue(sameThreadExecutor, new SimpleWorker(), LOG_LOCATION)
     }
 
     @Unroll

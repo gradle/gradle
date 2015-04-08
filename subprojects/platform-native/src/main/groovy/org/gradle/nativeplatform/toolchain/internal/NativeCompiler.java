@@ -60,7 +60,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     public WorkResult execute(T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final BuildOperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        final BuildOperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
 
         File objectDir = transformedSpec.getObjectFileDir();
         for (File sourceFile : transformedSpec.getSourceFiles()) {

@@ -32,10 +32,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final BuildOperationWorker<T> worker;
 
     private final List<ListenableFuture> operations;
+    private final String logLocation;
 
     private boolean waitingForCompletion;
 
-    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
+    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker, String logLocation) {
+        this.logLocation = logLocation;
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
         this.operations = Lists.newLinkedList();
@@ -67,7 +69,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         // all operations are complete, check for errors
         if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures);
+            throw new MultipleBuildOperationFailures(getFailureMessage(failures), failures, logLocation);
         }
     }
 
