@@ -36,14 +36,13 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_SUITE_STARTED, toTestDescriptor(suite), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_SUITE_STARTED, System.currentTimeMillis(), toTestDescriptor(suite), null));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestSuiteEventType(result), toTestDescriptor(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestSuiteEventType(result), result.getEndTime(), toTestDescriptor(suite), toTestResult(result)));
     }
-
 
     private String getFinishTestSuiteEventType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
@@ -61,12 +60,12 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_STARTED, toTestDescriptor(test), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_STARTED, System.currentTimeMillis(), toTestDescriptor(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestEventType(result), toTestDescriptor(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestEventType(result), result.getEndTime(), toTestDescriptor(test), toTestResult(result)));
     }
 
     private String getFinishTestEventType(TestResult result) {

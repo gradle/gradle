@@ -38,6 +38,13 @@ public interface TestProgressEventVersion1 {
     String getEventType();
 
     /**
+     * The time when the event happened.
+     *
+     * @return The event time
+     */
+    long getEventTime();
+
+    /**
      * The description of the test for which progress is reported.
      *
      * @return The test description
