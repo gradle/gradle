@@ -399,7 +399,7 @@ class DefaultModuleResolutionFilterTest extends Specification {
         union3 == DefaultModuleResolutionFilter.all()
     }
 
-    def "union of two specs with disjoint exact matching exclude rules matches all modules"() {
+    def "union of two specs with disjoint exact matching exclude rules excludes no modules"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")
         def spec = DefaultModuleResolutionFilter.excludeAny(rule1)
