@@ -60,7 +60,7 @@ model {
 ```
 
 - ~~Running `gradle assemble` builds an empty Jar file.~~
-- ~~Running `gradle components` shows some basic details about the Play application. ~~
+- ~~Running `gradle components` shows some basic details about the Play application.~~
 - In this story, no source files are supported.
 
 #### Test cases
@@ -506,6 +506,85 @@ model {
 
 # Milestone 2
 
+## Feature: Gradle watch mode
+
+This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. 
+For example, a developer may run `gradle --watch <tasks>`.
+
+- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
+- Monitor files that are inputs to the model for changes too.
+
+So:
+
+- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+  restart the application.
+- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+  Gradle would rerun the tests, rebuild and restart the Play application.
+- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+
+Note that for this feature, the implementation will assume that any source file affects the output of every task listed on the command-line.
+For example, running `gradle --watch test run` would restart the application if a test source file changes.
+
+### Story: Add continuous Gradle mode triggered by console input
+
+Gradle will be able to start, run a set of tasks and then wait for console input without exiting.
+
+#### Implementation
+
+TBD
+
+#### Test Coverage
+
+- If Gradle build succeeds, we wait for input and print some sort of helpful message.
+- If Gradle build fails, we still wait for input.  Should we suppress stacktraces?
+- If Gradle fails to start, Gradle exits and does not wait for input (e.g., invalid command-line or build script errors).
+- On Ctrl+C, Gradle exits.
+- On any other key, Gradle re-runs the same set of tasks.
+- Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
+
+### Story: Continuous Gradle mode triggered by file change
+
+Gradle will be able to start, run a set of tasks and then monitor one file for changes without exiting.  When this file is changed, the same set of tasks will be re-run.
+
+#### Implementation
+
+- Temporarily, use `build/tmp/retrigger` to trigger re-run
+- Add `InputWatchService` that can be given Files to watch
+- TODO: Figure out where this watch service lives (in CLI process or Daemon)
+- When files change, mark the file as out of date
+- Re-run trigger polls the watch service for changes at some default rate.  We should allow this to be adjusted (e.g., --watch=1s).
+
+#### Test Coverage
+
+- When `retrigger` changes/created/deleted, Gradle re-runs the same set of tasks.
+
+### Story: Continuous Gradle mode triggered by task input changes
+
+Gradle will be able to start, run a set of tasks and then monitor changes to any inputs for the given tasks without exiting.  When any input file is changed, all of the same set of tasks will be re-run.
+
+#### Implementation
+
+- Ignore build script as input?
+- Add inputs to task to `InputWatchService` so that they can be watched
+- Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
+
+#### Test Coverage
+
+- TBD
+
+### Additional Notes 
+
+TODO: See if these make sense incorporated in another story/Feature.
+
+- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
+- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+- Uses Gradle daemon to run build.
+- Collect up all input files as build runs.
+- Monitor changes to these input files. On change:
+    - If previous build started any service, stop that service.
+    - Trigger build.
+- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
+
 ## Feature: Keep running Play application up-to-date when source changes
 
 ### Story: Domain model for Web Applications
@@ -517,19 +596,31 @@ Note that this story does not address reloading the application when source file
 
 #### Implementation
 
+```gradle
+model {
+    deployments {
+        // one per Play application
+        play(WebApplicationDeployment) {
+            httpPort
+            forkOptions
+        }
+    }
+}
+```
+
 Web application plugin:
 
 - Defines the concept of a 'web application'.
-- Defines the concept of a 'web server' that can host a web application.
 - Defines the concept of a 'web deployment': a web application hosted by a web server
 - Defines `run` lifecycle task for a deployment
 
 Play plugin:
 
 - Defines a Play application as-a web application
-- Provides a Play server implementation that can host a Play application.
+- Defines a ${deployment}Run task for starting and deploying application.
+- Configures `run` to depend on ${deployment}Run and ${deployment}Run to depend on the output of the play application.
 
-When the `run` task is executed for a deployment, Gradle will:
+When the Run task is executed for a deployment, Gradle will:
 
 - Build the web application
 - Start the web server
@@ -538,6 +629,10 @@ When the `run` task is executed for a deployment, Gradle will:
 
 At the end of the build, Gradle will check to see if there are any running deployments. If so, it will wait for Ctrl-C before stopping
 each deployment and exiting. This will replace the current `PlayRun` implementation of Gradle with general-purpose infrastructure.
+
+### Story: Domain model for Deployment hosts
+
+TBD
 
 ### Story: Developer triggers play application stop/rebuild/start by console input
 
@@ -561,6 +656,8 @@ when a Play application is reloaded. Instead of restarting the Play application 
 ClassLoader containing the application classes once the App is rebuilt.
 
 #### Implementation
+
+TODO: Use Tooling API?
 
 The mechanism will depend on the Play [build-link](https://repo.typesafe.com/typesafe/releases/com/typesafe/play/build-link/) library,
 to supply the modified application ClassLoader to the Play web server. 
@@ -655,35 +752,6 @@ Reuse the compiler daemon across builds to keep the Scala compiler warmed up. Th
 - Daemons expire some time after build, with much shorter expiry than the build daemon.
 - Reuse infrastructure from build daemon.
 
-## Feature: Gradle watch mode
-
-This story adds a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. 
-For example, a developer may run `gradle --watch <tasks>`.
-
-- Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
-- Monitor files that are inputs to the model for changes too.
-- When the tasks start a deployment, stop the deployment before rebuilding, or reload if supported by the deployment.
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-
-So:
-
-- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
-  restart the application.
-- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
-  Gradle would rerun the tests, rebuild and restart the Play application.
-- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
-
-Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
-For example, running `gradle --watch test run` would restart the application if a test source file changes.
-
-### Implementation
-
-- Uses Gradle daemon to run build.
-- Collect up all input files as build runs.
-- Monitor changes to these input files. On change:
-    - If previous build started any service, stop that service.
-    - Trigger build.
-- Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
 
 # Later milestones
 
