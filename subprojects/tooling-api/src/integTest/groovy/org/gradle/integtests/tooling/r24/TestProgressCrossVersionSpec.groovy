@@ -103,6 +103,41 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=2.4")
     @TargetGradleVersion(">=2.4")
+    def "build aborts if a test listener throws an exception"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
+
+        when: "launching a build"
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('test').addTestProgressListener(new TestProgressListener() {
+                    @Override
+                    void statusChanged(TestProgressEvent event) {
+                        throw new IllegalStateException("Throwing an exception on purpose")
+                    }
+                }).run()
+        }
+
+        then: "build aborts if the test listener throws an exception"
+        thrown(BuildException)
+    }
+
+    @ToolingApiVersion(">=2.4")
+    @TargetGradleVersion(">=2.4")
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
         given:
         buildFile << """
