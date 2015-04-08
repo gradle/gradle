@@ -604,8 +604,9 @@ Gradle will implement the `BuildLink` interface and provide it to the applicatio
 When a new request comes in, the Play application will call `BuildLink.reload` and Gradle return a new ClassLoader containing the rebuilt application to Play.
 If the application is up-to-date, `BuildLink.reload` can return `false`.
 
-See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayRun.scala)
-and [PlayReloader](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/PlayReloader.scala) for
+See [PlayRun](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/play/sbt/run/PlayRun.scala),
+[PlayReload](https://github.com/playframework/playframework/blob/master/framework/src/sbt-plugin/src/main/scala/play/sbt/run/PlayReload.scala) and
+[Reloader](https://github.com/playframework/playframework/blob/master/framework/src/run-support/src/main/scala/play/runsupport/Reloader.scala) for
 the SBT implementation of this logic, which may be a helpful guide.
 
 ## Feature: Developer views compile and other build failures in Play application
