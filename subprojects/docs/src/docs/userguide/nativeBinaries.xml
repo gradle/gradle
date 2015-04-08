@@ -150,17 +150,18 @@
     <section>
         <title>Parallel Compilation</title>
         <para>
-            Gradle uses parallel compilation when building native components. All sources in a single source set are divided up among several workers.  No special
-            configuration is required to turn on this behavior.
+            Gradle uses the single build worker pool to concurrently compile and link native components, by default.
+            No special configuration is required to enable concurrent building.
         </para>
         <para>
-            You can change the number of background workers that Gradle will use when compiling and linking. By default, Gradle will try to use the same number of workers
-            as there are available processors.  To explicitly set the number of workers use the command-line option <literal>--max-workers</literal> or the
-            <literal>org.gradle.workers.max</literal> system property.  We do not expect that you will usually need to adjust this setting.
+            By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM).
+            To explicitly set the number of workers use the <literal>--max-workers</literal> command-line option or <literal>org.gradle.workers.max</literal> system property.
+            There is generally no need to change this setting from its default.
         </para>
         <para>
-            If your build is a multi-project build that runs with <literal>--parallel</literal>, Gradle pools the workers and shares them across project boundaries.  
-            So if workers is set to five and ten projects are compiling in parallel, Gradle will only use five total workers, not fifty.
+            The build worker pool is shared across all build tasks.
+            This means that when using <link linkend="sec:parallel_execution">parallel project execution</link>, the maximum number of concurrent individual compilation operations does not increase.
+            For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
         </para>
     </section>
     <section>
