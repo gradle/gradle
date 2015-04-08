@@ -72,11 +72,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("TestSuite '%s' started.", getDescriptor().getName());
+                    return String.format("TestSuite '%s' started.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
             };
@@ -90,11 +90,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("TestSuite '%s' skipped.", getDescriptor().getName());
+                    return String.format("TestSuite '%s' skipped.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
             };
@@ -109,11 +109,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("TestSuite '%s' succeeded.", getDescriptor().getName());
+                    return String.format("TestSuite '%s' succeeded.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
 
@@ -133,11 +133,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("TestSuite '%s' failed.", getDescriptor().getName());
+                    return String.format("TestSuite '%s' failed.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
 
@@ -156,11 +156,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("Test '%s' started.", getDescriptor().getName());
+                    return String.format("Test '%s' started.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
             };
@@ -174,11 +174,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("Test '%s' skipped.", getDescriptor().getName());
+                    return String.format("Test '%s' skipped.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
             };
@@ -193,11 +193,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("Test '%s' succeeded.", getDescriptor().getName());
+                    return String.format("Test '%s' succeeded.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
 
@@ -217,11 +217,11 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
                 @Override
                 public String getDescription() {
-                    return String.format("Test '%s' failed.", getDescriptor().getName());
+                    return String.format("Test '%s' failed.", getTestDescriptor().getName());
                 }
 
                 @Override
-                public TestDescriptor getDescriptor() {
+                public TestDescriptor getTestDescriptor() {
                     return testDescriptor;
                 }
 

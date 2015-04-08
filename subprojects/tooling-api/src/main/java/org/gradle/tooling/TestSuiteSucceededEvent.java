@@ -31,7 +31,7 @@ public interface TestSuiteSucceededEvent extends TestProgressEvent {
      *
      * @return The description
      */
-    TestDescriptor getDescriptor();
+    TestDescriptor getTestDescriptor();
 
     /**
      * The result of running the test suite successfully.
