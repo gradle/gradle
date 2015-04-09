@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.tasks
+package org.gradle.language.c.tasks
 
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -23,55 +23,50 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class CppCompileTest extends Specification {
+
+class CPreCompiledHeaderCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CppCompile cppCompile = TestUtil.createTask(CppCompile)
+    CPreCompiledHeaderCompile cPCHCompile = TestUtil.createTask(CPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
-    Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
+    Compiler<CPCHCompileSpec> cPCHCompiler = Mock(Compiler)
 
-    def "executes using the CppCompiler"() {
+    def "executes using the C PCH Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
-        cppCompile.toolChain = toolChain
-        cppCompile.targetPlatform = platform
-        cppCompile.compilerArgs = ["arg"]
-        cppCompile.macros = [def: "value"]
-        cppCompile.objectFileDir = testDir.file("outputFile")
-        cppCompile.source sourceFile
-        cppCompile.preCompiledHeader = "header"
-        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
-        cppCompile.execute()
+        cPCHCompile.toolChain = toolChain
+        cPCHCompile.targetPlatform = platform
+        cPCHCompile.compilerArgs = ["arg"]
+        cPCHCompile.macros = [def: "value"]
+        cPCHCompile.objectFileDir = testDir.file("outputFile")
+        cPCHCompile.source sourceFile
+        cPCHCompile.execute()
 
         then:
-        _ * toolChain.outputType >> "cpp"
+        _ * toolChain.outputType >> "c"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
-        1 * cppCompiler.execute({ CppCompileSpec spec ->
-            assert spec.sourceFiles*.name == ["sourceFile"]
+        1 * platformToolChain.newCompiler({CPCHCompileSpec.class.isAssignableFrom(it)}) >> cPCHCompiler
+        1 * cPCHCompiler.execute({ CPCHCompileSpec spec ->
+            assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
-            assert spec.preCompiledHeader == "header"
-            assert spec.prefixHeaderFile.name == "prefixHeader"
-            assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
             true
         }) >> result
         1 * result.didWork >> true
         0 * _._
 
         and:
-        cppCompile.didWork
+        cPCHCompile.didWork
     }
 }

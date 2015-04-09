@@ -16,10 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
 abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
+    String getObjectFileFlag() {
+        return '/Fo'
+    }
+
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {
         ['/nologo', '/c', '/Dfoo=bar', '/Dempty', '-firstArg', '-secondArg',
@@ -31,13 +34,13 @@ abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
         def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
         def outputFile = testDir.file("output.ext")
-        def spec = Stub(NativeCompileSpec)
+        def spec = Stub(compileSpecType)
 
         when:
         def args = compiler.getOutputArgs(spec, outputFile)
 
         then:
-        args == ['/Fo' + outputFile.absoluteFile.toString()]
+        args == [objectFileFlag + outputFile.absoluteFile.toString()]
     }
 
 }

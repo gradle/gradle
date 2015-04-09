@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.tasks
+package org.gradle.language.objectivecpp.tasks
 
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -23,41 +23,42 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class CppCompileTest extends Specification {
+
+class ObjectiveCppCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CppCompile cppCompile = TestUtil.createTask(CppCompile)
+    ObjectiveCppCompile objCppCompile = TestUtil.createTask(ObjectiveCppCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
-    Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
+    Compiler<ObjectiveCppCompileSpec> objCppCompiler = Mock(Compiler)
 
-    def "executes using the CppCompiler"() {
+    def "executes using the objCppCompiler"() {
         def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
-        cppCompile.toolChain = toolChain
-        cppCompile.targetPlatform = platform
-        cppCompile.compilerArgs = ["arg"]
-        cppCompile.macros = [def: "value"]
-        cppCompile.objectFileDir = testDir.file("outputFile")
-        cppCompile.source sourceFile
-        cppCompile.preCompiledHeader = "header"
-        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
-        cppCompile.execute()
+        objCppCompile.toolChain = toolChain
+        objCppCompile.targetPlatform = platform
+        objCppCompile.compilerArgs = ["arg"]
+        objCppCompile.macros = [def: "value"]
+        objCppCompile.objectFileDir = testDir.file("outputFile")
+        objCppCompile.source sourceFile
+        objCppCompile.preCompiledHeader = "header"
+        objCppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
+        objCppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
+        objCppCompile.execute()
 
         then:
-        _ * toolChain.outputType >> "cpp"
+        _ * toolChain.outputType >> "objcpp"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
-        1 * cppCompiler.execute({ CppCompileSpec spec ->
+        1 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
+        1 * objCppCompiler.execute({ ObjectiveCppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
@@ -72,6 +73,6 @@ class CppCompileTest extends Specification {
         0 * _._
 
         and:
-        cppCompile.didWork
+        objCppCompile.didWork
     }
 }

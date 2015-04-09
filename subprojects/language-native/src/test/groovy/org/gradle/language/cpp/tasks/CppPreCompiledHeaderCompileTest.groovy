@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,55 +23,50 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class CppCompileTest extends Specification {
+
+class CppPreCompiledHeaderCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CppCompile cppCompile = TestUtil.createTask(CppCompile)
+    CppPreCompiledHeaderCompile cppPCHCompile = TestUtil.createTask(CppPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
-    Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
+    Compiler<CppPCHCompileSpec> cppPCHCompiler = Mock(Compiler)
 
-    def "executes using the CppCompiler"() {
+    def "executes using the Cpp PCH Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
-        cppCompile.toolChain = toolChain
-        cppCompile.targetPlatform = platform
-        cppCompile.compilerArgs = ["arg"]
-        cppCompile.macros = [def: "value"]
-        cppCompile.objectFileDir = testDir.file("outputFile")
-        cppCompile.source sourceFile
-        cppCompile.preCompiledHeader = "header"
-        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
-        cppCompile.execute()
+        cppPCHCompile.toolChain = toolChain
+        cppPCHCompile.targetPlatform = platform
+        cppPCHCompile.compilerArgs = ["arg"]
+        cppPCHCompile.macros = [def: "value"]
+        cppPCHCompile.objectFileDir = testDir.file("outputFile")
+        cppPCHCompile.source sourceFile
+        cppPCHCompile.execute()
 
         then:
         _ * toolChain.outputType >> "cpp"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
-        1 * cppCompiler.execute({ CppCompileSpec spec ->
-            assert spec.sourceFiles*.name == ["sourceFile"]
+        1 * platformToolChain.newCompiler({CppPCHCompileSpec.class.isAssignableFrom(it)}) >> cppPCHCompiler
+        1 * cppPCHCompiler.execute({ CppPCHCompileSpec spec ->
+            assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
-            assert spec.preCompiledHeader == "header"
-            assert spec.prefixHeaderFile.name == "prefixHeader"
-            assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
             true
         }) >> result
         1 * result.didWork >> true
         0 * _._
 
         and:
-        cppCompile.didWork
+        cppPCHCompile.didWork
     }
 }

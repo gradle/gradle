@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.tasks
+package org.gradle.language.objectivec.tasks
 
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -23,55 +23,50 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class CppCompileTest extends Specification {
+
+class ObjectiveCPreCompiledHeaderCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CppCompile cppCompile = TestUtil.createTask(CppCompile)
+    ObjectiveCPreCompiledHeaderCompile objCPCHCompile = TestUtil.createTask(ObjectiveCPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
-    Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
+    Compiler<ObjectiveCPCHCompileSpec> objCPCHCompiler = Mock(Compiler)
 
-    def "executes using the CppCompiler"() {
+    def "executes using the C PCH Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
-        cppCompile.toolChain = toolChain
-        cppCompile.targetPlatform = platform
-        cppCompile.compilerArgs = ["arg"]
-        cppCompile.macros = [def: "value"]
-        cppCompile.objectFileDir = testDir.file("outputFile")
-        cppCompile.source sourceFile
-        cppCompile.preCompiledHeader = "header"
-        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
-        cppCompile.execute()
+        objCPCHCompile.toolChain = toolChain
+        objCPCHCompile.targetPlatform = platform
+        objCPCHCompile.compilerArgs = ["arg"]
+        objCPCHCompile.macros = [def: "value"]
+        objCPCHCompile.objectFileDir = testDir.file("outputFile")
+        objCPCHCompile.source sourceFile
+        objCPCHCompile.execute()
 
         then:
-        _ * toolChain.outputType >> "cpp"
+        _ * toolChain.outputType >> "c"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
-        1 * cppCompiler.execute({ CppCompileSpec spec ->
-            assert spec.sourceFiles*.name == ["sourceFile"]
+        1 * platformToolChain.newCompiler({ObjectiveCPCHCompileSpec.class.isAssignableFrom(it)}) >> objCPCHCompiler
+        1 * objCPCHCompiler.execute({ ObjectiveCPCHCompileSpec spec ->
+            assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
-            assert spec.preCompiledHeader == "header"
-            assert spec.prefixHeaderFile.name == "prefixHeader"
-            assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
             true
         }) >> result
         1 * result.didWork >> true
         0 * _._
 
         and:
-        cppCompile.didWork
+        objCPCHCompile.didWork
     }
 }
