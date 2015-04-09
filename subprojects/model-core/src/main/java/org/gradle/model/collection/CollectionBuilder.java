@@ -29,7 +29,7 @@ import java.util.Set;
  * @param <T> the contract type for all items
  */
 @Incubating
-public interface CollectionBuilder<T> {
+public interface CollectionBuilder<T> extends Iterable<T> {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.
      *

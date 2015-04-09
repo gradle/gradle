@@ -252,6 +252,17 @@ class DefaultCollectionBuilderTest extends Specification {
         registry.realize(containerPath, collectionBuilderType).keySet() as List == ["a", "b"]
     }
 
+    def "can iterate over elements"() {
+        when:
+        mutate {
+            create("a") { other = "first" }
+            create("b") { other = "second" }
+        }
+
+        then:
+        registry.realize(containerPath, collectionBuilderType)*.other as Set == ["first", "second"] as Set
+    }
+
     def "can query filtered collection keys"() {
         when:
         mutate {

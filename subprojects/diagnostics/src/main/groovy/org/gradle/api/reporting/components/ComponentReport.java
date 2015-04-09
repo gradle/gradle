@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -26,13 +27,13 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.test.TestSuiteContainer;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -74,9 +75,11 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ComponentSpecContainer componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
+        ModelType<CollectionBuilder<ComponentSpec>> componentSpecCollectionBuilderType = new ModelType<CollectionBuilder<ComponentSpec>>() {
+        };
+        CollectionBuilder<ComponentSpec> componentSpecs = getModelRegistry().find(ModelPath.path("components"), componentSpecCollectionBuilderType);
         if (componentSpecs != null) {
-            components.addAll(componentSpecs);
+            Iterables.addAll(components, componentSpecs);
         }
 
         TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
