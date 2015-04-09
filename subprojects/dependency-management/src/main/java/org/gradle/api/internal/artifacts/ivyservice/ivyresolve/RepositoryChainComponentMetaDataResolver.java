@@ -17,12 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -65,14 +61,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
         dependency = dependency.withTarget(new DefaultModuleComponentSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
 
-        resolve(dependency, result);
+        resolve(dependency, moduleId, result);
     }
 
-    private void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        LOGGER.debug("Attempting to resolve {} using repositories {}", requested, repositoryNames);
-        ModuleComponentIdentifier moduleComponentIdentifier = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+    private void resolve(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableComponentResolveResult result) {
+        LOGGER.debug("Attempting to resolve component for {} using repositories {}", moduleComponentIdentifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<Throwable>();
 
@@ -97,7 +90,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             for (ComponentMetaDataResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
             }
-            result.notFound(moduleVersionIdentifier);
+            result.notFound(moduleComponentIdentifier);
         }
     }
 

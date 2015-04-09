@@ -962,7 +962,7 @@ class DependencyGraphBuilderTest extends Specification {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
         1 * metaDataResolver.resolve(_, to.componentId, _) >> { DependencyMetaData dep, ComponentIdentifier id, BuildableComponentResolveResult result ->
-            result.notFound(to.id)
+            result.notFound(to.componentId)
         }
     }
 

@@ -55,7 +55,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        LOGGER.debug("Attempting to resolve {} using repositories {}", requested, repositoryNames);
+        LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
