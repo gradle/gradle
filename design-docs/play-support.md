@@ -535,21 +535,41 @@ Gradle will be able to start, run a set of tasks and then wait for a retrigger b
 
 #### Implementation
 
-TBD
+Overall approach:
+
+- Gradle CLI/client process connects to a daemon process and exposes a "trigger" of some kind.
+- Gradle Daemon is held and reused for each rebuild.
+- Gradle CLI waits for a trigger.  When it has been tripped, build is executed.
+- Initial implementation will use a periodic timer to trigger the build.
+
+- Add new command-line option (`--watch`) 
+    - Create `WatchParameters`/`ContinuousModeParameters` similar to `DaemonParameters`
+    - Enforce that `--watch` must be used with the Daemon turned on.
+- `BuildActionFactory` changes to use a new `DaemonClient` implementation or wraps the existing one when 'continuous mode' is enabled.
+    - New `DaemonClient` connects to daemon and reuses connection for multiple builds
+    - Possibly need a different set of daemon client services (from `DaemonClientFactory`)
+    - `DaemonClient` will fall into a monitor cycle instead of sending `Finished`
+- Add a new `TriggerBuild` Message between daemon client/server.
+    - When `TriggerBuild` is received, loop repeats and build is executed again.
+- In Daemon, produce `TriggerBuild` on timer.
 
 #### Test Coverage
 
 - If Gradle build succeeds, we wait for trigger and print some sort of helpful message.
 - If Gradle build fails, we still wait for trigger.
-- If Gradle fails to start, Gradle exits and does not wait for input (e.g., invalid command-line or build script errors).
+- If Gradle fails to start the first time, Gradle exits and does not wait for the trigger (e.g., invalid command-line or build script errors).
 - On Ctrl+C, Gradle exits.
-- On a periodic timer (doesn't need to be configurable), retrigger the build.
+- A `TriggerBuild` message sets the "trigger"
+- When "trigger" is set, a build runs.
+- More integ end-to-end tests
 - Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
 
 #### Open Issues
 
 - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
 - What does the output look like when we fail?
+- OK to reuse "global client services" created in BuildActionsFactory across multiple builds
+- 
 
 ### Story: Continuous Gradle mode triggered by file change
 
