@@ -45,7 +45,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     GradleInternal build
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
     def baseClassLoaderScope = Mock(ClassLoaderScope) {
-        1 * createChild() >> rootProjectClassLoaderScope
+        1 * createChild("root-project") >> rootProjectClassLoaderScope
     }
 
     @Rule

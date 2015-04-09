@@ -76,8 +76,10 @@ public interface ClassLoaderScope {
 
     /**
      * Creates a scope with this scope as parent.
+     *
+     * @param id an identifier for the child loader
      */
-    ClassLoaderScope createChild();
+    ClassLoaderScope createChild(String id);
 
     /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.

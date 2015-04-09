@@ -539,8 +539,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        // Note: not the desired behaviour, we are leaking the loader that had the buildscript for a and a/a
-        assertCacheSizeChange(-1)
+        assertCacheSizeChange(-2)
         isCached("a")
         isNotCached("a:a")
     }
