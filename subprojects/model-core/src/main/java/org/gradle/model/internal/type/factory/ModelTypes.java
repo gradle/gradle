@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.type;
+package org.gradle.model.internal.type.factory;
+
+import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
@@ -26,4 +29,9 @@ public abstract class ModelTypes {
         }, ModelType.of(type)).build();
     }
 
+    public static <T> ModelType<CollectionBuilder<T>> collectionBuilderOf(Class<T> type) {
+        return new ModelType.Builder<CollectionBuilder<T>>() {
+        }.where(new ModelType.Parameter<T>() {
+        }, ModelType.of(type)).build();
+    }
 }

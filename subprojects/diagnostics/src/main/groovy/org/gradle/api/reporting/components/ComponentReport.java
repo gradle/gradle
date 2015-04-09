@@ -31,6 +31,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.factory.ModelTypes;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.test.TestSuiteContainer;
@@ -75,9 +76,7 @@ public class ComponentReport extends DefaultTask {
         renderer.startProject(project);
 
         Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
-        ModelType<CollectionBuilder<ComponentSpec>> componentSpecCollectionBuilderType = new ModelType<CollectionBuilder<ComponentSpec>>() {
-        };
-        CollectionBuilder<ComponentSpec> componentSpecs = getModelRegistry().find(ModelPath.path("components"), componentSpecCollectionBuilderType);
+        CollectionBuilder<ComponentSpec> componentSpecs = getModelRegistry().find(ModelPath.path("components"), ModelTypes.collectionBuilderOf(ComponentSpec.class));
         if (componentSpecs != null) {
             Iterables.addAll(components, componentSpecs);
         }
