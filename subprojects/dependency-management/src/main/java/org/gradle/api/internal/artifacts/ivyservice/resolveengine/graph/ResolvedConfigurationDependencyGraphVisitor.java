@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Reso
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -77,7 +78,7 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         builder.addChild(parent, child);
 
         long id = idGenerator.generateId();
-        ArtifactSet artifacts = getArtifacts(id, dependency, childConfiguration);
+        ArtifactSet artifacts = getArtifacts(dependency, childConfiguration);
         builder.addArtifacts(child, parent, id);
         artifactsBuilder.addArtifacts(id, artifacts);
 
@@ -87,9 +88,10 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
         }
     }
 
-    private ArtifactSet getArtifacts(long id, DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
-        ComponentResolveMetaData component = childConfiguration.metaData.getComponent();
-        Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(childConfiguration.metaData);
+    private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+        ConfigurationMetaData metaData = childConfiguration.getMetaData();
+        ComponentResolveMetaData component = metaData.getComponent();
+        Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
             return new DependencyArtifactSet(component, artifacts, artifactResolver);
         }

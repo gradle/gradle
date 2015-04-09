@@ -624,11 +624,11 @@ public class DependencyGraphBuilder {
      */
     static class ConfigurationNode {
         public final ModuleVersionResolveState moduleRevision;
-        public final ConfigurationMetaData metaData;
         public final Set<DependencyEdge> incomingEdges = new LinkedHashSet<DependencyEdge>();
         public final Set<DependencyEdge> outgoingEdges = new LinkedHashSet<DependencyEdge>();
         public final ResolvedConfigurationIdentifier id;
 
+        private final ConfigurationMetaData metaData;
         private final ResolveState resolveState;
         private ModuleResolutionFilter previousTraversal;
 
@@ -642,6 +642,15 @@ public class DependencyGraphBuilder {
 
         public ModuleVersionIdentifier toId() {
             return moduleRevision.id;
+        }
+
+        public ComponentIdentifier getComponentId() {
+            return moduleRevision.getComponentId();
+        }
+
+        // TODO:DAZ Need to get rid of this
+        public ConfigurationMetaData getMetaData() {
+            return metaData;
         }
 
         @Override
