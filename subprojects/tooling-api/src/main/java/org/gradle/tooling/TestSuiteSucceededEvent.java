@@ -38,6 +38,6 @@ public interface TestSuiteSucceededEvent extends TestProgressEvent {
      *
      * @return The result
      */
-    TestSuccess getResult();
+    TestSuccess getTestResult();
 
 }

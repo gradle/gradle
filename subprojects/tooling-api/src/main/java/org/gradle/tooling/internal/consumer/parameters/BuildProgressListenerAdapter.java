@@ -120,7 +120,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     }
 
                     @Override
-                    public TestSuccess getResult() {
+                    public TestSuccess getTestResult() {
                         return testSuccess;
                     }
                 };
@@ -144,7 +144,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     }
 
                     @Override
-                    public TestFailure getResult() {
+                    public TestFailure getTestResult() {
                         return testFailure;
                     }
                 };
@@ -206,7 +206,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     }
 
                     @Override
-                    public TestSuccess getResult() {
+                    public TestSuccess getTestResult() {
                         return testSuccess;
                     }
                 };
@@ -230,7 +230,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                     }
 
                     @Override
-                    public TestFailure getResult() {
+                    public TestFailure getTestResult() {
                         return testFailure;
                     }
                 };

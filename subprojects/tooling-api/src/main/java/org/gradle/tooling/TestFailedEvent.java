@@ -38,6 +38,6 @@ public interface TestFailedEvent extends TestProgressEvent {
      *
      * @return The result
      */
-    TestFailure getResult();
+    TestFailure getTestResult();
 
 }

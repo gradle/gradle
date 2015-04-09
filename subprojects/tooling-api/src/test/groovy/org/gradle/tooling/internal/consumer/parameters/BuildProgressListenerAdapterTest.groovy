@@ -365,8 +365,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.name == 'some test suite'
             assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
+            assert event.testResult.startTime == 1
+            assert event.testResult.endTime == 2
         }
     }
 
@@ -409,9 +409,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.name == 'some test suite'
             assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.exceptions.size() == 1
+            assert event.testResult.startTime == 1
+            assert event.testResult.endTime == 2
+            assert event.testResult.exceptions.size() == 1
         }
     }
 
@@ -518,8 +518,8 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.name == 'some test'
             assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
+            assert event.testResult.startTime == 1
+            assert event.testResult.endTime == 2
         }
     }
 
@@ -562,9 +562,9 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.name == 'some test'
             assert event.testDescriptor.className == null
             assert event.testDescriptor.parent == null
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.exceptions.size() == 1
+            assert event.testResult.startTime == 1
+            assert event.testResult.endTime == 2
+            assert event.testResult.exceptions.size() == 1
         }
     }
 
