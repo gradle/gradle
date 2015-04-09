@@ -61,18 +61,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
 
     private synchronized TestProgressEvent toTestProgressEvent(final TestProgressEventVersion1 event) {
         String eventType = event.getEventType();
-        final long eventTme = event.getEventTime();
         if (TestProgressEventVersion1.TEST_SUITE_STARTED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
             return new TestSuiteStartedEvent() {
                 @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
-                }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_SKIPPED.equals(eventType)) {
@@ -82,11 +76,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
                 }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_SUCCEEDED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
@@ -95,11 +84,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
-                }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
                 }
 
                 @Override
@@ -117,11 +101,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 }
 
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
                 public TestFailure getResult() {
                     return testFailure;
                 }
@@ -133,11 +112,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
                 }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
             };
         } else if (TestProgressEventVersion1.TEST_SKIPPED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
@@ -145,11 +119,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
-                }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUCCEEDED.equals(eventType)) {
@@ -159,11 +128,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
-                }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
                 }
 
                 @Override
@@ -178,11 +142,6 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
-                }
-
-                @Override
-                public long getEventTime() {
-                    return eventTme;
                 }
 
                 @Override

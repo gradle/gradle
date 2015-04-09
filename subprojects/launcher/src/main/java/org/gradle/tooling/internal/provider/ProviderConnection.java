@@ -195,11 +195,6 @@ public class ProviderConnection {
                     }
 
                     @Override
-                    public long getEventTime() {
-                        return testProgressEvent.getEventTime();
-                    }
-
-                    @Override
                     public TestDescriptorVersion1 getDescriptor() {
                         return new TestDescriptorVersion1() {
 

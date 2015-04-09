@@ -28,13 +28,6 @@ import org.gradle.api.Incubating;
 public interface TestProgressEvent {
 
     /**
-     * Returns the time when the event happened.
-     *
-     * @return The event time, in milliseconds since the epoch
-     */
-    long getEventTime();
-
-    /**
      * The description of the test for which progress is reported.
      *
      * @return The test description
