@@ -133,10 +133,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void configureDefaultPlaySources(ComponentSpecContainer components, ServiceRegistry serviceRegistry) {
+        void configureDefaultPlaySources(CollectionBuilder<PlayApplicationSpec> playApplicationComponents, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+            playApplicationComponents.all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
                     // TODO:DAZ Scala source set type should be registered via scala-lang plugin
                     ScalaLanguageSourceSet scalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
@@ -165,15 +165,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         void failOnMultiplePlayComponents(CollectionBuilder<PlayApplicationSpec> container) {
             if (container.size() >= 2) {
                 throw new GradleException("Multiple components of type 'PlayApplicationSpec' are not supported.");
-            }
-        }
-
-        @Finalize
-        void failOnMultipleTargetPlatforms(ComponentSpecContainer container) {
-            for (PlayApplicationSpecInternal playApplicationSpec : container.withType(PlayApplicationSpecInternal.class)) {
-                if (playApplicationSpec.getTargetPlatforms().size() > 1) {
-                    throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
-                }
             }
         }
 

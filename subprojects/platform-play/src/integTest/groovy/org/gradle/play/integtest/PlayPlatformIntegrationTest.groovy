@@ -126,6 +126,25 @@ model {
         failure.assertHasCause "Not a supported Scala platform identifier X. Supported values are: ['2.10', '2.11']."
     }
 
+    def "fails when trying to build for multiple play platforms"() {
+        when:
+        buildFile << """
+model {
+    components {
+        play {
+            platform play: '2.2.4'
+            platform play: '2.3.6'
+        }
+    }
+}
+"""
+        then:
+        fails "assemble"
+
+        and:
+        failure.assertHasCause "Play application can only target a single platform"
+    }
+
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
     }
