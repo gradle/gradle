@@ -586,11 +586,12 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 - Monitor files that are inputs to the model for changes too.
 
-### Story: Continuous Gradle mode ignores changes to intermediate files
+### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
 
 #### Implementation
 
-- Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
+- IDEA: Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
+- IDEA: Start/stop watching during a build?
 
 #### Test Coverage
 
@@ -598,7 +599,7 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 #### Open Issues
 
-- Do we start/stop watching during a build?
+- TBD
 
 ### Additional Notes 
 
