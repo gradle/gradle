@@ -31,7 +31,7 @@ public interface TestSuiteFailedEvent extends TestProgressEvent {
      *
      * @return The description
      */
-    TestDescriptor getTestDescriptor();
+    TestDescriptor getDescriptor();
 
     /**
      * The result of running the test suite with a failure.

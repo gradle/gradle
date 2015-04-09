@@ -46,6 +46,7 @@ public interface TestProgressEvent {
      *
      * @return The test description
      */
-    TestDescriptor getTestDescriptor();
+    TestDescriptor getDescriptor();
+
 
 }

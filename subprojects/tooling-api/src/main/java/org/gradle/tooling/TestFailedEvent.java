@@ -31,7 +31,7 @@ public interface TestFailedEvent extends TestProgressEvent {
      *
      * @return The description
      */
-    TestDescriptor getTestDescriptor();
+    TestDescriptor getDescriptor();
 
     /**
      * The result of running the test with a failure.
