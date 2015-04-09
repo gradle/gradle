@@ -53,7 +53,15 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", id.getGroup(), id.getName(), version);
+        String group = id.getGroup();
+        String module = id.getName();
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        builder.append(group);
+        builder.append(":");
+        builder.append(module);
+        builder.append(":");
+        builder.append(version);
+        return builder.toString();
     }
 
     @Override

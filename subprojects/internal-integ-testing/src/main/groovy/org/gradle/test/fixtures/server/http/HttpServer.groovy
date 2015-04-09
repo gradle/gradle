@@ -116,7 +116,11 @@ class HttpServer extends ServerWithExpectations {
         if (!server.started) {
             server.start()
         }
-        "http://localhost:${port}"
+        getUri().toString()
+    }
+
+    URI getUri() {
+        return sslConnector ? URI.create("https://localhost:${sslConnector.localPort}") : URI.create("http://localhost:${connector.localPort}")
     }
 
     boolean isRunning() {
@@ -597,7 +601,7 @@ class HttpServer extends ServerWithExpectations {
     }
 
     int getPort() {
-        return server.connectors[0].localPort
+        return connector.localPort
     }
 
     static class HttpExpectOne extends ExpectOne {

@@ -22,14 +22,16 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
+@UsesNativeServices
 class PropertiesToDaemonParametersConverterTest extends Specification {
-
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
@@ -70,7 +72,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
         params.effectiveJavaHome == Jvm.current().javaHome
-        params.enabled
+        params.daemonUsage == EXPLICITLY_ENABLED
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
     }
@@ -111,8 +113,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([:], params)
 
         then:
-        !params.enabled
-        !params.usageConfiguredExplicitly
+        params.daemonUsage == IMPLICITLY_DISABLED
     }
 
     @Unroll
@@ -121,10 +122,11 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert((GradleProperties.DAEMON_ENABLED_PROPERTY): enabled.toString(), params)
 
         then:
-        params.enabled == enabled
-        params.usageConfiguredExplicitly
+        params.daemonUsage == usage
 
         where:
-        enabled << [true, false]
+        enabled | usage
+        true    | EXPLICITLY_ENABLED
+        false   | EXPLICITLY_DISABLED
     }
 }

@@ -16,29 +16,30 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.api.Transformer
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
-
     HttpResourceAccessor accessorMock = Mock()
     HttpResponseResource externalResource = Mock()
+    ExternalResourceMetaData metaData = Mock()
     HttpResourceLister lister = new HttpResourceLister(accessorMock)
 
     def "consumeExternalResource closes resource after reading into stream"() {
         setup:
-        accessorMock.getResource(new URI("http://testrepo/")) >> externalResource;
+        accessorMock.openResource(new URI("http://testrepo/")) >> externalResource;
         when:
         lister.list(new URI("http://testrepo/"))
         then:
-        1 * externalResource.withContent(_) >> {Transformer action -> return action.transform(new ByteArrayInputStream("<a href='child'/>".bytes))}
-        1 * externalResource.getContentType() >> "text/html"
+        1 * externalResource.openStream() >> new ByteArrayInputStream("<a href='child'/>".bytes)
+        _ * externalResource.metaData >> metaData
+        1 * metaData.getContentType() >> "text/html"
         1 * externalResource.close()
     }
 
     def "list returns null if HttpAccessor returns null"(){
         setup:
-        accessorMock.getResource(new URI("http://testrepo/"))  >> null
+        accessorMock.openResource(new URI("http://testrepo/"))  >> null
         expect:
         null == lister.list(new URI("http://testrepo"))
     }

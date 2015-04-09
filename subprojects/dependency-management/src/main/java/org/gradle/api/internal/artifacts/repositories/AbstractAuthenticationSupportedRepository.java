@@ -49,8 +49,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         credentials(PasswordCredentials.class, action);
     }
 
-    public <T extends Credentials> void credentials(Class<T> clazz, Action<? super T> action) throws IllegalStateException {
-        action.execute(getCredentials(clazz));
+    public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
+        action.execute(getCredentials(credentialsType));
     }
 
     private <T extends Credentials> T newCredentials(Class<T> clazz) {
@@ -59,11 +59,11 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         } else if (clazz == PasswordCredentials.class) {
             return Transformers.cast(clazz).transform(instantiator.newInstance(DefaultPasswordCredentials.class));
         } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s'.", clazz.getName()));
+            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s and %s).", clazz.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName()));
         }
     }
 
-    public Credentials getAlternativeCredentials() {
+    public Credentials getConfiguredCredentials() {
         return credentials;
     }
 }

@@ -273,7 +273,7 @@ class CompositeDomainObjectSetTest extends Specification {
         calledFor == ["j", "k", "l", "m"]
 
         and:
-        superComposite.toList() == ["a", "j", "b", "k", "c", "l", "d", "m"]
+        superComposite.toSet() == ["a", "j", "b", "k", "c", "l", "d", "m"].toSet()
 
         when:
         superComposite.whenObjectRemoved { calledFor << it }

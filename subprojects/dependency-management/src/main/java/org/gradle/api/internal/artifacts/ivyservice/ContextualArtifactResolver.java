@@ -38,7 +38,8 @@ public class ContextualArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
-        executeInContext(String.format("Resolve %s for %s", artifactType, component), new Action<Ivy>() {
+        String description = "Resolve " + artifactType + " for " + component;
+        executeInContext(description, new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveModuleArtifacts(component, artifactType, result);
             }
@@ -46,7 +47,8 @@ public class ContextualArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
-        executeInContext(String.format("Resolve %s for %s", usage, component), new Action<Ivy>() {
+        String description = "Resolve " + usage + " for " + component;
+        executeInContext(description, new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveModuleArtifacts(component, usage, result);
             }
@@ -54,7 +56,7 @@ public class ContextualArtifactResolver implements ArtifactResolver {
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        executeInContext(String.format("Resolve %s", artifact), new Action<Ivy>() {
+        executeInContext("Resolve ".concat(artifact.toString()), new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 delegate.resolveArtifact(artifact, moduleSource, result);
             }

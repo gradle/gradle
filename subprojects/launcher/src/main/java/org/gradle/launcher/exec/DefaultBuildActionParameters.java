@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -28,9 +29,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final LogLevel logLevel;
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
-    private final boolean daemonUsageConfiguredExplicitly;
+    private final DaemonUsage daemonUsage;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean daemonUsageConfiguredExplicitly) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         assert systemProperties != null;
@@ -38,7 +39,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
-        this.daemonUsageConfiguredExplicitly = daemonUsageConfiguredExplicitly;
+        this.daemonUsage = daemonUsage;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -58,16 +59,16 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     }
 
     @Override
-    public boolean isDaemonUsageConfiguredExplicitly() {
-        return daemonUsageConfiguredExplicitly;
-    }
-
-    @Override
     public String toString() {
         return "DefaultBuildActionParameters{"
                 + ", currentDir=" + currentDir
                 + ", systemProperties size=" + systemProperties.size()
                 + ", envVariables size=" + envVariables.size()
                 + '}';
+    }
+
+    @Override
+    public DaemonUsage getDaemonUsage() {
+        return daemonUsage;
     }
 }

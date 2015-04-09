@@ -19,19 +19,16 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
 
 import java.util.List;
 
 class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
-    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineTool, invocationContext, getArgsTransformerFactory(), specTransformer, objectFileExtensionCalculator, useCommandFile);
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
     @Override
@@ -43,14 +40,5 @@ class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
     }
 
     private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {
-    }
-
-    private static ArgsTransformerFactory<AssembleSpec> getArgsTransformerFactory() {
-        return new ArgsTransformerFactory<AssembleSpec>() {
-            @Override
-            public ArgsTransformer<AssembleSpec> create(AssembleSpec spec) {
-                return new AssemblerArgsTransformer();
-            }
-        };
     }
 }

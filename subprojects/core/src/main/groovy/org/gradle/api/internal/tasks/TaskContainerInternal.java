@@ -53,4 +53,5 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      */
     void discoverTasks();
 
+    void maybeRealizeTask(String name);
 }

@@ -16,15 +16,17 @@
 
 package org.gradle.internal.resource;
 
+import java.net.URI;
+
 /**
  * An exception thrown when attempting to access the content of a {@link Resource} which does not exist.
  */
 public class ResourceNotFoundException extends ResourceException {
-    public ResourceNotFoundException(String message) {
-        super(message);
+    public ResourceNotFoundException(URI location, String message) {
+        super(location, message);
     }
 
-    public ResourceNotFoundException(String message, Throwable t) {
-        super(message, t);
+    public ResourceNotFoundException(URI location, String message, Throwable cause) {
+        super(location, message, cause);
     }
 }

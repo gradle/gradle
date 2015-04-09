@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal
 
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class ExecHandleBuilderTest extends Specification {
     private final ExecHandleBuilder builder = new ExecHandleBuilder()
 

@@ -17,8 +17,6 @@
 package org.gradle.api.publication.maven.internal.wagon
 
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -31,15 +29,11 @@ class RepositoryTransportWagonAdapterTest extends Specification {
     @Unroll
     def "should determine the correct remote resource uri"() {
         given:
-        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
-        mavenArtifactRepository.getUrl() >> repoUrl
-        RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
-        repositoryTransportFactory.createTransport(*_) >> repositoryTransport
 
-        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, repoUrl)
 
         when:
         delegate.getRemoteFile(null, resourceName)
@@ -53,46 +47,45 @@ class RepositoryTransportWagonAdapterTest extends Specification {
         S3_URI                           | '/a/b/some.jar' | 's3://somewhere/maven/a/b/some.jar'
     }
 
-    @Unroll
-    def "should return the correct status to indicate if the remote resource was retrieved and writen"() {
+    def "returns true when remote resource was retrieved and written"() {
         given:
-        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
-        mavenArtifactRepository.getUrl() >> S3_URI
-        RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
-
         repositoryTransport.getRepository() >> externalResourceRepo
-        externalResourceRepo.getResource(_) >> resourceResponse
-        repositoryTransportFactory.createTransport(*_) >> repositoryTransport
+        externalResourceRepo.getResource(_) >> Mock(ExternalResource)
 
-        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
+
         expect:
-        delegate.getRemoteFile(null, 'a/b/some.jar') == expected
+        delegate.getRemoteFile(null, 'a/b/some.jar')
+    }
 
-        where:
-        resourceResponse       | expected
-        null                   | false
-        Mock(ExternalResource) | true
-        { -> throw new RuntimeException("explode") } | false
+    def "returns false when the remote resource does not exist"() {
+        given:
+        RepositoryTransport repositoryTransport = Mock()
+        ExternalResourceRepository externalResourceRepo = Mock()
+        repositoryTransport.getRepository() >> externalResourceRepo
+        externalResourceRepo.getResource(_) >> null
+
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
+
+        expect:
+        !delegate.getRemoteFile(null, 'a/b/some.jar')
     }
 
     def "should put a file to the correct uri"() {
         given:
-        MavenArtifactRepositoryInternal mavenArtifactRepository = Mock()
-        mavenArtifactRepository.getUrl() >> S3_URI
-        RepositoryTransportFactory repositoryTransportFactory = Mock()
         RepositoryTransport repositoryTransport = Mock()
         ExternalResourceRepository externalResourceRepo = Mock()
         repositoryTransport.getRepository() >> externalResourceRepo
-        repositoryTransportFactory.createTransport(*_) >> repositoryTransport
+        externalResourceRepo.withProgressLogging() >> externalResourceRepo
 
-        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter("s3", mavenArtifactRepository, repositoryTransportFactory)
+        RepositoryTransportWagonAdapter delegate = new RepositoryTransportWagonAdapter(repositoryTransport, S3_URI)
 
         when:
         delegate.putRemoteFile(null, 'something.jar')
 
         then:
-        1 * externalResourceRepo.putWithoutChecksum(null, { it.toString() == 's3://somewhere/maven/something.jar'})
+        1 * externalResourceRepo.put(_, { it.toString() == 's3://somewhere/maven/something.jar'})
     }
 }

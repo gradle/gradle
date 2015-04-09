@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.IOException;
@@ -31,17 +31,32 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public void upload(final Factory<InputStream> source, final Long contentLength, URI destination) throws IOException {
-        final ResourceOperation uploadOperation = createResourceOperation(destination.toString(), ResourceOperation.Type.upload, getClass(), contentLength);
+    @Override
+    public void upload(final LocalResource resource, URI destination) throws IOException {
+        final ResourceOperation uploadOperation = createResourceOperation(destination.toString(), ResourceOperation.Type.upload, getClass(), resource.getContentLength());
 
         try {
-            delegate.upload(new Factory<InputStream>() {
-                public InputStream create() {
-                    return new ProgressLoggingInputStream(source.create(), uploadOperation);
-                }
-            }, contentLength, destination);
+            delegate.upload(new ProgressLoggingLocalResource(resource, uploadOperation), destination);
         } finally {
             uploadOperation.completed();
+        }
+    }
+
+    private class ProgressLoggingLocalResource implements LocalResource {
+        private final LocalResource delegate;
+        private final ResourceOperation uploadOperation;
+
+        private ProgressLoggingLocalResource(LocalResource delegate, ResourceOperation uploadOperation) {
+            this.delegate = delegate;
+            this.uploadOperation = uploadOperation;
+        }
+
+        public InputStream open() {
+            return new ProgressLoggingInputStream(delegate.open(), uploadOperation);
+        }
+
+        public long getContentLength() {
+            return delegate.getContentLength();
         }
     }
 }

@@ -27,9 +27,9 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.DefaultLocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -38,6 +38,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
+import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -53,14 +54,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCacheAwareExternalResourceAccessor.class);
 
-    private final ExternalResourceAccessor delegate;
+    private final ExternalResourceRepository delegate;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
     private final TemporaryFileProvider temporaryFileProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -74,7 +75,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return copyToCache(location, fileStore, delegate.getResource(location));
+            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
         }
 
         // We might be able to use a cached/locally available version
@@ -83,7 +84,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // Get the metadata first to see if it's there
-        final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(location);
+        final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location);
         if (remoteMetaData == null) {
             return null;
         }
@@ -130,10 +131,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // All local/cached options failed, get directly
-        return copyToCache(location, fileStore, delegate.getResource(location));
+        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
     }
 
-    private HashValue getResourceSha1(URI location) throws IOException {
+    private HashValue getResourceSha1(URI location) {
         try {
             URI sha1Location = new URI(location.toASCIIString() + ".sha1");
             ExternalResource resource = delegate.getResource(sha1Location);
@@ -156,7 +157,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 resource.close();
             }
         } catch (Exception e) {
-            throw new ResourceException(String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            throw new ResourceException(location, String.format("Failed to download SHA1 for resource '%s'.", location), e);
         }
     }
 
@@ -193,7 +194,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                throw new ResourceException(String.format("Failed to download resource '%s'.", source), e);
+                 throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {

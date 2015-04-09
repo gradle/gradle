@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.FixedBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -25,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
@@ -34,18 +36,33 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
         ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
-    private final ProtocolToModelAdapter adapter;
-    private final ServiceRegistry services;
-    private final ProviderConnection connection;
+    private ProtocolToModelAdapter adapter;
+    private ServiceRegistry services;
+    private ProviderConnection connection;
 
     /**
      * This is used by consumers 1.0-milestone-3 and later
      */
     public DefaultConnection() {
         LOGGER.debug("Tooling API provider {} created.", GradleVersion.current().getVersion());
+    }
+
+    /**
+     * This is used by consumers 1.2-rc-1 and later.
+     */
+    public void configure(ConnectionParameters parameters) {
+        initializeServices(getGradleUserHomeFromParameters(parameters));
+        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, parameters);
+        connection.configure(providerConnectionParameters);
+    }
+
+    private void initializeServices(File gradleUserHomeDir) {
+        NativeServices.initialize(gradleUserHomeDir);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         services = ServiceRegistryBuilder.builder()
                 .displayName("Connection services")
@@ -56,12 +73,12 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         connection = services.get(ProviderConnection.class);
     }
 
-    /**
-     * This is used by consumers 1.2-rc-1 and later.
-     */
-    public void configure(ConnectionParameters parameters) {
-        ProviderConnectionParameters providerConnectionParameters = adapter.adapt(ProviderConnectionParameters.class, parameters);
-        connection.configure(providerConnectionParameters);
+    private File getGradleUserHomeFromParameters(ConnectionParameters parameters) {
+        // If we have a ConnectionParameters object that exposes gradleUserHomeDir, then we use
+        // that, otherwise we just use the default temp directory
+        TmpDirTemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
+        File fallback = temporaryFileProvider.createTemporaryDirectory("native", "dir");
+        return new CompatibleIntrospector(parameters).getSafely(fallback, "getGradleUserHomeDir");
     }
 
     /**

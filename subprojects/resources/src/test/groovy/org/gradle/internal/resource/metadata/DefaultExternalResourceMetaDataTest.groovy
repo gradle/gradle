@@ -24,7 +24,7 @@ class DefaultExternalResourceMetaDataTest extends Specification {
     def "hash value is preserved"() {
         given:
         def sha1 = "abc"
-        def md = new DefaultExternalResourceMetaData(new URI("scheme:thing"), -1, -1, null, new HashValue(sha1))
+        def md = new DefaultExternalResourceMetaData(new URI("scheme:thing"), -1, -1, null, null, new HashValue(sha1))
 
         expect:
         md.sha1.equals(new HashValue(sha1))

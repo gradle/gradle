@@ -203,7 +203,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
     }
 
-    private void maybeRealizeTask(String name) {
+    @Override
+    public void maybeRealizeTask(String name) {
         if (modelNode.hasLink(name)) {
             realizeTask(MODEL_PATH.child(name));
         }

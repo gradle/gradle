@@ -29,6 +29,9 @@ public interface ExternalResourceMetaData {
     @Nullable
     Date getLastModified();
 
+    @Nullable
+    String getContentType();
+
     /**
      * Returns -1 when the content length is unknown.
      */

@@ -126,8 +126,8 @@ public class GradlePluginLord {
     public interface SettingsObserver {
 
         /**
-         * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this is
-         * changed by other means.
+         * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this
+         * is changed by other means.
          */
         public void settingsChanged();
     }

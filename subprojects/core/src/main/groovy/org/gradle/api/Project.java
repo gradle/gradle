@@ -67,7 +67,7 @@ import java.util.Set;
  * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
+ * present, against the project. The projects are evaluated in breadth-wise order, such that a project is evaluated
  * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
  * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
@@ -296,7 +296,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the group of this project. Gradle always uses the {@code toString()} value of the group. The group
-     * defaults to the path with dots a separators.</p>
+     * defaults to the path with dots as separators.</p>
      *
      * @return The group of this project. Never returns null.
      */

@@ -190,6 +190,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             binaries.create(binaryName, new Action<PlayApplicationBinarySpec>() {
                 public void execute(PlayApplicationBinarySpec playBinary) {
                     PlayApplicationBinarySpecInternal playBinaryInternal = (PlayApplicationBinarySpecInternal) playBinary;
+                    playBinaryInternal.setApplication(componentSpec);
                     final File binaryBuildDir = new File(buildDir, binaryName);
 
                     final PlayPlatform chosenPlatform = resolveTargetPlatform(componentSpec, platforms, configurations);

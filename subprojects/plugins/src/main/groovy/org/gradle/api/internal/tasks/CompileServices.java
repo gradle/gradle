@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryRenderer;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
@@ -51,8 +52,8 @@ public class CompileServices implements PluginServiceRegistry {
             initializer.initializeJdkTools();
         }
 
-        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory) {
-            return new InProcessCompilerDaemonFactory(classLoaderFactory);
+        InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, StartParameter startParameter) {
+            return new InProcessCompilerDaemonFactory(classLoaderFactory, startParameter.getGradleUserHomeDir());
         }
 
         GeneralCompileCaches createGeneralCompileCaches(ClassAnalysisCache classAnalysisCache, JarSnapshotCache jarSnapshotCache) {

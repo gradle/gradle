@@ -33,6 +33,7 @@ public class ObjectiveCPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
         project.getPluginManager().apply(ObjectiveCLangPlugin.class);
+        project.getPluginManager().apply(ObjectiveCLangPCHPlugin.class);
     }
 
 }

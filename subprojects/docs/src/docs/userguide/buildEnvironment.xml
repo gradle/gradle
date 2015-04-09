@@ -71,6 +71,11 @@
                 <listitem><para>When configured, Gradle will run in incubating parallel mode.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.workers.max</literal></term>
+                <listitem><para>When configured, Gradle will use a maximum of the given number of workers.  See <literal>--max-workers</literal> for details.</para>
+                </listitem>
+            </varlistentry>
         </para>
         <section>
             <title>Forked Java processes</title>

@@ -18,13 +18,13 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class SftpResourceAccessor implements ExternalResourceAccessor {
@@ -37,7 +37,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
         this.credentials = credentials;
     }
 
-    public ExternalResourceMetaData getMetaData(URI uri) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI uri) {
         LockableSftpClient sftpClient = sftpClientFactory.createSftpClient(uri, credentials);
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(uri.getPath());
@@ -46,7 +46,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw new SftpException(String.format("Could not get resource '%s'.", uri), e);
+            throw ResourceException.getFailed(uri, e);
         } finally {
             sftpClientFactory.releaseSftpClient(sftpClient);
         }
@@ -63,10 +63,10 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             contentLength = attributes.getSize();
         }
 
-        return new DefaultExternalResourceMetaData(uri, lastModified, contentLength, null, null);
+        return new DefaultExternalResourceMetaData(uri, lastModified, contentLength);
     }
 
-    public ExternalResource getResource(URI location) throws IOException {
+    public ExternalResourceReadResponse openResource(URI location) {
         ExternalResourceMetaData metaData = getMetaData(location);
         return metaData != null ? new SftpResource(sftpClientFactory, metaData, location, credentials) : null;
     }

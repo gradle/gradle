@@ -25,8 +25,6 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.remote.internal.ConnectException;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -40,17 +38,16 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build (subsequent builds will be faster).";
+    public static final String DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY = "org.gradle.daemon.disable-starting-message";
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
-    private final ProgressLoggerFactory progressLoggerFactory;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
-        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -84,6 +81,9 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
+        if (!Boolean.getBoolean(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY)) {
+            LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
+        }
         return startDaemon(constraint);
     }
 
@@ -106,27 +106,20 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
-        LOGGER.info("Starting Gradle daemon");
-        ProgressLogger startupProgress = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
-                .start(STARTING_DAEMON_MESSAGE, STARTING_DAEMON_MESSAGE);
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
-        try {
-            do {
-                DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
-                if (daemonConnection != null) {
-                    return daemonConnection;
-                }
-                try {
-                    Thread.sleep(200L);
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            } while (System.currentTimeMillis() < expiry);
-        } finally {
-            startupProgress.completed();
-        }
+        do {
+            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
+            if (daemonConnection != null) {
+                return daemonConnection;
+            }
+            try {
+                Thread.sleep(200L);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } while (System.currentTimeMillis() < expiry);
 
         throw new DaemonConnectionException("Timeout waiting to connect to the Gradle daemon.\n" + startupInfo.describe());
     }

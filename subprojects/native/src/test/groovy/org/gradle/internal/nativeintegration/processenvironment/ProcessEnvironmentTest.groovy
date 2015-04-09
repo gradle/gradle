@@ -16,8 +16,8 @@
 package org.gradle.internal.nativeintegration.processenvironment
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
@@ -27,7 +27,7 @@ import spock.lang.Specification
 class ProcessEnvironmentTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
-    final ProcessEnvironment env = NativeServices.getInstance().get(ProcessEnvironment)
+    final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
 
     @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can set and remove environment variable"() {

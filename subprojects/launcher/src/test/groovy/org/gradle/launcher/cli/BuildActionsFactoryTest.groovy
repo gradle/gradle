@@ -15,10 +15,12 @@
  */
 package org.gradle.launcher.cli
 
+import org.gradle.StartParameter
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
+import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -28,16 +30,17 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.internal.invocation.BuildActionRunner
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
+import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class BuildActionsFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
@@ -45,11 +48,12 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
+    PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
 
     BuildActionsFactory factory = new BuildActionsFactory(
-            loggingServices, Stub(DefaultCommandLineConverter), new DaemonCommandLineConverter(),
+            loggingServices, new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
-            Stub(LayoutToPropertiesConverter), Stub(PropertiesToStartParameterConverter),
+            Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
             propertiesToDaemonParametersConverter)
 
     def setup() {
@@ -57,6 +61,18 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
+    }
+
+    def "check that --max-workers overrides org.gradle.workers.max"() {
+        when:
+        propertiesToStartParameterConverter.convert(_, _) >> { args ->
+            def startParameter = (StartParameter) args[1]
+            startParameter.setMaxWorkerCount(3)
+        }
+        RunBuildAction action = convert('--max-workers=5')
+
+        then:
+        action.startParameter.maxWorkerCount == 5
     }
 
     def "executes build"() {
@@ -134,7 +150,7 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof InProcessBuildActionExecuter
+        assert action.executer instanceof DaemonUsageSuggestingBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

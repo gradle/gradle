@@ -21,16 +21,19 @@ import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
 
+@UsesNativeServices
 public class CurrentProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule
     final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
+
     private FileResolver fileResolver = Mock()
     private def currentJavaHome = tmpDir.file('java_home')
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)

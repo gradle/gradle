@@ -48,9 +48,41 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
             #define HELLO_H
             void sayHello();
             int sum(int a, int b);
+            #ifdef FRENCH
+            #pragma message("<==== compiling bonjour.h ====>")
+            #else
             #pragma message("<==== compiling hello.h ====>")
             #endif
+            #endif
         """);
+    }
+
+    @Override
+    TestApp getAlternate() {
+        return new TestApp() {
+            @Override
+            SourceFile getMainSource() {
+                return getAlternateMainSource()
+            }
+
+            @Override
+            SourceFile getLibraryHeader() {
+                return sourceFile("headers", "hello.h", """
+                    #ifndef HELLO_H
+                    #define HELLO_H
+                    void sayHello();
+                    int sum(int a, int b);
+
+                    #pragma message("<==== compiling althello.h ====>")
+                    #endif
+                """);
+            }
+
+            @Override
+            List<SourceFile> getLibrarySources() {
+                return getAlternateLibrarySources()
+            }
+        }
     }
 
     @Override
@@ -117,47 +149,23 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     SourceFile getAlternateMainSource() {
-        return sourceFile("objcpp", "main.mm", """
-            // Simple hello world app
-            #define __STDC_LIMIT_MACROS
-            #include <stdint.h>
-            #import <Foundation/Foundation.h>
-            #import <iostream>
-            #import "hello.h"
-
-            int main (int argc, const char * argv[])
-            {
-                std::cout << "${HELLO_WORLD} ${HELLO_WORLD}" << std::endl;
-                return 0;
-            }
-        """);
+        return getMainSource()
     }
 
-    String alternateOutput = "${HELLO_WORLD} ${HELLO_WORLD}\n"
-
+    @Override
+    String getAlternateOutput() {
+        return null
+    }
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return [
-            sourceFile("objcpp", "hello.mm", """
-            #define __STDC_LIMIT_MACROS
-            #include <stdint.h>
-            #include <iostream>
-            #include "hello.h"
-
-            void DLL_FUNC sayHello() {
-                std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
-            }
-        """),
-        sourceFile("objcpp", "sum.mm", """
-            #include "hello.h"
-            int DLL_FUNC sum(int a, int b) {
-                return a + b;
-            }
-        """)]
+        return getLibrarySources()
     }
 
-    String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+    @Override
+    String getAlternateLibraryOutput() {
+        return null
+    }
 
     public String getExtraConfiguration(String binaryName = null) {
         return """

@@ -71,6 +71,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> gradleOpts = new ArrayList<String>();
     private boolean noDefaultJvmArgs;
     private boolean requireGradleHome;
+    private boolean daemonStartingMessageDisabled = true;
 
     private boolean deprecationChecksOn = true;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -216,6 +217,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requireGradleHome) {
             executer.requireGradleHome();
+        }
+        if (!daemonStartingMessageDisabled) {
+            executer.withDaemonStartingMessageEnabled();
         }
 
         return executer;
@@ -684,5 +688,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter requireGradleHome() {
         this.requireGradleHome = true;
         return this;
+    }
+
+    public GradleExecuter withDaemonStartingMessageEnabled() {
+        daemonStartingMessageDisabled = false;
+        return this;
+    }
+
+    public boolean isDaemonStartingMessageDisabled() {
+        return daemonStartingMessageDisabled;
     }
 }

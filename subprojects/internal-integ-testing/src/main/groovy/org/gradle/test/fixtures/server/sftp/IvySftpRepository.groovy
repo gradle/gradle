@@ -58,14 +58,9 @@ class IvySftpRepository implements RemoteIvyRepository {
         return backingRepository.baseArtifactPattern
     }
 
-    void expectDirectoryList(String organisation, String module, String revision) {
-        server.expectDirectoryList("$contextPath/$organisation/$module/$revision")
-    }
-
-    void expectDirectoryList(String organisation, String module) {
-        def path = "$contextPath/$organisation/$module/"
-        server.expectStat(path)
-        server.expectDirectoryList(path)
+    @Override
+    SftpDirectoryResource directoryList(String organisation, String module) {
+        return new SftpDirectoryResource(server, backingRepository.moduleDir(organisation, module))
     }
 
     IvySftpModule module(String organisation, String module, Object revision = "1.0") {

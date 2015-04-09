@@ -30,19 +30,19 @@ class MavenSftpModule extends DelegatingMavenModule<MavenSftpModule> implements 
         this.backingModule = backingModule
     }
 
-    SftpResource getPom() {
-        new SftpResource(server, pomFile)
+    SftpArtifact getPom() {
+        return new SftpArtifact(server, pomFile)
     }
 
-    SftpResource getArtifact() {
-        new SftpResource(server, artifactFile)
+    SftpArtifact getArtifact() {
+        return new SftpArtifact(server, artifactFile)
     }
 
-    SftpResource getMavenMetadata() {
-        new SftpResource(server, metaDataFile)
+    SftpArtifact getMavenMetadata() {
+        return new SftpArtifact(server, metaDataFile)
     }
 
-    SftpResource getRootMavenMetadata() {
-        new SftpResource(server, backingModule.rootMetaDataFile)
+    SftpArtifact getRootMavenMetadata() {
+        return new SftpArtifact(server, backingModule.rootMetaDataFile)
     }
 }

@@ -31,7 +31,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target == newComponentSelector("org", "foo", "1.0")
+        details.target == newVersionSelector("org", "foo", "1.0")
         !details.updated
         !details.selectionReason
 
@@ -40,7 +40,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target == newComponentSelector("org", "foo", "1.0")
+        details.target == newVersionSelector("org", "foo", "1.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
 
@@ -49,13 +49,9 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target != newComponentSelector("org", "foo", "1.0")
+        details.target == newVersionSelector("org", "foo", "2.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
-
-        details.target.version == "2.0"
-        details.target.module == newComponentSelector("org", "foo", "1.0").module
-        details.target.group == newComponentSelector("org", "foo", "1.0").group
     }
 
     def "can specify version with selection reason"() {
@@ -66,7 +62,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target == newComponentSelector("org", "foo", "1.0")
+        details.target == newVersionSelector("org", "foo", "1.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.FORCED
 
@@ -75,9 +71,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target.version == "3.0"
-        details.target.module == newComponentSelector("org", "foo", "1.0").module
-        details.target.group == newComponentSelector("org", "foo", "1.0").group
+        details.target == newVersionSelector("org", "foo", "3.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.FORCED
     }
@@ -91,9 +85,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
-        details.target.version == "3.0"
-        details.target.module == newComponentSelector("org", "foo", "1.0").module
-        details.target.group == newComponentSelector("org", "foo", "1.0").group
+        details.target == newVersionSelector("org", "foo", "3.0")
         details.updated
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
     }

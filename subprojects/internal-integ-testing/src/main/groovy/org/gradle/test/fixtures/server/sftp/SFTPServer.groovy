@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
@@ -192,7 +191,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectFileUpload(String path) {
-        expectLstat(FilenameUtils.getFullPathNoEndSeparator(path))
         expectOpen(path)
         allowWrite(path)
         expectClose(path)
@@ -289,6 +287,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
+            println ("Handling $command")
             buffer.rpos(pos)
 
             def matched = expectations.find { it.matches(buffer, type, id) }

@@ -17,51 +17,45 @@
 package org.gradle.api.publication.maven.internal.wagon;
 
 import org.apache.maven.wagon.ResourceDoesNotExistException;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
 public class RepositoryTransportWagonAdapter {
-
     private final RepositoryTransport transport;
-    private final MavenArtifactRepository artifactRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportWagonAdapter.class);
+    private final URI rootUri;
 
-    public RepositoryTransportWagonAdapter(String protocol, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        this.artifactRepository = artifactRepository;
-        transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), artifactRepository.getAlternativeCredentials());
+    public RepositoryTransportWagonAdapter(RepositoryTransport transport, URI rootUri) {
+        this.transport = transport;
+        this.rootUri = rootUri;
     }
 
-    public boolean getRemoteFile(File destination, String resourceName) throws IOException, ResourceDoesNotExistException {
+    public boolean getRemoteFile(File destination, String resourceName) throws ResourceException, ResourceDoesNotExistException {
         URI uriForResource = getUriForResource(resourceName);
-        try {
-            ExternalResource resource = transport.getRepository().getResource(uriForResource);
-            if (null != resource) {
-                resource.writeTo(destination);
-                return true;
-            }
-        } catch (Exception e) {
-            LOGGER.debug("Could get and write file:" , e);
+        ExternalResource resource = transport.getRepository().getResource(uriForResource);
+        if (resource == null) {
             return false;
         }
-        return false;
+        try {
+            resource.writeTo(destination);
+        } finally {
+            resource.close();
+        }
+        return true;
     }
 
-    public void putRemoteFile(File file, String resourceName) throws IOException {
-        transport.getRepository().putWithoutChecksum(file, getUriForResource(resourceName));
+    public void putRemoteFile(LocalResource localResource, String resourceName) throws IOException {
+        transport.getRepository().withProgressLogging().put(localResource, getUriForResource(resourceName));
     }
 
     private URI getUriForResource(String resource) {
-        ExternalResourceName resourceName = new ExternalResourceName(artifactRepository.getUrl(), resource);
+        ExternalResourceName resourceName = new ExternalResourceName(rootUri, resource);
         return resourceName.getUri();
     }
 }

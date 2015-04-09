@@ -68,6 +68,25 @@ class S3Resource implements RemoteResource {
     }
 
     @Override
+    void expectParentMkdir() {
+        // Not required
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        // Not required
+    }
+
+    void expectUpload() {
+        server.stubPutFile(file, relativeFilePath())
+    }
+
+    @Override
+    void expectUploadBroken() {
+        server.stubPutFileAuthFailure(relativeFilePath())
+    }
+
+    @Override
     void expectMetadataRetrieveBroken() {
         server.stubMetaDataBroken(relativeFilePath())
     }

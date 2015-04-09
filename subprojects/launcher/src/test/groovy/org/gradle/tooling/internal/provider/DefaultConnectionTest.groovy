@@ -16,9 +16,13 @@
 
 package org.gradle.tooling.internal.provider
 
+
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultConnectionTest extends Specification {
     def connection = new DefaultConnection()
 
@@ -26,6 +30,7 @@ class DefaultConnectionTest extends Specification {
         def consumerParams = ConsumerOperationParameters.builder().setColorOutput(true).build()
 
         when:
+        connection.initializeServices(TestNameTestDirectoryProvider.newInstance().testDirectory)
         def providerParams = connection.toProviderParameters(consumerParams)
 
         then:

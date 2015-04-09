@@ -82,6 +82,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(GradleVersion.current().getVersion());
+        daemonArgs.add(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
         daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
         daemonArgs.add(daemonParameters.getUid());

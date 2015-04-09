@@ -30,13 +30,10 @@ public abstract class NativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     private static final String O_EXT = ".o"
-    private final ObjectFileExtensionCalculator calculator = Stub(ObjectFileExtensionCalculator) {
-        transform(_) >> O_EXT
-    }
 
-    protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, ObjectFileExtensionCalculator calculator, boolean useCommandFile)
+    protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)
     protected NativeCompiler getCompiler() {
-        getCompiler(new DefaultMutableCommandLineToolContext(), calculator, false)
+        getCompiler(new DefaultMutableCommandLineToolContext(), O_EXT, false)
     }
 
     protected abstract Class<? extends NativeCompileSpec> getCompileSpecType()
@@ -110,7 +107,7 @@ public abstract class NativeCompilerTest extends Specification {
     def "compiles all source files in separate executions"() {
         given:
         def invocationContext = new DefaultMutableCommandLineToolContext()
-        def compiler = getCompiler(invocationContext, calculator, withOptionsFile)
+        def compiler = getCompiler(invocationContext, O_EXT, withOptionsFile)
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
         def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
@@ -146,7 +143,7 @@ public abstract class NativeCompilerTest extends Specification {
         def invocationContext = new DefaultMutableCommandLineToolContext()
         def action = Mock(Action)
         invocationContext.setArgAction(action)
-        def compiler = getCompiler(invocationContext, calculator, false)
+        def compiler = getCompiler(invocationContext, O_EXT, false)
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
         def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
@@ -172,7 +169,7 @@ public abstract class NativeCompilerTest extends Specification {
     def "options file is written"() {
         given:
         def invocationContext = new DefaultMutableCommandLineToolContext()
-        def compiler = getCompiler(invocationContext, calculator, true)
+        def compiler = getCompiler(invocationContext, O_EXT, true)
         def testDir = tmpDirProvider.testDirectory
         def includeDir = testDir.file("includes")
         def commandLineArgs = getCompilerSpecificArguments(includeDir)

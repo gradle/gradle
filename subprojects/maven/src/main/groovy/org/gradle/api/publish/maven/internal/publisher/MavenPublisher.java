@@ -15,8 +15,8 @@
  */
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
 public interface MavenPublisher {
-    void publish(MavenNormalizedPublication publication, MavenArtifactRepositoryInternal artifactRepository);
+    void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository);
 }

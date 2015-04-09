@@ -67,10 +67,6 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setIncrementalCompile(boolean flag);
 
-    boolean isPrefixHeaderCompile();
-
-    void setIsPrefixHeaderCompile(boolean flag);
-
     File getPrefixHeaderFile();
 
     void setPrefixHeaderFile(File prefixHeaderFile);

@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
 
+@UsesNativeServices
 class SingletonFileTreeTest extends Specification {
     def hasUsefulDisplayName() {
         File f = new File('test-file')

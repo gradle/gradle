@@ -17,12 +17,10 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.Factory;
-import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
@@ -39,24 +37,24 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public ExternalResource getResource(URI location) throws IOException {
-        return accessor.getResource(location);
+    public ExternalResourceReadResponse openResource(URI location) {
+        return accessor.openResource(location);
     }
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) {
         return accessor.getMetaData(location);
     }
 
     @Nullable
     @Override
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         return lister.list(parent);
     }
 
     @Override
-    public void upload(Factory<InputStream> sourceFactory, Long contentLength, URI destination) throws IOException {
-        uploader.upload(sourceFactory, contentLength, destination);
+    public void upload(LocalResource resource, URI destination) throws IOException {
+        uploader.upload(resource, destination);
     }
 }

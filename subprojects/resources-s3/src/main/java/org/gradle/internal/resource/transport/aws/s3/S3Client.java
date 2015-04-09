@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.*;
 import com.google.common.base.Optional;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,7 @@ public class S3Client {
 
             amazonS3Client.putObject(putObjectRequest);
         } catch (AmazonClientException e) {
-            throw new S3Exception(String.format("Could not put s3 resource: [%s]. %s", destination.toString(), e.getMessage()), e);
+            throw ResourceException.putFailed(destination, e);
         }
     }
 
@@ -184,7 +185,7 @@ public class S3Client {
             if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
                 return null;
             }
-            throw new S3Exception(String.format("Could not get s3 resource: [%s]. %s", uri.toString(), e.getErrorMessage()), e);
+            throw ResourceException.getFailed(uri, e);
         }
     }
 

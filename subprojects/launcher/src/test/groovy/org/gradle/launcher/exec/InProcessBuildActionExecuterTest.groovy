@@ -18,29 +18,17 @@ package org.gradle.launcher.exec
 
 import org.gradle.BuildResult
 import org.gradle.StartParameter
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultGradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.util.Requires
 import spock.lang.Specification
-import spock.lang.Unroll
-
-import static org.gradle.util.TestPrecondition.NOT_WINDOWS
-import static org.gradle.util.TestPrecondition.WINDOWS
 
 class InProcessBuildActionExecuterTest extends Specification {
-    static final String DAEMON_DOCS_URL = "gradle-daemon-docs-url"
-
     final GradleLauncherFactory factory = Mock()
     final DefaultGradleLauncher launcher = Mock()
     final BuildRequestContext buildRequestContext = Mock()
@@ -50,19 +38,13 @@ class InProcessBuildActionExecuterTest extends Specification {
     final GradleInternal gradle = Mock()
     final BuildActionRunner actionRunner = Mock()
     final StartParameter startParameter = Mock()
-    final StyledTextOutputFactory textOutputFactory = Mock()
-    final GradleBuildEnvironment buildEnvironment = Mock()
-    final DocumentationRegistry documentationRegistry = Mock()
-    final StyledTextOutput textOutput = Mock()
     BuildAction action = Mock() {
         getStartParameter() >> startParameter
     }
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner, textOutputFactory, buildEnvironment, documentationRegistry)
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
-        _ * textOutputFactory.create(InProcessBuildActionExecuter, LogLevel.LIFECYCLE) >> textOutput
-        _ * documentationRegistry.getDocumentationFor("gradle_daemon") >> DAEMON_DOCS_URL
     }
 
     def "creates launcher and forwards action to action runner"() {
@@ -187,62 +169,5 @@ class InProcessBuildActionExecuterTest extends Specification {
             controller.run()
         }
         1 * launcher.stop()
-    }
-
-    @Requires(NOT_WINDOWS)
-    def "suggests using daemon when not on windows, daemon usage is not explicitly specified, CI env var is not specified and not running in a long running process"() {
-        given:
-        factory.newInstance(startParameter, buildRequestContext) >> launcher
-
-        and:
-        buildEnvironment.longLivingProcess >> false
-        param.daemonUsageConfiguredExplicitly >> false
-        param.envVariables >> [CI: null]
-
-        when:
-        executer.execute(action, buildRequestContext, param)
-
-        then:
-        1 * textOutput.println()
-
-        and:
-        1 * textOutput.println(InProcessBuildActionExecuter.PLEASE_USE_DAEMON_MESSAGE_PREFIX + DAEMON_DOCS_URL)
-    }
-
-    @Requires(WINDOWS)
-    def "does not suggests using daemon when on windows"() {
-        given:
-        factory.newInstance(startParameter, buildRequestContext) >> launcher
-
-        and:
-        buildEnvironment.longLivingProcess >> false
-        param.daemonUsageConfiguredExplicitly >> false
-        param.envVariables >> [CI: null]
-
-        when:
-        executer.execute(action, buildRequestContext, param)
-
-        then:
-        0 * textOutput.println()
-    }
-
-    @Unroll
-    def "does not suggest using daemon [#longLivingProcess, #deamonUsageConfiguredExplicitly, #ciEnvValue]"() {
-        given:
-        factory.newInstance(startParameter, buildRequestContext) >> launcher
-
-        and:
-        buildEnvironment.longLivingProcess >> longLivingProcess
-        param.daemonUsageConfiguredExplicitly >> deamonUsageConfiguredExplicitly
-        param.getEnvVariables() >> [CI: ciEnvValue]
-
-        when:
-        executer.execute(action, buildRequestContext, param)
-
-        then:
-        0 * textOutput._
-
-        where:
-        [longLivingProcess, deamonUsageConfiguredExplicitly, ciEnvValue] << ([[true, false], [true, false], [null, "true"]].combinations() - [[false, false, null]])
     }
 }

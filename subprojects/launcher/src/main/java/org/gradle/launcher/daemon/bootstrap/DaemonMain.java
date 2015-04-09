@@ -36,7 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -58,26 +58,29 @@ public class DaemonMain extends EntryPoint {
     protected void doAction(String[] args, ExecutionListener listener) {
         //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
         if (args.length < 4) {
-            invalidArgs("Following arguments are required: <gradle-version> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
+            invalidArgs("Following arguments are required: <gradle-version> <gradle-home-dir> <daemon-dir> <timeout-millis> <daemonUid> <optional startup jvm opts>");
         }
-        File daemonBaseDir = new File(args[1]);
+
+        File gradleHomeDir = new File(args[1]);
+        File daemonBaseDir = new File(args[2]);
 
         int idleTimeoutMs = 0;
         try {
-            idleTimeoutMs = Integer.parseInt(args[2]);
+            idleTimeoutMs = Integer.parseInt(args[3]);
         } catch (NumberFormatException e) {
             invalidArgs("Second argument must be a whole number (i.e. daemon idle timeout in ms)");
         }
 
-        String daemonUid = args[3];
+        String daemonUid = args[4];
 
-        List<String> startupOpts = new LinkedList<String>();
-        for (int i = 4; i < args.length; i++) {
+        List<String> startupOpts = new ArrayList<String>(args.length - 5);
+        //noinspection ManualArrayToCollectionCopy
+        for (int i = 5; i < args.length; i++) {
             startupOpts.add(args[i]);
         }
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
-        NativeServices.initialize(daemonBaseDir);
+        NativeServices.initialize(gradleHomeDir);
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);

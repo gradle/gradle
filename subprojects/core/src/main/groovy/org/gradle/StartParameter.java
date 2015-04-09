@@ -72,7 +72,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private File projectCacheDir;
     private boolean refreshDependencies;
     private boolean recompileScripts;
-    private int parallelThreadCount;
+    private boolean parallelProjectExecution;
     private boolean configureOnDemand;
     private int maxWorkerCount;
 
@@ -156,7 +156,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.rerunTasks = rerunTasks;
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
-        p.parallelThreadCount = parallelThreadCount;
+        p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
         return p;
@@ -566,12 +566,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *  0: Do not use parallel execution.
      * >0: Use this many parallel execution threads.
      *
-     * @deprecated In a future Gradle release, this will be replaced with dedicated parallel options.
+     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
+     *
      * @see #getMaxWorkerCount()
+     * @see #isParallelProjectExecutionEnabled()
      */
     @Deprecated
     public int getParallelThreadCount() {
-        return parallelThreadCount;
+        if (isParallelProjectExecutionEnabled()) {
+            return getMaxWorkerCount();
+        }
+        return 0;
     }
 
     /**
@@ -581,7 +586,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Deprecated
     public void setParallelThreadCount(int parallelThreadCount) {
-        this.parallelThreadCount = parallelThreadCount;
+        setParallelProjectExecutionEnabled(parallelThreadCount!=0);
+
+        if (parallelThreadCount < 0) {
+            setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
+        } else {
+            setMaxWorkerCount(parallelThreadCount);
+        }
     }
 
     /**
@@ -591,16 +602,17 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Incubating
     public boolean isParallelProjectExecutionEnabled() {
-        return parallelThreadCount != 0;
+        return parallelProjectExecution;
     }
 
+    /**
+     * Enables/disables parallel project execution.
+     *
+     * @see #isParallelProjectExecutionEnabled()
+     */
     @Incubating
-    public void setParallelProjectExecutionEnabled(boolean enabled) {
-        if (enabled) {
-            setParallelThreadCount(-1);
-        } else {
-            setParallelThreadCount(0);
-        }
+    public void setParallelProjectExecutionEnabled(boolean parallelProjectExecution) {
+        this.parallelProjectExecution = parallelProjectExecution;
     }
 
     /**
@@ -661,7 +673,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
                 + ", recompileScripts=" + recompileScripts
                 + ", offline=" + offline
                 + ", refreshDependencies=" + refreshDependencies
-                + ", parallelThreadCount=" + parallelThreadCount
+                + ", parallelProjectExecution=" + parallelProjectExecution
                 + ", configureOnDemand=" + configureOnDemand
                 + ", maxWorkerCount=" + maxWorkerCount
                 + '}';

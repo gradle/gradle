@@ -81,7 +81,9 @@ public class JavaCompile extends AbstractCompile {
      * @param toolResolver The tool resolver.
      */
     @Incubating
-    public void setToolResolver(ToolResolver toolResolver) { throw new UnsupportedOperationException(); }
+    public void setToolResolver(ToolResolver toolResolver) {
+        throw new UnsupportedOperationException();
+    }
 
     @TaskAction
     protected void compile(IncrementalTaskInputs inputs) {

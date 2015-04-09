@@ -53,7 +53,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private boolean isPrefixHeaderCompile;
     private File prefixHeaderFile;
     private Set<String> preCompiledHeaders;
     private ConfigurableFileCollection preCompiledHeaderInclude;
@@ -94,7 +93,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
-        spec.setIsPrefixHeaderCompile(isPrefixHeaderCompile());
 
         if (!preCompiledHeaderInclude.isEmpty()) {
             File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
@@ -213,17 +211,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Is this a compile task for a pre-compiled header?
-     */
-    public boolean isPrefixHeaderCompile() {
-        return isPrefixHeaderCompile;
-    }
-
-    public void setIsPreCompiledHeader(boolean isPreCompiledHeader) {
-        this.isPrefixHeaderCompile = isPreCompiledHeader;
     }
 
     /**

@@ -23,6 +23,7 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                     + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
+        NativeServicesTestFixture.initialize();
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {

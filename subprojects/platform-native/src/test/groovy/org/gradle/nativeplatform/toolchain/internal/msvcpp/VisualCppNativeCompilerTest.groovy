@@ -31,20 +31,13 @@ abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
         def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
         def outputFile = testDir.file("output.ext")
-        def spec = Stub(NativeCompileSpec) {
-            isPrefixHeaderCompile() >> isPrecompiledHeader
-        }
+        def spec = Stub(NativeCompileSpec)
 
         when:
         def args = compiler.getOutputArgs(spec, outputFile)
 
         then:
-        args == [argument + outputFile.absoluteFile.toString()]
-
-        where:
-        isPrecompiledHeader | argument
-        false               | '/Fo'
-        true                | '/Fp'
+        args == ['/Fo' + outputFile.absoluteFile.toString()]
     }
 
 }

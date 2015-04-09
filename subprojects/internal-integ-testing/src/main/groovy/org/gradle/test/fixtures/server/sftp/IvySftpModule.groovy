@@ -34,6 +34,21 @@ class IvySftpModule implements RemoteIvyModule {
         this.backingModule = backingModule
     }
 
+    @Override
+    void assertPublished() {
+        backingModule.assertPublished()
+    }
+
+    @Override
+    void assertArtifactsPublished(String... names) {
+        backingModule.assertArtifactsPublished(names)
+    }
+
+    @Override
+    void assertPublishedAsJavaModule() {
+        backingModule.assertPublishedAsJavaModule()
+    }
+
     TestFile getIvyFile() {
         return backingModule.ivyFile
     }
@@ -110,11 +125,11 @@ class IvySftpModule implements RemoteIvyModule {
         return backingModule.revision
     }
 
-    SftpResource getIvy() {
-        return new SftpResource(server, ivyFile)
+    SftpArtifact getIvy() {
+        return new SftpArtifact(server, ivyFile)
     }
 
-    SftpResource getJar() {
-        return new SftpResource(server, jarFile)
+    SftpArtifact getJar() {
+        return new SftpArtifact(server, jarFile)
     }
 }

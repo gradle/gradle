@@ -23,6 +23,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.internal.resource.ResourceException
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -168,8 +169,8 @@ class S3ClientTest extends Specification {
         when:
         s3Client.getMetaData(uri)
         then:
-        def ex = thrown(S3Exception)
-        ex.message.startsWith('Could not get s3 resource: [https://somehost/file.txt]')
+        def ex = thrown(ResourceException)
+        ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
     }
 
     def "should include uri when file not found"() {
@@ -182,8 +183,8 @@ class S3ClientTest extends Specification {
         when:
         s3Client.getResource(uri)
         then:
-        def ex = thrown(S3Exception)
-        ex.message.startsWith('Could not get s3 resource: [https://somehost/file.txt]')
+        def ex = thrown(ResourceException)
+        ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
     }
 
     def "should include uri when upload fails"() {
@@ -196,8 +197,8 @@ class S3ClientTest extends Specification {
         when:
         s3Client.put(Mock(InputStream), 0, uri)
         then:
-        def ex = thrown(S3Exception)
-        ex.message.startsWith('Could not put s3 resource: [https://somehost/file.txt]')
+        def ex = thrown(ResourceException)
+        ex.message.startsWith("Could not write to resource 'https://somehost/file.txt'")
     }
 
     def credentials() {

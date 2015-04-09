@@ -140,4 +140,8 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     List<String> getPluginList() {
         ['objective-c']
     }
+
+    public SourceFile getBrokenFile() {
+        return sourceFile("objc", "broken.m", """'broken""")
+    }
 }

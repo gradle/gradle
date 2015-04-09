@@ -29,10 +29,9 @@ public class MultipleBuildOperationFailures extends DefaultMultiCauseException {
         StringBuilder sb = new StringBuilder(message);
         int count = 0;
         for (Throwable cause : causes) {
-            if (count < MAX_CAUSES) {
+            if (count++ < MAX_CAUSES) {
                 sb.append(String.format("%n    %s", cause.getMessage()));
             }
-            count++;
         }
 
         int suppressedFailureCount = count - MAX_CAUSES;

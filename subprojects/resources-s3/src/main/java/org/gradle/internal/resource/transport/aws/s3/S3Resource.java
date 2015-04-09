@@ -18,16 +18,16 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
-import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Date;
 
-public class S3Resource extends AbstractExternalResource {
+public class S3Resource implements ExternalResourceReadResponse {
 
     private final S3Object s3Object;
     private final URI uri;
@@ -37,8 +37,7 @@ public class S3Resource extends AbstractExternalResource {
         this.uri = uri;
     }
 
-    @Override
-    protected InputStream openStream() throws IOException {
+    public InputStream openStream() throws IOException {
         return s3Object.getObjectContent();
     }
 
@@ -57,11 +56,16 @@ public class S3Resource extends AbstractExternalResource {
     public ExternalResourceMetaData getMetaData() {
         ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
         Date lastModified = objectMetadata.getLastModified();
-        DefaultExternalResourceMetaData defaultExternalResourceMetaData = new DefaultExternalResourceMetaData(uri,
+        return new DefaultExternalResourceMetaData(uri,
                 lastModified.getTime(),
                 getContentLength(),
+                s3Object.getObjectMetadata().getContentType(),
                 s3Object.getObjectMetadata().getETag(),
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
-        return defaultExternalResourceMetaData;
+    }
+
+    @Override
+    public void close() throws IOException {
+        s3Object.close();
     }
 }

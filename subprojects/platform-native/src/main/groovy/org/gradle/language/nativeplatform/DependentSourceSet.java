@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform;
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
@@ -63,4 +64,8 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * @return the pre-compiled headers
      */
     Set<String> getPreCompiledHeaders();
+
+    File getPrefixHeaderFile();
+
+    void setPrefixHeaderFile(File prefixHeaderFile);
 }

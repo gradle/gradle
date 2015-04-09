@@ -37,7 +37,9 @@ class BuildOperationLogInfo {
         return outputFile;
     }
 
-    public String getTaskName() { return taskName; }
+    public String getTaskName() {
+        return taskName;
+    }
 
     public String toString() {
         return "log for " + getTaskName() + " to " + getOutputFile().getAbsolutePath() + ", showing up to " + getMaximumFailedOperationsShown() + " failures";

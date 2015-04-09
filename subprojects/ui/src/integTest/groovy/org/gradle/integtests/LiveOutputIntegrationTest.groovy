@@ -22,6 +22,7 @@ import org.gradle.foundation.output.LiveOutputParser
 import org.gradle.gradleplugin.foundation.GradlePluginLord
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -38,6 +39,7 @@ class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
+        NativeServicesTestFixture.initialize(executer.gradleUserHomeDir)
         javaprojectDir = sample.dir
     }
 

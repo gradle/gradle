@@ -20,9 +20,9 @@ import org.gradle.test.fixtures.file.TestFile
 
 class BasicHttpResource extends HttpResource {
     private final String path
-    private final File file
+    private final TestFile file
 
-    BasicHttpResource(HttpServer httpServer, File file, String path) {
+    BasicHttpResource(HttpServer httpServer, TestFile file, String path) {
         super(httpServer)
         this.file = file
         this.path = path

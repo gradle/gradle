@@ -55,9 +55,9 @@ task retrieve(type: Sync) {
 """
         and:
         module.pom.expectMetadataRetrieve()
-        module.pomSha1.expectDownload()
+        module.pom.sha1.expectDownload()
         module.artifact.expectMetadataRetrieve()
-        module.artifactSha1.expectDownload()
+        module.artifact.sha1.expectDownload()
 
         when:
         using m2Installation
@@ -95,10 +95,10 @@ task retrieve(type: Sync) {
 """
         and:
         module.pom.expectMetadataRetrieve()
-        module.pomSha1.expectDownload()
+        module.pom.sha1.expectDownload()
         module.pom.expectDownload()
         module.artifact.expectMetadataRetrieve()
-        module.artifactSha1.expectDownload()
+        module.artifact.sha1.expectDownload()
         module.artifact.expectDownload()
 
         when:

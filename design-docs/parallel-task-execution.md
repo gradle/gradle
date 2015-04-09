@@ -154,6 +154,6 @@ Overlapping outputs declared by two tasks should be detected and such tasks shou
 
 ## Usability/Configurability
 
-- Can't enable parallel execution with specified thread pool size via “env” (i.e. no sys prop, `gradle.startParameter.parallelThreadCount = «N»` does not work because value is read very early)
+- ~~Can't enable parallel execution with specified thread pool size via “env” (i.e. no sys prop, `gradle.startParameter.parallelThreadCount = «N»` does not work because value is read very early)~~
 - Profile report should include information on how parallelization played out (e.g. what was prevented from being parallelized due to custom actions/overlapping outputs etc.)
 - Should be some kind of help available for improving parallel-ness of the build (e.g. being able to visualize the potential graphs to spot choke points etc.)

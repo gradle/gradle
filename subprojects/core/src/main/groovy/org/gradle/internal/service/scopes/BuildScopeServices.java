@@ -110,8 +110,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry, ProjectAccessListener projectAccessListener) {
-        return new ProjectFactory(instantiator, projectRegistry, projectAccessListener);
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
+        return new ProjectFactory(instantiator, projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
@@ -273,7 +273,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 messagingServer,
                 classPathRegistry,
                 fileResolver,
-                new LongIdGenerator());
+                new LongIdGenerator(),
+                startParameter.getGradleUserHomeDir());
     }
 
     protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {

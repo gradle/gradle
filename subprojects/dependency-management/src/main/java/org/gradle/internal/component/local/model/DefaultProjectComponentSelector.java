@@ -21,16 +21,14 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final String projectPath;
-    private final String displayName;
 
     public DefaultProjectComponentSelector(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
-        displayName = String.format("project %s", projectPath);
     }
 
     public String getDisplayName() {
-        return displayName;
+        return "project ".concat(projectPath);
     }
 
     public String getProjectPath() {
@@ -73,7 +71,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {

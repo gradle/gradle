@@ -18,35 +18,19 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
 import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformerFactory;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
-import org.gradle.nativeplatform.toolchain.internal.DefaultCompilerArgsTransformerFactory;
-import org.gradle.nativeplatform.toolchain.internal.ObjectFileExtensionCalculator;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
 
-    CCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, ObjectFileExtensionCalculator objectFileExtensionCalculator, boolean useCommandFile) {
-        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, getArgsTransformerFactory(), Transformers.<CCompileSpec>noOpTransformer(), objectFileExtensionCalculator, useCommandFile);
+    CCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new CCompileArgsTransformer(), Transformers.<CCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
         protected String getLanguage() {
             return "c";
         }
-    }
-
-    private static class CPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
-        protected String getLanguage() {
-            return "c-header";
-        }
-    }
-
-    private static ArgsTransformerFactory<CCompileSpec> getArgsTransformerFactory() {
-        return new DefaultCompilerArgsTransformerFactory<CCompileSpec>(
-                new CCompileArgsTransformer(),
-                new CPCHCompileArgsTransformer()
-        );
     }
 }

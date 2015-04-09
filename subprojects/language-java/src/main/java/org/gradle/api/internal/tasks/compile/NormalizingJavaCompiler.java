@@ -72,7 +72,9 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     }
 
     private void logSourceFiles(JavaCompileSpec spec) {
-        if (!spec.getCompileOptions().isListFiles()) { return; }
+        if (!spec.getCompileOptions().isListFiles()) {
+            return;
+        }
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
@@ -85,7 +87,9 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
     }
 
     private void logCompilerArguments(JavaCompileSpec spec) {
-        if (!LOGGER.isDebugEnabled()) { return; }
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
 
         List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
         String joinedArgs = Joiner.on(' ').join(compilerArgs);

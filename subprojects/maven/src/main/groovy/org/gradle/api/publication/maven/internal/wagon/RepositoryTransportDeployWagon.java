@@ -17,7 +17,6 @@
 package org.gradle.api.publication.maven.internal.wagon;
 
 
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.TransferFailedException;
@@ -31,15 +30,12 @@ import org.apache.maven.wagon.proxy.ProxyInfoProvider;
 import org.apache.maven.wagon.repository.Repository;
 import org.apache.maven.wagon.resource.Resource;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.internal.resource.local.FileLocalResource;
+import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -58,13 +54,6 @@ public class RepositoryTransportDeployWagon implements Wagon {
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
     private TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTransportDeployWagon.class);
-
-    public static void init(MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-        String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-        RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
-        currentDelegate.set(adapter);
-    }
 
     public static void contextualize(RepositoryTransportWagonAdapter adapter) {
         currentDelegate.set(adapter);
@@ -81,33 +70,32 @@ public class RepositoryTransportDeployWagon implements Wagon {
         this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_GET));
         try {
             if (!destination.exists()) {
-                LOGGER.debug("Wagon deployment supplied a file [{}] which does not exist, forcing create.", destination.getAbsolutePath());
                 destination.getParentFile().mkdirs();
                 destination.createNewFile();
             }
             if (!getDelegate().getRemoteFile(destination, resourceName)) {
-                throw new ResourceDoesNotExistException(String.format("'%s' does not exist", resourceName));
+                throw new ResourceDoesNotExistException(String.format("Resource '%s' does not exist", resourceName));
             }
-            signalMavenToGenerateChecksums(destination, resource, REQUEST_GET);
             this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_GET));
-        } catch (IOException e) {
-            this.transferEventSupport.fireTransferError(transferEvent(resource, TRANSFER_ERROR, REQUEST_GET));
-            throw new TransferFailedException(String.format("Cannot get and write file '%s'", resourceName), e);
+        } catch (ResourceDoesNotExistException e) {
+            this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_GET));
+            throw e;
+        } catch (Exception e) {
+            this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_GET));
+            throw new TransferFailedException(String.format("Could not get resource '%s'", resourceName), e);
         }
     }
 
     @Override
     public final void put(File file, String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
-        LOGGER.error("PUTTING " + resourceName + " WITH MAVEN WAGON ADAPTER");
         Resource resource = new Resource(resourceName);
         this.transferEventSupport.fireTransferInitiated(transferEvent(resource, TRANSFER_INITIATED, REQUEST_PUT));
-        this.transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
         try {
-            getDelegate().putRemoteFile(file, resourceName);
-            signalMavenToGenerateChecksums(file, resource, REQUEST_PUT);
-        } catch (IOException e) {
+            LocalResource localResource = new MavenTransferLoggingFileResource(file, resource);
+            getDelegate().putRemoteFile(localResource, resourceName);
+        } catch (Exception e) {
             this.transferEventSupport.fireTransferError(transferEvent(resource, e, REQUEST_PUT));
-            throw new UncheckedIOException(e);
+            throw new TransferFailedException(String.format("Could not write to resource '%s'", resourceName), e);
         }
         this.transferEventSupport.fireTransferCompleted(transferEvent(resource, TRANSFER_COMPLETED, REQUEST_PUT));
     }
@@ -260,34 +248,57 @@ public class RepositoryTransportDeployWagon implements Wagon {
         return new TransferEvent(this, resource, e, requestType);
     }
 
-    /**
-     * Required to signal to maven that a file has been successfully uploaded (put) or retrieved (get)
-     * Without this event, incorrect checksums are generated (usually a sha1 or m5d of an empty string)
-     *
-     * e.g Artifactory: Sending HTTP error code 409: Checksum error
-     * for 'org/group/name/publish/2.0/publish-2.0.jar.md5': received 'd41d8cd98f00b204e9800998ecf8427e' but actual is '2414d662325e5b4f912b68f9766d344a'.
-     *
-     * @param file - the file which has been uploaded
-     * @param resource - the maven resource
-     */
-    private void signalMavenToGenerateChecksums(File file, Resource resource, int requestMethod) {
-        TransferEvent transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, requestMethod);
-        FileInputStream in = null;
-        try {
-            in = new FileInputStream(file);
-            byte[] buffer = new byte[4096];
-            while (true) {
-                int nread = in.read(buffer);
-                if (nread < 0) {
-                    break;
-                }
-                this.transferEventSupport.fireTransferProgress(transferEvent, buffer, nread);
+    private class MavenTransferLoggingFileResource extends FileLocalResource {
+        private final Resource resource;
+
+        private MavenTransferLoggingFileResource(File file, Resource resource) {
+            super(file);
+            this.resource = resource;
+        }
+
+        @Override
+        public InputStream open() {
+            // Need to do this here, so that the transfer is 'restarted' when HttpClient reopens the resource (DIGEST AUTH only)
+            transferEventSupport.fireTransferStarted(transferEvent(resource, TRANSFER_STARTED, REQUEST_PUT));
+            return new ObservingInputStream(super.open(), resource);
+        }
+
+        protected class ObservingInputStream extends InputStream {
+            private final InputStream inputStream;
+            private final TransferEvent transferEvent;
+            private final byte[] singleByteBuffer = new byte[1];
+
+            public ObservingInputStream(InputStream inputStream, Resource resource) {
+                this.inputStream = inputStream;
+                this.transferEvent = transferEvent(resource, TransferEvent.TRANSFER_PROGRESS, REQUEST_PUT);
             }
-            in.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IOUtils.closeQuietly(in);
+
+            @Override
+            public void close() throws IOException {
+                inputStream.close();
+            }
+
+            @Override
+            public int read() throws IOException {
+                int result = inputStream.read();
+                if (result >= 0) {
+                    singleByteBuffer[0] = (byte) result;
+                    logTransfer(singleByteBuffer, 1);
+                }
+                return result;
+            }
+
+            public int read(byte[] b, int off, int len) throws IOException {
+                int read = inputStream.read(b, off, len);
+                if (read > 0) {
+                    logTransfer(b, read);
+                }
+                return read;
+            }
+
+            private void logTransfer(byte[] bytes, int read) {
+                transferEventSupport.fireTransferProgress(transferEvent, bytes, read);
+            }
         }
     }
 }

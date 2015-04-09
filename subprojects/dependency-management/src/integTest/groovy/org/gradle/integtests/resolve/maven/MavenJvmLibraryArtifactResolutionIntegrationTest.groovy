@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.maven
-import org.gradle.internal.resolve.ArtifactResolveException
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -195,14 +195,30 @@ if (project.hasProperty('nocache')) {
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
-        fixture.expectComponentNotFound([module.pom.uri.toString(), module.artifact.uri.toString()]).prepare()
+        fixture.expectComponentNotFound().prepare()
 
         when:
         module.pom.expectGetMissing()
         module.artifact.expectHeadMissing()
 
         then:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${module.pom.uri}
+    ${module.artifact.uri}""")
+
+        when:
+        server.resetExpectations()
+        module.pom.expectGetMissing()
+        module.artifact.expectHeadMissing()
+
+        then:
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${module.pom.uri}
+    ${module.artifact.uri}""")
     }
 
     def "resolve and caches missing artifacts of existing component"() {
@@ -233,7 +249,7 @@ if (project.hasProperty('nocache')) {
 
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
         fixture.requestingSource()
-                .expectComponentResolutionFailure(new ArtifactResolveException("Could not determine artifacts for some.group:some-artifact:1.0"))
+                .expectComponentResolutionFailure()
                 .prepare()
 
         when:
@@ -241,7 +257,9 @@ if (project.hasProperty('nocache')) {
         sourceArtifact.expectHeadBroken()
 
         then:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("Could not determine artifacts for some.group:some-artifact:1.0")
+        failure.assertHasCause("Could not HEAD '${sourceArtifact.uri}'. Received status code 500 from server: broken")
 
         when:
         fixture.clearExpectations()
@@ -259,9 +277,7 @@ if (project.hasProperty('nocache')) {
 
     def "resolves and recovers from broken artifacts"() {
         fixture.requestingJavadoc()
-                .expectJavadocArtifactFailure(new ArtifactResolveException(
-                                                "Could not download some-artifact-javadoc.jar (some.group:some-artifact:1.0)",
-                                                new Throwable("Received status code 500 from server: broken")))
+                .expectJavadocArtifactFailure()
                 .prepare()
 
         when:
@@ -270,7 +286,10 @@ if (project.hasProperty('nocache')) {
         javadocArtifact.expectGetBroken()
 
         then:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("Could not download some-artifact-javadoc.jar (some.group:some-artifact:1.0)")
+        failure.assertHasCause("Could not get resource '${javadocArtifact.uri}'")
+        failure.assertHasCause("Could not GET '${javadocArtifact.uri}'. Received status code 500 from server: broken")
 
         when:
         fixture.clearExpectations()

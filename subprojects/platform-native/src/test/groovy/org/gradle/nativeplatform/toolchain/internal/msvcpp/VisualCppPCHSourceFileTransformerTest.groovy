@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,13 +27,12 @@ class VisualCppPCHSourceFileTransformerTest extends Specification {
     def pchSourceDir = tempDir.createDir("pchGeneratedSource")
     def headerDir = tmpDirProvider.createDir("headers")
     def sourceFile = headerDir.createFile("test.h")
-    VisualCppPCHSourceFileTransformer<CCompileSpec> transformer = new VisualCppPCHSourceFileTransformer<CCompileSpec>()
+    VisualCppPCHSourceFileTransformer<CPCHCompileSpec> transformer = new VisualCppPCHSourceFileTransformer<CPCHCompileSpec>()
 
     def "transforms pre-compiled header spec to contain generated source files" () {
-        def spec = Mock(CCompileSpec) {
+        def spec = Mock(CPCHCompileSpec) {
             getTempDir() >> tempDir
             getSourceFiles() >> [ sourceFile ]
-            isPrefixHeaderCompile() >> true
         }
 
         when:
@@ -46,17 +45,5 @@ class VisualCppPCHSourceFileTransformerTest extends Specification {
             assert sourceFiles[0].name == "test.c"
             assert sourceFiles[0].parentFile == pchSourceDir
         }
-    }
-
-    def "does not transform specs that are not pre-compiled headers" () {
-        def spec = Mock(CCompileSpec) {
-            isPrefixHeaderCompile() >> false
-        }
-
-        when:
-        transformer.transform(spec)
-
-        then:
-        0 * spec.setSourceFiles(_)
     }
 }

@@ -19,8 +19,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
 
     private TaskMutator taskStatusNagger = Stub() {

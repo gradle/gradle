@@ -71,10 +71,8 @@ public class CLangPlugin implements Plugin<Project> {
             return tools;
         }
 
-
         public SourceTransformTaskConfig getTransformTask() {
             return new CompileTaskConfig(this, CCompile.class);
         }
-
     }
 }

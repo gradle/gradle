@@ -16,6 +16,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.launcher.daemon.configuration.DaemonUsage;
 
 import java.io.File;
 import java.util.Map;
@@ -29,5 +30,5 @@ public interface BuildActionParameters {
 
     LogLevel getLogLevel();
 
-    boolean isDaemonUsageConfiguredExplicitly();
+    DaemonUsage getDaemonUsage();
 }

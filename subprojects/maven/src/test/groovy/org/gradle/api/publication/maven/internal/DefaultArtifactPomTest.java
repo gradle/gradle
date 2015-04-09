@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.publication.maven.internal.pom.DefaultMavenPom;
+import org.gradle.api.publication.maven.internal.pom.PomDependenciesConverter;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.Mockery;

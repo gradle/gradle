@@ -401,7 +401,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
 
         when:
         server.resetExpectations()
-        server.remoteIvyRepo.expectDirectoryList('org', 'projectB')
+        server.remoteIvyRepo.directoryList('org', 'projectB').expectDownload()
         moduleB16.ivy.expectDownload()
         moduleB16.jar.expectDownload()
         executer.withArguments("-PuseDynamicResolve=true")

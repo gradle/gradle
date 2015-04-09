@@ -38,7 +38,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -49,6 +48,9 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.DeprecationLogger;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -70,7 +72,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
             .displayName("Global services")
             .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
-            .parent(NativeServices.getInstance())
+            .parent(NativeServicesTestFixture.getInstance())
             .provider(new GlobalScopeServices(true))
             .build();
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -210,6 +212,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertEquals(defaultLocale, Locale.getDefault());
         }
         assertFalse(isRequireGradleHome());
+    }
+
+    @Override
+    protected TestFile getTmpDir() {
+        return new TestFile(TestNameTestDirectoryProvider.newInstance().getTestDirectory(), "tmp");
     }
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener {

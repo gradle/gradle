@@ -16,15 +16,15 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
-import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-public class SftpResource extends AbstractExternalResource {
+public class SftpResource implements ExternalResourceReadResponse {
 
     private final SftpClientFactory clientFactory;
     private final ExternalResourceMetaData metaData;
@@ -41,21 +41,17 @@ public class SftpResource extends AbstractExternalResource {
     }
 
     @Override
-    protected InputStream openStream() throws IOException {
+    public InputStream openStream() {
         client = clientFactory.createSftpClient(uri, credentials);
         try {
             return client.getSftpClient().get(uri.getPath());
         } catch (com.jcraft.jsch.SftpException e) {
-            throw new SftpException(String.format("Could not get resource at '%s'.", uri), e);
+            throw ResourceException.getFailed(uri, e);
         }
     }
 
     public URI getURI() {
         return uri;
-    }
-
-    public long getContentLength() {
-        return metaData.getContentLength();
     }
 
     public boolean isLocal() {
@@ -66,7 +62,7 @@ public class SftpResource extends AbstractExternalResource {
         return metaData;
     }
 
-    public void close() throws IOException {
+    public void close() {
         clientFactory.releaseSftpClient(client);
     }
 }

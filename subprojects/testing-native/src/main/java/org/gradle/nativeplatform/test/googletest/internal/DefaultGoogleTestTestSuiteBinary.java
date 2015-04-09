@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
+import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -35,5 +36,15 @@ public class DefaultGoogleTestTestSuiteBinary extends DefaultNativeTestSuiteBina
         spec.setNamingScheme(namingScheme);
         spec.setResolver(resolver);
         return spec;
+    }
+
+    @Override
+    public GoogleTestTestSuiteSpec getTestSuite() {
+        return getComponent();
+    }
+
+    @Override
+    public GoogleTestTestSuiteSpec getComponent() {
+        return (GoogleTestTestSuiteSpec) super.getComponent();
     }
 }

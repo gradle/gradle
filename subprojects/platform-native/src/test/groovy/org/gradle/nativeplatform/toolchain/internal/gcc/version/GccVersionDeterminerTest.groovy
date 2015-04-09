@@ -21,10 +21,12 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
+import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@UsesNativeServices
 class GccVersionDeterminerTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     static def gcc4 = """#define __GNUC_MINOR__ 2

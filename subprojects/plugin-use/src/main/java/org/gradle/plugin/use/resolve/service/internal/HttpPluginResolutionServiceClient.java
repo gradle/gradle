@@ -24,8 +24,8 @@ import com.google.gson.JsonSyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.resource.transport.http.HttpResponseResource;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -33,7 +33,9 @@ import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -53,7 +55,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     }
 
     @Nullable
-    public Response<PluginUseMetaData>  queryPluginMetadata(String portalUrl, boolean shouldValidate, final PluginRequest pluginRequest) {
+    public Response<PluginUseMetaData> queryPluginMetadata(String portalUrl, boolean shouldValidate, final PluginRequest pluginRequest) {
         String escapedId = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getId().toString());
         String escapedPluginVersion = PATH_SEGMENT_ESCAPER.escape(pluginRequest.getVersion());
         final String requestUrl = toRequestUrl(portalUrl, String.format(PLUGIN_USE_REQUEST_URL, escapedId, escapedPluginVersion));
@@ -76,59 +78,43 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     private <T> Response<T> request(final String requestUrl, final Class<T> type, final Action<? super T> validator) {
         final URI requestUri = toUri(requestUrl, "plugin request");
 
-        HttpResponseResource response = null;
         try {
-            response = resourceAccessor.getRawResource(requestUri);
-            final int statusCode = response.getStatusCode();
-            String contentType = response.getContentType();
-            if (contentType == null || !contentType.equalsIgnoreCase(JSON)) {
-                final String message = String.format("content type is '%s', expected '%s'", contentType == null ? "" : contentType, JSON);
-                throw new OutOfProtocolException(requestUrl, message);
-            }
-
-            final String clientStatusChecksum = response.getHeaderValue(CLIENT_STATUS_CHECKSUM_HEADER);
-
-            return response.withContent(new Transformer<Response<T>, InputStream>() {
-                public Response<T> transform(InputStream inputStream) {
-                    Reader reader;
-                    try {
-                        reader = new InputStreamReader(inputStream, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        throw new AssertionError(e);
-                    }
-
-                    try {
-                        if (statusCode == 200) {
-                            T payload = new Gson().fromJson(reader, type);
-                            validator.execute(payload);
-                            return new SuccessResponse<T>(payload, statusCode, requestUrl, clientStatusChecksum);
-                        } else if (statusCode >= 400 && statusCode < 600) {
-                            ErrorResponse errorResponse = validate(requestUrl, new Gson().fromJson(reader, ErrorResponse.class));
-                            return new ErrorResponseResponse<T>(errorResponse, statusCode, requestUrl, clientStatusChecksum);
-                        } else {
-                            throw new OutOfProtocolException(requestUrl, "unexpected HTTP response status " + statusCode);
-                        }
-                    } catch (JsonSyntaxException e) {
-                        throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
-                    } catch (JsonIOException e) {
-                        throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
-                    }
-                }
-            });
-        } catch (IOException e) {
-            throw new org.gradle.api.UncheckedIOException(e);
-        } finally {
+            HttpResponseResource response = resourceAccessor.getRawResource(requestUri);
             try {
-                if (response != null) {
-                    response.close();
+                final int statusCode = response.getStatusCode();
+                String contentType = response.getContentType();
+                if (contentType == null || !contentType.equalsIgnoreCase(JSON)) {
+                    final String message = String.format("content type is '%s', expected '%s'", contentType == null ? "" : contentType, JSON);
+                    throw new OutOfProtocolException(requestUrl, message);
                 }
-            } catch (IOException e) {
-                LOGGER.warn("Error closing HTTP resource", e);
+
+                final String clientStatusChecksum = response.getHeaderValue(CLIENT_STATUS_CHECKSUM_HEADER);
+                Reader reader = new InputStreamReader(response.openStream(), "utf-8");
+                try {
+                    if (statusCode == 200) {
+                        T payload = new Gson().fromJson(reader, type);
+                        validator.execute(payload);
+                        return new SuccessResponse<T>(payload, statusCode, requestUrl, clientStatusChecksum);
+                    } else if (statusCode >= 400 && statusCode < 600) {
+                        ErrorResponse errorResponse = validate(requestUrl, new Gson().fromJson(reader, ErrorResponse.class));
+                        return new ErrorResponseResponse<T>(errorResponse, statusCode, requestUrl, clientStatusChecksum);
+                    } else {
+                        throw new OutOfProtocolException(requestUrl, "unexpected HTTP response status " + statusCode);
+                    }
+                } catch (JsonSyntaxException e) {
+                    throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
+                } catch (JsonIOException e) {
+                    throw new OutOfProtocolException(requestUrl, "could not parse response JSON", e);
+                }
+            } finally {
+                response.close();
             }
+        } catch (IOException e) {
+            throw ResourceException.getFailed(requestUri, e);
         }
     }
 
-    public void close() throws IOException {
+    public void close() {
 
     }
 

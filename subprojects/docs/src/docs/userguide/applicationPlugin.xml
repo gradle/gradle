@@ -15,43 +15,114 @@
   -->
 <chapter id='application_plugin'>
     <title>The Application Plugin</title>
-    <para>The Gradle application plugin extends the language plugins with common application related tasks.
-    It allows running and bundling applications for the jvm by creating a jvm application <apilink class="org.gradle.api.distribution.Distribution" />.
+    <para>
+        The Application plugin facilitates creating an executable JVM application.
+        It makes it easy to start the application locally during development, and to packaging the application as a TAR and/or ZIP including operating system specific start scripts.
     </para>
-
+    <para>
+        Applying the Application plugin also implicitly applies the <link linkend="java_plugin">Java plugin</link>.
+        The <literal>main</literal> source set is effectively the “application”.
+    </para>
+    <para>
+        Applying the Application plugin also implicitly applies the <link linkend="distribution_plugin">Distribution plugin</link>.
+        A <literal>main</literal> distribution is created that packages up the application, including code dependencies and generated start scripts.
+    </para>
     <section>
         <title>Usage</title>
         <para>To use the application plugin, include the following in your build script:</para>
         <sample id="useApplicationPlugin" dir="application" title="Using the application plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>To define the main-class for the application you have to set the <literal>mainClassName</literal> property as shown below</para>
+        <para>
+            The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
+        </para>
         <sample id="useApplicationPlugin" dir="application" title="Configure the application main class">
             <sourcefile file="build.gradle" snippet="mainClassName-conf"/>
         </sample>
-
-        <para>Then, you can run the application by running <userinput>gradle run</userinput>. Gradle will take care of building the application classes,
-            along with their runtime dependencies, and starting the application with the correct classpath.
+        <para>
+            You can run the application by executing the <userinput>run</userinput> task (type: <apilink class="org.gradle.api.tasks.JavaExec"/>).
+            This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class.
             You can launch the application in debug mode with <userinput>gradle run --debug-jvm</userinput> (see <apilink class="org.gradle.api.tasks.JavaExec" method="setDebug(boolean)" />).
         </para>
-
-        <para>The plugin can also build a distribution for your application. The <apilink class="org.gradle.api.distribution.Distribution" /> will package up the runtime dependencies of the application
-            along with some OS specific start scripts. All files stored in <filename>src/dist</filename> will be added to the root of the
-            distribution. You can run <userinput>gradle installDist</userinput> to create an image of the application in
-            <filename>build/install/<replaceable>projectName</replaceable></filename>. You can run <userinput>gradle distZip</userinput> to create a
-            ZIP containing the distribution, <userinput>gradle distTar</userinput> to create an application TAR or <userinput>gradle assemble</userinput> to build both.
-        </para>
-
         <para>
-            If your Java application requires a specific set of JVM settings or system properties, you can configure the <literal>applicationDefaultJvmArgs</literal> property.
+            If your application requires a specific set of JVM settings or system properties, you can configure the <literal>applicationDefaultJvmArgs</literal> property.
             These JVM arguments are applied to the <literal>run</literal> task and also considered in the generated start scripts of your distribution.
         </para>
         <sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure default JVM settings">
             <sourcefile file="build.gradle" snippet="application-defaultjvmargs"/>
         </sample>
-
+        <section>
+            <title>The distribution</title>
+            <para>
+                A distribution of the application can be created, by way of the <link linkend="distribution_plugin">Distribution plugin</link> (which is automatically applied).
+                A <literal>main</literal> distribution is created with the following content:
+            </para>
+            <table>
+                <title>Distribution content</title>
+                <thead>
+                    <tr>
+                        <td>Location</td>
+                        <td>Content</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        (root dir)
+                    </td>
+                    <td>
+                        <filename>src/dist</filename>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <filename>lib</filename>
+                    </td>
+                    <td>
+                        All runtime dependencies and main source set class files.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <filename>bin</filename>
+                    </td>
+                    <td>
+                        Start scripts (generated by <literal>createStartScripts</literal> task).
+                    </td>
+                </tr>
+            </table>
+            <para>
+                Static files to be added to the distribution can be simply added to <filename>src/dist</filename>.
+                More advanced customization can be done by configuring the <apilink class="org.gradle.api.file.CopySpec"/> exposed by the main distribution.
+            </para>
+            <sample id="includeTaskOutputInApplicationDistribution" dir="application" title="Include output from other tasks in the application distribution">
+                <sourcefile file="build.gradle" snippet="distribution-spec"/>
+            </sample>
+            <para>
+                By specifying that the distribution should include the task's output files (see <xref linkend="sec:task_inputs_outputs"/>), Gradle knows
+                that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+            </para>
+            <sample id="dependentTaskForApplicationDistributionOutput" dir="application" title="Automatically creating files for distribution">
+                <output args="distZip"/>
+            </sample>
+            <para>
+                You can run <userinput>gradle installDist</userinput> to create an image of the application in <filename>build/install/<replaceable>projectName</replaceable></filename>.
+                You can run <userinput>gradle distZip</userinput> to create a ZIP containing the distribution,
+                <userinput>gradle distTar</userinput> to create an application TAR or <userinput>gradle assemble</userinput> to build both.
+            </para>
+        </section>
+        <section>
+            <title>Customizing start script generation</title>
+            <para>
+                The application plugin can generate Unix (suitable for Linux, Mac OS X etc.) and Windows start scripts out of the box.
+                The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. <literal>JAVA_OPTS</literal> env var).
+                The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
+            </para>
+            <para>
+                The start scripts are completely customizable.
+                Please refer to the documentation of <apilink class="org.gradle.jvm.application.tasks.CreateStartScripts"/> for more details and customization examples.
+            </para>
+        </section>
     </section>
-
     <section>
         <title>Tasks</title>
         <para>The Application plugin adds the following tasks to the project.</para>
@@ -117,37 +188,11 @@
             </tr>
         </table>
     </section>
-
     <section>
-            <title>Convention properties</title>
-            <para>The application plugin adds some properties to the project, which you can use to configure
-            its behaviour. See the <apilink class="org.gradle.api.Project"/> class in the API documentation.
-            </para>
+        <title>Convention properties</title>
+        <para>
+            The application plugin adds some properties to the project, which you can use to configure its behaviour.
+            See the <apilink class="org.gradle.api.Project"/> class in the API documentation.
+        </para>
     </section>
-
-    <section id="application_distribution_resources">
-            <title>Including other resources in the distribution</title>
-            <para>
-                One of the convention properties added by the plugin is <literal>applicationDistribution</literal> which is a <apilink class="org.gradle.api.file.CopySpec"/>.
-                This specification is used by the <literal>installDist</literal> and <literal>distZip</literal> tasks as the specification of what is to be
-                included in the distribution. In addition to copying the start scripts to the <filename>bin</filename> dir and necessary jars to <filename>lib</filename> 
-                in the distribution, all of the files from the <filename>src/dist</filename> directory are also copied. To include any static files in the 
-                distribution, simply arrange them in the <filename>src/dist</filename> directory.
-            </para>
-            <para>
-                If your project generates files to be included in the distribution, e.g. documentation, you can add these files to the distribution by adding to the 
-                <literal>applicationDistribution</literal> copy spec.
-            </para>
-            <sample id="includeTaskOutputInApplicationDistribution" dir="application" title="Include output from other tasks in the application distribution">
-                <sourcefile file="build.gradle" snippet="distribution-spec"/>
-            </sample>
-            <para>
-                By specifying that the distribution should include the task's output files (see <xref linkend="sec:task_inputs_outputs"/>), Gradle knows 
-                that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
-            </para>
-            <sample id="dependentTaskForApplicationDistributionOutput" dir="application" title="Automatically creating files for distribution">
-                <output args="distZip"/>
-            </sample>
-    </section>
-    
 </chapter>

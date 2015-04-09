@@ -25,10 +25,16 @@ import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.nativeintegration.filesystem.Stat
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class NativeServicesTest extends Specification {
-    final NativeServices services = NativeServices.getInstance()
+    NativeServices services
+
+    def setup() {
+        services = NativeServices.getInstance()
+    }
 
     def "makes a ProcessEnvironment available"() {
         expect:

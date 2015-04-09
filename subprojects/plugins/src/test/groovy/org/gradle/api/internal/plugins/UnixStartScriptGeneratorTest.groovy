@@ -16,24 +16,18 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.scripting.JavaAppStartScriptGenerationDetails
-import org.gradle.api.scripting.ScriptGenerationDetails
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
 import org.gradle.util.TextUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class UnixStartScriptGeneratorTest extends Specification {
-    UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
-    JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails()
 
-    def "uses expected template and line separator"() {
-        expect:
-        generator.defaultTemplateFilename == 'unixStartScript.txt'
-        generator.lineSeparator == TextUtil.unixLineSeparator
-    }
+    UnixStartScriptGenerator generator = new UnixStartScriptGenerator()
 
     def "classpath for unix script uses slashes as path separator"() {
         given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -45,6 +39,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "unix script uses unix line separator"() {
         given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -56,7 +51,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script"() {
         given:
-        details.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(['-Dfoo=bar', '-Xint'], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -68,7 +63,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- spaces"() {
         given:
-        details.defaultJvmOpts = ['-Dfoo=bar baz', '-Xint']
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(['-Dfoo=bar baz', '-Xint'], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -80,7 +75,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- double quotes"() {
         given:
-        details.defaultJvmOpts = ['-Dfoo=b"ar baz', '-Xi""nt']
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(['-Dfoo=b"ar baz', '-Xi""nt'], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -92,7 +87,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- single quotes"() {
         given:
-        details.defaultJvmOpts = ['-Dfoo=b\'ar baz', '-Xi\'\'n`t']
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(['-Dfoo=b\'ar baz', '-Xi\'\'n`t'], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -104,7 +99,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- backslashes and shell metacharacters"() {
         given:
-        details.defaultJvmOpts = ['-Dfoo=b\\ar baz', '-Xint$PATH']
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(['-Dfoo=b\\ar baz', '-Xint$PATH'], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -116,6 +111,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "defaultJvmOpts is expanded properly in unix script -- empty list"() {
         given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails([], 'bin')
         Writer destination = new StringWriter()
 
         when:
@@ -127,7 +123,7 @@ class UnixStartScriptGeneratorTest extends Specification {
 
     def "determines application-relative path"() {
         given:
-        details.scriptRelPath = "bin/sample/start"
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin/sample/start')
         Writer destination = new StringWriter()
 
         when:
@@ -137,11 +133,9 @@ class UnixStartScriptGeneratorTest extends Specification {
         destination.toString().contains('cd "`dirname \\"$PRG\\"`/../.." >&-')
     }
 
-    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails() {
-        ScriptGenerationDetails details = new JavaAppStartScriptGenerationDetails()
-        details.applicationName = "TestApp"
-        details.classpath = WrapUtil.toList("path\\to\\Jar.jar")
-        details.scriptRelPath = "bin"
-        details
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
+        final String applicationName = 'TestApp'
+        final List<String> classpath = WrapUtil.toList('path\\to\\Jar.jar')
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, null, defaultJvmOpts, classpath, scriptRelPath, null)
     }
 }

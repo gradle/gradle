@@ -52,23 +52,29 @@ class DefaultBuildOperationLoggerTest extends Specification {
     }
 
     def "logs completion of operation"() {
+        given:
+        log.start()
         when:
         log.operationSuccess("<operation>", "<output>")
         then:
         1 * logger.log(DEBUG, "<operation> successful.")
         1 * logger.log(INFO, "<output>")
-        logOutput() == """<operation> successful.
+        logOutput() == """See $pathToLogStr for all output for <testTask>.
+<operation> successful.
 <output>
 """
     }
 
     def "logs failure of operation"() {
+        given:
+        log.start()
         when:
         log.operationFailed("<operation>", "<output>")
         then:
         1 * logger.log(DEBUG, "<operation> failed.")
         1 * logger.log(ERROR, "<output>")
-        logOutput() == """<operation> failed.
+        logOutput() == """See $pathToLogStr for all output for <testTask>.
+<operation> failed.
 <output>
 """
     }
@@ -82,7 +88,7 @@ class DefaultBuildOperationLoggerTest extends Specification {
         1 * logger.log(INFO, "See $pathToLogStr for all output for <testTask>.")
         4 * logger.log(DEBUG, "<operation> failed.")
         4 * logger.log(ERROR, "<output>")
-        1 * logger.log(INFO, "Done <testTask>, full log $pathToLogStr.")
+        1 * logger.log(INFO, "Finished <testTask>, see full log $pathToLogStr.")
 
         logOutput() == """See $pathToLogStr for all output for <testTask>.
 <operation> failed.
@@ -93,7 +99,7 @@ class DefaultBuildOperationLoggerTest extends Specification {
 <output>
 <operation> failed.
 <output>
-Done <testTask>, full log $pathToLogStr.
+Finished <testTask>, see full log $pathToLogStr.
 """
     }
 
@@ -108,7 +114,7 @@ Done <testTask>, full log $pathToLogStr.
         10 * logger.log(DEBUG, "<operation> failed.")
         5 * logger.log(ERROR, "<output>")
         1 * logger.log(ERROR, "...output for 5 more failed operation(s) continued in $pathToLogStr.")
-        1 * logger.log(INFO, "Done <testTask>, full log $pathToLogStr.")
+        1 * logger.log(INFO, "Finished <testTask>, see full log $pathToLogStr.")
 
         logOutput() == """See $pathToLogStr for all output for <testTask>.
 <operation> failed.
@@ -131,7 +137,7 @@ Done <testTask>, full log $pathToLogStr.
 <output>
 <operation> failed.
 <output>
-Done <testTask>, full log $pathToLogStr.
+Finished <testTask>, see full log $pathToLogStr.
 """
     }
 
@@ -141,7 +147,7 @@ Done <testTask>, full log $pathToLogStr.
         log.done()
         then:
         logOutput() == """See $pathToLogStr for all output for <testTask>.
-Done <testTask>, full log $pathToLogStr.
+Finished <testTask>, see full log $pathToLogStr.
 """
     }
 }

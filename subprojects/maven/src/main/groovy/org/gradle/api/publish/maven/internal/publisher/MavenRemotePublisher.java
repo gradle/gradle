@@ -16,19 +16,25 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.apache.maven.artifact.ant.RemoteRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.publication.maven.internal.ant.MavenDeployAction;
+import org.gradle.api.publication.maven.internal.action.MavenDeployAction;
+import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeployWagon;
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.api.publication.maven.internal.wagon.WagonRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
+import java.net.URI;
 
-public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployAction> {
+public class MavenRemotePublisher extends AbstractMavenPublisher {
     private final Factory<File> temporaryDirFactory;
     private final RepositoryTransportFactory repositoryTransportFactory;
 
@@ -38,20 +44,29 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenDeployAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepositoryInternal artifactRepository) {
-        MavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
         deployTask.setLocalMavenRepositoryLocation(temporaryDirFactory.create());
-        deployTask.setRepositories(new MavenRemoteRepositoryFactory(artifactRepository).create(), null);
+        deployTask.setRepositories(createMavenRemoteRepository(artifactRepository), null);
         deployTask.setUniqueVersion(true);
         return deployTask;
     }
 
+    private RemoteRepository createMavenRemoteRepository(MavenArtifactRepository repository) {
+        RemoteRepository remoteRepository = new RemoteRepository();
+        remoteRepository.setUrl(repository.getUrl().toString());
+        return remoteRepository;
+    }
+
+    /**
+     * A deploy action that uses a Gradle provided wagon implementation.
+     */
     private static class GradleWagonMavenDeployAction extends MavenDeployAction {
-        private final MavenArtifactRepositoryInternal artifactRepository;
+        private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
         private final WagonRegistry wagonRegistry;
 
-        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepositoryInternal artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
             super(pomFile);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
@@ -69,13 +84,20 @@ public class MavenRemotePublisher extends AbstractMavenPublisher<MavenDeployActi
         @Override
         public void publish() {
             String protocol = artifactRepository.getUrl().getScheme().toLowerCase();
-            RepositoryTransportWagonAdapter adapter = new RepositoryTransportWagonAdapter(protocol, artifactRepository, repositoryTransportFactory);
+            RepositoryTransportWagonAdapter adapter = createAdapter(protocol, artifactRepository, repositoryTransportFactory);
             RepositoryTransportDeployWagon.contextualize(adapter);
             try {
                 super.publish();
             } finally {
                 RepositoryTransportDeployWagon.decontextualize();
             }
+        }
+
+        private RepositoryTransportWagonAdapter createAdapter(String protocol, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            Credentials credentials = ((AuthenticationSupportedInternal) artifactRepository).getConfiguredCredentials();
+            RepositoryTransport transport = repositoryTransportFactory.createTransport(protocol, artifactRepository.getName(), credentials);
+            URI rootUri = artifactRepository.getUrl();
+            return new RepositoryTransportWagonAdapter(transport, rootUri);
         }
     }
 }

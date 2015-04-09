@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Test
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
@@ -24,7 +25,11 @@ import static org.junit.Assert.assertThat
 
 class DefaultGroovySourceSetTest {
     private final DefaultGroovySourceSet sourceSet = new DefaultGroovySourceSet("<set-display-name>", [resolve: {it as File}] as FileResolver)
-    
+
+    static {
+        NativeServicesTestFixture.initialize()
+    }
+
     @Test
     public void defaultValues() {
         assertThat(sourceSet.groovy, instanceOf(DefaultSourceDirectorySet))

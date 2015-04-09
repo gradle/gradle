@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * Provides details about a dependency when it is resolved.
@@ -38,6 +37,7 @@ public interface DependencyResolveDetails {
     /**
      * Allows to override the version when the dependency {@link #getRequested()} is resolved.
      * Can be used to select a version that is different than requested.
+     * Forcing modules via {@link ResolutionStrategy#force(Object...)} uses this capability.
      * Configuring a version different than requested will cause {@link #getTarget()} method
      * return a target module with updated target version.
      * <p>
@@ -69,5 +69,5 @@ public interface DependencyResolveDetails {
      * The target module selector used to resolve the dependency.
      * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
      */
-    ComponentSelector getTarget();
+    ModuleVersionSelector getTarget();
 }

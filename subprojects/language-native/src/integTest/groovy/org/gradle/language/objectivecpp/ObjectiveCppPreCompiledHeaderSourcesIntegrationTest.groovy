@@ -28,9 +28,4 @@ class ObjectiveCppPreCompiledHeaderSourcesIntegrationTest extends AbstractNative
     PCHHelloWorldApp getApp() {
         return new ObjectiveCppPCHHelloWorldApp()
     }
-
-    @Override
-    String getSourceSet() {
-        return "objcpp"
-    }
 }

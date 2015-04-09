@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.nativeplatform.NativeExecutableBinary;
 import org.gradle.nativeplatform.NativeExecutableBinarySpec;
+import org.gradle.nativeplatform.NativeExecutableSpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
@@ -29,6 +30,16 @@ import java.io.File;
 public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec implements NativeExecutableBinary, NativeExecutableBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File executableFile;
+
+    @Override
+    public NativeExecutableSpec getComponent() {
+        return (NativeExecutableSpec) super.getComponent();
+    }
+
+    @Override
+    public NativeExecutableSpec getApplication() {
+        return getComponent();
+    }
 
     public File getExecutableFile() {
         return executableFile;

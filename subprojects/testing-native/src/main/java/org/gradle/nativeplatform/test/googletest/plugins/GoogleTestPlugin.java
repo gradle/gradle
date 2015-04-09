@@ -113,7 +113,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         @Mutate
         public void createGoogleTestTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
             for (final GoogleTestTestSuiteSpec googleTestTestSuite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
-                for (NativeBinarySpec testedBinary : googleTestTestSuite.getTestedComponent().getNativeBinaries()) {
+                for (NativeBinarySpec testedBinary : googleTestTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
                     if (testedBinary instanceof SharedLibraryBinary) {
                         // TODO:DAZ For now, we only create test suites for static library variants
                         continue;

@@ -18,24 +18,18 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.file.TestFile
 
-/**
- * TODO - sync up with {@link HttpResource}
- */
-class HttpDirectoryResource {
-    private final HttpServer server
-    private final String path
+class HttpDirectoryResource extends AbstractHttpResource {
+    final String path
     private final TestFile directory
 
     HttpDirectoryResource(HttpServer server, String path, TestFile directory) {
+        super(server)
         this.directory = directory
         this.path = path
         this.server = server
     }
 
-    URI getUri() {
-        return new URI("http", "localhost:${server.port}", path, null, null)
-    }
-
+    @Override
     public void expectGet() {
         server.expectGetDirectoryListing(path, directory)
     }
@@ -44,11 +38,38 @@ class HttpDirectoryResource {
         server.allowGetDirectoryListing(path, directory)
     }
 
+    @Override
     public void expectGetMissing() {
         server.expectGetMissing(path)
     }
 
+    @Override
     public void expectGetBroken() {
         server.expectGetBroken(path)
+    }
+
+    @Override
+    void expectHead() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectHeadBroken() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectHeadMissing() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectPut() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectPutBroken() {
+        throw new UnsupportedOperationException()
     }
 }

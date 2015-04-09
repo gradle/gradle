@@ -62,6 +62,20 @@ class AbstractExternalResourceTest extends Specification {
         }
     }
 
+    def "propagates stream action failure"() {
+        def resource = new TestResource("abc")
+        def action = Mock(Action)
+        def failure = new RuntimeException()
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+        1 * action.execute(_) >> { throw failure }
+    }
+
     def "writes contents to output stream transformer"() {
         def resource = new TestResource("abc")
         def action = Mock(Transformer)
@@ -77,6 +91,20 @@ class AbstractExternalResourceTest extends Specification {
         }
     }
 
+    def "propagates stream transformer failure"() {
+        def resource = new TestResource("abc")
+        def action = Mock(Transformer)
+        def failure = new RuntimeException()
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+        1 * action.transform(_) >> { throw failure }
+    }
+
     def "writes contents to content action"() {
         def resource = new TestResource("abc")
         def action = Mock(ExternalResource.ContentAction)
@@ -90,6 +118,20 @@ class AbstractExternalResourceTest extends Specification {
             assert instr.text == "abc"
             return "result"
         }
+    }
+
+    def "propagates content action failure"() {
+        def resource = new TestResource("abc")
+        def action = Mock(ExternalResource.ContentAction)
+        def failure = new RuntimeException()
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+        1 * action.execute(_, _) >> { throw failure }
     }
 
     class TestResource extends AbstractExternalResource {

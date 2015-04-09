@@ -15,17 +15,15 @@
  */
 
 package org.gradle.api.publish.maven
-
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
-import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
-class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
+class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule HttpServer server
 
@@ -161,7 +159,9 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        // Cause goes missing through the maven classes, but does end up logged to stderr
+        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
@@ -179,7 +179,9 @@ class MavenPublishHttpIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription('Execution failed for task \':publishMavenPublicationToMavenRepository\'.')
         failure.assertHasCause('Failed to publish publication \'maven\' to repository \'maven\'')
-        failure.assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
+        failure.assertHasCause("Error deploying artifact 'org.gradle:publish:jar': Error deploying artifact: Could not write to resource 'org/gradle/publish/2/publish-2.jar'")
+        // Cause goes missing through the maven classes, but does end up logged to stderr
+        failure.error.contains("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]

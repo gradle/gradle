@@ -54,70 +54,6 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
-## Story: Allow the source and Javadoc artifacts for an external Java library to be queried (✓)
-
-This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
-
-- Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
-  in parallel.
-- The API should expose download failures.
-- A component may have zero or more source artifacts associated with it.
-- A component may have zero or more Javadoc artifacts associated with it.
-- Should introduce the concept of a Java library to the result.
-- Should have something in common with the story to expose component artifacts, above.
-- Initial implementation should use the Maven style convention to currently used by the IDE plugins. The a later story will improve this for Ivy repositories.
-
-### Test cases
-
-- Query the source artifacts only
-- Query the Javadoc artifacts only
-- Query which artifacts could not be resolved or downloaded.
-- Caching is applied as appropriate.
-
-## Story: IDE plugins use new artifact resolution API to download sources and javadoc (✓)
-
-This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
-
-- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
-- Should ignore project components.
-
-## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules (✓)
-
-This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
-
-### User visible changes
-
-Source artifacts contained in a 'sources' configuration in ivy.xml will be now be automatically downloaded and linked into an IDE project. Similar for javadoc artifacts in a 'javadoc' configuration.
-
-### Implementation
-
-* Make it possible to use ResolveIvyFactory to create a DependencyToModuleVersionResolver without a configuration: use a default ResolutionStrategy and supplied name.
-* Create a `DependencyMetaData` for each supplied `ModuleComponentIdentifier`, and use this to obtain the ModuleVersionMetaData for the component.
-    * Fail for any other types of `ComponentIdentifier`
-* Add a new method: `ArtifactResolver.resolve(ModuleVersionMetaData, Class<? extends JvmLibraryArtifact>, BuildableMultipleArtifactResolveResult)`
-    * Note that this is a transitional API: long term the second parameter may be generalised in some way
-    * `BuildableMultipleArtifactResolveResult` allows the collection of multiple downloaded artifacts of the type, or multiple failures, or a combination.
-* Add a method to `ModuleVersionRepository` that provides the `ModuleVersionArtifactMetaData` for candidate artifacts
-  given a particular ModuleVersionMetaData + JvmLibraryArtifact class.
-    * This method should not require remote access to the repository.
-    * For `MavenResolver` and `IvyDependencyResolverAdapter`, this would return artifacts defined with the appropriate classifiers.
-    * For `IvyResolver`, this would inspect the `ModuleVersionMetaData` to determine the candidate artifacts.
-    * This method should be used to implement the new `resolve` method on `UserResolverChain.ModuleVersionRepositoryArtifactResolverAdapter`.
-
-### Test cases
-
-* Where ivy.xml contains a 'sources' and/or 'javadoc' configuration:
-    * Defined artifacts are included in generated IDE files
-    * Defined artifacts are available via Artifact Query API
-    * Detect and report on artifacts that are defined in ivy configuration but not found
-    * Detect and report error for artifacts that are defined in ivy configuration where download fails
-* Use ivy scheme to retrieve source/javadoc artifacts from a local ivy repository
-* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
-    * Flatdir repository
-    * No ivy.xml file for module
-    * Ivy module with no source/javadoc configurations defined in metadata
-* Maven conventions are not used if ivy file declares empty sources and javadoc configuration
-
 ## Story: Dependency resolution result exposes a consumer that is not a module version
 
 This story exposes different kinds of consumers for a dependency graph. The consumer is represented as the root of the dependency resolution result.
@@ -217,63 +153,6 @@ Report on failed artifact downloads for a configuration:
 - Replacement for `ResolvedArtifact.name`, `ResolvedArtifact.extension` etc
 - Need a way to query Artifact model without downloading artifact files
 
-## Story: Access the ivy and maven metadata artifacts via the Artifact Query API for component ID(s)
-
-### User visible changes
-
-Access the ivy.xml files for a ivy components with the specified id:
-
-    def result = dependencies.createArtifactResolutionQuery()
-        .forComponents(ivyModuleComponentId1, ivyModuleComponentId2)
-        .withArtifacts(IvyModule, IvyDescriptorArtifact)
-        .execute()
-
-    for(component in result.resolvedComponents) {
-        component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
-    }
-
-Get the pom files for all maven modules in a configuration:
-
-    def artifactResult = dependencies.createArtifactResolutionQuery()
-        .forComponents(mavenModuleComponentId1, mavenModuleComponentId2)
-        .withArtifacts(MavenModule, MavenPomArtifact)
-        .execute()
-
-    for(component in result.resolvedComponents) {
-        component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
-    }
-
-### Implementation
-
-- Introduce `Module` domain model:
-    - Add the interface `org.gradle.ivy.IvyModule` in the project `ivy`. The interface extends `org.gradle.api.component.Component`.
-    - Add the interface `org.gradle.maven.MavenModule` in the project `maven`. The interface extends `org.gradle.api.component.Component`.
-- Introduce `Artifact` domain model:
-    - Add the interface `org.gradle.ivy.IvyDescriptorArtifact` in the project `ivy`. The interface extends `org.gradle.api.component.Artifact`.
-    - Add the interface `org.gradle.maven.MavenPomArtifact` in the project `maven`. The interface extends `org.gradle.api.component.Artifact`.
-
-### Test cases
-
-- Invalid component type and artifact type
-    - Cannot call `withArtifacts` multiple times for query
-    - Cannot mix `JvmLibrary` with metadata artifact types
-    - Cannot mix `IvyModule` and `MavenModule` component types with jvm library artifact types
-- Unsupported artifact types:
-    - When requesting `IvyModule` artifacts, the result for a maven component is `UnresolvedComponentResult` with a useful failure.
-    - When requesting `MavenModule` artifacts, the result for an ivy component is `UnresolvedComponentResult` with a useful failure.
-    - When requesting `IvyModule` or `MavenModule` artifacts, the result for a project component is `UnresolvedComponentResult` with a useful failure.
-- Optional artifacts:
-    - Request an ivy descriptor for an ivy module with no descriptor, and get empty set of artifacts.
-    - Request a pom for a maven module with no pom, and get empty set of artifacts.
-- Metadata artifacts are cached
-    - Updates `IvyDescriptorArtifact` for changing module
-    - Updates `MavenPomArtifact` for maven snapshot
-    - Updates both with `--refresh-dependencies`
-
-### Open issues
-
-- Typed domain model for IvyModule and MavenModule
-
 ## Story: Access the ivy and maven metadata artifacts via the Artifact Query API for a configuration
 
 ### User visible changes
@@ -294,6 +173,13 @@ Get the pom files for all maven modules in a configuration:
         .withArtifacts(MavenModule, MavenPomArtifact)
         .execute()
     Set<File> pomFiles = artifactResult.getArtifactFiles()
+    
+## Story: IvyModule and MavenModule are symmetric with IvyPublication and MavenPublication
+
+These classes are the resolve / publish equivalents, so there should be:
+
+- Consistency in package structure
+- Consistency in type hierarchy (`IvyModule` and `MavenModule` are not `Component` subtypes)
 
 ## Story: Reliable mechanism for checking for success with new resolution result APIs
 
@@ -464,31 +350,11 @@ detect and resolve conflicts.
 
 - Excludes should not apply to local components. This is a breaking change.
 
-## Story: Model the native binary dependencies as requirements
-
-This story introduces a new API which can take an arbitrary set of requirements and some usage context and produce a set of files which
-meet the requirements.
-
-- Split up `NativeDependencyResolver` into several pieces:
-    - A public API that takes a collection of objects plus some object that represents a usage and returns a buildable collection of files. This API should not
-      refer to any native domain concepts.
-    - A service that implements the API.
-    - A registry of requirement -> buildable file collection converters.
-- Add some way to query the resolved include roots, link files and runtime files for a native binary.
-
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
 
 Note: This is a breaking change.
-
-## Story: Generate and publish component meta-data artifact
-
-Introduce a native Gradle component descriptor file, generate and publish this.
-
-## Story: Dependency resolution uses component meta-data artifact
-
-Use the component descriptor, if present, during resolution.
 
 ## Story: Improve error messages when things cannot be found
 
@@ -501,7 +367,7 @@ Handle the following reasons why no matching component cannot be found for a sel
 - Typo in repository configuration:
     - Inform which URLs were used to locate the module and versions
     - Inform about a missing meta-data artifact
-- No repositories declared
+- ~~No repositories declared~~
 
 Handle the following reasons why a given artifact cannot be found:
 
@@ -512,10 +378,10 @@ Handle the following reasons why a given artifact cannot be found:
 
 ### Open issues
 
-- Test cases for dynamic selector used with maven repo.
-- Error message should include some candidate versions for dynamic version when some versions found.
+- ~~Test cases for dynamic selector used with maven repo.~~
+- ~~Error message should include some candidate versions for dynamic version when some versions found.~~
 - Error message should include some candidate artifacts when artifact not found.
-- Error messages should distinguish between no versions found and no matching versions found.
+- ~~Error messages should distinguish between no versions found and no matching versions found.~~
 - Fix case where static selector is used multiple times in same build for missing module.
 - Fix case where dynamic selector is used multiple times in same build for module with no versions.
 - Fix case where maven local contains pom and not artifact. Currently the error message implies that the pom is not there.
@@ -527,17 +393,6 @@ Handle the following reasons why a given artifact cannot be found:
     - should handle case where there is a mix of local and remote repositories.
 - Warn (once per build) when using an expired cached thing in offline mode.
 
-## Story: New dependency graph uses less heap
-
-The new dependency graph also requires substantial heap (in very large projects). We should spool it to disk during resolution
-and load it into heap only as required.
-
-### Coverage
-
-* Existing dependency reports tests work neatly
-* The report is generated when the configuration was already resolved (e.g. some previous task triggered resolution)
-* The report is generated when the configuration was unresolved yet.
-
 ## Story: Promote (un-incubate) the new dependency graph types.
 
 In order to remove an old feature, we should promote the replacement API.
@@ -546,19 +401,11 @@ In order to remove an old feature, we should promote the replacement API.
 
 TBD
 
-## Story: declarative substitution of group, module and version
-
-Allow some substitutions to be expressed declaratively, rather than imperatively as a rule.
-
 ## Feature: Expose APIs for additional questions that can be asked about components
 
 - List versions of a component
 - Get meta-data of a component
 - Get certain artifacts of a component. Includes meta-data artifacts
-
-## Story: Resolution result exposes excluded dependencies
-
-TBD
 
 # Open issues
 

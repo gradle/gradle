@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 /**
  * An implementation of {@link DescriptorParseContext} that is useful for parsing an ivy.xml file without attempting to download

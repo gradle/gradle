@@ -117,6 +117,7 @@ project.logger.debug("debug logging");
             //suppress daemon usage suggestions
             executer.withArgument("--no-daemon")
         }
+        executer.withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
         executer.run()
     }
 

@@ -16,12 +16,12 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 
 public class TestFiles {
-    private static final FileSystem FILE_SYSTEM = NativeServices.getInstance().get(FileSystem.class);
+    private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(FILE_SYSTEM);
 
     public static FileLookup fileLookup() {

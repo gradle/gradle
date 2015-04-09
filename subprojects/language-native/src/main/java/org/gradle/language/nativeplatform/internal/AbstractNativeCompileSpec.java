@@ -33,7 +33,6 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File objectFileDir;
     private boolean positionIndependentCode;
     private BuildOperationLogger oplogger;
-    private boolean isPrefixHeaderCompile;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
     private Map<File, SourceIncludes> sourceFileIncludes;
@@ -115,16 +114,6 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
 
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
-    }
-
-    @Override
-    public boolean isPrefixHeaderCompile() {
-        return isPrefixHeaderCompile;
-    }
-
-    @Override
-    public void setIsPrefixHeaderCompile(boolean preCompiledHeader) {
-        this.isPrefixHeaderCompile = preCompiledHeader;
     }
 
     @Override

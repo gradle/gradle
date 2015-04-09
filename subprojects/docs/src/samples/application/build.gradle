@@ -1,6 +1,6 @@
-apply plugin:'java'
+apply plugin: 'java'
 // START SNIPPET use-plugin
-apply plugin:'application'
+apply plugin: 'application'
 // END SNIPPET use-plugin
 
 version = '1.0.2'
@@ -23,8 +23,14 @@ task createDocs {
     }
 }
 
-applicationDistribution.from(createDocs) {
-    into "docs"
+distributions {
+    main {
+        contents {
+            from(createDocs) {
+                into "docs"
+            }
+        }
+    }
 }
 // END SNIPPET distribution-spec
 

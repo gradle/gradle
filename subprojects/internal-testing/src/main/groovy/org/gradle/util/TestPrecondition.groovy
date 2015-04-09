@@ -76,6 +76,9 @@ enum TestPrecondition {
     UNIX({
         OperatingSystem.current().unix
     }),
+    UNIX_DERIVATIVE({
+        MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
+    }),
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
     }),

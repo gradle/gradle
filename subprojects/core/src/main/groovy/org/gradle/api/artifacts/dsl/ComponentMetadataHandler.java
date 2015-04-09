@@ -126,24 +126,9 @@ public interface ComponentMetadataHandler {
      * <p>The rule source parameter is subject to the same requirements as {@link #all(Object)}.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param ruleSource  the rule source object to be added
+     * @param ruleSource the rule source object to be added
      * @return this
      */
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
-    /**
-      * Adds a rule to modify the metadata of depended-on software components.
-     *
-     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
-     */
-    @Deprecated
-     void eachComponent(Action<? super ComponentMetadataDetails> rule);
-
-     /**
-      * Adds a rule to modify the metadata of depended-on software components.
-      *
-      * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
-      */
-     @Deprecated
-     void eachComponent(Closure<?> rule);
 }

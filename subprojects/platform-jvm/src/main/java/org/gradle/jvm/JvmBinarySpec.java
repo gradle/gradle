@@ -30,8 +30,9 @@ import java.io.File;
 @Incubating
 public interface JvmBinarySpec extends BinarySpec {
     /**
-     * The set of tasks associated with this binary.
+     * {@inheritDoc}
      */
+    @Override
     JvmBinaryTasks getTasks();
 
     /**

@@ -33,6 +33,8 @@ import java.util.Map;
 @Incubating
 @HasInternalProtocol
 public interface PlayApplicationBinarySpec extends BinarySpec {
+    PlayApplicationSpec getApplication();
+
     PlayPlatform getTargetPlatform();
 
     File getJarFile();

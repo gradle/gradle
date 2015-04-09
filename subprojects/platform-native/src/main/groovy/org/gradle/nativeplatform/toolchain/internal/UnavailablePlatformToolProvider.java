@@ -48,8 +48,13 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
-    public ObjectFileExtensionCalculator getObjectFileExtensionCalculator() {
-        throw failure();
+    public String getObjectFileExtension() {
+        return null;
+    }
+
+    @Override
+    public String getPCHFileExtension() {
+        return null;
     }
 
     public String getExecutableName(String executablePath) {

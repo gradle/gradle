@@ -39,7 +39,7 @@ public class NotationParserBuilder<T> {
 
     private NotationParserBuilder(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
-        typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : String.format("an object of type %s", resultingType.getTargetType().getSimpleName());
+        typeDisplayName = resultingType.getTargetType().equals(String.class) ? "a String" : "an object of type ".concat(resultingType.getTargetType().getSimpleName());
     }
 
     /**

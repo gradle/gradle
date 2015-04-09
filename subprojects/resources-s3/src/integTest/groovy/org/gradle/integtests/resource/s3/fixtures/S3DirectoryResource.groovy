@@ -17,8 +17,9 @@
 package org.gradle.integtests.resource.s3.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.resource.RemoteResource
 
-class S3DirectoryResource {
+class S3DirectoryResource implements RemoteResource {
 
     private final S3Server server
     private final TestFile directory
@@ -37,11 +38,58 @@ class S3DirectoryResource {
         return new URI("s3", bucket, path, null, null)
     }
 
-    public void expectGet() {
-        server.stubListFile(directory, bucket, path)
+    @Override
+    void expectDownload() {
+        expectGet()
     }
 
-    public void allowGet() {
+    @Override
+    void expectDownloadBroken() {
+        expectGetBroken()
+    }
+
+    @Override
+    void expectDownloadMissing() {
+        expectGetMissing()
+    }
+
+    @Override
+    void expectMetadataRetrieve() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectMetadataRetrieveMissing() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectMetadataRetrieveBroken() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectParentMkdir() {
+        // Not required
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        // Not required
+    }
+
+    @Override
+    void expectUpload() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    void expectUploadBroken() {
+        throw new UnsupportedOperationException()
+    }
+
+    public void expectGet() {
+        server.stubListFile(directory, bucket, path)
     }
 
     public void expectGetMissing() {

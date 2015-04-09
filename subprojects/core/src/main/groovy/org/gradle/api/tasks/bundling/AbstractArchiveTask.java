@@ -63,7 +63,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String maybe(String prefix, String value) {
         if (GUtil.isTrue(value)) {
             if (GUtil.isTrue(prefix)) {
-                return String.format("-%s", value);
+                return "-".concat(value);
             } else {
                 return value;
             }

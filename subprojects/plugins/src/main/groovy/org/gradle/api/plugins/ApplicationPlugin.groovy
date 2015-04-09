@@ -54,7 +54,7 @@ class ApplicationPlugin implements Plugin<Project> {
         addCreateScriptsTask()
 
         def distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
-        distribution.conventionMapping.baseName = {pluginConvention.applicationName}
+        distribution.conventionMapping.baseName = { pluginConvention.applicationName }
         configureDistSpec(distribution.contents)
         Task installAppTask = addInstallAppTask(distribution)
         configureInstallTasks(installAppTask, project.tasks[DistributionPlugin.TASK_INSTALL_NAME])
@@ -110,7 +110,7 @@ class ApplicationPlugin implements Plugin<Project> {
         installTask.group = APPLICATION_GROUP
         installTask.with distribution.contents
         installTask.into { project.file("${project.buildDir}/install/${pluginConvention.applicationName}") }
-        installTask.doFirst{
+        installTask.doFirst {
             DeprecationLogger.nagUserOfReplacedTask(ApplicationPlugin.TASK_INSTALL_NAME, DistributionPlugin.TASK_INSTALL_NAME);
         }
         installTask

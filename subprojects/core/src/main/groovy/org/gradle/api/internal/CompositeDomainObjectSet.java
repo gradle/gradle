@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.collections.collection.CompositeCollection;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
@@ -22,6 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
@@ -55,7 +57,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         public boolean isSatisfiedBy(T element) {
             int matches = 0;
             for (Object collection : getStore().getCollections()) {
-                if (((Collection)collection).contains(element)) {
+                if (((Collection) collection).contains(element)) {
                     if (++matches > 1) {
                         return false;
                     }
@@ -78,13 +80,13 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return super.whenObjectAdded(Actions.<T>filter(action, uniqueSpec));
+        return super.whenObjectAdded(Actions.filter(action, uniqueSpec));
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return super.whenObjectRemoved(Actions.<T>filter(action, notInSpec));
+        return super.whenObjectRemoved(Actions.filter(action, notInSpec));
     }
-    
+
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().getCollections().contains(collection)) {
             getStore().addComposited(collection);
@@ -101,17 +103,15 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
     }
 
+    @SuppressWarnings({"NullableProblems", "unchecked"})
+    @Override
     public Iterator<T> iterator() {
-        //TODO SF - this is not right, we don't detect iterator.remove() this way
-        //avoiding duplicates in the results
-        //noinspection unchecked
-        return new LinkedHashSet<T>(getStore()).iterator();
+        return Iterators.unmodifiableIterator(new LinkedHashSet<T>(getStore()).iterator());
     }
 
+    @SuppressWarnings("unchecked")
     public int size() {
-        //avoiding duplicates in the results
-        //noinspection unchecked
-        return new LinkedHashSet<T>(getStore()).size();
+        return new HashSet<T>(getStore()).size();
     }
 
     public void all(Action<? super T> action) {

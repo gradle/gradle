@@ -102,6 +102,7 @@ repositories {
                .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact.pom (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
+        // TODO - should make a single request
         module.pom.expectGetMissing()
         module.pom.expectGetMissing()
         module.artifact.expectHead()

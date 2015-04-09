@@ -29,19 +29,21 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final long contentLength;
     private final String etag;
     private final String sha1;
+    private final String contentType;
 
-    public DefaultExternalResourceMetaData(URI location) {
-        this(location, -1, -1, null, null);
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null);
     }
 
-    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag, sha1);
+    public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1);
     }
-    
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
+
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashValue sha1) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
+        this.contentType = contentType;
         this.etag = etag;
         this.sha1 = sha1 == null ? null : sha1.asHexString();
     }
@@ -57,6 +59,12 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
 
     public long getContentLength() {
         return contentLength;
+    }
+
+    @Nullable
+    @Override
+    public String getContentType() {
+        return contentType;
     }
 
     @Nullable

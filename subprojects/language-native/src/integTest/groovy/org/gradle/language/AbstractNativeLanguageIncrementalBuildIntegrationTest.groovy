@@ -30,6 +30,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
@@ -503,6 +504,25 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         and:
         executable.assertDebugFileDoesNotExist()
+    }
+
+    @Issue("GRADLE-3248")
+    def "incremental compilation isn't considered up-to-date when compilation fails"() {
+        expect:
+        succeeds mainCompileTask
+
+        when:
+        app.brokenFile.writeToDir(file("src/main"))
+
+        then:
+        fails mainCompileTask
+
+        when:
+        // nothing changes
+
+        expect:
+        // build should still fail
+        fails mainCompileTask
     }
 
     @Ignore("Test demonstrates missing functionality in incremental build with C++")

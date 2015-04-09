@@ -103,6 +103,11 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         return binaries;
     }
 
+    @Override
+    public void binaries(Action<? super DomainObjectSet<BinarySpec>> action) {
+        action.execute(binaries);
+    }
+
     public FunctionalSourceSet getSources() {
         return mainSourceSet;
     }

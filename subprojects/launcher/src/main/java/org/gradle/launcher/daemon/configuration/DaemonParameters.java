@@ -33,6 +33,7 @@ public class DaemonParameters {
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
 
     private final String uid;
+    private final File gradleUserHomeDir;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
@@ -49,19 +50,12 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(DEFAULT_JVM_ARGS);
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
-    }
-
-    public boolean isEnabled() {
-        return daemonUsage.enabled;
+        gradleUserHomeDir = layout.getGradleUserHomeDir();
     }
 
     public DaemonParameters setEnabled(boolean enabled) {
         daemonUsage = enabled ? DaemonUsage.EXPLICITLY_ENABLED : DaemonUsage.EXPLICITLY_DISABLED;
         return this;
-    }
-
-    public boolean isUsageConfiguredExplicitly() {
-        return daemonUsage.explicitlySet;
     }
 
     public String getUid() {
@@ -70,6 +64,10 @@ public class DaemonParameters {
 
     public File getBaseDir() {
         return baseDir;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
     }
 
     public int getIdleTimeout() {
@@ -137,17 +135,7 @@ public class DaemonParameters {
         return jvmOptions.getDebug();
     }
 
-    private static enum DaemonUsage {
-        IMPLICITLY_DISABLED(false, false),
-        EXPLICITLY_DISABLED(true, false),
-        EXPLICITLY_ENABLED(true, true);
-
-        private final boolean explicitlySet;
-        private final boolean enabled;
-
-        DaemonUsage(boolean explicitlySet, boolean enabled) {
-            this.explicitlySet = explicitlySet;
-            this.enabled = enabled;
-        }
+    public DaemonUsage getDaemonUsage() {
+        return daemonUsage;
     }
 }

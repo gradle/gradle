@@ -28,7 +28,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
     void setComponent(NativeComponentSpec component);
@@ -61,8 +60,4 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
      * Adds some files to include as input to the link/assemble step of this binary.
      */
     void binaryInputs(FileCollection files);
-
-    Map<DependentSourceSet, FileCollection> getPreCompiledHeaderObjectMappings();
-
-    Map<DependentSourceSet, File> getPrefixHeaderFileMappings();
 }

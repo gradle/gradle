@@ -28,6 +28,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.toolchain.ToolResolver;
 
@@ -63,6 +64,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
 
     public JvmBinaryTasks getTasks() {
         return tasks;
+    }
+
+    @Override
+    public void tasks(Action<? super BinaryTasksCollection> action) {
+        action.execute(tasks);
     }
 
     public JavaToolChain getToolChain() {

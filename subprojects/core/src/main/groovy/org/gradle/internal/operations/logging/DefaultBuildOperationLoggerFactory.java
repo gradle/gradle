@@ -39,13 +39,9 @@ public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerF
 
     @Override
     public BuildOperationLogger newOperationLogger(String taskName, File outputDir) {
-        return newOperationLogger(taskName, outputDir, MAX_FAILURES);
-    }
-
-    public BuildOperationLogger newOperationLogger(String taskName, File outputDir, int maximumFailures) {
         final File outputFile = createOutputFile(outputDir);
         final PrintWriter logWriter = createWriter(outputFile);
-        final BuildOperationLogInfo configuration = createLogInfo(taskName, outputFile, maximumFailures);
+        final BuildOperationLogInfo configuration = createLogInfo(taskName, outputFile, MAX_FAILURES);
         return new DefaultBuildOperationLogger(configuration, logger, logWriter);
     }
 

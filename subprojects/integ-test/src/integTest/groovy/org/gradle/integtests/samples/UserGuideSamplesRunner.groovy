@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.samples
+
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
@@ -128,7 +129,10 @@ class UserGuideSamplesRunner extends Runner {
         try {
             println("Test Id: $run.id, dir: $run.subDir, execution dir: $run.executionDir args: $run.args")
 
-            executer.noExtraLogging().inDirectory(run.executionDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
+            executer.noExtraLogging()
+                    .inDirectory(run.executionDir)
+                    .withArguments(run.args as String[])
+                    .withEnvironmentVars(run.envs)
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions

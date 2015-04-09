@@ -184,12 +184,24 @@
         </varlistentry>
         <varlistentry>
             <term>
-                <option>--parallel-threads (incubating)</option>
+                <option>--parallel-threads (deprecated, incubating)</option>
             </term>
             <listitem>
                 <para>
                     Build projects in parallel, using the specified number of executor threads. For example<literal>--parallel-threads=3</literal>.
                     This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
+                    This option has been replaced by <literal>--max-workers</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--max-workers (incubating)</option>
+            </term>
+            <listitem>
+                <para>
+                    Sets the maximum number of workers that Gradle may use. For example<literal>--max-workers=3</literal>.  The default is the number of processors.
+                    This option replaces <literal>--parallel-threads</literal> when used in conjuction with <literal>--parallel</literal>.
                 </para>
             </listitem>
         </varlistentry>

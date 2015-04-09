@@ -39,9 +39,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
     private final TaskResolver taskResolver = Mock()

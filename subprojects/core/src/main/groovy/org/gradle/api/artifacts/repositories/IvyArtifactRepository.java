@@ -22,16 +22,17 @@ import org.gradle.api.Incubating;
 import java.net.URI;
 
 /**
- * <p>An artifact repository which uses an Ivy format to store artifacts and meta-data.</p>
- *
- * <p>When used to resolve metadata and artifact files, all available patterns will be searched.</p>
- *
- * <p>When used to upload metadata and artifact files, only a single, primary pattern will be used:
+ * An artifact repository which uses an Ivy format to store artifacts and meta-data.
+ * <p>
+ * When used to resolve metadata and artifact files, all available patterns will be searched.
+ * <p>
+ * When used to upload metadata and artifact files, only a single, primary pattern will be used:
  * <ol>
- *     <li>If a URL is specified via {@link #setUrl} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
- *     <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
+ * <li>If a URL is specified via {@link #setUrl} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
+ * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
- * </p>
+ * <p>
+ * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(org.gradle.api.Action)} group of methods.
  */
 public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 

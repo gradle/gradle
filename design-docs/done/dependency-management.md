@@ -1,3 +1,13 @@
+## Story: New dependency graph uses less heap
+
+The new dependency graph also requires substantial heap (in very large projects). We should spool it to disk during resolution
+and load it into heap only as required.
+
+### Coverage
+
+* Existing dependency reports tests work neatly
+* The report is generated when the configuration was already resolved (e.g. some previous task triggered resolution)
+* The report is generated when the configuration was unresolved yet.
 
 ## Story: Restructure Gradle cache layout to give file store and metadata separate versions (DONE)
 
@@ -135,3 +145,124 @@ The HTML dependency report should change in a similar way.
 - Ensure there is coverage for the dependency insight report where:
     - There are a mix of external and project dependencies in the graph
     - There are a mix of external and project dependencies in the graph and the `--dependency` option is used.
+
+## Story: Allow the source and Javadoc artifacts for an external Java library to be queried (✓)
+
+This story introduces an API which allows the source and Javadoc artifacts for a Java library to be queried
+
+- Should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
+  in parallel.
+- The API should expose download failures.
+- A component may have zero or more source artifacts associated with it.
+- A component may have zero or more Javadoc artifacts associated with it.
+- Should introduce the concept of a Java library to the result.
+- Should have something in common with the story to expose component artifacts, above.
+- Initial implementation should use the Maven style convention to currently used by the IDE plugins. The a later story will improve this for Ivy repositories.
+
+### Test cases
+
+- Query the source artifacts only
+- Query the Javadoc artifacts only
+- Query which artifacts could not be resolved or downloaded.
+- Caching is applied as appropriate.
+
+## Story: IDE plugins use new artifact resolution API to download sources and javadoc (✓)
+
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE classpath artifacts.
+
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the source and Javadoc artifacts.
+- Should ignore project components.
+
+## Story: Dependency resolution uses conventional schemes to locate source and Javadoc artifacts for Ivy modules (✓)
+
+This story improves the convention used to locate the source and Javadocs to cover some common Ivy conventions.
+
+### User visible changes
+
+Source artifacts contained in a 'sources' configuration in ivy.xml will be now be automatically downloaded and linked into an IDE project. Similar for javadoc artifacts in a 'javadoc' configuration.
+
+### Implementation
+
+* Make it possible to use ResolveIvyFactory to create a DependencyToModuleVersionResolver without a configuration: use a default ResolutionStrategy and supplied name.
+* Create a `DependencyMetaData` for each supplied `ModuleComponentIdentifier`, and use this to obtain the ModuleVersionMetaData for the component.
+    * Fail for any other types of `ComponentIdentifier`
+* Add a new method: `ArtifactResolver.resolve(ModuleVersionMetaData, Class<? extends JvmLibraryArtifact>, BuildableMultipleArtifactResolveResult)`
+    * Note that this is a transitional API: long term the second parameter may be generalised in some way
+    * `BuildableMultipleArtifactResolveResult` allows the collection of multiple downloaded artifacts of the type, or multiple failures, or a combination.
+* Add a method to `ModuleVersionRepository` that provides the `ModuleVersionArtifactMetaData` for candidate artifacts
+  given a particular ModuleVersionMetaData + JvmLibraryArtifact class.
+    * This method should not require remote access to the repository.
+    * For `MavenResolver` and `IvyDependencyResolverAdapter`, this would return artifacts defined with the appropriate classifiers.
+    * For `IvyResolver`, this would inspect the `ModuleVersionMetaData` to determine the candidate artifacts.
+    * This method should be used to implement the new `resolve` method on `UserResolverChain.ModuleVersionRepositoryArtifactResolverAdapter`.
+
+### Test cases
+
+* Where ivy.xml contains a 'sources' and/or 'javadoc' configuration:
+    * Defined artifacts are included in generated IDE files
+    * Defined artifacts are available via Artifact Query API
+    * Detect and report on artifacts that are defined in ivy configuration but not found
+    * Detect and report error for artifacts that are defined in ivy configuration where download fails
+* Use ivy scheme to retrieve source/javadoc artifacts from a local ivy repository
+* Resolve source/javadoc artifacts by maven conventions where no ivy convention can be used:
+    * Flatdir repository
+    * No ivy.xml file for module
+    * Ivy module with no source/javadoc configurations defined in metadata
+* Maven conventions are not used if ivy file declares empty sources and javadoc configuration
+
+## Story: Access the ivy and maven metadata artifacts via the Artifact Query API for component ID(s)
+
+### User visible changes
+
+Access the ivy.xml files for a ivy components with the specified id:
+
+    def result = dependencies.createArtifactResolutionQuery()
+        .forComponents(ivyModuleComponentId1, ivyModuleComponentId2)
+        .withArtifacts(IvyModule, IvyDescriptorArtifact)
+        .execute()
+
+    for(component in result.resolvedComponents) {
+        component.getArtifacts(IvyDescriptorArtifact).each { assert it.file.name == 'ivy.xml' }
+    }
+
+Get the pom files for all maven modules in a configuration:
+
+    def artifactResult = dependencies.createArtifactResolutionQuery()
+        .forComponents(mavenModuleComponentId1, mavenModuleComponentId2)
+        .withArtifacts(MavenModule, MavenPomArtifact)
+        .execute()
+
+    for(component in result.resolvedComponents) {
+        component.getArtifacts(MavenPomArtifact).each { assert it.file.name == 'some-artifact-1.0.pom' }
+    }
+
+### Implementation
+
+- Introduce `Module` domain model:
+    - Add the interface `org.gradle.ivy.IvyModule` in the project `ivy`. The interface extends `org.gradle.api.component.Component`.
+    - Add the interface `org.gradle.maven.MavenModule` in the project `maven`. The interface extends `org.gradle.api.component.Component`.
+- Introduce `Artifact` domain model:
+    - Add the interface `org.gradle.ivy.IvyDescriptorArtifact` in the project `ivy`. The interface extends `org.gradle.api.component.Artifact`.
+    - Add the interface `org.gradle.maven.MavenPomArtifact` in the project `maven`. The interface extends `org.gradle.api.component.Artifact`.
+
+### Test cases
+
+- Invalid component type and artifact type
+    - Cannot call `withArtifacts` multiple times for query
+    - Cannot mix `JvmLibrary` with metadata artifact types
+    - Cannot mix `IvyModule` and `MavenModule` component types with jvm library artifact types
+- Unsupported artifact types:
+    - When requesting `IvyModule` artifacts, the result for a maven component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `MavenModule` artifacts, the result for an ivy component is `UnresolvedComponentResult` with a useful failure.
+    - When requesting `IvyModule` or `MavenModule` artifacts, the result for a project component is `UnresolvedComponentResult` with a useful failure.
+- Optional artifacts:
+    - Request an ivy descriptor for an ivy module with no descriptor, and get empty set of artifacts.
+    - Request a pom for a maven module with no pom, and get empty set of artifacts.
+- Metadata artifacts are cached
+    - Updates `IvyDescriptorArtifact` for changing module
+    - Updates `MavenPomArtifact` for maven snapshot
+    - Updates both with `--refresh-dependencies`
+
+### Open issues
+
+- Typed domain model for IvyModule and MavenModule

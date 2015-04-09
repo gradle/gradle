@@ -1,0 +1,66 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='new_model'>
+    <title>Rule based model configuration</title>
+    <para>
+        This chapter describes and documents what is essentially the foundation for the Gradle 3.0 and the next generation of Gradle builds.
+        It is being incrementally developed during the Gradle 2.x stream and is in use for <link linkend="nativeBinaries">Gradle's support for building native binaries</link>.
+    </para>
+    <para>
+        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> (i.e. not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
+        Exposing new features early, during incubation, allows early testing and the incorporation of real world feedback ultimately resulting in a better Gradle.
+    </para>
+    <section>
+        <title>Background</title>
+        <para>
+            Gradle embraces domain modelling as core tenet.
+            Focusing on the domain model as opposed to the execution model (like prior generation build tools such as Apache Ant) has many advantages.
+            A strong domain model communicates the intent (i.e. the what) over the mechanics (i.e. the how).
+            This allows humans to understand builds at a level that is meaningful to them.
+        </para>
+        <para>
+            As well as helping humans, a strong domain model also helps the dutiful machines.
+            Plugins can more effectively collaborate around a strong domain model (e.g. plugins can say something about Java applications, such as providing conventions).
+            Very importantly, by having a model of the <emphasis>what</emphasis> instead of the <emphasis>how</emphasis> Gradle can make intelligent choices on just how to do the how.
+        </para>
+        <para>
+            The move towards “Rule based model configuration” can be summarised as improving Gradle's ability to model richer domains in a more effective way.
+        </para>
+    </section>
+    <section>
+        <title>Motivations for change</title>
+        <para>
+            Domain modelling in Gradle is not new.
+            The Java plugin's <apilink class="org.gradle.api.tasks.SourceSet" /> concept is an example of domain modelling,
+            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the Native plugin suite.
+        </para>
+        <para>
+            One distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative.
+            Gradle is fundamentally a tool for modelling software construction and then realizing the model, via tasks such as compilation etc..
+            Different domain plugins (e.g. Java, C++, Android) provide models that other plugins can collaborate with and build upon.
+        </para>
+        <para>
+            While Gradle has long employed sophisticated techniques when it comes to realizing the model (i.e. what we know as building things),
+            the next generation of Gradle builds will employ some of the same techniques to building of the model itself.
+            By defining build tasks as effectively a graph of dependent functions with explicit inputs and outputs,
+            Gradle is able to order, cache, parallelize and apply other optimizations to the work.
+            Using a “graph of tasks” for the production of software is a long established idea, and necessary given the complexity of software production.
+            The task graph effectively defines the <emphasis>rules</emphasis> of execution the Gradle must follow.
+            The term “Rule based model configuration” refers to applying the same concepts to building the model that builds the task graph.
+        </para>
+        <!-- This is WIP, much more to come -->
+    </section>
+</chapter>

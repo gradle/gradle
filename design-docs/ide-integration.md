@@ -291,6 +291,7 @@ Add support for the following properties:
 
 - The jmxremote system properties (GRADLE-2629)
 - The SSL system properties (GRADLE-2367)
+- 'java.io.tmpdir' : this property is only read once at JVM startup
 
 ### Story - Daemon process expires when a memory pool is exhausted
 

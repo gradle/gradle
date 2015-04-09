@@ -17,11 +17,11 @@
 package org.gradle.api.publish.maven.internal.publisher
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
-import org.gradle.internal.artifacts.repositories.MavenArtifactRepositoryInternal
 import org.gradle.mvn3.org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
@@ -35,7 +35,7 @@ public class ValidatingMavenPublisherTest extends Specification {
     @Shared TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
     def delegate = Mock(MavenPublisher)
     def publisher = new ValidatingMavenPublisher(delegate)
-    def repository = Mock(MavenArtifactRepositoryInternal)
+    def repository = Mock(MavenArtifactRepository)
 
     def "delegates when publication is valid"() {
         when:

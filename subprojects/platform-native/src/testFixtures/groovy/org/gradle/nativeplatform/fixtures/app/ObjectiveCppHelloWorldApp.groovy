@@ -146,4 +146,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     List<String> getPluginList() {
         ['objective-cpp']
     }
+
+    public SourceFile getBrokenFile() {
+        return sourceFile("objcpp", "broken.mm", """'broken""")
+    }
 }
