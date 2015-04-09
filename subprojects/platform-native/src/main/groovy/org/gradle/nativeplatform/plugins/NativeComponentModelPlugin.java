@@ -116,11 +116,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ComponentSpecContainer components) {
-            return components.withType(NativeComponentSpec.class);
-        }
-
-        @Model
         PreCompiledHeaderTransformContainer preCompiledHeaderTransformContainer(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultPreCompiledHeaderTransformContainer.class);
         }
@@ -147,7 +142,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries
         @Mutate
-        public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
+        public void createNativeBinaries(BinaryContainer binaries, CollectionBuilder<NativeComponentSpec> nativeComponents,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
                                          PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
@@ -225,7 +220,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, NamedDomainObjectSet<NativeComponentSpec> nativeComponents) {
+        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, CollectionBuilder<NativeComponentSpec> nativeComponents) {
             for (NativeComponentSpec nativeComponentSpec : nativeComponents) {
                 nativeComponentSpec.getSource().withType(DependentSourceSet.class, new Action<DependentSourceSet>() {
                     @Override
