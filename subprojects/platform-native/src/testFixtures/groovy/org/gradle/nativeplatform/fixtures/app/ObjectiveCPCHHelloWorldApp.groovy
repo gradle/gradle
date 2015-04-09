@@ -39,12 +39,7 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     SourceFile getLibraryHeader() {
-        return getLibraryHeader("")
-    }
-
-    @Override
-    SourceFile getLibraryHeader(String path) {
-        return sourceFile("headers/${path}", "hello.h", """
+        return sourceFile("headers", "hello.h", """
             #ifndef HELLO_H
             #define HELLO_H
             #import <Foundation/Foundation.h>
@@ -106,8 +101,7 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
     List<SourceFile> getLibrarySources(String path) {
         return [
                 sourceFile("objc", "hello.m", """
-            #import "${path}hello.h"
-            #import <stdio.h>
+            #import "${path}prefixHeader.h"
 
             @implementation Greeter
             - (void) sayHello {
@@ -120,29 +114,13 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
             @end
         """),
                 sourceFile("objc", "sum.m", """
-            #import "${path}hello.h"
+            #import "hello.h"
 
             int sum (int a, int b)
             {
                 return a + b;
             }
         """)]
-    }
-
-    @Override
-    SourceFile getSystemHeader() {
-        return getSystemHeader("")
-    }
-
-    @Override
-    SourceFile getSystemHeader(String path) {
-        sourceFile("headers/${path}", "systemHeader.h", """
-            #ifndef SYSTEMHEADER_H
-            #define SYSTEMHEADER_H
-            void systemCall();
-            #pragma message("<==== compiling systemHeader.h ====>")
-            #endif
-        """)
     }
 
     @Override
@@ -162,7 +140,7 @@ class ObjectiveCPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     List<SourceFile> getAlternateLibrarySources() {
-        return getAlternateLibrarySources()
+        return getLibrarySources()
     }
 
     @Override

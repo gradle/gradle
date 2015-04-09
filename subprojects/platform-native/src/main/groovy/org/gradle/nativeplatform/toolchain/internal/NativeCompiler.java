@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
@@ -30,7 +29,6 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -115,24 +113,21 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
-        if (spec.getPreCompiledHeaders() == null) {
+        if (spec.getPreCompiledHeader() == null) {
             return Lists.newArrayList();
         }
 
         final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
-        boolean usePCH = CollectionUtils.every(spec.getPreCompiledHeaders(), new Spec<String>() {
-            @Override
-            public boolean isSatisfiedBy(String header) {
-                List<String> headerIncludes;
-                if (header.startsWith("<")) {
-                    header = header.substring(1, header.length()-1);
-                    headerIncludes = includes.getSystemIncludes();
-                } else {
-                    headerIncludes = includes.getQuotedIncludes();
-                }
-                return headerIncludes.contains(header);
-            }
-        });
+        String header = spec.getPreCompiledHeader();
+        List<String> headerIncludes;
+        if (header.startsWith("<")) {
+            header = header.substring(1, header.length()-1);
+            headerIncludes = includes.getSystemIncludes();
+        } else {
+            headerIncludes = includes.getQuotedIncludes();
+        }
+        boolean usePCH = headerIncludes.contains(header);
+
         if (usePCH) {
             return getPCHArgs(spec);
         } else {

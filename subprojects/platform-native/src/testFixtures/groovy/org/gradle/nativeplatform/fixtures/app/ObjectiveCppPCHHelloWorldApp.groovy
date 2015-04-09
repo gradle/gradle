@@ -39,11 +39,7 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     SourceFile getLibraryHeader() {
-        getLibraryHeader("")
-    }
-    @Override
-    SourceFile getLibraryHeader(String path) {
-        return sourceFile("headers/${path}", "hello.h", """
+        return sourceFile("headers", "hello.h", """
             #ifndef HELLO_H
             #define HELLO_H
             void sayHello();
@@ -95,8 +91,7 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
         return [
                 sourceFile("objcpp", "hello.mm", """
                     #define __STDC_LIMIT_MACROS
-                    #include "${path}hello.h"
-                    #include <iostream>
+                    #include "${path}prefixHeader.h"
                     #include <stdint.h>
                     #import <Foundation/Foundation.h>
 
@@ -118,28 +113,12 @@ class ObjectiveCppPCHHelloWorldApp extends PCHHelloWorldApp {
                     }
                 """),
                 sourceFile("objcpp", "sum.mm", """
-                    #include "${path}hello.h"
+                    #include "hello.h"
                     int sum(int a, int b) {
                         return a + b;
                     }
                 """)
         ]
-    }
-
-    @Override
-    SourceFile getSystemHeader() {
-        return getSystemHeader("")
-    }
-
-    @Override
-    SourceFile getSystemHeader(String path) {
-        sourceFile("headers/${path}", "systemHeader.h", """
-            #ifndef SYSTEMHEADER_H
-            #define SYSTEMHEADER_H
-            void systemCall();
-            #pragma message("<==== compiling systemHeader.h ====>")
-            #endif
-        """)
     }
 
     @Override

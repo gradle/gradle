@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal
 
-import com.google.common.collect.Sets
+import com.google.common.collect.Lists
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -26,7 +26,7 @@ class PrefixHeaderFileGeneratorUtilTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def "generates a prefix header file" () {
-        def headers = Sets.newLinkedHashSet()
+        def headers = Lists.newArrayList()
         headers.add "header.h"
         headers.add "<stdio.h>"
         headers.add "some/path/to/another.h"

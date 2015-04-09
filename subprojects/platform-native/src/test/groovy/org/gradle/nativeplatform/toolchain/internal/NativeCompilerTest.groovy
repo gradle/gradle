@@ -118,6 +118,7 @@ public abstract class NativeCompilerTest extends Specification {
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeader() >> null
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null
         }
@@ -152,6 +153,7 @@ public abstract class NativeCompilerTest extends Specification {
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeader() >> null
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null
         }
@@ -181,6 +183,7 @@ public abstract class NativeCompilerTest extends Specification {
             getIncludeRoots() >> [ includeDir ]
             getTempDir() >> testDir
             getOperationLogger() >> Mock(BuildOperationLogger)
+            getPreCompiledHeader() >> null
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null
         }

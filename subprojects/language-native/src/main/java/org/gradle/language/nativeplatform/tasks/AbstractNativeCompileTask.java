@@ -37,7 +37,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -54,7 +53,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private File prefixHeaderFile;
-    private Set<String> preCompiledHeaders;
+    private String preCompiledHeader;
     private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
@@ -98,7 +97,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
             spec.setPrefixHeaderFile(new File(pchDir, prefixHeaderFile.getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
-            spec.setPreCompiledHeaders(getPreCompiledHeaders());
+            spec.setPreCompiledHeader(getPreCompiledHeader());
         }
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
@@ -239,11 +238,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         preCompiledHeaderInclude.from(preCompiledHeader);
     }
 
-    public Set<String> getPreCompiledHeaders() {
-        return preCompiledHeaders;
+    public String getPreCompiledHeader() {
+        return preCompiledHeader;
     }
 
-    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
-        this.preCompiledHeaders = preCompiledHeaders;
+    public void setPreCompiledHeader(String preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
     }
 }
