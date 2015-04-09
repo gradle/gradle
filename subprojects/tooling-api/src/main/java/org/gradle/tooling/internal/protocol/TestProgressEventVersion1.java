@@ -20,27 +20,22 @@ package org.gradle.tooling.internal.protocol;
  */
 public interface TestProgressEventVersion1 {
 
-    String STRUCTURE_SUITE = "TEST_SUITE";
-    String STRUCTURE_ATOMIC = "TEST_ATOMIC";
+    String TEST_SUITE_STARTED = "TEST_SUITE_STARTED";
+    String TEST_SUITE_SKIPPED = "TEST_SUITE_SKIPPED";
+    String TEST_SUITE_SUCCEEDED = "TEST_SUITE_SUCCEEDED";
+    String TEST_SUITE_FAILED = "TEST_SUITE_FAILED";
 
-    String OUTCOME_STARTED = "STARTED";
-    String OUTCOME_SKIPPED = "SKIPPED";
-    String OUTCOME_SUCCEEDED = "SUCCEEDED";
-    String OUTCOME_FAILED = "FAILED";
-
-    /**
-     * The structure of the test that has progressed. See the constants on this interface for the supported structure types.
-     *
-     * @return The structure of the progressed test (atomic test, test suite, etc.)
-     */
-    String getTestStructure();
+    String TEST_STARTED = "TEST_STARTED";
+    String TEST_SKIPPED = "TEST_SKIPPED";
+    String TEST_SUCCEEDED = "TEST_SUCCEEDED";
+    String TEST_FAILED = "TEST_FAILED";
 
     /**
-     * The outcome of the test that has progressed. See the constants on this interface for the supported outcome types.
+     * The specific type of test progress. See the constants on this interface for the supported types.
      *
-     * @return The outcome of the progressed test (started, skipped, etc.)
+     * @return The type of test progress (started, skipped, etc.)
      */
-    String getTestOutcome();
+    String getEventType();
 
     /**
      * The time when the event happened.

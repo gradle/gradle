@@ -36,33 +36,47 @@ class ClientForwardingTestListener implements TestListener {
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptor(suite), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_SUITE_STARTED, System.currentTimeMillis(), toTestDescriptor(suite), null));
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_SUITE, toOutcome(result), result.getEndTime(), toTestDescriptor(suite), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestSuiteEventType(result), result.getEndTime(), toTestDescriptor(suite), toTestResult(result)));
+    }
+
+    private String getFinishTestSuiteEventType(TestResult result) {
+        TestResult.ResultType resultType = result.getResultType();
+        switch (resultType) {
+            case SUCCESS:
+                return TestProgressEventVersion1.TEST_SUITE_SUCCEEDED;
+            case SKIPPED:
+                return TestProgressEventVersion1.TEST_SUITE_SKIPPED;
+            case FAILURE:
+                return TestProgressEventVersion1.TEST_SUITE_FAILED;
+            default:
+                throw new IllegalStateException("Unknown test result type: " + resultType);
+        }
     }
 
     @Override
     public void beforeTest(TestDescriptor test) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, TestProgressEventVersion1.OUTCOME_STARTED, System.currentTimeMillis(), toTestDescriptor(test), null));
+        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.TEST_STARTED, System.currentTimeMillis(), toTestDescriptor(test), null));
     }
 
     @Override
     public void afterTest(final TestDescriptor test, final TestResult result) {
-        eventConsumer.dispatch(new InternalTestProgressEvent(TestProgressEventVersion1.STRUCTURE_ATOMIC, toOutcome(result), result.getEndTime(), toTestDescriptor(test), toTestResult(result)));
+        eventConsumer.dispatch(new InternalTestProgressEvent(getFinishTestEventType(result), result.getEndTime(), toTestDescriptor(test), toTestResult(result)));
     }
 
-    private String toOutcome(TestResult result) {
+    private String getFinishTestEventType(TestResult result) {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return TestProgressEventVersion1.OUTCOME_SUCCEEDED;
+                return TestProgressEventVersion1.TEST_SUCCEEDED;
             case SKIPPED:
-                return TestProgressEventVersion1.OUTCOME_SKIPPED;
+                return TestProgressEventVersion1.TEST_SKIPPED;
             case FAILURE:
-                return TestProgressEventVersion1.OUTCOME_FAILED;
+                return TestProgressEventVersion1.TEST_FAILED;
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

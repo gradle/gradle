@@ -190,13 +190,8 @@ public class ProviderConnection {
                 this.buildProgressListener.onEvent(new TestProgressEventVersion1() {
 
                     @Override
-                    public String getTestStructure() {
-                        return testProgressEvent.getTestStructure();
-                    }
-
-                    @Override
-                    public String getTestOutcome() {
-                        return testProgressEvent.getTestOutcome();
+                    public String getEventType() {
+                        return testProgressEvent.getEventType();
                     }
 
                     @Override
