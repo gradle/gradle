@@ -535,13 +535,12 @@ Gradle will be able to start, run a set of tasks and then wait for a retrigger b
 
 #### Implementation
 
-Overall approach:
+Overall approach (#1):
 
 - Gradle CLI/client process connects to a daemon process and exposes a "trigger" of some kind.
 - Gradle Daemon is held and reused for each rebuild.
 - Gradle CLI waits for a trigger.  When it has been tripped, build is executed.
 - Initial implementation will use a periodic timer to trigger the build.
-
 - Add new command-line option (`--watch`) 
     - Create `WatchParameters`/`ContinuousModeParameters` similar to `DaemonParameters`
     - Enforce that `--watch` must be used with the Daemon turned on.
@@ -553,14 +552,28 @@ Overall approach:
     - When `TriggerBuild` is received, loop repeats and build is executed again.
 - In Daemon, produce `TriggerBuild` on timer.
 
+Overall approach (#2):
+
+See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4f386ecc62d75
+
+- Gradle CLI/client process connects to a daemon process as normal.
+- Gradle Daemon knows when we're in "continuous mode" and repeats the last build until cancelled.
+- Gradle CLI waits for the build to finish (as normal).  Instead of returning after each build, the daemon keeps going.
+- Initial implementation will use a periodic timer to trigger the build.
+- Add new command-line option (`--watch`) 
+    - Create `WatchParameters`/`ContinuousModeParameters` similar to `DaemonParameters`
+- `InProcessBuildExecutor` changes to understand "continuous mode" or wraps an existing `BuildController`
+    - Build loop creates a new `GradleLauncher` or resets an existing `GradleLauncher` (if that's safe)
+    - After build, executor waits for a trigger from service
+- Create `TriggerService` that can be told to trigger a build and send an event when a build is triggered (executor would need to know about this.)
+
 #### Test Coverage
 
 - If Gradle build succeeds, we wait for trigger and print some sort of helpful message.
 - If Gradle build fails, we still wait for trigger.
 - If Gradle fails to start the first time, Gradle exits and does not wait for the trigger (e.g., invalid command-line or build script errors).
 - On Ctrl+C, Gradle exits.
-- A `TriggerBuild` message sets the "trigger"
-- When "trigger" is set, a build runs.
+- When "trigger" is tripped, a build runs.
 - More integ end-to-end tests
 - Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
 
