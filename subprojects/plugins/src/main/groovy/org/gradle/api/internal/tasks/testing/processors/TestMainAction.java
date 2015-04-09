@@ -19,26 +19,27 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.id.IdGenerator;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
-    private final String rootTestSuiteId;
+    private final IdGenerator<?> idGenerator;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, String rootTestSuiteId, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         this.timeProvider = timeProvider;
-        this.rootTestSuiteId = rootTestSuiteId;
+        this.idGenerator = idGenerator;
         this.displayName = displayName;
     }
 
     public void run() {
-        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
+        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(idGenerator.generateId(), displayName);
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);
