@@ -44,8 +44,41 @@ Possibly a better implementation would be to change `CollectionBuilder` into a '
 
 ## Candidate stories
 
-1. Make the `sources` property of each component visible to rules
-1. Make the `binaries` property of each component visible to rules
+### Don't use `ComponentSpecContainer` type when interacting with the model
+
+Implementing this story is on of the steps that will later enable changing `components` model element not to be implemented as a domain object collection.
+
+In several places (rule inputs, explicitly accessing `components` via the model registry) `ComponentSpecContainer` is used as the type for `components`.
+All of these places should be changed to view that model element as `CollectionBuilder<ComponentSpec>`.
+If in any of these cases substantial work to the model implementation turns out to be necessary then an additional story for that work should be created and actioned on before continuing
+with this story.
+
+### Register `component` type factories via model instead of project extension
+
+An ability to support registering additional element types (currently exposed by `RuleAwarePolymorphicDomainObjectContainer`) has to be implemented for `components`
+model element.
+This functionality is needed by `ComponentTypeModelRuleExtractor` and can be initially achieved by registering a model projection for `components` node that will allow seeing it as type
+which has the method that is currently defined in `RuleAwarePolymorphicDomainObjectContainer`.
+
+### Don't expose `components` collection as project extension
+
+This will involve changing `components` model element not to be a bridged domain object collection but a `CollectionBuilder` implementation backed by a `MutableModelNode` and its links.
+`DefaultCollectionBuilder` can be used as that implementation.
+
+Instantiation of collection elements (`creationFunction` passed to the constructor of `DefaultCollectionBuilder`) can be implemented by extracting a type out of
+`DefaultPolymorphicDomainObjectContainer` which will wrap `factories` map and provides methods to create instances and list supported types.
+
+The implementation of `DefaultCollectionBuilder` doesn't currently allow for `elementType` not to be specified but comments on `create()` methods in `CollectionBuilder` that don't take a type
+as a parameter suggests that it should.
+This will need to be fixed as part of this story because there is no default `elementType` for `components` as creator types supported by that collection can be added dynamically.
+Additional constructor for `DefaultCollectionBuilder<T>` will be added which will take a `Factory<Set<? extends Class<? extends T>>>` instead of a `ModelType<T>`.
+Value returned from that factory will be used for error message construction when any of the `create()` methods that require default element type are called.
+
+The projection that will allow seeing `components` as a type which allows registering additional element types (implemented in the previous story) will have to be changed
+ to wrap around `creatorFunction` passed into `DefaultCollectionBuilder`'s.
+
+### Make the `sources` property of each component visible to rules
+### Make the `binaries` property of each component visible to rules
 
 The rest TBD
 
