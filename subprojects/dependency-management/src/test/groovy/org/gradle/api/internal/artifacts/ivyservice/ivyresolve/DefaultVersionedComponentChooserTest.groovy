@@ -104,7 +104,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.requested >> selector
@@ -130,7 +130,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.requested >> selector
@@ -159,7 +159,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.getRequested() >> selector
@@ -189,7 +189,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.requested >> selector
@@ -222,7 +222,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, b, a], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, b, a], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.requested >> selector
@@ -246,7 +246,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.getRequested() >> selector
@@ -273,7 +273,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.getRequested() >> selector
@@ -302,7 +302,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         def selectedComponentResult = new DefaultBuildableComponentSelectionResult()
 
         when:
-        chooser.selectNewestMatchingComponent([c, a, b], dependency, selectedComponentResult)
+        chooser.selectNewestMatchingComponent([c, a, b], selectedComponentResult, dependency.getRequested())
 
         then:
         _ * dependency.getRequested() >> selector

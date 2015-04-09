@@ -170,9 +170,11 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
         private final DependencyMetaData dependency;
+        private final ModuleVersionSelector selector;
 
         public RepositoryResolveState(DependencyMetaData dependency, ModuleComponentRepository repository) {
             this.dependency = dependency;
+            this.selector = dependency.getRequested();
             this.repository = repository;
             this.attemptCollector = new AttemptCollector();
             versionListingResult = new VersionListResult(dependency, repository);
@@ -200,7 +202,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), dependency, componentSelectionResult);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(), componentSelectionResult, selector);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
