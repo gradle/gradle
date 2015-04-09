@@ -569,7 +569,6 @@ Overall approach:
 - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
 - What does the output look like when we fail?
 - OK to reuse "global client services" created in BuildActionsFactory across multiple builds
-- 
 
 ### Story: Continuous Gradle mode triggered by file change
 
