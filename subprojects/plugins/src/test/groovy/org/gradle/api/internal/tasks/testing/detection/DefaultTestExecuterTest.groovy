@@ -43,7 +43,6 @@ class DefaultTestExecuterTest extends Specification {
     def setup() {
         _ * testTask.testFramework >> testFramework
         _ * testTask.getCandidateClassFiles() >> Mock(FileTree)
-        _ * testTask.getPath() >> ':'
         _ * actorFactory.createActor(_) >> resultProcessorActor
         _ * resultProcessorActor.getProxy(_) >> resultProcessor
         _ * testTask.isScanForTestClasses() >> true
