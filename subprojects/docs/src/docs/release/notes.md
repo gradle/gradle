@@ -289,6 +289,13 @@ location to `install` to. The default repository was `mavenLocal()`.
 
 It is no longer possible to provide a repository to the `PublishToMavenLocal` task. Use `PublishToMavenRepository` instead.
 
+### Changed default assembler executable for GCC/Clang tool chains
+
+The default tool used when turning assembler into object files is now `gcc` or `clang` instead of `as`.  Some arguments that were
+specific to `as` were converted to the GCC/Clang equivalents.  If you were passing arguments to the assembler, you may now need to
+use `-Wa` when passing them.  See [GCC's documentation](https://gcc.gnu.org/onlinedocs/gcc/Assembler-Options.html) for passing
+arguments to the assembler.
+
 ### `CommandLineToolConfiguration.withArguments()` semantics have changed
 
 `withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.
