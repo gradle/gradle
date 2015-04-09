@@ -102,9 +102,11 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     }
 
     private void recordParents(Multimap<ResolvedComponentResult, ResolvedComponentResult> parents, ResolvedComponentResult parent, ResolvedComponentResult child) {
-        parents.put(child, parent);
-        for (ResolvedComponentResult grandParent : parents.get(parent)) {
-            recordParents(parents, grandParent, child);
+        boolean added = parents.put(child, parent);
+        if (added) {
+            for (ResolvedComponentResult grandParent : parents.get(parent)) {
+                recordParents(parents, grandParent, child);
+            }
         }
     }
 
