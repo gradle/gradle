@@ -36,7 +36,7 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
         return this;
     }
 
-    public ComponentMetaDataResolver getComponentMetaDataResolver() {
+    public ComponentMetaDataResolver getComponentResolver() {
         return this;
     }
 

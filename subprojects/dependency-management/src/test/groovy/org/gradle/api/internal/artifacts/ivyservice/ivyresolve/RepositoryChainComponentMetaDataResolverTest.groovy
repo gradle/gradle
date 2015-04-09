@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
@@ -33,7 +31,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-class RepositoryChainDependencyResolverTest extends Specification {
+class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependency = Stub(DependencyMetaData)
@@ -47,10 +45,9 @@ class RepositoryChainDependencyResolverTest extends Specification {
     def remoteAccess = Mock(ModuleComponentRepositoryAccess)
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
-    def versionSelectorScheme = Mock(VersionSelectorScheme)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
-    final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(versionSelectorScheme, componentSelectionStrategy, transformer)
+    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId

@@ -22,7 +22,7 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 public interface RepositoryChain {
     public DependencyToComponentIdResolver getComponentIdResolver();
 
-    public ComponentMetaDataResolver getComponentMetaDataResolver();
+    public ComponentMetaDataResolver getComponentResolver();
 
     public ArtifactResolver getArtifactResolver();
 }

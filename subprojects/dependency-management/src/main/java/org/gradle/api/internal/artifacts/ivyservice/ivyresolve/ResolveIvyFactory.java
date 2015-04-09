@@ -142,7 +142,7 @@ public class ResolveIvyFactory {
             return this;
         }
 
-        public ComponentMetaDataResolver getComponentMetaDataResolver() {
+        public ComponentMetaDataResolver getComponentResolver() {
             return this;
         }
 
@@ -163,7 +163,7 @@ public class ResolveIvyFactory {
         public void resolve(final DependencyMetaData dependency, final ComponentIdentifier identifier, final BuildableComponentResolveResult result) {
             cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
                 public void run() {
-                    delegate.getComponentMetaDataResolver().resolve(dependency, identifier, result);
+                    delegate.getComponentResolver().resolve(dependency, identifier, result);
                 }
             });
         }

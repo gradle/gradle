@@ -26,23 +26,26 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
 public class UserResolverChain implements RepositoryChain {
-    private final RepositoryChainDependencyResolver dependencyResolver;
-    private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
+    private final RepositoryChainDependencyToComponentIdResolver componentIdResolver;
+    private final RepositoryChainComponentMetaDataResolver componentResolver;
+    private final RepositoryChainArtifactResolver artifactResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
     public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        dependencyResolver = new RepositoryChainDependencyResolver(versionSelectorScheme, componentChooser, metaDataFactory);
+        componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(versionSelectorScheme, componentChooser, metaDataFactory);
+        componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
+        artifactResolver = new RepositoryChainArtifactResolver();
     }
 
     public DependencyToComponentIdResolver getComponentIdResolver() {
-        return dependencyResolver;
+        return componentIdResolver;
     }
 
-    public ComponentMetaDataResolver getComponentMetaDataResolver() {
-        return dependencyResolver;
+    public ComponentMetaDataResolver getComponentResolver() {
+        return componentResolver;
     }
 
     public ArtifactResolver getArtifactResolver() {
@@ -54,7 +57,8 @@ public class UserResolverChain implements RepositoryChain {
     }
 
     public void add(ModuleComponentRepository repository) {
-        dependencyResolver.add(repository);
+        componentIdResolver.add(repository);
+        componentResolver.add(repository);
         artifactResolver.add(repository);
     }
 

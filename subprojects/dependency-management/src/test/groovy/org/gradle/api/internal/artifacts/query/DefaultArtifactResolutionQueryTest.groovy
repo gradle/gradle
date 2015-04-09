@@ -94,7 +94,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         }
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
-        1 * repositoryChain.componentMetaDataResolver >> componentMetaDataResolver
+        1 * repositoryChain.componentResolver >> componentMetaDataResolver
         1 * componentMetaDataResolver.resolve(_, _, _) >> { DependencyMetaData dependency, ComponentIdentifier componentId, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(componentResolveMetaData)
         }

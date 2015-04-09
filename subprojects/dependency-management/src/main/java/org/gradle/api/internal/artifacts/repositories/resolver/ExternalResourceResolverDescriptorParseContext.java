@@ -44,7 +44,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     }
 
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ArtifactType artifactType) {
-        File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentMetaDataResolver(), mainResolvers.getArtifactResolver(), artifactType);
+        File resolvedArtifactFile = resolveMetaDataArtifactFile(moduleComponentIdentifier, mainResolvers.getComponentResolver(), mainResolvers.getArtifactResolver(), artifactType);
         LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
         return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI(), localResource);
     }
