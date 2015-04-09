@@ -46,7 +46,7 @@ import java.util.List;
 
 /**
  * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link org.gradle.jvm.JvmLibrarySpec} library type for
- * the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * the components container.
  */
 @Incubating
 @SuppressWarnings("UnusedDeclaration")

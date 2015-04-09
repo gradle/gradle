@@ -73,7 +73,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
 
 @Incubating
