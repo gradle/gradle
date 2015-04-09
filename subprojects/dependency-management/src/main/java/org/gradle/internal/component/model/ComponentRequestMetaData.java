@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-
 import java.util.Set;
 
 /**
@@ -26,8 +24,6 @@ import java.util.Set;
 public interface ComponentRequestMetaData {
 
     Set<IvyArtifactName> getArtifacts();
-
-    DependencyDescriptor getDescriptor();
 
     boolean isChanging();
 

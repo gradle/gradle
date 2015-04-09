@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -24,9 +23,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 
@@ -82,9 +85,26 @@ public class IvyUtil {
         return new ArtifactId(createModuleId(org, module), name, type, ext);
     }
 
-    public static DefaultModuleDescriptor createModuleDescriptor(DependencyDescriptor dependencyDescriptor) {
-        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(dependencyDescriptor.getDependencyRevisionId(), dependencyDescriptor.getAllDependencyArtifacts());
-        moduleDescriptor.setStatus("integration");
+    public static DefaultModuleDescriptor createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
+        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(componentIdentifier);
+
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", null, true);
+        moduleDescriptor.addConfiguration(new Configuration(ModuleDescriptor.DEFAULT_CONFIGURATION));
+        moduleDescriptor.setLastModified(System.currentTimeMillis());
+
+        Set<IvyArtifactName> artifacts = componentRequestMetaData.getArtifacts();
+        for (IvyArtifactName artifactName : artifacts) {
+            addArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), artifactName.getAttributes());
+        }
+
+        if (artifacts.isEmpty()) {
+            addArtifact(moduleDescriptor, componentIdentifier.getModule(), "jar", "jar", Collections.<String, String>emptyMap());
+        }
+
         return moduleDescriptor;
+    }
+
+    private static void addArtifact(DefaultModuleDescriptor moduleDescriptor, String name, String type, String extension, Map<String, String> extraAttributes) {
+        moduleDescriptor.addArtifact(ModuleDescriptor.DEFAULT_CONFIGURATION, new MDArtifact(moduleDescriptor, name, type, extension, null, extraAttributes));
     }
 }

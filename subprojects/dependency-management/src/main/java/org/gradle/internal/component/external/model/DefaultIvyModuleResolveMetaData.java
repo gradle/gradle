@@ -43,8 +43,8 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
         this.extraInfo = moduleDescriptor.getExtraInfo();
     }
 
-    public DefaultIvyModuleResolveMetaData(ComponentRequestMetaData dependencyMetaData) {
-        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()));
+    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentRequestMetaData));
     }
 
     @Override

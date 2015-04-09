@@ -191,8 +191,8 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     @Override
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(ComponentRequestMetaData prescribedMetaData) {
-        return processMetaData(new DefaultMavenModuleResolveMetaData(prescribedMetaData));
+    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
+        return processMetaData(new DefaultMavenModuleResolveMetaData(moduleComponentIdentifier, componentRequestMetaData));
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

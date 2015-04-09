@@ -52,8 +52,8 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleResolveMetaData(ComponentRequestMetaData dependencyMetaData) {
-        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()), "jar", false);
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentRequestMetaData), "jar", false);
     }
 
     @Override

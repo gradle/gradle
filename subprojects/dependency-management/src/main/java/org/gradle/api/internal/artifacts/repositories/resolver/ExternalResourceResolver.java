@@ -177,13 +177,13 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private MutableModuleComponentResolveMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), prescribedMetaData.getArtifacts())) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetaData(moduleComponentIdentifier, artifact), result)) {
-                return createMetaDataForDependency(prescribedMetaData);
+                return createMetaDataForDependency(moduleComponentIdentifier, prescribedMetaData);
             }
         }
         return null;
     }
 
-    protected abstract MutableModuleComponentResolveMetaData createMetaDataForDependency(ComponentRequestMetaData prescribedMetaData);
+    protected abstract MutableModuleComponentResolveMetaData createMetaDataForDependency(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData componentRequestMetaData);
 
     protected abstract MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
 

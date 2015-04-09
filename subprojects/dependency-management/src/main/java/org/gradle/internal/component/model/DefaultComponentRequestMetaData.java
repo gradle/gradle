@@ -16,34 +16,36 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import com.google.common.collect.Sets;
 
 import java.util.Set;
 
 public class DefaultComponentRequestMetaData implements ComponentRequestMetaData {
-    private final DependencyMetaData dependencyMetaData;
+    private final boolean changing;
+    private final Set<IvyArtifactName> artifacts;
 
     public DefaultComponentRequestMetaData(DependencyMetaData dependencyMetaData) {
-        this.dependencyMetaData = dependencyMetaData;
+        this.changing = dependencyMetaData.isChanging();
+        this.artifacts = Sets.newHashSet(dependencyMetaData.getArtifacts());
+    }
+
+    public DefaultComponentRequestMetaData(boolean changing, Set<IvyArtifactName> artifacts) {
+        this.changing = changing;
+        this.artifacts = Sets.newHashSet(artifacts);
     }
 
     @Override
     public ComponentRequestMetaData withChanging() {
-        return new DefaultComponentRequestMetaData(dependencyMetaData.withChanging());
+        return new DefaultComponentRequestMetaData(true, artifacts);
     }
 
     @Override
     public Set<IvyArtifactName> getArtifacts() {
-        return dependencyMetaData.getArtifacts();
+        return artifacts;
     }
 
     @Override
     public boolean isChanging() {
-        return dependencyMetaData.isChanging();
-    }
-
-    @Override
-    public DependencyDescriptor getDescriptor() {
-        return dependencyMetaData.getDescriptor();
+        return changing;
     }
 }
