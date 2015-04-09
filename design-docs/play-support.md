@@ -529,9 +529,9 @@ So:
 Note that for this feature, the implementation will assume that any source file affects the output of every task listed on the command-line.
 For example, running `gradle --watch test run` would restart the application if a test source file changes.
 
-### Story: Add continuous Gradle mode triggered by console input
+### Story: Add continuous Gradle mode triggered by timer
 
-Gradle will be able to start, run a set of tasks and then wait for console input before re-executing the build.
+Gradle will be able to start, run a set of tasks and then wait for a retrigger before re-executing the build.
 
 #### Implementation
 
@@ -539,16 +539,17 @@ TBD
 
 #### Test Coverage
 
-- If Gradle build succeeds, we wait for input and print some sort of helpful message.
-- If Gradle build fails, we still wait for input.  Should we suppress stacktraces?
+- If Gradle build succeeds, we wait for trigger and print some sort of helpful message.
+- If Gradle build fails, we still wait for trigger.
 - If Gradle fails to start, Gradle exits and does not wait for input (e.g., invalid command-line or build script errors).
 - On Ctrl+C, Gradle exits.
-- On any other key, Gradle re-runs the same set of tasks.
+- On a periodic timer (doesn't need to be configurable), retrigger the build.
 - Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
 
 #### Open Issues
 
 - Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+- What does the output look like when we fail?
 
 ### Story: Continuous Gradle mode triggered by file change
 
@@ -556,15 +557,18 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 
 #### Implementation
 
-- Temporarily, use `build/tmp/retrigger` to trigger re-run
+- Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.
+- Watch project directory for changes to trigger re-run
 - Add `InputWatchService` that can be given Files to watch
 - TODO: Figure out where this watch service lives (in CLI process or Daemon)
 - When files change, mark the file as out of date
 - Re-run trigger polls the watch service for changes at some default rate.  We should allow this to be adjusted (e.g., --watch=1s).
+- Ignore build/ .gradle/ etc files.
 
 #### Test Coverage
 
-- When `retrigger` changes/created/deleted, Gradle re-runs the same set of tasks.
+- When the project directory files change/are create/are delete, Gradle re-runs the same set of tasks.
+- Limits/performance tests for watched files?
 
 ### Story: Continuous Gradle mode triggered by task input changes
 
@@ -572,9 +576,7 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 #### Implementation
 
-- Ignore build script as input?
 - Add inputs to task to `InputWatchService` so that they can be watched
-- Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
 
 #### Test Coverage
 
@@ -583,6 +585,20 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 #### Open Issues
 
 - Monitor files that are inputs to the model for changes too.
+
+### Story: Continuous Gradle mode ignores changes to intermediate files
+
+#### Implementation
+
+- Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
+
+#### Test Coverage
+
+- TBD
+
+#### Open Issues
+
+- Do we start/stop watching during a build?
 
 ### Additional Notes 
 
