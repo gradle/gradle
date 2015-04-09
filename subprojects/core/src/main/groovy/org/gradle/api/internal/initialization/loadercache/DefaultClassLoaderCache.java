@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
@@ -163,6 +164,21 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             } else {
                 throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
             }
+        }
+    }
+
+    // Used in org.gradle.api.internal.initialization.loadercache.ClassLoadersCachingIntegrationTest
+    @SuppressWarnings("UnusedDeclaration")
+    public void assertInternalIntegrity() {
+        Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
+        for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+            if (!bySpec.containsKey(entry.getValue().spec)) {
+                orphaned.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (!orphaned.isEmpty()) {
+            throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
         }
     }
 }

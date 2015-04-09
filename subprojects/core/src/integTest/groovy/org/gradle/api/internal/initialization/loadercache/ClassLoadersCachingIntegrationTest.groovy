@@ -32,7 +32,11 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
         file("cacheCheck.gradle") << """
             def cache = gradle.services.get(org.gradle.api.internal.initialization.loadercache.ClassLoaderCache)
-            gradle.buildFinished { println "### cache size: " + cache.size() }
+            gradle.buildFinished {
+                println "### cache size: " + cache.size()
+
+                cache.assertInternalIntegrity()
+            }
         """
         executer.beforeExecute {
             withArgument("-I").withArgument("cacheCheck.gradle")
