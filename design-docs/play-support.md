@@ -589,6 +589,12 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 - When the project directory files change/are create/are delete, Gradle re-runs the same set of tasks.
 - Limits/performance tests for watched files?
 
+#### Open Issues
+
+- The implementation for Java 1.7 `java.nio.file.WatchService` in Java 7 or even Java 8 isn't using a native file notification OS API on MacOSX. ([details](http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else), [JDK-7133447]( https://bugs.openjdk.java.net/browse/JDK-7133447), [openjdk mailing list](http://mail.openjdk.java.net/pipermail/nio-dev/2014-August/002691.html)) This doesn't scale to 1000s of input files. There are several [native file notification OS API wrappers for Java](http://wiki.netbeans.org/NativeFileNotifications) if performance is an issue. However there isn't a well-maintained file notification library with a suitable license. Play framework uses [JNotify](http://jnotify.sourceforge.net) [for native file notifications on MacOSX](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L77-L88). JNotify is a dead project hosted in Sourceforge and not even available in maven central or jcenter. It looks like it's only available in Typesafe's maven repository.
+    
+- Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .
+
 ### Story: Continuous Gradle mode triggered by task input changes
 
 Gradle will be able to start, run a set of tasks and then monitor changes to any inputs for the given tasks without exiting.  When any input file is changed, all of the same set of tasks will be re-run.
