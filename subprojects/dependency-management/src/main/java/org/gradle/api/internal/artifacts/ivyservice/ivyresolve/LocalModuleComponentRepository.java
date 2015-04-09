@@ -57,10 +57,10 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
-            delegate.getLocalAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (!result.hasResult()) {
-                delegate.getRemoteAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             }
 
             if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
@@ -99,7 +99,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
         public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
         }
 
         public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {

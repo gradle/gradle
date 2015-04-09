@@ -133,7 +133,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     private ComponentArtifactsResult buildComponentResult(ModuleComponentIdentifier moduleComponentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
         BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-        repositoryChain.getComponentResolver().resolve(new DefaultDependencyMetaData(moduleComponentId), moduleComponentId, moduleResolveResult);
+        DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(moduleComponentId);
+        repositoryChain.getComponentResolver().resolve(dependency, moduleComponentId, moduleResolveResult);
         ComponentResolveMetaData component = moduleResolveResult.getMetaData();
         DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(component.getComponentId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {

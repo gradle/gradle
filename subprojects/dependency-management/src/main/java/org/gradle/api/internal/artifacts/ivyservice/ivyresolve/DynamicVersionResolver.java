@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.DefaultComponentRequestMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -293,7 +294,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         private void process(ModuleComponentRepositoryAccess access) {
-            access.resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, result);
+            DependencyMetaData dependency = dependencyMetaData.withRequestedVersion(version);
+            access.resolveComponentMetaData(identifier, new DefaultComponentRequestMetaData(dependency), result);
             attemptCollector.execute(result);
         }
 

@@ -21,6 +21,7 @@ import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaD
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -28,10 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Downloaded
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -100,8 +97,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return new IvyRemoteRepositoryAccess();
     }
 
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(DependencyMetaData dependency) {
-        return new DefaultIvyModuleResolveMetaData(dependency);
+    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(ComponentRequestMetaData prescribedMetaData) {
+        return new DefaultIvyModuleResolveMetaData(prescribedMetaData);
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

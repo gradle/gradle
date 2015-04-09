@@ -84,9 +84,9 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             try {
-                delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             } catch (Throwable throwable) {
                 result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, throwable));
             }

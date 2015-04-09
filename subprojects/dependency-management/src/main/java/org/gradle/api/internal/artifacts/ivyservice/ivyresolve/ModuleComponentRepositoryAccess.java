@@ -41,7 +41,7 @@ public interface ModuleComponentRepositoryAccess {
     /**
      * Resolves the metadata for a module component.
      */
-    void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result);
+    void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.

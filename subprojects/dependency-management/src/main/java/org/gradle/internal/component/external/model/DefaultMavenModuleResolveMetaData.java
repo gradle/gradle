@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentRequestMetaData;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,7 +52,7 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleResolveMetaData(DependencyMetaData dependencyMetaData) {
+    public DefaultMavenModuleResolveMetaData(ComponentRequestMetaData dependencyMetaData) {
         this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()), "jar", false);
     }
 
