@@ -23,7 +23,6 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -39,10 +38,6 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
 
     public ComponentMetaDataResolver getComponentMetaDataResolver() {
         return this;
-    }
-
-    public DependencyToComponentResolver getDependencyResolver() {
-        throw new UnsupportedOperationException();
     }
 
     public ArtifactResolver getArtifactResolver() {

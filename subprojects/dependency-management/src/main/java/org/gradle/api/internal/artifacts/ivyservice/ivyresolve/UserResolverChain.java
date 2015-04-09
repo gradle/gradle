@@ -24,33 +24,24 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetaDa
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 
 public class UserResolverChain implements RepositoryChain {
     private final RepositoryChainDependencyResolver dependencyResolver;
     private final RepositoryChainArtifactResolver artifactResolver = new RepositoryChainArtifactResolver();
-    private final RepositoryChainAdapter adapter;
-    private final DynamicVersionResolver dynamicVersionResolver;
     private final ComponentSelectionRulesInternal componentSelectionRules;
 
     public UserResolverChain(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
         this.componentSelectionRules = componentSelectionRules;
-        DefaultVersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
+        VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionSelectorScheme, componentSelectionRules);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
-        dependencyResolver = new RepositoryChainDependencyResolver(componentChooser, metaDataFactory);
-        dynamicVersionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
-        adapter = new RepositoryChainAdapter(dynamicVersionResolver, dependencyResolver, versionSelectorScheme);
+        dependencyResolver = new RepositoryChainDependencyResolver(versionSelectorScheme, componentChooser, metaDataFactory);
     }
 
     public DependencyToComponentIdResolver getComponentIdResolver() {
-        return adapter;
+        return dependencyResolver;
     }
 
     public ComponentMetaDataResolver getComponentMetaDataResolver() {
-        return adapter;
-    }
-
-    public DependencyToComponentResolver getDependencyResolver() {
         return dependencyResolver;
     }
 
@@ -64,7 +55,6 @@ public class UserResolverChain implements RepositoryChain {
 
     public void add(ModuleComponentRepository repository) {
         dependencyResolver.add(repository);
-        dynamicVersionResolver.add(repository);
         artifactResolver.add(repository);
     }
 

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
@@ -46,9 +47,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
     def remoteAccess = Mock(ModuleComponentRepositoryAccess)
     def localAccess2 = Mock(ModuleComponentRepositoryAccess)
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
+    def versionSelectorScheme = Mock(VersionSelectorScheme)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
-    final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(componentSelectionStrategy, transformer)
+    final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(versionSelectorScheme, componentSelectionStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
