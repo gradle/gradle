@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal
 
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
@@ -23,9 +24,9 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecContainer
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -33,6 +34,8 @@ import spock.lang.Unroll
 import java.lang.annotation.Annotation
 
 class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
+    final static ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> FACTORY_REGISTRY_TYPE = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
+    };
     Instantiator instantiator = DirectInstantiator.INSTANCE
 
     ComponentTypeModelRuleExtractor ruleHandler = new ComponentTypeModelRuleExtractor(instantiator)
@@ -50,7 +53,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.ACTION
         registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(DefaultComponentSpecContainer)
+        registration.action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {

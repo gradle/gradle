@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.*;
@@ -149,7 +150,7 @@ public abstract class BridgedCollections {
         return new ContainerInfo<I>(creatorBuilder, instantiatorReference, storeReference);
     }
 
-    public static <I, C extends PolymorphicDomainObjectContainerInternal<I>, P /* super C */> void dynamicTypes(
+    public static <I, C extends PolymorphicDomainObjectContainerInternal<I> & RuleAwareNamedDomainObjectFactoryRegistry<I>, P /* super C */> void dynamicTypes(
             ModelRegistry modelRegistry,
             ModelPath modelPath,
             String descriptor,
@@ -164,9 +165,14 @@ public abstract class BridgedCollections {
 
         ContainerInfo<I> containerInfo = creator(modelRegistry, containerReference, itemType, Transformers.constant(container), namer, descriptor, itemDescriptorGenerator);
 
+        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<I>> factoryRegistryType = new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<I>>() {
+        }.where(new ModelType.Parameter<I>() {
+        }, itemType).build();
+
         modelRegistry.createOrReplace(containerInfo.creatorBuilder
                 .withProjection(new DynamicTypesDomainObjectContainerModelProjection<C, I>(container, itemType, containerInfo.instantiatorReference, containerInfo.storeReference))
                 .withProjection(new UnmanagedModelProjection<P>(publicType, true, true))
+                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<I>>(factoryRegistryType, true, true))
                 .build());
     }
 

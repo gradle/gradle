@@ -20,12 +20,13 @@ import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Map;
 
-public abstract class RuleAwarePolymorphicDomainObjectContainer<T> extends DefaultPolymorphicDomainObjectContainer<T> {
+public abstract class RuleAwarePolymorphicDomainObjectContainer<T> extends DefaultPolymorphicDomainObjectContainer<T> implements RuleAwareNamedDomainObjectFactoryRegistry<T> {
     private final Map<Class<? extends T>, ModelRuleDescriptor> creators = Maps.newHashMap();
 
     public RuleAwarePolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {

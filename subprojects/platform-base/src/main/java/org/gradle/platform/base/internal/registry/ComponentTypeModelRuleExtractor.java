@@ -19,6 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -35,7 +36,6 @@ import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.DefaultComponentSpecContainer;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
@@ -68,12 +68,12 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
     }
 
-    private static class RegistrationAction implements ModelAction<DefaultComponentSpecContainer> {
+    private static class RegistrationAction implements ModelAction<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
         private final ModelRuleDescriptor descriptor;
         private final Instantiator instantiator;
-        private final ModelReference<DefaultComponentSpecContainer> subject;
+        private final ModelReference<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> subject;
         private final List<ModelReference<?>> inputs;
 
         public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, ModelRuleDescriptor descriptor, Instantiator instantiator) {
@@ -81,12 +81,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             this.implementationType = implementationType;
             this.descriptor = descriptor;
             this.instantiator = instantiator;
-            this.subject = ModelReference.of(DefaultComponentSpecContainer.class);
+            ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
+            };
+            this.subject = ModelReference.of(factoryRegistryType);
             this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
         }
 
         @Override
-        public ModelReference<DefaultComponentSpecContainer> getSubject() {
+        public ModelReference<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> getSubject() {
             return subject;
         }
 
@@ -101,7 +103,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultComponentSpecContainer components, List<ModelView<?>> inputs) {
+        public void execute(MutableModelNode modelNode, RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec> components, List<ModelView<?>> inputs) {
             final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(0), ModelType.of(ProjectIdentifier.class)).getInstance();
             final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectSourceSet.class)).getInstance();
             @SuppressWarnings("unchecked")
