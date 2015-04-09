@@ -25,8 +25,8 @@ import java.util.Set;
 class DependencyArtifactSet extends AbstractArtifactSet {
     private final Set<ComponentArtifactMetaData> artifacts;
 
-    public DependencyArtifactSet(long id, ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver) {
-        super(id, component.getId(), component, artifactResolver);
+    public DependencyArtifactSet(ComponentResolveMetaData component, Set<ComponentArtifactMetaData> artifacts, ArtifactResolver artifactResolver) {
+        super(component.getId(), component, artifactResolver);
         this.artifacts = artifacts;
     }
 

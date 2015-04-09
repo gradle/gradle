@@ -19,15 +19,19 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults;
 
 public class ResolverResults {
-    private ResolvedConfigurationBuilder resolvedConfigurationBuilder;
     private ResolvedConfiguration resolvedConfiguration;
     private ResolutionResult resolutionResult;
     private ResolveException fatalFailure;
     private ResolvedProjectConfigurationResults resolvedProjectConfigurationResults;
+    private TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
+    private ResolvedGraphResults graphResults;
+    private ResolvedArtifactsBuilder artifactResults;
 
     //old model, slowly being replaced by the new model
     public ResolvedConfiguration getResolvedConfiguration() {
@@ -75,16 +79,25 @@ public class ResolverResults {
         this.fatalFailure = failure;
     }
 
-    public void retainConfigurationBuilder(ResolvedConfigurationBuilder builder) {
-        this.resolvedConfigurationBuilder = builder;
-    }
-
-    public ResolvedConfigurationBuilder getResolvedConfigurationBuilder() {
-        return resolvedConfigurationBuilder;
-    }
-
     public void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration) {
-        this.resolvedConfigurationBuilder = null;
         this.resolvedConfiguration = resolvedConfiguration;
+    }
+
+    public void retainState(ResolvedGraphResults graphResults, ResolvedArtifactsBuilder artifactResults, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+        this.graphResults = graphResults;
+        this.artifactResults = artifactResults;
+        this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
+    }
+
+    public ResolvedGraphResults getGraphResults() {
+        return graphResults;
+    }
+
+    public ResolvedArtifactsBuilder getArtifactsBuilder() {
+        return artifactResults;
+    }
+
+    public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {
+        return transientConfigurationResultsBuilder;
     }
 }

@@ -25,19 +25,13 @@ import java.io.File;
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedModuleVersion owner;
     private final IvyArtifactName artifact;
-    private long id;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, Factory<File> artifactSource) {
         this.owner = owner;
         this.artifact = artifact;
-        this.id = id;
         this.artifactSource = artifactSource;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public ResolvedModuleVersion getModuleVersion() {

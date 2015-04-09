@@ -16,23 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
-import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
-class DefaultResolvedConfigurationResults implements ResolvedConfigurationResults {
-    private final ResolvedContentsMapping resolvedContentsMapping;
+public class DefaultResolvedGraphResults implements ResolvedGraphResults {
     private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final TransientConfigurationResultsBuilder builder;
-    private final Set<ResolvedArtifact> artifacts;
+    private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap;
 
-    DefaultResolvedConfigurationResults(Set<UnresolvedDependency> unresolvedDependencies, Set<ResolvedArtifact> artifacts, TransientConfigurationResultsBuilder builder, ResolvedContentsMapping resolvedContentsMapping) {
+    public DefaultResolvedGraphResults(Set<UnresolvedDependency> unresolvedDependencies, Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap) {
         this.unresolvedDependencies = unresolvedDependencies;
-        this.artifacts = artifacts;
-        this.builder = builder;
-        this.resolvedContentsMapping = resolvedContentsMapping;
+        this.modulesMap = modulesMap;
     }
 
     @Override
@@ -46,12 +43,9 @@ class DefaultResolvedConfigurationResults implements ResolvedConfigurationResult
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts() {
-        return new LinkedHashSet<ResolvedArtifact>(artifacts);
-    }
-
-    @Override
-    public TransientConfigurationResults more() {
-        return builder.load(resolvedContentsMapping);
+    public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
+        ModuleDependency m = modulesMap.get(id);
+        assert m != null : "Unable to find module dependency for id: " + id;
+        return m;
     }
 }

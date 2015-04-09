@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ArtifactSet;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+public interface ResolvedArtifactsBuilder {
 
-import java.util.Set;
+    // TODO:DAZ Should have a component id here, instead of relying on an internal id for syncing with graph
+    void addArtifacts(long id, ArtifactSet artifacts);
 
-public interface ArtifactSet {
-    Set<ResolvedArtifact> getArtifacts();
+    ResolvedArtifactResults resolve();
 }

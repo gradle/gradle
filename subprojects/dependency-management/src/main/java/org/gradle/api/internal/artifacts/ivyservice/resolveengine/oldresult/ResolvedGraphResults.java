@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 import java.util.Set;
 
-public interface ArtifactSet {
-    Set<ResolvedArtifact> getArtifacts();
+public interface ResolvedGraphResults {
+    boolean hasError();
+
+    Set<UnresolvedDependency> getUnresolvedDependencies();
+
+    ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id);
 }

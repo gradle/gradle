@@ -35,18 +35,12 @@ abstract class AbstractArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ComponentResolveMetaData component;
     private final ArtifactResolver artifactResolver;
-    private final long id;
     private Set<ResolvedArtifact> resolvedArtifacts;
 
-    public AbstractArtifactSet(long id, ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
-        this.id = id;
+    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
         this.moduleVersionIdentifier = ownerId;
         this.component = component;
         this.artifactResolver = artifactResolver;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
@@ -56,7 +50,7 @@ abstract class AbstractArtifactSet implements ArtifactSet {
             resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
             for (ComponentArtifactMetaData artifact : componentArtifacts) {
                 Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
-                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource, id);
+                ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource);
                 resolvedArtifacts.add(resolvedArtifact);
             }
         }

@@ -38,10 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictCon
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
@@ -51,6 +48,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
+import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -123,6 +121,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
+                DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
                 ResolvedProjectConfigurationResultBuilder projectModelBuilder;
                 if (buildProjectDependencies) {
                     projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder();
@@ -131,9 +130,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 }
 
                 // Resolve the dependency graph
-                builder.resolve(configuration, newModelBuilder, oldModelBuilder, projectModelBuilder);
+                builder.resolve(configuration, newModelBuilder, oldModelBuilder, artifactsBuilder, projectModelBuilder);
                 results.resolved(newModelBuilder.complete(), projectModelBuilder.complete());
-                results.retainConfigurationBuilder(oldModelBuilder);
+
+                ResolvedGraphResults graphResults = oldModelBuilder.complete();
+                results.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
             }
         });
     }
@@ -143,11 +144,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                                  final GlobalDependencyResolutionRules metadataHandler,
                                  final ResolverResults results) throws ResolveException {
         // TODO:DAZ Should not be holding onto all of this state
-        ResolvedConfigurationBuilder oldModelBuilder = results.getResolvedConfigurationBuilder();
-        // Resolve the artifacts : this should not happen when resolving the task dependencies for a configuration, but only for a public resolve.
-        oldModelBuilder.resolveArtifacts();
+        ResolvedGraphResults graphResults = results.getGraphResults();
 
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder.complete(), cacheLockingManager);
+        ResolvedArtifactResults artifactResults = results.getArtifactsBuilder().resolve();
+
+        Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
+
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
         results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 
@@ -158,4 +161,5 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
         return artifactResolver;
     }
+
 }

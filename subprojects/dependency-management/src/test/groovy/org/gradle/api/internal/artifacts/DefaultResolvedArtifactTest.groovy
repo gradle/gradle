@@ -29,10 +29,10 @@ class DefaultResolvedArtifactTest extends Specification {
         def dependencySameModule = dep("group", "module1", "1.2")
         def dependency2 = dep("group", "module2", "1-beta")
         def ivyArt = Stub(IvyArtifactName)
-        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource, 0)
-        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactSource, 0)
-        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource, 0)
-        def differentName = new DefaultResolvedArtifact(dependency, Stub(IvyArtifactName), artifactSource, 0)
+        def artifact = new DefaultResolvedArtifact(dependency, ivyArt, artifactSource)
+        def equalArtifact = new DefaultResolvedArtifact(dependencySameModule, ivyArt, artifactSource)
+        def differentModule = new DefaultResolvedArtifact(dependency2, ivyArt, artifactSource)
+        def differentName = new DefaultResolvedArtifact(dependency, Stub(IvyArtifactName), artifactSource)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)

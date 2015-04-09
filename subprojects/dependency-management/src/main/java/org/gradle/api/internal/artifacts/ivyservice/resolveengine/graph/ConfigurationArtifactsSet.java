@@ -36,8 +36,8 @@ class ConfigurationArtifactsSet extends AbstractArtifactSet {
     private final ModuleResolutionFilter selector;
     private Set<ComponentArtifactMetaData> artifacts;
 
-    public ConfigurationArtifactsSet(long id, ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector, ArtifactResolver artifactResolver) {
-        super(id, component.getId(), component, artifactResolver);
+    public ConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector, ArtifactResolver artifactResolver) {
+        super(component.getId(), component, artifactResolver);
         this.configurationId = configurationId;
         this.selector = selector;
     }
