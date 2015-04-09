@@ -66,36 +66,26 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
             return new TestSuiteStartedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' started.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_SKIPPED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             return new TestSuiteSkippedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' skipped.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUITE_SUCCEEDED.equals(eventType)) {
@@ -103,18 +93,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestSuccess testSuccess = toTestSuccess(event.getResult());
             return new TestSuiteSucceededEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' succeeded.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
 
                 @Override
@@ -127,18 +112,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestFailure testFailure = toTestFailure(event.getResult());
             return new TestSuiteFailedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("TestSuite '%s' failed.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
 
                 @Override
@@ -150,36 +130,26 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
             return new TestStartedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' started.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SKIPPED.equals(eventType)) {
             final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
             return new TestSkippedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' skipped.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
             };
         } else if (TestProgressEventVersion1.TEST_SUCCEEDED.equals(eventType)) {
@@ -187,18 +157,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestSuccess testSuccess = toTestSuccess(event.getResult());
             return new TestSucceededEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' succeeded.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
 
                 @Override
@@ -211,18 +176,13 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             final TestFailure testFailure = toTestFailure(event.getResult());
             return new TestFailedEvent() {
                 @Override
-                public long getEventTime() {
-                    return eventTme;
-                }
-
-                @Override
-                public String getDescription() {
-                    return String.format("Test '%s' failed.", getDescriptor().getName());
-                }
-
-                @Override
                 public TestDescriptor getDescriptor() {
                     return testDescriptor;
+                }
+
+                @Override
+                public long getEventTime() {
+                    return eventTme;
                 }
 
                 @Override
