@@ -38,6 +38,35 @@ The Gradle integration in IDEs such as Android Studio, Eclipse, IntelliJ IDEA an
 
 If you aren't using the [Gradle Daemon](userguide/gradle_daemon.html), we urge you to try it out with Gradle 2.4.
 
+### Parallel native compilation
+
+Starting with 2.4, Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Objective-C++/Assembler languages. 
+This is automatically enabled for all builds and works for all supported compilers (GCC, Clang, Visual C++). 
+Up until this release, Gradle compiled all native source files sequentially.
+
+This change has dramatic performance implications for native builds.
+Benchmarks for a project with a 500 source files on a machine with 8 processing cores available exhibited reduced build times of 53.4s to 12.9s. 
+
+The degree of concurrency is determined by the new [“max workers” build setting](#new-“max-workers”-build-setting).
+
+### New “max workers” build setting (i)
+
+The new `--max-workers=«N»` command line switch, and synonymous `org.gradle.workers.max=«N»` build property (e.g. specified in `gradle.properties`) determines the degree of build concurrency.
+
+As of Gradle 2.4, this setting influences [native code compilation](#parallel-native-compilation) and [parallel project execution](userguide/multi_project_builds.html#sec:parallel_execution).
+The “max workers” setting specifies the size of these _independent_ worker pools.
+However, a single worker pool is used for all native compilation operations.
+This means that if two (or more) native compilation tasks are executing at the same time, 
+they will share the worker pool and the total number of concurrent compilation options will not exceed the “max workers” setting.
+
+Future versions of Gradle will leverage the shared worker pool for more concurrent work, allowing more precise control over the total build concurrency.
+
+The default value is the number of processors available to the build JVM (as reported by 
+[`Runtime.availableProcessors()`](http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors\(\))).
+Alternatively, it can be set via the `--max-workers=«N»` command line switch or `org.gradle.workers.max=«N»` build property where `«N»` is a positive, non-zero, number.
+
+Please note: the `--parallel-threads` command line switch [has been deprecated](#setting-number-of-build-execution-threads-with---parallel-threads) in favor of this new setting.
+
 ### Reduced memory consumption when compiling Java source code with Java 7 and 8
 
 By working around JDK bug [JDK-7177211](https://bugs.openjdk.java.net/browse/JDK-7177211), Java compilation requires less memory in Gradle 2.4.
@@ -91,30 +120,6 @@ This change will also make it possible to seamlessly use any transports that Gra
 
 Please see section [50.6. Repositories](userguide/dependency_management.html#sec:repositories) of the User Guide for more information on configuring SFTP repository access.
 
-### Model rules
-
-A number of improvements have been made to the model rules execution used by the native language plugins:
-
-- Added a basic `model` report to allow you to see the structure of the model for a particular project.
-- `@Defaults` annotation allow logic to be applied to attach defaults to a model element.
-- `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
-- `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
-
-TODO - performance improvements
-TODO - creation DSL
-TODO - changes to `ManagedSet` and `CollectionBuilder`
-TODO - other improvements
-
-### Tooling API improvements (i)
-
-The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
-
-* [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--)
-* [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
-
-It is also now possible to receive test progress events via
-[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
-
 ### Depending on a particular Maven snapshot version
 
 It is now possible to depend on particular Maven snapshot, rather than just the “latest” published version.
@@ -127,35 +132,6 @@ The Maven snapshot version number is a timestamp and snapshot number.
 The snippet above is depending on the snapshot of version `1.0.0` published on the 2nd of January 2015, at 01:02:03 AM which was the 20th snapshot published.
 
 This feature was contributed by [Noam Y. Tenne](https://github.com/noamt).
-
-### Parallel native compilation
-
-Starting with 2.4, Gradle uses multiple concurrent compilation processes when compiling C/C++/Objective-C/Objective-C++/Assembler languages. 
-This is automatically enabled for all builds and works for all supported compilers (GCC, Clang, Visual C++). 
-Up until this release, Gradle compiled all native source files sequentially.
-
-This change has dramatic performance implications for native builds.
-Benchmarks for a project with a 500 source files on a machine with 8 processing cores available exhibited reduced build times of 53.4s to 12.9s. 
-
-The degree of concurrency is determined by the new [“max workers” build setting](#new-“max-workers”-build-setting).
-
-### New “max workers” build setting (i)
-
-The new `--max-workers=«N»` command line switch, and synonymous `org.gradle.workers.max=«N»` build property (e.g. specified in `gradle.properties`) determines the degree of build concurrency.
-
-As of Gradle 2.4, this setting influences [native code compilation](#parallel-native-compilation) and [parallel project execution](userguide/multi_project_builds.html#sec:parallel_execution).
-The “max workers” setting specifies the size of these _independent_ worker pools.
-However, a single worker pool is used for all native compilation operations.
-This means that if two (or more) native compilation tasks are executing at the same time, 
-they will share the worker pool and the total number of concurrent compilation options will not exceed the “max workers” setting.
-
-Future versions of Gradle will leverage the shared worker pool for more concurrent work, allowing more precise control over the total build concurrency.
-
-The default value is the number of processors available to the build JVM (as reported by 
-[`Runtime.availableProcessors()`](http://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors\(\))).
-Alternatively, it can be set via the `--max-workers=«N»` command line switch or `org.gradle.workers.max=«N»` build property where `«N»` is a positive, non-zero, number.
-
-Please note: the `--parallel-threads` command line switch [has been deprecated](#setting-number-of-build-execution-threads-with---parallel-threads) in favor of this new setting.
 
 ### Support for “annotation processing” of Groovy code
 
@@ -198,6 +174,30 @@ With Gradle 2.4, it is now much easier to fully customise the start scripts.
 
 The generation of the scripts is performed by a [`CreateStartScripts`](dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html) task.
 Please consult its [DSL reference](dsl/org.gradle.jvm.application.tasks.CreateStartScripts.html) for customization examples.
+
+### Tooling API improvements (i)
+
+The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
+
+* [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--)
+* [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
+
+It is also now possible to receive test progress events via
+[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
+
+### Model rules
+
+A number of improvements have been made to the model rules execution used by the native language plugins:
+
+- Added a basic `model` report to allow you to see the structure of the model for a particular project.
+- `@Defaults` annotation allow logic to be applied to attach defaults to a model element.
+- `@Validate` annotation allow logic to be applied to validate a model element after it has been configured.
+- `CollectionBuilder` allows rules to be applied to all elements in the collection, or to a particular element, or all elements of a given type.
+
+TODO - performance improvements
+TODO - creation DSL
+TODO - changes to `ManagedSet` and `CollectionBuilder`
+TODO - other improvements
 
 ## Fixed issues
 
