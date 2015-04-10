@@ -74,6 +74,10 @@ the command line.
 - Gradle warns when developer defines PCH, but the header is not the first header in the source file.
 - When any file included in prefix header file changes, the precompiled header object file and any target binaries are rebuilt.
 - Build produces an intermediate file for each variant and language combination.
+- Build uses the same compiler settings for PCH compile as variant compile.
+- Can set a PCH for a file in headers directory.
+- Can set a PCH for a file in an include directory.
+- Can set a PCH for a relative file in the source directory.
 - For GCC, build of PCH produces <precompiledHeader>.gch
 - For MSVC/Clang, build of PCH produces <precompiledHeader>.pch
 

@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.PCHHelloWorldApp
+import org.hamcrest.Matchers
 import org.spockframework.util.TextUtil
 
 abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -62,17 +63,17 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
-        def outputDirectories = file(PCHHeaderDirName).listFiles().findAll { it.isDirectory() }
+        def outputDirectories = file(sharedPCHHeaderDirName).listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
 
@@ -114,17 +115,17 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
-        def outputDirectories = file(PCHHeaderDirName).listFiles().findAll { it.isDirectory() }
+        def outputDirectories = file(sharedPCHHeaderDirName).listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
     }
@@ -164,22 +165,69 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
-        def outputDirectories = file(PCHHeaderDirName).listFiles().findAll { it.isDirectory() }
+        def outputDirectories = file(sharedPCHHeaderDirName).listFiles().findAll { it.isDirectory() }
         assert outputDirectories.size() == 1
         assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
 
         where:
         path << [ "", "subdir/" ]
+    }
+
+    def "a precompiled header on a source set gets used for all variants of a binary" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.libraryHeader.writeToDir(file("src/hello"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello"))
+        assert file("src/hello/headers/prefixHeader.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "prefixHeader.h"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        args("--info")
+        succeeds sharedPCHCompileTaskName, staticPCHCompileTaskName
+        executed ":${generatePrefixHeaderTaskName}"
+        output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 2
+        def sharedOutputDirectories = file(sharedPCHHeaderDirName).listFiles().findAll { it.isDirectory() }
+        assert sharedOutputDirectories.size() == 1
+        assert sharedOutputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
+        def staticOutputDirectories = file(staticPCHHeaderDirName).listFiles().findAll { it.isDirectory() }
+        assert staticOutputDirectories.size() == 1
+        assert staticOutputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
+
+        and:
+        args("--info")
+        succeeds sharedLibraryCompileTaskName, staticLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}", ":${staticPCHCompileTaskName}"
+        ! output.contains("<==== compiling hello.h ====>")
     }
 
     def "can have source sets both with and without precompiled headers" () {
@@ -218,14 +266,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName, libraryCompileTaskName.replaceAll("Hello", "Hello2")
-        executed ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName, sharedLibraryCompileTaskName.replaceAll("Hello", "Hello2")
+        executed ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for hello2.c only
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
     }
@@ -261,14 +309,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling bonjour.h ====>")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling bonjour.h ====>")
         ! output.contains("<==== compiling hello.h ====>")
     }
@@ -303,14 +351,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling hello.h ====>")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling hello.h ====>")
 
         when:
@@ -319,14 +367,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         args("--info")
-        succeeds PCHCompileTaskName
+        succeeds sharedPCHCompileTaskName
         executed ":${generatePrefixHeaderTaskName}"
         output.contains("<==== compiling althello.h ====>")
 
         and:
         args("--info")
-        succeeds libraryCompileTaskName
-        skipped ":${generatePrefixHeaderTaskName}", ":${PCHCompileTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling althello.h ====>")
     }
 
@@ -360,9 +408,42 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         """
 
         then:
-        succeeds libraryCompileTaskName
-        executed ":${PCHCompileTaskName}", ":${generatePrefixHeaderTaskName}"
+        succeeds sharedLibraryCompileTaskName
+        executed ":${sharedPCHCompileTaskName}", ":${generatePrefixHeaderTaskName}"
         output.contains("The source file hello.${app.sourceExtension} includes the header prefixHeader.h but it is not the first declared header, so the pre-compiled header will not be used.")
+    }
+
+    def "produces compiler error when specified header is missing" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        assert ! file("src/hello/headers/prefixHeader.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "prefixHeader.h"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        fails sharedPCHCompileTaskName
+        failure.assertHasDescription("Execution failed for task ':${sharedPCHCompileTaskName}'.")
+        failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers.h"))
     }
 
     private void maybeWait() {
@@ -387,19 +468,31 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         }
     }
 
-    String getPCHCompileTaskName() {
+    String getSharedPCHCompileTaskName() {
         return "compileHelloSharedLibrary${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
+    }
+
+    String getStaticPCHCompileTaskName() {
+        return "compileHelloStaticLibrary${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
     }
 
     String getGeneratePrefixHeaderTaskName() {
         return "generate${StringUtils.capitalize(app.sourceType)}PrefixHeaderFile"
     }
 
-    String getLibraryCompileTaskName() {
+    String getSharedLibraryCompileTaskName() {
         return "compileHelloSharedLibraryHello${StringUtils.capitalize(app.sourceType)}"
     }
 
-    String getPCHHeaderDirName() {
+    String getStaticLibraryCompileTaskName() {
+        return "compileHelloStaticLibraryHello${StringUtils.capitalize(app.sourceType)}"
+    }
+
+    String getSharedPCHHeaderDirName() {
         return "build/objs/helloSharedLibrary/hello${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
+    }
+
+    String getStaticPCHHeaderDirName() {
+        return "build/objs/helloStaticLibrary/hello${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
     }
 }
