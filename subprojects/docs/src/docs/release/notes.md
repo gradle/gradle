@@ -387,10 +387,6 @@ The default version of the corresponding tool of the following code quality plug
 * The `findbugs` plugin now uses version 3.0.1 as default (was 3.0.0).
 * The `codenarc` plugin now uses version 0.23 as default (was 0.21).
 
-### Repository credentials
-
-TODO - methods of `AuthenticationSupported` now work slightly differently, in particular will fail when credentials are not instance of `PasswordCredentials`.
-
 ### Deprecated ComponentMetadataHandler.eachComponent() has been removed
 
 This method (and all overloads) has been removed in 2.4, after [being deprecated in Gradle 2.3](http://gradle.org/docs/2.3/release-notes#component-metadata-rule-enhancements)
