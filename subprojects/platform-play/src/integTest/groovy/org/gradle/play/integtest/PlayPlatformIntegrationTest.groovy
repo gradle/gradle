@@ -142,7 +142,7 @@ model {
         fails "assemble"
 
         and:
-        failure.assertHasCause "Play application can only target a single platform"
+        failure.assertHasCause "Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported."
     }
 
     JarTestFixture jar(String fileName) {
