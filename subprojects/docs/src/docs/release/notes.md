@@ -1,3 +1,16 @@
+The big story for Gradle 2.4 is the improved performance.
+While it's not unusual for a new Gradle release to be the fastest Gradle yet, Gradle 2.4 is _significantly_ faster.
+Many early testers of Gradle 2.4 have reported that overall build times have improved by 20% up to 40%.
+
+There are two main components to the improved performance; [general configuration time optimizations](#significant-configuration-time-performance-improvements),
+and the [class reuse with the Gradle Daemon](#improved-performance-of-gradle-daemon-via-class-reuse).
+As such, using the [Gradle Daemon](userguide/gradle_daemon.html) now provides an even greater performance advantage.
+
+If you are using Gradle to build native code (e.g. C/C++), the news gets even better with the introduction of [parallel compilation](#parallel-native-compilation).
+
+Other highlights include [support for Amazon S3 dependency repositories](#support-for-amazon-web-services-s3-backed-repositories) 
+and [support for using annotation processors with Groovy code](#support-for-“annotation-processing”-of-groovy-code) and more. 
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
