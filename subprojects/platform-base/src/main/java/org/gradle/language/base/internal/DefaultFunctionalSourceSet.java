@@ -16,7 +16,6 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -51,16 +50,8 @@ public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectCo
     // TODO:DAZ Perhaps we should pull out a LanguageSourceSet 'factory-for-type' so we only register the languages once
     public FunctionalSourceSet copy(String name) {
         DefaultFunctionalSourceSet copy = getInstantiator().newInstance(DefaultFunctionalSourceSet.class, name, getInstantiator(), projectSourceSet);
-        for (Class<? extends LanguageSourceSet> languageType : factories.keySet()) {
-            copyFactory(copy, languageType);
-        }
+        copy.namedEntityInstantiator.copyFactoriesFrom(namedEntityInstantiator);
         copy.addAll(this);
         return copy;
-    }
-
-    <T extends LanguageSourceSet, U extends T> void copyFactory(DefaultFunctionalSourceSet target, Class<T> type) {
-        @SuppressWarnings("unchecked")
-        NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) factories.get(type);
-        target.registerFactory(type, factory);
     }
 }
