@@ -443,7 +443,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         then:
         fails sharedPCHCompileTaskName
         failure.assertHasDescription("Execution failed for task ':${sharedPCHCompileTaskName}'.")
-        failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers.h"))
+        failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers"))
     }
 
     private void maybeWait() {
