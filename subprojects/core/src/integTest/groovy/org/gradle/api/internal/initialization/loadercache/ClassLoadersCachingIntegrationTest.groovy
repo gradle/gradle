@@ -226,7 +226,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        assertCacheSizeChange(-1) // don't need loader for buildscript pass, do need loader for second pass
+        assertCacheSizeChange(-2)
 
         then:
         run()
@@ -236,7 +236,7 @@ class ClassLoadersCachingIntegrationTest extends AbstractIntegrationSpec {
         then:
         buildFile.delete()
         run()
-        assertCacheSizeChange(-1) // no loader needed for script at all now
+        assertCacheSizeChange(-1)
     }
 
     def "refreshes when root project buildscript classpath changes"() {
