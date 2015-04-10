@@ -361,7 +361,8 @@ The `getCredentials()` and `credentials(Action)` methods now throw an `IllegalSt
 
 ### Changes to API of `AntlrTask`
 
-The AntlrTask previous unnecessarily exposed the internal methods `buildArguments()` and `evaluateAntlrResult()`.
+The [`AntlrTask`](dsl/org.gradle.api.plugins.antlr.AntlrTask.html) previous unnecessarily exposed the internal methods `buildArguments()` and `evaluateAntlrResult()`.
+
 These methods have been removed.
 
 ### Updated libraries used by the Gradle API
