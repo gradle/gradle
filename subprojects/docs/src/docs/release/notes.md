@@ -284,10 +284,14 @@ The _user_ settings file (i.e. `~/.m2/settings.xml`) is still consulted for the 
 
 ### `PublishToMavenLocal.repository` property has been removed
 
-Previously, the `PublishToMavenLocal` task could be configured with an `ArtifactRepository` instance, which would specify the
-location to `install` to. The default repository was `mavenLocal()`.
+Previously, the [`PublishToMavenLocal`](javadoc/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html) task 
+(as used by the [`maven-publishing` plugin](userguide/publishing_maven.html)) could be configured with an `ArtifactRepository` instance, 
+which would specify the location to install to.
+The default repository was the repository that returned by
+[`RepositoryHandler.mavenLocal()`](dsl/org.gradle.api.artifacts.dsl.RepositoryHandler.html#org.gradle.api.artifacts.dsl.RepositoryHandler:mavenLocal\(\)).
 
-It is no longer possible to provide a repository to the `PublishToMavenLocal` task. Use `PublishToMavenRepository` instead.
+It is no longer possible to provide an arbitrary repository to this task.
+If you need to publish to an arbitrary repository, please use the [`PublishToMavenRepository`](javadoc/org/gradle/api/publish/maven/tasks/PublishToMavenRepository.html) task type instead.
 
 ### Changed default assembler executable for GCC/Clang tool chains
 
