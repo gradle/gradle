@@ -52,7 +52,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.reflect.Instantiator;
@@ -584,7 +583,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         final Set<Task> foundTasks = new HashSet<Task>();
         Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
-                getProjectAccessListener().beforeRequestingTaskByPath((ProjectInternal) project);
+                // Don't force evaluation of rules here, let the task container do what it needs to
+                ((ProjectInternal) project).evaluate();
 
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {
@@ -982,9 +982,4 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         getDeferredProjectConfiguration().fire();
     }
 
-    @Inject
-    protected ProjectAccessListener getProjectAccessListener() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
 }
