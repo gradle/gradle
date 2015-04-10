@@ -350,9 +350,14 @@ This causes unexpected build results when source accidentally ends up on the cla
 
 This improvement was contributed by [Thomas Broyer](https://github.com/tbroyer).
 
-### Changes in behaviour of AuthenticationSupported.getCredentials()
+### Changes to `AuthenticationSupported.getCredentials()` method
 
-`AuthenticationSupported.getCredentials()` now throws an `IllegalStateException` if the configured credentials are not of type `PasswordCredentials`.
+Due to the addition of support for [AWS S3 backed repositories](#support-for-amazon-web-services-s3-backed-repositories), some behavioral changes have been made to the
+[`AuthenticationSupported`](dsl/org.gradle.api.artifacts.repositories.AuthenticationSupported.html) interface, which is implemented by 
+[`MavenArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html) and [`IvyArtifactRepository`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html).
+
+The `getCredentials()` and `credentials(Action)` methods now throw an `IllegalStateException` if the configured credentials are not of type 
+[`PasswordCredentials`](javadoc/org/gradle/api/artifacts/repositories/PasswordCredentials.html), now that it is possible to use different types of credentials.
 
 ### Changes to API of `AntlrTask`
 
