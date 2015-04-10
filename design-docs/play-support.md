@@ -560,11 +560,11 @@ pseudo:
 interface Trigger {}
 interface TriggerAction extends Action<Trigger> {}
 interface TriggerService {
-    void addTriggerAction(Class<Trigger> type, TriggerAction action)
+    void addTriggerAction(TriggerAction action)
     void trigger(Trigger t)
 }
 
-triggerService.addTriggeredAction(RebuildNeeded, { trigger ->
+triggerService.addTriggerAction({ trigger ->
     logger.log("Rebuilding due to: $trigger.reason")
     triggerBuild()
 })
