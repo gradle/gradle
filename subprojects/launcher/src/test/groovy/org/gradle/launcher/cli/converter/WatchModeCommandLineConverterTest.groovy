@@ -26,6 +26,7 @@ import spock.lang.Unroll
 
 class WatchModeCommandLineConverterTest extends Specification {
 
+    @IgnoreIf({ !JavaVersion.current().java7Compatible })
     @Unroll
     def "converts watch options - #options"() {
         when:
