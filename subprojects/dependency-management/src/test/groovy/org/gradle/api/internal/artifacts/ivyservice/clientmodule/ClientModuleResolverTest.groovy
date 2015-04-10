@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.model.ComponentRequestMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
@@ -40,6 +41,7 @@ class ClientModuleResolverTest extends Specification {
     def id = Mock(ComponentIdentifier)
     def result = Mock(BuildableComponentResolveResult)
     def metaData = Mock(MutableModuleComponentResolveMetaData)
+    def componentRequestMetaData = Mock(ComponentRequestMetaData)
     def dependency = Mock(DslOriginDependencyMetaData)
 
     def "replaces meta-data for a client module dependency"() {
@@ -50,12 +52,12 @@ class ClientModuleResolverTest extends Specification {
         def artifact = Mock(ModuleComponentArtifactMetaData)
 
         when:
-        resolver.resolve(dependency, id, result)
+        resolver.resolve(id, componentRequestMetaData, result)
 
         then:
-        1 * target.resolve(dependency, id, result)
+        1 * target.resolve(id, componentRequestMetaData, result)
         1 * result.getFailure() >> null
-        1 * dependency.source >> clientModule
+        1 * componentRequestMetaData.clientModule >> clientModule
         1 * result.getMetaData() >> metaData
         1 * metaData.copy() >> metaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
@@ -72,24 +74,22 @@ class ClientModuleResolverTest extends Specification {
     }
 
     def "does not replace meta-data when not client module"() {
-        def moduleDependency = Mock(ModuleDependency)
-
         when:
-        resolver.resolve(dependency, id, result)
+        resolver.resolve(id, componentRequestMetaData, result)
 
         then:
-        1 * target.resolve(dependency, id, result)
+        1 * target.resolve(id, componentRequestMetaData, result)
         1 * result.getFailure() >> null
-        1 * dependency.source >> moduleDependency
+        1 * componentRequestMetaData.clientModule >> null
         0 * _
     }
 
     def "does not replace meta-data for broken module version"() {
         when:
-        resolver.resolve(dependency, id, result)
+        resolver.resolve(id, componentRequestMetaData, result)
 
         then:
-        1 * target.resolve(dependency, id, result)
+        1 * target.resolve(id, componentRequestMetaData, result)
         _ * result.failure >> new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken")
         0 * _
     }

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.query
-
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -32,8 +31,8 @@ import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentRequestMetaData
 import org.gradle.internal.component.model.ComponentResolveMetaData
-import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -95,7 +94,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
-        1 * componentMetaDataResolver.resolve(_, _, _) >> { DependencyMetaData dependency, ComponentIdentifier componentId, BuildableComponentResolveResult resolveResult ->
+        1 * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentRequestMetaData requestMetaData, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(componentResolveMetaData)
         }
         result

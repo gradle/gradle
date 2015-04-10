@@ -48,7 +48,7 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
         result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 
-    public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
         throw new UnsupportedOperationException();
     }
 

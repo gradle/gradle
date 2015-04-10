@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class InMemoryCachedModuleComponentRepositoryTest extends Specification {
+class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def stats = new InMemoryCacheStats()
     def localArtifactsCache = Mock(InMemoryArtifactsCache)

@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DefaultComponentRequestMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ComponentRequestMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
@@ -27,7 +25,6 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 class ComponentMetaDataResolveState {
     private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
     private final VersionedComponentChooser versionedComponentChooser;
-    private final DependencyMetaData dependency;
     private final ComponentRequestMetaData componentRequestMetaData;
     private final ModuleComponentIdentifier componentIdentifier;
     final ModuleComponentRepository repository;
@@ -35,9 +32,8 @@ class ComponentMetaDataResolveState {
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
-        this.dependency = dependency;
-        this.componentRequestMetaData = new DefaultComponentRequestMetaData(dependency);
+    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
+        this.componentRequestMetaData = componentRequestMetaData;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
         this.versionedComponentChooser = versionedComponentChooser;

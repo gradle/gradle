@@ -19,9 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentRequestMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -52,26 +51,22 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
-        // Force the requested version
-        ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
-        dependency = dependency.withTarget(new DefaultModuleComponentSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
-
-        resolve(dependency, moduleId, result);
+        resolveModule((ModuleComponentIdentifier) identifier, componentRequestMetaData, result);
     }
 
-    private void resolve(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableComponentResolveResult result) {
-        LOGGER.debug("Attempting to resolve component for {} using repositories {}", moduleComponentIdentifier, repositoryNames);
+    private void resolveModule(ModuleComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
+        LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(dependency, moduleComponentIdentifier, repository, versionedComponentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentRequestMetaData, repository, versionedComponentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
@@ -85,12 +80,12 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, errors));
+            result.failed(new ModuleVersionResolveException(identifier, errors));
         } else {
             for (ComponentMetaDataResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
             }
-            result.notFound(moduleComponentIdentifier);
+            result.notFound(identifier);
         }
     }
 

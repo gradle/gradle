@@ -160,10 +160,10 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolve(final DependencyMetaData dependency, final ComponentIdentifier identifier, final BuildableComponentResolveResult result) {
-            cacheLockingManager.useCache(String.format("Resolve %s", dependency), new Runnable() {
+        public void resolve(final ComponentIdentifier identifier, final ComponentRequestMetaData componentRequestMetaData, final BuildableComponentResolveResult result) {
+            cacheLockingManager.useCache(String.format("Resolve %s", identifier), new Runnable() {
                 public void run() {
-                    delegate.getComponentResolver().resolve(dependency, identifier, result);
+                    delegate.getComponentResolver().resolve(identifier, componentRequestMetaData, result);
                 }
             });
         }

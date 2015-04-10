@@ -17,26 +17,45 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class DefaultComponentRequestMetaData implements ComponentRequestMetaData {
     private final boolean changing;
     private final Set<IvyArtifactName> artifacts;
+    private final ClientModule clientModule;
 
-    public DefaultComponentRequestMetaData(DependencyMetaData dependencyMetaData) {
-        this.changing = dependencyMetaData.isChanging();
-        this.artifacts = Sets.newHashSet(dependencyMetaData.getArtifacts());
+    public DefaultComponentRequestMetaData() {
+        this(false, Collections.<IvyArtifactName>emptySet(), null);
     }
 
-    public DefaultComponentRequestMetaData(boolean changing, Set<IvyArtifactName> artifacts) {
+    public DefaultComponentRequestMetaData(DependencyMetaData dependencyMetaData) {
+        this(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
+    }
+
+    private DefaultComponentRequestMetaData(boolean changing, Set<IvyArtifactName> artifacts, ClientModule clientModule) {
         this.changing = changing;
         this.artifacts = Sets.newHashSet(artifacts);
+        this.clientModule = clientModule;
+    }
+
+    private static ClientModule extractClientModule(DependencyMetaData dependencyMetaData) {
+        if (dependencyMetaData instanceof DslOriginDependencyMetaData) {
+            ModuleDependency source = ((DslOriginDependencyMetaData) dependencyMetaData).getSource();
+            if (source instanceof ClientModule) {
+                return (ClientModule) source;
+            }
+        }
+        return null;
     }
 
     @Override
     public ComponentRequestMetaData withChanging() {
-        return new DefaultComponentRequestMetaData(true, artifacts);
+        return new DefaultComponentRequestMetaData(true, artifacts, clientModule);
     }
 
     @Override
@@ -47,5 +66,10 @@ public class DefaultComponentRequestMetaData implements ComponentRequestMetaData
     @Override
     public boolean isChanging() {
         return changing;
+    }
+
+    @Override
+    public ClientModule getClientModule() {
+        return clientModule;
     }
 }

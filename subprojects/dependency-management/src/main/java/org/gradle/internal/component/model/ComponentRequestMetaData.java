@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.ClientModule;
+
 import java.util.Set;
 
 /**
@@ -28,4 +30,9 @@ public interface ComponentRequestMetaData {
     boolean isChanging();
 
     ComponentRequestMetaData withChanging();
+
+    /**
+     * If the request originated from a ClientModule, return it. Null otherwise.
+     */
+    ClientModule getClientModule();
 }
