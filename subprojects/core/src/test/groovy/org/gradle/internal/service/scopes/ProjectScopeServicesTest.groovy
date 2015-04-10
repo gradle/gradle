@@ -86,7 +86,7 @@ class ProjectScopeServicesTest extends Specification {
         project.projectDir >> testDirectoryProvider.file("project-dir").createDir().absoluteFile
         project.buildScriptSource >> Stub(ScriptSource)
         project.getClassLoaderScope() >> classLoaderScope
-        project.getClassLoaderScope().createChild() >> classLoaderScope
+        project.getClassLoaderScope().createChild(_) >> classLoaderScope
         project.getClassLoaderScope().lock() >> classLoaderScope
         parent.get(ITaskFactory) >> taskFactory
         parent.get(DependencyFactory) >> dependencyFactory

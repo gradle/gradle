@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.nativeplatform.platform.internal
 
-import org.gradle.api.Incubating;
+import spock.lang.Specification
 
-/**
- * Some information about the test suite having failed as part of running a build.
- *
- * @since 2.4
- */
-@Incubating
-public interface TestSuiteFailedEvent extends TestProgressEvent {
 
-    /**
-     * The description of the test suite having failed.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
+class ArchitecturesTest extends Specification {
+    def "test 32-bit aliases"() {
+        expect:
+        Architectures.forInput(architecture).isI386()
+        where:
+        architecture << [ "x86", "i386", "ia-32", "i686" ]
+    }
 
-    /**
-     * The result of running the test suite with a failure.
-     *
-     * @return The result
-     */
-    TestFailure getTestResult();
-
+    def "test 64-bit aliases"() {
+        expect:
+        Architectures.forInput(architecture).isAmd64()
+        where:
+        architecture << [ "x86-64", "x86_64", "amd64", "x64" ]
+    }
 }

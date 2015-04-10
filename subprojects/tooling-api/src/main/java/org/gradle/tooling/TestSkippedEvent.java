@@ -30,6 +30,6 @@ public interface TestSkippedEvent extends TestProgressEvent {
      *
      * @return The description
      */
-    TestDescriptor getDescriptor();
+    TestDescriptor getTestDescriptor();
 
 }

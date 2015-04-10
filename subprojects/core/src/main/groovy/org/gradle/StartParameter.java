@@ -581,14 +581,14 @@ public class StartParameter extends LoggingConfiguration implements Serializable
 
     /**
      * Specifies the number of parallel threads to use for build execution.
-     * 
+     *
      * @see #getParallelThreadCount()
      */
     @Deprecated
     public void setParallelThreadCount(int parallelThreadCount) {
         setParallelProjectExecutionEnabled(parallelThreadCount!=0);
 
-        if (parallelThreadCount < 0) {
+        if (parallelThreadCount < 1) {
             setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
         } else {
             setMaxWorkerCount(parallelThreadCount);
@@ -634,12 +634,13 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Specifies the maximum number of concurrent workers used for underlying build operations.
      *
+     * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
      * @see #getMaxWorkerCount()
      */
     @Incubating
     public void setMaxWorkerCount(int maxWorkerCount) {
         if (maxWorkerCount < 1) {
-            this.maxWorkerCount = 1;
+            throw new IllegalArgumentException("Max worker count must be > 0");
         } else {
             this.maxWorkerCount = maxWorkerCount;
         }

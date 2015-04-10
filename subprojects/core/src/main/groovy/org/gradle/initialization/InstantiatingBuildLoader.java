@@ -30,8 +30,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     /**
-     * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project,
-     * ready for the projects to be configured.
+     * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project, ready for the projects to be configured.
      */
     public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
         createProjects(rootProjectDescriptor, gradle, baseClassLoaderScope);
@@ -43,14 +42,14 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, baseClassLoaderScope.createChild(), baseClassLoaderScope);
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, baseClassLoaderScope.createChild("root-project"), baseClassLoaderScope);
         gradle.setRootProject(rootProject);
         addProjects(rootProject, rootProjectDescriptor, gradle, baseClassLoaderScope);
     }
 
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, parent.getClassLoaderScope().createChild(), baseClassLoaderScope);
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, parent.getClassLoaderScope().createChild("project-" + childProjectDescriptor.getName()), baseClassLoaderScope);
             addProjects(childProject, childProjectDescriptor, gradle, baseClassLoaderScope);
         }
     }

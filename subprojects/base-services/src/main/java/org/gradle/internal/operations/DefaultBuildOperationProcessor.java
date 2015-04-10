@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
@@ -28,8 +29,8 @@ public class DefaultBuildOperationProcessor implements BuildOperationProcessor, 
         this.fixedSizePool = executorFactory.create("build operations", maxWorkerCount);
     }
 
-    public <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker) {
-        return new DefaultBuildOperationQueue<T>(fixedSizePool, worker);
+    public <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker, @Nullable String logLocation) {
+        return new DefaultBuildOperationQueue<T>(fixedSizePool, worker, logLocation);
     }
 
     public void stop() {

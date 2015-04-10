@@ -51,7 +51,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         StaticLibraryArchiverSpec transformedSpec = specTransformer.transform(spec);
         List<String> args = argsTransformer.transform(transformedSpec);
         invocationContext.getArgAction().execute(args);

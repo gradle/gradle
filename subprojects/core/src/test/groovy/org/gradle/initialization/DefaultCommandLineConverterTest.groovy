@@ -15,6 +15,7 @@
  */
 
 package org.gradle.initialization
+
 import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.cli.CommandLineArgumentException
@@ -169,7 +170,7 @@ public class DefaultCommandLineConverterTest extends Specification {
         expectedInitScripts.add(script2);
         checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
     }
-    
+
     @Test
     public void withSystemProperties() {
         final String prop1 = "gradle.prop1";
@@ -180,14 +181,14 @@ public class DefaultCommandLineConverterTest extends Specification {
         expectedSystemProperties.put(prop2, valueProp2);
         checkConversion("-D", prop1 + "=" + valueProp1, "-D", prop2 + "=" + valueProp2);
     }
-    
+
     @Test
     public void withSpecifiedGradleUserHomeDirectoryBySystemProperty() {
         expectedGradleUserHome = testDir.file("home");
         String propName = "gradle.user.home";
         String propValue = expectedGradleUserHome.getAbsolutePath();
         expectedSystemProperties = toMap(propName, propValue);
-        checkConversion("-D", propName+"="+propValue);
+        checkConversion("-D", propName + "=" + propValue);
     }
 
     @Test
@@ -196,7 +197,7 @@ public class DefaultCommandLineConverterTest extends Specification {
         String propName = "gradle.user.home";
         String propValue = "home2";
         expectedSystemProperties = toMap(propName, propValue);
-        checkConversion("-D", propName+"="+propValue, "-g", expectedGradleUserHome.getAbsolutePath());
+        checkConversion("-D", propName + "=" + propValue, "-g", expectedGradleUserHome.getAbsolutePath());
     }
 
     @Test
@@ -428,18 +429,17 @@ public class DefaultCommandLineConverterTest extends Specification {
         checkConversion(*args)
 
         where:
-        args                                            | maxWorkers    | parallelThreads   | isParallel
-        []                                              | NUM_OF_PROCS  | 0                 | false
-        [ "--parallel" ]                                | NUM_OF_PROCS  | NUM_OF_PROCS      | true
-        [ "--parallel-threads=$N" ]                     | N             | N                 | true
-        [ "--max-workers=$N" ]                          | N             | 0                 | false
-        [ "--parallel", "--max-workers=$N" ]            | N             | N                 | true
-        [ "--parallel-threads=$N", "--max-workers=$M" ] | M             | M                 | true
-        [ "--max-workers=$N", "--parallel-threads=$M" ] | M             | M                 | true
-        [ "--parallel-threads=-1" ]                     | NUM_OF_PROCS  | NUM_OF_PROCS      | true
-        [ "--parallel-threads=0" ]                      | 1             | 0                 | false
-        [ "--parallel-threads=1" ]                      | 1             | 1                 | true
-        [ "--parallel", "--max-workers=0" ]             | 1             | 1                 | true
-        [ "--parallel", "--max-workers=1" ]             | 1             | 1                 | true
+        args                                          | maxWorkers   | parallelThreads | isParallel
+        []                                            | NUM_OF_PROCS | 0               | false
+        ["--parallel"]                                | NUM_OF_PROCS | NUM_OF_PROCS    | true
+        ["--parallel-threads=$N"]                     | N            | N               | true
+        ["--max-workers=$N"]                          | N            | 0               | false
+        ["--parallel", "--max-workers=$N"]            | N            | N               | true
+        ["--parallel-threads=$N", "--max-workers=$M"] | M            | M               | true
+        ["--max-workers=$N", "--parallel-threads=$M"] | M            | M               | true
+        ["--parallel-threads=-1"]                     | NUM_OF_PROCS | NUM_OF_PROCS    | true
+        ["--parallel-threads=0"]                      | NUM_OF_PROCS | 0               | false
+        ["--parallel-threads=1"]                      | 1            | 1               | true
+        ["--parallel", "--max-workers=1"]             | 1            | 1               | true
     }
 }

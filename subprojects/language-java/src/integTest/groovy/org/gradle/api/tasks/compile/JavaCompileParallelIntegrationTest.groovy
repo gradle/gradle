@@ -88,7 +88,8 @@ public class Foo {
         }
 
         when:
-        args('--parallel-threads=4')
+        args('--parallel')
+        args('--max-workers=4')
         run('compileJava')
 
         then:

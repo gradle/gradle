@@ -35,12 +35,20 @@ public class PropertiesToStartParameterConverter {
         String workers = properties.get(GradleProperties.WORKERS_PROPERTY);
         if (workers != null) {
             try {
-                startParameter.setMaxWorkerCount(Integer.parseInt(workers));
+                int workerCount = Integer.parseInt(workers);
+                if (workerCount < 1) {
+                    invalidMaxWorkersPropValue(workers);
+                }
+                startParameter.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                // Ignore invalid worker settings
+                invalidMaxWorkersPropValue(workers);
             }
         }
 
         return startParameter;
+    }
+
+    private StartParameter invalidMaxWorkersPropValue(String value) {
+        throw new IllegalArgumentException(String.format("Value '%s' given for %s system property is invalid (must be a positive, non-zero, integer)", value, GradleProperties.WORKERS_PROPERTY));
     }
 }

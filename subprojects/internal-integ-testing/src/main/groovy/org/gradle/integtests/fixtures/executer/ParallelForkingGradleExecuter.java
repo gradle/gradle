@@ -34,7 +34,8 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
-        args.add("--parallel-threads=4");
+        args.add("--parallel");
+        args.add("--max-workers=4");
         args.add("-D" + DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE + "=true");
         return args;
     }

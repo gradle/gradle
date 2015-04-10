@@ -117,7 +117,9 @@ public abstract class NativeCompilerTest extends Specification {
             getTempDir() >> testDir
             getObjectFileDir() >> objectFileDir
             getSourceFiles() >> sourceFiles
-            getOperationLogger() >> Mock(BuildOperationLogger)
+            getOperationLogger() >> Mock(BuildOperationLogger) {
+                getLogLocation() >> "<log location>"
+            }
             getPreCompiledHeader() >> null
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null

@@ -81,7 +81,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
         parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").
-                deprecated("Prefer to use --parallel if you want to build in parallel and use --max-workers to set the number of executor threads.").incubating();
+                deprecated("Please use --parallel, optionally in conjunction with --max-workers.").incubating();
         parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
         parser.allowOneOf(MAX_WORKERS, PARALLEL_THREADS);
@@ -177,11 +177,15 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(MAX_WORKERS)) {
+            String value = options.option(MAX_WORKERS).getValue();
             try {
-                int workerCount = Integer.parseInt(options.option(MAX_WORKERS).getValue());
+                int workerCount = Integer.parseInt(value);
+                if (workerCount < 1) {
+                    invalidMaxWorkersSwitchValue(value);
+                }
                 startParameter.setMaxWorkerCount(workerCount);
             } catch (NumberFormatException e) {
-                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", MAX_WORKERS));
+                invalidMaxWorkersSwitchValue(value);
             }
         }
 
@@ -190,6 +194,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         return startParameter;
+    }
+
+    private StartParameter invalidMaxWorkersSwitchValue(String value) {
+        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {
