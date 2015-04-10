@@ -400,25 +400,19 @@ The package scoped methods of the [`LogLevel`](javadoc/org/gradle/api/logging/Lo
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Adrian Kelly](https://github.com/adrianbk)
-    - Support for resolving from AWS S3 backed Maven and Ivy repositories
-    - Support for publishing to AWS S3 backed Maven and Ivy repositories
-    - Don't run assemble task in pull-request validation builds on [travis-ci](https://travis-ci.org/gradle/gradle/builds)
-* [Daniel Lacasse](https://github.com/Shad0w1nk) - support GoogleTest for testing C++ binaries
+* [Adrian Kelly](https://github.com/adrianbk) - Support for Amazon Web Services S3 dependency repositories
 * [Victor Bronstein](https://github.com/victorbr)
     - Convert NotationParser implementations to NotationConverter
     - Only parse Maven settings once per project to determine local Maven repository location (GRADLE-3219)
-* [Vyacheslav Blinov](https://github.com/dant3) - fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
-* [Michal Bendowski](https://github.com/bendowski-google) - six webDist userguide example
-* [Daniel Siwiec](https://github.com/danielsiwiec) - update `README.md`
-* [Andreas Schmid](https://github.com/aaschmid) - add test coverage for facet type configuration in `GenerateEclipseWtpFacet`
+* [Vyacheslav Blinov](https://github.com/dant3) - Fix for `test.testLogging.showStandardStreams = false` (GRADLE-3218)
+* [Michal Bendowski](https://github.com/bendowski-google) - Documentation improvements
+* [Daniel Siwiec](https://github.com/danielsiwiec) - Documentation improvements
+* [Andreas Schmid](https://github.com/aaschmid) - Improved test coverage for facet type configuration in `GenerateEclipseWtpFacet`
 * [Roman Donchenko](https://github.com/SpecLad)
     - Fix PatternSet so that all files are not excluded when Ant global excludes are cleared (GRADLE-3254)
-    - Specs.or: use satisfyAll/None instead of instantiating an anonymous class
-    - Fix a bug in `org.gradle.api.specs.OrSpecTest`
-* [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
-* [Lóránt Pintér](https://github.com/lptr) - add setting wrapper version on command-line
-* [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and  `EclipseWtpComponent.property()`
+    - Improvements to `Spec` implementations
+* [Lóránt Pintér](https://github.com/lptr) - Allow setting wrapper version on command-line
+* [Andreas Schmid](https://github.com/aaschmid) - Retain defaults when using `EclipseWtpComponent.resource()` and `EclipseWtpComponent.property()`
 * [Mikolaj Izdebski](https://github.com/mizdebsk) - Use hostname command as fallback way of getting build host name in Gradle build
 * [Andrea Cisternino](https://github.com/acisternino) - Make JavaFX available to Groovy compilation on Java 8
 * [Will Erickson](https://github.com/Sarev0k) - Support for annotation processing of Groovy code
