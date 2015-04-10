@@ -26,44 +26,45 @@ public interface AuthenticationSupported {
 
     /**
      * Returns the username and password credentials used to authenticate to this repository.
+     * <p>
      * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and returned.
+     * <p>
+     * If you are using a different type of credentials than {@link PasswordCredentials}, please use {@link #getCredentials(Class)} to obtain the credentials.
      *
-     * @return The credentials.
-     *
-     * @throws ClassCastException when the credentials assigned to this repository are not of type {@link PasswordCredentials}.
+     * @return the credentials
+     * @throws IllegalStateException if the credential type was previously set with {@link #credentials(Class, Action)} where the type was not {@link PasswordCredentials}
      */
     PasswordCredentials getCredentials();
 
     /**
      * Returns the credentials of the specified type used to authenticate with this repository.
+     * <p>
      * If no credentials have been assigned to this repository, an empty set of credentials of the specified type is assigned to this repository and returned.
      *
-     * @param clazz type of the credential
+     * @param credentialsType type of the credential
      * @return The credentials
-     *
-     * @throws ClassCastException when the credentials assigned to this repository are not assignable to the specified type.
+     * @throws IllegalArgumentException when the credentials assigned to this repository are not assignable to the specified type
      */
     @Incubating
-    public <T extends Credentials> T getCredentials(Class<T> clazz);
+    public <T extends Credentials> T getCredentials(Class<T> credentialsType);
 
     /**
      * Configures the username and password credentials for this repository using the supplied action.
-     * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and passed
-     * to the action.
-     *
+     * <p>
+     * If no credentials have been assigned to this repository, an empty set of username and password credentials is assigned to this repository and passed to the action.
      * <pre autoTested=''>
-     *     repositories {
-     *         maven {
-     *             url "${url}"
-     *             credentials {
-     *                 username = 'joe'
-     *                 password = 'secret'
-     *             }
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         credentials {
+     *             username = 'joe'
+     *             password = 'secret'
      *         }
      *     }
+     * }
      * </pre>
      *
-     * @throws ClassCastException when the credentials assigned to this repository are not of type {@link PasswordCredentials}.
+     * @throws IllegalStateException when the credentials assigned to this repository are not of type {@link PasswordCredentials}
      */
     void credentials(Action<? super PasswordCredentials> action);
 
@@ -74,13 +75,13 @@ public interface AuthenticationSupported {
      * If credentials have already been specified for this repository, they will be passed to the given configuration action.
      * <pre autoTested=''>
      * repositories {
-     *   maven {
-     *     url "${url}"
-     *     credentials(AwsCredentials) {
-     *       accessKey "myAccessKey"
-     *       secretKey "mySecret"
+     *     maven {
+     *         url "${url}"
+     *         credentials(AwsCredentials) {
+     *             accessKey "myAccessKey"
+     *             secretKey "mySecret"
+     *         }
      *     }
-     *   }
      * }
      * </pre>
      * <p>
@@ -91,7 +92,7 @@ public interface AuthenticationSupported {
      * </ul>
      *
      * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
-     * @throws ClassCastException if {@code credentialsType} is of a different type to the credentials previously specified for this repository
+     * @throws IllegalArgumentException if {@code credentialsType} is of a different type to the credentials previously specified for this repository
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
