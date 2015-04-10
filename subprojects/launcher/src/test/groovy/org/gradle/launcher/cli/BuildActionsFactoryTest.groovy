@@ -27,6 +27,7 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
+import org.gradle.launcher.cli.converter.WatchModeCommandLineConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -52,7 +53,7 @@ class BuildActionsFactoryTest extends Specification {
 
     BuildActionsFactory factory = new BuildActionsFactory(
             loggingServices, new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+            Stub(LayoutCommandLineConverter), Stub(WatchModeCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
             propertiesToDaemonParametersConverter)
 
