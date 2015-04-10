@@ -645,7 +645,9 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 
 #### Open Issues
 
-- TBD
+- Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task. 
+- What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
+
 
 ### Additional Notes 
 
