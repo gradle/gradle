@@ -51,6 +51,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
                     if (m.matches()) {
                         boolean isImport = "import".equals(m.group(1));
                         String value = m.group(2);
+                        sourceDetails.getImportsAndIncludes().add(value);
                         if (isImport) {
                             sourceDetails.getImports().add(value);
                         } else {
@@ -67,8 +68,13 @@ public class RegexBackedCSourceParser implements CSourceParser {
     }
 
     private static class DefaultSourceDetails implements SourceDetails {
+        private final List<String> importsAndIncludes = new ArrayList<String>();
         private final List<String> includes = new ArrayList<String>();
         private final List<String> imports = new ArrayList<String>();
+
+        public List<String> getImportsAndIncludes() {
+            return importsAndIncludes;
+        }
 
         public List<String> getIncludes() {
             return includes;

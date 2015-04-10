@@ -27,6 +27,7 @@ public interface CSourceParser {
     SourceDetails parseSource(File sourceFile);
 
     interface SourceDetails {
+        List<String> getImportsAndIncludes();
         List<String> getIncludes();
         List<String> getImports();
     }

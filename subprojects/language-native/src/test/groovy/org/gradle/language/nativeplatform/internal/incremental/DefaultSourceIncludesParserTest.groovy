@@ -52,8 +52,7 @@ class DefaultSourceIncludesParserTest extends Specification {
         def includesParser = new DefaultSourceIncludesParser(sourceParser, true)
 
         1 * sourceParser.parseSource(file) >> sourceDetails
-        1 * sourceDetails.includes >> ['"quoted"', '<system>', 'DEFINED']
-        1 * sourceDetails.imports >> ['"quotedImport"', '<systemImport>', 'DEFINED_IMPORT']
+        1 * sourceDetails.importsAndIncludes >> ['"quoted"', '<system>', 'DEFINED', '"quotedImport"', '<systemImport>', 'DEFINED_IMPORT']
         0 * sourceDetails._
 
         and:
@@ -65,4 +64,21 @@ class DefaultSourceIncludesParserTest extends Specification {
         includes.macroIncludes == ["DEFINED", "DEFINED_IMPORT"]
     }
 
+    def "order is preserved in all includes" () {
+        given:
+        def file = new File("test")
+
+        when:
+        def includesParser = new DefaultSourceIncludesParser(sourceParser, true)
+
+        1 * sourceParser.parseSource(file) >> sourceDetails
+        1 * sourceDetails.importsAndIncludes >> ['"quoted"', '<system>', 'DEFINED', '"quotedImport"', '<systemImport>', 'DEFINED_IMPORT']
+        0 * sourceDetails._
+
+        and:
+        def includes = includesParser.parseIncludes(file)
+
+        then:
+        includes.allIncludes == ['quoted', 'system', 'DEFINED', 'quotedImport', 'systemImport', 'DEFINED_IMPORT']
+    }
 }

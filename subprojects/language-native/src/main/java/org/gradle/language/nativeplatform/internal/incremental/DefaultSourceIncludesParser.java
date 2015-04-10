@@ -33,9 +33,10 @@ public class DefaultSourceIncludesParser implements SourceIncludesParser {
     public SourceIncludes parseIncludes(File sourceFile) {
         CSourceParser.SourceDetails sourceDetails = sourceParser.parseSource(sourceFile);
         DefaultSourceIncludes defaultIncludes = new DefaultSourceIncludes();
-        defaultIncludes.addAll(sourceDetails.getIncludes());
         if (importAware) {
-            defaultIncludes.addAll(sourceDetails.getImports());
+            defaultIncludes.addAll(sourceDetails.getImportsAndIncludes());
+        } else {
+            defaultIncludes.addAll(sourceDetails.getIncludes());
         }
 
         return defaultIncludes;

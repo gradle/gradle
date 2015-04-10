@@ -330,6 +330,41 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         ! output.contains("<==== compiling althello.h ====>")
     }
 
+    def "produces warning when pch cannot be used" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.getLibraryHeader().writeToDir(file("src/hello"))
+        def helloDotC = app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
+        helloDotC.text = "#include \"hello.h\"\n" + helloDotC.text
+        app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello"))
+        assert file("src/hello/headers/prefixHeader.h").exists()
+
+        when:
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "prefixHeader.h"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds libraryCompileTaskName
+        executed ":${PCHCompileTaskName}", ":${generatePrefixHeaderTaskName}"
+        output.contains("The source file hello.${app.sourceExtension} includes the header prefixHeader.h but it is not the first declared header, so the pre-compiled header will not be used.")
+    }
+
     private void maybeWait() {
         if (toolChain.visualCpp) {
             def now = System.currentTimeMillis()
