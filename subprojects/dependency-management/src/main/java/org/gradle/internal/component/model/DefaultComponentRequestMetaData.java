@@ -29,12 +29,12 @@ public class DefaultComponentRequestMetaData implements ComponentRequestMetaData
     private final Set<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public DefaultComponentRequestMetaData() {
-        this(false, Collections.<IvyArtifactName>emptySet(), null);
+    public static ComponentRequestMetaData forDependency(DependencyMetaData dependencyMetaData) {
+        return new DefaultComponentRequestMetaData(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
     }
 
-    public DefaultComponentRequestMetaData(DependencyMetaData dependencyMetaData) {
-        this(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
+    public DefaultComponentRequestMetaData() {
+        this(false, Collections.<IvyArtifactName>emptySet(), null);
     }
 
     private DefaultComponentRequestMetaData(boolean changing, Set<IvyArtifactName> artifacts, ClientModule clientModule) {

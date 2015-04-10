@@ -295,7 +295,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void process(ModuleComponentRepositoryAccess access) {
             DependencyMetaData dependency = dependencyMetaData.withRequestedVersion(version);
-            access.resolveComponentMetaData(identifier, new DefaultComponentRequestMetaData(dependency), result);
+            access.resolveComponentMetaData(identifier, DefaultComponentRequestMetaData.forDependency(dependency), result);
             attemptCollector.execute(result);
         }
 
