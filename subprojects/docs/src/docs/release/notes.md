@@ -295,17 +295,23 @@ If you need to publish to an arbitrary repository, please use the [`PublishToMav
 
 ### Changed default assembler executable for GCC/Clang tool chains
 
-The default tool used when turning assembler into object files is now `gcc` or `clang` instead of `as`.  Some arguments that were
-specific to `as` were converted to the GCC/Clang equivalents.  If you were passing arguments to the assembler, you may now need to
-use `-Wa` when passing them.  See [GCC's documentation](https://gcc.gnu.org/onlinedocs/gcc/Assembler-Options.html) for passing
-arguments to the assembler.
+The default tool used when turning assembler into object files is now `gcc` or `clang` instead of `as`.  
+Some arguments that were specific to `as` were converted to their GCC/Clang equivalents.  
+If you were passing arguments to the assembler, you may now need to use `-Wa` when passing them.  
 
-### `CommandLineToolConfiguration.withArguments()` semantics have changed
+Please see [GCC's documentation](https://gcc.gnu.org/onlinedocs/gcc/Assembler-Options.html) for passing arguments to the assembler.
 
-`withArguments()` used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.
-The arguments passed to this would include the path to the source file and output file. This hook was intended to capture "overall"
-arguments to the command-line tool instead of "per-file" arguments. We've changed it so that `withArguments()` is called once per
-task execution and does not contain any specific file arguments.  Changes to arguments using this method will affect all source files.
+### Changes to `CommandLineToolConfiguration.withArguments()` usage
+
+The [`CommandLineToolConfiguration`](javadoc/org/gradle/nativeplatform/toolchain/CommandLineToolConfiguration.html) allows fine grained configuration of a tool execution for the native domain,
+for example when configuring a [`GccPlatformToolChain`](javadoc/org/gradle/nativeplatform/toolchain/GccPlatformToolChain.html).
+There are changes to the semantics of the `withArguments()` method.
+
+The `withArguments()` method used to be called just before Gradle built the command-line arguments for the underlying tool for each source file.
+The arguments passed to this would include the path to the source file and output file. 
+This hook was intended to capture "overall" arguments to the command-line tool instead of "per-file" arguments. 
+Now, the `withArguments()` method is called once per task execution and does not contain any specific file arguments.  
+Any changes to arguments using this method will affect all source files.
 
 ### Implicit Groovy source compilation while compiling build script is now disabled
 
