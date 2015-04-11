@@ -286,6 +286,39 @@ task bigNative(type: ProjectGeneratorTask) {
     subProjectTemplates = ['native-source', 'native-component']
 }
 
+task smallPCHNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 20
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+}
+
+task mediumPCHNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 200
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+}
+
+task bigPCHNative(type: ProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 1000
+    nativeProject = true
+    templateArgs = [
+            moduleCount: 1,
+            functionCount: 1
+    ]
+    subProjectTemplates = ['native-pch-source', 'native-pch-component']
+}
+
 task multiNative(type: ProjectGeneratorTask) {
     projects = 10
     sourceFiles = 20
@@ -351,7 +384,7 @@ task all(dependsOn: generators)
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
                                 smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
-                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, multiNative,
+                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
                                 smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
                                 bigOldJavaMoreSource, lotProjectDependencies])
 
