@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -51,22 +51,22 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(ComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (!(identifier instanceof ModuleComponentIdentifier)) {
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
-        resolveModule((ModuleComponentIdentifier) identifier, componentRequestMetaData, result);
+        resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
     }
 
-    private void resolveModule(ModuleComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
+    private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentRequestMetaData, repository, versionedComponentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);

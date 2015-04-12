@@ -107,7 +107,7 @@ public class StartParameterResolutionOverride {
             result.failed(new ModuleVersionResolveException(dependency.getRequested(), String.format("No cached version listing for %s available for offline mode.", dependency.getRequested())));
         }
 
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, String.format("No cached version of %s available for offline mode.", moduleComponentIdentifier.getDisplayName())));
         }
 

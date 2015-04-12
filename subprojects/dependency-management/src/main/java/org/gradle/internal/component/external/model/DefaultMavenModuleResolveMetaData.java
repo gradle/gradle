@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,8 +52,8 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
         this.relocated = relocated;
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
-        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentRequestMetaData), "jar", false);
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentOverrideMetadata), "jar", false);
     }
 
     @Override

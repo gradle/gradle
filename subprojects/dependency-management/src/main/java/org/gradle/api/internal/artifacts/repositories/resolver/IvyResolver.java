@@ -97,8 +97,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return new IvyRemoteRepositoryAccess();
     }
 
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
-        return new DefaultIvyModuleResolveMetaData(moduleComponentIdentifier, componentRequestMetaData);
+    protected MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return new DefaultIvyModuleResolveMetaData(moduleComponentIdentifier, componentOverrideMetadata);
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

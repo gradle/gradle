@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 
 import java.util.Map;
 
@@ -43,8 +43,8 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
         this.extraInfo = moduleDescriptor.getExtraInfo();
     }
 
-    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
-        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentRequestMetaData));
+    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, componentOverrideMetadata));
     }
 
     @Override

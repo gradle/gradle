@@ -21,20 +21,20 @@ import org.gradle.api.artifacts.ClientModule;
 import java.util.Set;
 
 /**
- * Additional metadata about a component that is used when resolving. This is typically specified by a dependency descriptor.
+ * Metadata about a component that will override the information obtained when resolving, typically specified by a dependency descriptor.
  * Metadata supplied in this way is applied inconsistently, because multiple dependencies can point to the same component with different
  * override metadata, and only one of these overrides will be used during dependency resolution.
  */
-public interface ComponentRequestMetaData {
+public interface ComponentOverrideMetadata {
 
     Set<IvyArtifactName> getArtifacts();
-
-    boolean isChanging();
-
-    ComponentRequestMetaData withChanging();
 
     /**
      * If the request originated from a ClientModule, return it. Null otherwise.
      */
     ClientModule getClientModule();
+
+    boolean isChanging();
+
+    ComponentOverrideMetadata withChanging();
 }

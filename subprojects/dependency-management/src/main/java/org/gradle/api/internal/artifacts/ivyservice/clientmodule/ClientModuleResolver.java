@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -40,13 +40,13 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 
-    public void resolve(ComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result) {
-        resolver.resolve(identifier, componentRequestMetaData, result);
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+        resolver.resolve(identifier, componentOverrideMetadata, result);
 
         if (result.getFailure() != null) {
             return;
         }
-        ClientModule clientModule = componentRequestMetaData.getClientModule();
+        ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
             MutableModuleComponentResolveMetaData clientModuleMetaData = ((MutableModuleComponentResolveMetaData)result.getMetaData()).copy();
             addClientModuleDependencies(clientModule, clientModuleMetaData);

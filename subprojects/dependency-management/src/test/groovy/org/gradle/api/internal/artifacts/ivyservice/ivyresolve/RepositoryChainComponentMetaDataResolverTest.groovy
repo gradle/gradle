@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.model.ComponentRequestMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -36,7 +36,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependency = Stub(DependencyMetaData)
-    final componentRequestMetaData = Mock(ComponentRequestMetaData)
+    final componentRequestMetaData = Mock(ComponentOverrideMetadata)
     final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
     final moduleVersionId = DefaultModuleVersionIdentifier.newId("group", "project", "1.0")
     final dependencyDescriptor = Stub(DependencyDescriptor)

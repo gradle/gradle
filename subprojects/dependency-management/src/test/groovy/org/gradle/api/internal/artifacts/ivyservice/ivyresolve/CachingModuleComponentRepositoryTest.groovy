@@ -99,7 +99,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
     def "does not use cache when component metadata can be determined locally"() {
         def componentId = Mock(ModuleComponentIdentifier)
-        def prescribedMetaData = Mock(ComponentRequestMetaData)
+        def prescribedMetaData = Mock(ComponentOverrideMetadata)
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:

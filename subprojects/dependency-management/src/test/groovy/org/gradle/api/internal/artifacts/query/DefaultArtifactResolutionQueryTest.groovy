@@ -31,7 +31,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.ComponentRequestMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
@@ -94,7 +94,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
-        1 * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentRequestMetaData requestMetaData, BuildableComponentResolveResult resolveResult ->
+        1 * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(componentResolveMetaData)
         }
         result

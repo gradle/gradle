@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChain;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.DefaultComponentRequestMetaData;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.*;
@@ -52,7 +52,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,
                                              ArtifactResolver artifactResolver, ArtifactType artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
-        componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentRequestMetaData(), moduleVersionResolveResult);
+        componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentOverrideMetadata(), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetaData(), artifactType, moduleArtifactsResolveResult);

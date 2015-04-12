@@ -38,7 +38,7 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         delegate.listModuleVersions(dependency, result);
     }
 
-    public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+    public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
         delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
     }
 

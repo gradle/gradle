@@ -21,7 +21,7 @@ import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
-import org.gradle.internal.component.model.ComponentRequestMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.ModuleSource
@@ -51,7 +51,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", "1.0")
     def dep = Stub(DependencyMetaData) { getRequested() >> selector }
-    def componentRequestMetaData = Mock(ComponentRequestMetaData)
+    def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
 
     def listingResult = Mock(BuildableModuleVersionListingResolveResult)

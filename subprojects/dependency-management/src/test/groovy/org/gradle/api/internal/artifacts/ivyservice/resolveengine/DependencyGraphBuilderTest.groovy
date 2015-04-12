@@ -941,7 +941,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traverses(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentRequestMetaData requestMetaData, BuildableComponentResolveResult result ->
+        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.resolved(to)
         }
     }
@@ -961,7 +961,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traversesMissing(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentRequestMetaData requestMetaData, BuildableComponentResolveResult result ->
+        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.notFound(to.componentId)
         }
     }
@@ -969,7 +969,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traversesBroken(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentRequestMetaData requestMetaData, BuildableComponentResolveResult result ->
+        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.failed(new ModuleVersionResolveException(newSelector("a", "b", "c"), "broken"))
         }
     }

@@ -17,12 +17,12 @@
 package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentRequestMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 public interface ComponentMetaDataResolver {
     /**
      * Resolves the meta-data for a component instance. Failures should be attached to the returned result.
      */
-    void resolve(ComponentIdentifier identifier, ComponentRequestMetaData componentRequestMetaData, BuildableComponentResolveResult result);
+    void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result);
 }

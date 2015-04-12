@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
-import org.gradle.internal.component.model.ComponentRequestMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
@@ -41,7 +41,7 @@ class ClientModuleResolverTest extends Specification {
     def id = Mock(ComponentIdentifier)
     def result = Mock(BuildableComponentResolveResult)
     def metaData = Mock(MutableModuleComponentResolveMetaData)
-    def componentRequestMetaData = Mock(ComponentRequestMetaData)
+    def componentRequestMetaData = Mock(ComponentOverrideMetadata)
     def dependency = Mock(DslOriginDependencyMetaData)
 
     def "replaces meta-data for a client module dependency"() {

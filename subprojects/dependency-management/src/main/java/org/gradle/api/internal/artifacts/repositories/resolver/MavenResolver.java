@@ -73,7 +73,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return root;
     }
 
-    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+    protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
         if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
             MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
             if (uniqueSnapshotVersion != null) {
@@ -104,7 +104,7 @@ public class MavenResolver extends ExternalResourceResolver {
         return metaData;
     }
 
-    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentRequestMetaData prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
+    private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
         if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             result.getMetaData().setSource(snapshotSource);
@@ -191,8 +191,8 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     @Override
-    protected MutableModuleComponentResolveMetaData createMetaDataForDependency(ModuleComponentIdentifier moduleComponentIdentifier, ComponentRequestMetaData componentRequestMetaData) {
-        return processMetaData(new DefaultMavenModuleResolveMetaData(moduleComponentIdentifier, componentRequestMetaData));
+    protected MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return processMetaData(new DefaultMavenModuleResolveMetaData(moduleComponentIdentifier, componentOverrideMetadata));
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {

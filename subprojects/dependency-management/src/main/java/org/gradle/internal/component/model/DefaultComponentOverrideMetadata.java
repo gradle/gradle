@@ -24,20 +24,20 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultComponentRequestMetaData implements ComponentRequestMetaData {
+public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
     private final boolean changing;
     private final Set<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentRequestMetaData forDependency(DependencyMetaData dependencyMetaData) {
-        return new DefaultComponentRequestMetaData(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
+    public static ComponentOverrideMetadata forDependency(DependencyMetaData dependencyMetaData) {
+        return new DefaultComponentOverrideMetadata(dependencyMetaData.isChanging(), dependencyMetaData.getArtifacts(), extractClientModule(dependencyMetaData));
     }
 
-    public DefaultComponentRequestMetaData() {
+    public DefaultComponentOverrideMetadata() {
         this(false, Collections.<IvyArtifactName>emptySet(), null);
     }
 
-    private DefaultComponentRequestMetaData(boolean changing, Set<IvyArtifactName> artifacts, ClientModule clientModule) {
+    private DefaultComponentOverrideMetadata(boolean changing, Set<IvyArtifactName> artifacts, ClientModule clientModule) {
         this.changing = changing;
         this.artifacts = Sets.newHashSet(artifacts);
         this.clientModule = clientModule;
@@ -54,8 +54,8 @@ public class DefaultComponentRequestMetaData implements ComponentRequestMetaData
     }
 
     @Override
-    public ComponentRequestMetaData withChanging() {
-        return new DefaultComponentRequestMetaData(true, artifacts, clientModule);
+    public ComponentOverrideMetadata withChanging() {
+        return new DefaultComponentOverrideMetadata(true, artifacts, clientModule);
     }
 
     @Override

@@ -65,7 +65,7 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         }
 
         public void resolveComponentMetaData(final ModuleComponentIdentifier moduleComponentIdentifier,
-                                             final ComponentRequestMetaData requestMetaData, final BuildableModuleComponentMetaDataResolveResult result) {
+                                             final ComponentOverrideMetadata requestMetaData, final BuildableModuleComponentMetaDataResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", moduleComponentIdentifier, name), new Runnable() {
                 public void run() {
                     delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
