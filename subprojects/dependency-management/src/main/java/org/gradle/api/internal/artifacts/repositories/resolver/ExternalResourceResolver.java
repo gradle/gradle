@@ -174,16 +174,17 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 
-    private MutableModuleComponentResolveMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), prescribedMetaData.getArtifacts())) {
+    private MutableModuleComponentResolveMetaData createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        Set<IvyArtifactName> artifacts = overrideMetadata.getArtifacts();
+        for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), artifacts)) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetaData(moduleComponentIdentifier, artifact), result)) {
-                return createDefaultComponentResolveMetaData(moduleComponentIdentifier, prescribedMetaData);
+                return createDefaultComponentResolveMetaData(moduleComponentIdentifier, artifacts);
             }
         }
         return null;
     }
 
-    protected abstract MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata componentOverrideMetadata);
+    protected abstract MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts);
 
     protected abstract MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context);
 

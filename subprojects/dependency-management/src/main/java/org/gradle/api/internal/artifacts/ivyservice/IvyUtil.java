@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
 
@@ -85,19 +84,18 @@ public class IvyUtil {
         return new ArtifactId(createModuleId(org, module), name, type, ext);
     }
 
-    public static DefaultModuleDescriptor createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata) {
+    public static DefaultModuleDescriptor createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(componentIdentifier);
 
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", null, true);
         moduleDescriptor.addConfiguration(new Configuration(ModuleDescriptor.DEFAULT_CONFIGURATION));
         moduleDescriptor.setLastModified(System.currentTimeMillis());
 
-        Set<IvyArtifactName> artifacts = componentOverrideMetadata.getArtifacts();
-        for (IvyArtifactName artifactName : artifacts) {
+        for (IvyArtifactName artifactName : componentArtifacts) {
             addArtifact(moduleDescriptor, artifactName.getName(), artifactName.getType(), artifactName.getExtension(), artifactName.getAttributes());
         }
 
-        if (artifacts.isEmpty()) {
+        if (componentArtifacts.isEmpty()) {
             addArtifact(moduleDescriptor, componentIdentifier.getModule(), "jar", "jar", Collections.<String, String>emptyMap());
         }
 
