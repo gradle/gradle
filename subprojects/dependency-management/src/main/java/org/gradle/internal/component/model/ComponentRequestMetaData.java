@@ -22,6 +22,8 @@ import java.util.Set;
 
 /**
  * Additional metadata about a component that is used when resolving. This is typically specified by a dependency descriptor.
+ * Metadata supplied in this way is applied inconsistently, because multiple dependencies can point to the same component with different
+ * override metadata, and only one of these overrides will be used during dependency resolution.
  */
 public interface ComponentRequestMetaData {
 

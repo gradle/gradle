@@ -362,12 +362,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
-            String configurationName = componentUsage.getConfigurationName();
-             ConfigurationMetaData configuration = component.getConfiguration(configurationName);
-             resolveConfigurationArtifacts((ModuleComponentResolveMetaData) component, configuration, result);
+             resolveConfigurationArtifacts((ModuleComponentResolveMetaData) component, componentUsage, result);
         }
 
-        protected abstract void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result);
 
         protected abstract void resolveMetaDataArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result);
 

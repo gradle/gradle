@@ -109,7 +109,8 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetaData configuration = module.getConfiguration(usage.getConfigurationName());
             result.resolved(configuration.getArtifacts());
         }
 
@@ -132,7 +133,7 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ConfigurationMetaData configuration, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             // Configuration artifacts are determined locally
         }
 
