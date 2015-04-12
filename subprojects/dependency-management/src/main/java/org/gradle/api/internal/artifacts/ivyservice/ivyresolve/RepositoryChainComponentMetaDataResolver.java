@@ -17,15 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.slf4j.Logger;
@@ -36,16 +33,16 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RepositoryChainDependencyResolver implements DependencyToComponentResolver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainDependencyResolver.class);
+public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
 
     private final List<ModuleComponentRepository> repositories = new ArrayList<ModuleComponentRepository>();
     private final List<String> repositoryNames = new ArrayList<String>();
     private final VersionedComponentChooser versionedComponentChooser;
     private final Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory;
 
-    public RepositoryChainDependencyResolver(VersionedComponentChooser versionedComponentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
-        this.versionedComponentChooser = versionedComponentChooser;
+    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
+        this.versionedComponentChooser = componentChooser;
         this.metaDataFactory = metaDataFactory;
     }
 
@@ -54,17 +51,22 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(DependencyMetaData dependency, BuildableComponentResolveResult result) {
-        ModuleVersionSelector requested = dependency.getRequested();
-        LOGGER.debug("Attempting to resolve {} using repositories {}", requested, repositoryNames);
-        ModuleComponentIdentifier moduleComponentIdentifier = new DefaultModuleComponentIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
-        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+        if (!(identifier instanceof ModuleComponentIdentifier)) {
+            throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
+        }
+
+        resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
+    }
+
+    private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+        LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(dependency, moduleComponentIdentifier, repository, versionedComponentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
@@ -78,12 +80,12 @@ public class RepositoryChainDependencyResolver implements DependencyToComponentR
             return;
         }
         if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(moduleComponentIdentifier, errors));
+            result.failed(new ModuleVersionResolveException(identifier, errors));
         } else {
             for (ComponentMetaDataResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
             }
-            result.notFound(moduleVersionIdentifier);
+            result.notFound(identifier);
         }
     }
 

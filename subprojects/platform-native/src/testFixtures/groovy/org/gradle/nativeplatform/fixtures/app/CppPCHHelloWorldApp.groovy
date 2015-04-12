@@ -37,12 +37,7 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
 
     @Override
     SourceFile getLibraryHeader() {
-        getLibraryHeader("")
-    }
-
-    @Override
-    SourceFile getLibraryHeader(String path) {
-        return sourceFile("headers/${path}", "hello.h", """
+        return sourceFile("headers", "hello.h", """
             #ifndef HELLO_H
             #define HELLO_H
             #ifdef _WIN32
@@ -112,8 +107,7 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
     List<SourceFile> getLibrarySources(String path) {
         return [
                 sourceFile("cpp", "hello.cpp", """
-                    #include "${path}hello.h"
-                    #include <iostream>
+                    #include "${path}prefixHeader.h"
 
                     #ifdef FRENCH
                     const char* greeting() {
@@ -130,34 +124,13 @@ class CppPCHHelloWorldApp extends PCHHelloWorldApp {
                     }
                 """),
                 sourceFile("cpp", "sum.cpp", """
-                    #include "${path}hello.h"
+                    #include "hello.h"
 
                     int DLL_FUNC sum(int a, int b) {
                         return a + b;
                     }
                 """)
         ]
-    }
-
-    @Override
-    SourceFile getSystemHeader() {
-        return getSystemHeader("")
-    }
-
-    @Override
-    SourceFile getSystemHeader(String path) {
-        sourceFile("headers/${path}", "systemHeader.h", """
-            #ifndef SYSTEMHEADER_H
-            #define SYSTEMHEADER_H
-            #ifdef _WIN32
-            #define DLL_FUNC __declspec(dllexport)
-            #else
-            #define DLL_FUNC
-            #endif
-            void DLL_FUNC systemCall();
-            #pragma message("<==== compiling systemHeader.h ====>")
-            #endif
-        """)
     }
 
     @Override

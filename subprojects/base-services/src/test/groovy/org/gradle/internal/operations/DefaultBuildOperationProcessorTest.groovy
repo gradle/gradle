@@ -25,6 +25,9 @@ import java.util.concurrent.CountDownLatch
 
 class DefaultBuildOperationProcessorTest extends Specification {
 
+
+    public static final String LOG_LOCATION = "<log location>"
+
     @Unroll
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
@@ -33,7 +36,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
 
         when:
-        def queue = buildOperationProcessor.newQueue(worker)
+        def queue = buildOperationProcessor.newQueue(worker, LOG_LOCATION)
         operations.times { queue.add(operation) }
         and:
         queue.waitForCompletion()
@@ -61,11 +64,11 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), maxThreads)
         def queues = [
-                buildOperationProcessor.newQueue(worker),
-                buildOperationProcessor.newQueue(worker),
-                buildOperationProcessor.newQueue(worker),
-                buildOperationProcessor.newQueue(worker),
-                buildOperationProcessor.newQueue(worker),
+                buildOperationProcessor.newQueue(worker, LOG_LOCATION),
+                buildOperationProcessor.newQueue(worker, LOG_LOCATION),
+                buildOperationProcessor.newQueue(worker, LOG_LOCATION),
+                buildOperationProcessor.newQueue(worker, LOG_LOCATION),
+                buildOperationProcessor.newQueue(worker, LOG_LOCATION),
         ]
         def operations = [
                 Mock(DefaultBuildOperationQueueTest.TestBuildOperation),
@@ -109,8 +112,8 @@ class DefaultBuildOperationProcessorTest extends Specification {
             run() >> { throw new Exception() }
         }
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
-        def successfulQueue = buildOperationProcessor.newQueue(worker)
-        def failedQueue = buildOperationProcessor.newQueue(worker)
+        def successfulQueue = buildOperationProcessor.newQueue(worker, LOG_LOCATION)
+        def failedQueue = buildOperationProcessor.newQueue(worker, LOG_LOCATION)
 
         amountOfWork.times {
             successfulQueue.add(success)
@@ -135,7 +138,7 @@ class DefaultBuildOperationProcessorTest extends Specification {
         def threadCount = 4
         def buildOperationProcessor = new DefaultBuildOperationProcessor(new DefaultExecutorFactory(), threadCount)
         def worker = new DefaultBuildOperationQueueTest.SimpleWorker()
-        def queue = buildOperationProcessor.newQueue(worker)
+        def queue = buildOperationProcessor.newQueue(worker, LOG_LOCATION)
         def startLatch = new CountDownLatch(1)
         def operation = Stub(DefaultBuildOperationQueueTest.TestBuildOperation) {
             run() >> {

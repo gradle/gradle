@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
@@ -25,7 +24,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
@@ -34,7 +32,7 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
         implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
     private final List<Object> libs = new ArrayList<Object>();
-    private Set<String> preCompiledHeaders = Sets.newLinkedHashSet();
+    private String preCompiledHeader;
     private File prefixHeaderFile;
 
     public Collection<?> getLibs() {
@@ -51,13 +49,13 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
     }
 
     @Override
-    public Set<String> getPreCompiledHeaders() {
-        return preCompiledHeaders;
+    public String getPreCompiledHeader() {
+        return preCompiledHeader;
     }
 
     @Override
-    public void preCompiledHeader(String header) {
-        this.preCompiledHeaders.add(header);
+    public void setPreCompiledHeader(String header) {
+        this.preCompiledHeader = header;
     }
 
     @Override

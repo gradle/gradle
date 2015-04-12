@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,27 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-/**
- * Takes a dependency->meta-data resolver and presents it as separate dependency->id and id->meta-data resolvers.
- *
- * Short-circuits the dependency->id resolution for static versions.
- */
-public class RepositoryChainAdapter implements DependencyToComponentIdResolver, ComponentMetaDataResolver {
-    private final DependencyToComponentIdResolver dynamicRevisionResolver;
-    private final DependencyToComponentResolver metaDataResolver;
+public class RepositoryChainDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
     private final VersionSelectorScheme versionSelectorScheme;
+    private final DynamicVersionResolver dynamicRevisionResolver;
 
-    public RepositoryChainAdapter(DependencyToComponentIdResolver dynamicRevisionResolver, DependencyToComponentResolver metaDataResolver, VersionSelectorScheme versionSelectorScheme) {
-        this.dynamicRevisionResolver = dynamicRevisionResolver;
-        this.metaDataResolver = metaDataResolver;
+    public RepositoryChainDependencyToComponentIdResolver(VersionSelectorScheme versionSelectorScheme, VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> metaDataFactory) {
         this.versionSelectorScheme = versionSelectorScheme;
+        this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, metaDataFactory);
+    }
+
+    public void add(ModuleComponentRepository repository) {
+        dynamicRevisionResolver.add(repository);
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
@@ -55,17 +48,5 @@ public class RepositoryChainAdapter implements DependencyToComponentIdResolver, 
             DefaultModuleVersionIdentifier mvId = new DefaultModuleVersionIdentifier(requested.getGroup(), requested.getName(), requested.getVersion());
             result.resolved(id, mvId);
         }
-    }
-
-    public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
-        if (!(identifier instanceof ModuleComponentIdentifier)) {
-            throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
-        }
-
-        // Force the requested version
-        ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) identifier;
-        dependency = dependency.withTarget(new DefaultModuleComponentSelector(moduleId.getGroup(), moduleId.getModule(), moduleId.getVersion()));
-
-        metaDataResolver.resolve(dependency, result);
     }
 }

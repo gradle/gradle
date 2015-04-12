@@ -20,7 +20,6 @@ import org.gradle.language.base.LanguageSourceSet;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * A source set that depends on one or more {@link org.gradle.nativeplatform.NativeDependencySet}s to be built.
@@ -52,18 +51,18 @@ public interface DependentSourceSet extends LanguageSourceSet {
     void lib(Object library);
 
     /**
-     * Adds a pre-compiled header to be used when compiling sources in this source set.
+     * Sets the pre-compiled header to be used when compiling sources in this source set.
      *
      * @param header the header to precompile
      */
-    void preCompiledHeader(String header);
+    void setPreCompiledHeader(String header);
 
     /**
-     * Returns any pre-compiled headers configured for this source set.
+     * Returns the pre-compiled header configured for this source set.
      *
-     * @return the pre-compiled headers
+     * @return the pre-compiled header
      */
-    Set<String> getPreCompiledHeaders();
+    String getPreCompiledHeader();
 
     File getPrefixHeaderFile();
 

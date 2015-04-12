@@ -19,13 +19,28 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 abstract class PCHHelloWorldApp extends IncrementalHelloWorldApp {
-    abstract SourceFile getLibraryHeader(String path)
     abstract List<SourceFile> getLibrarySources(String path)
-    abstract SourceFile getSystemHeader()
-    abstract SourceFile getSystemHeader(String path)
     abstract String getIOHeader()
 
     public SourceFile getBrokenFile() {
         return null
+    }
+
+    public SourceFile getPrefixHeaderFile(String path, String... headers) {
+        return sourceFile("headers/${path}", "prefixHeader.h", """
+            #ifndef PREFIX_HEADER_H
+            ${includeAll(headers)}
+            #endif
+        """)
+    }
+
+    private static String includeAll(String... headers) {
+        headers.collect { header ->
+            if (header.startsWith("<")) {
+                return "#include ${header}"
+            } else {
+                return "#include \"${header}\""
+            }
+        }.join("\n")
     }
 }

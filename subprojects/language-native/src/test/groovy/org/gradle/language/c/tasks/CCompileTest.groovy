@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.c.tasks
+
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,7 +24,6 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class CCompileTest extends Specification {
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
-    Compiler<CppCompileSpec> cCompiler = Mock(Compiler)
+    Compiler<CCompileSpec> cCompiler = Mock(Compiler)
 
     def "executes using the C Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
@@ -46,6 +46,9 @@ class CCompileTest extends Specification {
         cCompile.macros = [def: "value"]
         cCompile.objectFileDir = testDir.file("outputFile")
         cCompile.source sourceFile
+        cCompile.preCompiledHeader = "header"
+        cCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
+        cCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
         cCompile.execute()
 
         then:
@@ -60,6 +63,9 @@ class CCompileTest extends Specification {
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
+            assert spec.preCompiledHeader == "header"
+            assert spec.prefixHeaderFile.name == "prefixHeader"
+            assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
             true
         }) >> result
         1 * result.didWork >> true

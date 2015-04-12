@@ -30,6 +30,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -115,6 +116,28 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     @Override
     public Set<String> keySet() {
         return modelNode.getLinkNames(elementType);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            private final Iterator<String> names = keySet().iterator();
+
+            @Override
+            public boolean hasNext() {
+                return names.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return get(names.next());
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     @Override

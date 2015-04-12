@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.Transformer
@@ -27,15 +26,17 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-class RepositoryChainDependencyResolverTest extends Specification {
+class RepositoryChainComponentMetaDataResolverTest extends Specification {
     final metaData = metaData("1.2")
     final moduleComponentId = DefaultModuleComponentIdentifier.newId("group", "project", "1.0")
     final dependency = Stub(DependencyMetaData)
+    final componentRequestMetaData = Mock(ComponentOverrideMetadata)
     final selector = DefaultModuleVersionSelector.newSelector("group", "project", "1.0")
     final moduleVersionId = DefaultModuleVersionIdentifier.newId("group", "project", "1.0")
     final dependencyDescriptor = Stub(DependencyDescriptor)
@@ -48,7 +49,7 @@ class RepositoryChainDependencyResolverTest extends Specification {
     def remoteAccess2 = Mock(ModuleComponentRepositoryAccess)
 
     final VersionedComponentChooser componentSelectionStrategy = Mock(VersionedComponentChooser)
-    final RepositoryChainDependencyResolver resolver = new RepositoryChainDependencyResolver(componentSelectionStrategy, transformer)
+    final RepositoryChainComponentMetaDataResolver resolver = new RepositoryChainComponentMetaDataResolver(componentSelectionStrategy, transformer)
 
     ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor moduleDescriptor) {
         def moduleRevId = moduleDescriptor.moduleRevisionId
@@ -83,10 +84,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo = addRepo1()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -109,11 +110,11 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo = addRepo1()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -135,14 +136,14 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo = addRepo1()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -165,15 +166,15 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo = addRepo1()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.attempted("scheme:thing")
             result.missing()
         }
         1 * result.attempted("scheme:thing")
-        1 * result.notFound(moduleVersionId)
+        1 * result.notFound(moduleComponentId)
 
         and:
         0 * localAccess._
@@ -186,17 +187,17 @@ class RepositoryChainDependencyResolverTest extends Specification {
         addRepo1()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * result.notFound(moduleVersionId)
+        1 * result.notFound(moduleComponentId)
 
         and:
         0 * localAccess._
@@ -213,10 +214,10 @@ class RepositoryChainDependencyResolverTest extends Specification {
         resolver.add(repo3)
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -242,13 +243,13 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -274,14 +275,14 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -306,15 +307,15 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -340,21 +341,21 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -379,17 +380,17 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -415,18 +416,18 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
             result.authoritative = false
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -451,13 +452,13 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(new ModuleVersionResolveException(id, "broken"))
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -483,15 +484,15 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(new ModuleVersionResolveException(id, "broken"))
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.resolved(metaData)
         }
         1 * transformer.transform(_) >> { RepositoryChainModuleResolution it ->
@@ -518,14 +519,14 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(failure)
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })
@@ -545,15 +546,15 @@ class RepositoryChainDependencyResolverTest extends Specification {
         def repo2 = addRepo2()
 
         when:
-        resolver.resolve(dependency, result)
+        resolver.resolve(moduleComponentId, componentRequestMetaData, result)
 
         then:
-        1 * localAccess.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.failed(failure)
         }
-        1 * localAccess2.resolveComponentMetaData(dependency, moduleComponentId, _)
-        1 * remoteAccess2.resolveComponentMetaData(dependency, moduleComponentId, _) >> { dep, id, result ->
+        1 * localAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _)
+        1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
         1 * result.failed({ it.cause == failure })

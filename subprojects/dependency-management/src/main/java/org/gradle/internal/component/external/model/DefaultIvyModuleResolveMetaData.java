@@ -17,13 +17,14 @@ package org.gradle.internal.component.external.model;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements IvyModuleResolveMetaData {
     private final Map<NamespaceId, String> extraInfo;
@@ -43,8 +44,8 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
         this.extraInfo = moduleDescriptor.getExtraInfo();
     }
 
-    public DefaultIvyModuleResolveMetaData(DependencyMetaData dependencyMetaData) {
-        this(IvyUtil.createModuleDescriptor(dependencyMetaData.getDescriptor()));
+    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts));
     }
 
     @Override

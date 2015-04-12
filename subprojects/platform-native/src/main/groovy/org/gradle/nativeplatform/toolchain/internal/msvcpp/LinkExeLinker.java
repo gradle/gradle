@@ -49,7 +49,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
         LinkerSpec transformedSpec = specTransformer.transform(spec);
         List<String> args = argsTransformer.transform(transformedSpec);
         invocationContext.getArgAction().execute(args);

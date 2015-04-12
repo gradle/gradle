@@ -49,7 +49,7 @@ public class BuildSourceBuilder {
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
-        ClassLoaderScope childScope = classLoaderScope.createChild();
+        ClassLoaderScope childScope = classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath());
         childScope.export(classpath);
         childScope.lock();
         return childScope;

@@ -29,6 +29,18 @@ public interface TestProgressListener {
     /**
      * Called when the test execution progresses.
      *
+     * The following events are currently issued:
+     * <ul>
+     *     <li>TestStartedEvent</li>
+     *     <li>TestSkippedEvent</li>
+     *     <li>TestSucceededEvent</li>
+     *     <li>TestFailedEvent</li>
+     *     <li>TestSuiteStartedEvent</li>
+     *     <li>TestSuiteSkippedEvent</li>
+     *     <li>TestSuiteSucceededEvent</li>
+     *     <li>TestSuiteFailedEvent</li>
+     * </ul>
+     *
      * @param event An event describing the test status change.
      */
     void statusChanged(TestProgressEvent event);

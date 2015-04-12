@@ -23,7 +23,6 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -37,12 +36,8 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
         return this;
     }
 
-    public ComponentMetaDataResolver getComponentMetaDataResolver() {
+    public ComponentMetaDataResolver getComponentResolver() {
         return this;
-    }
-
-    public DependencyToComponentResolver getDependencyResolver() {
-        throw new UnsupportedOperationException();
     }
 
     public ArtifactResolver getArtifactResolver() {
@@ -53,7 +48,7 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
         result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 
-    public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         throw new UnsupportedOperationException();
     }
 

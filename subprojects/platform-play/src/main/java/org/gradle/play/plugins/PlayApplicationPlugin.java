@@ -30,6 +30,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet;
@@ -66,14 +67,13 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
-import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the {@link org.gradle.platform.base.ComponentSpecContainer}.
+ * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
 
 @Incubating
@@ -133,10 +133,10 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void configureDefaultPlaySources(ComponentSpecContainer components, ServiceRegistry serviceRegistry) {
+        void configureDefaultPlaySources(CollectionBuilder<PlayApplicationSpec> playApplicationComponents, ServiceRegistry serviceRegistry) {
             final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            components.withType(PlayApplicationSpec.class).all(new Action<PlayApplicationSpec>() {
+            playApplicationComponents.all(new Action<PlayApplicationSpec>() {
                 public void execute(PlayApplicationSpec playComponent) {
                     // TODO:DAZ Scala source set type should be registered via scala-lang plugin
                     ScalaLanguageSourceSet scalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, "scala", playComponent.getName(), fileResolver, instantiator);
@@ -168,13 +168,16 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             }
         }
 
-        @Finalize
-        void failOnMultipleTargetPlatforms(ComponentSpecContainer container) {
-            for (PlayApplicationSpecInternal playApplicationSpec : container.withType(PlayApplicationSpecInternal.class)) {
-                if (playApplicationSpec.getTargetPlatforms().size() > 1) {
-                    throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+        @Validate
+        void failOnMultipleTargetPlatforms(CollectionBuilder<PlayApplicationSpec> playApplications) {
+            playApplications.afterEach(new Action<PlayApplicationSpec>() {
+                public void execute(PlayApplicationSpec playApplication) {
+                    PlayApplicationSpecInternal playApplicationInternal = (PlayApplicationSpecInternal) playApplication;
+                    if (playApplicationInternal.getTargetPlatforms().size() > 1) {
+                        throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+                    }
                 }
-            }
+            });
         }
 
         @ComponentBinaries

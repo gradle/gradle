@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.type;
+package org.gradle.language.c.plugins
 
-import java.util.Collection;
+import org.gradle.language.AbstractPCHPluginSpec
+import org.gradle.language.c.CSourceSet
 
-public abstract class ModelTypes {
-
-    public static <T> ModelType<Collection<T>> collectionOf(Class<T> type) {
-        return new ModelType.Builder<Collection<T>>() {
-        }.where(new ModelType.Parameter<T>() {
-        }, ModelType.of(type)).build();
+class CLangPCHPluginTest extends AbstractPCHPluginSpec {
+    @Override
+    def getPluginClass() {
+        return CLangPCHPlugin
     }
 
+    @Override
+    def getLanguageSourceSet() {
+        return CSourceSet
+    }
 }

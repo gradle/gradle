@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -55,7 +56,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleVersionSelector requested = dependency.getRequested();
-        LOGGER.debug("Attempting to resolve {} using repositories {}", requested, repositoryNames);
+        LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<RepositoryResolveState> resolveStates = new ArrayList<RepositoryResolveState>();
@@ -170,9 +171,11 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
         private final DependencyMetaData dependency;
+        private final ModuleVersionSelector selector;
 
         public RepositoryResolveState(DependencyMetaData dependency, ModuleComponentRepository repository) {
             this.dependency = dependency;
+            this.selector = dependency.getRequested();
             this.repository = repository;
             this.attemptCollector = new AttemptCollector();
             versionListingResult = new VersionListResult(dependency, repository);
@@ -200,7 +203,7 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), dependency, componentSelectionResult);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(), componentSelectionResult, selector);
             switch (componentSelectionResult.getState()) {
                 // No version matching list: component is missing
                 case NoMatch:
@@ -291,7 +294,8 @@ public class DynamicVersionResolver implements DependencyToComponentIdResolver {
         }
 
         private void process(ModuleComponentRepositoryAccess access) {
-            access.resolveComponentMetaData(dependencyMetaData.withRequestedVersion(version), identifier, result);
+            DependencyMetaData dependency = dependencyMetaData.withRequestedVersion(version);
+            access.resolveComponentMetaData(identifier, DefaultComponentOverrideMetadata.forDependency(dependency), result);
             attemptCollector.execute(result);
         }
 

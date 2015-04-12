@@ -31,6 +31,6 @@ public interface TestSuiteStartedEvent extends TestProgressEvent{
      *
      * @return The description
      */
-    TestDescriptor getDescriptor();
+    TestDescriptor getTestDescriptor();
 
 }

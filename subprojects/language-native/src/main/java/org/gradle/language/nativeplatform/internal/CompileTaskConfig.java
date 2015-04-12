@@ -111,9 +111,9 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
         task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
 
         // If this task uses a pre-compiled header
-        if (sourceSet instanceof DependentSourceSet && !((DependentSourceSet) sourceSet).getPreCompiledHeaders().isEmpty()) {
+        if (sourceSet instanceof DependentSourceSet && ((DependentSourceSet) sourceSet).getPreCompiledHeader() != null) {
             task.setPrefixHeaderFile(((DependentSourceSet)sourceSet).getPrefixHeaderFile());
-            task.setPreCompiledHeaders(((DependentSourceSet) sourceSet).getPreCompiledHeaders());
+            task.setPreCompiledHeader(((DependentSourceSet) sourceSet).getPreCompiledHeader());
             task.preCompiledHeaderInclude(new Callable<FileCollection>() {
                 public FileCollection call() {
                     Set<AbstractNativePCHCompileTask> pchTasks = binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>() {

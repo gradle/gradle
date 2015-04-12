@@ -30,10 +30,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.converter.*;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -43,6 +40,7 @@ import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.*;
+import org.gradle.launcher.watch.WatchModeParameters;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 
@@ -67,12 +65,15 @@ class BuildActionsFactory implements CommandLineAction {
     private final DaemonCommandLineConverter daemonConverter;
     private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
 
+    private final WatchModeCommandLineConverter watchModeConverter;
+
     BuildActionsFactory(ServiceRegistry loggingServices) {
         this(loggingServices, new DefaultCommandLineConverter());
     }
 
     BuildActionsFactory(ServiceRegistry loggingServices, DefaultCommandLineConverter commandLineConverter,
                         DaemonCommandLineConverter daemonConverter, LayoutCommandLineConverter layoutConverter,
+                        WatchModeCommandLineConverter watchModeConverter,
                         SystemPropertiesCommandLineConverter propertiesConverter,
                         LayoutToPropertiesConverter layoutToPropertiesConverter,
                         PropertiesToStartParameterConverter propertiesToStartParameterConverter,
@@ -81,6 +82,7 @@ class BuildActionsFactory implements CommandLineAction {
         this.commandLineConverter = commandLineConverter;
         this.daemonConverter = daemonConverter;
         this.layoutConverter = layoutConverter;
+        this.watchModeConverter = watchModeConverter;
         this.propertiesConverter = propertiesConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
         this.propertiesToStartParameterConverter = propertiesToStartParameterConverter;
@@ -89,13 +91,14 @@ class BuildActionsFactory implements CommandLineAction {
 
     private BuildActionsFactory(ServiceRegistry loggingServices, DefaultCommandLineConverter commandLineConverter) {
         this(loggingServices, commandLineConverter, new DaemonCommandLineConverter(),
-                commandLineConverter.getLayoutConverter(), commandLineConverter.getSystemPropertiesConverter(),
+                commandLineConverter.getLayoutConverter(), new WatchModeCommandLineConverter(), commandLineConverter.getSystemPropertiesConverter(),
                 new LayoutToPropertiesConverter(), new PropertiesToStartParameterConverter(), new PropertiesToDaemonParametersConverter());
     }
 
     public void configureCommandLineParser(CommandLineParser parser) {
         commandLineConverter.configure(parser);
         daemonConverter.configure(parser);
+        watchModeConverter.configure(parser);
 
         parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground.").incubating();
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running.");
@@ -116,6 +119,9 @@ class BuildActionsFactory implements CommandLineAction {
         DaemonParameters daemonParameters = new DaemonParameters(layout, startParameter.getSystemPropertiesArgs());
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(commandLine, daemonParameters);
+
+        WatchModeParameters watchModeParameters = new WatchModeParameters();
+        watchModeConverter.convert(commandLine, watchModeParameters);
 
         if (commandLine.hasOption(STOP)) {
             return stopAllDaemons(daemonParameters, loggingServices);

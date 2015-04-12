@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class DefaultSourceIncludes implements SourceIncludes, Serializable {
+    private final List<String> allIncludes = new ArrayList<String>();
     private final List<String> quotedIncludes = new ArrayList<String>();
     private final List<String> systemIncludes = new ArrayList<String>();
     private final List<String> macroIncludes = new ArrayList<String>();
@@ -29,10 +30,13 @@ class DefaultSourceIncludes implements SourceIncludes, Serializable {
     public void addAll(List<String> includes) {
         for (String value : includes) {
             if (value.startsWith("<") && value.endsWith(">")) {
+                allIncludes.add(strip(value));
                 systemIncludes.add(strip(value));
             } else if (value.startsWith("\"") && value.endsWith("\"")) {
+                allIncludes.add(strip(value));
                 quotedIncludes.add(strip(value));
             } else {
+                allIncludes.add(value);
                 macroIncludes.add(value);
             }
         }
@@ -40,6 +44,10 @@ class DefaultSourceIncludes implements SourceIncludes, Serializable {
 
     private String strip(String include) {
         return include.substring(1, include.length() - 1);
+    }
+
+    public List<String> getAllIncludes() {
+        return allIncludes;
     }
 
     public List<String> getQuotedIncludes() {
@@ -67,7 +75,8 @@ class DefaultSourceIncludes implements SourceIncludes, Serializable {
 
         return macroIncludes.equals(that.macroIncludes)
                 && quotedIncludes.equals(that.quotedIncludes)
-                && systemIncludes.equals(that.systemIncludes);
+                && systemIncludes.equals(that.systemIncludes)
+                && allIncludes.equals(that.allIncludes);
 
     }
 
@@ -76,6 +85,7 @@ class DefaultSourceIncludes implements SourceIncludes, Serializable {
         int result = quotedIncludes.hashCode();
         result = 31 * result + systemIncludes.hashCode();
         result = 31 * result + macroIncludes.hashCode();
+        result = 31 * result + allIncludes.hashCode();
         return result;
     }
 }

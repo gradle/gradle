@@ -30,6 +30,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -121,6 +122,11 @@ public class CollectionBuilderModelView<T> implements ModelView<CollectionBuilde
         @Override
         public Set<String> keySet() {
             return rawInstance.keySet();
+        }
+
+        @Override
+        public Iterator<I> iterator() {
+            return rawInstance.iterator();
         }
 
         @Override

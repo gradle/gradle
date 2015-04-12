@@ -46,7 +46,7 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     def getFound() {
-        return includes + imports
+        return parsedSource.importsAndIncludes
     }
     
     def noIncludes() {
@@ -221,6 +221,24 @@ class RegexBackedCSourceParserTest extends Specification {
         then:
         includes == ['"test2"', '"test4"', '<system3>', 'DEFINED1']
         imports == ['"test1"', '"test3"', '<system1>', '<system2>', '<system4>', 'DEFINED2']
+    }
+
+    def "preserves order of all includes and imports"() {
+        when:
+        sourceFile << """
+    #import "test1"
+    #include "test2"
+    #import "test3"
+    #include "test4"
+    #import <system1>
+    #import <system2>
+    #include <system3>
+    #import <system4>
+    #include DEFINED1
+    #import DEFINED2
+"""
+        then:
+        found == ['"test1"', '"test2"', '"test3"', '"test4"', '<system1>', '<system2>', '<system3>', '<system4>', 'DEFINED1', 'DEFINED2']
     }
 
     @Unroll

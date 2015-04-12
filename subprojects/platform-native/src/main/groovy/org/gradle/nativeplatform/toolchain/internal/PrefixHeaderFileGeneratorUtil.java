@@ -23,16 +23,16 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 public class PrefixHeaderFileGeneratorUtil {
-    public static void generatePCHFile(Set<String> headers, File headerFile) {
+    public static void generatePCHFile(List<String> headers, File headerFile) {
         if (!headerFile.getParentFile().exists()) {
             headerFile.getParentFile().mkdirs();
         }
 
         try {
-            FileUtils.writeLines(headerFile, CollectionUtils.collect(CollectionUtils.toList(headers), new Transformer<String, String>() {
+            FileUtils.writeLines(headerFile, CollectionUtils.collect(headers, new Transformer<String, String>() {
                 @Override
                 public String transform(String header) {
                     if (header.startsWith("<")) {

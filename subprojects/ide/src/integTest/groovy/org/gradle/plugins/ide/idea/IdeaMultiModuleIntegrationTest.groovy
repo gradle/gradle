@@ -214,6 +214,58 @@ project(':api') {
     }
 
     @Test
+    void handlesModuleDependencyCycles() {
+        def settingsFile = file("master/settings.gradle")
+        settingsFile << """
+include 'one'
+include 'two'
+include 'three'
+        """
+
+        def buildFile = file("master/build.gradle")
+        buildFile << """
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':one') {
+    dependencies {
+        compile project(':two')
+    }
+}
+
+project(':two') {
+    dependencies {
+        compile project(':three')
+    }
+}
+
+project(':three') {
+    dependencies {
+        compile project(':one')
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+
+        //then
+        def dependencies = parseIml("master/one/one.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("COMPILE", "two")
+
+        dependencies = parseIml("master/two/two.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("COMPILE", "three")
+
+        dependencies = parseIml("master/three/three.iml").dependencies
+        assert dependencies.modules.size() == 1
+        dependencies.assertHasModule("COMPILE", "one")
+    }
+
+    @Test
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'shared:api', 'contrib'"

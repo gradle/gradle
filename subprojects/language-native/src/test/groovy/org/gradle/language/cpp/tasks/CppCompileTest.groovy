@@ -46,6 +46,9 @@ class CppCompileTest extends Specification {
         cppCompile.macros = [def: "value"]
         cppCompile.objectFileDir = testDir.file("outputFile")
         cppCompile.source sourceFile
+        cppCompile.preCompiledHeader = "header"
+        cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
+        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
         cppCompile.execute()
 
         then:
@@ -60,6 +63,9 @@ class CppCompileTest extends Specification {
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
+            assert spec.preCompiledHeader == "header"
+            assert spec.prefixHeaderFile.name == "prefixHeader"
+            assert spec.preCompiledHeaderObjectFile.name == "pchObjectFile"
             true
         }) >> result
         1 * result.didWork >> true

@@ -113,6 +113,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
 
         public SourceIncludes read(Decoder decoder) throws Exception {
             SourceIncludes sourceIncludes = new DefaultSourceIncludes();
+            sourceIncludes.getAllIncludes().addAll(stringListSerializer.read(decoder));
             sourceIncludes.getQuotedIncludes().addAll(stringListSerializer.read(decoder));
             sourceIncludes.getSystemIncludes().addAll(stringListSerializer.read(decoder));
             sourceIncludes.getMacroIncludes().addAll(stringListSerializer.read(decoder));
@@ -120,6 +121,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         }
 
         public void write(Encoder encoder, SourceIncludes value) throws Exception {
+            stringListSerializer.write(encoder, value.getAllIncludes());
             stringListSerializer.write(encoder, value.getQuotedIncludes());
             stringListSerializer.write(encoder, value.getSystemIncludes());
             stringListSerializer.write(encoder, value.getMacroIncludes());

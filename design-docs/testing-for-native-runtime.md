@@ -69,6 +69,23 @@ Note that the implementation is highly based on the current CUnit implementation
  - Should the C++ source set for Google Test named 'googletest' or 'gtest'?
  - How can we refactor CUnit code for reusability with Google Test? The process is the same - configure test source, create binaries, etc. - but yet different.
 
+
+## Issue: Native unit test plug-ins do not allow you to apply other language plug-ins
+
+e.g., this doesn't work:
+
+    apply plugin: 'c'
+    apply plugin: 'cpp'
+    apply plugin: 'cunit'
+
+    model {
+       components {
+          lib1(NativeLibrarySpec)
+       }
+    }
+
+We explode in the ComponentModelBasePlugin because not all of the native tools are configured for the test binary.
+
 # Open issues
 
 * Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.

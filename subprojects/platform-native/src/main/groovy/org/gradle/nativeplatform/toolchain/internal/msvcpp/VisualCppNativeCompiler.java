@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.nativeplatform.toolchain.internal.*;
@@ -48,8 +47,8 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     @Override
     protected List<String> getPCHArgs(T spec) {
         List<String> pchArgs = new ArrayList<String>();
-        if (CollectionUtils.isNotEmpty(spec.getPreCompiledHeaders()) && spec.getPreCompiledHeaderObjectFile() != null) {
-            String lastHeader = (String) CollectionUtils.get(spec.getPreCompiledHeaders(), spec.getPreCompiledHeaders().size() - 1);
+        if (spec.getPreCompiledHeader() != null && spec.getPreCompiledHeaderObjectFile() != null) {
+            String lastHeader = spec.getPreCompiledHeader();
             if (lastHeader.startsWith("<")) {
                 lastHeader = lastHeader.substring(1, lastHeader.length()-1);
             }

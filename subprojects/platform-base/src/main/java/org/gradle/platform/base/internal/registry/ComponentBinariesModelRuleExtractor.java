@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.DelegatingCollectionBuilder;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.factory.ModelTypes;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
@@ -39,15 +40,15 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         return createRegistration(ruleDefinition);
     }
 
-    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
+    private <R, S extends BinarySpec, C extends ComponentSpec> ExtractedModelRule createRegistration(MethodRuleDefinition<R, ?> ruleDefinition) {
         try {
             RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
             visitAndVerifyMethodSignature(dataCollector, ruleDefinition);
 
             Class<S> binaryType = dataCollector.getParameterType(BinarySpec.class);
-            Class<? extends ComponentSpec> componentType = dataCollector.getParameterType(ComponentSpec.class);
+            Class<C> componentType = dataCollector.getParameterType(ComponentSpec.class);
             ModelReference<CollectionBuilder<BinarySpec>> subject = ModelReference.of(ModelPath.path("binaries"), DefaultCollectionBuilder.typeOf(ModelType.of(BinarySpec.class)));
-            ComponentBinariesRule<R, S> componentBinariesRule = new ComponentBinariesRule<R, S>(subject, componentType, binaryType, ruleDefinition);
+            ComponentBinariesRule<R, S, C> componentBinariesRule = new ComponentBinariesRule<R, S, C>(subject, componentType, binaryType, ruleDefinition);
 
             return new ExtractedModelAction(ModelActionRole.Mutate, ImmutableList.of(ComponentModelBasePlugin.class), componentBinariesRule);
         } catch (InvalidModelException e) {
@@ -61,21 +62,21 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         visitDependency(dataCollector, ruleDefinition, ModelType.of(ComponentSpec.class));
     }
 
-    private class ComponentBinariesRule<R, S extends BinarySpec> extends CollectionBuilderBasedRule<R, S, ComponentSpec, CollectionBuilder<BinarySpec>> {
+    private class ComponentBinariesRule<R, S extends BinarySpec, C extends ComponentSpec> extends CollectionBuilderBasedRule<R, S, ComponentSpec, CollectionBuilder<BinarySpec>> {
 
-        private final Class<? extends ComponentSpec> componentType;
+        private final Class<C> componentType;
         private final Class<S> binaryType;
 
-        public ComponentBinariesRule(ModelReference<CollectionBuilder<BinarySpec>> subject, final Class<? extends ComponentSpec> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(subject, componentType, ruleDefinition, ModelReference.of(ComponentSpecContainer.class));
+        public ComponentBinariesRule(ModelReference<CollectionBuilder<BinarySpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
+            super(subject, componentType, ruleDefinition, ModelReference.of(ModelTypes.collectionBuilderOf(componentType)));
             this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
         public void execute(MutableModelNode modelNode, final CollectionBuilder<BinarySpec> binaries, List<ModelView<?>> inputs) {
-            ComponentSpecContainer componentSpecs = ModelViews.assertType(inputs.get(0), ModelType.of(ComponentSpecContainer.class)).getInstance();
+            CollectionBuilder<C> componentSpecs = ModelViews.assertType(inputs.get(0), ModelTypes.collectionBuilderOf(componentType)).getInstance();
 
-            for (final ComponentSpec componentSpec : componentSpecs.withType(componentType)) {
+            for (final ComponentSpec componentSpec : componentSpecs) {
                 CollectionBuilder<S> typed = binaries.withType(binaryType);
                 CollectionBuilder<S> wrapped = new DelegatingCollectionBuilder<S>(typed, ModelType.of(binaryType), new BiAction<String, ModelType<? extends S>>() {
                     @Override

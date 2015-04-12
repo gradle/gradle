@@ -23,7 +23,9 @@ import org.gradle.api.tasks.*;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -78,14 +80,9 @@ public class Assemble extends DefaultTask {
         spec.args(getAssemblerArgs());
         spec.setOperationLogger(operationLogger);
 
-        operationLogger.start();
-        try {
-            WorkResult result = toolChain.select(targetPlatform).newCompiler(AssembleSpec.class).execute(spec);
-            setDidWork(result.getDidWork());
-        } finally {
-            operationLogger.done();
-        }
-
+        Compiler<AssembleSpec> compiler = toolChain.select(targetPlatform).newCompiler(AssembleSpec.class);
+        WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
+        setDidWork(result.getDidWork());
     }
 
     @InputFiles

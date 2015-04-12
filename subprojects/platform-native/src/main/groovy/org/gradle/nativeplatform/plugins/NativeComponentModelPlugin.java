@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.plugins;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -117,11 +116,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        NamedDomainObjectSet<NativeComponentSpec> nativeComponents(ComponentSpecContainer components) {
-            return components.withType(NativeComponentSpec.class);
-        }
-
-        @Model
         PreCompiledHeaderTransformContainer preCompiledHeaderTransformContainer(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultPreCompiledHeaderTransformContainer.class);
         }
@@ -148,7 +142,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ Migrate to @BinaryType and @ComponentBinaries
         @Mutate
-        public void createNativeBinaries(BinaryContainer binaries, NamedDomainObjectSet<NativeComponentSpec> nativeComponents,
+        public void createNativeBinaries(BinaryContainer binaries, CollectionBuilder<NativeComponentSpec> nativeComponents,
                                          LanguageTransformContainer languageTransforms, NativeToolChainRegistryInternal toolChains,
                                          PlatformResolvers platforms, BuildTypeContainer buildTypes, FlavorContainer flavors,
                                          ServiceRegistry serviceRegistry, @Path("buildDir") File buildDir, ITaskFactory taskFactory) {
@@ -214,7 +208,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public void execute(ComponentSpec componentSpec) {
                     for (DependentSourceSet dependentSourceSet : componentSpec.getSource().withType(DependentSourceSet.class)) {
-                        if (CollectionUtils.isNotEmpty(dependentSourceSet.getPreCompiledHeaders())) {
+                        if (dependentSourceSet.getPreCompiledHeader() != null) {
                             String prefixHeaderDirName = String.format("tmp/%s/prefixHeaders", dependentSourceSet.getName());
                             File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
                             final File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
@@ -226,7 +220,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, NamedDomainObjectSet<NativeComponentSpec> nativeComponents) {
+        void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, CollectionBuilder<NativeComponentSpec> nativeComponents) {
             for (NativeComponentSpec nativeComponentSpec : nativeComponents) {
                 nativeComponentSpec.getSource().withType(DependentSourceSet.class, new Action<DependentSourceSet>() {
                     @Override
@@ -237,7 +231,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                                 @Override
                                 public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
                                     prefixHeaderFileGenerateTask.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
-                                    prefixHeaderFileGenerateTask.setHeaders(dependentSourceSet.getPreCompiledHeaders());
+                                    prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
                                 }
                             });
                         }
@@ -256,7 +250,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             @Override
                             public void execute(final LanguageSourceSet languageSourceSet) {
                                 final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
-                                if (CollectionUtils.isNotEmpty(dependentSourceSet.getPreCompiledHeaders())) {
+                                if (dependentSourceSet.getPreCompiledHeader() != null) {
                                     final SourceTransformTaskConfig taskConfig = transform.getTransformTask();
                                     String pchTaskName = String.format("%s%s%sPreCompiledHeader", taskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
                                     nativeBinarySpec.getTasks().create(pchTaskName, taskConfig.getTaskType(), new Action<DefaultTask>() {

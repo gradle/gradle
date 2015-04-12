@@ -160,3 +160,7 @@ TODO: Flesh out
 # Out of Scope
 
 - Multiple native components in a single project can be only compile in parallel at the component level (depends on task-level parallelization for anything else).
+
+# Backlog / defects
+
+- Output log files contain concatenated stdout and stderr without any demarcation (https://code-review.gradle.org/cru/REVIEW-5406#c8153)

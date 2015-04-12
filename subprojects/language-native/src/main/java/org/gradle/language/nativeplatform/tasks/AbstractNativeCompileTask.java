@@ -21,23 +21,24 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
-import org.gradle.language.base.internal.compile.CompilerUtil;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -54,7 +55,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private File prefixHeaderFile;
-    private Set<String> preCompiledHeaders;
+    private String preCompiledHeader;
     private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
@@ -98,17 +99,19 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
             File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
             spec.setPrefixHeaderFile(new File(pchDir, prefixHeaderFile.getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
-            spec.setPreCompiledHeaders(getPreCompiledHeaders());
+            spec.setPreCompiledHeader(getPreCompiledHeader());
         }
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        operationLogger.start();
-        try {
-            WorkResult result = CompilerUtil.castCompiler(getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec.getClass()), toolChain)).execute(spec);
-            setDidWork(result.getDidWork());
-        } finally {
-            operationLogger.done();
-        }
+        setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+    }
+
+    private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
+        Class<T> specType = Cast.uncheckedCast(spec.getClass());
+        Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
+        return loggingCompiler.execute(spec);
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
@@ -239,11 +242,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         preCompiledHeaderInclude.from(preCompiledHeader);
     }
 
-    public Set<String> getPreCompiledHeaders() {
-        return preCompiledHeaders;
+    public String getPreCompiledHeader() {
+        return preCompiledHeader;
     }
 
-    public void setPreCompiledHeaders(Set<String> preCompiledHeaders) {
-        this.preCompiledHeaders = preCompiledHeaders;
+    public void setPreCompiledHeader(String preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
     }
 }

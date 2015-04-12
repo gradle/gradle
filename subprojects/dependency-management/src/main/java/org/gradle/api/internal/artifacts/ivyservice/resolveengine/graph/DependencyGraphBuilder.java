@@ -570,7 +570,7 @@ public class DependencyGraphBuilder {
             }
 
             DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
-            resolver.resolve(firstReference.dependencyMetaData, idResolveResult.getId(), result);
+            resolver.resolve(idResolveResult.getId(), DefaultComponentOverrideMetadata.forDependency(firstReference.dependencyMetaData), result);
             if (result.getFailure() != null) {
                 failure = result.getFailure();
                 return;
