@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
@@ -33,30 +32,26 @@ import java.util.Set;
 
 abstract class AbstractArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final ComponentResolveMetaData component;
+    private final ModuleSource moduleSource;
     private final ArtifactResolver artifactResolver;
     private Set<ResolvedArtifact> resolvedArtifacts;
 
-    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ComponentResolveMetaData component, ArtifactResolver artifactResolver) {
+    public AbstractArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ArtifactResolver artifactResolver) {
         this.moduleVersionIdentifier = ownerId;
-        this.component = component;
+        this.moduleSource = moduleSource;
         this.artifactResolver = artifactResolver;
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
         if (resolvedArtifacts == null) {
-            // TODO:DAZ Cut the state that we hold to just what is absolutely required for artifact resolution
-            Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts(component);
+            Set<ComponentArtifactMetaData> componentArtifacts = resolveComponentArtifacts();
             resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(componentArtifacts.size());
             for (ComponentArtifactMetaData artifact : componentArtifacts) {
-                Factory<File> artifactSource = new LazyArtifactSource(artifact, component.getSource(), artifactResolver);
+                Factory<File> artifactSource = new LazyArtifactSource(artifact, moduleSource, artifactResolver);
                 ResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(moduleVersionIdentifier), artifact.getName(), artifactSource);
                 resolvedArtifacts.add(resolvedArtifact);
             }
         }
-        // TODO:DAZ Once artifacts are built, clear all state that is no longer required
-        // TODO:DAZ Need to avoid hanging onto state when artifacts are not used: for now maybe resolve artifact sets explicitly even when not required
-        // TODO:DAZ ArtifactResolver should be provided when resolving, not when constructing
         return resolvedArtifacts;
     }
 
@@ -64,7 +59,7 @@ abstract class AbstractArtifactSet implements ArtifactSet {
         return artifactResolver;
     }
 
-    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts(ComponentResolveMetaData component);
+    protected abstract Set<ComponentArtifactMetaData> resolveComponentArtifacts();
 
     private static class LazyArtifactSource implements Factory<File> {
         private final ArtifactResolver artifactResolver;

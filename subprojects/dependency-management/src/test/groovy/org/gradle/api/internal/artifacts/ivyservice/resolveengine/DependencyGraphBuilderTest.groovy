@@ -946,7 +946,10 @@ class DependencyGraphBuilderTest extends Specification {
     def traverses(Map<String, ?> args = [:], TestMetaData from, ComponentResolveMetaData to) {
         def dependencyMetaData = dependsOn(args, from, to.descriptor.moduleRevisionId)
         selectorResolvesTo(dependencyMetaData, to.componentId, to.id)
-        1 * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
+
+        // Resolves project component again to resolve artifacts
+        def resolveCount = to instanceof TestProjectMetaData ? 2 : 1
+        resolveCount * metaDataResolver.resolve(to.componentId, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.resolved(to)
         }
     }

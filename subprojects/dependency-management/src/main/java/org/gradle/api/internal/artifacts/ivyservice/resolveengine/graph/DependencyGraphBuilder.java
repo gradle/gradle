@@ -77,7 +77,7 @@ public class DependencyGraphBuilder {
                         ResolvedConfigurationBuilder oldModelBuilder,
                         ResolvedArtifactsBuilder artifactsBuilder,
                         ResolvedProjectConfigurationResultBuilder projectModelBuilder) throws ResolveException {
-        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, artifactResolver);
+        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder, artifactsBuilder, metaDataResolver, artifactResolver);
         DependencyGraphVisitor newModelVisitor = new ResolutionResultDependencyGraphVisitor(newModelBuilder);
         DependencyGraphVisitor projectModelVisitor = new ResolvedProjectConfigurationResultGraphVisitor(projectModelBuilder);
         DependencyGraphVisitor modelVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);

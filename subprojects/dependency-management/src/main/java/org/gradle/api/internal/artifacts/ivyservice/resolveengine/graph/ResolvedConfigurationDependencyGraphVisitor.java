@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedArtifactsBuilder;
@@ -30,6 +31,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +44,14 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     private final ResolvedConfigurationBuilder builder;
     private final ResolvedArtifactsBuilder artifactsBuilder;
     private final ArtifactResolver artifactResolver;
+    private final ComponentMetaDataResolver componentResolver;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private DependencyGraphBuilder.ConfigurationNode root;
 
-    ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ArtifactResolver artifactResolver) {
+    ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder, ResolvedArtifactsBuilder artifactsBuilder, ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver) {
         this.builder = builder;
         this.artifactsBuilder = artifactsBuilder;
+        this.componentResolver = componentResolver;
         this.artifactResolver = artifactResolver;
     }
 
@@ -89,13 +93,21 @@ class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisi
     }
 
     private ArtifactSet getArtifacts(DependencyGraphBuilder.DependencyEdge dependency, DependencyGraphBuilder.ConfigurationNode childConfiguration) {
+        ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.id;
         ConfigurationMetaData metaData = childConfiguration.getMetaData();
         ComponentResolveMetaData component = metaData.getComponent();
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
-            return new DependencyArtifactSet(component, artifacts, artifactResolver);
+            return new DependencyArtifactSet(component.getId(), component.getSource(), artifacts, artifactResolver);
         }
-        return new ConfigurationArtifactsSet(component, childConfiguration.id, dependency.getSelector(), artifactResolver);
+
+        // For project components, use the project id to resolve the set of artifacts on demand.
+        if (component.getComponentId() instanceof ProjectComponentIdentifier) {
+            return new LazyResolveConfigurationArtifactSet(component, configurationIdentifier, dependency.getSelector(), componentResolver, artifactResolver);
+        }
+
+        // For external components, resolve the set of artifacts now to avoid holding onto state.
+        return new EagerResolveConfigurationArtifactsSet(component, configurationIdentifier, dependency.getSelector(), artifactResolver);
     }
 
     public void finish(DependencyGraphBuilder.ConfigurationNode root) {

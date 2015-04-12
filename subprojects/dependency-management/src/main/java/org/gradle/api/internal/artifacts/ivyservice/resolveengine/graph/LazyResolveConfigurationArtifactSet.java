@@ -17,34 +17,44 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.DefaultComponentUsage;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-// TODO:DAZ Probably want to resolve early for external modules, and only hang onto Configuration node for local components
-class ConfigurationArtifactsSet extends AbstractArtifactSet {
+class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private final ResolvedConfigurationIdentifier configurationId;
     private final ModuleResolutionFilter selector;
+    private final ComponentIdentifier componentIdentifier;
+    private final ComponentMetaDataResolver componentResolver;
     private Set<ComponentArtifactMetaData> artifacts;
 
-    public ConfigurationArtifactsSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector, ArtifactResolver artifactResolver) {
-        super(component.getId(), component, artifactResolver);
+    public LazyResolveConfigurationArtifactSet(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId, ModuleResolutionFilter selector,
+                                               ComponentMetaDataResolver componentResolver, ArtifactResolver artifactResolver) {
+        super(component.getId(), component.getSource(), artifactResolver);
+        this.componentIdentifier = component.getComponentId();
+        this.componentResolver = componentResolver;
         this.configurationId = configurationId;
         this.selector = selector;
     }
 
     @Override
-    protected Set<ComponentArtifactMetaData> resolveComponentArtifacts(ComponentResolveMetaData component) {
+    protected Set<ComponentArtifactMetaData> resolveComponentArtifacts() {
         if (artifacts == null) {
+            // TODO:DAZ For this to work with external components, we'll need to use the correct ModuleSource and ComponentOverrideMetadata to resolve the component
+            BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
+            componentResolver.resolve(componentIdentifier, new DefaultComponentOverrideMetadata(), moduleResolveResult);
+            ComponentResolveMetaData component = moduleResolveResult.getMetaData();
+
             BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
             getArtifactResolver().resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
             artifacts = result.getArtifacts();
