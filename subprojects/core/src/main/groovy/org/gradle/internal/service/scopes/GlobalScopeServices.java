@@ -36,10 +36,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.*;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -94,7 +91,7 @@ public class GlobalScopeServices {
         }
     }
 
-    DefaultGradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
+    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
         return new DefaultGradleLauncherFactory(services);
     }
 

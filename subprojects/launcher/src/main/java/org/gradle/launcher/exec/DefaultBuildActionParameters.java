@@ -64,6 +64,8 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", currentDir=" + currentDir
                 + ", systemProperties size=" + systemProperties.size()
                 + ", envVariables size=" + envVariables.size()
+                + ", logLevel=" + logLevel
+                + ", daemonUsage=" + daemonUsage
                 + '}';
     }
 
