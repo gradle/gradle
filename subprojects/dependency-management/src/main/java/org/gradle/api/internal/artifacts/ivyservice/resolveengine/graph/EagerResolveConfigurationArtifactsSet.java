@@ -30,6 +30,10 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * An ArtifactSet that resolves the sets of artifacts on construction.
+ * This is presently used to resolve artifacts for external modules, as we transition toward full separation of graph and artifact resolution.
+ */
 class EagerResolveConfigurationArtifactsSet extends AbstractArtifactSet {
     private final ResolvedConfigurationIdentifier configurationId;
     private final Set<ComponentArtifactMetaData> artifacts;

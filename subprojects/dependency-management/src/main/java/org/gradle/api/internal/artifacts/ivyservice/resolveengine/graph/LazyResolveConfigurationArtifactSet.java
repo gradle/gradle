@@ -31,6 +31,11 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * An ArtifactSet implementation that resolves the artifacts for a component on demand.
+ * Currently, this implementation lacks context (ModuleSource, ComponentOverrideMetadata) to allow it to correctly and efficiently
+ * resolve artifacts for external components. Thus it is currently only used to resolve artifacts for project components.
+ */
 class LazyResolveConfigurationArtifactSet extends AbstractArtifactSet {
     private final ResolvedConfigurationIdentifier configurationId;
     private final ModuleResolutionFilter selector;
