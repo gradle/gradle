@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
 
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
 abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
@@ -32,7 +31,7 @@ abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
         def outputFile = testDir.file("output.ext")
 
         when:
-        def args = compiler.getOutputArgs(Stub(NativeCompileSpec), outputFile)
+        def args = compiler.getOutputArgs(outputFile)
 
         then:
         args == [ '-o', outputFile.absoluteFile.toString() ]

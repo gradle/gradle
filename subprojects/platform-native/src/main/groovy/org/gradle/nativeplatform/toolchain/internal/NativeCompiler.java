@@ -96,7 +96,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         return Collections.singletonList(sourceFile.getAbsolutePath());
     }
 
-    protected abstract List<String> getOutputArgs(T spec, File outputFile);
+    protected abstract List<String> getOutputArgs(File outputFile);
 
     protected abstract void addOptionsFileArgs(List<String> args, File tempDir);
 
@@ -149,7 +149,7 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {
         String objectFileSuffix = objectFileExtension;
         List<String> sourceArgs = getSourceArgs(sourceFile);
-        List<String> outputArgs = getOutputArgs(spec, getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
+        List<String> outputArgs = getOutputArgs(getOutputFileDir(sourceFile, objectDir, objectFileSuffix));
         List<String> pchArgs = maybeGetPCHArgs(spec, sourceFile);
 
         return invocationContext.createInvocation("compiling ".concat(sourceFile.getName()), objectDir, buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs), spec.getOperationLogger());

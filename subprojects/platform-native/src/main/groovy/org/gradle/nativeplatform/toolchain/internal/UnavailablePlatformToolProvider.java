@@ -49,12 +49,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
 
     @Override
     public String getObjectFileExtension() {
-        return null;
+        throw failure();
     }
 
     @Override
     public String getPCHFileExtension() {
-        return null;
+        throw failure();
     }
 
     public String getExecutableName(String executablePath) {

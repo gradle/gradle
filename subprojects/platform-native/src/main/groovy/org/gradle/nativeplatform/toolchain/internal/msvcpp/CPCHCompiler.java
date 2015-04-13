@@ -32,7 +32,7 @@ public class CPCHCompiler extends VisualCppNativeCompiler<CPCHCompileSpec> {
     }
 
     @Override
-    protected List<String> getOutputArgs(CPCHCompileSpec spec, File outputFile) {
+    protected List<String> getOutputArgs(File outputFile) {
         return Collections.singletonList("/Fp" + outputFile.getAbsolutePath());
     }
 }

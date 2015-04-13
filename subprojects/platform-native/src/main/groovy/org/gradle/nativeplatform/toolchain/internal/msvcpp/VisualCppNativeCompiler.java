@@ -32,7 +32,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
     }
 
     @Override
-    protected List<String> getOutputArgs(T spec, File outputFile) {
+    protected List<String> getOutputArgs(File outputFile) {
         // MSVC doesn't allow a space between Fo and the file name
         return Collections.singletonList("/Fo" + outputFile.getAbsolutePath());
     }
