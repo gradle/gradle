@@ -94,7 +94,7 @@
                     <literal>assembleDist</literal>
                 </td>
                 <td>
-                    <literal>-</literal>
+                    <literal>distTar</literal>, <literal>distZip</literal>
                 </td>
                 <td>
                     <apilink class="org.gradle.api.Task"/>
@@ -162,7 +162,7 @@
                     <literal>assemble<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
                 </td>
                 <td>
-                    <literal>-</literal>
+                    <literal><replaceable>${distribution.name}</replaceable>DistTar</literal>, <literal><replaceable>${distribution.name}</replaceable>DistZip</literal>
                 </td>
                 <td>
                     <apilink class="org.gradle.api.Task"/>

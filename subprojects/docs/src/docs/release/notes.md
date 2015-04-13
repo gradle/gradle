@@ -36,6 +36,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Distribution Plugin changes
+
+Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution. This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`
+
 <!--
 ### Example breaking change
 -->

@@ -47,6 +47,7 @@ class DistributionPlugin implements Plugin<ProjectInternal> {
     private static final String DISTRIBUTION_GROUP = "distribution"
     private static final String TASK_DIST_ZIP_NAME = "distZip"
     private static final String TASK_DIST_TAR_NAME = "distTar"
+    private static final String TASK_ASSEMBLE_NAME = "assembleDist"
     private static final String TASK_INSTALL_NAME = "installDist"
 
     private final Instantiator instantiator
@@ -122,7 +123,10 @@ class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     private void addAssembleTask(Project project, Distribution distribution, Task... tasks) {
-        def taskName = "assemble" + distribution.name.capitalize() + "Dist"
+        def taskName = TASK_ASSEMBLE_NAME;
+        if (MAIN_DISTRIBUTION_NAME != distribution.name) {
+            taskName = "assemble" + distribution.name.capitalize() + "Dist"
+        }
         Task assembleTask = project.getTasks().create(taskName);
         assembleTask.setDescription("Assembles the " + distribution.name + " distributions");
         assembleTask.setGroup(DISTRIBUTION_GROUP);
