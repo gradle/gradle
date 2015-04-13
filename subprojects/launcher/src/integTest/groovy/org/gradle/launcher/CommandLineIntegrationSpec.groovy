@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
@@ -53,6 +54,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
