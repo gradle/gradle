@@ -167,7 +167,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .parent(NativeServices.getInstance())
                 .provider(new GlobalScopeServices(false))
                 .build();
-        InProcessBuildActionExecuter executer = globalServices.get(InProcessBuildActionExecuter.class);
+        BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildActionExecuter.class);
         StyledTextOutputFactory textOutputFactory = globalServices.get(StyledTextOutputFactory.class);
         DocumentationRegistry documentationRegistry = globalServices.get(DocumentationRegistry.class);
         DaemonUsageSuggestingBuildActionExecuter daemonUsageSuggestingExecuter = new DaemonUsageSuggestingBuildActionExecuter(executer, textOutputFactory, documentationRegistry);

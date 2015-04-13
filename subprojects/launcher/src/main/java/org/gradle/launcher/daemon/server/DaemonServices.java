@@ -33,7 +33,8 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.StopHandlingCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
@@ -82,7 +83,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DefaultDaemonHealthServices();
     }
 
-    protected Daemon createDaemon(InProcessBuildActionExecuter buildActionExecuter) {
+    protected Daemon createDaemon(BuildActionExecuter<BuildActionParameters> buildActionExecuter) {
         return new Daemon(
                 new DaemonTcpServerConnector(
                     get(ExecutorFactory.class),
