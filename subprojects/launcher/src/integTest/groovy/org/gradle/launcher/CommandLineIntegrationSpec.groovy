@@ -36,6 +36,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
@@ -54,7 +55,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
