@@ -30,10 +30,12 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final Map<String, String> systemProperties;
     private final Map<String, String> envVariables;
     private final DaemonUsage daemonUsage;
+    private final boolean watchModeEnabled;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean watchModeEnabled) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
+        this.watchModeEnabled = watchModeEnabled;
         assert systemProperties != null;
         assert envVariables != null;
         this.systemProperties = new HashMap<String, String>();
@@ -66,11 +68,16 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", envVariables size=" + envVariables.size()
                 + ", logLevel=" + logLevel
                 + ", daemonUsage=" + daemonUsage
+                + ", watchMode=" + watchModeEnabled
                 + '}';
     }
 
     @Override
     public DaemonUsage getDaemonUsage() {
         return daemonUsage;
+    }
+
+    public boolean isWatchModeEnabled() {
+        return watchModeEnabled;
     }
 }

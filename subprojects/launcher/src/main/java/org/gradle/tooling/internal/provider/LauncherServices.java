@@ -23,10 +23,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.*;
 
 import java.util.List;
 
@@ -48,7 +45,7 @@ public class LauncherServices implements PluginServiceRegistry {
     static class ToolingGlobalScopeServices {
         BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
-            return new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
+            return new WatchModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)));
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

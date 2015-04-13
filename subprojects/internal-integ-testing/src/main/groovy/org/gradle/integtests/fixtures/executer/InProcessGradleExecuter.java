@@ -194,7 +194,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                     System.getenv(),
                     SystemProperties.getInstance().getCurrentDir(),
                     startParameter.getLogLevel(),
-                    DaemonUsage.EXPLICITLY_DISABLED);
+                    DaemonUsage.EXPLICITLY_DISABLED, false);
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                     new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
                             ManagementFactory.getRuntimeMXBean().getStartTime()),

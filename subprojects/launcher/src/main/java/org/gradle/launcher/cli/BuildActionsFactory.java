@@ -133,12 +133,12 @@ class BuildActionsFactory implements CommandLineAction {
             return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (daemonParameters.getDaemonUsage().isEnabled()) {
-            return runBuildWithDaemon(startParameter, daemonParameters, loggingServices);
+            return runBuildWithDaemon(startParameter, daemonParameters, loggingServices, watchModeParameters);
         }
         if (canUseCurrentProcess(daemonParameters)) {
-            return runBuildInProcess(startParameter, daemonParameters, loggingServices);
+            return runBuildInProcess(startParameter, daemonParameters, loggingServices, watchModeParameters);
         }
-        return runBuildInSingleUseDaemon(startParameter, daemonParameters, loggingServices);
+        return runBuildInSingleUseDaemon(startParameter, daemonParameters, loggingServices, watchModeParameters);
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
@@ -148,12 +148,12 @@ class BuildActionsFactory implements CommandLineAction {
         return new StopDaemonAction(stopClient);
     }
 
-    private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices, WatchModeParameters watchModeParameters) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client));
+        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client), watchModeParameters);
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
@@ -161,7 +161,7 @@ class BuildActionsFactory implements CommandLineAction {
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 
-    private Runnable runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Runnable runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices, WatchModeParameters watchModeParameters) {
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
                 .displayName("Global services")
                 .parent(loggingServices)
@@ -172,10 +172,10 @@ class BuildActionsFactory implements CommandLineAction {
         StyledTextOutputFactory textOutputFactory = globalServices.get(StyledTextOutputFactory.class);
         DocumentationRegistry documentationRegistry = globalServices.get(DocumentationRegistry.class);
         DaemonUsageSuggestingBuildActionExecuter daemonUsageSuggestingExecuter = new DaemonUsageSuggestingBuildActionExecuter(executer, textOutputFactory, documentationRegistry);
-        return runBuild(startParameter, daemonParameters, daemonUsageSuggestingExecuter);
+        return runBuild(startParameter, daemonParameters, daemonUsageSuggestingExecuter, watchModeParameters);
     }
 
-    private Runnable runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+    private Runnable runBuildInSingleUseDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices, WatchModeParameters watchModeParameters) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -189,7 +189,7 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientSharedServices = createGlobalClientServices();
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
-        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client));
+        return runBuild(startParameter, daemonParameters, new DaemonClientBuildActionExecuter(client), watchModeParameters);
     }
 
     private ServiceRegistry createGlobalClientServices() {
@@ -201,13 +201,13 @@ class BuildActionsFactory implements CommandLineAction {
                 .build();
     }
 
-    private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer) {
+    private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, WatchModeParameters watchModeParameters) {
         BuildActionParameters parameters = new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.getDaemonUsage());
+                daemonParameters.getDaemonUsage(), watchModeParameters.isEnabled());
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters);
     }
 

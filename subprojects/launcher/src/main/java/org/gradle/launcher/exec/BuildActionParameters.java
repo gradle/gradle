@@ -31,4 +31,6 @@ public interface BuildActionParameters {
     LogLevel getLogLevel();
 
     DaemonUsage getDaemonUsage();
+
+    boolean isWatchModeEnabled();
 }
