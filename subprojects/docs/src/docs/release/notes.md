@@ -190,13 +190,18 @@ Please consult its [DSL reference](dsl/org.gradle.jvm.application.tasks.CreateSt
 
 ### Tooling API improvements (i)
 
+The tooling API allows Gradle to be embedded in other applications, such as an IDE. This release includes a number of improvements to the tooling API:
+
+An application can now receive test progress events as a build is executed. Using these events, an application can display or report on test execution
+as tests run during the build.
+
+An application receives test events using the [`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-) method.
+
 The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
 
-* [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--)
+* [`GradleProject.getProjectDirectory()`](javadoc/org/gradle/tooling/model/GradleProject.html#getProjectDirectory--) returns the project directory of the project.
 * [`GradleEnvironment.getGradleUserHome()`](javadoc/org/gradle/tooling/model/build/GradleEnvironment.html#getGradleUserHome--)
-
-It is also now possible to receive test progress events via
-[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-).
+returns the effective Gradle user home directory that will be used for operations performed through the Tooling API.
 
 ### Model rules
 
