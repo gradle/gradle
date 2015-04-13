@@ -34,7 +34,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.factory.ModelTypes;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -81,9 +81,9 @@ public class ComponentReport extends DefaultTask {
             Iterables.addAll(components, componentSpecs);
         }
 
-        TestSuiteContainer testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer.class));
+        CollectionBuilder<TestSuiteSpec> testSuites = getModelRegistry().find(ModelPath.path("testSuites"), ModelTypes.collectionBuilderOf(TestSuiteSpec.class));
         if (testSuites != null) {
-            components.addAll(testSuites);
+            Iterables.addAll(components, testSuites);
         }
 
         renderer.renderComponents(components);
