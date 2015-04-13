@@ -64,7 +64,7 @@ task hello {
 }
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
+        def result = version(executionVersion).usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version.version")
     }
 
