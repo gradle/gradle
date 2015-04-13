@@ -195,7 +195,8 @@ The tooling API allows Gradle to be embedded in other applications, such as an I
 An application can now receive test progress events as a build is executed. Using these events, an application can display or report on test execution
 as tests run during the build.
 
-An application receives test events using the [`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-) method.
+An application receives test events using the
+[`LongRunningOperation.addTestProgressListener()`](javadoc/org/gradle/tooling/LongRunningOperation.html#addTestProgressListener-org.gradle.tooling.TestProgressListener-) method.
 
 The following additions have been added to the respective [Tooling API](userguide/embedding.html) models:
 
