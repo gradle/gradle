@@ -23,6 +23,6 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:${groovyVersion.groovyString}'
 
     // We use the awesome Spock testing and specification framework
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'org.spockframework:spock-core:${spockVersion.groovyString}'
     testCompile 'junit:junit:${junitVersion.groovyString}'
 }

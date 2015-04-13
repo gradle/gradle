@@ -32,6 +32,7 @@ public class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
                 .withDocumentationBindings(GUtil.map("ref_userguide_groovy_tutorial", "tutorial_groovy_projects"))
                 .withBindings(GUtil.map("groovyVersion", libraryVersionProvider.getVersion("groovy")))
                 .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
+                .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
                 .create()
         );
 
