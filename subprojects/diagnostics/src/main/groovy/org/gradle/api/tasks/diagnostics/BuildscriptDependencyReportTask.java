@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
 /**
- * Displays the dependency tree for a project. An instance of this type is used when you
- * execute the {@code dependencies} task from the command-line.
+ * Displays the buildscript dependency tree for a project. An instance of this type is used when you
+ * execute the {@code buildscriptDependencies} task from the command-line.
  */
-public class DependencyReportTask extends AbstractDependencyReportTask {
+public class BuildscriptDependencyReportTask extends AbstractDependencyReportTask {
 
     @Override
     public ConfigurationContainer getTaskConfigurations() {
-        return getProject().getConfigurations();
+        return getProject().getBuildscript().getConfigurations();
     }
 }
