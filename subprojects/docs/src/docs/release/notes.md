@@ -28,7 +28,7 @@ The following are the features that have been promoted in this Gradle release.
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
 <!--
 ### Example deprecation
@@ -38,7 +38,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Distribution Plugin changes
 
-Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution. This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`
+Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
+This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
 
 <!--
 ### Example breaking change
