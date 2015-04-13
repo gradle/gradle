@@ -23,11 +23,12 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.DelegatingCollectionBuilder;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.factory.ModelTypes;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentBinaries;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
@@ -68,13 +69,13 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         private final Class<S> binaryType;
 
         public ComponentBinariesRule(ModelReference<CollectionBuilder<BinarySpec>> subject, final Class<C> componentType, final Class<S> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(subject, componentType, ruleDefinition, ModelReference.of(ModelTypes.collectionBuilderOf(componentType)));
+            super(subject, componentType, ruleDefinition, ModelReference.of(DefaultCollectionBuilder.typeOf(componentType)));
             this.componentType = componentType;
             this.binaryType = binaryType;
         }
 
         public void execute(MutableModelNode modelNode, final CollectionBuilder<BinarySpec> binaries, List<ModelView<?>> inputs) {
-            CollectionBuilder<C> componentSpecs = ModelViews.assertType(inputs.get(0), ModelTypes.collectionBuilderOf(componentType)).getInstance();
+            CollectionBuilder<C> componentSpecs = ModelViews.assertType(inputs.get(0), DefaultCollectionBuilder.typeOf(componentType)).getInstance();
 
             for (final ComponentSpec componentSpec : componentSpecs) {
                 CollectionBuilder<S> typed = binaries.withType(binaryType);

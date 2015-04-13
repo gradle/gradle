@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.internal.resolve
-
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.DefaultCollectionBuilder
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.model.internal.type.factory.ModelTypes
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
@@ -118,7 +117,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         and:
         projectLocator.locateProject("other") >> project
         project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), ModelTypes.collectionBuilderOf(NativeLibrarySpec)) >> null
+        modelRegistry.find(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(NativeLibrarySpec)) >> null
         project.path >> "project-path"
 
         and:
@@ -138,7 +137,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
     private findLibraryContainer(ProjectInternal project) {
         def nativeLibraries = Mock(CollectionBuilder)
         project.modelRegistry >> modelRegistry
-        modelRegistry.find(ModelPath.path("components"), ModelTypes.collectionBuilderOf(NativeLibrarySpec)) >> nativeLibraries
+        modelRegistry.find(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(NativeLibrarySpec)) >> nativeLibraries
         return nativeLibraries
     }
 
