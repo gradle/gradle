@@ -52,18 +52,18 @@ public class ChainingModelProjection implements ModelProjection {
         return CollectionUtils.flattenCollections(String.class, CollectionUtils.collect(projections, transformer));
     }
 
-    public Iterable<String> getWritableTypeDescriptions() {
+    public Iterable<String> getWritableTypeDescriptions(final MutableModelNode node) {
         return collectDescriptions(new Transformer<Iterable<String>, ModelProjection>() {
             public Iterable<String> transform(ModelProjection projection) {
-                return projection.getWritableTypeDescriptions();
+                return projection.getWritableTypeDescriptions(node);
             }
         });
     }
 
-    public Iterable<String> getReadableTypeDescriptions() {
+    public Iterable<String> getReadableTypeDescriptions(final MutableModelNode node) {
         return collectDescriptions(new Transformer<Iterable<String>, ModelProjection>() {
             public Iterable<String> transform(ModelProjection projection) {
-                return projection.getReadableTypeDescriptions();
+                return projection.getReadableTypeDescriptions(node);
             }
         });
     }

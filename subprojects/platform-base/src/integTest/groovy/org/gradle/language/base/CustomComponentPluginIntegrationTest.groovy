@@ -17,10 +17,12 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
+        EnableModelDsl.enable(executer)
         buildFile << """
 import org.gradle.model.*
 import org.gradle.model.collection.*
@@ -41,13 +43,20 @@ class DefaultSampleComponent extends BaseComponentSpec implements SampleComponen
 
         and:
         buildFile << """
-task checkModel << {
-    assert project.componentSpecs.size() == 1
-    def sampleLib = project.componentSpecs.sampleLib
-    assert sampleLib instanceof SampleComponent
-    assert sampleLib.projectPath == project.path
-    assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
-    assert sampleLib.version == null
+model {
+    tasks {
+        create("checkModel") {
+            def components = \$("components")
+            doLast {
+                assert components.size() == 1
+                def sampleLib = components.sampleLib
+                assert sampleLib instanceof SampleComponent
+                assert sampleLib.projectPath == project.path
+                assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                assert sampleLib.version == null
+            }
+        }
+    }
 }
 """
         then:
@@ -66,10 +75,13 @@ model {
             version = '12'
         }
     }
-}
-task checkModel << {
-    def sampleLib = project.componentSpecs.sampleLib
-    assert sampleLib.version == '12'
+    tasks {
+        create("checkModel") {
+            doLast {
+                assert \$("components").sampleLib.version == '12'
+            }
+        }
+    }
 }
 """
 
@@ -102,11 +114,13 @@ task checkModel << {
                         version = '12'
                     }
                 }
-            }
-
-            task checkModel << {
-                def sampleLib = project.componentSpecs.sampleLib
-                assert sampleLib.version == '12.1'
+                tasks {
+                    create("checkModel") {
+                        doLast {
+                            assert \$("components").sampleLib.version == '12.1'
+                        }
+                    }
+                }
             }
 """
 
@@ -126,8 +140,14 @@ task checkModel << {
 
             apply plugin:MySamplePlugin
 
-            task checkModel << {
-                assert project.componentSpecs.size() == 0
+            model {
+                tasks {
+                    create("checkModel") {
+                        doLast {
+                            assert \$("components").size() == 0
+                        }
+                    }
+                }
             }
 """
 
@@ -188,12 +208,19 @@ BUILD SUCCESSFUL"""))
 
             apply plugin:MyComponentCreationPlugin
 
-            task checkModel << {
-                 assert project.componentSpecs.size() == 1
-                 def sampleLib = project.componentSpecs.sampleLib
-                 assert sampleLib instanceof SampleComponent
-                 assert sampleLib.projectPath == project.path
-                 assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+            model {
+                tasks {
+                    create("checkModel") {
+                        def components = \$("components")
+                        doLast {
+                            assert components.size() == 1
+                            def sampleLib = components.sampleLib
+                            assert sampleLib instanceof SampleComponent
+                            assert sampleLib.projectPath == project.path
+                            assert sampleLib.displayName == "DefaultSampleComponent 'sampleLib'"
+                        }
+                    }
+                }
             }
 """
 
@@ -231,18 +258,25 @@ BUILD SUCCESSFUL"""))
 
             apply plugin:MySamplePlugin
 
-            task checkModel << {
-                 assert project.componentSpecs.size() == 2
+            model {
+                tasks {
+                    create("checkModel") {
+                        def components = \$("components")
+                        doLast {
+                            assert components.size() == 2
 
-                 def sampleComponent = project.componentSpecs.sampleComponent
-                 assert sampleComponent instanceof SampleComponent
-                 assert sampleComponent.projectPath == project.path
-                 assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
+                            def sampleComponent = components.sampleComponent
+                            assert sampleComponent instanceof SampleComponent
+                            assert sampleComponent.projectPath == project.path
+                            assert sampleComponent.displayName == "DefaultSampleComponent 'sampleComponent'"
 
-                 def sampleLib = project.componentSpecs.sampleLib
-                 assert sampleLib instanceof SampleLibrary
-                 assert sampleLib.projectPath == project.path
-                 assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                            def sampleLib = components.sampleLib
+                            assert sampleLib instanceof SampleLibrary
+                            assert sampleLib.projectPath == project.path
+                            assert sampleLib.displayName == "DefaultSampleLibrary 'sampleLib'"
+                        }
+                    }
+                }
             }
 """
 

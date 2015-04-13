@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultDynamicTypeNamedEntityInstantiator<T> implements DynamicTypeNamedEntityInstantiator<T> {
+public class DefaultDynamicTypesNamedEntityInstantiator<T> implements DynamicTypesNamedEntityInstantiator<T> {
     private final Map<Class<? extends T>, NamedDomainObjectFactory<? extends T>> factories = Maps.newHashMap();
     private final Class<? extends T> baseType;
     private final String displayName;
 
-    public DefaultDynamicTypeNamedEntityInstantiator(Class<? extends T> type, String displayName) {
+    public DefaultDynamicTypesNamedEntityInstantiator(Class<? extends T> type, String displayName) {
         this.displayName = displayName;
         this.baseType = type;
     }
@@ -72,17 +72,18 @@ public class DefaultDynamicTypeNamedEntityInstantiator<T> implements DynamicType
         factories.put(type, factory);
     }
 
+    @Override
     public Set<? extends Class<? extends T>> getCreatableTypes() {
         return ImmutableSet.copyOf(factories.keySet());
     }
 
-    public void copyFactoriesFrom(DefaultDynamicTypeNamedEntityInstantiator<T> source) {
+    public void copyFactoriesFrom(DefaultDynamicTypesNamedEntityInstantiator<T> source) {
         for (Class<? extends T> languageType : source.factories.keySet()) {
             copyFactory(source, languageType);
         }
     }
 
-    <U extends T> void copyFactory(DefaultDynamicTypeNamedEntityInstantiator<T> source, Class<U> type) {
+    <U extends T> void copyFactory(DefaultDynamicTypesNamedEntityInstantiator<T> source, Class<U> type) {
         @SuppressWarnings("unchecked")
         NamedDomainObjectFactory<U> factory = (NamedDomainObjectFactory<U>) source.factories.get(type);
         registerFactory(type, factory);

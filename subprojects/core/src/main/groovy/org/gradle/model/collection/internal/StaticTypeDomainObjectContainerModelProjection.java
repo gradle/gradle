@@ -18,6 +18,7 @@ package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -34,8 +35,8 @@ public class StaticTypeDomainObjectContainerModelProjection<C extends Polymorphi
     }
 
     @Override
-    public Iterable<String> getWritableTypeDescriptions() {
-        return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(Collections.singleton(baseItemType)));
+    protected Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node) {
+        return Collections.singleton(baseItemType);
     }
 
     @Override

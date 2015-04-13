@@ -16,9 +16,12 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.DefaultDynamicTypesNamedEntityInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -29,16 +32,20 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.BridgedCollections;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProjection;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.type.factory.ModelTypes;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.rules.DefaultRuleAwareDynamicTypesNamedEntityInstantiator;
+import org.gradle.platform.base.internal.rules.RuleAwareDynamicTypesNamedEntityInstantiator;
 
 import javax.inject.Inject;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -52,32 +59,39 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 @Incubating
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
-    private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public ComponentModelBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
-        this.instantiator = instantiator;
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
     }
 
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
 
-        // TODO:DAZ Remove this extension: will first need to change ComponentTypeRuleDefinitionHandler not to access ComponentSpecContainer via extension
-        DefaultComponentSpecContainer components = project.getExtensions().create("componentSpecs", DefaultComponentSpecContainer.class, instantiator);
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
-        BridgedCollections.dynamicTypes(
-                modelRegistry,
-                ModelPath.path("components"),
-                descriptor,
-                ModelType.of(DefaultComponentSpecContainer.class),
-                ModelType.of(DefaultComponentSpecContainer.class),
-                ModelType.of(ComponentSpec.class),
-                components,
-                Named.Namer.INSTANCE,
-                BridgedCollections.itemDescriptor(descriptor)
-        );
+
+        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
+        };
+        ModelReference<CollectionBuilder<ComponentSpec>> containerReference = ModelReference.of("components", ModelTypes.collectionBuilderOf(ComponentSpec.class));
+
+        ModelCreator componentsCreator = ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            @Override
+            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
+                final DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec> namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec>(
+                        ComponentSpec.class, "this collection"
+                );
+                ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>> instantiatorType = new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>>() {
+                };
+                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>(namedEntityInstantiator));
+            }
+        })
+                .descriptor(descriptor)
+                .ephemeral(true)
+                .withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class)))
+                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType))
+                .build();
+        modelRegistry.createOrReplace(componentsCreator);
     }
 
     @SuppressWarnings("UnusedDeclaration")

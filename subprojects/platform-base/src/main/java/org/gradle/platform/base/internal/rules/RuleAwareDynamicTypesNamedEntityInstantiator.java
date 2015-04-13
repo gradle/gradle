@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.platform.base.internal.rules;
 
-import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
-public interface DynamicTypeNamedEntityInstantiator<T> extends NamedEntityInstantiator<T> {
-    <U extends T> void registerFactory(Class<U> type, NamedDomainObjectFactory<? extends U> factory);
+public interface RuleAwareDynamicTypesNamedEntityInstantiator<T> extends NamedEntityInstantiator<T>, RuleAwareNamedDomainObjectFactoryRegistry<T> {
 }

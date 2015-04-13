@@ -50,7 +50,7 @@ class PathBinderCreationListener extends BinderCreationListener {
             return true; // bound by type and path, stop listening
         } else {
             throw new InvalidModelRuleException(descriptor, new ModelRuleBindingException(
-                    IncompatibleTypeReferenceReporter.of(creatorDescriptor, promise, reference, writable).asString()
+                    IncompatibleTypeReferenceReporter.of(node, promise, reference, writable).asString()
             ));
         }
     }

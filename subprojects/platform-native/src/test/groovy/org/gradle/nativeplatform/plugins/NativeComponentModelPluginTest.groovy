@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.plugins
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.internal.core.DefaultCollectionBuilder
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
@@ -28,6 +29,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,17 +42,25 @@ class NativeComponentModelPluginTest extends Specification {
         project.pluginManager.apply(NativeComponentModelPlugin)
     }
 
+    public <T> T realizeModelElement(String path, Class<T> type) {
+        realizeModelElement(path, ModelType.of(type))
+    }
+
+    public <T> T realizeModelElement(String path, ModelType<T> type) {
+        project.modelRegistry.realize(ModelPath.path(path), type)
+    }
+
     def "adds model extensions"() {
         expect:
-        project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)) != null
-        project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)) != null
-        project.modelRegistry.realize(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer)) != null
-        project.modelRegistry.realize(ModelPath.path("flavors"), ModelType.of(FlavorContainer)) != null
+        realizeModelElement("toolChains", NativeToolChainRegistry) != null
+        realizeModelElement("platforms", PlatformContainer) != null
+        realizeModelElement("buildTypes", BuildTypeContainer) != null
+        realizeModelElement("flavors", FlavorContainer) != null
     }
 
     def "does not provide a default tool chain"() {
         expect:
-        project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry)).isEmpty()
+        realizeModelElement("toolChains", NativeToolChainRegistry).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
@@ -80,10 +90,10 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        one(project.modelRegistry.realize(ModelPath.path("toolChains"), ModelType.of(NativeToolChainRegistry))).name == 'tc'
-        project.modelRegistry.realize(ModelPath.path("platforms"), ModelType.of(PlatformContainer)).size() == 1
-        one(project.modelRegistry.realize(ModelPath.path("buildTypes"), ModelType.of(BuildTypeContainer))).name == 'bt'
-        one(project.modelRegistry.realize(ModelPath.path("flavors"), ModelType.of(FlavorContainer))).name == 'flavor1'
+        one(realizeModelElement("toolChains", NativeToolChainRegistry)).name == 'tc'
+        realizeModelElement("platforms", PlatformContainer).size() == 1
+        one(realizeModelElement("buildTypes", BuildTypeContainer)).name == 'bt'
+        one(realizeModelElement("flavors", FlavorContainer)).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
@@ -105,7 +115,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeExecutableSpec executable = one(project.componentSpecs) as NativeExecutableSpec
+        NativeExecutableSpec executable = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeExecutableSpec
         NativeExecutableBinarySpec executableBinary = one(project.binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'testExecutable'
@@ -139,7 +149,7 @@ class NativeComponentModelPluginTest extends Specification {
         realize()
 
         then:
-        NativeLibrarySpec library = one(project.componentSpecs) as NativeLibrarySpec
+        NativeLibrarySpec library = one(realizeModelElement("components", DefaultCollectionBuilder.typeOf(ComponentSpec))) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = project.binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'testSharedLibrary'
@@ -202,9 +212,12 @@ class NativeComponentModelPluginTest extends Specification {
         project.bindAllModelRules()
     }
 
-    static <T> T one(Collection<T> collection) {
-        assert collection.size() == 1
-        return collection.iterator().next()
+    static <T> T one(Iterable<T> iterable) {
+        def iterator = iterable.iterator()
+        assert iterator.hasNext()
+        def item = iterator.next()
+        assert !iterator.hasNext()
+        return item
     }
 
     public <T> T named(Class<T> type, def name) {

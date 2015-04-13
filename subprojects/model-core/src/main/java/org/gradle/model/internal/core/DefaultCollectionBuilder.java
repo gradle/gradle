@@ -42,9 +42,10 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
-    private final BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction;
+    private final BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends T>> creatorFunction;
 
-    public DefaultCollectionBuilder(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super ModelPath, ? super ModelType<? extends T>> creatorFunction) {
+    public DefaultCollectionBuilder(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
+                                    BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends T>> creatorFunction) {
         this.elementType = elementType;
         this.sourceDescriptor = sourceDescriptor;
         this.modelNode = modelNode;
@@ -78,10 +79,10 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
             return uncheckedCast(subType);
         }
 
-        return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends S>>() {
+        return new DefaultCollectionBuilder<S>(ModelType.of(type), sourceDescriptor, modelNode, new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends S>>() {
             @Override
-            public ModelCreators.Builder apply(ModelPath s, ModelType<? extends S> modelType) {
-                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", modelType, elementType.toString()));
+            public ModelCreators.Builder apply(MutableModelNode parent, ModelReference<? extends S> reference) {
+                throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", reference.getType(), elementType.toString()));
             }
         });
     }
@@ -172,7 +173,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
 
-        ModelCreators.Builder creatorBuilder = creatorFunction.apply(modelNode.getPath().child(name), type);
+        ModelCreators.Builder creatorBuilder = creatorFunction.apply(modelNode, ModelReference.of(modelNode.getPath().child(name), type));
 
         ModelCreator creator = creatorBuilder
                 .withProjection(new UnmanagedModelProjection<S>(type, true, true))
@@ -282,10 +283,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         ).build();
     }
 
-    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createAndStoreVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference, final ModelReference<? extends Collection<? super T>> storeReference) {
-        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
+    public static <T> BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> createAndStoreVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference, final ModelReference<? extends Collection<? super T>> storeReference) {
+        return new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>>() {
             @Override
-            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
+            public ModelCreators.Builder apply(MutableModelNode parent, ModelReference<? extends T> reference) {
+                final ModelPath path = reference.getPath();
+                final ModelType<? extends T> modelType = reference.getType();
                 return ModelCreators
                         .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
@@ -311,10 +314,12 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         };
     }
 
-    public static <T> BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>> createVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
-        return new BiFunction<ModelCreators.Builder, ModelPath, ModelType<? extends T>>() {
+    public static <T> BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> createVia(final ModelReference<? extends NamedEntityInstantiator<? super T>> instantiatorReference) {
+        return new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>>() {
             @Override
-            public ModelCreators.Builder apply(final ModelPath path, final ModelType<? extends T> modelType) {
+            public ModelCreators.Builder apply(MutableModelNode parent, ModelReference<? extends T> reference) {
+                final ModelPath path = reference.getPath();
+                final ModelType<? extends T> modelType = reference.getType();
                 return ModelCreators
                         .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                             @Override
@@ -330,6 +335,29 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
                         })
                         .inputs(instantiatorReference);
 
+            }
+        };
+    }
+
+    public static <T> BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> createUsingParentNode(final ModelType<T> baseItemModelType) {
+        return new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>>() {
+            @Override
+            public ModelCreators.Builder apply(final MutableModelNode parent, ModelReference<? extends T> reference) {
+                final ModelPath path = reference.getPath();
+                final ModelType<? extends T> modelType = reference.getType();
+                return ModelCreators
+                        .of(ModelReference.of(path, modelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                            @Override
+                            public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
+                                doExecute(modelNode, modelType);
+                            }
+
+                            public <S extends T> void doExecute(MutableModelNode modelNode, ModelType<S> subType) {
+                                NamedEntityInstantiator<T> instantiator = parent.getPrivateData(instantiatorTypeOf(baseItemModelType));
+                                S item = instantiator.create(path.getName(), subType.getConcreteClass());
+                                modelNode.setPrivateData(subType, item);
+                            }
+                        });
             }
         };
     }

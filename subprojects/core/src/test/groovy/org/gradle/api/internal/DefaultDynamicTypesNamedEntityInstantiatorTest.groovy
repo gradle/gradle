@@ -22,10 +22,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class DefaultDynamicTypeNamedEntityInstantiatorTest extends Specification {
+class DefaultDynamicTypesNamedEntityInstantiatorTest extends Specification {
 
     @Subject
-    def instantiator = new DefaultDynamicTypeNamedEntityInstantiator<Base>(Base, "this container")
+    def instantiator = new DefaultDynamicTypesNamedEntityInstantiator<Base>(Base, "this container")
 
     class Base {
         String value
@@ -95,7 +95,7 @@ class DefaultDynamicTypeNamedEntityInstantiatorTest extends Specification {
 
     def "copying factories from a different instantiator"() {
         given:
-        def source = new DefaultDynamicTypeNamedEntityInstantiator<Base>(Base, null)
+        def source = new DefaultDynamicTypesNamedEntityInstantiator<Base>(Base, null)
         def factoryTypes = [TestType, AnotherTestType] as Set
         factoryTypes.each { source.registerFactory(it, {}) }
 

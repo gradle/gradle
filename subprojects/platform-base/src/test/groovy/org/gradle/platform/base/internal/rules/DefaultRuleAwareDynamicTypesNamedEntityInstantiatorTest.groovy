@@ -18,14 +18,14 @@ package org.gradle.platform.base.internal.rules
 
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
-import org.gradle.api.internal.DynamicTypeNamedEntityInstantiator
+import org.gradle.api.internal.DynamicTypesNamedEntityInstantiator
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import spock.lang.Specification
 
-class RuleAwareDynamicTypeNamedEntityInstantiatorTest extends Specification {
+class DefaultRuleAwareDynamicTypesNamedEntityInstantiatorTest extends Specification {
 
-    def delegate = Mock(DynamicTypeNamedEntityInstantiator)
-    def instantiator = new RuleAwareDynamicTypeNamedEntityInstantiator(delegate)
+    def delegate = Mock(DynamicTypesNamedEntityInstantiator)
+    def instantiator = new DefaultRuleAwareDynamicTypesNamedEntityInstantiator(delegate)
 
     def "uses delegate to create objects"() {
         given:

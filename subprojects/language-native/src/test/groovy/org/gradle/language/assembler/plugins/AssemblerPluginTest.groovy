@@ -21,13 +21,21 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.internal.core.DefaultCollectionBuilder
+import org.gradle.model.internal.core.ModelPath
 import org.gradle.nativeplatform.*
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
+
+    CollectionBuilder<ComponentSpec> realizeComponents() {
+        project.modelRegistry.realize(ModelPath.path("components"), DefaultCollectionBuilder.typeOf(ComponentSpec))
+    }
 
     def "creates asm source set with conventional locations for components"() {
         when:
@@ -40,8 +48,10 @@ class AssemblerPluginTest extends Specification {
             }
         }
 
+
         then:
-        def exe = project.componentSpecs.exe
+        def components = realizeComponents()
+        def exe = components.exe
         exe.sources instanceof FunctionalSourceSet
         exe.sources.asm instanceof AssemblerSourceSet
         exe.sources.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
@@ -70,7 +80,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         expect:
-        project.componentSpecs.exe.sources.asm.source.srcDirs*.name == ["d1", "d2"]
+        realizeComponents().exe.sources.asm.source.srcDirs*.name == ["d1", "d2"]
     }
 
     def "creates assemble tasks for each non-empty executable source set "() {

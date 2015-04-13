@@ -18,11 +18,11 @@ package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * When reporting its writable views, considers what factories have been registered.
@@ -38,8 +38,8 @@ public class DynamicTypesDomainObjectContainerModelProjection<C extends Polymorp
         this.container = container;
     }
 
-    public Iterable<String> getWritableTypeDescriptions() {
-        return Collections.singleton(getBuilderTypeDescriptionForCreatableTypes(container.getCreateableTypes()));
+    @Override
+    protected Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node) {
+        return container.getCreateableTypes();
     }
-
 }
