@@ -36,7 +36,6 @@ import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProject
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.factory.ModelTypes;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.PlatformContainer;
@@ -73,7 +72,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
         };
-        ModelReference<CollectionBuilder<ComponentSpec>> containerReference = ModelReference.of("components", ModelTypes.collectionBuilderOf(ComponentSpec.class));
+        ModelReference<CollectionBuilder<ComponentSpec>> containerReference = ModelReference.of("components", DefaultCollectionBuilder.typeOf(ComponentSpec.class));
 
         ModelCreator componentsCreator = ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
