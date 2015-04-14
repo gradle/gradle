@@ -21,9 +21,9 @@ import org.gradle.internal.invocation.BuildAction
 import spock.lang.Specification
 
 
-class WatchModeBuildActionExecuterTest extends Specification {
+class ContinuousModeBuildActionExecuterTest extends Specification {
     def underlyingExecuter = Mock(BuildActionExecuter)
-    WatchModeBuildActionExecuter executer = new WatchModeBuildActionExecuter(underlyingExecuter)
+    ContinuousModeBuildActionExecuter executer = new ContinuousModeBuildActionExecuter(underlyingExecuter)
 
     def "uses underlying executer"() {
         given:

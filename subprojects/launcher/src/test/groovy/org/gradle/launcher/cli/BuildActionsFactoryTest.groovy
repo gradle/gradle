@@ -46,12 +46,13 @@ class BuildActionsFactoryTest extends Specification {
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
     PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
-
-    BuildActionsFactory factory = new BuildActionsFactory(
-            loggingServices, new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-            Stub(LayoutCommandLineConverter), Stub(WatchModeCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
+    ParametersConverter parametersConverter = new ParametersConverter(
+            Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-            propertiesToDaemonParametersConverter)
+            new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
+            propertiesToDaemonParametersConverter, Stub(ContinuousModeCommandLineConverter))
+
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter)
 
     def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)

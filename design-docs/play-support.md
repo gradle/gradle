@@ -541,30 +541,31 @@ See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4
 - Gradle Daemon knows when we're in "continuous mode" and repeats the last build until cancelled.
 - Gradle CLI waits for the build to finish (as normal).  
 - Instead of returning after each build, the daemon goes into a retry loop until cancelled triggered by something.
-- Possibility that this will work in non-daemon mode too (but not a goal)
 - Initial implementation will use a periodic timer to trigger the build.
 - Add new command-line option (`--watch`) 
-    - Initially stuff this in `StartParameter`, but a new "Parameters" class might make sense
-- `InProcessBuildExecutor` changes to understand "continuous mode" or wraps an existing `BuildController`
+    - Add a separate Parameters option
+    - Think about how to introduce a new internal replacement for StartParameter
+- Decorator for `InProcessBuildExecutor` changes to understand "continuous mode" 
     - Similar to what the spike did
-    - Build loop creates a new `GradleLauncher` or resets an existing `GradleLauncher` (if that's safe)
+    - Build loop delegates to wrapped BuildActionExecuter
     - After build, executor waits for a trigger from somewhere else
-- Create `TriggerService` 
+- Create `TriggerProcessor` 
     - Register `TriggerAction`s for a given trigger type
     - Trigger an action (async)
     - Send a `Trigger` to listeners
+    - TODO: Can I just use ListenableManager for some of this?
 
 ```
 pseudo:
 
 interface Trigger {}
 interface TriggerAction extends Action<Trigger> {}
-interface TriggerService {
+interface TriggerProcessor {
     void addTriggerAction(TriggerAction action)
     void trigger(Trigger t)
 }
 
-triggerService.addTriggerAction({ trigger ->
+triggerProcessor.addTriggerAction({ trigger ->
     logger.log("Rebuilding due to: $trigger.reason")
     triggerBuild()
 })

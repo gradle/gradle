@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.watch
+package org.gradle.launcher.continuous
 
 import spock.lang.Specification
 
 
-class WatchModeParametersTest extends Specification {
+class ContinuousModeParametersTest extends Specification {
     def "disabled by default"() {
         expect:
-        new WatchModeParameters().enabled == false
+        new ContinuousModeParameters().enabled == false
     }
 
     def "can be enabled"() {
         when:
-        def parameters = new WatchModeParameters()
+        def parameters = new ContinuousModeParameters()
         parameters.enabled = true
         then:
         parameters.enabled

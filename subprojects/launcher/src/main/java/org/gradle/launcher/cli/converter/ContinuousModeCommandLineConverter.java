@@ -21,13 +21,13 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.launcher.watch.WatchModeParameters;
+import org.gradle.launcher.continuous.ContinuousModeParameters;
 
-public class WatchModeCommandLineConverter extends AbstractCommandLineConverter<WatchModeParameters> {
+public class ContinuousModeCommandLineConverter extends AbstractCommandLineConverter<ContinuousModeParameters> {
 
     private static final String WATCH = "watch";
 
-    public WatchModeParameters convert(ParsedCommandLine args, WatchModeParameters target) throws CommandLineArgumentException {
+    public ContinuousModeParameters convert(ParsedCommandLine args, ContinuousModeParameters target) throws CommandLineArgumentException {
         if (args.hasOption(WATCH)) {
             assertJava7OrBetter();
             return target.setEnabled(true);

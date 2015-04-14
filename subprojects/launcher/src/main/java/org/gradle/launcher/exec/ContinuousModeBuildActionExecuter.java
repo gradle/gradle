@@ -16,19 +16,26 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.util.SingleMessageLogger;
 
-public class WatchModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
+    private final Logger logger;
 
-    public WatchModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
         this.delegate = delegate;
+        this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         if (watchModeEnabled(actionParameters)) {
+            SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
             return executeMultipleBuilds(action, requestContext, actionParameters);
         }
         return executeSingleBuild(action, requestContext, actionParameters);
@@ -38,9 +45,10 @@ public class WatchModeBuildActionExecuter implements BuildActionExecuter<BuildAc
         Object lastResult = null;
         while (buildNotStopped(requestContext)) {
             lastResult = executeSingleBuild(action, requestContext, actionParameters);
+            logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
             waitForTrigger();
-            // TODO: only run once right now.
-            break;
+            logger.lifecycle("Rebuild triggered by timer.");
+            requestContext.getBuildTimeClock().reset();
         }
         return lastResult;
     }
@@ -59,7 +67,9 @@ public class WatchModeBuildActionExecuter implements BuildActionExecuter<BuildAc
 
     private void waitForTrigger() {
         try {
-            Thread.sleep(1000);
-        } catch (Exception e) {}
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

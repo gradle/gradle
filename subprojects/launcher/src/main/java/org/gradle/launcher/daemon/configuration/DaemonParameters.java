@@ -40,6 +40,8 @@ public class DaemonParameters {
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private File javaHome;
+    private boolean foreground;
+    private boolean stop;
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -137,5 +139,21 @@ public class DaemonParameters {
 
     public DaemonUsage getDaemonUsage() {
         return daemonUsage;
+    }
+
+    public boolean isForeground() {
+        return foreground;
+    }
+
+    public void setForeground(boolean foreground) {
+        this.foreground = foreground;
+    }
+
+    public boolean isStop() {
+        return stop;
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
     }
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.watch;
+package org.gradle.launcher.continuous;
 
-public class WatchModeParameters {
+public class ContinuousModeParameters {
     private boolean enabled;
 
-    public WatchModeParameters() {
+    public ContinuousModeParameters() {
         this.enabled = false;
     }
 
@@ -27,7 +27,7 @@ public class WatchModeParameters {
         return enabled;
     }
 
-    public WatchModeParameters setEnabled(boolean enabled) {
+    public ContinuousModeParameters setEnabled(boolean enabled) {
         this.enabled = enabled;
         return this;
     }
