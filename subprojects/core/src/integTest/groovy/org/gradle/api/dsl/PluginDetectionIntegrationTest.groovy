@@ -15,6 +15,7 @@
  */
 package org.gradle.api.dsl
 
+import org.gradle.api.Plugin
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -184,21 +185,41 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
     def "can nest detection"() {
         // Actual plugins in use here are insignificant
         when:
+        file("buildSrc/src/main/groovy/PluginA.groovy") << """
+            class PluginA implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/a.properties") << "implementation-class=PluginA"
+
+        file("buildSrc/src/main/groovy/PluginB.groovy") << """
+            class PluginB implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/b.properties") << "implementation-class=PluginB"
+
+        file("buildSrc/src/main/groovy/PluginC.groovy") << """
+            class PluginC implements $Plugin.name {
+                void apply(project) {}
+            }
+        """
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/c.properties") << "implementation-class=PluginC"
+
         buildScript """
             class ExamplePlugin implements Plugin<Project> {
                 void apply(final Project project) {
-                    project.plugins.withId('ivy-publish') {
-                        project.plugins.hasPlugin('jacoco')
+                    project.plugins.withId('a') {
+                        project.plugins.hasPlugin('b')
                     }
-                    project.plugins.withId('maven-publish') {
-                        project.plugins.hasPlugin('jacoco')
+                    project.plugins.withId('c') {
+                        project.plugins.hasPlugin('b')
                     }
                 }
             }
 
             apply plugin: ExamplePlugin
-            apply plugin: "ivy-publish"
-            apply plugin: "jacoco"
+            apply plugin: "a"
         """
 
         then:
