@@ -43,4 +43,11 @@ abstract class PCHHelloWorldApp extends IncrementalHelloWorldApp {
             }
         }.join("\n")
     }
+
+    @Override
+    List<SourceFile> getHeaderFiles() {
+        def headerFiles = super.getHeaderFiles()
+        headerFiles.add(getPrefixHeaderFile("", "prefixheader.h"))
+        return headerFiles
+    }
 }
