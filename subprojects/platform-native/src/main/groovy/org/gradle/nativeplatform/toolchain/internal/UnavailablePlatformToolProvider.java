@@ -52,11 +52,6 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         throw failure();
     }
 
-    @Override
-    public String getPCHFileExtension() {
-        throw failure();
-    }
-
     public String getExecutableName(String executablePath) {
         return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
     }
