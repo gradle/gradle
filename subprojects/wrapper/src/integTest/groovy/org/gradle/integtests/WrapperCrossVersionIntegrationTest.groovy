@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.SystemProperties
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
@@ -64,21 +65,33 @@ task hello {
 }
 """
         version(wrapperGenVersion).withTasks('wrapper').run()
-        def result = version(executionVersion).usingExecutable('gradlew').withTasks('hello').run()
+        def result = version(executionVersion, wrapperGenVersion).usingExecutable('gradlew').withTasks('hello').run()
         assert result.output.contains("hello from $executionVersion.version.version")
     }
 
-    GradleExecuter version(GradleDistribution dist) {
-        def executer = super.version(dist)
+    GradleExecuter version(GradleDistribution runtime, GradleDistribution wrapper) {
+        def executer = super.version(runtime)
         /**
          * We additionally pass the gradle user home as a system property.
          * Early gradle wrapper (< 1.7 don't honor --gradle-user-home command line option correctly
          * and leaking gradle dist under test into ~/.gradle/wrapper.
          */
-        if (!dist.wrapperSupportsGradleUserHomeCommandLineOption) {
-            if (!dist.supportsSpacesInGradleAndJavaOpts) {
+        if (!wrapper.wrapperSupportsGradleUserHomeCommandLineOption) {
+            if (!wrapper.supportsSpacesInGradleAndJavaOpts) {
                 // Don't use the test-specific location as this contains spaces
                 executer.withGradleUserHomeDir(new IntegrationTestBuildContext().gradleUserHomeDir)
+
+                def buildDirTmp = file("build/tmp")
+                if (buildDirTmp.absolutePath.contains(" ")) {
+                    def jvmTmp = SystemProperties.instance.javaIoTmpDir
+                    if (jvmTmp.contains(" ")) {
+                        throw new IllegalStateException("Cannot run test as there is no tmp dir location available that does not contain a space in the path")
+                    } else {
+                        executer.withTmpDir(jvmTmp)
+                    }
+                } else {
+                    executer.withTmpDir(buildDirTmp.absolutePath)
+                }
             }
             executer.withGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
         }
