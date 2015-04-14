@@ -51,6 +51,14 @@ class ReleasedVersionDistributionsTest extends Specification {
         versions().mostRecentFinalRelease.version == version("1.2")
     }
 
+    def "get most recent snapshot does that"() {
+        when:
+        props.mostRecentSnapshot = "2.5-20150413220018+0000"
+
+        then:
+        versions().mostRecentSnapshot.version == version("2.5-20150413220018+0000")
+    }
+
     def "get all final does that"() {
         when:
         props.versions = "1.3-rc-1 1.2"

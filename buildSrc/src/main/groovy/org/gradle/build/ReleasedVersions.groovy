@@ -27,6 +27,7 @@ class ReleasedVersions {
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
     private def versions
+    private def snapshots
 
     File destFile
     String url = "https://services.gradle.org/versions/all"
@@ -35,6 +36,7 @@ class ReleasedVersions {
     void prepare() {
         download()
         versions = calculateVersions()
+        snapshots = calculateSnapshots()
     }
 
     private void download() {
@@ -72,8 +74,16 @@ class ReleasedVersions {
         return versions.findAll { it.rcFor == "" }.first().version.version
     }
 
+    String getMostRecentSnapshot() {
+        return snapshots.first().version.version
+    }
+
     List<String> getAllVersions() {
         return versions*.version*.version
+    }
+
+    List<String> getAllSnapshots() {
+        return snapshots*.version*.version
     }
 
     List<Map<String, ?>> calculateVersions() {
@@ -93,5 +103,24 @@ class ReleasedVersions {
         }
 
         return versions
+    }
+
+    List<Map<String, ?>> calculateSnapshots() {
+        def snapshots = new groovy.json.JsonSlurper().parseText(destFile.text).findAll {
+            (it.snapshot == true || it.nightly == true) && it.broken == false
+        }.collect {
+            it.version = GradleVersion.version(it.version)
+            it
+        }.findAll {
+            it.version >= lowestInterestingVersion
+        }.sort {
+            it.version
+        }.reverse()
+
+        if (snapshots.size() < 1) {
+            throw new IllegalStateException("Too few snapshots found in ${destFile}: " + versions)
+        }
+
+        return snapshots
     }
 }
