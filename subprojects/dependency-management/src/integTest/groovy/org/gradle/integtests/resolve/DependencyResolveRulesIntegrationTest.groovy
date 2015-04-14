@@ -65,6 +65,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("check")
     }
 
+
     void "forces multiple modules by rule"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
@@ -364,6 +365,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
 
     void "can blacklist a version"()
     {

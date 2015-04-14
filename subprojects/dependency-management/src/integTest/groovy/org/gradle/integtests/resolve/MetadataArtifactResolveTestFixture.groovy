@@ -183,10 +183,37 @@ task verify {
         def rootId = configurations.${config}.incoming.resolutionResult.root.id
         assert rootId instanceof ProjectComponentIdentifier
 
-        dependencies.createArtifactResolutionQuery()
+        def result = dependencies.createArtifactResolutionQuery()
             .forComponents(rootId)
             .withArtifacts($requestedComponent, $requestedArtifact)
             .execute()
+
+        assert result.components.size() == 1
+
+        // Check generic component result
+        def componentResult = result.components.iterator().next()
+        assert componentResult.id.displayName == 'project :'
+        assert componentResult instanceof $expectedComponentResult.name
+"""
+
+        if(expectedComponentResult == UnresolvedComponentResult) {
+            buildFile << createUnresolvedComponentResultVerificationCode()
+        }
+
+        buildFile << """
+        def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
+
+        for(component in result.resolvedComponents) {
+            def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
+            assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
+
+            ${createUnresolvedArtifactResultVerificationCode()}
+
+            if(expectedMetadataFileNames.size() > 0) {
+                def resolvedArtifactFileNames = resolvedArtifacts*.file.name as Set
+                assert resolvedArtifactFileNames == expectedMetadataFileNames
+            }
+        }
     }
 }
 """

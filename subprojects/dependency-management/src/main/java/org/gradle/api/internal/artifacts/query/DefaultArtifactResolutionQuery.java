@@ -106,8 +106,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
                 for (ComponentIdentifier componentId : componentIds) {
                     try {
-                        ModuleComponentIdentifier moduleComponentId = validateComponentIdentifier(componentId);
-                        componentResults.add(buildComponentResult(moduleComponentId, repositoryChain, artifactResolver));
+                        ComponentIdentifier validId = validateComponentIdentifier(componentId);
+                        componentResults.add(buildComponentResult(validId, repositoryChain, artifactResolver));
                     } catch (Throwable t) {
                         componentResults.add(new DefaultUnresolvedComponentResult(componentId, t));
                     }
@@ -116,9 +116,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                 return new DefaultArtifactResolutionResult(componentResults);
             }
 
-            private ModuleComponentIdentifier validateComponentIdentifier(ComponentIdentifier componentId) {
+            private ComponentIdentifier validateComponentIdentifier(ComponentIdentifier componentId) {
                 if (componentId instanceof ModuleComponentIdentifier) {
-                    return (ModuleComponentIdentifier) componentId;
+                    return componentId;
                 }
                 if(componentId instanceof ProjectComponentIdentifier) {
                     throw new IllegalArgumentException(String.format("Cannot query artifacts for a project component (%s).", componentId.getDisplayName()));
@@ -129,9 +129,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         });
     }
 
-    private ComponentArtifactsResult buildComponentResult(ModuleComponentIdentifier moduleComponentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
+    private ComponentArtifactsResult buildComponentResult(ComponentIdentifier componentId, RepositoryChain repositoryChain, ArtifactResolver artifactResolver) {
         BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
-        repositoryChain.getComponentResolver().resolve(moduleComponentId, new DefaultComponentOverrideMetadata(), moduleResolveResult);
+        repositoryChain.getComponentResolver().resolve(componentId, new DefaultComponentOverrideMetadata(), moduleResolveResult);
         ComponentResolveMetaData component = moduleResolveResult.getMetaData();
         DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(component.getComponentId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {

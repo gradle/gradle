@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.UnresolvedDependency;
 
 import java.util.Set;
 
-public interface ResolvedConfigurationResults {
-    boolean hasError();
-
-    Set<UnresolvedDependency> getUnresolvedDependencies();
-
+public interface ArtifactSet {
     Set<ResolvedArtifact> getArtifacts();
-
-    TransientConfigurationResults more();
 }

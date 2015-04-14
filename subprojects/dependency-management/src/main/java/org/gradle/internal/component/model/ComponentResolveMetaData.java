@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -73,11 +72,12 @@ public interface ComponentResolveMetaData {
      * Converts the given Ivy artifact to the corresponding artifact meta-data. This method is here to allow us to migrate away from the Ivy types and
      * will be removed.
      */
-    ComponentArtifactMetaData artifact(Artifact artifact);
+    ComponentArtifactMetaData artifact(IvyArtifactName artifact);
 
     /**
      * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
      */
+    // TODO:DAZ This is only used in unit tests
     Set<? extends ComponentArtifactMetaData> getArtifacts();
 
     boolean isGenerated();

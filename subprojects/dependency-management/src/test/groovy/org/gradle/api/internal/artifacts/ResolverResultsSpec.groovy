@@ -31,13 +31,11 @@ class ResolverResultsSpec extends Specification {
 
     def "does not provide ResolutionResult in case of fatal failure"() {
         when:
-        results.failed(resolvedConfiguration, fatalFailure)
+        results.failed(fatalFailure)
 
-        then:
-        results.resolvedConfiguration
-
-        when:
+        and:
         results.resolutionResult
+
         then:
         def ex = thrown(ResolveException)
         ex == fatalFailure
@@ -45,7 +43,8 @@ class ResolverResultsSpec extends Specification {
 
     def "provides resolve results"() {
         when:
-        results.resolved(resolvedConfiguration, resolutionResult, projectConfigurationResult)
+        results.resolved(resolutionResult, projectConfigurationResult)
+        results.withResolvedConfiguration(resolvedConfiguration)
 
         then:
         results.resolvedConfiguration == resolvedConfiguration

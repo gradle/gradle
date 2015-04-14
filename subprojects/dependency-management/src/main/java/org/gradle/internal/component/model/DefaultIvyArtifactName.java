@@ -18,7 +18,9 @@ package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
@@ -32,8 +34,24 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String extension;
     private final Map<String, String> attributes;
 
-    public DefaultIvyArtifactName(Artifact a) {
-        this(a.getName(), a.getType(), a.getExt(), a.getAttributes());
+    public static DefaultIvyArtifactName forIvyArtifact(Artifact a) {
+        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
+    }
+
+    public static DefaultIvyArtifactName forIvyArtifact(DependencyArtifactDescriptor a) {
+        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
+    }
+
+    public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact, String moduleName) {
+        Map<String, String> extraAttributes = new HashMap<String, String>();
+        if (GUtil.isTrue(publishArtifact.getClassifier())) {
+            extraAttributes.put(CLASSIFIER, publishArtifact.getClassifier());
+        }
+        String name = publishArtifact.getName();
+        if (!GUtil.isTrue(name)) {
+            name = moduleName;
+        }
+        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {
@@ -57,6 +75,17 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.type = type;
         this.extension = extension;
         this.attributes = Collections.emptyMap();
+    }
+
+    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
+        this.name = name;
+        this.type = type;
+        this.extension = extension;
+        if (classifier == null) {
+            this.attributes = Collections.emptyMap();
+        } else {
+            this.attributes = Collections.singletonMap(CLASSIFIER, classifier);
+        }
     }
 
     @Override

@@ -276,7 +276,10 @@ it.exclude group: '*', module: 'badArtifact'
 
         when:
         libRequest(repo, "commons-lang", "commons-lang", 2.6)
+        // Required for the 'webinar-impl' project's POM
         libRequest(repo, "junit", "junit", 4.10)
+        // Required for the 'webinar-war' project's POM
+        libRequest(repo, "junit", "junit", "3.8.1")
         libRequest(repo, "org.hamcrest", "hamcrest-core", 1.1)
 
         run 'clean', 'build'

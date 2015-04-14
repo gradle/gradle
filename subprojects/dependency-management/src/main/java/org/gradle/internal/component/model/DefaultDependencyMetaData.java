@@ -86,8 +86,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         }
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            ModuleRevisionId id = toConfiguration.getComponent().getDescriptor().getModuleRevisionId();
-            Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
             artifacts.add(toConfiguration.getComponent().artifact(artifact));
         }
         return artifacts;
@@ -99,8 +98,9 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             return Collections.emptySet();
         }
         Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
-        for (DependencyArtifactDescriptor artifact : dependencyArtifacts) {
-            artifactSet.add(new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+            artifactSet.add(artifact);
         }
         return artifactSet;
     }

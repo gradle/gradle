@@ -35,6 +35,7 @@ public interface LocalComponentMetaData {
      */
     BuildableIvyModulePublishMetaData toPublishMetaData();
 
+    // TODO:DAZ This is only used in tests
     @Nullable
     LocalArtifactMetaData getArtifact(ComponentArtifactIdentifier artifactIdentifier);
 }

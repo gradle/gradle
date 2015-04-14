@@ -17,58 +17,502 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
+import org.gradle.util.WrapUtil
 import spock.lang.Specification
+
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
 
-    ConfigurationsProvider configurationsProvider = Mock()
-    ConfigurationResolver resolver = Mock()
-    ListenerManager listenerManager = Mock()
-    DependencyMetaDataProvider metaDataProvider = Mock()
-    ResolutionStrategyInternal resolutionStrategy = Mock()
-
-    DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
-        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, null)
-    }
-
-    DefaultPublishArtifact artifact(String name) {
-        artifact(name: name)
-    }
-
-    DefaultPublishArtifact artifact(Map props = [:]) {
-        new DefaultPublishArtifact(
-            props.name ?: "artifact",
-            props.extension ?: "artifact",
-            props.type,
-            props.classifier,
-            props.date,
-            props.file,
-            props.tasks ?: []
-        )
-    }
-
-    // You need to wrap this in an interaction {} block when calling it
-    ResolvedConfiguration resolvedConfiguration(Configuration config, ConfigurationResolver dependencyResolver = resolver) {
-        ResolvedConfiguration resolvedConfiguration = Mock()
-        def results = new ResolverResults()
-        results.resolved(resolvedConfiguration, Mock(ResolutionResult), Mock(ResolvedProjectConfigurationResults))
-        1 * dependencyResolver.resolve(config) >> results
-        resolvedConfiguration
-    }
+    def configurationsProvider = Mock(ConfigurationsProvider)
+    def resolver = Mock(ConfigurationResolver)
+    def listenerManager = Mock(ListenerManager)
+    def metaDataProvider = Mock(DependencyMetaDataProvider)
+    def resolutionStrategy = Mock(ResolutionStrategyInternal)
+    def projectAccessListener = Mock(ProjectAccessListener)
+    def projectFinder = Mock(ProjectFinder)
 
     def setup() {
         ListenerBroadcast<DependencyResolutionListener> broadcast = new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener)
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> broadcast
+    }
+
+    def void defaultValues() {
+        when:
+        def configuration = conf("name", "path")
+
+        then:
+        configuration.name == "name"
+        configuration.visible
+        configuration.extendsFrom.empty
+        configuration.transitive
+        configuration.description == null
+        configuration.state == UNRESOLVED
+        configuration.displayName == "configuration 'path'"
+        configuration.uploadTaskName == "uploadName"
+    }
+
+    def hasUsefulDisplayName() {
+        when:
+        def configuration = conf("name", "path")
+
+        then:
+        configuration.displayName == "configuration 'path'"
+        configuration.toString() == "configuration 'path'"
+        configuration.incoming.toString() == "dependencies 'path'"
+    }
+
+    def "set description, visibility and transitivity"() {
+        given:
+        def configuration = conf()
+
+        when:
+        configuration.setDescription("description")
+        configuration.setVisible(false)
+        configuration.setTransitive(false)
+
+        then:
+        configuration.description == "description"
+        !configuration.visible
+        !configuration.transitive
+    }
+
+    def excludes() {
+        def excludeArgs1 = [group: "aGroup"]
+        def excludeArgs2 = [module: "aModule"]
+        def configuration = conf()
+        def rule = new DefaultExcludeRule("groupValue", null)
+
+        when:
+        configuration.exclude(excludeArgs1)
+        configuration.exclude(excludeArgs2);
+
+        then:
+        configuration.excludeRules == [new DefaultExcludeRule("aGroup", null), new DefaultExcludeRule(null, "aModule")] as Set
+
+        when:
+        configuration.setExcludeRules([rule] as Set)
+
+        then:
+        configuration.excludeRules == [rule] as Set
+    }
+
+    def "can extend multiple configurations"() {
+        def configuration = conf()
+        def configuration1 = conf("otherConf1")
+        def configuration2 = conf("otherConf2")
+
+        when:
+        configuration.extendsFrom(configuration1)
+
+        then:
+        configuration.extendsFrom == [configuration1] as Set
+
+        when:
+        configuration.extendsFrom(configuration2);
+
+        then:
+        configuration.extendsFrom == [configuration1, configuration2] as Set
+
+        when:
+        def configuration3 = conf("replacedConf")
+        configuration.setExtendsFrom([configuration3])
+
+        then:
+        configuration.extendsFrom == [configuration3] as Set
+    }
+
+    def "extended configurations are not duplicated"() {
+        def configuration = conf()
+        def configuration1 = conf("other")
+
+        when:
+        configuration.extendsFrom(configuration1, configuration1)
+
+        then:
+        configuration.extendsFrom == [configuration1] as Set
+    }
+
+    def "reports direct cycle in configurations"() {
+        def configuration = conf()
+        def otherConf = conf("other")
+        configuration.extendsFrom(otherConf)
+
+        when:
+        otherConf.extendsFrom(configuration)
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "reports indirect cycle in extended configurations"() {
+        def configuration = conf()
+        def conf1 = conf("other")
+        def conf2 = conf("other2")
+
+        when:
+        configuration.extendsFrom(conf1)
+        conf1.extendsFrom(conf2)
+        conf2.extendsFrom(configuration)
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "reports cycle introduced by setExtends"() {
+        def configuration = conf()
+        def otherConf = conf("other")
+        configuration.extendsFrom(otherConf)
+
+        when:
+        otherConf.setExtendsFrom([configuration])
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "creates hierarchy"() {
+        def root1 = conf("root1")
+        def middle1 = conf("middle1").extendsFrom(root1)
+        def root2 = conf("root2")
+        def middle2 = conf("middle2").extendsFrom(root2)
+        def leaf = conf("leaf1").extendsFrom(middle1, middle2)
+
+        when:
+        def hierarchy = leaf.hierarchy
+
+        then:
+        hierarchy.size() == 5
+        hierarchy.iterator().next() == leaf
+        assertBothExistsAndOneIsBeforeOther(hierarchy, middle1, root1);
+        assertBothExistsAndOneIsBeforeOther(hierarchy, middle2, root2);
+    }
+
+    private static void assertBothExistsAndOneIsBeforeOther(Set<Configuration> hierarchy, Configuration beforeConf, Configuration afterConf) {
+        assert hierarchy.contains(beforeConf)
+        assert hierarchy.contains(afterConf)
+
+        boolean foundBeforeConf = false;
+        for (Configuration configuration : hierarchy) {
+            if (configuration.equals(beforeConf)) {
+                foundBeforeConf = true;
+            }
+            if (configuration.equals(afterConf)) {
+                assertThat(foundBeforeConf, equalTo(true));
+            }
+        }
+    }
+
+    def "get dependencies"() {
+        def configuration = conf()
+        def dependency = Mock(Dependency)
+        def projectDependency = Mock(ProjectDependency.class);
+
+        when:
+        configuration.dependencies.add(dependency)
+        configuration.dependencies.add(projectDependency)
+
+        then:
+        configuration.dependencies as Set == [dependency, projectDependency] as Set
+        configuration.dependencies.withType(ProjectDependency) as Set == [projectDependency] as Set
+        configuration.dependencies.withType(SelfResolvingDependency) as Set == [] as Set
+    }
+
+    def "get all dependencies"() {
+        def parentConf = conf("parent")
+        def configuration = conf().extendsFrom(parentConf)
+        def dependency = Mock(Dependency)
+        def projectDependency = Mock(ProjectDependency.class);
+
+        when:
+        parentConf.dependencies.add(dependency)
+        configuration.dependencies.add(projectDependency)
+
+        then:
+        configuration.dependencies as Set == [projectDependency] as Set
+        configuration.allDependencies as Set == [dependency, projectDependency] as Set
+    }
+
+    def "resolves files"() {
+        def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+
+        given:
+        expectResolved(resolvedConfiguration);
+
+        and:
+        resolvedConfiguration.hasError() >> false
+        resolvedConfiguration.getFiles(_) >> fileSet
+
+        when:
+        def resolved = configuration.resolve()
+
+        then:
+        resolved == fileSet
+        configuration.state == RESOLVED
+    }
+
+    def "get as path throws failure resolving"() {
+        def configuration = conf()
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def failure = new RuntimeException()
+
+        given:
+        expectResolved(resolvedConfiguration);
+
+        and:
+        resolvedConfiguration.hasError() >> true
+        resolvedConfiguration.rethrowFailure() >> { throw failure }
+
+        when:
+        configuration.resolve()
+
+        then:
+        def t = thrown(RuntimeException)
+        t == failure
+    }
+
+    def fileCollectionWithDependencies() {
+        def dependency1 = dependency("group1", "name", "version");
+        def dependency2 = dependency("group2", "name", "version");
+        def configuration = conf()
+
+        when:
+        def fileCollection = configuration.fileCollection(dependency1)
+
+        then:
+        fileCollection.getDependencySpec().isSatisfiedBy(dependency1)
+        !fileCollection.getDependencySpec().isSatisfiedBy(dependency2)
+    }
+
+    def fileCollectionWithSpec() {
+        def configuration = conf()
+        Spec<Dependency> spec = Mock(Spec)
+
+        when:
+        def fileCollection = configuration.fileCollection(spec)
+
+        then:
+        fileCollection.getDependencySpec() == spec
+    }
+
+    def fileCollectionWithClosureSpec() {
+        def closure = { dep -> dep.group == 'group1' }
+        def configuration = conf()
+
+        when:
+        def fileCollection = configuration.fileCollection(closure)
+
+        then:
+        fileCollection.getDependencySpec().isSatisfiedBy(dependency("group1", "name", "version"))
+        !fileCollection.getDependencySpec().isSatisfiedBy(dependency("group2", "name", "version"))
+    }
+
+    def filesWithDependencies() {
+        def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+
+        when:
+        prepareForFilesBySpec(fileSet)
+
+        then:
+        configuration.files(Mock(Dependency)) == fileSet
+        configuration.state == RESOLVED
+    }
+
+    def filesWithSpec() {
+        def configuration = conf()
+        def fileSet = [new File("somePath")] as Set
+
+        when:
+        prepareForFilesBySpec(fileSet)
+
+        then:
+        configuration.files(Mock(Spec)) == fileSet
+        configuration.state == RESOLVED
+    }
+
+    def filesWithClosureSpec() {
+        def configuration = conf()
+        def closure = { dep -> dep.group == 'group1' }
+        def fileSet = [new File("somePath")] as Set
+
+        when:
+        prepareForFilesBySpec(fileSet);
+
+        then:
+        configuration.files(closure) == fileSet
+        configuration.state == RESOLVED
+    }
+
+    def "resolves as resolved configuration"() {
+        def configuration = conf()
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+
+        given:
+        expectResolved(resolvedConfiguration)
+
+        when:
+        def r = configuration.getResolvedConfiguration()
+
+        then:
+        r == resolvedConfiguration
+        configuration.state == RESOLVED
+    }
+
+    def "multiple resolves use cached result"() {
+        def configuration = conf()
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+
+        given:
+        expectResolved(resolvedConfiguration)
+
+        when:
+        def r = configuration.getResolvedConfiguration()
+
+        then:
+        configuration.getResolvedConfiguration() == r
+    }
+
+    private prepareForFilesBySpec(Set<File> fileSet) {
+        def resConfig = Mock(ResolvedConfiguration)
+        expectResolved(resConfig)
+        1 * resConfig.getFiles(_ as Spec) >> fileSet
+    }
+
+    private void expectResolved(ResolvedConfiguration resolvedConfiguration) {
+        def resolutionResults = Mock(ResolutionResult)
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+
+        _ * projectConfigurationResults.allProjectConfigurationResults >> Collections.emptySet()
+        _ * resolver.resolve(_, _) >> { ConfigurationInternal config, ResolverResults resolverResults ->
+            resolverResults.resolved(resolutionResults, projectConfigurationResults)
+            resolverResults.withResolvedConfiguration(resolvedConfiguration)
+        }
+    }
+
+    def "artifacts have correct build dependencies"() {
+        def configuration = conf()
+        def artifactTask2 = Mock(Task)
+        def artifactTask1 = Mock(Task)
+
+        given:
+        def otherConfiguration = conf("otherConf")
+
+        def artifact1 = artifact("name1")
+        artifact1.builtBy(artifactTask1)
+
+        def artifact2 = artifact("name2")
+        artifact2.builtBy(artifactTask2)
+
+        when:
+        configuration.artifacts.add(artifact1)
+        otherConfiguration.artifacts.add(artifact2)
+        configuration.extendsFrom(otherConfiguration)
+
+        then:
+        configuration.allArtifacts.files.files == [artifact1.file, artifact2.file] as Set
+        configuration.allArtifacts.files.buildDependencies == configuration.allArtifacts.buildDependencies
+        configuration.allArtifacts.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
+    }
+
+    def "build dependencies delegates to self resolving dependencies"() {
+        def configuration = conf()
+        def targetTask = Mock(Task)
+        def dependentTasks = [Mock(Task)] as Set
+        def taskDependency = Mock(TaskDependency)
+        def selfResolvingDependency = Mock(FileCollectionDependency)
+
+        given:
+        _ * selfResolvingDependency.buildDependencies >> taskDependency
+        _ * taskDependency.getDependencies(targetTask) >> dependentTasks
+
+        and:
+        expectResolved(Mock(ResolvedConfiguration.class))
+
+        when:
+        configuration.getDependencies().add(selfResolvingDependency);
+
+        then:
+        configuration.buildDependencies.getDependencies(targetTask) == dependentTasks
+    }
+
+    def "configuration build dependency delegates to inherited configurations"() {
+        def otherConf = conf("other")
+        def configuration = conf().extendsFrom(otherConf)
+        def fileCollectionDependency = Mock(FileCollectionDependency.class);
+        def taskDependency = Mock(TaskDependency)
+
+        def targetTask = Mock(Task)
+        def dependentTasks = [Mock(Task)] as Set
+
+        given:
+        _ * fileCollectionDependency.buildDependencies >> taskDependency
+        _ * taskDependency.getDependencies(targetTask) >> dependentTasks
+
+        and:
+        expectResolved(Mock(ResolvedConfiguration.class))
+
+        when:
+        otherConf.dependencies.add(fileCollectionDependency)
+        configuration.extendsFrom(otherConf)
+
+        then:
+        otherConf.buildDependencies.getDependencies(targetTask) == dependentTasks
+        configuration.buildDependencies.getDependencies(targetTask) == dependentTasks
+    }
+
+    def "task dependency from project dependency wihtout common configuration"() {
+        // This test exists because a NullPointerException was thrown by getTaskDependencyFromProjectDependency()
+        // if the rootProject defined a task as the same name as a subproject task, but did not define the same configuration.
+
+        def configuration = conf()
+
+        def mainTask = Mock(Task)
+        def rootProject = Mock(Project)
+        def taskProject = Mock(Project)
+        mainTask.project >> taskProject
+        taskProject.rootProject >> rootProject
+
+        def otherTask = Mock(Task)
+        def otherTaskSet = [otherTask] as Set
+        def dependentProject = Mock(Project)
+        otherTask.project >> dependentProject
+
+        when:
+        def td = configuration.getTaskDependencyFromProjectDependency(false, "testit")
+
+        and:
+        rootProject.getTasksByName("testit", true) >> otherTaskSet
+
+        and:
+        def configurationContainer = Mock(ConfigurationContainer)
+        1 * dependentProject.configurations >> configurationContainer
+        1 * configurationContainer.findByName(configuration.name) >> null
+
+        then:
+        td.getDependencies(mainTask) == [] as Set
     }
 
     def "all artifacts collection has immediate artifacts"() {
@@ -137,6 +581,130 @@ class DefaultConfigurationSpec extends Specification {
         removed == ["p1p1-1", "p1p2-1"]
     }
 
+    def "artifactAdded action is fired"() {
+        def configuration = conf()
+        def addedAction = Mock(Action)
+        def removedAction = Mock(Action)
+
+        def addedArtifact = artifact()
+
+        given:
+        configuration.artifacts.whenObjectAdded(addedAction)
+        configuration.artifacts.whenObjectRemoved(removedAction)
+
+        when:
+        configuration.artifacts.add(addedArtifact)
+
+        then:
+        1 * addedAction.execute(addedArtifact)
+        0 * removedAction._
+
+        and:
+        configuration.artifacts.size() == 1
+
+        when:
+        def unknownArtifact = artifact("other")
+        configuration.artifacts.remove(unknownArtifact)
+
+        then:
+        0 * _._
+        configuration.artifacts.size() == 1
+
+        when:
+        configuration.artifacts.removeAll(addedArtifact)
+
+        then:
+        1 * removedAction.execute(addedArtifact)
+        0 * addedAction._
+
+        and:
+        configuration.artifacts.empty
+    }
+
+    def "can copy"() {
+        def configuration = prepareConfigurationForCopyTest()
+
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+
+        when:
+        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        and:
+        def copiedConfiguration = configuration.copy()
+
+        then:
+        checkCopiedConfiguration(configuration, copiedConfiguration, resolutionStrategyCopy)
+        assert copiedConfiguration.dependencies == configuration.dependencies
+        assert copiedConfiguration.extendsFrom.empty
+    }
+
+    def "can copy with spec"() {
+        def configuration = prepareConfigurationForCopyTest()
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+        configuration.getDependencies().add(dependency("group3", "name3", "version3"));
+
+        when:
+        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        and:
+        def copiedConfiguration = configuration.copy(new Spec<Dependency>() {
+            public boolean isSatisfiedBy(Dependency element) {
+                return !element.getGroup().equals("group3");
+            }
+        })
+
+        then:
+        checkCopiedConfiguration(configuration, copiedConfiguration, resolutionStrategyCopy)
+        assert copiedConfiguration.dependencies.collect({it.group}) == ["group1", "group2"]
+    }
+
+    def "can copy recursive"() {
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+        def configuration = prepareConfigurationForCopyTest()
+
+
+        when:
+        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        and:
+        def copiedConfiguration = configuration.copyRecursive()
+
+        then:
+        checkCopiedConfiguration(configuration, copiedConfiguration, resolutionStrategyCopy)
+        assert copiedConfiguration.dependencies == configuration.allDependencies
+        assert copiedConfiguration.extendsFrom.empty
+    }
+
+    private prepareConfigurationForCopyTest() {
+        def configuration = conf()
+        configuration.visible = false
+        configuration.transitive = false
+        configuration.description = "descript"
+        configuration.exclude([group: "value"])
+        configuration.exclude([group: "value2"]);
+        configuration.artifacts.add(artifact("name1", "ext1", "type1", "classifier1"))
+        configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
+        configuration.dependencies.add(dependency("group1", "name1", "version1"))
+        configuration.dependencies.add(dependency("group2", "name2", "version2"))
+
+        def otherConf = conf("other")
+        otherConf.dependencies.add(dependency("otherGroup", "name3", "version3"))
+        configuration.extendsFrom(otherConf)
+        return configuration
+    }
+
+    private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy) {
+        assert copy.name == original.name + "Copy"
+        assert copy.visible == original.visible
+        assert copy.transitive == original.transitive
+        assert copy.description == original.description
+        assert copy.allArtifacts as Set == original.allArtifacts as Set
+        assert copy.excludeRules == original.excludeRules
+        assert copy.resolutionStrategy == resolutionStrategyInCopy
+        true
+    }
+
+
     def "incoming dependencies set has same name and path as owner configuration"() {
         def config = conf("conf", ":path")
 
@@ -183,7 +751,7 @@ class DefaultConfigurationSpec extends Specification {
         files.files
 
         then:
-        interaction { resolvedConfiguration(config) }
+        interaction { resolveConfig(config) }
         0 * resolver._
     }
 
@@ -192,6 +760,9 @@ class DefaultConfigurationSpec extends Specification {
         Task task = Mock()
         TaskDependency taskDep = Mock()
         def config = conf("conf")
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolverResults = new ResolverResults()
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
 
         given:
         config.dependencies.add(dependency)
@@ -203,6 +774,11 @@ class DefaultConfigurationSpec extends Specification {
         then:
         depTaskDeps == [task] as Set
         fileTaskDeps == [task] as Set
+        _ * resolvedConfiguration.hasError() >> false
+        _ * resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+            res.resolved(Mock(ResolutionResult), projectConfigurationResults)
+        }
+        _ * projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
         _ * dependency.buildDependencies >> taskDep
         _ * taskDep.getDependencies(_) >> ([task] as Set)
         0 * _._
@@ -219,13 +795,13 @@ class DefaultConfigurationSpec extends Specification {
         config.resolvedConfiguration
 
         then:
-        interaction { resolvedConfiguration(config) }
+        interaction { resolveConfig(config) }
         1 * action.execute(config.incoming)
     }
 
     def "calls beforeResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolvedConfiguration(config)
+        resolveConfig(config)
         def called = false
 
         expect:
@@ -252,14 +828,14 @@ class DefaultConfigurationSpec extends Specification {
         config.resolvedConfiguration
 
         then:
-        interaction { resolvedConfiguration(config) }
+        interaction { resolveConfig(config) }
         1 * action.execute(config.incoming)
 
     }
 
     def "calls afterResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolvedConfiguration(config)
+        resolveConfig(config)
         def called = false
 
         expect:
@@ -274,24 +850,24 @@ class DefaultConfigurationSpec extends Specification {
         then:
         called
     }
-    
+
     def "a recursive copy of a configuration includes inherited exclude rules"() {
         given:
         def (p1, p2, child) = [conf("p1"), conf("p2"), conf("child")]
         child.extendsFrom p1, p2
-        
+
         and:
         def (p1Exclude, p2Exclude) = [[group: 'p1', module: 'p1'], [group: 'p2', module: 'p2']]
         p1.exclude p1Exclude
         p2.exclude p2Exclude
-        
+
         when:
         def copied = child.copyRecursive()
-        
+
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
         copied.excludeRules.size() == 2
-        copied.excludeRules.collect{[group: it.group, module: it.module]}.sort { it.group } == [p1Exclude, p2Exclude]
+        copied.excludeRules.collect { [group: it.group, module: it.module] }.sort { it.group } == [p1Exclude, p2Exclude]
     }
 
     def "copied configuration has own instance of resolution strategy"() {
@@ -310,26 +886,192 @@ class DefaultConfigurationSpec extends Specification {
     def "provides resolution result"() {
         def config = conf("conf")
         def result = Mock(ResolutionResult)
-        def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        resolves(config, result, Mock(ResolvedConfiguration))
 
         when:
         def out = config.incoming.resolutionResult
 
         then:
-        1 * resolver.resolve(config) >> resolverResults
         out == result
+    }
+
+    def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
+        def projectConfigurationResults = Mock(ResolvedProjectConfigurationResults)
+        resolver.resolve(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+            res.resolved(resolutionResult, projectConfigurationResults)
+        }
+        resolver.resolveArtifacts(config, _) >> { ConfigurationInternal conf, ResolverResults res ->
+            res.withResolvedConfiguration(resolvedConfiguration)
+        }
+        projectConfigurationResults.allProjectConfigurationResults >> ([] as Set)
+    }
+
+    def "resolving configuration for task dependencies puts it into the right state"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        resolves(config, result, Mock(ResolvedConfiguration))
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == RESOLVED
+    }
+
+    def "resolving configuration marks parent configuration as observed"() {
+        def parent = conf("parent", ":parent")
+        def config = conf("conf")
+        config.extendsFrom parent
+        def result = Mock(ResolutionResult)
+        resolves(config, result, Mock(ResolvedConfiguration))
+
+        when:
+        config.resolve()
+
+        then:
+        parent.internalState == ConfigurationInternal.InternalState.OBSERVED
+    }
+
+    def "resolving configuration puts it into the right state and broadcasts events"() {
+        def listenerBroadcaster = Mock(ListenerBroadcast)
+
+        when:
+        def config = conf("conf")
+
+        then:
+        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcaster
+
+        def listener = Mock(DependencyResolutionListener)
+
+        when:
+        def result = Mock(ResolutionResult)
+        resolves(config, result, Mock(ResolvedConfiguration))
+        config.incoming.getResolutionResult()
+
+        then:
+        1 * listenerBroadcaster.getSource() >> listener
+        1 * listener.beforeResolve(config.incoming)
+        1 * listener.afterResolve(config.incoming)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+    }
+
+    def "resolving configuration for task dependencies, and then resolving it for results does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        resolves(config, result, Mock(ResolvedConfiguration))
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        config.internalState == ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED
+        config.state == RESOLVED
+
+        when:
+        config.incoming.getResolutionResult()
+
+        then:
+        0 * resolver.resolve(_)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+    }
+
+    def "resolving configuration for results, and then resolving it for task dependencies does not re-resolve configuration"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+
+        when:
+        resolves(config, result, Mock(ResolvedConfiguration))
+        config.incoming.getResolutionResult()
+
+        then:
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        when:
+        config.getBuildDependencies()
+
+        then:
+        0 * resolver.resolve(_)
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+    }
+
+    def "resolving configuration twice returns the same result objects"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolvedFiles = Mock(Set)
+
+        when:
+        resolves(config, result, resolvedConfiguration)
+
+        def previousFiles = config.files
+        def previousResolutionResult = config.incoming.resolutionResult
+        def previousResolvedConfiguration = config.resolvedConfiguration
+
+        then:
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        when:
+        def nextFiles = config.files
+        def nextResolutionResult = config.incoming.resolutionResult
+        def nextResolvedConfiguration = config.resolvedConfiguration
+
+        then:
+        0 * resolver.resolve(_)
+        1 * resolvedConfiguration.getFiles(_) >> resolvedFiles
+        config.internalState == ConfigurationInternal.InternalState.RESULTS_RESOLVED
+        config.state == RESOLVED
+
+        // We get back the same resolution results
+        previousResolutionResult == result
+        nextResolutionResult == result
+
+        // We get back the same resolved configuration
+        previousResolvedConfiguration == resolvedConfiguration
+        nextResolvedConfiguration == resolvedConfiguration
+
+        // And the same files
+        previousFiles == resolvedFiles
+        nextFiles == resolvedFiles
+    }
+
+    def "copied configuration is not resolved"() {
+        def config = conf("conf")
+        def result = Mock(ResolutionResult)
+
+        given:
+        resolves(config, result, Mock(ResolvedConfiguration))
+
+        config.incoming.resolutionResult
+
+        when:
+        def copy = config.copy()
+
+        then:
+        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
+        copy.internalState == ConfigurationInternal.InternalState.UNOBSERVED
+        copy.state == UNRESOLVED
     }
 
     def "provides task dependency from project dependency using 'needed'"() {
         def conf = conf("conf")
-        when: def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
-        then: dep.taskName == "foo"
+        when:
+        def dep = conf.getTaskDependencyFromProjectDependency(true, "foo") as TasksFromProjectDependencies
+        then:
+        dep.taskName == "foo"
     }
 
     def "provides task dependency from project dependency using 'dependents'"() {
         def conf = conf("conf")
-        when: def dep = conf.getTaskDependencyFromProjectDependency(false, "bar") as TasksFromDependentProjects
+        when:
+        def dep = conf.getTaskDependencyFromProjectDependency(false, "bar") as TasksFromDependentProjects
         then:
         dep.taskName == "bar"
         dep.configurationName == "conf"
@@ -338,22 +1080,192 @@ class DefaultConfigurationSpec extends Specification {
     def "mutations are prohibited after resolution"() {
         def conf = conf("conf")
         def result = Mock(ResolutionResult)
-        def resolverResults = new ResolverResults()
-        resolverResults.resolved(Mock(ResolvedConfiguration), result, Mock(ResolvedProjectConfigurationResults))
+
+        given:
+        resolves(conf, result, Mock(ResolvedConfiguration))
+        conf.incoming.getResolutionResult()
 
         when:
-        conf.incoming.getResolutionResult()
-        then:
-        1 * resolver.resolve(conf) >> resolverResults
-
-        when: conf.dependencies.add(Mock(Dependency))
+        conf.dependencies.add(Mock(Dependency))
         then:
         def exDependency = thrown(InvalidUserDataException);
         exDependency.message == "Cannot change configuration ':conf' after it has been resolved."
 
-        when: conf.artifacts.add(Mock(PublishArtifact))
+        when:
+        conf.artifacts.add(Mock(PublishArtifact))
         then:
         def exArtifact = thrown(InvalidUserDataException);
         exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
+    }
+
+    def "whenEmpty action does not trigger when config has dependencies"() {
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.whenEmpty whenEmptyAction
+        conf.dependencies.add(Mock(Dependency))
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        0 * _
+    }
+
+    def "second whenEmpty action does not trigger if first one already added dependencies"() {
+        def conf = conf("conf")
+        def whenEmptyAction1 = Mock(Action)
+        def whenEmptyAction2 = Mock(Action)
+        conf.whenEmpty whenEmptyAction1
+        conf.whenEmpty whenEmptyAction2
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction1.execute(conf.dependencies) >> {
+            conf.dependencies.add(Mock(Dependency))
+        }
+        0 * _
+    }
+
+    def "whenEmpty action is called even if parent config has dependencies"() {
+        def parent = conf("parent", ":parent")
+        parent.dependencies.add(Mock(Dependency))
+
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.extendsFrom parent
+        conf.whenEmpty whenEmptyAction
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction.execute(conf.dependencies)
+        0 * _
+    }
+
+    def "whenEmpty action is called on self first, then on parent"() {
+        def parentWhenEmptyAction = Mock(Action)
+        def parent = conf("parent", ":parent")
+        parent.whenEmpty parentWhenEmptyAction
+
+        def conf = conf("conf")
+        def whenEmptyAction = Mock(Action)
+        conf.extendsFrom parent
+        conf.whenEmpty whenEmptyAction
+
+        when:
+        conf.triggerWhenEmptyActionsIfNecessary()
+
+        then:
+        1 * whenEmptyAction.execute(conf.dependencies)
+
+        then:
+        1 * parentWhenEmptyAction.execute(parent.dependencies)
+        0 * _
+    }
+
+    def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
+        def configuration = conf()
+        prepareForFilesBySpec([] as Set)
+
+        given:
+        configuration.resolve();
+
+        when: configuration.setTransitive(true)
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.setVisible(false)
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.exclude([:])
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.setExcludeRules([] as Set)
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.extendsFrom(conf("other"))
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.dependencies.add(Mock(Dependency))
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.dependencies.remove(Mock(Dependency))
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.artifacts.add(artifact())
+        then: thrown(InvalidUserDataException)
+
+        when: configuration.artifacts.remove(artifact())
+        then: thrown(InvalidUserDataException)
+    }
+
+    def dumpString() {
+        when:
+        def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
+        def otherConfSimilarDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
+        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2");
+        def otherConf = conf("dumpConf");
+        otherConf.getDependencies().add(otherConfDependency);
+        otherConf.getDependencies().add(otherConfSimilarDependency);
+
+        def configuration = conf().extendsFrom(otherConf)
+        configuration.getDependencies().add(configurationDependency);
+
+        then:
+        configuration.dump() == """
+Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'
+Local Dependencies:
+   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
+Local Artifacts:
+   none
+All Dependencies:
+   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
+   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}
+All Artifacts:
+   none"""
+    }
+
+
+    // You need to wrap this in an interaction {} block when calling it
+    private ResolvedConfiguration resolveConfig(ConfigurationInternal config, ConfigurationResolver dependencyResolver = resolver) {
+        def resolvedConfiguration = Mock(ResolvedConfiguration)
+        def resolutionResult = Mock(ResolutionResult)
+
+        resolves(config, resolutionResult, resolvedConfiguration)
+        resolvedConfiguration
+    }
+
+    private dependency(String group, String name, String version) {
+        new DefaultExternalModuleDependency(group, name, version);
+    }
+
+    private DefaultConfiguration conf(String confName = "conf", String path = ":conf") {
+        new DefaultConfiguration(path, confName, configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy, projectAccessListener, projectFinder)
+    }
+
+    private DefaultPublishArtifact artifact(String name) {
+        artifact(name, "ext", "type", "classy")
+    }
+
+    private DefaultPublishArtifact artifact(String name, String extension, String type, String classifier) {
+        return new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(name));
+    }
+
+    private DefaultPublishArtifact artifact(Map props = [:]) {
+        new DefaultPublishArtifact(
+                props.name ?: "artifact",
+                props.extension ?: "artifact",
+                props.type,
+                props.classifier,
+                props.date,
+                props.file,
+                props.tasks ?: []
+        )
+    }
+
+    private PublishArtifactSet artifacts(PublishArtifact... containedArtifacts) {
+        new DefaultPublishArtifactSet("artifacts", WrapUtil.toDomainObjectSet(PublishArtifact.class, containedArtifacts))
     }
 }

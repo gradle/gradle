@@ -27,7 +27,6 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
@@ -328,16 +327,13 @@ public class SonarRunnerPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setTransitive(false)
                 .setDescription("The SonarRunner configuration to use to run analysis")
-                .getIncoming()
-                .beforeResolve(new Action<ResolvableDependencies>() {
-                    public void execute(ResolvableDependencies resolvableDependencies) {
-                        DependencySet dependencies = resolvableDependencies.getDependencies();
-                        if (dependencies.isEmpty()) {
-                            String toolVersion = rootExtension.getToolVersion();
-                            DependencyHandler dependencyHandler = project.getDependencies();
-                            Dependency dependency = dependencyHandler.create("org.codehaus.sonar.runner:sonar-runner-dist:" + toolVersion);
-                            configuration.getDependencies().add(dependency);
-                        }
+                .whenEmpty(new Action<DependencySet>() {
+                    @Override
+                    public void execute(DependencySet dependencies) {
+                        String toolVersion = rootExtension.getToolVersion();
+                        DependencyHandler dependencyHandler = project.getDependencies();
+                        Dependency dependency = dependencyHandler.create("org.codehaus.sonar.runner:sonar-runner-dist:" + toolVersion);
+                        dependencies.add(dependency);
                     }
                 });
     }

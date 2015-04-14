@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
@@ -61,5 +62,31 @@ class DefaultIvyArtifactNameTest extends Specification {
         withClassifier.classifier == 'classifier'
         emptyClassifier.classifier == null
         noClassifier.classifier == null
+    }
+
+    def "creates for PublishArtifact"() {
+        def publishArtifact = Mock(PublishArtifact) {
+            getExtension() >> "art-ext"
+            getType() >> "art-type"
+            getClassifier() >> "art-classifier"
+        }
+
+        when:
+        1 * publishArtifact.getName() >> "art-name"
+
+        then:
+        def name = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, "default-name")
+        name.name == "art-name"
+        name.extension == "art-ext"
+        name.type == "art-type"
+        name.classifier == "art-classifier"
+        name.attributes == [classifier: "art-classifier"]
+
+        when:
+        1 * publishArtifact.getName() >> null
+
+        then:
+        def nameWithDefault = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, "default-name")
+        nameWithDefault.name == "default-name"
     }
 }

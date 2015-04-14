@@ -40,10 +40,13 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.metadataHandler = metadataHandler;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
-        ResolverResults results = new ResolverResults();
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, results);
-        return results;
+    }
+
+    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+        List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
+        resolver.resolveArtifacts(configuration, resolutionAwareRepositories, metadataHandler, results);
     }
 }

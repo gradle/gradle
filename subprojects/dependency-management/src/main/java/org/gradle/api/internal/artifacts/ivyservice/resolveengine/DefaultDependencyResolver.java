@@ -38,9 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictCon
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.DefaultResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfigurationResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
@@ -50,6 +48,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
+import org.gradle.internal.Factory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -68,10 +67,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final IvyContextManager ivyContextManager;
     private final ResolutionResultsStoreFactory storeFactory;
     private final VersionComparator versionComparator;
+    private final boolean buildProjectDependencies;
 
     public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
                                      ProjectComponentRegistry projectComponentRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
-                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator) {
+                                     ResolutionResultsStoreFactory storeFactory, VersionComparator versionComparator, boolean buildProjectDependencies) {
         this.ivyFactory = ivyFactory;
         this.localComponentFactory = localComponentFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -80,6 +80,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.ivyContextManager = ivyContextManager;
         this.storeFactory = storeFactory;
         this.versionComparator = versionComparator;
+        this.buildProjectDependencies = buildProjectDependencies;
     }
 
     public void resolve(final ConfigurationInternal configuration,
@@ -92,8 +93,8 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 RepositoryChain repositoryChain = ivyFactory.create(configuration, repositories, metadataHandler.getComponentMetadataProcessor());
 
                 ComponentMetaDataResolver metaDataResolver = new ClientModuleResolver(repositoryChain.getComponentResolver(), dependencyDescriptorFactory);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver(), metaDataResolver);
 
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectComponentRegistry, localComponentFactory, repositoryChain.getComponentIdResolver());
                 ResolutionStrategyInternal resolutionStrategy = configuration.getResolutionStrategy();
                 DependencyToComponentIdResolver idResolver = new DependencySubstitutionResolver(projectDependencyResolver, resolutionStrategy.getDependencySubstitutionRule());
 
@@ -108,7 +109,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
                 ConflictHandler conflictHandler = new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
 
-                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, metaDataResolver, projectDependencyResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, projectDependencyResolver, artifactResolver, conflictHandler, new DefaultDependencyToConfigurationResolver());
 
                 StoreSet stores = storeFactory.createStoreSet();
 
@@ -120,13 +121,37 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-                ResolvedProjectConfigurationResultBuilder projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder();
+                DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
+                ResolvedProjectConfigurationResultBuilder projectModelBuilder;
+                if (buildProjectDependencies) {
+                    projectModelBuilder = new DefaultResolvedProjectConfigurationResultBuilder();
+                } else {
+                    projectModelBuilder = ResolvedProjectConfigurationResultBuilder.NOOP_BUILDER;
+                }
 
-                builder.resolve(configuration, newModelBuilder, oldModelBuilder, projectModelBuilder);
-                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
-                results.resolved(new DefaultResolvedConfiguration(result), newModelBuilder.complete(), projectModelBuilder.complete());
+                // Resolve the dependency graph
+                builder.resolve(configuration, newModelBuilder, oldModelBuilder, artifactsBuilder, projectModelBuilder);
+                results.resolved(newModelBuilder.complete(), projectModelBuilder.complete());
+
+                ResolvedGraphResults graphResults = oldModelBuilder.complete();
+                results.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
             }
         });
+    }
+
+    public void resolveArtifacts(final ConfigurationInternal configuration,
+                                 final List<? extends ResolutionAwareRepository> repositories,
+                                 final GlobalDependencyResolutionRules metadataHandler,
+                                 final ResolverResults results) throws ResolveException {
+        // TODO:DAZ Should not be holding onto all of this state
+        ResolvedGraphResults graphResults = results.getGraphResults();
+
+        ResolvedArtifactResults artifactResults = results.getArtifactsBuilder().resolve();
+
+        Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(results.getTransientConfigurationResultsBuilder(), graphResults, artifactResults);
+
+        DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
+        results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 
     private ArtifactResolver createArtifactResolver(RepositoryChain repositoryChain) {
@@ -136,4 +161,5 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         artifactResolver = new ErrorHandlingArtifactResolver(artifactResolver);
         return artifactResolver;
     }
+
 }

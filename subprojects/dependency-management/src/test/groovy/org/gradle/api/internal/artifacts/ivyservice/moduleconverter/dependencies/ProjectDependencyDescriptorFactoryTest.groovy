@@ -58,6 +58,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         AbstractProject dependencyProject = TestUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true);
+        dependencyProject.configurations.create(dependencyConfiguration)
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener);
     }
 }

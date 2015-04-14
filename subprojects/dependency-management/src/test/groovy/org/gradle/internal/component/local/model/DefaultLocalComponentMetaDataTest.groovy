@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model
 
 import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -71,14 +70,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         resolveArtifact.name.name == artifact.name
         resolveArtifact.name.type == artifact.type
         resolveArtifact.name.extension == artifact.extension
-
-        and:
-        moduleDescriptor.getArtifacts("conf").size() == 1
-        def ivyArtifact = (moduleDescriptor.getArtifacts("conf") as List).first()
-        ivyArtifact.name == artifact.name
-        ivyArtifact.type == artifact.type
-        ivyArtifact.ext == artifact.extension
-        ivyArtifact.configurations == ["conf"]
     }
 
     def "can add artifact to several configurations"() {
@@ -88,7 +79,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         given:
         moduleDescriptor.addConfiguration(new Configuration("conf1"))
         moduleDescriptor.addConfiguration(new Configuration("conf2"))
-        moduleDescriptor.addConfiguration(new Configuration("conf3"))
 
         when:
         metaData.addArtifact("conf1", artifact, file)
@@ -100,12 +90,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         and:
         def resolveMetaData = metaData.toResolveMetaData()
         resolveMetaData.artifacts.size() == 1
-
-        and:
-        moduleDescriptor.getArtifacts("conf1").size() == 1
-        moduleDescriptor.getArtifacts("conf2").size() == 1
-        def ivyArtifact = (moduleDescriptor.getArtifacts("conf1") as List).first()
-        ivyArtifact.configurations == ["conf1", "conf2"]
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
@@ -119,7 +103,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         metaData.addArtifact("conf", artifact, file)
 
         and:
-        def ivyArtifact = metaData.toResolveMetaData().descriptor.allArtifacts.find { it.name == artifact.name }
+        def ivyArtifact = artifactName()
 
         expect:
         def resolveArtifact = metaData.toResolveMetaData().artifact(ivyArtifact)
@@ -128,7 +112,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     def "can lookup an unknown artifact given an Ivy artifact"() {
-        def artifact = artifact()
+        def artifact = artifactName()
 
         expect:
         def resolveArtifact = metaData.toResolveMetaData().artifact(artifact)
@@ -209,10 +193,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         publishArtifact.artifact.type == artifact.type
         publishArtifact.artifact.ext == artifact.extension
         publishArtifact.file == file
-    }
-
-    def artifact() {
-        return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(), null, "artifact", "type", "ext")
     }
 
     def artifactName() {
