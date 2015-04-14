@@ -68,6 +68,16 @@ public class ReleasedVersionDistributions {
         return buildContext.distribution(mostRecentFinal);
     }
 
+    public GradleDistribution getMostRecentSnapshot() {
+        String mostRecentSnapshot = getProperties().getProperty("mostRecentSnapshot");
+
+        if (mostRecentSnapshot == null) {
+            throw new RuntimeException("Unable to get the last snapshot version");
+        }
+
+        return buildContext.distribution(mostRecentSnapshot);
+    }
+
     public List<GradleDistribution> getAll() {
         if (distributions == null) {
             distributions = CollectionUtils.collect(getProperties().getProperty("versions").split("\\s+"), new Transformer<GradleDistribution, String>() {
