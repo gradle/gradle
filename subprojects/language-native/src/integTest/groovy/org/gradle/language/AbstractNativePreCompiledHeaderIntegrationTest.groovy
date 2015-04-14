@@ -72,7 +72,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
@@ -124,7 +125,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
@@ -174,7 +176,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for compile of sum.c, but not for hello.c
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
@@ -225,7 +228,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName, staticLibraryCompileTaskName
+        succeeds "assemble"
+        executed ":${sharedLibraryCompileTaskName}", ":${staticLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}", ":${staticPCHCompileTaskName}"
         ! output.contains("<==== compiling hello.h ====>")
     }
@@ -272,8 +276,9 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName, sharedLibraryCompileTaskName.replaceAll("Hello", "Hello2")
-        executed ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
+        succeeds "linkHelloSharedLibrary", "linkHello2SharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}", ":${sharedLibraryCompileTaskName.replaceAll('Hello', 'Hello2')}"
+        skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         // once for hello2.c only
         output.count(getUniquePragmaOutput("<==== compiling hello.h ====>")) == 1
     }
@@ -315,7 +320,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling bonjour.h ====>")
         ! output.contains("<==== compiling hello.h ====>")
@@ -357,7 +363,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling hello.h ====>")
 
@@ -373,7 +380,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         and:
         args("--info")
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         skipped ":${generatePrefixHeaderTaskName}", ":${sharedPCHCompileTaskName}"
         ! output.contains("<==== compiling althello.h ====>")
     }
@@ -408,7 +416,8 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         """
 
         then:
-        succeeds sharedLibraryCompileTaskName
+        succeeds "linkHelloSharedLibrary"
+        executed ":${sharedLibraryCompileTaskName}"
         executed ":${sharedPCHCompileTaskName}", ":${generatePrefixHeaderTaskName}"
         output.contains("The source file hello.${app.sourceExtension} includes the header prefixHeader.h but it is not the first declared header, so the pre-compiled header will not be used.")
     }
@@ -444,6 +453,46 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         fails sharedPCHCompileTaskName
         failure.assertHasDescription("Execution failed for task ':${sharedPCHCompileTaskName}'.")
         failure.assertThatCause(Matchers.containsString("compiler failed while compiling prefix-headers"))
+    }
+
+    def "can build and run an executable with library using pch" () {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        app.mainSource.writeToDir(file("src/main"))
+        app.libraryHeader.writeToDir(file("src/hello"))
+        app.librarySources.each {
+            it.writeToDir(file("src/hello"))
+        }
+        app.getPrefixHeaderFile("", app.libraryHeader.name, app.IOHeader).writeToDir(file("src/hello"))
+
+        when:
+        buildFile << """
+            $mainComponent
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            ${app.sourceType}.preCompiledHeader "prefixHeader.h"
+                        }
+                        binaries.all {
+                            if (toolChain.name == "visualCpp") {
+                                ${app.compilerArgs("/showIncludes")}
+                            } else {
+                                ${app.compilerArgs("-H")}
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        succeeds "installMainExecutable"
+
+        and:
+        def install = installation("build/install/mainExecutable")
+        install.assertInstalled()
+        install.exec().out == app.englishOutput
     }
 
     private void maybeWait() {
@@ -494,5 +543,19 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     String getStaticPCHHeaderDirName() {
         return "build/objs/helloStaticLibrary/hello${StringUtils.capitalize(app.sourceType)}PreCompiledHeader"
+    }
+
+    String getMainComponent() {
+        return """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            ${app.sourceType}.lib library: "hello"
+                        }
+                    }
+                }
+            }
+        """
     }
 }
