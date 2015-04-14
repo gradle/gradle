@@ -39,6 +39,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
     @Rule public final Sample idl = sample(testDirProvider, 'idl')
     @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
@@ -172,5 +173,21 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         and:
         installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
+    }
+
+    def "pre-compiled-headers"() {
+        given:
+        sample pch
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":generateCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
+                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(pch.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
     }
 }

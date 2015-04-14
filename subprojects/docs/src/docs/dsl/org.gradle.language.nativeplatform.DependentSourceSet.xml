@@ -39,6 +39,9 @@
             <tr>
                 <td>lib</td>
             </tr>
+            <tr>
+                <td>setPreCompiledHeader</td>
+            </tr>
         </table>
     </section>
 </section>

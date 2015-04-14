@@ -486,6 +486,42 @@
         </section>
     </section>
 
+    <section id="native_binaries:preCompiledHeaders">
+        <title>Precompiled Headers</title>
+        <para>
+            Precompiled headers are a performance optimization that reduces the cost of compiling widely used headers multiple times.
+            This feature <firstterm>precompiles</firstterm> a header such that the compiled object file can be reused when
+            compiling each source file rather than recompiling the header each time.  This support is available for C, C++, Objective-C,
+            and Objective-C++ builds.
+        </para>
+        <para>
+            To configure a precompiled header, first a header file needs to be defined that includes all of the headers that should
+            be precompiled.  It should be specified as the first included header in every source file where the precompiled header
+            should be used.  It is assumed that this header file, and any headers it contains, make use of header guards so that they can be included
+            in an idempotent manner.  If header guards are not used in a header file, it is possible the header could be compiled more
+            than once and could potentially lead to a broken build.
+        </para>
+        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Creating a precompiled header file">
+            <sourcefile file="src/hello/headers/pch.h" />
+        </sample>
+        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Including a precompiled header file">
+            <sourcefile file="src/hello/cpp/hello.cpp" />
+        </sample>
+        <para>
+            Precompiled headers are specified on a source set.  Only one precompiled header file can be specified on a given source set and will
+            be applied to all source files that include it as the first include.  For source files that do not include this header file as the
+            first header, the precompiled header will simply be ignored and the file will be compiled in the normal manner.  The string provided
+            should be the same as that which is used in the "#include" directive in the source files.
+        </para>
+        <sample id="preCompiledHeaderConfig" dir="native-binaries/pre-compiled-headers" title="Configuring a precompiled header">
+            <sourcefile file="build.gradle" snippet="libraries"/>
+        </sample>
+        <para>
+            A precompiled header must be included in the same way for all files that use it.  Usually, this means the header file should exist
+            in the source set "headers" directory or in a directory included on the compiler include path.
+        </para>
+    </section>
+
     <section id="native_binaries:variants">
         <title>Native Binary Variants</title>
         <para>

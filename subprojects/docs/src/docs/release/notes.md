@@ -2,13 +2,29 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+### Support for Precompiled Headers
 
-<!--
-### Example new and noteworthy
--->
+Precompiled headers are a performance optimization for native builds that allows commonly used headers to be compiled only once rather than for
+each file that includes the headers.  Precompiled headers are now supported for C, C++, Objective-C and Objective-C++ projects.
+
+To use a precompiled header, a header file needs to defined containing all of the headers that should be precompiled.  This header file is
+then declared in the build script as a precompiled header.
+
+    model {
+        components {
+            hello(NativeLibrarySpec) {
+                sources {
+                    cpp {
+                        preCompiledHeader "pch.h"
+                    }
+                }
+            }
+        }
+    }
+
+Each source set can have a single precompiled header defined.  Any source file that includes this header file as the first header will
+be compiled using the precompiled header.  Otherwise, the precompiled header will be ignored and the source file will be compiled in the
+normal manner.  Please see the [userguide](userguide/nativeBinaries.html#native_binaries:preCompiledHeaders) for further information.
 
 ## Promoted features
 
