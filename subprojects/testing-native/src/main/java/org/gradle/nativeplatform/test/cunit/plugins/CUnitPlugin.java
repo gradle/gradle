@@ -56,6 +56,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
 
@@ -105,8 +106,9 @@ public class CUnitPlugin implements Plugin<Project> {
             return functionalSourceSet;
         }
 
+        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Finalize
-        public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
+        public void configureCUnitTestSuiteSources(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
@@ -123,8 +125,9 @@ public class CUnitPlugin implements Plugin<Project> {
             }
         }
 
+        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Mutate
-        public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
+        public void createCUnitLauncherTasks(TaskContainer tasks, @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites) {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
@@ -145,8 +148,9 @@ public class CUnitPlugin implements Plugin<Project> {
             }).iterator().next();
         }
 
+        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Mutate
-        public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+        public void createCUnitTestBinaries(final BinaryContainer binaries, @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
 
