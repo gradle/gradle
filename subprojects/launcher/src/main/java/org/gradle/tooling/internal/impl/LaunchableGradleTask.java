@@ -29,6 +29,7 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     private String name;
     private String description;
     private String displayName;
+    private String group;
     private boolean isPublic;
 
     public String getPath() {
@@ -81,6 +82,15 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
 
     public LaunchableGradleTask setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+        return this;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public LaunchableGradleTask setGroup(String group) {
+        this.group = group;
         return this;
     }
 

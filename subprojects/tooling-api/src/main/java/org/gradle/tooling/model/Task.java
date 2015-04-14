@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 
 /**
@@ -60,4 +61,12 @@ public interface Task extends Launchable {
      */
     @Deprecated
     Element getProject();
+
+    /**
+     * Returns the group a task belongs to.
+     * @return the group a task belongs to.
+     * @since 2.5
+     */
+    @Incubating
+    String getGroup();
 }

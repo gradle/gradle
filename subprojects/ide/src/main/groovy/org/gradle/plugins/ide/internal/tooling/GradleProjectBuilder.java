@@ -81,6 +81,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
                                 .setProject(owner)
                                 .setPath(t.getPath())
                                 .setName(t.getName())
+                                .setGroup(t.getGroup())
                                 .setDisplayName(t.toString())
                                 .setDescription(t.getDescription())
                                 .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(t))

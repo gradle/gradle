@@ -89,6 +89,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
             tasks.add(new LaunchableGradleTask()
                     .setPath(task.getPath())
                     .setName(task.getName())
+                    .setGroup(task.getGroup())
                     .setDisplayName(task.toString())
                     .setDescription(task.getDescription())
                     .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)));
