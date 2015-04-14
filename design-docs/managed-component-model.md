@@ -46,19 +46,30 @@ Possibly a better implementation would be to change `CollectionBuilder` into a '
 
 ### Don't use `ComponentSpecContainer` type when interacting with the model
 
-Implementing this story is on of the steps that will later enable changing `components` model element not to be implemented as a domain object collection.
+Implementing this story is an interim step that will later enable changing `components` model element not to be implemented as a domain object collection.
+At a later stage `ComponentSpecContainer` will be changed to extend `CollectionBuilder<ComponentSpec>` and used when interacting with the model.
+This will allow to avoid having to specify paths if there will be more than one collection of `ComponentSpec` available in the model.
 
 In several places (rule inputs, explicitly accessing `components` via the model registry) `ComponentSpecContainer` is used as the type for `components`.
 All of these places should be changed to view that model element as `CollectionBuilder<ComponentSpec>`.
 If in any of these cases substantial work to the model implementation turns out to be necessary then an additional story for that work should be created and actioned on before continuing
 with this story.
 
+#### Test Coverage
+
+- all of the existing tests are still passing
+
 ### Register `component` type factories via model instead of project extension
 
 An ability to support registering additional element types (currently exposed by `RuleAwarePolymorphicDomainObjectContainer`) has to be implemented for `components`
 model element.
+
 This functionality is needed by `ComponentTypeModelRuleExtractor` and can be initially achieved by registering a model projection for `components` node that will allow seeing it as type
 which has the method that is currently defined in `RuleAwarePolymorphicDomainObjectContainer`.
+
+#### Test Coverage
+
+- all of the existing tests are still passing
 
 ### Don't expose `components` collection as project extension
 
@@ -66,19 +77,72 @@ This will involve changing `components` model element not to be a bridged domain
 `DefaultCollectionBuilder` can be used as that implementation.
 
 Instantiation of collection elements (`creationFunction` passed to the constructor of `DefaultCollectionBuilder`) can be implemented by extracting a type out of
-`DefaultPolymorphicDomainObjectContainer` which will wrap `factories` map and provides methods to create instances and list supported types.
-
-The implementation of `DefaultCollectionBuilder` doesn't currently allow for `elementType` not to be specified but comments on `create()` methods in `CollectionBuilder` that don't take a type
-as a parameter suggests that it should.
-This will need to be fixed as part of this story because there is no default `elementType` for `components` as creator types supported by that collection can be added dynamically.
-Additional constructor for `DefaultCollectionBuilder<T>` will be added which will take a `Factory<Set<? extends Class<? extends T>>>` instead of a `ModelType<T>`.
-Value returned from that factory will be used for error message construction when any of the `create()` methods that require default element type are called.
+`DefaultPolymorphicDomainObjectContainer` which will wrap `factories` map and provide methods to create instances and list supported types.
 
 The projection that will allow seeing `components` as a type which allows registering additional element types (implemented in the previous story) will have to be changed
- to wrap around `creatorFunction` passed into `DefaultCollectionBuilder`'s.
+ to wrap around the type that is described in the previous paragraph.
+
+#### Test Coverage
+
+- all of the existing tests are still passing
+
+### Don't expose `testSuites` collection as a project extension.
+
+Apply steps similar to the ones described in the previous to `testSuites` model element resulting in changing it from being a bridged collection to a pure `CollectionBuilder<TestSuiteSpec>`.
+
+#### Test Coverage
+
+- all of the existing tests are still passing
+
+### Change `ComponentSpecContainer` to extend `CollectionBuilder<ComponentSpec>` and `TestSuiteContainer` to extend `CollectionBuilder<TestComponentSpec>`
+
+Using a specialized type when interacting with `components` and `testSuites` containers will allow to avoid having to specify paths as well given that both of these containers can be viewed as
+`CollectionBuilder<ComponentSpec>`.
+
+The goal is to replace all current path-referenced usages of these containers with usages of the respective specialized interfaces in model rules.
+
+Part of the story will be making sure that specialized collection builder views get Groovy support as well as missing method implementation allowing element creation injected into them.
+This basically boils down to being able to apply `CollectionBuilderModelView.Decorator` to a specialized collection builder type.
+
+#### Test Coverage
+
+- all of the existing tests are still passing
 
 ### Make the `sources` property of each component visible to rules
+
+Add creation of a link for `sources` property using an unmanaged instance creator to the creator of elements of the `components` and `testSuites` containers.
+
+#### Test Coverage
+
+- `sources` property of each element of `components` and `testSuites` containers is visible in the model report
+- `sources` property of components and test suites can be addressed in model rules using a hard-coded path
+
 ### Make the `binaries` property of each component visible to rules
+
+Add creation of a link for `binaries` property using an unmanaged instance creator to the creator of elements for the `components` and `testSuites` containers.
+
+#### Test Coverage
+
+- `binaries` property of each element of `components` and `testSuites` containers is visible in the model report
+- `binaries` property of components and test suites can be addressed in model rules using a hard-coded path
+
+### Change `sources` property of each component to be created in a managed way
+
+After this story is implemented elements of `sources` container of each component will be visible as part of the model.
+
+#### Test Coverage
+
+ - each element of `sources` container of each component is visible in the model report
+ - every element of `sources` container of any component can be addressed in model rules using a hard-coded path
+
+### Change `binaries` property of each component to be created in a managed way
+
+After this story is implemented elements of `binaries` container of each component will be visible as part of the model.
+
+#### Test Coverage
+
+- each element of `binaries` container of each component is visible in the model report
+- every element of `binaries` container of any component can be addressed in model rules using a hard-coded path
 
 The rest TBD
 
