@@ -143,7 +143,7 @@ class DistributionPluginTest extends Specification {
 
         then:
         def task = project.assembleDist
-        task.dependsOn.findAll {it instanceof Task}.collect{ it.path } == [":distTar", ":distZip"]
+        task.dependsOn.findAll {it instanceof Task}.collect{ it.path }.containsAll([":distTar", ":distZip"])
     }
 
     public void "distribution name is configurable"() {
