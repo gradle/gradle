@@ -15,11 +15,11 @@
  */
 package org.gradle.nativeplatform.test.cunit
 import org.gradle.language.c.plugins.CPlugin
+import org.gradle.model.internal.core.DefaultCollectionBuilder
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.platform.base.test.TestSuiteContainer
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitPlugin
+import org.gradle.platform.base.test.TestSuiteSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -38,7 +38,8 @@ class CUnitTest extends Specification {
         project.evaluate()
 
         then:
-        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), ModelType.of(TestSuiteContainer)).getByName("mainTest").binaries
+        def binaries = project.modelRegistry.realize(ModelPath.path("testSuites"), DefaultCollectionBuilder.typeOf(TestSuiteSpec)).get("mainTest").binaries
+        then:
         binaries.collect({ it instanceof CUnitTestSuiteBinarySpec }) == [true] * binaries.size()
     }
 }

@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -32,6 +34,7 @@ import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
@@ -50,7 +53,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
 import java.util.Collections;
@@ -71,22 +74,37 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
+        public void createGoogleTestTestSuitePerComponent(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-            for (NativeComponentSpec component : components) {
-                testSuites.add(createGoogleTestTestSuite(component, instantiator, projectSourceSet, fileResolver));
+
+            for (final NativeComponentSpec component : components) {
+                String suiteName = String.format("%sTest", component.getName());
+                testSuites.create(suiteName, GoogleTestTestSuiteSpec.class, new Action<GoogleTestTestSuiteSpec>() {
+                    @Override
+                    public void execute(GoogleTestTestSuiteSpec googleTestTestSuiteSpec) {
+                        googleTestTestSuiteSpec.setTestedComponent(component);
+                    }
+                });
             }
         }
 
-        private GoogleTestTestSuiteSpec createGoogleTestTestSuite(final NativeComponentSpec testedComponent, Instantiator instantiator, ProjectSourceSet projectSourceSet, FileResolver fileResolver) {
-            String suiteName = String.format("%sTest", testedComponent.getName());
-            String path = testedComponent.getProjectPath();
-            ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
-            FunctionalSourceSet testSuiteSourceSet = createGoogleTestSources(instantiator, suiteName, projectSourceSet, fileResolver);
-            GoogleTestTestSuiteSpec testSuiteSpec = BaseComponentSpec.create(DefaultGoogleTestTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
-            testSuiteSpec.setTestedComponent(testedComponent);
-            return testSuiteSpec;
+        @Mutate
+        public void registerCUnitTestSuiteSpecFactory(RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec> factoryRegistry,
+                                                      final ProjectSourceSet projectSourceSet,
+                                                      final ProjectIdentifier projectIdentifier,
+                                                      ServiceRegistry serviceRegistry) {
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
+            factoryRegistry.registerFactory(GoogleTestTestSuiteSpec.class, new NamedDomainObjectFactory<GoogleTestTestSuiteSpec>() {
+                @Override
+                public GoogleTestTestSuiteSpec create(String suiteName) {
+                    String path = projectIdentifier.getPath();
+                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(path, suiteName);
+                    FunctionalSourceSet testSuiteSourceSet = createGoogleTestSources(instantiator, suiteName, projectSourceSet, fileResolver);
+                    return BaseComponentSpec.create(DefaultGoogleTestTestSuiteSpec.class, id, testSuiteSourceSet, instantiator);
+                }
+            }, new SimpleModelRuleDescriptor(this.getClass().toString() + ".registerCUnitTestSuiteSpecFactory()"));
         }
 
         private FunctionalSourceSet createGoogleTestSources(final Instantiator instantiator, final String suiteName, ProjectSourceSet projectSourceSet, final FileResolver fileResolver) {
@@ -100,7 +118,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
+        public void configureGoogleTestTestSuiteSources(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir) {
 
             for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
@@ -112,7 +130,11 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createGoogleTestTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+        public void createGoogleTestTestBinaries(final BinaryContainer binaries,
+                                                 @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites,
+                                                 @Path("buildDir") File buildDir,
+                                                 ServiceRegistry serviceRegistry,
+                                                 ITaskFactory taskFactory) {
             for (final GoogleTestTestSuiteSpec googleTestTestSuite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : googleTestTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
                     if (testedBinary instanceof SharedLibraryBinary) {
