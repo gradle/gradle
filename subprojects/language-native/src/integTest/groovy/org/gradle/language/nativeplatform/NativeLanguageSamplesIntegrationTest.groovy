@@ -175,7 +175,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
     }
 
-    def "precompiled headers"() {
+    def "pch"() {
         given:
         sample pch
 
