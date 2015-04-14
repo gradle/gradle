@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.launcher.cli
-
 import org.gradle.StartParameter
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
@@ -23,11 +22,8 @@ import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
-import org.gradle.launcher.cli.converter.WatchModeCommandLineConverter
+import org.gradle.launcher.cli.converter.*
+import org.gradle.launcher.daemon.DaemonClientBuildActionExecuter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -146,7 +142,8 @@ class BuildActionsFactoryTest extends Specification {
 
     void isDaemon(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof DaemonClient
+        assert action.executer instanceof DaemonClientBuildActionExecuter
+        assert ((DaemonClientBuildActionExecuter)action.executer).daemonClient instanceof DaemonClient
     }
 
     void isInProcess(def action) {
@@ -156,6 +153,7 @@ class BuildActionsFactoryTest extends Specification {
 
     void isSingleUseDaemon(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof SingleUseDaemonClient
+        assert action.executer instanceof DaemonClientBuildActionExecuter
+        assert ((DaemonClientBuildActionExecuter)action.executer).daemonClient instanceof SingleUseDaemonClient
     }
 }
