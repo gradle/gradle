@@ -19,11 +19,16 @@ package org.gradle.nativeplatform.test.plugins;
 import org.gradle.api.*;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.*;
+import org.gradle.model.Finalize;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
@@ -33,8 +38,9 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.test.DefaultTestSuiteContainer;
-import org.gradle.platform.base.test.TestSuiteContainer;
+import org.gradle.platform.base.test.TestSuiteSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -42,18 +48,35 @@ import java.io.File;
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
+    private final Instantiator instantiator;
+    private final ModelRegistry modelRegistry;
+
+    @Inject
+    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
+        this.instantiator = instantiator;
+        this.modelRegistry = modelRegistry;
+    }
+
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
+
+        DefaultTestSuiteContainer testSuiteSpecs = instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
+        String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
+        BridgedCollections.dynamicTypes(
+                modelRegistry,
+                ModelPath.path("testSuites"),
+                descriptor,
+                ModelType.of(DefaultTestSuiteContainer.class),
+                ModelType.of(DefaultTestSuiteContainer.class),
+                ModelType.of(TestSuiteSpec.class),
+                testSuiteSpecs,
+                Named.Namer.INSTANCE,
+                BridgedCollections.itemDescriptor(descriptor)
+        );
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model
-        TestSuiteContainer testSuites(ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultTestSuiteContainer.class, instantiator);
-        }
-
         @Finalize
             // Must run after test binaries have been created (currently in CUnit plugin)
         void attachTestedBinarySourcesToTestBinaries(BinaryContainer binaries) {

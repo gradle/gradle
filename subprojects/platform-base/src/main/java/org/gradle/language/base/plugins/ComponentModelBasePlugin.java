@@ -93,7 +93,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void initializeSourceSetsForComponents(final CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
+        void initializeSourceSetsForComponents(@Path("components") CollectionBuilder<ComponentSpec> components, LanguageRegistry languageRegistry, LanguageTransformContainer languageTransforms) {
             for (LanguageRegistration<?> languageRegistration : languageRegistry) {
                 // TODO - allow beforeEach() to be applied to internal types
                 components.beforeEach(ComponentSourcesRegistrationAction.create(languageRegistration, languageTransforms));
@@ -102,7 +102,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
         @Mutate
-        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, CollectionBuilder<ComponentSpec> components) {
+        void closeComponentsForBinaries(CollectionBuilder<Task> tasks, @Path("components") CollectionBuilder<ComponentSpec> components) {
         }
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
@@ -134,7 +134,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void applyDefaultSourceConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
+        void applyDefaultSourceConventions(@Path("components") CollectionBuilder<ComponentSpec> componentSpecs) {
             componentSpecs.afterEach(new Action<ComponentSpec>() {
                 @Override
                 public void execute(ComponentSpec componentSpec) {

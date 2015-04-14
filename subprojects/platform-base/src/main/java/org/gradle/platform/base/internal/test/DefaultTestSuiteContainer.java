@@ -16,12 +16,12 @@
 
 package org.gradle.platform.base.internal.test;
 
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.platform.base.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
-public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuiteSpec> implements TestSuiteContainer {
+public class DefaultTestSuiteContainer extends RuleAwarePolymorphicDomainObjectContainer<TestSuiteSpec> implements TestSuiteContainer {
     public DefaultTestSuiteContainer(Instantiator instantiator) {
         super(TestSuiteSpec.class, instantiator);
     }

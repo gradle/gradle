@@ -184,10 +184,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configureGeneratedSourceSets(CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
+        void configureGeneratedSourceSets(CollectionBuilder<NativeComponentSpec> componentSpecs) {
+            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
-                public void execute(ComponentSpec componentSpec) {
+                public void execute(NativeComponentSpec componentSpec) {
                     for (LanguageSourceSetInternal languageSourceSet : componentSpec.getSource().withType(LanguageSourceSetInternal.class)) {
                         Task generatorTask = languageSourceSet.getGeneratorTask();
                         if (generatorTask != null) {
@@ -203,10 +203,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePrefixHeaderFiles(CollectionBuilder<ComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
+        void configurePrefixHeaderFiles(CollectionBuilder<NativeComponentSpec> componentSpecs, final @Path("buildDir") File buildDir) {
+            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
-                public void execute(ComponentSpec componentSpec) {
+                public void execute(NativeComponentSpec componentSpec) {
                     for (DependentSourceSet dependentSourceSet : componentSpec.getSource().withType(DependentSourceSet.class)) {
                         if (dependentSourceSet.getPreCompiledHeader() != null) {
                             String prefixHeaderDirName = String.format("tmp/%s/prefixHeaders", dependentSourceSet.getName());
@@ -268,10 +268,10 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        public void applyHeaderSourceSetConventions(CollectionBuilder<ComponentSpec> componentSpecs) {
-            componentSpecs.afterEach(new Action<ComponentSpec>() {
+        public void applyHeaderSourceSetConventions(CollectionBuilder<NativeComponentSpec> componentSpecs) {
+            componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
-                public void execute(ComponentSpec componentSpec) {
+                public void execute(NativeComponentSpec componentSpec) {
                     DomainObjectSet<LanguageSourceSet> functionalSourceSet = componentSpec.getSource();
                     for (HeaderExportingSourceSet headerSourceSet : functionalSourceSet.withType(HeaderExportingSourceSet.class)) {
                         // Only apply default locations when none explicitly configured
