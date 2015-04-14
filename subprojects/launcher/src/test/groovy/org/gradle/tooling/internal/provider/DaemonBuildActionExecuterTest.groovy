@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.launcher.daemon.DaemonClientBuildActionExecuter
+import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.ReportedException

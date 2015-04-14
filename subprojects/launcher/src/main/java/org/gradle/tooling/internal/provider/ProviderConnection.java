@@ -24,7 +24,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
-import org.gradle.launcher.daemon.DaemonClientBuildActionExecuter;
+import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;

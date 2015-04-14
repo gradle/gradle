@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon
+package org.gradle.launcher.daemon.client
 
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.exec.BuildActionParameters
 import spock.lang.Specification
 

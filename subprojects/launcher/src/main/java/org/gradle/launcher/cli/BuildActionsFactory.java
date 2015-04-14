@@ -31,7 +31,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.cli.converter.*;
-import org.gradle.launcher.daemon.DaemonClientBuildActionExecuter;
+import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
