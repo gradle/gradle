@@ -580,16 +580,18 @@ while (not cancelled) {
 
 - If Gradle build succeeds, we wait for trigger and print some sort of helpful message.
 - If Gradle build fails, we still wait for trigger.
-- If Gradle fails to start the first time, Gradle exits and does not wait for the trigger (e.g., invalid command-line or build script errors).
+- Configuration errors should be treated in the same way as execution failures.
 - On Ctrl+C, Gradle exits and daemon cancels build.
 - When "trigger" is tripped, a build runs.
-- Some kind of performance test that re-runs the build multiple times and looks for leaks (increasing number of threads)?
+- Test coverage that watch mode works through the tooling API
+    - Client receives logging output, progress events and test events from each build execution until cancelled.
+    - Client receives ‘cancelled’ exception when cancelled.
+    - Cannot use watch mode when requesting a model or running a build action.
+- Add coverage for a build that succeeds, then fails, then succeeds (eg a compilation error)
 
 #### Open Issues
 
-- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
-- What does the output look like when we fail?
-- OK to reuse "global client services" created in BuildActionsFactory across multiple builds
+- NA
 
 ### Story: Continuous Gradle mode triggered by file change
 
@@ -598,23 +600,22 @@ Gradle will be able to start, run a set of tasks and then monitor one file for c
 #### Implementation
 
 - Fail when this is enabled on Java 6 builds, tell the user this is only supported for Java 7+.
-- Watch project directory for changes to trigger re-run
+- Watch project directory (`projectDir`) for changes to trigger re-run
 - Add `InputWatchService` that can be given Files to watch
-- TODO: Figure out where this watch service lives (in CLI process or Daemon)
 - When files change, mark the file as out of date
 - Re-run trigger polls the watch service for changes at some default rate.  We should allow this to be adjusted (e.g., --watch=1s).
 - Ignore build/ .gradle/ etc files.
 
 #### Test Coverage
 
-- When the project directory files change/are create/are delete, Gradle re-runs the same set of tasks.
+- When the project directory files change/are create/are delete, Gradle re-runs using the same set of task selectors.
 - Limits/performance tests for watched files?
 
 #### Open Issues
 
-- The implementation for Java 1.7 `java.nio.file.WatchService` in Java 7 or even Java 8 isn't using a native file notification OS API on MacOSX. ([details](http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else), [JDK-7133447]( https://bugs.openjdk.java.net/browse/JDK-7133447), [openjdk mailing list](http://mail.openjdk.java.net/pipermail/nio-dev/2014-August/002691.html)) This doesn't scale to 1000s of input files. There are several [native file notification OS API wrappers for Java](http://wiki.netbeans.org/NativeFileNotifications) if performance is an issue. However there isn't a well-maintained file notification library with a suitable license. Play framework uses [JNotify](http://jnotify.sourceforge.net) [for native file notifications on MacOSX](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L77-L88). JNotify is a dead project hosted in Sourceforge and not even available in maven central or jcenter. It looks like it's only available in Typesafe's maven repository.
+- Use JDK7+ WatchService ~~The implementation for Java 1.7 `java.nio.file.WatchService` in Java 7 or even Java 8 isn't using a native file notification OS API on MacOSX. ([details](http://stackoverflow.com/questions/9588737/is-java-7-watchservice-slow-for-anyone-else), [JDK-7133447]( https://bugs.openjdk.java.net/browse/JDK-7133447), [openjdk mailing list](http://mail.openjdk.java.net/pipermail/nio-dev/2014-August/002691.html)) This doesn't scale to 1000s of input files. There are several [native file notification OS API wrappers for Java](http://wiki.netbeans.org/NativeFileNotifications) if performance is an issue. However there isn't a well-maintained file notification library with a suitable license. Play framework uses [JNotify](http://jnotify.sourceforge.net) [for native file notifications on MacOSX](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L77-L88). JNotify is a dead project hosted in Sourceforge and not even available in maven central or jcenter. It looks like it's only available in Typesafe's maven repository.~~
     
-- Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .
+- Just Fail ~~Do we want to support Java 1.6 with a polling implemention or just show an error when running on pre Java 1.7 ? Play framework uses [polling implementation on pre Java 1.7](https://github.com/playframework/playframework/blob/ca664a7/framework/src/run-support/src/main/scala/play/runsupport/FileWatchService.scala#L109) .~~
 
 ### Story: Continuous Gradle mode triggered by task input changes
 
@@ -623,31 +624,27 @@ Gradle will be able to start, run a set of tasks and then monitor changes to any
 #### Implementation
 
 - Add inputs to task to `InputWatchService` so that they can be watched
+- Should trigger on change to a file that is a task input and not a task output. For example, removing `build/classes/main` will not trigger anything (unless I’m running `gradle —watch classes`).
+- Should stop watching for changes while the build is running.
 
 #### Test Coverage
 
-- TBD
-
-#### Open Issues
-
-- Monitor files that are inputs to the model for changes too.
-
-### Story: Continuous Gradle mode rebuilds if an input file is modified by the user while a build is running
-
-#### Implementation
-
-- IDEA: Outputs from tasks should be excluded as inputs to be watched (since they are 'intermediate' files)
-- IDEA: Start/stop watching during a build?
-
-#### Test Coverage
-
-- TBD
+- Changing an input file triggers a build (eg change a source file).
+- Adding/removing a file in an input directory triggers a build (eg add/remove a source file from a source directory).
+- Changing/removing an output file triggers a build (eg given `gradle —watch assemble`, change or remove the jar).
+- Adding a file to an output directory does not trigger a build.
+- Changing/removing/adding an intermediate output file does not trigger a build (eg given `gradle —watch assemble` change/remove/add a class file).
 
 #### Open Issues
 
 - Would it be possible to use  [IncrementalTaskInputsInternal.getInputFilesSnapshot](https://github.com/gradle/gradle/blob/2ded5cd/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/changes/IncrementalTaskInputsInternal.java#L23-23) and  [FilesShapshotSet.findSnapshot](https://github.com/gradle/gradle/blob/2ded5cda/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/FilesSnapshotSet.java#L30-30) for getting state of input for the task. 
 - What if files change during task execution? Do we have to run the build twice to be sure that we have processed all changes that might happen at any time?
 
+### Story: Continuous Gradle mode rebuilds if inputs to the model change
+
+Monitor files that are inputs to the model for changes too.
+
+TBD
 
 ### Additional Notes 
 
@@ -658,6 +655,10 @@ TODO: See if these make sense incorporated in another story/Feature.
 - Uses Gradle daemon to run build.
 - Collect up all input files as build runs.
 - Deprecate reload properties from Jetty tasks, as they don't work well and are replaced by this general mechanism.
+- Don’t bother with performance test for now. Add tooling API + daemon stress tests later.
+- Just use Java 7 watcher for now. We can improve performance on OS X and Windows later. 
+    - Do this by adding stuff to native-platform. Could potentially spit out a warning on these platforms.
+- Fail when running on Java 6. We can fix this by using native-platform later, rather than polling.
 
 ## Feature: Keep running Play application up-to-date when source changes
 
