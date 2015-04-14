@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
@@ -83,7 +84,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return new Runnable() {
             @Override
             public void run() {
-                for (PluginId id : idMappings.keySet()) {
+                // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
+                Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
+                for (PluginId id : pluginIds) {
                     if (plugin.isAlsoKnownAs(id)) {
                         idMappings.get(id).add(new PluginWithId(id, pluginClass));
                     }

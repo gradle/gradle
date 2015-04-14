@@ -18,6 +18,7 @@ package org.gradle.api.dsl
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import spock.lang.Issue
 import spock.lang.Unroll
 
 /**
@@ -177,6 +178,31 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "tasks"
+    }
+
+    @Issue("http://discuss.gradle.org/t/concurrentmodification-exception-on-java-8-for-plugins-withid-with-gradle-2-4/8928")
+    def "can nest detection"() {
+        // Actual plugins in use here are insignificant
+        when:
+        buildScript """
+            class ExamplePlugin implements Plugin<Project> {
+                void apply(final Project project) {
+                    project.plugins.withId('ivy-publish') {
+                        project.plugins.hasPlugin('jacoco')
+                    }
+                    project.plugins.withId('maven-publish') {
+                        project.plugins.hasPlugin('jacoco')
+                    }
+                }
+            }
+
+            apply plugin: ExamplePlugin
+            apply plugin: "ivy-publish"
+            apply plugin: "jacoco"
+        """
+
+        then:
+        succeeds "help"
     }
 
 }
