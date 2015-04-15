@@ -18,9 +18,10 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.tooling.internal.protocol.FailureVersion1;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 
-public class InternalFailure implements FailureVersion1 {
+public class InternalFailure implements FailureVersion1, Serializable {
     private final String message;
     private final String description;
     private final InternalFailure cause;
