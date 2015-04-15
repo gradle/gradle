@@ -320,18 +320,15 @@ The feature will depend on the classloader caching feature.
 1. Error when model reuse enabled but not classloader caching
 1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
 
-## Rationalize realizing tasks during Gradle lifecycle
+## Node ancestry is self closed before node is used as an input
 
-Things are a bit tangled right now. There are at least the following aspects:
+We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
 
-1. Project.tasks.discoverTasks()
-2. Project.fireDeferredConfiguration()
-3. ProjectAccessListener
-4. TaskNameResolver
+## Test Coverage
 
-This should be simplified.
-
-## Don't 
+- Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
+- Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
+- Cycle is reported when a rule tries to depend on a child of the subject as an input
 
 # Open Questions
 
