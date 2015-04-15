@@ -21,7 +21,11 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
+import org.gradle.tooling.internal.provider.InternalFailure;
 import org.gradle.tooling.internal.provider.InternalTestProgressEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code BuildEventConsumer} instance.
@@ -77,7 +81,15 @@ class ClientForwardingTestListener implements TestListener {
     }
 
     private static InternalTestProgressEvent.InternalTestResult toTestResult(TestResult result) {
-        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), result.getExceptions());
+        return new InternalTestProgressEvent.InternalTestResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+    }
+
+    private static List<InternalFailure> convertExceptions(List<Throwable> exceptions) {
+        List<InternalFailure> failures = new ArrayList<InternalFailure>(exceptions.size());
+        for (Throwable exception : exceptions) {
+            failures.add(InternalFailure.fromThrowable(exception));
+        }
+        return failures;
     }
 
 }

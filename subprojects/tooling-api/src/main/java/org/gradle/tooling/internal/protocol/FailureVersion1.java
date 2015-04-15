@@ -13,39 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.protocol;
-
-import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
-
-import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-@Incubating
-public interface TestResultVersion1 {
-
-    /**
-     * Returns the time the test execution started.
-     *
-     * @return The start time
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time the test execution completed.
-     *
-     * @return The completion time
-     */
-    long getEndTime();
-
-    /**
-     * Returns the failures that occurred while running the test, if any.
-     *
-     * @return The failures that occurred
-     */
-    List<FailureVersion1> getFailures();
-
+public interface FailureVersion1 {
+    String getMessage();
+    String getDescription();
+    FailureVersion1 getCause();
 }
