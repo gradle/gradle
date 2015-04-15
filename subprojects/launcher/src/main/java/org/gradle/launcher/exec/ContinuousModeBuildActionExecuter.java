@@ -64,7 +64,7 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
             try {
                 lastResult = executeSingleBuild(action, requestContext, actionParameters);
             } catch (Throwable t) {
-                // logged already
+                // TODO: logged already
             }
             logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
             waitForTrigger();

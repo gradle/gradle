@@ -28,10 +28,13 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.FixedBuildCancellationToken;
+import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.event.ListenerManager;
@@ -44,8 +47,8 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
+import org.gradle.launcher.cli.Parameters;
+import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -66,7 +69,15 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -163,23 +174,14 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
 
-        StartParameter startParameter = new StartParameter();
+        CommandLineParser parser = new CommandLineParser();
+        ParametersConverter parametersConverter = new ParametersConverter();
+        parametersConverter.configure(parser);
+        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters());
+
+        StartParameter startParameter = parameters.getStartParameter();
         startParameter.setCurrentDir(getWorkingDir());
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
-
-        CommandLineParser parser = new CommandLineParser();
-        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-        converter.configure(parser);
-        ParsedCommandLine parsedCommandLine = parser.parse(getAllArgs());
-
-        BuildLayoutParameters layout = converter.getLayoutConverter().convert(parsedCommandLine, new BuildLayoutParameters());
-
-        Map<String, String> properties = new HashMap<String, String>();
-        new LayoutToPropertiesConverter().convert(layout, properties);
-        converter.getSystemPropertiesConverter().convert(parsedCommandLine, properties);
-
-        new PropertiesToStartParameterConverter().convert(properties, startParameter);
-        converter.convert(parsedCommandLine, startParameter);
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
@@ -194,7 +196,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                     System.getenv(),
                     SystemProperties.getInstance().getCurrentDir(),
                     startParameter.getLogLevel(),
-                    DaemonUsage.EXPLICITLY_DISABLED, false);
+                    DaemonUsage.EXPLICITLY_DISABLED,
+                    parameters.getContinuousModeParameters().isEnabled());
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                     new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
                             ManagementFactory.getRuntimeMXBean().getStartTime()),
