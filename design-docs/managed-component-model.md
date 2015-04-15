@@ -197,19 +197,33 @@ individual nodes.
 This feature generalizes the infrastructure through which build logic defines the tasks that build a binary, and reuses it for generated source sets
 and intermediate outputs.
 
-The goals for this feature:
+A number of key intermediate outputs will be exposed for their respective binaries:
+    - Native object files
+    - JVM class files
+    - Generated source for play applications
 
-- Introduce an abstraction that represents a physical thing, where a binary, a source set and intermediate outputs are all physical things.
-- Allow the inputs to a physical thing to be declared. These inputs are also physical things.
-- Allow a rule to define the tasks that build the physical thing.
-- Allow navigation from the model for the physical thing to the tasks that are responsible for building it.
-- Expose native object files, jvm class files, and generated source for play applications as intermediate outputs.
+Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs,
+an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
+
+Rules will also be able to navigate from the model for a buildable item, such as a binary, intermediate output or source set, to the tasks, for
+configuration or reporting.
+
+The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and
+binaries, plus the task a user would run to build each thing.
 
 It is a non-goal of this feature to provide a public way for a plugin author to define the intermediate outputs for a binary.
 
 ## Implementation
 
-Many of these pieces are already present, and the implementation should formalize these concepts.
+A potential approach:
+
+- Introduce an abstraction that represents a physical thing, where a binary, a source set and intermediate outputs are all physical things.
+- Allow the inputs to a physical thing to be modelled. These inputs are also physical things.
+- Allow a rule, implemented in a plugin or in the DSL, to define the tasks that build the physical thing.
+- Allow navigation from the model for the physical thing to the tasks that are responsible for building it.
+- Expose native object files, jvm class files, and generated source for play applications as intermediate outputs for their respective binaries.
+
+Many of these pieces are already present, and the implementation would formalize these concepts and reuse them.
 
 Currently:
 
@@ -220,12 +234,23 @@ Currently:
 - Various types, such as `JvmClasses` and `PublicAssets` represent intermediate outputs.
 
 The implementation would be responsible for coordinating the rules when assembling the task graph, so that when a physical thing is to be built, the
-tasks that build its inputs should be configured, then added as dependencies of the tasks the build the target.
+tasks that build its inputs should be configured. When a physical thing is used as input, the tasks that build its inputs should be configured and attached
+as dependencies of those tasks that take the physical thing as input.
 
-The `components` report should show details of the intermediate outputs of a binary, the relationships between physical things and the entry point
-task to build the thing.
+# Feature 5: Plugin author uses managed types to define intermediate outputs
 
-# Feature 5: Build logic defines tasks to run executable things
+This feature allows a plugin author to declare the intermediate outputs for custom binaries.
+
+Allow a plugin author to extend any buildable type with a custom managed type. Allow a custom type to declare the inputs for the buildable type in a strongly typed way.
+For example, a jvm library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a
+kind of JVM classpath component.
+
+## Implementation
+
+One approach is to use various annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
+of a buildable thing.
+
+# Feature 6: Build logic defines tasks that run executable things
 
 This feature generalizes the infrastructure through which build logic defines the executable things and how they are to be executed.
 
@@ -244,7 +269,7 @@ The implementation would be responsible for building the executable things, and 
 
 The `components` report should show details of the executable things, which as the entry point task to run the thing.
 
-# Feature 6: References between key objects in the software model are visible to rules
+# Feature 7: References between key objects in the software model are visible to rules
 
 The relationships exposed in the first feature represent ownership, where the relationship is one between a parent and child.
 This feature exposes other key 'non-ownership' relationships present in the software model.
