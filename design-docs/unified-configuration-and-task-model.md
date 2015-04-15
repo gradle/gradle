@@ -269,6 +269,10 @@ In both cases, exceptions should be thrown similarly to other `RuleSource` const
 
 ## Model is partially reused across daemon builds, ignoring potential configuration changes
 
+> This story was started, and then “cancelled” due to initial performance testing demonstrating that model reuse isn't as necessary as initially thought.
+> The rule based model is “faster” than the imperative model even without reuse, reducing the need for reuse.
+> Reuse will still be necessary later in some form to open up the possibility of “expensive configuration”.
+
 This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
 As this is a large chunk of work, this story covers initial work and does not take the feature to production readiness.
 The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
