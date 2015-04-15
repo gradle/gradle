@@ -188,7 +188,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         noExceptionThrown()
     }
 
-    void "all rules are executed in order and last one wins, including deprecated resolution rules"()
+    void "all rules are executed in order and last one wins, including resolution rules"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -234,7 +234,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
 """
-        executer.withDeprecationChecksDisabled()
 
         when:
         run("check")
