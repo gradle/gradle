@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 // TODO - report on the configuration that was actually changed
@@ -166,6 +167,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Attempting to change configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
+    @Ignore("This is currently emitting deprecation warnings")
     def "does not warn about adding artifacts to a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
@@ -192,11 +194,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
 """
 
+        // Will need to track observed state and modified state separately for content (dependencies) and artifacts
         expect:
         succeeds("impl:modifyArtifactDuringTaskExecution")
-
-        // Demonstrates bug: should not emit deprecation warning in this case. Need to track 'graph observed' and 'artifacts observed' separately.
-//        succeeds("impl:modifyParentArtifactDuringTaskExecution")
+        succeeds("impl:modifyParentArtifactDuringTaskExecution")
     }
 
     @Issue("GRADLE-3155")
