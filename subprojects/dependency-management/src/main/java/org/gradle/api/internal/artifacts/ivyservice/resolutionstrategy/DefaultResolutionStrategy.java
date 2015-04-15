@@ -56,11 +56,11 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void beforeChange(MutationValidator validator) {
+    public void setMutationValidator(MutationValidator validator) {
         mutationValidator = validator;
-        cachePolicy.beforeChange(validator);
-        componentSelectionRules.beforeChange(validator);
-        dependencySubstitutions.beforeChange(validator);
+        cachePolicy.setMutationValidator(validator);
+        componentSelectionRules.setMutationValidator(validator);
+        dependencySubstitutions.setMutationValidator(validator);
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {

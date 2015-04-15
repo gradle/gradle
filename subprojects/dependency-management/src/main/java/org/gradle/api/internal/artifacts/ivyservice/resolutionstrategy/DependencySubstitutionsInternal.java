@@ -28,7 +28,7 @@ public interface DependencySubstitutionsInternal extends DependencySubstitutions
 
     DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule);
 
-    void beforeChange(MutationValidator validator);
+    void setMutationValidator(MutationValidator validator);
 
     DependencySubstitutionsInternal copy();
 }

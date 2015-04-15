@@ -64,5 +64,5 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     /**
      * Sets the validator to invoke before mutation. Any exception thrown by the action will veto the mutation.
      */
-    void beforeChange(MutationValidator action);
+    void setMutationValidator(MutationValidator action);
 }

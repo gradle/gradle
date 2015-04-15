@@ -269,7 +269,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     def "mutation is checked for public API"() {
         def checker = Mock(MutationValidator)
-        rules.beforeChange(checker)
+        rules.setMutationValidator(checker)
 
         when: rules.all(Actions.doNothing())
         then: 1 * checker.validateMutation(STRATEGY)

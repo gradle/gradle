@@ -129,7 +129,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
 
-        resolutionStrategy.beforeChange(veto);
+        resolutionStrategy.setMutationValidator(veto);
     }
 
     public String getName() {
@@ -337,7 +337,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     break;
             }
             if (needsResolve) {
-                DependencyResolutionListener broadcast = getDependencyResolutionBroadcast();
+                DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
                 ResolvableDependencies incoming = getIncoming();
                 broadcast.beforeResolve(incoming);
                 triggerWhenEmptyActionsIfNecessary();
@@ -515,10 +515,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copyRecursive(Specs.<Dependency>convertClosureToSpec(dependencySpec));
     }
 
-    public DependencyResolutionListener getDependencyResolutionBroadcast() {
-        return resolutionListenerBroadcast.getSource();
-    }
-
     public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
     }
@@ -581,7 +577,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // The task dependencies for the configuration have been calculated using
                 // Configuration.getBuildDependencies(). It is deprecated for build logic to
                 // change anything about the configuration.
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after task dependencies have been resolved", getDisplayName()));
                 break;
             case RESULTS_RESOLVED:
                 // The public result for the configuration has been calculated. It is an

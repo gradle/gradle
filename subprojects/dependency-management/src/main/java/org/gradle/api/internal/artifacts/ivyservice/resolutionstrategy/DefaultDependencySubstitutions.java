@@ -125,7 +125,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public void beforeChange(MutationValidator validator) {
+    public void setMutationValidator(MutationValidator validator) {
         mutationValidator = validator;
     }
 
