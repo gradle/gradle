@@ -20,19 +20,27 @@ import org.gradle.api.file.DirectoryTree;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Builder type of interface for building the input for {@link FileWatcher}
  *
  */
-public interface FileWatchInputs {
+public class FileWatchInputs {
+    private Set<DirectoryTree> directories = new LinkedHashSet<DirectoryTree>();
+    private Set<File> files = new LinkedHashSet<File>();
+
     /**
      * Watch changes to a directory filtered by a {@link org.gradle.api.tasks.util.PatternSet}
      *
      * @param directoryTree watch changes to this directory tree
      * @return this
      */
-    FileWatchInputs watch(DirectoryTree directoryTree);
+    public FileWatchInputs watch(DirectoryTree directoryTree) {
+        directories.add(directoryTree);
+        return this;
+    }
 
     /**
      * Watch changes to an individual file
@@ -40,14 +48,20 @@ public interface FileWatchInputs {
      * @param file watch changes to this file
      * @return this
      */
-    FileWatchInputs watch(File file);
+    public FileWatchInputs watch(File file) {
+        files.add(file.getAbsoluteFile());
+        return this;
+    }
 
     /**
      * @return all added DirectoryTree watches
      */
-    Collection<DirectoryTree> getDirectoryTrees();
+    public Collection<DirectoryTree> getDirectoryTrees()  {
+        return directories;
+    }
+
     /**
      * @return all added File watches
      */
-    Collection<File> getFiles();
+    public Collection<File> getFiles() { return files; }
 }

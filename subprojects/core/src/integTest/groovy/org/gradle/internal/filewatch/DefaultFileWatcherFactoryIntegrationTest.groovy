@@ -45,7 +45,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
         fileWatcher = fileWatcherFactory.createFileWatcher()
-        fileWatchInputs = new DefaultFileWatchInputs()
+        fileWatchInputs = new FileWatchInputs()
         fileWatchInputs.watch(new DirectoryFileTree(testDir.getTestDirectory()))
     }
 
@@ -113,7 +113,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
 
     def "excluded subdirectory should not be listened for changes"() {
         given:
-        fileWatchInputs = new DefaultFileWatchInputs()
+        fileWatchInputs = new FileWatchInputs()
         PatternSet patternSet = new PatternSet()
         patternSet.exclude("a/b/**")
         fileWatchInputs.watch(new DirectoryFileTree(testDir.getTestDirectory(), patternSet))
@@ -147,7 +147,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
     def "watching individual files should watch for modifications"() {
         given:
         def callback = Mock(Runnable)
-        fileWatchInputs = new DefaultFileWatchInputs()
+        fileWatchInputs = new FileWatchInputs()
         def subdir1 = testDir.createDir('a/b/c')
         def watchedfile1 = subdir1.file('file1')
         watchedfile1.text = 'watchedfile1 content'
