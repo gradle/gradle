@@ -32,6 +32,9 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
 
     @Override
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Windows Resource compiler.");
+        }
         // RC has position sensitive arguments, the output args need to appear before the source file
         return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }
