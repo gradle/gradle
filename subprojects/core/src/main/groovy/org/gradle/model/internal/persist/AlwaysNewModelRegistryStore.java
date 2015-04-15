@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.persist;
+package org.gradle.model.internal.persist;
 
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;

@@ -21,6 +21,11 @@ import org.gradle.api.Incubating;
 
 import java.util.Set;
 
+/**
+ * A set of model objects.
+ *
+ * @param <T> the type of model object.
+ */
 @Incubating
 public interface ManagedSet<T> extends Set<T> {
     void create(Action<? super T> action);

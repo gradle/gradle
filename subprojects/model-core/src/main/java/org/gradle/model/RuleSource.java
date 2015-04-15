@@ -18,6 +18,9 @@ package org.gradle.model;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A rule source.
+ */
 @Incubating
 public class RuleSource {
 }

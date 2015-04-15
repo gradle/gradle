@@ -21,7 +21,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.launcher.daemon.configuration.GradleProperties
-import org.gradle.model.persist.ReusingModelRegistryStore
+import org.gradle.model.internal.persist.ReusingModelRegistryStore
 
 @CompileStatic
 @EqualsAndHashCode

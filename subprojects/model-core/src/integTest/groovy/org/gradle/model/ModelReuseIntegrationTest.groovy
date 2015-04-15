@@ -19,7 +19,7 @@ package org.gradle.model
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
-import org.gradle.model.persist.ReusingModelRegistryStore
+import org.gradle.model.internal.persist.ReusingModelRegistryStore
 import spock.lang.Ignore
 
 //@IgnoreIf({ GradleContextualExecuter.isDaemon() })
