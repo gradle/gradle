@@ -20,7 +20,7 @@ import org.gradle.internal.filewatch.FileWatchInputs;
 import org.gradle.internal.filewatch.FileWatchListener;
 import org.gradle.internal.filewatch.FileWatcher;
 
-import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -45,7 +45,7 @@ public class DefaultFileWatcher implements FileWatcher {
         submitWithLatch(inputs, listener);
     }
 
-    protected void submitWithLatch(FileWatchInputs inputs, FileWatchListener listener) {
+    private void submitWithLatch(FileWatchInputs inputs, FileWatchListener listener) {
         CountDownLatch latch = createLatch();
         execution = executor.submit(new FileWatcherExecutor(this, runningFlag, listener, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
         try {
