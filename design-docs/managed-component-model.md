@@ -212,7 +212,7 @@ configuration or reporting.
 The `components` report should show details of the intermediate outputs of a binary, the input relationships between the source sets, intermediate outputs and
 binaries, plus the task a user would run to build each thing.
 
-It is a non-goal of this feature to provide a public way for a plugin author to define the intermediate outputs for a binary.
+It is a non-goal of this feature to provide a public way for a plugin author to define the intermediate outputs for a binary. This is a later feature.
 
 ## Implementation
 
