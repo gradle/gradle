@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import org.gradle.util.TextUtil
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -81,10 +82,10 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
 
         then:
-        output.contains """
+        output.contains(TextUtil.toPlatformLineSeparators("""
     components
         main
-            source"""
+            source"""))
     }
 
     def "can reference source container for a component in a rule"() {
@@ -129,12 +130,12 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
 
         then:
-        output.contains """
+        output.contains(TextUtil.toPlatformLineSeparators("""
     components
         main
             source
                 main
-                test"""
+                test"""))
     }
 
     def "can reference source container elements in a rule"() {
