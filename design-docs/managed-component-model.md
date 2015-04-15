@@ -53,7 +53,7 @@ Possibly a better implementation would be to change `CollectionBuilder` into a '
 
 * Remove `components` project extension
 * Remove model projection that allows access as a domain object set
-* Change ComponentSpecContainer to `extends CollectionBuilder<ComponentSpec>`
+* Change `ComponentSpecContainer` to `extends CollectionBuilder<ComponentSpec>`
 * Add the necessary, possibly adhoc, projection that presents a view that is a ComponentSpecContainer impl
 
 Some, internal only, mechanism will also need to be added to keep the functionality of `ExtensiblePolymorphicDomainObjectContainer`.
@@ -63,16 +63,31 @@ This story doesn't dictate any kind of implementation for the actual model node 
 
 #### Test Coverage
 
-- Can view the components container as a ComponentSpecContainer
-- Can view the components container as a sub set `CollectionBuilder<T>` where T extends `ComponentSpec` (e.g. PlayCoffeeScriptPlugin.createCoffeeScriptSourceSets)
-- DSL type methods (e.g. Action → Closure) methods can be used on a ComponentSpecContainer
-- Can continue to register custom component types (i.e. @ComponentType rules still work)
+- Can view the components container as a `ComponentSpecContainer`
+- Can view the components container as a sub set `CollectionBuilder<T>` where T extends `ComponentSpec` (e.g. `PlayCoffeeScriptPlugin.createCoffeeScriptSourceSets`)
+- DSL type methods (e.g. Action → Closure) methods can be used on a `ComponentSpecContainer`
+- Can continue to register custom component types (i.e. `@ComponentType` rules still work)
+
+Most of this coverage already exists, need to fill in the gaps:
+
+- Build script can:
+    - Create a component using a registered component type.
+    - Configure components:
+        - With given name
+        - With given type
+        - All components
+    - Apply beforeEach/afterEach rules to components.
+- Plugin can do the above.
+- Reasonable error message when:
+    - Attempting to create a component using a type for which there is no implementation.
+    - Attempting to create a component using default type.
 
 #### Breaking changes
 
-- Removal of project.components
+- Removal of `project.componentSpecs`
 - Removal of ability to bind to the component container as `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` (if this ever actually worked)
-- Removal of `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` methods from `ComponentSpecContainer`, addition of collection builder methods 
+- Removal of `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` methods from `ComponentSpecContainer`, addition of collection builder methods
+- All configuration done using subject of type `ComponentSpecContainer` is deferred. Used to be eager.
 
 ###  `components.«component».sources.«sourceSet»` is addressable/visible in rule space
 
