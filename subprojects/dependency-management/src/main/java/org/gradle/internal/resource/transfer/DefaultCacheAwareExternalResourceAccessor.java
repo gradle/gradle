@@ -27,15 +27,11 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
+import org.gradle.internal.resource.local.*;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
@@ -44,10 +40,7 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
@@ -164,7 +157,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
         try {
-            GFileUtils.copyFile(local.getFile(), destination);
+            tempCopyFile(local.getFile(), destination);
             HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
             if (!localChecksum.equals(remoteChecksum)) {
                 return null;
@@ -172,6 +165,62 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return moveIntoCache(source, destination, fileStore, remoteMetaData);
         } finally {
             destination.delete();
+        }
+    }
+
+    private void tempCopyFile(File srcFile, File destFile) {
+        try {
+            if (srcFile == null) {
+                throw new NullPointerException("Source must not be null");
+            }
+            if (destFile == null) {
+                throw new NullPointerException("Destination must not be null");
+            }
+            if (!srcFile.exists()) {
+                throw new FileNotFoundException("Source '" + srcFile + "' does not exist");
+            }
+            if (srcFile.isDirectory()) {
+                throw new IOException("Source '" + srcFile + "' exists but is a directory");
+            }
+            if (srcFile.getCanonicalPath().equals(destFile.getCanonicalPath())) {
+                throw new IOException("Source '" + srcFile + "' and destination '" + destFile + "' are the same");
+            }
+            if (destFile.getParentFile() != null && !destFile.getParentFile().exists()) {
+                if (!destFile.getParentFile().mkdirs()) {
+                    throw new IOException("Destination '" + destFile + "' directory cannot be created");
+                }
+            }
+            if (destFile.exists() && !destFile.canWrite()) {
+                throw new IOException("Destination '" + destFile + "' exists but is read-only");
+            }
+
+            if (destFile.exists() && destFile.isDirectory()) {
+                throw new IOException("Destination '" + destFile + "' exists but is a directory");
+            }
+
+            FileInputStream input = new FileInputStream(srcFile);
+            try {
+                FileOutputStream output = new FileOutputStream(destFile);
+                try {
+                    IOUtils.copy(input, output);
+                } finally {
+                    output.close();
+                }
+            } finally {
+                input.close();
+            }
+
+            if (!destFile.exists()) {
+                throw new IOException("Failed to copy full contents from '" + srcFile + "' to '" + destFile + "' (destination does not exist)");
+            }
+
+            if (srcFile.length() != destFile.length()) {
+                throw new IOException("Failed to copy full contents from '" + srcFile + "' (length: " + srcFile.length() + ") to '" + destFile + "' (length: " + destFile.length() + ")");
+            }
+            destFile.setLastModified(srcFile.lastModified());
+
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -194,7 +243,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                 throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
+                throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {
