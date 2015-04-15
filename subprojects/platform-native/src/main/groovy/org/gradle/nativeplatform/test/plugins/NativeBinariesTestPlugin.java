@@ -21,7 +21,7 @@ import org.gradle.api.internal.DefaultDynamicTypesNamedEntityInstantiator;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.BiActions;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
@@ -53,12 +53,10 @@ import java.util.List;
  */
 @Incubating
 public class NativeBinariesTestPlugin implements Plugin<Project> {
-    private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
-        this.instantiator = instantiator;
+    public NativeBinariesTestPlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
     }
 
@@ -84,7 +82,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class)))
+                .withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(factoryRegistryType))
                 .build();
         modelRegistry.createOrReplace(testSuitesCreator);

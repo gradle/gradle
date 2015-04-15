@@ -339,7 +339,8 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
         };
     }
 
-    public static <T> BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> createUsingParentNode(final ModelType<T> baseItemModelType) {
+    public static <T> BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> createUsingParentNode(final ModelType<T> baseItemModelType,
+                                                                                                                             final BiAction<? super MutableModelNode, ? super T> initializer) {
         return new BiFunction<ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>>() {
             @Override
             public ModelCreators.Builder apply(final MutableModelNode parent, ModelReference<? extends T> reference) {
@@ -356,6 +357,7 @@ public class DefaultCollectionBuilder<T> implements CollectionBuilder<T> {
                                 NamedEntityInstantiator<T> instantiator = parent.getPrivateData(instantiatorTypeOf(baseItemModelType));
                                 S item = instantiator.create(path.getName(), subType.getConcreteClass());
                                 modelNode.setPrivateData(subType, item);
+                                initializer.execute(modelNode, item);
                             }
                         });
             }

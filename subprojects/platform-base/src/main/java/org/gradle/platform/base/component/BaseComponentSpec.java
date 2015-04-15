@@ -39,6 +39,7 @@ import java.util.Set;
 public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
     private final FunctionalSourceSet mainSourceSet;
+    private final DefaultDomainObjectSet<LanguageSourceSet> source;
 
     private final ComponentSpecIdentifier identifier;
     private final String typeName;
@@ -72,6 +73,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
+        source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public String getName() {
@@ -96,7 +98,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
-        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
+        return source;
     }
 
     public DomainObjectSet<BinarySpec> getBinaries() {

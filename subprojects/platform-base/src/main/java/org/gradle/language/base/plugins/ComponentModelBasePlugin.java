@@ -87,7 +87,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class)))
+                .withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class), new ComponentSpecInitializationAction()))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType))
                 .build();
         modelRegistry.createOrReplace(componentsCreator);
@@ -222,6 +222,26 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     return;
                 }
             }
+        }
+    }
+
+    private class ComponentSpecInitializationAction implements BiAction<MutableModelNode, ComponentSpec> {
+        @Override
+        public void execute(MutableModelNode mutableModelNode, ComponentSpec componentSpec) {
+            ModelType<DomainObjectSet<LanguageSourceSet>> sourceType = new ModelType<DomainObjectSet<LanguageSourceSet>>() {
+            };
+            final String sourceNodeName = "source";
+            ModelReference<DomainObjectSet<LanguageSourceSet>> sourceReference = ModelReference.of(mutableModelNode.getPath().child(sourceNodeName), sourceType);
+            StringBuilder descriptorBuilder = new StringBuilder();
+            mutableModelNode.getDescriptor().describeTo(descriptorBuilder);
+            descriptorBuilder.append(".");
+            descriptorBuilder.append(sourceNodeName);
+            descriptorBuilder.append("()");
+            mutableModelNode.addLink(
+                    ModelCreators.bridgedInstance(sourceReference, componentSpec.getSource())
+                            .descriptor(descriptorBuilder.toString())
+                            .build()
+            );
         }
     }
 }

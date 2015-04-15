@@ -17,6 +17,7 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.DynamicTypesNamedEntityInstantiator;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
@@ -25,13 +26,16 @@ import java.util.Collection;
 
 public class DynamicTypesCollectionBuilderProjection<T> extends CollectionBuilderModelProjection<T> {
 
-    public DynamicTypesCollectionBuilderProjection(ModelType<T> baseItemType) {
+    private final BiAction<? super MutableModelNode, ? super T> initializer;
+
+    public DynamicTypesCollectionBuilderProjection(ModelType<T> baseItemType, BiAction<? super MutableModelNode, ? super T> initializer) {
         super(baseItemType);
+        this.initializer = initializer;
     }
 
     @Override
     protected BiFunction<? extends ModelCreators.Builder, MutableModelNode, ModelReference<? extends T>> getCreatorFunction() {
-        return DefaultCollectionBuilder.createUsingParentNode(baseItemModelType);
+        return DefaultCollectionBuilder.createUsingParentNode(baseItemModelType, initializer);
     }
 
     @Override
