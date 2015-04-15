@@ -17,16 +17,19 @@
 package org.gradle.launcher.continuous;
 
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.filewatch.FileWatcherService;
 
 public class DefaultTriggerGeneratorFactory implements TriggerGeneratorFactory {
     private final ExecutorFactory executorFactory;
+    private final FileWatcherService fileWatcherService;
 
-    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory) {
+    public DefaultTriggerGeneratorFactory(ExecutorFactory executorFactory, FileWatcherService fileWatcherService) {
         this.executorFactory = executorFactory;
+        this.fileWatcherService = fileWatcherService;
     }
 
     @Override
     public TriggerGenerator newInstance(TriggerListener listener) {
-        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new TimeoutTrigger(listener));
+        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchTrigger(listener, fileWatcherService));
     }
 }

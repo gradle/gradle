@@ -16,24 +16,5 @@
 
 package org.gradle.launcher.continuous;
 
-import org.gradle.internal.concurrent.StoppableExecutor;
-
-public class DefaultTriggerGenerator implements TriggerGenerator {
-    private final StoppableExecutor executor;
-    private final TriggerBehavior triggerBehavior;
-
-    public DefaultTriggerGenerator(StoppableExecutor executor, TriggerBehavior triggerBehavior) {
-        this.executor = executor;
-        this.triggerBehavior = triggerBehavior;
-    }
-
-    @Override
-    public void start() {
-        executor.execute(triggerBehavior);
-    }
-
-    @Override
-    public void stop() {
-        executor.stop();
-    }
+public interface TriggerBehavior extends Runnable {
 }
