@@ -17,6 +17,7 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -49,7 +50,7 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
                 throw new RuntimeException("Cannot find constructor in FileWatcher class", e);
             }
             try {
-                return (FileWatcher)constructor.newInstance(executor);
+                return Cast.uncheckedCast(constructor.newInstance(executor));
             } catch (Exception e) {
                 throw new RuntimeException("Cannot instantiate FileWatcher implementation", e);
             }

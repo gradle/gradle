@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
@@ -141,7 +142,7 @@ class FileWatcherExecutor implements Runnable {
             }
 
             if (kind.type() == Path.class) {
-                WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                WatchEvent<Path> ev = Cast.uncheckedCast(event);
                 Path relativePath = ev.context();
                 Path fullPath = watchedPath.resolve(relativePath);
 
