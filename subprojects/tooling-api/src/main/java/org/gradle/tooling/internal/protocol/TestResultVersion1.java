@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
 
 import java.util.List;
 
