@@ -198,6 +198,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 throw new IOException("Destination '" + destFile + "' exists but is a directory");
             }
 
+            if (srcFile.length() == 0) {
+                throw new IOException("Source '" + srcFile + "' has a 0 length");
+            }
+
             FileInputStream input = new FileInputStream(srcFile);
             try {
                 FileOutputStream output = new FileOutputStream(destFile);
