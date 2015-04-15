@@ -90,6 +90,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             DefaultConfiguration.this.validateParentMutation(type);
         }
     };
+    private final MutationValidator configurationMutationValidator = new MutationValidator() {
+        @Override
+        public void validateMutation(MutationType type) {
+            DefaultConfiguration.this.validateMutation(type);
+        }
+    };
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -109,27 +115,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
-        RunnableMutationValidator veto = new RunnableMutationValidator(MutationType.CONTENT) {
-            @Override
-            public void validateMutation(MutationType type) {
-                DefaultConfiguration.this.validateMutation(type);
-            }
-        };
-
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(veto);
+        ownDependencies.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.CONTENT));
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
         allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(veto);
+        ownArtifacts.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.ARTIFACTS));
+
         artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
         allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts);
 
-        resolutionStrategy.setMutationValidator(veto);
+        resolutionStrategy.setMutationValidator(configurationMutationValidator);
+    }
+
+    private Runnable wrapMutationValidator(final MutationValidator validator, final MutationType type) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                validator.validateMutation(type);
+            }
+        };
     }
 
     public String getName() {
@@ -567,8 +576,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 break;
             case OBSERVED:
                 // The configuration has been used in a resolution, and it is deprecated for
-                // build logic to change any dependencies, artifacts, exclude rules or parent
-                // configurations (non-content properties).
+                // build logic to change any dependencies, exclude rules or parent
+                // configurations (values that will affect the resolved graph).
                 if (type == MutationType.CONTENT) {
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
                 }
@@ -576,14 +585,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             case TASK_DEPENDENCIES_RESOLVED:
                 // The task dependencies for the configuration have been calculated using
                 // Configuration.getBuildDependencies(). It is deprecated for build logic to
-                // change anything about the configuration.
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after task dependencies have been resolved", getDisplayName()));
+                // change anything about the configuration except the artifacts.
+                if (type != MutationType.ARTIFACTS) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after task dependencies have been resolved", getDisplayName()));
+                }
                 break;
             case RESULTS_RESOLVED:
-                // The public result for the configuration has been calculated. It is an
-                // error to change non-content properties, and deprecated to change anything else
-                // about the configuration.
-                if (type == MutationType.CONTENT) {
+                // The public result for the configuration has been calculated.
+                // It is an error to change anything that would change the dependencies or artifacts,
+                // and deprecated to change the resolution strategy.
+                if (type != MutationType.STRATEGY) {
                     throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
                 } else {
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));

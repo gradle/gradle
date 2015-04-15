@@ -292,7 +292,6 @@ project(':b') {
                 assert configurations.compile.collect { it.name } == ['a-2.jar']
             }
 '''
-        executer.withDeprecationChecksDisabled()
 
         expect:
         succeeds "test"
