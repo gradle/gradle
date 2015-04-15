@@ -44,107 +44,102 @@ Possibly a better implementation would be to change `CollectionBuilder` into a '
 
 ## Candidate stories
 
-### Don't use `ComponentSpecContainer` type when interacting with the model
+### Make `ComponentSpecContainer` a `CollectionBuilder<ComponentSpec>`
 
-Implementing this story is an interim step that will later enable changing `components` model element not to be implemented as a domain object collection.
-At a later stage `ComponentSpecContainer` will be changed to extend `CollectionBuilder<ComponentSpec>` and used when interacting with the model.
-This will allow to avoid having to specify paths if there will be more than one collection of `ComponentSpec` available in the model.
+* Remove the ability to view/mutate the component container as a domain object set
+* Remove the “bridging” of the component container outside of model space
 
-In several places (rule inputs, explicitly accessing `components` via the model registry) `ComponentSpecContainer` is used as the type for `components`.
-All of these places should be changed to view that model element as `CollectionBuilder<ComponentSpec>`.
-If in any of these cases substantial work to the model implementation turns out to be necessary then an additional story for that work should be created and actioned on before continuing
-with this story.
+#### Implementation
 
-#### Test Coverage
+* Remove `components` project extension
+* Remove model projection that allows access as a domain object set
+* Change ComponentSpecContainer to `extends CollectionBuilder<ComponentSpec>`
+* Add the necessary, possibly adhoc, projection that presents a view that is a ComponentSpecContainer impl
 
-- all of the existing tests are still passing
+Some, internal only, mechanism will also need to be added to keep the functionality of `ExtensiblePolymorphicDomainObjectContainer`.
+That is, the ability to register a kind of factory for new component types.
 
-### Register `component` type factories via model instead of project extension
-
-An ability to support registering additional element types (currently exposed by `RuleAwarePolymorphicDomainObjectContainer`) has to be implemented for `components`
-model element.
-
-This functionality is needed by `ComponentTypeModelRuleExtractor` and can be initially achieved by registering a model projection for `components` node that will allow seeing it as type
-which has the method that is currently defined in `RuleAwarePolymorphicDomainObjectContainer`.
+This story doesn't dictate any kind of implementation for the actual model node other than the ability to project as a `ComponentSpecContainer` (and `CollectionBuilder<T extends ComponentSpec>` sub collections)
 
 #### Test Coverage
 
-- all of the existing tests are still passing
+- Can view the components container as a ComponentSpecContainer
+- Can view the components container as a sub set `CollectionBuilder<T>` where T extends `ComponentSpec` (e.g. PlayCoffeeScriptPlugin.createCoffeeScriptSourceSets)
+- DSL type methods (e.g. Action → Closure) methods can be used on a ComponentSpecContainer
+- Can continue to register custom component types (i.e. @ComponentType rules still work)
 
-### Don't expose `components` collection as project extension
+#### Breaking changes
 
-This will involve changing `components` model element not to be a bridged domain object collection but a `CollectionBuilder` implementation backed by a `MutableModelNode` and its links.
-`DefaultCollectionBuilder` can be used as that implementation.
+- Removal of project.components
+- Removal of ability to bind to the component container as `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` (if this ever actually worked)
+- Removal of `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` methods from `ComponentSpecContainer`, addition of collection builder methods 
 
-Instantiation of collection elements (`creationFunction` passed to the constructor of `DefaultCollectionBuilder`) can be implemented by extracting a type out of
-`DefaultPolymorphicDomainObjectContainer` which will wrap `factories` map and provide methods to create instances and list supported types.
+###  `components.«component».sources.«sourceSet»` is addressable/visible in rule space
 
-The projection that will allow seeing `components` as a type which allows registering additional element types (implemented in the previous story) will have to be changed
- to wrap around the type that is described in the previous paragraph.
+#### Implementation
 
-#### Test Coverage
-
-- all of the existing tests are still passing
-
-### Don't expose `testSuites` collection as a project extension.
-
-Apply steps similar to the ones described in the previous to `testSuites` model element resulting in changing it from being a bridged collection to a pure `CollectionBuilder<TestSuiteSpec>`.
+* Change implementation of `components` node to eagerly create a `sources` child node for each element node, with the object returned by `componentSpec.sources`
+* `components.«name».sources` is projected using the unmanaged projection (i.e. it is opaque)
+* Use `.all()` hook of component's source set container to create the child nodes of the `sources` node as unmanaged node, based on type of the source set given to the origin create() method
 
 #### Test Coverage
 
-- all of the existing tests are still passing
+- Can reference `components.«component».sources` in a rule (by path, can't bind by type for non top level)
+- `sources` node is displayed for each component in the component container
+- Can reference `components.«component».sources.«source set»` in a rule (by path, can't bind by type for non top level)
+- Can reference `components.«component».sources.«source set»` in a rule as a matching specialisation of `LanguageSourceSet`
+- `sources.«sourceSet»` node is displayed for each source set of each component in the component container
+- Existing usages of `ProjectSourceSet` continue to work, and corresponding root `sources` node (changing anything here is out of scope)
 
-### Change `ComponentSpecContainer` to extend `CollectionBuilder<ComponentSpec>` and `TestSuiteContainer` to extend `CollectionBuilder<TestComponentSpec>`
+#### Breaking changes
 
-Using a specialized type when interacting with `components` and `testSuites` containers will allow to avoid having to specify paths as well given that both of these containers can be viewed as
-`CollectionBuilder<ComponentSpec>`.
+none.
 
-The goal is to replace all current path-referenced usages of these containers with usages of the respective specialized interfaces in model rules.
+###  `components.«component».binaries.«binary»` is addressable/visible in rule space
 
-Part of the story will be making sure that specialized collection builder views get Groovy support as well as missing method implementation allowing element creation injected into them.
-This basically boils down to being able to apply `CollectionBuilderModelView.Decorator` to a specialized collection builder type.
+#### Implementation
 
-#### Test Coverage
-
-- all of the existing tests are still passing
-
-### Make the `sources` property of each component visible to rules
-
-Add creation of a link for `sources` property using an unmanaged instance creator to the creator of elements of the `components` and `testSuites` containers.
-
-#### Test Coverage
-
-- `sources` property of each element of `components` and `testSuites` containers is visible in the model report
-- `sources` property of components and test suites can be addressed in model rules using a hard-coded path
-
-### Make the `binaries` property of each component visible to rules
-
-Add creation of a link for `binaries` property using an unmanaged instance creator to the creator of elements for the `components` and `testSuites` containers.
+* Change implementation of `components` node to eagerly create a `binaries` child node for each element node, with the object returned by `componentSpec.binaries`
+* `components.«name».binaries` is projected using the unmanaged projection (i.e. it is opaque)
+* Use `.all()` hook of component's binaries container to create the child nodes of the `binaries` node as unmanaged node, based on the runtime type of the binary
 
 #### Test Coverage
 
-- `binaries` property of each element of `components` and `testSuites` containers is visible in the model report
-- `binaries` property of components and test suites can be addressed in model rules using a hard-coded path
+- Can reference `components.«component».binaries` in a rule (by path, can't bind by type for non top level)
+- `binaries` node is displayed for each component in the component report
+- Can reference `components.«component».binaries.«binary»` in a rule (by path, can't bind by type for non top level)
+- Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`
+- `binaries.«binary»` node is displayed for each source set of each component in the component container
+- Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)
 
-### Change `sources` property of each component to be created in a managed way
+#### Breaking changes
 
-After this story is implemented elements of `sources` container of each component will be visible as part of the model.
+none.
+
+###  `components.«component».binaries.«binary».tasks.«task»` is addressable/visible in rule space
+
+#### Implementation
+
+* Change implementation of `«binary»` node to eagerly create a `tasks` child node for each element node, with the object returned by `«binary».task`
+* `«binary».tasks` is projected using the unmanaged projection (i.e. it is opaque)
+* Use `.all()` hook of binary's task container to create the child nodes of the `tasks` node as unmanaged node, based on the runtime type of the task
 
 #### Test Coverage
 
- - each element of `sources` container of each component is visible in the model report
- - every element of `sources` container of any component can be addressed in model rules using a hard-coded path
+- Can reference `components.«component».binaries.«binary».task` in a rule (by path, can't bind by type for non top level)
+- `task` node is displayed for each component binary in the component report
+- Can reference `components.«component».binaries.«binary».tasks.«task»` in a rule (by path, can't bind by type for non top level)
+- Can reference `components.«component».binaries.«binary».tasks.«task»` in a rule as a matching specialisation of `Task`
+- `tasks.«task»` node is displayed for each source set of each component in the component container
+- Existing usages of `TaskContainer` continue to work, and corresponding root `task` node (changing anything here is out of scope)
 
-### Change `binaries` property of each component to be created in a managed way
+#### Breaking changes
 
-After this story is implemented elements of `binaries` container of each component will be visible as part of the model.
+none.
 
-#### Test Coverage
+### The test suite container has the same level of management/visibility as the general component container
 
-- each element of `binaries` container of each component is visible in the model report
-- every element of `binaries` container of any component can be addressed in model rules using a hard-coded path
-
-The rest TBD
+Effectively the same treatment that the component spec container received.
 
 # Feature 2: Configuration of key parts of the software model is deferred until required
 
