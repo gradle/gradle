@@ -29,17 +29,25 @@ import java.util.concurrent.ExecutorService;
  */
 public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable {
     private final ExecutorService executor;
+    private final JavaVersion javaVersion;
+    private final ClassLoader classLoader;
 
     public DefaultFileWatcherFactory(ExecutorFactory executorFactory) {
+        this(JavaVersion.current(), DefaultFileWatcherFactory.class.getClassLoader(), executorFactory);
+    }
+
+    DefaultFileWatcherFactory(JavaVersion javaVersion, ClassLoader classLoader, ExecutorFactory executorFactory) {
+        this.javaVersion = javaVersion;
+        this.classLoader = classLoader;
         this.executor = executorFactory.create("filewatcher");
     }
 
     @Override
     public FileWatcher createFileWatcher() {
-        if(JavaVersion.current().isJava7Compatible()) {
+        if(javaVersion.isJava7Compatible()) {
             Class clazz;
             try {
-                clazz = this.getClass().getClassLoader().loadClass("org.gradle.internal.filewatch.jdk7.DefaultFileWatcher");
+                clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.DefaultFileWatcher");
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException("Cannot find FileWatcher implementation class", e);
             }
