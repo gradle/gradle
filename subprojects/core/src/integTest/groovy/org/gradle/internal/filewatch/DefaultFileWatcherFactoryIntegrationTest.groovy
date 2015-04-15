@@ -39,14 +39,14 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
     File testDir
     long waitForEventsMillis = OperatingSystem.current().isMacOsX() ? 3500L : 1500L
     FileWatcher fileWatcher
-    FileWatchInputs fileWatchInputs
+    FileWatchInputs.Builder fileWatchInputs
 
     void setup() {
         NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
         fileWatcher = fileWatcherFactory.createFileWatcher()
-        fileWatchInputs = new FileWatchInputs()
-        fileWatchInputs.watch(new DirectoryFileTree(testDir.getTestDirectory()))
+        fileWatchInputs = FileWatchInputs.newBuilder()
+        fileWatchInputs.add(new DirectoryFileTree(testDir.getTestDirectory()))
     }
 
     void cleanup() {
@@ -58,7 +58,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitForChanges()
@@ -74,7 +74,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         TestFile gitDir = testDir.createDir(".git")
         File createdFile = gitDir.file("some_git_object")
         createdFile.text = "some git data here, shouldn't trigger a change event"
@@ -87,7 +87,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitForChanges()
@@ -104,7 +104,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         testDir.file('some_temp_file~').text = "This change should be ignored"
         waitForChanges()
         then:
@@ -113,13 +113,13 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
 
     def "excluded subdirectory should not be listened for changes"() {
         given:
-        fileWatchInputs = new FileWatchInputs()
+        fileWatchInputs = FileWatchInputs.newBuilder()
         PatternSet patternSet = new PatternSet()
         patternSet.exclude("a/b/**")
-        fileWatchInputs.watch(new DirectoryFileTree(testDir.getTestDirectory(), patternSet))
+        fileWatchInputs.add(new DirectoryFileTree(testDir.getTestDirectory(), patternSet))
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         testDir.createDir('a/b/2').file('some_file').text = "This change should not be noticed"
         waitForChanges()
         then:
@@ -130,7 +130,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         testDir.createDir('a/b/c')
         testDir.createDir('b')
         testDir.createDir('c/d/e/f/g')
@@ -147,17 +147,17 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
     def "watching individual files should watch for modifications"() {
         given:
         def callback = Mock(Runnable)
-        fileWatchInputs = new FileWatchInputs()
+        fileWatchInputs = FileWatchInputs.newBuilder()
         def subdir1 = testDir.createDir('a/b/c')
         def watchedfile1 = subdir1.file('file1')
         watchedfile1.text = 'watchedfile1 content'
         def watchedfile2 = subdir1.file('file2')
         watchedfile2.text = 'watchedfile2 content'
-        fileWatchInputs.watch(watchedfile1)
-        fileWatchInputs.watch(watchedfile2)
+        fileWatchInputs.add(watchedfile1)
+        fileWatchInputs.add(watchedfile2)
         def nonwatchedfile1 = subdir1.file('file3')
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         nonwatchedfile1.text = 'some change'
         waitForChanges()
         then:
@@ -188,7 +188,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
             }
         }
         when:
-        fileWatcher.watch(fileWatchInputs, callback)
+        fileWatcher.watch(fileWatchInputs.build(), callback)
         waitForChanges()
         then:
         0 * callback.run()

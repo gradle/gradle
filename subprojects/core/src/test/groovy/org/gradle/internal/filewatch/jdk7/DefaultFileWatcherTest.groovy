@@ -16,7 +16,6 @@
 
 package org.gradle.internal.filewatch.jdk7
 
-import org.gradle.api.file.DirectoryTree
 import org.gradle.internal.filewatch.FileWatchInputs
 import spock.lang.Specification
 
@@ -38,19 +37,13 @@ class DefaultFileWatcherTest extends Specification {
                 latch
             }
         }
-        def inputs = Mock(FileWatchInputs)
+        def inputs = FileWatchInputs.newBuilder().build()
         def callback = Mock(Runnable)
         def future = Mock(Future)
         when: "when watch is called, the inputs are read"
         fileWatcher.watch(inputs, callback)
         then:
         1 * executor.submit(_) >> future
-        1 * inputs.getDirectoryTrees() >> {
-            new ArrayList<DirectoryTree>()
-        }
-        1 * inputs.getFiles() >> {
-            new ArrayList<File>()
-        }
         0 * callback._
         0 * _._
         when: "watch is called a second time, it throws an exception"
@@ -65,11 +58,5 @@ class DefaultFileWatcherTest extends Specification {
         fileWatcher.watch(inputs, callback)
         then:
         1 * executor.submit(_)
-        1 * inputs.getDirectoryTrees() >> {
-            new ArrayList<DirectoryTree>()
-        }
-        1 * inputs.getFiles() >> {
-            new ArrayList<File>()
-        }
     }
 }

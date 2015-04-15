@@ -16,52 +16,47 @@
 
 package org.gradle.internal.filewatch;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.DirectoryTree;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
-/**
- * Builder type of interface for building the input for {@link FileWatcher}
- *
- */
 public class FileWatchInputs {
-    private Set<DirectoryTree> directories = new LinkedHashSet<DirectoryTree>();
-    private Set<File> files = new LinkedHashSet<File>();
+    private final ImmutableList<DirectoryTree> directories;
+    private final ImmutableList<File> files;
 
-    /**
-     * Watch changes to a directory filtered by a {@link org.gradle.api.tasks.util.PatternSet}
-     *
-     * @param directoryTree watch changes to this directory tree
-     * @return this
-     */
-    public FileWatchInputs watch(DirectoryTree directoryTree) {
-        directories.add(directoryTree);
-        return this;
+    private FileWatchInputs(ImmutableList<DirectoryTree> directories, ImmutableList<File> files) {
+        this.directories = directories;
+        this.files = files;
     }
 
-    /**
-     * Watch changes to an individual file
-     *
-     * @param file watch changes to this file
-     * @return this
-     */
-    public FileWatchInputs watch(File file) {
-        files.add(file.getAbsoluteFile());
-        return this;
-    }
-
-    /**
-     * @return all added DirectoryTree watches
-     */
-    public Collection<DirectoryTree> getDirectoryTrees()  {
+    public List<? extends DirectoryTree> getDirectoryTrees()  {
         return directories;
     }
 
-    /**
-     * @return all added File watches
-     */
-    public Collection<File> getFiles() { return files; }
+    public List<? extends File> getFiles() { return files; }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final ImmutableList.Builder<DirectoryTree> directories = ImmutableList.builder();
+        private final ImmutableList.Builder<File> files = ImmutableList.builder();
+
+        public Builder add(DirectoryTree directoryTree) {
+            directories.add(directoryTree);
+            return this;
+        }
+
+        public Builder add(File file) {
+            files.add(file);
+            return this;
+        }
+
+        public FileWatchInputs build() {
+            return new FileWatchInputs(directories.build(), files.build());
+        }
+    }
 }
