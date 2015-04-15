@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import java.util.List;
 
@@ -41,10 +42,10 @@ public interface TestResultVersion1 {
     long getEndTime();
 
     /**
-     * Returns the exceptions that occurred while running the test, if any.
+     * Returns the failures that occurred while running the test, if any.
      *
-     * @return The exceptions that occurred
+     * @return The failures that occurred
      */
-    List<Throwable> getExceptions();
+    List<Failure> getFailures();
 
 }

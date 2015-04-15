@@ -311,8 +311,8 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             }
 
             @Override
-            public List<Throwable> getExceptions() {
-                return testResult.getExceptions();
+            public List<Failure> getFailures() {
+                return testResult.getFailures();
             }
 
         };

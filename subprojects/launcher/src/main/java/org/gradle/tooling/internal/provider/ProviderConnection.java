@@ -34,6 +34,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -246,8 +248,13 @@ public class ProviderConnection {
                             }
 
                             @Override
-                            public List<Throwable> getExceptions() {
-                                return testProgressEvent.getResult().getFailures();
+                            public List<Failure> getFailures() {
+                                List<Throwable> resultFailures = testProgressEvent.getResult().getFailures();
+                                ArrayList<Failure> failures = new ArrayList<Failure>(resultFailures.size());
+                                for (Throwable resultFailure : resultFailures) {
+                                    failures.add(Failure.fromThrowable(resultFailure));
+                                }
+                                return failures;
                             }
 
                         };

@@ -355,7 +355,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testFailedEvent.testDescriptor == testStartedEvent.testDescriptor &&
                 ((TestFailedEvent) testFailedEvent).testResult.startTime > 0 &&
                 ((TestFailedEvent) testFailedEvent).testResult.endTime > ((TestFailedEvent) testFailedEvent).testResult.startTime &&
-                ((TestFailedEvent) testFailedEvent).testResult.exceptions.findAll { it.class == AssertionError }.size() == 1
+                ((TestFailedEvent) testFailedEvent).testResult.failures.findAll { it.description =~ /AssertionError/ }.size() == 1
         def testClassFailedEvent = result[5]
         testClassFailedEvent instanceof TestSuiteFailedEvent &&
                 testClassFailedEvent.eventTime == ((TestSuiteFailedEvent) testClassFailedEvent).testResult.endTime &&
@@ -363,7 +363,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testClassFailedEvent.testDescriptor == testClassStartedEvent.testDescriptor &&
                 ((TestSuiteFailedEvent) testClassFailedEvent).testResult.startTime > 0 &&
                 ((TestSuiteFailedEvent) testClassFailedEvent).testResult.endTime > ((TestSuiteFailedEvent) testClassFailedEvent).testResult.startTime &&
-                ((TestSuiteFailedEvent) testClassFailedEvent).testResult.exceptions.size() == 0
+                ((TestSuiteFailedEvent) testClassFailedEvent).testResult.failures.size() == 0
         def testProcessFailedEvent = result[6]
         testProcessFailedEvent instanceof TestSuiteFailedEvent &&
                 testProcessFailedEvent.eventTime == ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.endTime &&
@@ -371,7 +371,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 testProcessFailedEvent.testDescriptor == testProcessStartedEvent.testDescriptor &&
                 ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.startTime > 0 &&
                 ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.endTime > ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.startTime &&
-                ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.exceptions.size() == 0
+                ((TestSuiteFailedEvent) testProcessFailedEvent).testResult.failures.size() == 0
         def rootFailedEvent = result[7]
         rootFailedEvent instanceof TestSuiteFailedEvent &&
                 rootFailedEvent.eventTime == ((TestSuiteFailedEvent) rootFailedEvent).testResult.endTime &&
@@ -379,7 +379,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 rootFailedEvent.testDescriptor == rootStartedEvent.testDescriptor &&
                 ((TestSuiteFailedEvent) rootFailedEvent).testResult.startTime > 0 &&
                 ((TestSuiteFailedEvent) rootFailedEvent).testResult.endTime > ((TestSuiteFailedEvent) rootFailedEvent).testResult.startTime &&
-                ((TestSuiteFailedEvent) rootFailedEvent).testResult.exceptions.size() == 0
+                ((TestSuiteFailedEvent) rootFailedEvent).testResult.failures.size() == 0
     }
 
     @ToolingApiVersion(">=2.4")

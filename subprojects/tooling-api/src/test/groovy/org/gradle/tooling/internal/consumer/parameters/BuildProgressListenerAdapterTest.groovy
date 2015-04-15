@@ -411,7 +411,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.parent == null
             assert event.testResult.startTime == 1
             assert event.testResult.endTime == 2
-            assert event.testResult.exceptions.size() == 1
+            assert event.testResult.failures.size() == 1
         }
     }
 
@@ -564,7 +564,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.parent == null
             assert event.testResult.startTime == 1
             assert event.testResult.endTime == 2
-            assert event.testResult.exceptions.size() == 1
+            assert event.testResult.failures.size() == 1
         }
     }
 
