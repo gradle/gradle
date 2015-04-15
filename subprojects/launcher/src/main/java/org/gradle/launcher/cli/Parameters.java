@@ -34,6 +34,11 @@ public class Parameters {
         this.continuousModeParameters = new ContinuousModeParameters();
     }
 
+    public Parameters(StartParameter startParameter) {
+        this();
+        this.startParameter = startParameter;
+    }
+
     public ContinuousModeParameters getContinuousModeParameters() {
         return continuousModeParameters;
     }

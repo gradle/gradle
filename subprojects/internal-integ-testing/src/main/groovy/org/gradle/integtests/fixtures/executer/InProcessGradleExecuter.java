@@ -174,14 +174,15 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
 
+        // TODO: Fix tests that rely on this being set before we process arguments like this...
+        StartParameter startParameter = new StartParameter();
+        startParameter.setCurrentDir(getWorkingDir());
+        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
+
         CommandLineParser parser = new CommandLineParser();
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
-        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters());
-
-        StartParameter startParameter = parameters.getStartParameter();
-        startParameter.setCurrentDir(getWorkingDir());
-        startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
+        Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
