@@ -39,10 +39,9 @@ public class DefaultFileWatcher implements FileWatcher {
 
     @Override
     public synchronized void watch(FileWatchInputs inputs, FileWatchListener listener) {
-        if(runningFlag.get()) {
+        if(!runningFlag.compareAndSet(false, true)) {
             throw new IllegalStateException("FileWatcher cannot start watching new inputs when it's already running.");
         }
-        runningFlag.set(true);
         submitWithLatch(inputs, listener);
     }
 
