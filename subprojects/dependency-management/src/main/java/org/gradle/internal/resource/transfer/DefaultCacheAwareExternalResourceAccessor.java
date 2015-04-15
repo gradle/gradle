@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.apache.commons.io.FileUtils;
+import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -41,7 +41,10 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
@@ -155,69 +158,17 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
     }
 
-    private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) {
+    private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) throws IOException {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
-        tempCopyFile(local.getFile(), destination);
-        HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
-        if (!localChecksum.equals(remoteChecksum)) {
-            return null;
-        }
-        return moveIntoCache(source, destination, fileStore, remoteMetaData);
-    }
-
-    private void tempCopyFile(File srcFile, File destFile) {
         try {
-            if (srcFile == null) {
-                throw new NullPointerException("Source must not be null");
+            Files.copy(local.getFile(), destination);
+            HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
+            if (!localChecksum.equals(remoteChecksum)) {
+                return null;
             }
-            if (destFile == null) {
-                throw new NullPointerException("Destination must not be null");
-            }
-            if (!srcFile.exists()) {
-                throw new FileNotFoundException("Source '" + srcFile + "' does not exist");
-            }
-            if (srcFile.isDirectory()) {
-                throw new IOException("Source '" + srcFile + "' exists but is a directory");
-            }
-            if (srcFile.getCanonicalPath().equals(destFile.getCanonicalPath())) {
-                throw new IOException("Source '" + srcFile + "' and destination '" + destFile + "' are the same");
-            }
-            if (destFile.getParentFile() != null && !destFile.getParentFile().exists()) {
-                if (!destFile.getParentFile().mkdirs()) {
-                    throw new IOException("Destination '" + destFile + "' directory cannot be created");
-                }
-            }
-            if (destFile.exists() && !destFile.canWrite()) {
-                throw new IOException("Destination '" + destFile + "' exists but is read-only");
-            }
-
-            if (destFile.exists() && destFile.isDirectory()) {
-                throw new IOException("Destination '" + destFile + "' exists but is a directory");
-            }
-
-            FileInputStream input = new FileInputStream(srcFile);
-            try {
-                FileOutputStream output = new FileOutputStream(destFile);
-                try {
-                    IOUtils.copy(input, output);
-                } finally {
-                    output.close();
-                }
-            } finally {
-                input.close();
-            }
-
-            if (!destFile.exists()) {
-                throw new IOException("Failed to copy full contents from '" + srcFile + "' to '" + destFile + "' (destination does not exist)");
-            }
-
-            if (srcFile.length() != destFile.length()) {
-                throw new IOException("Failed to copy full contents from '" + srcFile + "' (length: " + srcFile.length() + ") to '" + destFile + "' (length: " + destFile.length() + ") source contents: " + FileUtils.readFileToString(srcFile));
-            }
-            destFile.setLastModified(srcFile.lastModified());
-
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return moveIntoCache(source, destination, fileStore, remoteMetaData);
+        } finally {
+            destination.delete();
         }
     }
 
