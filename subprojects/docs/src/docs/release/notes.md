@@ -57,6 +57,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 Due to a bug in the distribution plugin (see GRADLE-3278), earlier Gradle versions didn't follow the general naming convention for the assemble task of the main distribution.
 This has been fixed and assemble task name for the main distribution has changed from `assembleMainDist` to `assembleDist`.
 
+### Removal of `componentSpec` project extension
+
+As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
+Currently component container can be only accessed using model rules.
+
+### `model.components` cannot be viewed as
 <!--
 ### Example breaking change
 -->
