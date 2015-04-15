@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
@@ -49,15 +48,7 @@ public class IncrementalCompileProcessor {
             result.processSource(sourceFile);
         }
 
-        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources(), mapIncludes(sourceFiles, result.current));
-    }
-
-    private Map<File, SourceIncludes> mapIncludes(Collection<File> files, CompilationState compilationState) {
-        Map<File, SourceIncludes> map = Maps.newHashMap();
-        for (File file : files) {
-            map.put(file, compilationState.getState(file).getSourceIncludes());
-        }
-        return map;
+        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources());
     }
 
     private class IncrementalCompileFiles {

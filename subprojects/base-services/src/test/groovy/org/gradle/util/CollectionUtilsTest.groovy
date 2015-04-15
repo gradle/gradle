@@ -173,6 +173,12 @@ class CollectionUtilsTest extends Specification {
         collectMap([], transformer { it * 10 }) == [:]
     }
 
+    def "collect values as map"() {
+        expect:
+        collectMapValues([1, 2, 3], transformer { it *10}) == [1: 10, 2: 20, 3: 30]
+        collectMapValues([], transformer { it * 10}) == [:]
+    }
+
     def "every"() {
         expect:
         every([1, 2, 3], spec { it < 4 })

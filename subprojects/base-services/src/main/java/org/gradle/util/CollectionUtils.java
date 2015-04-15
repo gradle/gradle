@@ -343,9 +343,27 @@ public abstract class CollectionUtils {
         }
     }
 
+    /**
+     * Given a set of values, derive a set of keys and return a map
+     */
     public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
+        return map;
+    }
+
+    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+        for (K item : keys) {
+            destination.put(item, keyGenerator.transform(item));
+        }
+    }
+
+    /**
+     * Given a set of keys, derive a set of values and return a map
+     */
+    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+        Map<K, V> map = new LinkedHashMap<K, V>();
+        collectMapValues(map, keys, keyGenerator);
         return map;
     }
 
