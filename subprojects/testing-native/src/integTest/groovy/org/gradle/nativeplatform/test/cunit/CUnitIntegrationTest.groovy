@@ -161,6 +161,26 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "testSuite components exposed to modelReport"() {
+        given:
+        buildFile << """
+model {
+    components {
+        nativeComponentOne(NativeLibrarySpec)
+        nativeComponentTwo(NativeLibrarySpec)
+    }
+}
+"""
+        when:
+        succeeds "model"
+
+        then:
+        output.contains """
+    testSuites
+        nativeComponentOneTest
+        nativeComponentTwoTest"""
+    }
+
     def "can supply cCompiler macro to cunit sources"() {
         given:
         useConventionalSourceLocations()
