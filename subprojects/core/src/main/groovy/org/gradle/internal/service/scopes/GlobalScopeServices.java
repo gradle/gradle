@@ -44,8 +44,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.FileWatcherFactory;
-import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
+import org.gradle.internal.filewatch.DefaultFileWatcherService;
+import org.gradle.internal.filewatch.FileWatcherService;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -232,7 +232,7 @@ public class GlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
-        return new DefaultFileWatcherFactory(executorFactory);
+    FileWatcherService createFileWatcherService(ExecutorFactory executorFactory) {
+        return new DefaultFileWatcherService(executorFactory);
     }
 }

@@ -41,22 +41,14 @@ class DefaultFileWatcherTest extends Specification {
         def callback = Mock(Runnable)
         def future = Mock(Future)
         when: "when watch is called, the inputs are read"
-        fileWatcher.watch(inputs, callback)
+        def stoppable = fileWatcher.watch(inputs, callback)
         then:
         1 * executor.submit(_) >> future
         0 * callback._
         0 * _._
-        when: "watch is called a second time, it throws an exception"
-        fileWatcher.watch(inputs, callback)
-        then:
-        thrown IllegalStateException
         when: "stop is called"
-        fileWatcher.stop()
+        stoppable.stop()
         then: "execution result is waited"
         1 * future.get(10, TimeUnit.SECONDS)
-        when: "watch is called after stopping, it will succeed"
-        fileWatcher.watch(inputs, callback)
-        then:
-        1 * executor.submit(_)
     }
 }

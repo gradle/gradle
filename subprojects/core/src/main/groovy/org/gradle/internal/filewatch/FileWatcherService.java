@@ -19,19 +19,21 @@ package org.gradle.internal.filewatch;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
- * Stateful service for watching changes on multiple {@link org.gradle.api.file.DirectoryTree} or individual {@link java.io.File}s
+ * Stateless service for creating for multiple watches on different sets of inputs of {@link org.gradle.api.file.DirectoryTree} or individual {@link java.io.File}s
  *
- * Designed to be used with a single set of inputs and a single listener.
- *
- * Instance should be stopped by calling the stop method before letting go of the instance to free any resources used by the FileWatcher instance
+ * watch method will return a {@link Stoppable} instance. The stop method must be called on this instance to release resources and stop the "file watching session" that the watch
+ * method call starts.
  *
  */
-public interface FileWatcher extends Stoppable {
+public interface FileWatcherService {
     /**
      * Starts watching for file changes on a separate background thread.
      *
+     * It is guaranteed that file watching gets activated before this method returns.
+     *
      * @param inputs the directories and files to watch for changes
      * @param callback gets called when file changes are found
+     * @return Stoppable instance for stopping the file watching. Must be called to make sure that resources are released.
      */
-    void watch(FileWatchInputs inputs, Runnable callback);
+    Stoppable watch(FileWatchInputs inputs, Runnable callback);
 }

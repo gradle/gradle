@@ -16,8 +16,6 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
-import org.gradle.internal.filewatch.FileWatcher;
-
 /**
  * Class for handling the notification of changes
  *
@@ -35,10 +33,8 @@ class FileWatcherChangesNotifier {
     private long lastEventReceivedMillis;
     private long quietPeriodWaitingStartedMillis;
     private boolean pendingNotification;
-    private FileWatcher fileWatcher;
 
-    public FileWatcherChangesNotifier(FileWatcher fileWatcher, Runnable callback) {
-        this.fileWatcher = fileWatcher;
+    public FileWatcherChangesNotifier(Runnable callback) {
         this.callback = callback;
     }
 

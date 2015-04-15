@@ -18,7 +18,7 @@ package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.filewatch.FileWatcher
+import org.gradle.internal.filewatch.FileWatcherService
 import spock.lang.Specification
 
 import java.nio.file.*
@@ -39,18 +39,18 @@ class FileWatcherExecutorTest extends Specification {
     Map<File, Path> dirToPathMocks = [:]
 
     def setup() {
-        fileWatcher = Mock(FileWatcher)
+        fileWatcher = Mock(FileWatcherService)
         runningFlag = new AtomicBoolean(true)
         callback = Mock(Runnable)
         directories = []
         files = []
         watchService = Mock(WatchService)
-        fileWatcherExecutor = new FileWatcherExecutor(fileWatcher, runningFlag, callback, directories, files, new CountDownLatch(1)) {
+        fileWatcherExecutor = new FileWatcherExecutor(runningFlag, callback, directories, files, new CountDownLatch(1)) {
             int watchLoopCounter = 0
 
             @Override
-            protected FileWatcherChangesNotifier createChangesNotifier(FileWatcher fileWatcher, Runnable callback) {
-                return new FileWatcherChangesNotifier(fileWatcher, callback) {
+            protected FileWatcherChangesNotifier createChangesNotifier(Runnable callback) {
+                return new FileWatcherChangesNotifier(callback) {
                     @Override
                     protected boolean quietPeriodBeforeNotifyingHasElapsed() {
                         return true

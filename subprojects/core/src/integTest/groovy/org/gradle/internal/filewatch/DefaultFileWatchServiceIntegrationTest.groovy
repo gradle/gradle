@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,36 +30,35 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 /**
- * integration tests for {@link org.gradle.internal.filewatch.DefaultFileWatcherFactory}
+ * integration tests for {@link DefaultFileWatcherService}
  */
 @IgnoreIf({ !JavaVersion.current().java7Compatible })
-class DefaultFileWatcherFactoryIntegrationTest extends Specification {
+class DefaultFileWatchServiceIntegrationTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    DefaultFileWatcherFactory fileWatcherFactory
+    FileWatcherService fileWatcherService
     File testDir
     long waitForEventsMillis = OperatingSystem.current().isMacOsX() ? 3500L : 1500L
-    FileWatcher fileWatcher
+    Stoppable fileWatcher
     FileWatchInputs.Builder fileWatchInputs
 
     void setup() {
         NativeServicesTestFixture.initialize()
-        fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
-        fileWatcher = fileWatcherFactory.createFileWatcher()
+        fileWatcherService = new DefaultFileWatcherService(new DefaultExecutorFactory())
         fileWatchInputs = FileWatchInputs.newBuilder()
         fileWatchInputs.add(new DirectoryFileTree(testDir.getTestDirectory()))
     }
 
     void cleanup() {
-        fileWatcher.stop()
-        fileWatcherFactory.stop()
+        fileWatcher?.stop()
+        fileWatcherService.stop()
     }
 
     def "watch service should notify of new files"() {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitForChanges()
@@ -74,7 +74,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         TestFile gitDir = testDir.createDir(".git")
         File createdFile = gitDir.file("some_git_object")
         createdFile.text = "some git data here, shouldn't trigger a change event"
@@ -87,7 +87,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitForChanges()
@@ -104,7 +104,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         testDir.file('some_temp_file~').text = "This change should be ignored"
         waitForChanges()
         then:
@@ -119,7 +119,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         fileWatchInputs.add(new DirectoryFileTree(testDir.getTestDirectory(), patternSet))
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         testDir.createDir('a/b/2').file('some_file').text = "This change should not be noticed"
         waitForChanges()
         then:
@@ -130,7 +130,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         given:
         def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         testDir.createDir('a/b/c')
         testDir.createDir('b')
         testDir.createDir('c/d/e/f/g')
@@ -157,7 +157,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         fileWatchInputs.add(watchedfile2)
         def nonwatchedfile1 = subdir1.file('file3')
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         nonwatchedfile1.text = 'some change'
         waitForChanges()
         then:
@@ -188,7 +188,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
             }
         }
         when:
-        fileWatcher.watch(fileWatchInputs.build(), callback)
+        fileWatcher = fileWatcherService.watch(fileWatchInputs.build(), callback)
         waitForChanges()
         then:
         0 * callback.run()

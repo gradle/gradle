@@ -16,68 +16,66 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.FileWatchInputs;
-import org.gradle.internal.filewatch.FileWatcher;
+import org.gradle.internal.filewatch.FileWatcherService;
 
 import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Implementation for {@link FileWatcher}
- */
-public class DefaultFileWatcher implements FileWatcher {
+public class DefaultFileWatcher implements FileWatcherService {
     private final ExecutorService executor;
-    private AtomicBoolean runningFlag = new AtomicBoolean(false);
-    private Future<?> execution;
-    private static final int STOP_TIMEOUT_SECONDS = 10;
 
     public DefaultFileWatcher(ExecutorService executor) {
         this.executor = executor;
     }
 
     @Override
-    public synchronized void watch(FileWatchInputs inputs, Runnable callback) {
-        if(!runningFlag.compareAndSet(false, true)) {
-            throw new IllegalStateException("FileWatcher cannot start watching new inputs when it's already running.");
-        }
-        submitWithLatch(inputs, callback);
-    }
-
-    private void submitWithLatch(FileWatchInputs inputs, Runnable callback) {
+    public Stoppable watch(FileWatchInputs inputs, Runnable callback) {
         CountDownLatch latch = createLatch();
-        execution = executor.submit(new FileWatcherExecutor(this, runningFlag, callback, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
+        AtomicBoolean runningFlag = new AtomicBoolean(true);
+        Future<?> execution = executor.submit(new FileWatcherExecutor(runningFlag, callback, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
         try {
             // wait until watching is active
             latch.await();
         } catch (InterruptedException e) {
             // ignore
         }
+        return new FileWatcherStopper(runningFlag, execution);
     }
 
     protected CountDownLatch createLatch() {
         return new CountDownLatch(1);
     }
 
-    @Override
-    public synchronized void stop() {
-        if(runningFlag.get()) {
-            runningFlag.set(false);
-            waitForStop();
-        }
-    }
+    static class FileWatcherStopper implements Stoppable {
+        private final AtomicBoolean runningFlag;
+        private final Future<?> execution;
+        private static final int STOP_TIMEOUT_SECONDS = 10;
 
-    private void waitForStop() {
-        try {
-            execution.get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            // ignore
-        } catch (ExecutionException e) {
-            // ignore
-        } catch (TimeoutException e) {
-            throw new RuntimeException("Running FileWatcher wasn't stopped in timeout limits.", e);
-        } finally {
-            execution = null;
+        public FileWatcherStopper(AtomicBoolean runningFlag, Future<?> execution) {
+            this.runningFlag = runningFlag;
+            this.execution = execution;
+        }
+
+        @Override
+        public synchronized void stop() {
+            if (runningFlag.compareAndSet(true, false)) {
+                waitForStop();
+            }
+        }
+
+        private void waitForStop() {
+            try {
+                execution.get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                // ignore
+            } catch (ExecutionException e) {
+                // ignore
+            } catch (TimeoutException e) {
+                throw new RuntimeException("Running FileWatcherService wasn't stopped in timeout limits.", e);
+            }
         }
     }
 }
