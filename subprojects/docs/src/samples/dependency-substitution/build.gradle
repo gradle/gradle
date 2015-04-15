@@ -1,0 +1,37 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    
+    group "org.example"
+    version "1.0"
+    
+    def repoUrl = "file://${rootProject.projectDir}/repo"
+    
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: repoUrl)
+            }
+        }
+    }
+    
+    repositories {
+        maven { url repoUrl}
+    }
+   
+    configurations.all {
+        resolutionStrategy.dependencySubstitution.eachModule {
+            if (it.requested.group != "org.example") { return }
+        
+            def targetProjectPath = ":" + it.requested.module
+            def targetProject = findProject(":${it.requested.module}")
+            if (targetProject != null) {
+                it.useTarget(targetProject)
+            }
+        }
+    }
+}
+
+dependencies {
+   compile "org.example:sub1:1.0"
+}

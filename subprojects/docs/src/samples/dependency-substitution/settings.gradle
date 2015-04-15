@@ -1,0 +1,10 @@
+ext.projectNames = ["sub1", "sub2", "sub3"]
+
+projectNames.each { name ->
+  if (new File("$rootDir/$name/").exists()) {
+    println "project $name is internal to this build"
+    include name
+  } else {
+    println "project $name is external to this build"
+  }
+}
