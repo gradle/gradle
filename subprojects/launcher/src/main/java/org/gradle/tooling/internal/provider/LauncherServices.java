@@ -19,10 +19,14 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.continuous.DefaultTriggerGeneratorFactory;
+import org.gradle.launcher.continuous.TriggerGeneratorFactory;
 import org.gradle.launcher.exec.*;
 
 import java.util.List;
@@ -43,9 +47,17 @@ public class LauncherServices implements PluginServiceRegistry {
     }
 
     static class ToolingGlobalScopeServices {
-        BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry services) {
+        BuildActionExecuter<BuildActionParameters> createBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, TriggerGeneratorFactory triggerGeneratorFactory, ServiceRegistry services) {
             List<BuildActionRunner> buildActionRunners = services.getAll(BuildActionRunner.class);
-            return new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)));
+            ListenerManager listenerManager = services.get(ListenerManager.class);
+            ContinuousModeBuildActionExecuter continuousModeBuildActionExecuter =
+                    new ContinuousModeBuildActionExecuter(new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners)), triggerGeneratorFactory);
+            listenerManager.addListener(continuousModeBuildActionExecuter);
+            return continuousModeBuildActionExecuter;
+        }
+
+        TriggerGeneratorFactory createTriggerGeneratorFactory(ExecutorFactory executorFactory) {
+            return new DefaultTriggerGeneratorFactory(executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

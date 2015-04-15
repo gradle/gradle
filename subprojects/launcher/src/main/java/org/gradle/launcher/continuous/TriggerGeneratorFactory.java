@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.exec;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.launcher.daemon.configuration.DaemonUsage;
+package org.gradle.launcher.continuous;
 
-import java.io.File;
-import java.util.Map;
-
-public interface BuildActionParameters {
-    Map<String, String> getSystemProperties();
-
-    Map<String, String> getEnvVariables();
-
-    File getCurrentDir();
-
-    LogLevel getLogLevel();
-
-    DaemonUsage getDaemonUsage();
-
-    boolean isContinuousModeEnabled();
+public interface TriggerGeneratorFactory {
+    TriggerGenerator newInstance(TriggerListener listener);
 }

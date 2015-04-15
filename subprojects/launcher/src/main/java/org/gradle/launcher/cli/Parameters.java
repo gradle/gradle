@@ -27,6 +27,13 @@ public class Parameters {
     private DaemonParameters daemonParameters;
     private ContinuousModeParameters continuousModeParameters;
 
+    public Parameters() {
+        this.layout = new BuildLayoutParameters();
+        this.startParameter = new StartParameter();
+        this.daemonParameters = new DaemonParameters(layout);
+        this.continuousModeParameters = new ContinuousModeParameters();
+    }
+
     public ContinuousModeParameters getContinuousModeParameters() {
         return continuousModeParameters;
     }

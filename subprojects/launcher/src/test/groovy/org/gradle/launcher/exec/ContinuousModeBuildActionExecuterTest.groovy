@@ -15,27 +15,73 @@
  */
 
 package org.gradle.launcher.exec
-
-import org.gradle.initialization.BuildRequestContext
+import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.initialization.DefaultBuildRequestContext
+import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.launcher.continuous.DefaultTriggerDetails
+import org.gradle.launcher.continuous.TriggerGenerator
+import org.gradle.launcher.continuous.TriggerGeneratorFactory
+import org.gradle.launcher.continuous.TriggerListener
+import org.gradle.util.Clock
 import spock.lang.Specification
 
-
 class ContinuousModeBuildActionExecuterTest extends Specification {
-    def underlyingExecuter = Mock(BuildActionExecuter)
-    ContinuousModeBuildActionExecuter executer = new ContinuousModeBuildActionExecuter(underlyingExecuter)
 
-    def "uses underlying executer"() {
+    def underlyingExecuter = Mock(BuildActionExecuter)
+    def triggerGenerator = Mock(TriggerGenerator)
+
+    def triggerGeneratorFactory = new TriggerGeneratorFactory() {
+        TriggerGenerator newInstance(TriggerListener listener) {
+            return triggerGenerator
+        }
+    }
+    def action = Mock(BuildAction)
+    def cancellationToken = Mock(BuildCancellationToken)
+    def clock = Mock(Clock)
+    def requestMetadata = Stub(BuildRequestMetaData) {
+        getBuildTimeClock() >> clock
+    }
+    def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
+    def actionParameters = Mock(BuildActionParameters)
+
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerGeneratorFactory)
+
+    def "uses underlying executer when continuous mode is not enabled"() {
         given:
-        def action = Mock(BuildAction)
-        def requestContext = Mock(BuildRequestContext)
-        def actionParameters = Mock(BuildActionParameters)
-        actionParameters.watchModeEnabled >> false
+        actionParameters.continuousModeEnabled >> false
 
         when:
         executer.execute(action, requestContext, actionParameters)
 
         then:
         1 * underlyingExecuter.execute(action, requestContext, actionParameters)
+    }
+
+    def "allows exceptions to propagate for single builds"() {
+        given:
+        actionParameters.continuousModeEnabled >> false
+
+        when:
+        executer.execute(action, requestContext, actionParameters)
+
+        then:
+        1 * underlyingExecuter.execute(action, requestContext, actionParameters) >> { throw new RuntimeException("always fails") }
+        thrown(RuntimeException)
+    }
+
+    def "runs once and is cancelled in continuous mode"() {
+        given:
+        def trigger = new DefaultTriggerDetails("test")
+        actionParameters.continuousModeEnabled >> true
+        cancellationToken.cancellationRequested >>> [ false, true ]
+
+        when:
+        executer.execute(action, requestContext, actionParameters)
+
+        then:
+        1 * underlyingExecuter.execute(action, requestContext, actionParameters) >> { executer.triggered(trigger) }
+        1 * clock.reset()
     }
 }

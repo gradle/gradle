@@ -29,7 +29,11 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.continuous.ContinuousModeParameters;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
-import org.gradle.launcher.daemon.client.*;
+import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.launcher.daemon.client.DaemonClientBuildActionExecuter;
+import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
+import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
@@ -73,6 +77,7 @@ class BuildActionsFactory implements CommandLineAction {
         if (canUseCurrentProcess(parameters.getDaemonParameters())) {
             return runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters(), loggingServices, parameters.getContinuousModeParameters());
         }
+
         return runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters(), loggingServices, parameters.getContinuousModeParameters());
     }
 
@@ -103,10 +108,12 @@ class BuildActionsFactory implements CommandLineAction {
                 .parent(NativeServices.getInstance())
                 .provider(new GlobalScopeServices(false))
                 .build();
+
         BuildActionExecuter<BuildActionParameters> executer = globalServices.get(BuildActionExecuter.class);
         StyledTextOutputFactory textOutputFactory = globalServices.get(StyledTextOutputFactory.class);
         DocumentationRegistry documentationRegistry = globalServices.get(DocumentationRegistry.class);
         DaemonUsageSuggestingBuildActionExecuter daemonUsageSuggestingExecuter = new DaemonUsageSuggestingBuildActionExecuter(executer, textOutputFactory, documentationRegistry);
+
         return runBuild(startParameter, daemonParameters, daemonUsageSuggestingExecuter, continuousModeParameters);
     }
 

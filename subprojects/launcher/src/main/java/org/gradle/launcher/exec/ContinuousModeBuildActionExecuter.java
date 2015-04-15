@@ -21,22 +21,39 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.launcher.continuous.TriggerDetails;
+import org.gradle.launcher.continuous.TriggerGenerator;
+import org.gradle.launcher.continuous.TriggerGeneratorFactory;
+import org.gradle.launcher.continuous.TriggerListener;
 import org.gradle.util.SingleMessageLogger;
 
-public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters>, TriggerListener {
     private final BuildActionExecuter<BuildActionParameters> delegate;
+    private final TriggerGeneratorFactory triggerGeneratorFactory;
     private final Logger logger;
+    private final Object lock;
+    private TriggerDetails lastSeenTrigger;
 
-    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
+    public ContinuousModeBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, TriggerGeneratorFactory triggerGeneratorFactory) {
         this.delegate = delegate;
         this.logger = Logging.getLogger(ContinuousModeBuildActionExecuter.class);
+        this.lock = new Object();
+        this.lastSeenTrigger = null;
+        this.triggerGeneratorFactory = triggerGeneratorFactory;
     }
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        if (watchModeEnabled(actionParameters)) {
+        if (continuousModeEnabled(actionParameters)) {
             SingleMessageLogger.incubatingFeatureUsed("Continuous mode");
-            return executeMultipleBuilds(action, requestContext, actionParameters);
+            // TODO: Put this somewhere nicer?
+            TriggerGenerator generator = triggerGeneratorFactory.newInstance(this);
+            generator.start();
+            try {
+                return executeMultipleBuilds(action, requestContext, actionParameters);
+            } finally {
+                generator.stop();
+            }
         }
         return executeSingleBuild(action, requestContext, actionParameters);
     }
@@ -44,10 +61,14 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
         Object lastResult = null;
         while (buildNotStopped(requestContext)) {
-            lastResult = executeSingleBuild(action, requestContext, actionParameters);
+            try {
+                lastResult = executeSingleBuild(action, requestContext, actionParameters);
+            } catch (Throwable t) {
+                // logged already
+            }
             logger.lifecycle("Waiting for a trigger. To exit 'continuous mode', use Ctrl+C.");
             waitForTrigger();
-            logger.lifecycle("Rebuild triggered by timer.");
+            // reset the time the build started so the total time makes sense
             requestContext.getBuildTimeClock().reset();
         }
         return lastResult;
@@ -57,8 +78,8 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
         return delegate.execute(action, requestContext, actionParameters);
     }
 
-    private boolean watchModeEnabled(BuildActionParameters actionParameters) {
-        return actionParameters.isWatchModeEnabled();
+    private boolean continuousModeEnabled(BuildActionParameters actionParameters) {
+        return actionParameters.isContinuousModeEnabled();
     }
 
     private boolean buildNotStopped(BuildRequestContext requestContext) {
@@ -67,9 +88,24 @@ public class ContinuousModeBuildActionExecuter implements BuildActionExecuter<Bu
 
     private void waitForTrigger() {
         try {
-            Thread.sleep(5000);
-        } catch (Exception e) {
+            synchronized (lock) {
+                while (lastSeenTrigger==null) {
+                    // TODO: Check buildNotStopped too?
+                    lock.wait();
+                }
+                logger.lifecycle("Rebuild triggered due to " + lastSeenTrigger.getReason());
+                lastSeenTrigger = null;
+            }
+        } catch (InterruptedException e) {
             UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public void triggered(TriggerDetails triggerInfo) {
+        synchronized (lock) {
+            lastSeenTrigger = triggerInfo;
+            lock.notify();
         }
     }
 }
