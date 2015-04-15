@@ -126,12 +126,14 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         if (header.startsWith("<")) {
             header = header.substring(1, header.length()-1);
         }
-        boolean usePCH = !includes.getAllIncludes().isEmpty() && header.equals(includes.getAllIncludes().get(0));
+
+        List<String> headers = includes.getAllIncludeStrings();
+        boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0));
 
         if (usePCH) {
             return getPCHArgs(spec);
         } else {
-            if (includes.getAllIncludes().contains(header)) {
+            if (headers.contains(header)) {
                 logger.log(LogLevel.WARN, getCantUsePCHMessage(spec.getPreCompiledHeader(), sourceFile));
             }
             return Lists.newArrayList();

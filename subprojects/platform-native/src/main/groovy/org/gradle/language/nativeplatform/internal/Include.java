@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
+package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+public interface Include {
+    public enum IncludeType { SYSTEM, QUOTED, MACRO }
 
-import java.io.File;
-
-/**
- * A parser to extract information from C-compatible source files.
- */
-public interface CSourceParser {
-
-    SourceIncludes parseSource(File sourceFile);
-
+    String getValue();
+    boolean isImport();
+    IncludeType getType();
 }

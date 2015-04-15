@@ -33,10 +33,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
     public Set<ResolvedInclude> resolveIncludes(File sourceFile, SourceIncludes includes) {
         Set<ResolvedInclude> dependencies = new LinkedHashSet<ResolvedInclude>();
-        searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
-        searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
-        if (!includes.getMacroIncludes().isEmpty()) {
-            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0), null));
+        searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludeStrings());
+        searchForDependencies(dependencies, includePaths, includes.getSystemIncludeStrings());
+        if (!includes.getMacroIncludeStrings().isEmpty()) {
+            dependencies.add(new ResolvedInclude(includes.getMacroIncludeStrings().get(0), null));
         }
 
         return dependencies;

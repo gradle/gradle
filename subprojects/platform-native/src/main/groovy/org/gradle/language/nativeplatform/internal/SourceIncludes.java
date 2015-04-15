@@ -18,8 +18,14 @@ package org.gradle.language.nativeplatform.internal;
 import java.util.List;
 
 public interface SourceIncludes {
-    List<String> getAllIncludes();
-    List<String> getQuotedIncludes();
-    List<String> getSystemIncludes();
-    List<String> getMacroIncludes();
+    List<String> getAllIncludeStrings();
+    List<String> getQuotedIncludeStrings();
+    List<String> getSystemIncludeStrings();
+    List<String> getMacroIncludeStrings();
+
+    List<Include> getQuotedIncludes();
+    List<Include> getSystemIncludes();
+    List<Include> getMacroIncludes();
+    List<Include> getIncludesAndImports();
+    List<Include> getIncludesOnly();
 }

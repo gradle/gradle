@@ -36,9 +36,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def setup() {
         includes = Mock(SourceIncludes)
         includesParser.parseIncludes(sourceFile) >> includes
-        includes.getQuotedIncludes() >> quotedIncludes
-        includes.getSystemIncludes() >> systemIncludes
-        includes.getMacroIncludes() >> macroIncludes
+        includes.getQuotedIncludeStrings() >> quotedIncludes
+        includes.getSystemIncludeStrings() >> systemIncludes
+        includes.getMacroIncludeStrings() >> macroIncludes
     }
 
     protected TestFile getSourceFile() {

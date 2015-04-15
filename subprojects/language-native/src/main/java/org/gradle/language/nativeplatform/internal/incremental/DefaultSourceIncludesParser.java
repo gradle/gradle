@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
 
 import java.io.File;
 
@@ -31,15 +32,14 @@ public class DefaultSourceIncludesParser implements SourceIncludesParser {
     }
 
     public SourceIncludes parseIncludes(File sourceFile) {
-        CSourceParser.SourceDetails sourceDetails = sourceParser.parseSource(sourceFile);
-        DefaultSourceIncludes defaultIncludes = new DefaultSourceIncludes();
+        SourceIncludes parsedIncludes = sourceParser.parseSource(sourceFile);
         if (importAware) {
-            defaultIncludes.addAll(sourceDetails.getImportsAndIncludes());
+            return parsedIncludes;
         } else {
-            defaultIncludes.addAll(sourceDetails.getIncludes());
+            DefaultSourceIncludes includesOnly = new DefaultSourceIncludes();
+            includesOnly.addAll(parsedIncludes.getIncludesOnly());
+            return includesOnly;
         }
-
-        return defaultIncludes;
     }
 
 }

@@ -16,7 +16,10 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.internal.serialize.*;
+import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
 
 import java.io.File;
 import java.util.Set;
@@ -108,23 +111,38 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     }
 
     private class SourceIncludesSerializer implements Serializer<SourceIncludes> {
-        private final Serializer<String> stringSerializer = serializerFactory.getSerializerFor(String.class);
-        private final ListSerializer<String> stringListSerializer = new ListSerializer<String>(stringSerializer);
+        private final Serializer<Include> includeSerializer = new IncludeSerializer();
+        private final ListSerializer<Include> includeListSerializer = new ListSerializer<Include>(includeSerializer);
 
         public SourceIncludes read(Decoder decoder) throws Exception {
-            SourceIncludes sourceIncludes = new DefaultSourceIncludes();
-            sourceIncludes.getAllIncludes().addAll(stringListSerializer.read(decoder));
-            sourceIncludes.getQuotedIncludes().addAll(stringListSerializer.read(decoder));
-            sourceIncludes.getSystemIncludes().addAll(stringListSerializer.read(decoder));
-            sourceIncludes.getMacroIncludes().addAll(stringListSerializer.read(decoder));
+            DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes();
+            sourceIncludes.addAll(includeListSerializer.read(decoder));
             return sourceIncludes;
         }
 
         public void write(Encoder encoder, SourceIncludes value) throws Exception {
-            stringListSerializer.write(encoder, value.getAllIncludes());
-            stringListSerializer.write(encoder, value.getQuotedIncludes());
-            stringListSerializer.write(encoder, value.getSystemIncludes());
-            stringListSerializer.write(encoder, value.getMacroIncludes());
+            includeListSerializer.write(encoder, value.getIncludesAndImports());
+        }
+    }
+
+    private class IncludeSerializer implements Serializer<Include> {
+        private final Serializer<String> stringSerializer = serializerFactory.getSerializerFor(String.class);
+        private final Serializer<Boolean> booleanSerializer = serializerFactory.getSerializerFor(Boolean.class);
+        private final Serializer<Include.IncludeType> enumSerializer = serializerFactory.getSerializerFor(Include.IncludeType.class);
+
+        @Override
+        public Include read(Decoder decoder) throws Exception {
+            String value = stringSerializer.read(decoder);
+            boolean isImport = booleanSerializer.read(decoder);
+            Include.IncludeType type = enumSerializer.read(decoder);
+            return new DefaultInclude(value, isImport, type);
+        }
+
+        @Override
+        public void write(Encoder encoder, Include value) throws Exception {
+            stringSerializer.write(encoder, value.getValue());
+            booleanSerializer.write(encoder, value.isImport());
+            enumSerializer.write(encoder, value.getType());
         }
     }
 }

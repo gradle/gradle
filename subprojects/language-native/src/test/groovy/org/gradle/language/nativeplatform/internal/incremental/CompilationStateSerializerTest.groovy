@@ -17,6 +17,8 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes
 
 class CompilationStateSerializerTest extends SerializerSpec {
     def state = new CompilationState()
@@ -61,22 +63,22 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash.length == 0
-        emptyCompileState.sourceIncludes.macroIncludes.empty
-        emptyCompileState.sourceIncludes.quotedIncludes.empty
-        emptyCompileState.sourceIncludes.systemIncludes.empty
+        emptyCompileState.sourceIncludes.macroIncludeStrings.empty
+        emptyCompileState.sourceIncludes.quotedIncludeStrings.empty
+        emptyCompileState.sourceIncludes.systemIncludeStrings.empty
         emptyCompileState.resolvedIncludes.empty
 
         def otherCompileState = newState.getState(fileTwo)
         new String(otherCompileState.hash) == "FooBar"
-        otherCompileState.sourceIncludes.systemIncludes == ["system"]
-        otherCompileState.sourceIncludes.quotedIncludes == ["quoted"]
-        otherCompileState.sourceIncludes.macroIncludes == ["MACRO"]
+        otherCompileState.sourceIncludes.systemIncludeStrings == ["system"]
+        otherCompileState.sourceIncludes.quotedIncludeStrings == ["quoted"]
+        otherCompileState.sourceIncludes.macroIncludeStrings == ["MACRO"]
         otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
     }
 
     private static DefaultSourceIncludes createSourceIncludes(String... strings) {
         final DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes()
-        sourceIncludes.addAll(strings as List<String>)
+        sourceIncludes.addAll(strings.collect { DefaultInclude.parse(it, false) })
         sourceIncludes
     }
 
