@@ -166,6 +166,39 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: output.contains("Attempting to change configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
+    def "does not warn about adding artifacts to a configuration that has been resolved for task dependencies"() {
+        mavenRepo.module("org.utils", "extra", '1.5').publish()
+
+        settingsFile << "include 'api', 'impl'"
+        buildFile << """
+            allprojects {
+                apply plugin: "java"
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":impl") {
+                dependencies {
+                    compile project(":api")
+                }
+
+                task addArtifact << {
+                    artifacts { compile file("some.jar") }
+                }
+
+                task modifyArtifactDuringTaskExecution(dependsOn: [addArtifact, configurations.compile])
+                task modifyParentArtifactDuringTaskExecution(dependsOn: [addArtifact, configurations.testCompile])
+            }
+"""
+
+        expect:
+        succeeds("impl:modifyArtifactDuringTaskExecution")
+
+        // Demonstrates bug: should not emit deprecation warning in this case. Need to track 'graph observed' and 'artifacts observed' separately.
+//        succeeds("impl:modifyParentArtifactDuringTaskExecution")
+    }
+
     @Issue("GRADLE-3155")
     def "warns about adding dependencies to a configuration whose child has been resolved"() {
         buildFile << """
