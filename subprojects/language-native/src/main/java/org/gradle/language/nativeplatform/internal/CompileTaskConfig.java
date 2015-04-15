@@ -111,15 +111,16 @@ public class CompileTaskConfig implements SourceTransformTaskConfig {
         task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
 
         // If this task uses a pre-compiled header
-        if (sourceSet instanceof DependentSourceSet && ((DependentSourceSet) sourceSet).getPreCompiledHeader() != null) {
-            task.setPrefixHeaderFile(((DependentSourceSet)sourceSet).getPrefixHeaderFile());
-            task.setPreCompiledHeader(((DependentSourceSet) sourceSet).getPreCompiledHeader());
+        if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {
+            final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal)sourceSet;
+            task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
+            task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
             task.preCompiledHeaderInclude(new Callable<FileCollection>() {
                 public FileCollection call() {
                     Set<AbstractNativePCHCompileTask> pchTasks = binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>() {
                         @Override
                         public boolean isSatisfiedBy(AbstractNativePCHCompileTask pchCompileTask) {
-                            return ((DependentSourceSet) sourceSet).getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
+                            return dependentSourceSet.getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
                         }
                     });
                     if (!pchTasks.isEmpty()) {

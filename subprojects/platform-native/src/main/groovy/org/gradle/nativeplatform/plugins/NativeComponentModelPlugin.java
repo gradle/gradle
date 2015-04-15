@@ -35,6 +35,7 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
+import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
@@ -200,7 +201,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             componentSpecs.afterEach(new Action<NativeComponentSpec>() {
                 @Override
                 public void execute(NativeComponentSpec componentSpec) {
-                    for (DependentSourceSet dependentSourceSet : componentSpec.getSource().withType(DependentSourceSet.class)) {
+                    for (DependentSourceSetInternal dependentSourceSet : componentSpec.getSource().withType(DependentSourceSetInternal.class)) {
                         if (dependentSourceSet.getPreCompiledHeader() != null) {
                             String prefixHeaderDirName = String.format("tmp/%s/prefixHeaders", dependentSourceSet.getName());
                             File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
@@ -215,9 +216,9 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, CollectionBuilder<NativeComponentSpec> nativeComponents) {
             for (NativeComponentSpec nativeComponentSpec : nativeComponents) {
-                nativeComponentSpec.getSource().withType(DependentSourceSet.class, new Action<DependentSourceSet>() {
+                nativeComponentSpec.getSource().withType(DependentSourceSetInternal.class, new Action<DependentSourceSetInternal>() {
                     @Override
-                    public void execute(final DependentSourceSet dependentSourceSet) {
+                    public void execute(final DependentSourceSetInternal dependentSourceSet) {
                         if (dependentSourceSet.getPrefixHeaderFile() !=  null) {
                             String taskName = String.format("generate%sPrefixHeaderFile", StringUtils.capitalize(dependentSourceSet.getName()));
                             tasks.create(taskName, PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {

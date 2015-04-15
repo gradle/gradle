@@ -23,7 +23,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
@@ -42,7 +41,7 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
     protected void configureCompileTask(AbstractNativeCompileTask task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal languageSourceSet) {
         // Note that the sourceSet is the sourceSet this pre-compiled header will be used with - it's not an
         // input sourceSet to the compile task.
-        final DependentSourceSet sourceSet = (DependentSourceSet) languageSourceSet;
+        final DependentSourceSetInternal sourceSet = (DependentSourceSetInternal) languageSourceSet;
 
         task.setDescription(String.format("Compiles a pre-compiled header for the %s of %s", sourceSet, binary));
 
