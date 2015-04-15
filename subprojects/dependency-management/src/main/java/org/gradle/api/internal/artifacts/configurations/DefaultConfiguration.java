@@ -578,7 +578,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // The configuration has been used in a resolution, and it is deprecated for
                 // build logic to change any dependencies, exclude rules or parent
                 // configurations (values that will affect the resolved graph).
-                if (type == MutationType.CONTENT) {
+                if (type != MutationType.STRATEGY) {
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
                 }
                 break;

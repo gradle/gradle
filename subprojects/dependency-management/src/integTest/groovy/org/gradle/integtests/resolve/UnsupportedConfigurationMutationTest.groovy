@@ -163,7 +163,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds("impl:checkIt")
-        then: output.contains("Attempting to change configuration ':impl:compile' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Attempting to change configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
