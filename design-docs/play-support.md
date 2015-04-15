@@ -549,31 +549,42 @@ See spike: https://github.com/lhotari/gradle/commit/969510762afd39c5890398e881a4
     - Similar to what the spike did
     - Build loop delegates to wrapped BuildActionExecuter
     - After build, executor waits for a trigger from somewhere else
-- Create `TriggerProcessor` 
-    - Register `TriggerAction`s for a given trigger type
-    - Trigger an action (async)
-    - Send a `Trigger` to listeners
-    - TODO: Can I just use ListenableManager for some of this?
 
 ```
 pseudo:
 
-interface Trigger {}
-interface TriggerAction extends Action<Trigger> {}
-interface TriggerProcessor {
-    void addTriggerAction(TriggerAction action)
-    void trigger(Trigger t)
+interface TriggerDetails { 
+    String reason 
 }
-
-triggerProcessor.addTriggerAction({ trigger ->
-    logger.log("Rebuilding due to: $trigger.reason")
-    triggerBuild()
-})
+interface TriggerListener {
+    void triggered(TriggerDetails)
+}
+interface TriggerGenerator {
+    void start()
+    void stop()
+}
+interface TriggerGeneratorFactory {
+    TriggerGenerator newInstance(TriggerListener)
+}
 
 // In run/execute()
 while (not cancelled) {
-    launcher.run()
+    delegateExecuter.execute(...)
     waitForTrigger()
+}
+
+def waitForTrigger() {
+    sync(lock) {
+        while(!triggered) {
+            lock.wait()
+        }
+    }
+}
+
+def triggered(TriggerDetails) {
+    sync(lock) {
+        lock.notify()
+    }
 }
 ```
 
