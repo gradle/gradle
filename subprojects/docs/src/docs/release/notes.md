@@ -2,27 +2,14 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Dependency substitution accepts projects
-
-You can now replace an external dependency with a project dependency. The `DependencyResolveDetails` object
-allows access to the `ComponentSelector` as well:
-
-    resolutionStrategy {
-        eachDependency { details ->
-            if (details.selector instanceof ModuleComponentSelector && details.selector.group == 'com.example' && details.selector.module == 'my-module') {
-                useTarget project(":my-module")
-            }
-        }
-    }
-
 ### Dependency substitution rules
 
-In previous Gradle versions you could replace an external dependency with another like this:
+In previous Gradle versions you could use a 'Dependency resolve rule' to replace an external dependency with another:
 
     resolutionStrategy {
-        eachDependency { details ->
-            if (details.requested.group == 'com.example' && details.requested.module == 'my-module') {
-                useVersion '1.3'
+        eachDependency {
+            if (it.requested.group == 'com.deprecated') {
+                details.useTarget group: 'com.replacement.group', name: it.requested.module, version: it.requested.version
             }
         }
     }
@@ -34,7 +21,7 @@ You replace a project dependency with an external dependency like this:
 
     resolutionStrategy {
         dependencySubstitution {
-            withProject(project(":api")) { 
+            withProject(":api") { 
                 useTarget group: "org.utils", name: "api", version: "1.3" 
             }
         }
@@ -57,7 +44,7 @@ There are other options available to match module and project dependencies:
     eachModule() { ModuleDependencySubstitution details -> /* ... */ }
     withModule("com.example:my-module") { ModuleDependencySubstitution details -> /* ... */ }
     eachProject() { ProjectDependencySubstitution details -> /* ... */ }
-    withProject(project(":api)) { ProjectDependencySubstitution details -> /* ... */ }
+    withProject(":api")) { ProjectDependencySubstitution details -> /* ... */ }
 
 It is also possible to replace one project dependency with another, or one external dependency with another. (The latter provides the same functionality
 as `eachDependency`).
@@ -128,9 +115,8 @@ As part of work on exposing more of the component model to rules the `componentS
 Currently component container can be only accessed using model rules.
 
 ### `model.components` cannot be viewed as
-<!--
-### Example breaking change
--->
+
+### Configurations that are task inputs are resolved before building the task execution graph
 
 ## External contributions
 
