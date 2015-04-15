@@ -55,19 +55,7 @@ public class Parameters {
         return layout;
     }
 
-    public void setLayout(BuildLayoutParameters layout) {
-        this.layout = layout;
-    }
-
-    public void setStartParameter(StartParameter startParameter) {
-        this.startParameter = startParameter;
-    }
-
     public void setDaemonParameters(DaemonParameters daemonParameters) {
         this.daemonParameters = daemonParameters;
-    }
-
-    public void setContinuousModeParameters(ContinuousModeParameters continuousModeParameters) {
-        this.continuousModeParameters = continuousModeParameters;
     }
 }

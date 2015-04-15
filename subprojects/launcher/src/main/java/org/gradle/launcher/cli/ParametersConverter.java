@@ -16,13 +16,11 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.StartParameter;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
-import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.launcher.cli.converter.ContinuousModeCommandLineConverter;
@@ -30,7 +28,6 @@ import org.gradle.launcher.cli.converter.DaemonCommandLineConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
-import org.gradle.launcher.continuous.ContinuousModeParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import java.util.HashMap;
@@ -82,27 +79,21 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     @Override
     public Parameters convert(ParsedCommandLine args, Parameters target) throws CommandLineArgumentException {
-        BuildLayoutParameters layout = new BuildLayoutParameters();
-        layoutConverter.convert(args, layout);
-        target.setLayout(layout);
+        layoutConverter.convert(args, target.getLayout());
 
         Map<String, String> properties = new HashMap<String, String>();
-        layoutToPropertiesConverter.convert(layout, properties);
+        layoutToPropertiesConverter.convert(target.getLayout(), properties);
         propertiesConverter.convert(args, properties);
 
-        StartParameter startParameter = new StartParameter();
-        propertiesToStartParameterConverter.convert(properties, startParameter);
-        commandLineConverter.convert(args, startParameter);
-        target.setStartParameter(startParameter);
+        propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
+        commandLineConverter.convert(args, target.getStartParameter());
 
-        DaemonParameters daemonParameters = new DaemonParameters(layout, startParameter.getSystemPropertiesArgs());
+        DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), target.getStartParameter().getSystemPropertiesArgs());
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(args, daemonParameters);
         target.setDaemonParameters(daemonParameters);
 
-        ContinuousModeParameters continuousModeParameters = new ContinuousModeParameters();
-        continuousModeCommandLineConverter.convert(args, continuousModeParameters);
-        target.setContinuousModeParameters(continuousModeParameters);
+        continuousModeCommandLineConverter.convert(args, target.getContinuousModeParameters());
 
         return target;
     }
