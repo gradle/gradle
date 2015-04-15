@@ -198,9 +198,10 @@ This feature generalizes the infrastructure through which build logic defines th
 and intermediate outputs.
 
 A number of key intermediate outputs will be exposed for their respective binaries:
-    - Native object files
-    - JVM class files
-    - Generated source for play applications
+
+- Native object files
+- JVM class files
+- Generated source for play applications
 
 Rules implemented either in a plugin or in the DSL will be able to define the tasks that build a particular binary from its intermediate outputs,
 an intermediate output from its input source sets, or a particular source set. Gradle will take care of invoking these rules as required.
