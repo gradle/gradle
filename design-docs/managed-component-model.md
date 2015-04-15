@@ -89,22 +89,22 @@ Most of this coverage already exists, need to fill in the gaps:
 - Removal of `ExtensiblePolymorphicDomainObjectContainer<ComponentSpec>` methods from `ComponentSpecContainer`, addition of collection builder methods
 - All configuration done using subject of type `ComponentSpecContainer` is deferred. Used to be eager.
 
-###  `components.«component».sources.«sourceSet»` is addressable/visible in rule space
+###  `components.«component».source.«sourceSet»` is addressable/visible in rule space
 
 #### Implementation
 
-* Change implementation of `components` node to eagerly create a `sources` child node for each element node, with the object returned by `componentSpec.sources`
-* `components.«name».sources` is projected using the unmanaged projection (i.e. it is opaque)
-* Use `.all()` hook of component's source set container to create the child nodes of the `sources` node as unmanaged node, based on type of the source set given to the origin create() method
+* Change implementation of `components` node to eagerly create a `source` child node for each element node, with the object returned by `componentSpec.sources`
+* `components.«name».source` is projected using the unmanaged projection (i.e. it is opaque)
+* Use `.all()` hook of component's source set container to create the child nodes of the `source` node as unmanaged node, based on type of the source set given to the origin create() method
 
 #### Test Coverage
 
-- ~~Can reference `components.«component».sources` in a rule (by path, can't bind by type for non top level)~~
-- ~~`sources` node is displayed for each component in the component container~~
-- Can reference `components.«component».sources.«source set»` in a rule (by path, can't bind by type for non top level)
-- Can reference `components.«component».sources.«source set»` in a rule as a matching specialisation of `LanguageSourceSet`
-- `sources.«sourceSet»` node is displayed for each source set of each component in the component container
-- Existing usages of `ProjectSourceSet` continue to work, and corresponding root `sources` node (changing anything here is out of scope)
+- ~~Can reference `components.«component».source` in a rule (by path, can't bind by type for non top level)~~
+- ~~`source` node is displayed for each component in the component container~~
+- ~~Can reference `components.«component».source.«source set»` in a rule (by path, can't bind by type for non top level)~~
+- ~~Can reference `components.«component».source.«source set»` in a rule as a matching specialisation of `LanguageSourceSet`~~
+- ~~`source.«sourceSet»` node is displayed for each source set of each component in the component container~~
+- ~~Existing usages of `ProjectSourceSet` continue to work, and corresponding root `sources` node (changing anything here is out of scope)~~
 
 #### Breaking changes
 

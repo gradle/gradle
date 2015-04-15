@@ -34,6 +34,7 @@ import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProjection;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -227,19 +228,36 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private class ComponentSpecInitializationAction implements BiAction<MutableModelNode, ComponentSpec> {
         @Override
-        public void execute(MutableModelNode mutableModelNode, ComponentSpec componentSpec) {
+        public void execute(MutableModelNode componentModelNode, ComponentSpec componentSpec) {
             ModelType<DomainObjectSet<LanguageSourceSet>> sourceType = new ModelType<DomainObjectSet<LanguageSourceSet>>() {
             };
             final String sourceNodeName = "source";
-            ModelReference<DomainObjectSet<LanguageSourceSet>> sourceReference = ModelReference.of(mutableModelNode.getPath().child(sourceNodeName), sourceType);
-            StringBuilder descriptorBuilder = new StringBuilder();
-            mutableModelNode.getDescriptor().describeTo(descriptorBuilder);
-            descriptorBuilder.append(".");
-            descriptorBuilder.append(sourceNodeName);
-            descriptorBuilder.append("()");
-            mutableModelNode.addLink(
-                    ModelCreators.bridgedInstance(sourceReference, componentSpec.getSource())
-                            .descriptor(descriptorBuilder.toString())
+            ModelReference<DomainObjectSet<LanguageSourceSet>> sourceReference = ModelReference.of(componentModelNode.getPath().child(sourceNodeName), sourceType);
+            String containerCreatorDescriptor = new StandardDescriptorFactory(componentModelNode.getDescriptor()).transform(sourceNodeName);
+
+            final StandardDescriptorFactory itemCreatorDescriptorFactory = new StandardDescriptorFactory(containerCreatorDescriptor);
+
+            final DomainObjectSet<LanguageSourceSet> source = componentSpec.getSource();
+            componentModelNode.addLink(
+                    ModelCreators.bridgedInstance(sourceReference, source, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                        @Override
+                        public void execute(final MutableModelNode sourceModelNode, List<ModelView<?>> modelViews) {
+                            source.all(new Action<LanguageSourceSet>() {
+                                @Override
+                                public void execute(LanguageSourceSet languageSourceSet) {
+                                    String name = languageSourceSet.getName();
+                                    ModelType<LanguageSourceSet> itemType = ModelType.typeOf(languageSourceSet);
+                                    ModelReference<LanguageSourceSet> itemReference = ModelReference.of(sourceModelNode.getPath().child(name), itemType);
+                                    ModelCreator itemCreator = ModelCreators.bridgedInstance(itemReference, languageSourceSet)
+                                            .descriptor(itemCreatorDescriptorFactory.transform(name))
+                                            .build();
+
+                                    sourceModelNode.addLink(itemCreator);
+                                }
+                            });
+                        }
+                    })
+                            .descriptor(containerCreatorDescriptor)
                             .build()
             );
         }

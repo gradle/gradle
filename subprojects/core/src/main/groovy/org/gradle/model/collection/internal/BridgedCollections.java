@@ -24,6 +24,7 @@ import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Transformers;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
@@ -198,20 +199,8 @@ public abstract class BridgedCollections {
     }
 
     public static Transformer<String, String> itemDescriptor(String parentDescriptor) {
-        return new StandardItemDescriptorFactory(parentDescriptor);
+        return new StandardDescriptorFactory(parentDescriptor);
     }
 
-    private static class StandardItemDescriptorFactory implements Transformer<String, String> {
-        private final String descriptor;
-
-        public StandardItemDescriptorFactory(String descriptor) {
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public String transform(String s) {
-            return descriptor + '.' + s + "()";
-        }
-    }
 }
 

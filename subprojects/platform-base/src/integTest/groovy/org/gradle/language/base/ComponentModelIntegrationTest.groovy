@@ -28,15 +28,33 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
             interface CustomComponent extends ComponentSpec {}
             class DefaultCustomComponent extends BaseComponentSpec implements CustomComponent {}
 
-            interface CustomLanguageSourceSet extends LanguageSourceSet {}
-            class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
-
-            class Rules extends RuleSource {
+            class ComponentTypeRules extends RuleSource {
                 @ComponentType
                 void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {
                     builder.defaultImplementation(DefaultCustomComponent)
                 }
+            }
 
+            apply type: ComponentTypeRules
+
+            model {
+                components {
+                    main(CustomComponent)
+                }
+            }
+        """
+    }
+
+    void withMainSourceSet() {
+        buildFile << """
+            interface CustomLanguageSourceSet extends LanguageSourceSet {
+                String getData();
+            }
+            class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
+                final String data = "foo"
+            }
+
+            class LanguageTypeRules extends RuleSource {
                 @LanguageType
                 void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
                     builder.setLanguageName("custom")
@@ -44,11 +62,11 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply type: Rules
+            apply type: LanguageTypeRules
 
             model {
                 components {
-                    main(CustomComponent) {
+                    main {
                         sources {
                             main(CustomLanguageSourceSet)
                         }
@@ -63,7 +81,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
 
         then:
-        output.contains """\
+        output.contains """
     components
         main
             source"""
@@ -71,10 +89,11 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
     def "can reference source container for a component in a rule"() {
         given:
+        withMainSourceSet()
         buildFile << '''
             model {
                 tasks {
-                    create("printLanguageName") {
+                    create("printSourceNames") {
                         def source = $("components.main.source")
                         doLast {
                             println "names: ${source*.name}"
@@ -85,9 +104,86 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        succeeds "printLanguageName"
+        succeeds "printSourceNames"
 
         then:
         output.contains "names: [main]"
+    }
+
+    def "component source container elements are visible in model report"() {
+        given:
+        withMainSourceSet()
+        buildFile << """
+            model {
+                components {
+                    main {
+                        sources {
+                            test(CustomLanguageSourceSet)
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        output.contains """
+    components
+        main
+            source
+                main
+                test"""
+    }
+
+    def "can reference source container elements in a rule"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            model {
+                tasks {
+                    create("printSourceDisplayName") {
+                        def source = $("components.main.source.main")
+                        doLast {
+                            println "source display name: ${source.displayName}"
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds "printSourceDisplayName"
+
+        then:
+        output.contains "source display name: DefaultCustomLanguageSourceSet 'main:main'"
+    }
+
+    def "can reference source container elements using specialized type in a rule"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            import org.gradle.model.collection.*
+
+            class TaskRules extends RuleSource {
+                @Mutate
+                void addPrintSourceDisplayNameTask(CollectionBuilder<Task> tasks, @Path("components.main.source.main") CustomLanguageSourceSet sourceSet) {
+                    tasks.create("printSourceData") {
+                        doLast {
+                            println "source data: ${sourceSet.data}"
+                        }
+                    }
+                }
+            }
+
+            apply type: TaskRules
+        '''
+
+        when:
+        succeeds "printSourceData"
+
+        then:
+        output.contains "source data: foo"
     }
 }

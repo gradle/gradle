@@ -31,4 +31,15 @@ public abstract class BiActions {
         return NOOP;
     }
 
+    public static <A, B> BiAction<A, B> composite(final BiAction<? super A, ? super B>... actions) {
+        return new BiAction<A, B>() {
+            @Override
+            public void execute(A a, B b) {
+                for (BiAction<? super A, ? super B> action : actions) {
+                    action.execute(a, b);
+                }
+            }
+        };
+    }
+
 }

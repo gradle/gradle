@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import net.jcip.annotations.NotThreadSafe;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -33,17 +34,26 @@ import java.util.List;
 abstract public class ModelCreators {
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
-        return unmanagedInstance(modelReference, Factories.constant(instance));
+        return bridgedInstance(modelReference, instance, BiActions.doNothing());
+    }
+
+    public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+        return unmanagedInstance(modelReference, Factories.constant(instance), initializer);
     }
 
     public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory) {
-        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer = new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        return unmanagedInstance(modelReference, factory, BiActions.doNothing());
+    }
+
+    public static <T> Builder unmanagedInstance(final ModelReference<T> modelReference, final Factory<? extends T> factory, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
+        @SuppressWarnings("unchecked")
+        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializers = BiActions.composite(initializer, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 modelNode.setPrivateData(modelReference.getType(), factory.create());
             }
-        };
+        });
 
-        return of(modelReference, initializer)
+        return of(modelReference, initializers)
                 .withProjection(new UnmanagedModelProjection<T>(modelReference.getType(), true, true));
     }
 
