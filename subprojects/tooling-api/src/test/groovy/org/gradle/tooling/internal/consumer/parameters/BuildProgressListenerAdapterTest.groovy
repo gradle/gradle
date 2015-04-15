@@ -390,7 +390,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getExceptions() >> Collections.singletonList(new IllegalStateException())
+        _ * testResult.getFailures() >> Collections.singletonList(new Failure('test failed','test failed'))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getTestStructure() >> TestProgressEventVersion1.STRUCTURE_SUITE
@@ -543,7 +543,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getExceptions() >> Collections.singletonList(new IllegalStateException())
+        _ * testResult.getFailures() >> Collections.singletonList(new Failure('test failed','test failed'))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getTestStructure() >> TestProgressEventVersion1.STRUCTURE_ATOMIC
