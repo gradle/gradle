@@ -26,11 +26,14 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
+import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
@@ -59,7 +62,7 @@ public class CppLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class Cpp extends NativeLanguageTransform<CppSourceSet> {
+    private static class Cpp extends NativeLanguageTransform<CppSourceSet> implements PchEnabledLanguageTransform<CppSourceSet> {
         public Class<CppSourceSet> getSourceSetType() {
             return CppSourceSet.class;
         }
@@ -72,6 +75,10 @@ public class CppLangPlugin implements Plugin<Project> {
 
         public SourceTransformTaskConfig getTransformTask() {
             return new CompileTaskConfig(this, CppCompile.class);
+        }
+
+        public SourceTransformTaskConfig getPchTransformTask() {
+            return new PCHCompileTaskConfig(this, CppPreCompiledHeaderCompile.class);
         }
     }
 }

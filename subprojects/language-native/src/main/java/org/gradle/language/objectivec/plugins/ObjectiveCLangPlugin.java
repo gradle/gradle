@@ -26,11 +26,14 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
+import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.objectivec.ObjectiveCSourceSet;
 import org.gradle.language.objectivec.internal.DefaultObjectiveCSourceSet;
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
+import org.gradle.language.objectivec.tasks.ObjectiveCPreCompiledHeaderCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
 
@@ -59,7 +62,7 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
         }
     }
 
-    private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> {
+    private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> implements PchEnabledLanguageTransform<ObjectiveCSourceSet> {
         public Class<ObjectiveCSourceSet> getSourceSetType() {
             return ObjectiveCSourceSet.class;
         }
@@ -72,6 +75,10 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
 
         public SourceTransformTaskConfig getTransformTask() {
             return new CompileTaskConfig(this, ObjectiveCCompile.class);
+        }
+
+        public SourceTransformTaskConfig getPchTransformTask() {
+            return new PCHCompileTaskConfig(this, ObjectiveCPreCompiledHeaderCompile.class);
         }
     }
 }

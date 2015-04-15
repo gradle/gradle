@@ -31,7 +31,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -41,8 +40,7 @@ import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.*;
 import org.gradle.nativeplatform.internal.configure.*;
-import org.gradle.nativeplatform.internal.pch.DefaultPreCompiledHeaderTransformContainer;
-import org.gradle.nativeplatform.internal.pch.PreCompiledHeaderTransformContainer;
+import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
 import org.gradle.nativeplatform.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -113,11 +111,6 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         @Model
         FlavorContainer flavors(ExtensionContainer extensionContainer) {
             return extensionContainer.getByType(FlavorContainer.class);
-        }
-
-        @Model
-        PreCompiledHeaderTransformContainer preCompiledHeaderTransformContainer(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultPreCompiledHeaderTransformContainer.class);
         }
 
         @Mutate
@@ -241,22 +234,22 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void configurePreCompiledHeaderCompileTasks(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final PreCompiledHeaderTransformContainer pchTransformContainer, final @Path("buildDir") File buildDir) {
+        void configurePreCompiledHeaderCompileTasks(CollectionBuilder<NativeBinarySpecInternal> binaries, final ServiceRegistry serviceRegistry, final LanguageTransformContainer languageTransforms, final @Path("buildDir") File buildDir) {
             binaries.all(new Action<NativeBinarySpecInternal>() {
                 @Override
                 public void execute(final NativeBinarySpecInternal nativeBinarySpec) {
-                    for (final LanguageTransform<?, ?> transform : pchTransformContainer) {
+                    for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
                         nativeBinarySpec.getSource().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
                             @Override
                             public void execute(final LanguageSourceSet languageSourceSet) {
                                 final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
                                 if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                    final SourceTransformTaskConfig taskConfig = transform.getTransformTask();
-                                    String pchTaskName = String.format("%s%s%sPreCompiledHeader", taskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
-                                    nativeBinarySpec.getTasks().create(pchTaskName, taskConfig.getTaskType(), new Action<DefaultTask>() {
+                                    final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
+                                    String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                                    nativeBinarySpec.getTasks().create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                         @Override
                                         public void execute(DefaultTask task) {
-                                            taskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet);
+                                            pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet);
                                         }
                                     });
                                 }

@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.c.plugins
+package org.gradle.nativeplatform.internal.pch;
 
-import org.gradle.language.AbstractPCHPluginSpec
-import org.gradle.language.c.CSourceSet
+import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.registry.LanguageTransform;
+import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.nativeplatform.ObjectFile;
 
-class CLangPCHPluginTest extends AbstractPCHPluginSpec {
-    @Override
-    def getPluginClass() {
-        return CLangPCHPlugin
-    }
-
-    @Override
-    def getLanguageSourceSet() {
-        return CSourceSet
-    }
+public interface PchEnabledLanguageTransform<U extends DependentSourceSet> extends LanguageTransform<U, ObjectFile> {
+    SourceTransformTaskConfig getPchTransformTask();
 }
