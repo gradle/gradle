@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -156,16 +157,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private LocallyAvailableExternalResource copyCandidateToCache(URI source, ResourceFileStore fileStore, ExternalResourceMetaData remoteMetaData, HashValue remoteChecksum, LocallyAvailableResource local) {
         final File destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
-        try {
-            tempCopyFile(local.getFile(), destination);
-            HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
-            if (!localChecksum.equals(remoteChecksum)) {
-                return null;
-            }
-            return moveIntoCache(source, destination, fileStore, remoteMetaData);
-        } finally {
-            destination.delete();
+        tempCopyFile(local.getFile(), destination);
+        HashValue localChecksum = HashUtil.createHash(destination, "SHA1");
+        if (!localChecksum.equals(remoteChecksum)) {
+            return null;
         }
+        return moveIntoCache(source, destination, fileStore, remoteMetaData);
     }
 
     private void tempCopyFile(File srcFile, File destFile) {
@@ -198,10 +195,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                 throw new IOException("Destination '" + destFile + "' exists but is a directory");
             }
 
-            if (srcFile.length() == 0) {
-                throw new IOException("Source '" + srcFile + "' has a 0 length");
-            }
-
             FileInputStream input = new FileInputStream(srcFile);
             try {
                 FileOutputStream output = new FileOutputStream(destFile);
@@ -219,7 +212,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
 
             if (srcFile.length() != destFile.length()) {
-                throw new IOException("Failed to copy full contents from '" + srcFile + "' (length: " + srcFile.length() + ") to '" + destFile + "' (length: " + destFile.length() + ")");
+                throw new IOException("Failed to copy full contents from '" + srcFile + "' (length: " + srcFile.length() + ") to '" + destFile + "' (length: " + destFile.length() + ") source contents: " + FileUtils.readFileToString(srcFile));
             }
             destFile.setLastModified(srcFile.lastModified());
 
