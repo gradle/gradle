@@ -221,7 +221,7 @@ A potential approach:
 - Allow the inputs to a physical thing to be modelled. These inputs are also physical things.
 - Allow a rule, implemented in a plugin or in the DSL, to define the tasks that build the physical thing.
 - Allow navigation from the model for the physical thing to the tasks that are responsible for building it.
-- Expose native object files, jvm class files, and generated source for play applications as intermediate outputs for their respective binaries.
+- A pre-built physical thing will have no tasks associated with it.
 
 Many of these pieces are already present, and the implementation would formalize these concepts and reuse them.
 
@@ -230,24 +230,26 @@ Currently:
 - `BuildableModelElement` represents a physical thing.
 - `BinarySpec.tasks` and properties on `BuildableModelElement` represent the tasks that build the thing.
 - `BinarySpec.sources` represents the inputs to a binary.
-- A `@BinaryTasks` rule defines the tasks that build the binary.
+- A `@BinaryTasks` rule defines the tasks that build the binary, as do various methods on `LanguageSourceSet` and `BuildableModelElement`.
 - Various types, such as `JvmClasses` and `PublicAssets` represent intermediate outputs.
 
-The implementation would be responsible for coordinating the rules when assembling the task graph, so that when a physical thing is to be built, the
-tasks that build its inputs should be configured. When a physical thing is used as input, the tasks that build its inputs should be configured and attached
-as dependencies of those tasks that take the physical thing as input.
+The implementation would be responsible for invoking the rules when assembling the task graph, so that:
+
+- When a physical thing is to be built, the tasks that build its inputs should be configured.
+- When a physical thing is used as input, the tasks that build its inputs, if any, should be determined and attached as dependencies of those tasks
+that take the physical thing as input.
 
 # Feature 5: Plugin author uses managed types to define intermediate outputs
 
-This feature allows a plugin author to declare the intermediate outputs for custom binaries.
+This feature allows a plugin author to declare intermediate outputs for custom binaries, using custom types to represent these outputs.
 
 Allow a plugin author to extend any buildable type with a custom managed type. Allow a custom type to declare the inputs for the buildable type in a strongly typed way.
-For example, a jvm library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a
+For example, a JVM library binary might declare that it accepts any JVM classpath component as input to build a jar, where the intermediate classes directory is a
 kind of JVM classpath component.
 
 ## Implementation
 
-One approach is to use various annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
+One approach is to use annotations to declare the roles of various strongly typed properties of a buildable thing, and use this to infer the inputs
 of a buildable thing.
 
 # Feature 6: Build logic defines tasks that run executable things
