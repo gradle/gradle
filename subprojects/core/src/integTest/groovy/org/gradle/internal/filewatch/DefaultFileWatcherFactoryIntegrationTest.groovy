@@ -56,14 +56,14 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
 
     def "watch service should notify of new files"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         File createdFile = testDir.file("newfile.txt")
         createdFile.text = "Hello world"
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
     }
 
     private void waitForChanges() {
@@ -72,43 +72,43 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
 
     def "watch service should use default excludes"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         TestFile gitDir = testDir.createDir(".git")
         File createdFile = gitDir.file("some_git_object")
         createdFile.text = "some git data here, shouldn't trigger a change event"
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
     }
 
     def "watch service should notify of new files in subdirectories"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         def subdir = testDir.createDir("subdir")
         subdir.createFile("somefile").text = "Hello world"
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
         when:
         subdir.file('someotherfile').text = "Hello world"
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
     }
 
     def "default ignored files shouldn't trigger changes"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         testDir.file('some_temp_file~').text = "This change should be ignored"
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
     }
 
     def "excluded subdirectory should not be listened for changes"() {
@@ -117,36 +117,36 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         PatternSet patternSet = new PatternSet()
         patternSet.exclude("a/b/**")
         fileWatchInputs.watch(new DirectoryFileTree(testDir.getTestDirectory(), patternSet))
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         testDir.createDir('a/b/2').file('some_file').text = "This change should not be noticed"
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
     }
 
     def "creating an empty directories should not trigger changes"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         testDir.createDir('a/b/c')
         testDir.createDir('b')
         testDir.createDir('c/d/e/f/g')
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
         when: 'file is created in subdir'
         testDir.file('a/b/c').file('somefile').text = 'file'
         waitForChanges()
         then: 'it should trigger a change event'
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
     }
 
     def "watching individual files should watch for modifications"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         fileWatchInputs = new DefaultFileWatchInputs()
         def subdir1 = testDir.createDir('a/b/c')
         def watchedfile1 = subdir1.file('file1')
@@ -157,46 +157,46 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         fileWatchInputs.watch(watchedfile2)
         def nonwatchedfile1 = subdir1.file('file3')
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         nonwatchedfile1.text = 'some change'
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
         when:
         watchedfile1.text = 'some changes'
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
         when:
         watchedfile2.text = 'some more changes'
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
         when:
         watchedfile1.delete()
         waitForChanges()
         then:
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
     }
 
     def "existing files shouldn't trigger changes"() {
         given:
-        def fileWatchListener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         testDir.createDir('a/b/c').with { dir ->
             (1..10).each {
                 dir.file(it.toString()).text = "content for ${it}"
             }
         }
         when:
-        fileWatcher.watch(fileWatchInputs, fileWatchListener)
+        fileWatcher.watch(fileWatchInputs, callback)
         waitForChanges()
         then:
-        0 * fileWatchListener.changesDetected(_)
+        0 * callback.run()
         when: 'existing file is modified'
         testDir.file('a/b/c/1').text = 'file was modified'
         waitForChanges()
         then: 'it should trigger a change'
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
         when: 'existing file is deleted'
         testDir.file('a/b/c/2').with {
             assert it.exists()
@@ -204,7 +204,7 @@ class DefaultFileWatcherFactoryIntegrationTest extends Specification {
         }
         waitForChanges()
         then: 'it should trigger a change'
-        1 * fileWatchListener.changesDetected(_)
+        1 * callback.run()
     }
 
 }

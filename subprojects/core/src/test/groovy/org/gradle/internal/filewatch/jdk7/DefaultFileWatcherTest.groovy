@@ -18,7 +18,6 @@ package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.file.DirectoryTree
 import org.gradle.internal.filewatch.FileWatchInputs
-import org.gradle.internal.filewatch.FileWatchListener
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
@@ -40,10 +39,10 @@ class DefaultFileWatcherTest extends Specification {
             }
         }
         def inputs = Mock(FileWatchInputs)
-        def listener = Mock(FileWatchListener)
+        def callback = Mock(Runnable)
         def future = Mock(Future)
         when: "when watch is called, the inputs are read"
-        fileWatcher.watch(inputs, listener)
+        fileWatcher.watch(inputs, callback)
         then:
         1 * executor.submit(_) >> future
         1 * inputs.getDirectoryTrees() >> {
@@ -52,10 +51,10 @@ class DefaultFileWatcherTest extends Specification {
         1 * inputs.getFiles() >> {
             new ArrayList<File>()
         }
-        0 * listener._
+        0 * callback._
         0 * _._
         when: "watch is called a second time, it throws an exception"
-        fileWatcher.watch(inputs, listener)
+        fileWatcher.watch(inputs, callback)
         then:
         thrown IllegalStateException
         when: "stop is called"
@@ -63,7 +62,7 @@ class DefaultFileWatcherTest extends Specification {
         then: "execution result is waited"
         1 * future.get(10, TimeUnit.SECONDS)
         when: "watch is called after stopping, it will succeed"
-        fileWatcher.watch(inputs, listener)
+        fileWatcher.watch(inputs, callback)
         then:
         1 * executor.submit(_)
         1 * inputs.getDirectoryTrees() >> {

@@ -17,7 +17,6 @@
 package org.gradle.internal.filewatch.jdk7;
 
 import org.gradle.internal.filewatch.FileWatchInputs;
-import org.gradle.internal.filewatch.FileWatchListener;
 import org.gradle.internal.filewatch.FileWatcher;
 
 import java.util.ArrayList;
@@ -38,16 +37,16 @@ public class DefaultFileWatcher implements FileWatcher {
     }
 
     @Override
-    public synchronized void watch(FileWatchInputs inputs, FileWatchListener listener) {
+    public synchronized void watch(FileWatchInputs inputs, Runnable callback) {
         if(!runningFlag.compareAndSet(false, true)) {
             throw new IllegalStateException("FileWatcher cannot start watching new inputs when it's already running.");
         }
-        submitWithLatch(inputs, listener);
+        submitWithLatch(inputs, callback);
     }
 
-    private void submitWithLatch(FileWatchInputs inputs, FileWatchListener listener) {
+    private void submitWithLatch(FileWatchInputs inputs, Runnable callback) {
         CountDownLatch latch = createLatch();
-        execution = executor.submit(new FileWatcherExecutor(this, runningFlag, listener, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
+        execution = executor.submit(new FileWatcherExecutor(this, runningFlag, callback, new ArrayList(inputs.getDirectoryTrees()), new ArrayList(inputs.getFiles()), latch));
         try {
             // wait until watching is active
             latch.await();

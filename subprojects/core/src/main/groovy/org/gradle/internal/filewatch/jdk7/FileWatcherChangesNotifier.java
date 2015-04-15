@@ -16,12 +16,10 @@
 
 package org.gradle.internal.filewatch.jdk7;
 
-import org.gradle.internal.filewatch.FileWatchEvent;
-import org.gradle.internal.filewatch.FileWatchListener;
 import org.gradle.internal.filewatch.FileWatcher;
 
 /**
- * Class for handling the notification of changes to the {@link FileWatchListener}
+ * Class for handling the notification of changes
  *
  * Quiet period handling is currently implemented in this class.
  *
@@ -33,15 +31,15 @@ import org.gradle.internal.filewatch.FileWatcher;
 class FileWatcherChangesNotifier {
     static final long QUIET_PERIOD_MILLIS = 1000L;
     static final long QUIET_PERIOD_TIMEOUT_MILLIS = 10000L;
-    private FileWatchListener listener;
+    private Runnable callback;
     private long lastEventReceivedMillis;
     private long quietPeriodWaitingStartedMillis;
     private boolean pendingNotification;
     private FileWatcher fileWatcher;
 
-    public FileWatcherChangesNotifier(FileWatcher fileWatcher, FileWatchListener listener) {
+    public FileWatcherChangesNotifier(FileWatcher fileWatcher, Runnable callback) {
         this.fileWatcher = fileWatcher;
-        this.listener = listener;
+        this.callback = callback;
     }
 
     public void addPendingChange() {
@@ -72,12 +70,7 @@ class FileWatcherChangesNotifier {
     }
 
     protected void notifyChanged() {
-        listener.changesDetected(new FileWatchEvent() {
-            @Override
-            public FileWatcher getSource() {
-                return fileWatcher;
-            }
-        });
+        callback.run();
     }
 
     protected boolean quietPeriodBeforeNotifyingHasTimedOut() {

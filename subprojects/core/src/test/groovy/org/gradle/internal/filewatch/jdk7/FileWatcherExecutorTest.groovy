@@ -18,7 +18,6 @@ package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.filewatch.FileWatchListener
 import org.gradle.internal.filewatch.FileWatcher
 import spock.lang.Specification
 
@@ -31,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class FileWatcherExecutorTest extends Specification {
     def fileWatcher
     def runningFlag
-    FileWatchListener fileWatchListener
+    Runnable callback
     def directories
     def files
     def watchService
@@ -42,16 +41,16 @@ class FileWatcherExecutorTest extends Specification {
     def setup() {
         fileWatcher = Mock(FileWatcher)
         runningFlag = new AtomicBoolean(true)
-        fileWatchListener = Mock(FileWatchListener)
+        callback = Mock(Runnable)
         directories = []
         files = []
         watchService = Mock(WatchService)
-        fileWatcherExecutor = new FileWatcherExecutor(fileWatcher, runningFlag, fileWatchListener, directories, files, new CountDownLatch(1)) {
+        fileWatcherExecutor = new FileWatcherExecutor(fileWatcher, runningFlag, callback, directories, files, new CountDownLatch(1)) {
             int watchLoopCounter = 0
 
             @Override
-            protected FileWatcherChangesNotifier createChangesNotifier(FileWatcher fileWatcher, FileWatchListener listener) {
-                return new FileWatcherChangesNotifier(fileWatcher, listener) {
+            protected FileWatcherChangesNotifier createChangesNotifier(FileWatcher fileWatcher, Runnable callback) {
+                return new FileWatcherChangesNotifier(fileWatcher, callback) {
                     @Override
                     protected boolean quietPeriodBeforeNotifyingHasElapsed() {
                         return true
@@ -178,8 +177,8 @@ class FileWatcherExecutorTest extends Specification {
 
         then: 'WatchKey gets resetted'
         1 * dirWatchKey.reset()
-        then: 'listener gets called'
-        1 * fileWatchListener.changesDetected(_)
+        then: 'callback gets called'
+        1 * callback.run()
         then: 'finally watchservice gets closed'
         watchService.close()
     }

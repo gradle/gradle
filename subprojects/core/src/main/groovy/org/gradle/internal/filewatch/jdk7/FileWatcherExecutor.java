@@ -23,7 +23,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.filewatch.FileWatchListener;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
@@ -61,8 +60,8 @@ class FileWatcherExecutor implements Runnable {
     final CountDownLatch waitUntilWatching;
     private FileWatcherChangesNotifier changesNotifier;
 
-    public FileWatcherExecutor(FileWatcher fileWatcher, AtomicBoolean runningFlag, FileWatchListener listener, Collection<DirectoryTree> directoryTrees, Collection<File> files, CountDownLatch waitUntilWatching) {
-        this.changesNotifier = createChangesNotifier(fileWatcher, listener);
+    public FileWatcherExecutor(FileWatcher fileWatcher, AtomicBoolean runningFlag, Runnable callback, Collection<DirectoryTree> directoryTrees, Collection<File> files, CountDownLatch waitUntilWatching) {
+        this.changesNotifier = createChangesNotifier(fileWatcher, callback);
         this.runningFlag = runningFlag;
         this.directoryTrees = directoryTrees;
         this.files = files;
@@ -70,8 +69,8 @@ class FileWatcherExecutor implements Runnable {
         this.waitUntilWatching = waitUntilWatching;
     }
 
-    protected FileWatcherChangesNotifier createChangesNotifier(FileWatcher fileWatcher, FileWatchListener listener) {
-        return new FileWatcherChangesNotifier(fileWatcher, listener);
+    protected FileWatcherChangesNotifier createChangesNotifier(FileWatcher fileWatcher, Runnable callback) {
+        return new FileWatcherChangesNotifier(fileWatcher, callback);
     }
 
     private WatchEvent.Modifier[] createWatchModifiers() {

@@ -31,7 +31,7 @@ public interface FileWatcher extends Stoppable {
      * Starts watching for file changes on a separate background thread.
      *
      * @param inputs the directories and files to watch for changes
-     * @param listener the listener to report changes asynchronously
+     * @param callback gets called when file changes are found
      */
-    void watch(FileWatchInputs inputs, FileWatchListener listener);
+    void watch(FileWatchInputs inputs, Runnable callback);
 }
