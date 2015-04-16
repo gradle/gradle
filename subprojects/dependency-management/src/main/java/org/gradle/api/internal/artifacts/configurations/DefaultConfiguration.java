@@ -331,52 +331,57 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveNow(InternalState requestedState) {
         synchronized (lock) {
-            boolean needsResolve = false;
-            boolean needsArtifacts = requestedState == InternalState.RESULTS_RESOLVED;
-            switch (state) {
-                case UNOBSERVED:
-                case OBSERVED:
-                    needsResolve = true;
-                    break;
-                case TASK_DEPENDENCIES_RESOLVED:
-                    needsResolve = modified && requestedState == InternalState.RESULTS_RESOLVED;
-                    break;
-                case RESULTS_RESOLVED:
-                    needsArtifacts = false;
-                    break;
+            if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
+                resolveGraphIfRequired();
             }
-            if (needsResolve) {
-                DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
-                ResolvableDependencies incoming = getIncoming();
-                broadcast.beforeResolve(incoming);
-                triggerWhenEmptyActionsIfNecessary();
-                resolver.resolve(this, cachedResolverResults);
-
-                // Mark all affected configurations as observed
-                markAsObserved();
-                for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
-                    ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                    for (String targetConfigName : projectResult.getTargetConfigurations()) {
-                        ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(targetConfigName);
-                        targetConfig.markAsObserved();
-                    }
-                }
-
-                markAsResolved(requestedState);
-                broadcast.afterResolve(incoming);
-            } else {
-                if (modified) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
-                }
-                markAsResolved(requestedState);
+            if (requestedState == InternalState.RESULTS_RESOLVED) {
+                resolveArtifactsIfRequired();
             }
-
-            if (needsArtifacts) {
-                resolver.resolveArtifacts(this, cachedResolverResults);
-                resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
-            }
-            markAsResolved(requestedState);
         }
+    }
+
+    private void resolveGraphIfRequired() {
+        if (state == InternalState.RESULTS_RESOLVED) {
+            if (modified) {
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
+            }
+            return;
+        }
+        if (state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            if (!modified) {
+                return;
+            }
+            // TODO:DAZ Maybe log a warning here about re-resolve happening
+        }
+
+        DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
+        ResolvableDependencies incoming = getIncoming();
+        broadcast.beforeResolve(incoming);
+        triggerWhenEmptyActionsIfNecessary();
+
+        resolver.resolve(this, cachedResolverResults);
+
+        // Mark all affected configurations as observed
+        markAsObserved();
+        for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
+            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            for (String targetConfigName : projectResult.getTargetConfigurations()) {
+                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(targetConfigName);
+                targetConfig.markAsObserved();
+            }
+        }
+
+        markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
+        broadcast.afterResolve(incoming);
+    }
+
+    private void resolveArtifactsIfRequired() {
+        if (state == InternalState.RESULTS_RESOLVED) {
+            return;
+        }
+        resolver.resolveArtifacts(this, cachedResolverResults);
+        resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
+        markAsResolved(InternalState.RESULTS_RESOLVED);
     }
 
     private void markAsResolved(InternalState requestedState) {
