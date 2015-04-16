@@ -87,8 +87,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
-
-			 	.withProjection(new SpecializedCollectionBuilderProjection<TestSuiteContainer, TestSuiteSpec, DefaultTestSuiteContainer>(
+                .withProjection(new SpecializedCollectionBuilderProjection<TestSuiteContainer, TestSuiteSpec, DefaultTestSuiteContainer>(
                         ModelType.of(TestSuiteContainer.class),
                         ModelType.of(TestSuiteSpec.class),
                         DefaultTestSuiteContainer.class,
