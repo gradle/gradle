@@ -209,7 +209,7 @@
                 If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the
                 <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink>.  This site provides the ability to search for and
                 gather information about plugins contributed by the Gradle community.  See the instructions
-                <ulink url="http://plugins.gradle.org/submit">here</ulink> on how to make your plugin available on this site.
+                <ulink url="http://plugins.gradle.org/docs/submit">here</ulink> on how to make your plugin available on this site.
             </para>
         </section>
 

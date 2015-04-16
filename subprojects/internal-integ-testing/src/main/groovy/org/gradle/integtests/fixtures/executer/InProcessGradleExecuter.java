@@ -241,7 +241,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    protected TestFile getTmpDir() {
+    protected TestFile getDefaultTmpDir() {
         // File.createTempFile sets the location of the temp directory to a static variable on the first call.  This prevents future
         // changes to java.io.tmpdir from having any effect in the same process.  We set this to use a common tmp directory for all
         // tests running in the same process so that we don't have a situation where one process initializes with a tmp directory

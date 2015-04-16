@@ -91,12 +91,12 @@ public class InternalTestProgressEvent implements Serializable {
 
         private final long startTime;
         private final long endTime;
-        private final List<Throwable> failures;
+        private final List<InternalFailure> failures;
 
-        public InternalTestResult(long startTime, long endTime, List<Throwable> failures) {
+        public InternalTestResult(long startTime, long endTime, List<InternalFailure> failures) {
             this.startTime = startTime;
             this.endTime = endTime;
-            this.failures = failures == null ? Collections.<Throwable>emptyList() : failures;
+            this.failures = failures == null ? Collections.<InternalFailure>emptyList() : failures;
         }
 
         public long getStartTime() {
@@ -107,7 +107,7 @@ public class InternalTestProgressEvent implements Serializable {
             return endTime;
         }
 
-        public List<Throwable> getFailures() {
+        public List<InternalFailure> getFailures() {
             return failures;
         }
 

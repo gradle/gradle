@@ -416,4 +416,31 @@ uploadArchives {
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
     }
+
+    @Issue('GRADLE-3272')
+    def "can publish to custom maven local repo defined with system property"() {
+        given:
+        def m2Installation = new M2Installation(testDirectory)
+        def localM2Repo = m2Installation.mavenRepo()
+        def customLocalRepo = mavenLocal("customMavenLocal")
+        executer.beforeExecute(m2Installation)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+        """
+
+        when:
+        args "-Dmaven.repo.local=${customLocalRepo.rootDir.getAbsolutePath()}"
+        succeeds 'install'
+
+        then:
+        !localM2Repo.module("group", "root", "1.0").artifactFile(type: "jar").exists()
+        customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
+    }
 }

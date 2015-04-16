@@ -18,10 +18,12 @@ package org.gradle.tooling.internal.consumer.parameters;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.*;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
+import org.gradle.tooling.internal.protocol.FailureVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -311,11 +313,27 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
             }
 
             @Override
-            public List<Throwable> getExceptions() {
-                return testResult.getExceptions();
+            public List<Failure> getFailures() {
+                List<FailureVersion1> origFailures = testResult.getFailures();
+                List<Failure> failures = new ArrayList<Failure>(origFailures.size());
+                for (FailureVersion1 origFailure : origFailures) {
+                    failures.add(toFailure(origFailure));
+                }
+                return failures;
             }
 
         };
+    }
+
+    private static Failure toFailure(FailureVersion1 origFailure) {
+        if (origFailure==null) {
+            return null;
+        }
+        return new Failure(
+                origFailure.getMessage(),
+                origFailure.getDescription(),
+                toFailure(origFailure.getCause())
+        );
     }
 
     private TestDescriptor getParentTestDescriptor(TestDescriptorVersion1 testDescriptor) {

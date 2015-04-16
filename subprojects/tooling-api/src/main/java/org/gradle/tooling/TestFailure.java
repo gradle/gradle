@@ -46,6 +46,6 @@ public interface TestFailure {
      *
      * @return the exceptions, empty if the test failed without any exceptions
      */
-    List<Throwable> getExceptions();
+    List<Failure> getFailures();
 
 }

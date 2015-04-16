@@ -17,8 +17,17 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
-import org.gradle.tooling.*
+import org.gradle.tooling.TestFailedEvent
+import org.gradle.tooling.TestProgressListener
+import org.gradle.tooling.TestSkippedEvent
+import org.gradle.tooling.TestStartedEvent
+import org.gradle.tooling.TestSucceededEvent
+import org.gradle.tooling.TestSuiteFailedEvent
+import org.gradle.tooling.TestSuiteSkippedEvent
+import org.gradle.tooling.TestSuiteStartedEvent
+import org.gradle.tooling.TestSuiteSucceededEvent
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1
+import org.gradle.tooling.internal.protocol.FailureVersion1
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1
 import org.gradle.tooling.internal.protocol.TestResultVersion1
@@ -390,7 +399,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getExceptions() >> Collections.singletonList(new IllegalStateException())
+        _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getTestStructure() >> TestProgressEventVersion1.STRUCTURE_SUITE
@@ -411,7 +420,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.parent == null
             assert event.testResult.startTime == 1
             assert event.testResult.endTime == 2
-            assert event.testResult.exceptions.size() == 1
+            assert event.testResult.failures.size() == 1
         }
     }
 
@@ -543,7 +552,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         def testResult = Mock(TestResultVersion1)
         _ * testResult.getStartTime() >> 1
         _ * testResult.getEndTime() >> 2
-        _ * testResult.getExceptions() >> Collections.singletonList(new IllegalStateException())
+        _ * testResult.getFailures() >> Collections.singletonList(Mock(FailureVersion1))
 
         TestProgressEventVersion1 failedEvent = Mock(TestProgressEventVersion1)
         _ * failedEvent.getTestStructure() >> TestProgressEventVersion1.STRUCTURE_ATOMIC
@@ -564,7 +573,7 @@ class BuildProgressListenerAdapterTest extends Specification {
             assert event.testDescriptor.parent == null
             assert event.testResult.startTime == 1
             assert event.testResult.endTime == 2
-            assert event.testResult.exceptions.size() == 1
+            assert event.testResult.failures.size() == 1
         }
     }
 

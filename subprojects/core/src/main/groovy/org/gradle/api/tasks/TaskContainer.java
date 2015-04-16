@@ -73,6 +73,12 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
      * href="../Task.html#dependencies">here</a> for more details.</td><td><code>[]</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>The group of the task.</td><td><code>null
+     * </code></td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>The description of the task.</td><td>
+     * <code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task

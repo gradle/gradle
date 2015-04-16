@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
@@ -35,6 +36,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Unroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
