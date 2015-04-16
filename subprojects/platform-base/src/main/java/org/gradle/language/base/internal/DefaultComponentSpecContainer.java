@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal.test;
+package org.gradle.language.base.internal;
 
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.DefaultCollectionBuilder;
@@ -23,12 +23,11 @@ import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.test.TestSuiteContainer;
-import org.gradle.platform.base.test.TestSuiteSpec;
+import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
 
-public class DefaultTestSuiteContainer extends DefaultCollectionBuilder<TestSuiteSpec> implements TestSuiteContainer {
-    public DefaultTestSuiteContainer(ModelType<TestSuiteSpec> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                                     BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends TestSuiteSpec>> creatorFunction) {
+public class DefaultComponentSpecContainer extends DefaultCollectionBuilder<ComponentSpec> implements ComponentSpecContainer {
+    public DefaultComponentSpecContainer(ModelType<ComponentSpec> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, BiFunction<? extends ModelCreators.Builder, ? super MutableModelNode, ? super ModelReference<? extends ComponentSpec>> creatorFunction) {
         super(elementType, sourceDescriptor, modelNode, creatorFunction);
     }
 }

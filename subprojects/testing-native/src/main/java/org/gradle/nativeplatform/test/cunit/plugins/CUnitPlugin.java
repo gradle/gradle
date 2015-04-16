@@ -55,6 +55,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
@@ -77,7 +78,7 @@ public class CUnitPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createCUnitTestSuitePerComponent(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
             for (final NativeComponentSpec component : components) {
                 String suiteName = String.format("%sTest", component.getName());
                 testSuites.create(suiteName, CUnitTestSuiteSpec.class, new Action<CUnitTestSuiteSpec>() {
@@ -117,9 +118,8 @@ public class CUnitPlugin implements Plugin<Project> {
             return functionalSourceSet;
         }
 
-        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Finalize
-        public void configureCUnitTestSuiteSources(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir) {
+        public void configureCUnitTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
@@ -135,9 +135,8 @@ public class CUnitPlugin implements Plugin<Project> {
             }
         }
 
-        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Mutate
-        public void createCUnitLauncherTasks(TaskContainer tasks, @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites) {
+        public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class)) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
@@ -158,9 +157,8 @@ public class CUnitPlugin implements Plugin<Project> {
             }).iterator().next();
         }
 
-        // TODO RG: get rid of task and use stronger typed collectionbuilder here.
         @Mutate
-        public void createCUnitTestBinaries(final BinaryContainer binaries, @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
+        public void createCUnitTestBinaries(final BinaryContainer binaries, TestSuiteContainer testSuites, @Path("buildDir") File buildDir, ServiceRegistry serviceRegistry, ITaskFactory taskFactory) {
             for (final CUnitTestSuiteSpec cUnitTestSuite : testSuites.withType(CUnitTestSuiteSpec.class)) {
                 for (NativeBinarySpec testedBinary : cUnitTestSuite.getTestedComponent().getBinaries().withType(NativeBinarySpec.class)) {
 

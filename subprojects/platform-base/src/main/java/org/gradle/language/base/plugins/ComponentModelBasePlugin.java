@@ -27,6 +27,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.*;
@@ -39,6 +40,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.*;
 import org.gradle.platform.base.internal.rules.DefaultRuleAwareDynamicTypesNamedEntityInstantiator;
@@ -60,10 +62,12 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final ModelRegistry modelRegistry;
+    private Instantiator instantiator;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, Instantiator instantiator) {
         this.modelRegistry = modelRegistry;
+        this.instantiator = instantiator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -88,6 +92,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         })
                 .descriptor(descriptor)
                 .ephemeral(true)
+                .withProjection(new SpecializedCollectionBuilderProjection<ComponentSpecContainer, ComponentSpec, DefaultComponentSpecContainer>(
+                        ModelType.of(ComponentSpecContainer.class),
+                        ModelType.of(ComponentSpec.class),
+                        DefaultComponentSpecContainer.class,
+                        instantiator))
                 .withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class), new ComponentSpecInitializationAction()))
                 .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType))
                 .build();
