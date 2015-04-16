@@ -149,18 +149,35 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                task checkIt(dependsOn: [addDependency, configurations.compile]) << {
+                task modifyConfigDuringTaskExecution(dependsOn: [addDependency, configurations.compile]) << {
                     def files = configurations.compile.files
+                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert files*.exists() == [ true, true ]
+                }
+                task modifyParentConfigDuringTaskExecution(dependsOn: [addDependency, configurations.testCompile]) << {
+                    def files = configurations.testCompile.files
                     assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
                     assert files*.exists() == [ true, true ]
                 }
             }
 """
-        executer.withDeprecationChecksDisabled()
 
-        when: succeeds("impl:checkIt")
-        then: output.contains("Changed dependencies of configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and: output.contains("Resolving configuration ':impl:compile' again after modification.")
+        when:
+        executer.withDeprecationChecksDisabled()
+        succeeds("impl:modifyConfigDuringTaskExecution")
+
+        then:
+        output.contains("Changed dependencies of configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        output.contains("Resolving configuration ':impl:compile' again after modification.")
+
+        when:
+        executer.withDeprecationChecksDisabled()
+        succeeds("impl:modifyParentConfigDuringTaskExecution")
+
+        then:
+        output.contains("Changed dependencies of configuration ':impl:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        output.contains("Changed dependencies of parent of configuration ':impl:testCompile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        output.contains("Resolving configuration ':impl:testCompile' again after modification.")
     }
 
     def "allows adding artifacts to a configuration that has been resolved for task dependencies"() {
