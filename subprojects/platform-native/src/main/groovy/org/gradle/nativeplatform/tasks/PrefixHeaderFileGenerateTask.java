@@ -21,7 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.nativeplatform.toolchain.internal.PrefixHeaderFileGeneratorUtil;
+import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
 
 import java.io.File;
 
@@ -37,7 +37,7 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
 
     @TaskAction
     void generatePrefixHeaderFile() {
-        PrefixHeaderFileGeneratorUtil.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
+        PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
     }
 
     public String getHeaders() {

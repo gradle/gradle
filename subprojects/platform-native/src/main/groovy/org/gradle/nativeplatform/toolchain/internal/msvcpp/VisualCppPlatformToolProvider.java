@@ -159,7 +159,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
             @Override
             public T transform(T original) {
                 List<Transformer<T, T>> transformers = Lists.newArrayList();
-                transformers.add(new VisualCppPCHSourceFileTransformer<T>());
+                transformers.add(PCHUtils.getHeaderToSourceFileTransformer(type));
                 transformers.add(addIncludePathAndDefinitions(type));
 
                 T next = original;
