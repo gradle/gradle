@@ -16,5 +16,24 @@
 
 package org.gradle.launcher.continuous;
 
-public interface TriggerBehavior extends Runnable {
+import org.gradle.internal.UncheckedException;
+
+public class TimeoutStrategy implements Runnable {
+    private final TriggerListener listener;
+
+    public TimeoutStrategy(TriggerListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(5000);
+                listener.triggered(new DefaultTriggerDetails("5 second timeout"));
+            } catch (InterruptedException e) {
+                UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
 }

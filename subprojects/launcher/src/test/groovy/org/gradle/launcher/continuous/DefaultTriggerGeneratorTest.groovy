@@ -22,14 +22,14 @@ import spock.lang.Specification
 
 class DefaultTriggerGeneratorTest extends Specification {
     def executor = Mock(StoppableExecutor)
-    def triggerBehavior = Mock(Runnable)
-    def triggerGenerator = new DefaultTriggerGenerator(executor, triggerBehavior)
+    def triggerStrategy = Mock(Runnable)
+    def triggerGenerator = new DefaultTriggerGenerator(executor, triggerStrategy)
 
-    def "start executes the trigger behavior"() {
+    def "start executes the trigger strategy"() {
         when:
         triggerGenerator.start()
         then:
-        1 * executor.execute(triggerBehavior)
+        1 * executor.execute(triggerStrategy)
     }
 
     def "stop stops the executor"() {

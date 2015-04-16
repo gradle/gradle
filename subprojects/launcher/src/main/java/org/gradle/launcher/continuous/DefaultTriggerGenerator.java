@@ -20,16 +20,16 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 
 public class DefaultTriggerGenerator implements TriggerGenerator {
     private final StoppableExecutor executor;
-    private final TriggerBehavior triggerBehavior;
+    private final TriggerStrategy triggerStrategy;
 
-    public DefaultTriggerGenerator(StoppableExecutor executor, TriggerBehavior triggerBehavior) {
+    public DefaultTriggerGenerator(StoppableExecutor executor, TriggerStrategy triggerStrategy) {
         this.executor = executor;
-        this.triggerBehavior = triggerBehavior;
+        this.triggerStrategy = triggerStrategy;
     }
 
     @Override
     public void start() {
-        executor.execute(triggerBehavior);
+        executor.execute(triggerStrategy);
     }
 
     @Override

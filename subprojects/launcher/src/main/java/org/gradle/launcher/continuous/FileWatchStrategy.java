@@ -24,11 +24,11 @@ import org.gradle.internal.filewatch.FileWatcherService;
 
 import java.io.File;
 
-public class FileWatchTrigger implements TriggerBehavior {
+public class FileWatchStrategy implements TriggerStrategy {
     private final TriggerListener listener;
     private final Stoppable fileWatcher;
 
-    public FileWatchTrigger(TriggerListener listener, FileWatcherService fileWatcherService) {
+    public FileWatchStrategy(TriggerListener listener, FileWatcherService fileWatcherService) {
         this.listener = listener;
         DirectoryTree dir = new DirectoryFileTree(new File("."));
         dir.getPatterns().exclude("build/**/*", ".gradle/**/*");
@@ -38,7 +38,7 @@ public class FileWatchTrigger implements TriggerBehavior {
 
     @Override
     public void run() {
-
+        // TODO: Enforce quiet period here?
     }
 
     private class FileChangeCallback implements Runnable {

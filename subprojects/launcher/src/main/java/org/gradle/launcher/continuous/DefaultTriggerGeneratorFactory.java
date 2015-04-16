@@ -30,6 +30,6 @@ public class DefaultTriggerGeneratorFactory implements TriggerGeneratorFactory {
 
     @Override
     public TriggerGenerator newInstance(TriggerListener listener) {
-        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchTrigger(listener, fileWatcherService));
+        return new DefaultTriggerGenerator(executorFactory.create("trigger"), new FileWatchStrategy(listener, fileWatcherService));
     }
 }
