@@ -123,9 +123,6 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
 
         final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
         String header = spec.getPreCompiledHeader();
-        if (header.startsWith("<")) {
-            header = header.substring(1, header.length()-1);
-        }
 
         List<String> headers = includes.getAllIncludeStrings();
         boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0));

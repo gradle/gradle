@@ -49,9 +49,7 @@ class VisualCppNativeCompiler<T extends NativeCompileSpec> extends NativeCompile
         List<String> pchArgs = new ArrayList<String>();
         if (spec.getPreCompiledHeader() != null && spec.getPreCompiledHeaderObjectFile() != null) {
             String lastHeader = spec.getPreCompiledHeader();
-            if (lastHeader.startsWith("<")) {
-                lastHeader = lastHeader.substring(1, lastHeader.length()-1);
-            }
+
             pchArgs.add("/Yu".concat(lastHeader));
             pchArgs.add("/Fp".concat(spec.getPreCompiledHeaderObjectFile().getAbsolutePath()));
         }

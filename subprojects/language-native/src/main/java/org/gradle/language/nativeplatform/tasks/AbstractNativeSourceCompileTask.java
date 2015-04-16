@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
 
@@ -45,7 +46,7 @@ abstract public class AbstractNativeSourceCompileTask extends AbstractNativeComp
             File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
             spec.setPrefixHeaderFile(new File(pchDir, getPrefixHeaderFile().getName()));
             spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
-            spec.setPreCompiledHeader(getPreCompiledHeader());
+            spec.setPreCompiledHeader(DefaultInclude.parse(getPreCompiledHeader(), true).getValue());
         }
     }
 
