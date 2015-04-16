@@ -20,13 +20,21 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
 
+import java.io.File;
+import java.util.Set;
+
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
-    private ProjectInternal dependencyProject;
+    private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
+    private final ProjectInternal dependencyProject;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener) {
         this(dependencyProject, null, projectAccessListener);
@@ -65,7 +73,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
-
     public void beforeResolved() {
         projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
     }
@@ -125,5 +132,30 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
                 + getConfiguration() + '\'' + '}';
+    }
+
+    public TaskDependencyInternal getBuildDependencies() {
+        return taskDependency;
+    }
+
+    public Set<File> resolve() {
+        return resolve(true);
+    }
+
+    public Set<File> resolve(boolean transitive) {
+        projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
+        context.add(this);
+        return context.resolve().getFiles();
+    }
+
+    private class TaskDependencyImpl extends AbstractTaskDependency {
+        public void resolve(TaskDependencyResolveContext context) {
+            projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
+
+            Configuration configuration = getProjectConfiguration();
+            context.add(configuration);
+            context.add(configuration.getAllArtifacts());
+        }
     }
 }
