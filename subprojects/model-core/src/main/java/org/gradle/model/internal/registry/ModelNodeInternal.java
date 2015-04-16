@@ -38,6 +38,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
+    private boolean hidden;
 
     public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
         this.creatorBinder = creatorBinder;
@@ -67,6 +68,16 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
 
         this.creatorBinder = newCreatorBinder;
+    }
+
+    @Override
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    @Override
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     @Override

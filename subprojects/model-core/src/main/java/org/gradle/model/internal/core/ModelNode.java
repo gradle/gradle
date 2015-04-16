@@ -66,4 +66,9 @@ public interface ModelNode {
     Set<String> getLinkNames(ModelType<?> type);
 
     Iterable<? extends ModelNode> getLinks(ModelType<?> type);
+
+    /**
+     * Should this node be hidden from the model report.
+     */
+    boolean isHidden();
 }

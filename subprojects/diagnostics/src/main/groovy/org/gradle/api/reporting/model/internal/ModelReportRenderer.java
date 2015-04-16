@@ -36,6 +36,10 @@ public class ModelReportRenderer extends TextReportRenderer {
     private static class NodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
         @Override
         public void render(ModelNode model, TextReportBuilder output) {
+            if (model.isHidden()) {
+                return;
+            }
+
             if (model.getPath().equals(ModelPath.ROOT)) {
                 output.getOutput().println("model");
             } else {

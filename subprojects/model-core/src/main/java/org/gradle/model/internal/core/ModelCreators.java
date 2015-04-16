@@ -57,6 +57,7 @@ abstract public class ModelCreators {
         private final ModelReference<?> modelReference;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private boolean ephemeral;
+        private boolean hidden;
 
         private ModelRuleDescriptor modelRuleDescriptor;
         private List<? extends ModelReference<?>> inputs = Collections.emptyList();
@@ -92,6 +93,11 @@ abstract public class ModelCreators {
             return this;
         }
 
+        public Builder hidden(boolean flag) {
+            this.hidden = flag;
+            return this;
+        }
+
         public Builder ephemeral(boolean flag) {
             this.ephemeral = flag;
             return this;
@@ -99,7 +105,7 @@ abstract public class ModelCreators {
 
         public ModelCreator build() {
             ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, ephemeral, inputs, projection, initializer);
+            return new ProjectionBackedModelCreator(modelReference.getPath(), modelRuleDescriptor, ephemeral, hidden, inputs, projection, initializer);
         }
     }
 
