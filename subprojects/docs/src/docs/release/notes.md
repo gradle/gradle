@@ -114,7 +114,7 @@ This has been fixed and assemble task name for the main distribution has changed
 As part of work on exposing more of the component model to rules the `componentSpec` project extension previously added by all language plugins via `ComponentModelBasePlugin` has been removed.
 Currently component container can be only accessed using model rules.
 
-### `model.components` cannot be viewed as
+### Source sets cannot be removed from components
 
 ### Configurations that are task inputs are resolved before building the task execution graph
 

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.internal.AddOnlyDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -73,7 +74,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         this.identifier = info.componentIdentifier;
         this.typeName = info.typeName;
         this.mainSourceSet = info.sourceSets;
-        this.source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
+        this.source = new AddOnlyDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, mainSourceSet);
     }
 
     public String getName() {

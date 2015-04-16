@@ -106,7 +106,7 @@ Most of this coverage already exists, need to fill in the gaps:
 - ~~Can reference `components.«component».source.«source set»` in a rule as a matching specialisation of `LanguageSourceSet`~~
 - ~~`source.«sourceSet»` node is displayed for each source set of each component in the component container~~
 - ~~Existing usages of `ProjectSourceSet` continue to work, and corresponding root `sources` node (changing anything here is out of scope)~~
-- Removal of source sets throws `UnsupportedOperationException`
+- ~~Removal of source sets throws `UnsupportedOperationException`~~
 
 #### Breaking changes
 

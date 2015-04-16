@@ -226,7 +226,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private class ComponentSpecInitializationAction implements BiAction<MutableModelNode, ComponentSpec> {
+    private static class ComponentSpecInitializationAction implements BiAction<MutableModelNode, ComponentSpec> {
         @Override
         public void execute(MutableModelNode componentModelNode, ComponentSpec componentSpec) {
             ModelType<DomainObjectSet<LanguageSourceSet>> sourceType = new ModelType<DomainObjectSet<LanguageSourceSet>>() {

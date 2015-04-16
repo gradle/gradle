@@ -203,4 +203,31 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "source data: foo"
     }
+
+    def "cannot remove source sets"() {
+        given:
+        withMainSourceSet()
+        buildFile << '''
+            import org.gradle.model.collection.*
+
+            class SourceSetRemovalRules extends RuleSource {
+                @Mutate
+                void clearSourceSets(@Path("components.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
+                    sourceSets.clear()
+                }
+
+                @Mutate
+                void closeMainComponentSourceSetsForTasks(CollectionBuilder<Task> tasks, @Path("components.main.source") DomainObjectSet<LanguageSourceSet> sourceSets) {
+                }
+            }
+
+            apply type: SourceSetRemovalRules
+        '''
+
+        when:
+        fails()
+
+        then:
+        failureHasCause("This collection does not support element removal.")
+    }
 }
