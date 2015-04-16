@@ -46,6 +46,7 @@ import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.FailureVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.JavaTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
@@ -220,7 +221,7 @@ public class ProviderConnection {
 
                     @Override
                     public TestDescriptorVersion1 getDescriptor() {
-                        return new TestDescriptorVersion1() {
+                        return new JavaTestDescriptorVersion1() {
 
                             @Override
                             public Object getId() {

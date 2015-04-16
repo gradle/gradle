@@ -39,13 +39,6 @@ public interface TestDescriptorVersion1 {
     String getName();
 
     /**
-     * Returns the name of the test class, if any.
-     *
-     * @return The name of the test class, can be null
-     */
-    String getClassName();
-
-    /**
      * Returns the id of the parent of this test, if any.
      *
      * @return The id of the parent of this test, can be null

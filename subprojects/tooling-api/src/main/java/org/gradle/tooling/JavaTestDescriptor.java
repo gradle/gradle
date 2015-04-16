@@ -25,21 +25,14 @@ import org.gradle.api.Nullable;
  * @since 2.4
  */
 @Incubating
-public interface TestDescriptor {
+public interface JavaTestDescriptor extends TestDescriptor {
+
 
     /**
-     * Returns the name of the test.
+     * Returns the name of the test class, if any.
      *
-     * @return the name of the test, never null
+     * @return the name of the test class, can be null
      */
-    String getName();
-
-    /**
-     * Returns the parent of this test, if any.
-     *
-     * @return the parent of this test, can be null
-     */
-    @Nullable
-    TestDescriptor getParent();
+    String getClassName();
 
 }

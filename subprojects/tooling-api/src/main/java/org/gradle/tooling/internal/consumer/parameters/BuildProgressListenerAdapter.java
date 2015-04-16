@@ -15,16 +15,15 @@
  */
 package org.gradle.tooling.internal.consumer.parameters;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.JavaTestDescriptor;
 import org.gradle.tooling.TestDescriptor;
 import org.gradle.tooling.TestFailure;
 import org.gradle.tooling.TestProgressListener;
 import org.gradle.tooling.TestSuccess;
-import org.gradle.tooling.events.Event;
-import org.gradle.tooling.events.EventPayload;
 import org.gradle.tooling.events.FailureEvent;
-import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.Income;
 import org.gradle.tooling.events.Outcome;
 import org.gradle.tooling.events.SkippedEvent;
@@ -35,6 +34,7 @@ import org.gradle.tooling.events.TestKind;
 import org.gradle.tooling.events.TestProgressEvent;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.FailureVersion1;
+import org.gradle.tooling.internal.protocol.JavaTestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -135,7 +134,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private static Set<Class<?>> collectInterfaces(List<Object> aggregate) {
-        Set<Class<?>> interfaces = new HashSet<Class<?>>(aggregate.size()+1);
+        Set<Class<?>> interfaces = new HashSet<Class<?>>(aggregate.size() + 1);
         interfaces.add(TestProgressEvent.class);
         for (Object payload : aggregate) {
             Class<?> payloadClass = payload.getClass();
@@ -162,27 +161,46 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
                 throw new IllegalStateException(String.format("%s already available.", toString(testDescriptor)));
             } else {
                 final TestDescriptor parent = getParentTestDescriptor(testDescriptor);
-                TestDescriptor newTestDescriptor = new TestDescriptor() {
-
-                    @Override
-                    public String getName() {
-                        return testDescriptor.getName();
-                    }
-
-                    @Override
-                    public String getClassName() {
-                        return testDescriptor.getClassName();
-                    }
-
-                    @Override
-                    public TestDescriptor getParent() {
-                        return parent;
-                    }
-
-                };
+                TestDescriptor newTestDescriptor = toTestDescriptor(testDescriptor, parent);
                 testDescriptorCache.put(testDescriptor.getId(), newTestDescriptor);
                 return newTestDescriptor;
             }
+        }
+    }
+
+    private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, final TestDescriptor parent) {
+        if (testDescriptor instanceof JavaTestDescriptorVersion1) {
+            return new JavaTestDescriptor() {
+
+                @Override
+                public String getClassName() {
+                    return ((JavaTestDescriptorVersion1) testDescriptor).getClassName();
+                }
+
+                @Override
+                public String getName() {
+                    return testDescriptor.getName();
+                }
+
+                @Override
+                public TestDescriptor getParent() {
+                    return parent;
+                }
+
+            };
+        } else {
+            return new TestDescriptor() {
+                @Override
+                public String getName() {
+                    return testDescriptor.getName();
+                }
+
+                @Nullable
+                @Override
+                public TestDescriptor getParent() {
+                    return parent;
+                }
+            };
         }
     }
 
@@ -254,7 +272,12 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private String toString(TestDescriptorVersion1 testDescriptor) {
-        return String.format("TestDescriptor[id(%s), name(%s), className(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getClassName(), testDescriptor.getParentId());
+        if (testDescriptor instanceof JavaTestDescriptorVersion1) {
+            return String.format("TestDescriptor[id(%s), name(%s), className(%s), parent(%s)]",
+                    testDescriptor.getId(), testDescriptor.getName(), ((JavaTestDescriptorVersion1) testDescriptor).getClassName(), testDescriptor.getParentId());
+        } else {
+            return String.format("TestDescriptor[id(%s), name(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getParentId());
+        }
     }
 
     private static class DelegatingInvocationHandler implements InvocationHandler {

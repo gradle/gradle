@@ -13,33 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling;
+package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Nullable;
 
 /**
- * Describes a test.
- *
- * @since 2.4
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 @Incubating
-public interface TestDescriptor {
-
+public interface JavaTestDescriptorVersion1 extends TestDescriptorVersion1 {
     /**
-     * Returns the name of the test.
+     * Returns the name of the test class, if any.
      *
-     * @return the name of the test, never null
+     * @return The name of the test class, can be null
      */
-    String getName();
-
-    /**
-     * Returns the parent of this test, if any.
-     *
-     * @return the parent of this test, can be null
-     */
-    @Nullable
-    TestDescriptor getParent();
-
+    String getClassName();
 }
