@@ -124,6 +124,7 @@ We would like to thank the following community members for making contributions 
 
 * [Daniel Lacasse](https://github.com/Shad0w1nk) - Support GoogleTest for testing C++ binaries
 * [Lóránt Pintér](https://github.com/lptr), [Daniel Vigovszky](https://github.com/vigoo) and [Mark Vujevits](https://github.com/vujevits) - implement dependency substitution for projects
+* [Larry North](https://github.com/LarryNorth) - Build improvements.
 
 ## Known issues
 
