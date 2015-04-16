@@ -17,20 +17,21 @@
 package org.gradle.nativeplatform.test.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.DefaultDynamicTypesNamedEntityInstantiator;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.BiAction;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.model.SpecializedCollectionBuilders;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProjection;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DefaultCollectionBuilder;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.SpecializedCollectionBuilderFactory;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -41,15 +42,12 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.rules.DefaultRuleAwareDynamicTypesNamedEntityInstantiator;
-import org.gradle.platform.base.internal.rules.RuleAwareDynamicTypesNamedEntityInstantiator;
 import org.gradle.platform.base.internal.test.DefaultTestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
@@ -70,32 +68,47 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         String descriptor = NativeBinariesTestPlugin.class.getName() + ".apply()";
 
-        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>() {
-        };
-        ModelReference<CollectionBuilder<TestSuiteSpec>> containerReference = ModelReference.of("testSuites", DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
-
-        ModelCreator testSuitesCreator = ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        ModelCreator testSuitesCreator = SpecializedCollectionBuilders.specializedCollectionBuilder("testSuites", TestSuiteSpec.class, TestSuiteContainer.class, new SpecializedCollectionBuilderFactory<TestSuiteContainer>() {
             @Override
-            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
-                final DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec> namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(
-                        TestSuiteSpec.class, "this collection"
-                );
-                ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>> instantiatorType = new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>>() {
-                };
-                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(namedEntityInstantiator));
+            public DefaultTestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+                return instantiator.newInstance(DefaultTestSuiteContainer.class, ModelType.of(TestSuiteSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
             }
-        })
-                .descriptor(descriptor)
-                .ephemeral(true)
-                .withProjection(new SpecializedCollectionBuilderProjection<TestSuiteContainer, TestSuiteSpec, DefaultTestSuiteContainer>(
-                        ModelType.of(TestSuiteContainer.class),
-                        ModelType.of(TestSuiteSpec.class),
-                        DefaultTestSuiteContainer.class,
-                        instantiator))
-                .withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()))
-                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(factoryRegistryType))
-                .build();
+        }, descriptor, BiActions.doNothing());
+
         modelRegistry.createOrReplace(testSuitesCreator);
+
+//
+//        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>() {
+//        };
+//        ModelReference<CollectionBuilder<TestSuiteSpec>> containerReference = ModelReference.of("testSuites", DefaultCollectionBuilder.typeOf(TestSuiteSpec.class));
+//
+//        SpecializedCollectionBuilderFactory<TestSuiteContainer> testSuiteContainerSpecializedCollectionBuilderFactory = new SpecializedCollectionBuilderFactory<TestSuiteContainer>() {
+//            @Override
+//            public TestSuiteContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+//                return instantiator.newInstance(DefaultTestSuiteContainer.class, TestSuiteSpec.class, ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()));
+//            }
+//        };
+//
+//        ModelCreator testSuitesCreator = ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+//            @Override
+//            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
+//                final DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec> namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(
+//                        TestSuiteSpec.class, "this collection"
+//                );
+//                ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>> instantiatorType = new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>>() {
+//                };
+//                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<TestSuiteSpec>(namedEntityInstantiator));
+//            }
+//        })
+//                .descriptor(descriptor)
+//                .ephemeral(true)
+//                .withProjection(new SpecializedCollectionBuilderProjection<TestSuiteContainer, TestSuiteSpec>(
+//                        ModelType.of(TestSuiteContainer.class),
+//                        testSuiteContainerSpecializedCollectionBuilderFactory))
+//                .withProjection(new DynamicTypesCollectionBuilderProjection<TestSuiteSpec>(ModelType.of(TestSuiteSpec.class), BiActions.doNothing()))
+//                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<TestSuiteSpec>>(factoryRegistryType))
+//                .build();
+//        modelRegistry.createOrReplace(testSuitesCreator);
     }
 
     @SuppressWarnings("UnusedDeclaration")

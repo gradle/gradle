@@ -16,30 +16,24 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.internal.BiActions;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<E>, E, S extends P> extends TypeCompatibilityModelProjectionSupport<P> {
+public class SpecializedCollectionBuilderProjection<P extends CollectionBuilder<E>, E> extends TypeCompatibilityModelProjectionSupport<P> {
 
     private final ModelType<P> publicType;
-    private final ModelType<E> elementType;
-    private final Class<S> implementationClass;
-    private final Instantiator instantiator;
+    private final SpecializedCollectionBuilderFactory<P> factory;
 
-    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, ModelType<E> elementType, Class<S> implementationClass, Instantiator instantiator) {
+    public SpecializedCollectionBuilderProjection(ModelType<P> publicType, final SpecializedCollectionBuilderFactory<P> factory) {
         super(publicType, true, true);
         this.publicType = publicType;
-        this.elementType = elementType;
-        this.implementationClass = implementationClass;
-        this.instantiator = instantiator;
+        this.factory = factory;
     }
 
     @Override
     protected ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        S specializedCollectionBuilder = instantiator.newInstance(implementationClass, elementType, ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(elementType, BiActions.doNothing()));
+        P specializedCollectionBuilder =  factory.create(modelNode, ruleDescriptor);
         return InstanceModelView.of(modelNode.getPath(), publicType, specializedCollectionBuilder);
     }
 

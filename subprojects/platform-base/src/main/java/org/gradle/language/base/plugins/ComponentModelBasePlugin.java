@@ -16,12 +16,11 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.DefaultDynamicTypesNamedEntityInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -30,11 +29,12 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
+import org.gradle.language.base.internal.model.SpecializedCollectionBuilders;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
-import org.gradle.model.collection.internal.DynamicTypesCollectionBuilderProjection;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -43,8 +43,6 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.PlatformContainer;
 import org.gradle.platform.base.internal.*;
-import org.gradle.platform.base.internal.rules.DefaultRuleAwareDynamicTypesNamedEntityInstantiator;
-import org.gradle.platform.base.internal.rules.RuleAwareDynamicTypesNamedEntityInstantiator;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -75,33 +73,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
-        ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>> factoryRegistryType = new ModelType<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>() {
-        };
-        ModelReference<CollectionBuilder<ComponentSpec>> containerReference = ModelReference.of("components", DefaultCollectionBuilder.typeOf(ComponentSpec.class));
-
-        ModelCreator componentsCreator = ModelCreators.of(containerReference, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        ModelCreator componentsCreator = SpecializedCollectionBuilders.specializedCollectionBuilder("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer>() {
             @Override
-            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> modelViews) {
-                final DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec> namedEntityInstantiator = new DefaultDynamicTypesNamedEntityInstantiator<ComponentSpec>(
-                        ComponentSpec.class, "this collection"
-                );
-                ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>> instantiatorType = new ModelType<RuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>>() {
-                };
-                mutableModelNode.setPrivateData(instantiatorType, new DefaultRuleAwareDynamicTypesNamedEntityInstantiator<ComponentSpec>(namedEntityInstantiator));
+            public ComponentSpecContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
+                return instantiator.newInstance(DefaultComponentSpecContainer.class, ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
             }
-        })
-                .descriptor(descriptor)
-                .ephemeral(true)
-                .withProjection(new SpecializedCollectionBuilderProjection<ComponentSpecContainer, ComponentSpec, DefaultComponentSpecContainer>(
-                        ModelType.of(ComponentSpecContainer.class),
-                        ModelType.of(ComponentSpec.class),
-                        DefaultComponentSpecContainer.class,
-                        instantiator))
-                .withProjection(new DynamicTypesCollectionBuilderProjection<ComponentSpec>(ModelType.of(ComponentSpec.class), new ComponentSpecInitializationAction()))
-                .withProjection(new UnmanagedModelProjection<RuleAwareNamedDomainObjectFactoryRegistry<ComponentSpec>>(factoryRegistryType))
-                .build();
+        }, descriptor, new ComponentSpecInitializationAction());
+
         modelRegistry.createOrReplace(componentsCreator);
     }
+
+
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
