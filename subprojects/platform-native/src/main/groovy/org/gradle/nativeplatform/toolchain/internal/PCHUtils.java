@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class PCHUtils {
-    private static SourceFileExtensionCalculator calculator = new SourceFileExtensionCalculator();
-
     public static File generatePCHObjectDirectory(File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
         File generatedDir = new File(tempDir, "preCompiledHeaders");
         generatedDir.mkdirs();
@@ -70,7 +68,7 @@ public class PCHUtils {
     public static <T extends NativeCompileSpec> File generatePCHSourceFile(T original, File sourceFile) {
         File generatedSourceDir = new File(original.getTempDir(), "pchGeneratedSource");
         generatedSourceDir.mkdirs();
-        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(calculator.transform(original.getClass())));
+        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(getSourceFileExtension(original.getClass())));
         File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());
         try {
             FileUtils.copyFile(sourceFile, headerFileCopy);
@@ -95,18 +93,16 @@ public class PCHUtils {
         };
     }
 
-    static class SourceFileExtensionCalculator implements Transformer<String, Class<? extends NativeCompileSpec>> {
-        @Override
-        public String transform(Class<? extends NativeCompileSpec> specClass) {
-            if (CPCHCompileSpec.class.isAssignableFrom(specClass)) {
-                return ".c";
-            }
-
-            if (CppPCHCompileSpec.class.isAssignableFrom(specClass)) {
-                return ".cpp";
-            }
-
-            throw new IllegalArgumentException("Cannot determine source file extension for spec with type ".concat(specClass.getSimpleName()));
+    private static String getSourceFileExtension(Class<? extends NativeCompileSpec> specClass) {
+        if (CPCHCompileSpec.class.isAssignableFrom(specClass)) {
+            return ".c";
         }
+
+        if (CppPCHCompileSpec.class.isAssignableFrom(specClass)) {
+            return ".cpp";
+        }
+
+        throw new IllegalArgumentException("Cannot determine source file extension for spec with type ".concat(specClass.getSimpleName()));
+
     }
 }
