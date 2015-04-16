@@ -28,13 +28,13 @@ import org.gradle.platform.base.internal.rules.RuleAwareDynamicTypesNamedEntityI
 
 import java.util.List;
 
-public class SpecializedCollectionBuilders {
+public class CollectionBuilderCreators {
 
-    public static <T, C extends CollectionBuilder<T>> ModelCreator specializedCollectionBuilder(String name, final Class<T> typeClass,
-                                                                                                final Class<C> containerClass,
-                                                                                                SpecializedCollectionBuilderFactory<C> collectionBuilderFactory,
-                                                                                                String descriptor,
-                                                                                                BiAction<? super MutableModelNode, ? super T> initializeAction) {
+    public static <T, C extends CollectionBuilder<T>> ModelCreator specialized(String name, final Class<T> typeClass,
+                                                                               final Class<C> containerClass,
+                                                                               SpecializedCollectionBuilderFactory<C> collectionBuilderFactory,
+                                                                               String descriptor,
+                                                                               BiAction<? super MutableModelNode, ? super T> initializeAction) {
 
 
         ModelType<RuleAwareNamedDomainObjectFactoryRegistry<T>> factoryRegistryType = new ModelType.Builder<RuleAwareNamedDomainObjectFactoryRegistry<T>>() {

@@ -29,7 +29,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultComponentSpecContainer;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.SpecializedCollectionBuilders;
+import org.gradle.language.base.internal.model.CollectionBuilderCreators;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.collection.CollectionBuilder;
@@ -60,12 +60,10 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     private final ModelRegistry modelRegistry;
-    private Instantiator instantiator;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, Instantiator instantiator) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.instantiator = instantiator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -73,10 +71,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         String descriptor = ComponentModelBasePlugin.class.getName() + ".apply()";
 
-        ModelCreator componentsCreator = SpecializedCollectionBuilders.specializedCollectionBuilder("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer>() {
+        ModelCreator componentsCreator = CollectionBuilderCreators.specialized("components", ComponentSpec.class, ComponentSpecContainer.class, new SpecializedCollectionBuilderFactory<ComponentSpecContainer>() {
             @Override
             public ComponentSpecContainer create(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
-                return instantiator.newInstance(DefaultComponentSpecContainer.class, ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
+                return new DefaultComponentSpecContainer(ModelType.of(ComponentSpec.class), ruleDescriptor, modelNode, DefaultCollectionBuilder.createUsingParentNode(ModelType.of(ComponentSpec.class), BiActions.doNothing()));
             }
         }, descriptor, new ComponentSpecInitializationAction());
 

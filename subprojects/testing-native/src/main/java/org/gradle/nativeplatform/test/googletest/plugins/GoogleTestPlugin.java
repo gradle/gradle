@@ -53,6 +53,7 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
 import java.io.File;
@@ -74,7 +75,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         // TODO:DAZ Test suites should belong to ComponentSpecContainer, and we could rely on more conventions from the base plugins
         @Defaults
-        public void createGoogleTestTestSuitePerComponent(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
+        public void createGoogleTestTestSuitePerComponent(TestSuiteContainer testSuites, CollectionBuilder<NativeComponentSpec> components, ProjectSourceSet projectSourceSet, ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
@@ -118,7 +119,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void configureGoogleTestTestSuiteSources(@Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites, @Path("buildDir") File buildDir) {
+        public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
 
             for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class)) {
                 FunctionalSourceSet suiteSourceSet = ((ComponentSpecInternal) suite).getSources();
@@ -131,7 +132,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
 
         @Mutate
         public void createGoogleTestTestBinaries(final BinaryContainer binaries,
-                                                 @Path("testSuites") CollectionBuilder<TestSuiteSpec> testSuites,
+                                                 TestSuiteContainer testSuites,
                                                  @Path("buildDir") File buildDir,
                                                  ServiceRegistry serviceRegistry,
                                                  ITaskFactory taskFactory) {
