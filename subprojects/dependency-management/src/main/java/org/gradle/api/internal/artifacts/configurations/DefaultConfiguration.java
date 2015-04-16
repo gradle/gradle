@@ -351,7 +351,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (!modified) {
                 return;
             }
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Configuration %s was modified after task dependencies were resolved. Configuration will be resolved again.", getDisplayName()));
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification", getDisplayName()));
         }
 
         DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
@@ -592,7 +592,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // Configuration.getBuildDependencies(). It is deprecated for build logic to
                 // change anything about the configuration except the artifacts.
                 if (type != MutationType.ARTIFACTS) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after task dependencies have been resolved", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s after task dependencies have been resolved", getDisplayName()));
                 }
                 break;
             case RESULTS_RESOLVED:
