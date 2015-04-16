@@ -21,6 +21,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -28,6 +30,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class PCHUtils {
+    private static SourceFileExtensionCalculator calculator = new SourceFileExtensionCalculator();
+
     public static File generatePCHObjectDirectory(File tempDir, File prefixHeaderFile, File preCompiledHeaderObjectFile) {
         File generatedDir = new File(tempDir, "preCompiledHeaders");
         generatedDir.mkdirs();
@@ -66,7 +70,7 @@ public class PCHUtils {
     public static <T extends NativeCompileSpec> File generatePCHSourceFile(T original, File sourceFile) {
         File generatedSourceDir = new File(original.getTempDir(), "pchGeneratedSource");
         generatedSourceDir.mkdirs();
-        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(".c"));
+        File generatedSource = new File(generatedSourceDir, FilenameUtils.removeExtension(sourceFile.getName()).concat(calculator.transform(original.getClass())));
         File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());
         try {
             FileUtils.copyFile(sourceFile, headerFileCopy);
@@ -89,5 +93,20 @@ public class PCHUtils {
                 return original;
             }
         };
+    }
+
+    static class SourceFileExtensionCalculator implements Transformer<String, Class<? extends NativeCompileSpec>> {
+        @Override
+        public String transform(Class<? extends NativeCompileSpec> specClass) {
+            if (CPCHCompileSpec.class.isAssignableFrom(specClass)) {
+                return ".c";
+            }
+
+            if (CppPCHCompileSpec.class.isAssignableFrom(specClass)) {
+                return ".cpp";
+            }
+
+            throw new IllegalArgumentException("Cannot determine source file extension for spec with type ".concat(specClass.getSimpleName()));
+        }
     }
 }

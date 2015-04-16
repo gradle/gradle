@@ -69,7 +69,7 @@ class PCHUtilsTest extends Specification {
         where:
         type              | extension
         CPCHCompileSpec   | "c"
-        CppPCHCompileSpec | "c"
+        CppPCHCompileSpec | "cpp"
     }
 
     def "generates a PCH object directory" () {
