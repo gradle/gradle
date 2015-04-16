@@ -351,7 +351,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (!modified) {
                 return;
             }
-            // TODO:DAZ Maybe log a warning here about re-resolve happening
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Configuration %s was modified after task dependencies were resolved. Configuration will be resolved again.", getDisplayName()));
         }
 
         DependencyResolutionListener broadcast = resolutionListenerBroadcast.getSource();
