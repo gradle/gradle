@@ -96,6 +96,7 @@ Most of this coverage already exists, need to fill in the gaps:
 * Change implementation of `components` node to eagerly create a `source` child node for each element node, with the object returned by `componentSpec.sources`
 * `components.«name».source` is projected using the unmanaged projection (i.e. it is opaque)
 * Use `.all()` hook of component's source set container to create the child nodes of the `source` node as unmanaged node, based on type of the source set given to the origin create() method
+* Change all removal type operations of `«component».source` to throw `UnsupportedOperationException`
 
 #### Test Coverage
 
@@ -105,10 +106,11 @@ Most of this coverage already exists, need to fill in the gaps:
 - ~~Can reference `components.«component».source.«source set»` in a rule as a matching specialisation of `LanguageSourceSet`~~
 - ~~`source.«sourceSet»` node is displayed for each source set of each component in the component container~~
 - ~~Existing usages of `ProjectSourceSet` continue to work, and corresponding root `sources` node (changing anything here is out of scope)~~
+- Removal of source sets throws `UnsupportedOperationException`
 
 #### Breaking changes
 
-none.
+- Removing source sets from components no longer supported
 
 ###  `components.«component».binaries.«binary»` is addressable/visible in rule space
 
@@ -117,6 +119,7 @@ none.
 * Change implementation of `components` node to eagerly create a `binaries` child node for each element node, with the object returned by `componentSpec.binaries`
 * `components.«name».binaries` is projected using the unmanaged projection (i.e. it is opaque)
 * Use `.all()` hook of component's binaries container to create the child nodes of the `binaries` node as unmanaged node, based on the runtime type of the binary
+* Change all removal type operations of `«component».binaries` to throw `UnsupportedOperationException`
 
 #### Test Coverage
 
@@ -126,10 +129,11 @@ none.
 - Can reference `components.«component».binaries.«binary»` in a rule as a matching specialisation of `BinarySpec`
 - `binaries.«binary»` node is displayed for each source set of each component in the component container
 - Existing usages of `BinarySpec` continue to work, and corresponding root `binaries` node (changing anything here is out of scope)
+- Removal of binaries throws `UnsupportedOperationException`
 
 #### Breaking changes
 
-none.
+- Removing binaries from components no longer supported
 
 ###  `components.«component».binaries.«binary».tasks.«task»` is addressable/visible in rule space
 
@@ -138,6 +142,7 @@ none.
 * Change implementation of `«binary»` node to eagerly create a `tasks` child node for each element node, with the object returned by `«binary».task`
 * `«binary».tasks` is projected using the unmanaged projection (i.e. it is opaque)
 * Use `.all()` hook of binary's task container to create the child nodes of the `tasks` node as unmanaged node, based on the runtime type of the task
+* Change all removal type operations of `«binary».tasks` to throw `UnsupportedOperationException`
 
 #### Test Coverage
 
@@ -147,10 +152,11 @@ none.
 - Can reference `components.«component».binaries.«binary».tasks.«task»` in a rule as a matching specialisation of `Task`
 - `tasks.«task»` node is displayed for each source set of each component in the component container
 - Existing usages of `TaskContainer` continue to work, and corresponding root `task` node (changing anything here is out of scope)
+- Removal of tasks throws `UnsupportedOperationException`
 
 #### Breaking changes
 
-none.
+- Removing tasks from binary's task container no longer supported
 
 ### The test suite container has the same level of management/visibility as the general component container
 
