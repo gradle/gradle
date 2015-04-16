@@ -23,10 +23,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.internal.DefaultObjectiveCppSourceSet;
 import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile;
@@ -74,7 +74,7 @@ public class ObjectiveCppLangPlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return new CompileTaskConfig(this, ObjectiveCppCompile.class);
+            return new SourceCompileTaskConfig(this, ObjectiveCppCompile.class);
         }
 
         public SourceTransformTaskConfig getPchTransformTask() {

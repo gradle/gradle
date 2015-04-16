@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PCHObjectDirectoryGeneratorUtil;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
@@ -55,13 +54,10 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private Map<String, String> macros;
     private List<String> compilerArgs;
     private File prefixHeaderFile;
-    private String preCompiledHeader;
-    private ConfigurableFileCollection preCompiledHeaderInclude;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
-        preCompiledHeaderInclude = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -95,15 +91,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
 
-        if (!preCompiledHeaderInclude.isEmpty()) {
-            File pchDir = PCHObjectDirectoryGeneratorUtil.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
-            spec.setPrefixHeaderFile(new File(pchDir, prefixHeaderFile.getName()));
-            spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
-            spec.setPreCompiledHeader(getPreCompiledHeader());
-        }
+        configureSpec(spec);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+    }
+
+    protected void configureSpec(NativeCompileSpec spec) {
     }
 
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
@@ -225,28 +219,5 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setPrefixHeaderFile(File prefixHeaderFile) {
         this.prefixHeaderFile = prefixHeaderFile;
-    }
-
-    /**
-     * Returns the pre-compiled header object file to be used during compilation
-     */
-    @InputFiles
-    public FileCollection getPreCompiledHeaderInclude() {
-        return preCompiledHeaderInclude;
-    }
-
-    /**
-     * Set the pre-compiled header the compiler should use.
-     */
-    public void preCompiledHeaderInclude(Object preCompiledHeader) {
-        preCompiledHeaderInclude.from(preCompiledHeader);
-    }
-
-    public String getPreCompiledHeader() {
-        return preCompiledHeader;
-    }
-
-    public void setPreCompiledHeader(String preCompiledHeader) {
-        this.preCompiledHeader = preCompiledHeader;
     }
 }

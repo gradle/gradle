@@ -27,10 +27,10 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.internal.DefaultCSourceSet;
 import org.gradle.language.c.tasks.CCompile;
 import org.gradle.language.c.tasks.CPreCompiledHeaderCompile;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
@@ -75,7 +75,7 @@ public class CLangPlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return new CompileTaskConfig(this, CCompile.class);
+            return new SourceCompileTaskConfig(this, CCompile.class);
         }
 
         public SourceTransformTaskConfig getPchTransformTask() {

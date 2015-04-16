@@ -27,10 +27,10 @@ import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile;
-import org.gradle.language.nativeplatform.internal.CompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
+import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
@@ -74,7 +74,7 @@ public class CppLangPlugin implements Plugin<Project> {
         }
 
         public SourceTransformTaskConfig getTransformTask() {
-            return new CompileTaskConfig(this, CppCompile.class);
+            return new SourceCompileTaskConfig(this, CppCompile.class);
         }
 
         public SourceTransformTaskConfig getPchTransformTask() {
