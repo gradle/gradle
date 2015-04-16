@@ -17,6 +17,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import org.gradle.language.nativeplatform.internal.Include;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 
 public class DefaultInclude implements Include {
     private final String value;

@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.nativeplatform.internal.Include;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.util.CollectionUtils;
 
@@ -52,7 +53,7 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
         return CollectionUtils.filter(allIncludes, new Spec<Include>() {
             @Override
             public boolean isSatisfiedBy(Include element) {
-                return element.getType() == Include.IncludeType.QUOTED;
+                return element.getType() == IncludeType.QUOTED;
             }
         });
     }
@@ -61,7 +62,7 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
         return CollectionUtils.filter(allIncludes, new Spec<Include>() {
             @Override
             public boolean isSatisfiedBy(Include element) {
-                return element.getType() == Include.IncludeType.SYSTEM;
+                return element.getType() == IncludeType.SYSTEM;
             }
         });
     }
@@ -70,7 +71,7 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
         return CollectionUtils.filter(allIncludes, new Spec<Include>() {
             @Override
             public boolean isSatisfiedBy(Include element) {
-                return element.getType() == Include.IncludeType.MACRO;
+                return element.getType() == IncludeType.MACRO;
             }
         });
     }

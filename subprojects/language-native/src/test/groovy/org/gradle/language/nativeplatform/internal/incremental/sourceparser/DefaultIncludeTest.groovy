@@ -17,6 +17,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import org.gradle.language.nativeplatform.internal.Include
+import org.gradle.language.nativeplatform.internal.IncludeType
 import spock.lang.Specification
 
 
@@ -31,12 +32,12 @@ class DefaultIncludeTest extends Specification {
         include.isImport() == isImport
 
         where:
-        value      | includeValue | type                       | isImport
-        '"quoted"' | "quoted"     | Include.IncludeType.QUOTED | true
-        '"quoted"' | "quoted"     | Include.IncludeType.QUOTED | false
-        "<system>" | "system"     | Include.IncludeType.SYSTEM | true
-        "<system>" | "system"     | Include.IncludeType.SYSTEM | false
-        "macro"    | "macro"      | Include.IncludeType.MACRO  | true
-        "macro"    | "macro"      | Include.IncludeType.MACRO  | false
+        value      | includeValue | type               | isImport
+        '"quoted"' | "quoted"     | IncludeType.QUOTED | true
+        '"quoted"' | "quoted"     | IncludeType.QUOTED | false
+        "<system>" | "system"     | IncludeType.SYSTEM | true
+        "<system>" | "system"     | IncludeType.SYSTEM | false
+        "macro"    | "macro"      | IncludeType.MACRO  | true
+        "macro"    | "macro"      | IncludeType.MACRO  | false
     }
 }

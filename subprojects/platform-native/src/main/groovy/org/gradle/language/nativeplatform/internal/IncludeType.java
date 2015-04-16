@@ -16,8 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-public interface Include {
-    String getValue();
-    boolean isImport();
-    IncludeType getType();
+public enum IncludeType {
+    SYSTEM, QUOTED, MACRO
 }

@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.internal.serialize.*;
 import org.gradle.language.nativeplatform.internal.Include;
+import org.gradle.language.nativeplatform.internal.IncludeType;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
@@ -128,13 +129,13 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     private class IncludeSerializer implements Serializer<Include> {
         private final Serializer<String> stringSerializer = serializerFactory.getSerializerFor(String.class);
         private final Serializer<Boolean> booleanSerializer = serializerFactory.getSerializerFor(Boolean.class);
-        private final Serializer<Include.IncludeType> enumSerializer = serializerFactory.getSerializerFor(Include.IncludeType.class);
+        private final Serializer<IncludeType> enumSerializer = serializerFactory.getSerializerFor(IncludeType.class);
 
         @Override
         public Include read(Decoder decoder) throws Exception {
             String value = stringSerializer.read(decoder);
             boolean isImport = booleanSerializer.read(decoder);
-            Include.IncludeType type = enumSerializer.read(decoder);
+            IncludeType type = enumSerializer.read(decoder);
             return new DefaultInclude(value, isImport, type);
         }
 
