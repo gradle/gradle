@@ -578,11 +578,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 break;
             case TASK_DEPENDENCIES_RESOLVED:
                 if (type == MutationType.DEPENDENCIES) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change dependencies %s of parent configuration after task dependencies have been resolved", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
                 }
                 break;
             case RESULTS_RESOLVED:
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s via changing a parent configuration after it has been resolved", getDisplayName()));
+                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after it has been resolved", type, getDisplayName()));
                 break;
         }
 
@@ -596,8 +596,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 break;
             case TASK_DEPENDENCIES_OBSERVED:
                 if (type == MutationType.DEPENDENCIES) {
-                    // TODO:DAZ Distinguish these messages
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
                 }
                 break;
             case RESULTS_OBSERVED:
@@ -605,8 +604,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // build logic to change any dependencies, exclude rules or parent
                 // configurations (values that will affect the resolved graph).
                 if (type != MutationType.STRATEGY) {
-                    // TODO:DAZ Distinguish these messages
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been included in dependency resolution", type, getDisplayName()));
                 }
                 break;
             case TASK_DEPENDENCIES_RESOLVED:
@@ -614,7 +612,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // Configuration.getBuildDependencies(). It is deprecated for build logic to
                 // change anything about the configuration except the artifacts.
                 if (type != MutationType.ARTIFACTS) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s after task dependencies have been resolved", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
                 }
                 break;
             case RESULTS_RESOLVED:
@@ -622,9 +620,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // It is an error to change anything that would change the dependencies or artifacts,
                 // and deprecated to change the resolution strategy.
                 if (type != MutationType.STRATEGY) {
-                    throw new InvalidUserDataException(String.format("Cannot change %s after it has been resolved.", getDisplayName()));
+                    throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
                 } else {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been resolved", getDisplayName()));
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been resolved", type, getDisplayName()));
                 }
                 break;
         }

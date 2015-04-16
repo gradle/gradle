@@ -34,7 +34,12 @@ public interface MutationValidator {
         /**
          * The mutation of the artifacts of the configuration.
          */
-        ARTIFACTS
+        ARTIFACTS;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     /**

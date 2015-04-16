@@ -1089,13 +1089,13 @@ class DefaultConfigurationSpec extends Specification {
         conf.dependencies.add(Mock(Dependency))
         then:
         def exDependency = thrown(InvalidUserDataException);
-        exDependency.message == "Cannot change configuration ':conf' after it has been resolved."
+        exDependency.message == "Cannot change dependencies of configuration ':conf' after it has been resolved."
 
         when:
         conf.artifacts.add(Mock(PublishArtifact))
         then:
         def exArtifact = thrown(InvalidUserDataException);
-        exArtifact.message == "Cannot change configuration ':conf' after it has been resolved."
+        exArtifact.message == "Cannot change artifacts of configuration ':conf' after it has been resolved."
     }
 
     def "whenEmpty action does not trigger when config has dependencies"() {

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
@@ -33,7 +31,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             dependencies { a files("some.jar") }
         """
         when: fails()
-        then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+        then: failure.assertHasCause("Cannot change dependencies of configuration ':a' after it has been resolved.")
     }
 
     def "does not allow adding artifacts to a configuration that has been resolved"() {
@@ -43,7 +41,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             artifacts { a file("some.jar") }
         """
         when: fails()
-        then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+        then: failure.assertHasCause("Cannot change artifacts of configuration ':a' after it has been resolved.")
     }
 
     def "does not allow changing excludes on a configuration that has been resolved"() {
@@ -53,7 +51,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.exclude group: 'someGroup'
         """
         when: fails()
-        then: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+        then: failure.assertHasCause("Cannot change dependencies of configuration ':a' after it has been resolved.")
     }
 
     def "warns about changing conflict resolution on a configuration that has been resolved"() {
@@ -65,7 +63,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing forced versions on a configuration that has been resolved"() {
@@ -77,7 +75,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing cache policy on a configuration that has been resolved"() {
@@ -89,7 +87,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing resolution rules on a configuration that has been resolved"() {
@@ -101,7 +99,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing substitution rules on a configuration that has been resolved"() {
@@ -113,7 +111,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing component selection rules on a configuration that has been resolved"() {
@@ -125,7 +123,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed strategy of configuration ':a' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "warns about changing a configuration that has been resolved for task dependencies"() {
@@ -161,7 +159,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds("impl:checkIt")
-        then: output.contains("Changed configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed dependencies of configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
         and: output.contains("Resolving configuration ':impl:compile' again after modification.")
     }
 
@@ -211,8 +209,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed dependencies of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Changed dependencies of parent of configuration ':c' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
@@ -229,8 +227,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed artifacts of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Changed artifacts of parent of configuration ':c' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Issue("GRADLE-3155")
@@ -247,8 +245,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and:  output.contains("Attempting to change configuration ':c' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed dependencies of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and:  output.contains("Changed dependencies of parent of configuration ':c' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     def "allows changing resolution stragegy of a configuration whose child has been resolved"() {
@@ -284,9 +282,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: fails()
-        then: output.contains("Attempting to change configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and: output.contains("Attempting to change configuration ':b' via changing a parent configuration after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
-        and: failure.assertHasCause("Cannot change configuration ':a' after it has been resolved.")
+        then: output.contains("Changed dependencies of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and: output.contains("Changed dependencies of parent of configuration ':b' after it has been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        and: failure.assertHasCause("Cannot change dependencies of configuration ':a' after it has been resolved.")
     }
 
     @Issue("GRADLE-3155")
@@ -352,6 +350,6 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         executer.withDeprecationChecksDisabled()
 
         when: succeeds()
-        then: output.contains("Attempting to change configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
+        then: output.contains("Changed dependencies of configuration ':api:compile' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 }
