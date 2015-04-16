@@ -162,6 +162,9 @@ Most of this coverage already exists, need to fill in the gaps:
 
 Effectively the same treatment that the component spec container received.
 
+Implementation should refactor `ComponentModelBasePlugin` and `NativeBinariesTestPlugin` so that this behaviour is reused for the test suite container and not
+duplicated.
+
 # Feature 2: Configuration of key parts of the software model is deferred until required
 
 This feature changes the software model to introduce 'managed map' types instead of `DomainObjectSet`.
