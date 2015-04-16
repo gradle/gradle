@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
-import org.gradle.tooling.events.ProgressEvent;
+public enum TestKind {
+    suite("TestSuite"),
+    test("Test"),
+    unknown("Unknown");
 
-/**
- * A listener which is notified as some long running operation makes progress.
- * @since 1.0-milestone-3
- */
-public interface ProgressListener {
-    /**
-     * Called when the progress status changes.
-     *
-     * @param event An event describing the status change.
-     * @since 1.0-milestone-3
-     */
-    void statusChanged(ProgressEvent event);
+    private final String label;
+
+    TestKind(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

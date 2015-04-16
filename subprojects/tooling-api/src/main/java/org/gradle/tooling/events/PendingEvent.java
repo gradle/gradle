@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-/**
- * Some information about the test being skipped as part of running a build.
- *
- * @since 2.4
- */
 @Incubating
-public interface TestSkippedEvent extends TestProgressEvent {
-
-    /**
-     * The description of the test being skipped.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
-
+public interface PendingEvent extends EventPayload {
 }

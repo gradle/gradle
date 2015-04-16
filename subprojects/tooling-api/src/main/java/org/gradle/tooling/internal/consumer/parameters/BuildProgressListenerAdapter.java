@@ -16,18 +16,40 @@
 package org.gradle.tooling.internal.consumer.parameters;
 
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.tooling.*;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.TestDescriptor;
+import org.gradle.tooling.TestFailure;
+import org.gradle.tooling.TestProgressListener;
+import org.gradle.tooling.TestSuccess;
+import org.gradle.tooling.events.Event;
+import org.gradle.tooling.events.EventPayload;
+import org.gradle.tooling.events.FailureEvent;
+import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.Income;
+import org.gradle.tooling.events.Outcome;
+import org.gradle.tooling.events.SkippedEvent;
+import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.SuccessEvent;
+import org.gradle.tooling.events.TestEvent;
+import org.gradle.tooling.events.TestKind;
+import org.gradle.tooling.events.TestProgressEvent;
 import org.gradle.tooling.internal.protocol.BuildProgressListenerVersion1;
 import org.gradle.tooling.internal.protocol.FailureVersion1;
 import org.gradle.tooling.internal.protocol.TestDescriptorVersion1;
 import org.gradle.tooling.internal.protocol.TestProgressEventVersion1;
 import org.gradle.tooling.internal.protocol.TestResultVersion1;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
@@ -65,180 +87,61 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         String testStructure = event.getTestStructure();
         String testOutcome = event.getTestOutcome();
         final long eventTme = event.getEventTime();
-        if (TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure)) {
-            if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-                return new TestSuiteStartedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("TestSuite '%s' started.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                return new TestSuiteSkippedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("TestSuite '%s' skipped.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                final TestSuccess testSuccess = toTestSuccess(event.getResult());
-                return new TestSuiteSucceededEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("TestSuite '%s' succeeded.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-
-                    @Override
-                    public TestSuccess getTestResult() {
-                        return testSuccess;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                final TestFailure testFailure = toTestFailure(event.getResult());
-                return new TestSuiteFailedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("TestSuite '%s' failed.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-
-                    @Override
-                    public TestFailure getTestResult() {
-                        return testFailure;
-                    }
-                };
-            }
-        } else if (TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure)) {
-            if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), false);
-                return new TestStartedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("Test '%s' started.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                return new TestSkippedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("Test '%s' skipped.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                final TestSuccess testSuccess = toTestSuccess(event.getResult());
-                return new TestSucceededEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("Test '%s' succeeded.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-
-                    @Override
-                    public TestSuccess getTestResult() {
-                        return testSuccess;
-                    }
-                };
-            } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
-                final TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), true);
-                final TestFailure testFailure = toTestFailure(event.getResult());
-                return new TestFailedEvent() {
-                    @Override
-                    public long getEventTime() {
-                        return eventTme;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return String.format("Test '%s' failed.", getTestDescriptor().getName());
-                    }
-
-                    @Override
-                    public TestDescriptor getTestDescriptor() {
-                        return testDescriptor;
-                    }
-
-                    @Override
-                    public TestFailure getTestResult() {
-                        return testFailure;
-                    }
-                };
-            }
+        final TestKind testKind = TestProgressEventVersion1.STRUCTURE_SUITE.equals(testStructure) ? TestKind.suite :
+                TestProgressEventVersion1.STRUCTURE_ATOMIC.equals(testStructure) ? TestKind.test : TestKind.unknown;
+        if (testKind == TestKind.unknown || event.getDescriptor() == null) {
+            return null;
         }
-        return null;
+        String progressLabel = null;
+        final List<Object> aggregate = new ArrayList<Object>();
+        boolean isStart = false;
+        if (TestProgressEventVersion1.OUTCOME_STARTED.equals(testOutcome)) {
+            isStart = true;
+            aggregate.add(new StartEvent() {
+                @Override
+                public Income getIncome() {
+                    return null;
+                }
+            });
+            progressLabel = "started";
+        } else if (TestProgressEventVersion1.OUTCOME_FAILED.equals(testOutcome)) {
+            aggregate.add(new FailureEvent() {
+                @Override
+                public Outcome getOutcome() {
+                    return toTestFailure(event.getResult());
+                }
+            });
+            progressLabel = "failed";
+        } else if (TestProgressEventVersion1.OUTCOME_SKIPPED.equals(testOutcome)) {
+            aggregate.add(new SkippedEvent() {
+            });
+            progressLabel = "skipped";
+        } else if (TestProgressEventVersion1.OUTCOME_SUCCEEDED.equals(testOutcome)) {
+            aggregate.add(new SuccessEvent() {
+                @Override
+                public Outcome getOutcome() {
+                    return toTestSuccess(event.getResult());
+                }
+            });
+            progressLabel = "succeeded";
+        }
+        TestDescriptor testDescriptor = toTestDescriptor(event.getDescriptor(), !isStart);
+        String eventDescription = String.format("%s '%s' %s.", testKind.getLabel(), testDescriptor.getName(), progressLabel);
+        TestEvent testEvent = new TestEvent(eventTme, eventDescription, testDescriptor, testKind);
+        aggregate.add(testEvent);
+        InvocationHandler handler = new DelegatingInvocationHandler(aggregate);
+        Set<Class<?>> interfaces = collectInterfaces(aggregate);
+        return (TestProgressEvent) Proxy.newProxyInstance(this.getClass().getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), handler);
+    }
+
+    private static Set<Class<?>> collectInterfaces(List<Object> aggregate) {
+        Set<Class<?>> interfaces = new HashSet<Class<?>>(aggregate.size()+1);
+        interfaces.add(TestProgressEvent.class);
+        for (Object payload : aggregate) {
+            Class<?> payloadClass = payload.getClass();
+            Collections.addAll(interfaces, payloadClass.getInterfaces());
+        }
+        return interfaces;
     }
 
     private TestDescriptor toTestDescriptor(final TestDescriptorVersion1 testDescriptor, boolean fromCache) {
@@ -326,7 +229,7 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
     }
 
     private static Failure toFailure(FailureVersion1 origFailure) {
-        if (origFailure==null) {
+        if (origFailure == null) {
             return null;
         }
         return new Failure(
@@ -354,4 +257,21 @@ class BuildProgressListenerAdapter implements BuildProgressListenerVersion1 {
         return String.format("TestDescriptor[id(%s), name(%s), className(%s), parent(%s)]", testDescriptor.getId(), testDescriptor.getName(), testDescriptor.getClassName(), testDescriptor.getParentId());
     }
 
+    private static class DelegatingInvocationHandler implements InvocationHandler {
+        private final List<Object> aggregate;
+
+        public DelegatingInvocationHandler(List<Object> aggregate) {
+            this.aggregate = aggregate;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            for (Object o : aggregate) {
+                if (method.getDeclaringClass().isAssignableFrom(o.getClass())) {
+                    return method.invoke(o, args);
+                }
+            }
+            return null;
+        }
+    }
 }

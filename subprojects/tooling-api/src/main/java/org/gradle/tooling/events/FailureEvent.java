@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-/**
- * Some information about the test suite having finished successfully as part of running a build.
- *
- * @since 2.4
- */
 @Incubating
-public interface TestSuiteSucceededEvent extends TestProgressEvent {
-
-    /**
-     * The description of the test suite having finished successfully.
-     *
-     * @return The description
-     */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The result of running the test suite successfully.
-     *
-     * @return The result
-     */
-    TestSuccess getTestResult();
-
+public interface FailureEvent extends FinishEvent {
 }

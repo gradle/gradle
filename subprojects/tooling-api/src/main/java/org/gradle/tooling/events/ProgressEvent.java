@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
-
-import org.gradle.api.Incubating;
+package org.gradle.tooling.events;
 
 /**
- * Some information about the test being started as part of running a build.
- *
- * @since 2.4
+ * Some information about a piece of work of a long running operation.
+ * @since 1.0-milestone-3
  */
-@Incubating
-public interface TestStartedEvent extends TestProgressEvent{
-
+public interface ProgressEvent extends Event {
     /**
-     * The description of the test being started.
+     * A description of the current piece of work.
      *
-     * @return The description
+     * @return The description.
+     * @since 1.0-milestone-3
      */
-    TestDescriptor getTestDescriptor();
-
+    String getDescription();
 }

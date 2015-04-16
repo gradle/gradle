@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-/**
- * Some information about the test suite being skipped as part of running a build.
- *
- * @since 2.4
- */
 @Incubating
-public interface TestSuiteSkippedEvent extends TestProgressEvent {
-
+public interface Income {
     /**
-     * The description of the test suite being skipped.
+     * Returns the time the unit started execution
      *
-     * @return The description
+     * @return The start time, in milliseconds since the epoch
      */
-    TestDescriptor getTestDescriptor();
-
+    long getStartTime();
 }

@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.Outcome;
 
 /**
  * Some information about having run a test successfully.
@@ -23,20 +24,6 @@ import org.gradle.api.Incubating;
  * @since 2.4
  */
 @Incubating
-public interface TestSuccess {
-
-    /**
-     * Returns the time when the test started execution.
-     *
-     * @return The start time, in milliseconds since the epoch
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time when the test completed execution.
-     *
-     * @return The end time, in milliseconds since the epoch
-     */
-    long getEndTime();
+public interface TestSuccess extends Outcome {
 
 }

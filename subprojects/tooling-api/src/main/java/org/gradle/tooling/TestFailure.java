@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.Outcome;
 
 import java.util.List;
 
@@ -25,21 +26,7 @@ import java.util.List;
  * @since 2.4
  */
 @Incubating
-public interface TestFailure {
-
-    /**
-     * Returns the time when the test started execution.
-     *
-     * @return The start time, in milliseconds since the epoch
-     */
-    long getStartTime();
-
-    /**
-     * Returns the time when the test completed execution.
-     *
-     * @return The end time, in milliseconds since the epoch
-     */
-    long getEndTime();
+public interface TestFailure extends Outcome {
 
     /**
      * The exceptions that occurred while running the test, if any.

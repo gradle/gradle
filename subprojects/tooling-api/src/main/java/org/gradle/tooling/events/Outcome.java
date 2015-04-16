@@ -13,39 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-/**
- * Some information about the progress of executing the test as part of running a build.
- *
- * Note: sub-types of this interface provide more specific information.
- *
- * @since 2.4
- */
 @Incubating
-public interface TestProgressEvent {
+public interface Outcome {
+    /**
+     * Returns the time when the unit started execution.
+     *
+     * @return The start time, in milliseconds since the epoch
+     */
+    long getStartTime();
 
     /**
-     * Returns the time when the event happened.
+     * Returns the time when the unit completed execution.
      *
-     * @return The event time, in milliseconds since the epoch
+     * @return The end time, in milliseconds since the epoch
      */
-    long getEventTime();
-
-    /**
-     * Returns a short description of the event.
-     *
-     * @return The short description of the event
-     */
-    String getDescription();
-
-    /**
-     * The description of the test for which progress is reported.
-     *
-     * @return The test description
-     */
-    TestDescriptor getTestDescriptor();
-
+    long getEndTime();
 }

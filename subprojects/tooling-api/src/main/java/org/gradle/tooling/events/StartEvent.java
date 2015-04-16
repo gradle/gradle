@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
 
-/**
- * Some information about a piece of work of a long running operation.
- * @since 1.0-milestone-3
- */
-public interface ProgressEvent {
-    /**
-     * A description of the current piece of work.
-     *
-     * @return The description.
-     * @since 1.0-milestone-3
-     */
-    String getDescription();
+package org.gradle.tooling.events;
+
+import org.gradle.api.Incubating;
+
+@Incubating
+public interface StartEvent extends EventPayload {
+    Income getIncome();
 }

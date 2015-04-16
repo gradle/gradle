@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 
-/**
- * Some information about the test suite having failed as part of running a build.
- *
- * @since 2.4
- */
 @Incubating
-public interface TestSuiteFailedEvent extends TestProgressEvent {
+public abstract class AbstractEvent implements Event {
+
+    private final long eventTime;
+
+    protected AbstractEvent(long eventTime) {
+        this.eventTime = eventTime;
+    }
 
     /**
-     * The description of the test suite having failed.
+     * Returns the time when the event happened.
      *
-     * @return The description
+     * @return The event time, in milliseconds since the epoch
      */
-    TestDescriptor getTestDescriptor();
-
-    /**
-     * The result of running the test suite with a failure.
-     *
-     * @return The result
-     */
-    TestFailure getTestResult();
-
+    @Override
+    public long getEventTime() {
+        return eventTime;
+    }
 }
