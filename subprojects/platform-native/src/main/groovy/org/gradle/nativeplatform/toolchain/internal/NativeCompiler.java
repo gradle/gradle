@@ -24,14 +24,17 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -122,15 +125,21 @@ abstract public class NativeCompiler<T extends NativeCompileSpec> implements Com
         }
 
         final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
-        String header = spec.getPreCompiledHeader();
+        final String header = spec.getPreCompiledHeader();
 
-        List<String> headers = includes.getAllIncludeStrings();
-        boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0));
+        List<Include> headers = includes.getIncludesAndImports();
+        boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0).getValue());
 
         if (usePCH) {
             return getPCHArgs(spec);
         } else {
-            if (headers.contains(header)) {
+            boolean containsHeader = CollectionUtils.any(headers, new Spec<Include>() {
+                @Override
+                public boolean isSatisfiedBy(Include include) {
+                    return include.getValue().equals(header);
+                }
+            });
+            if (containsHeader) {
                 logger.log(LogLevel.WARN, getCantUsePCHMessage(spec.getPreCompiledHeader(), sourceFile));
             }
             return Lists.newArrayList();

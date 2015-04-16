@@ -66,6 +66,11 @@ public class DefaultInclude implements Include {
     }
 
     @Override
+    public String toString() {
+        return value.concat(":").concat(type.toString()).concat(":").concat(String.valueOf(isImport));
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

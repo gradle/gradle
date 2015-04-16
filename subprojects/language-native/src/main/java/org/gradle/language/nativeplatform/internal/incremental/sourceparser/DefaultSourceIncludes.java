@@ -15,7 +15,6 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -31,22 +30,6 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
 
     public void addAll(List<Include> includes) {
         this.allIncludes.addAll(includes);
-    }
-
-    public List<String> getAllIncludeStrings() {
-        return toStringList(allIncludes);
-    }
-
-    public List<String> getQuotedIncludeStrings() {
-        return toStringList(getQuotedIncludes());
-    }
-
-    public List<String> getSystemIncludeStrings() {
-        return toStringList(getSystemIncludes());
-    }
-
-    public List<String> getMacroIncludeStrings() {
-        return toStringList(getMacroIncludes());
     }
 
     public List<Include> getQuotedIncludes() {
@@ -85,15 +68,6 @@ public class DefaultSourceIncludes implements SourceIncludes, Serializable {
             @Override
             public boolean isSatisfiedBy(Include element) {
                 return !element.isImport();
-            }
-        });
-    }
-
-    private static List<String> toStringList(List<Include> includes) {
-        return CollectionUtils.collect(includes, new Transformer<String, Include>() {
-            @Override
-            public String transform(Include include) {
-                return include.getValue();
             }
         });
     }

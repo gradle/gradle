@@ -63,16 +63,16 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash.length == 0
-        emptyCompileState.sourceIncludes.macroIncludeStrings.empty
-        emptyCompileState.sourceIncludes.quotedIncludeStrings.empty
-        emptyCompileState.sourceIncludes.systemIncludeStrings.empty
+        emptyCompileState.sourceIncludes.macroIncludes.empty
+        emptyCompileState.sourceIncludes.quotedIncludes.empty
+        emptyCompileState.sourceIncludes.systemIncludes.empty
         emptyCompileState.resolvedIncludes.empty
 
         def otherCompileState = newState.getState(fileTwo)
         new String(otherCompileState.hash) == "FooBar"
-        otherCompileState.sourceIncludes.systemIncludeStrings == ["system"]
-        otherCompileState.sourceIncludes.quotedIncludeStrings == ["quoted"]
-        otherCompileState.sourceIncludes.macroIncludeStrings == ["MACRO"]
+        otherCompileState.sourceIncludes.systemIncludes.collect { it.value } == ["system"]
+        otherCompileState.sourceIncludes.quotedIncludes.collect { it.value } == ["quoted"]
+        otherCompileState.sourceIncludes.macroIncludes.collect { it.value } == ["MACRO"]
         otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
     }
 

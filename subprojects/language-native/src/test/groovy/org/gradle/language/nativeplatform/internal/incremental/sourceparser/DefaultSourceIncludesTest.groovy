@@ -29,9 +29,9 @@ class DefaultSourceIncludesTest extends Specification {
         sourceIncludes.addAll(includes)
 
         expect:
-        sourceIncludes.quotedIncludeStrings == [ "quoted1", "quoted2" ]
-        sourceIncludes.systemIncludeStrings == [ "system1", "system2" ]
-        sourceIncludes.macroIncludeStrings == [ "macro1", "macro2" ]
+        sourceIncludes.quotedIncludes.collect { it.value } == [ "quoted1", "quoted2" ]
+        sourceIncludes.systemIncludes.collect { it.value } == [ "system1", "system2" ]
+        sourceIncludes.macroIncludes.collect { it.value } == [ "macro1", "macro2" ]
     }
 
     def "order is preserved" () {
@@ -39,6 +39,6 @@ class DefaultSourceIncludesTest extends Specification {
         sourceIncludes.addAll(includes)
 
         expect:
-        sourceIncludes.allIncludeStrings == [ "quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
+        sourceIncludes.includesAndImports.collect { it.value } == [ "quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
     }
 }

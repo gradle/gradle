@@ -47,7 +47,7 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     def getFound() {
-        return parsedSource.allIncludeStrings
+        return parsedSource.includesAndImports.collect { it.value }
     }
     
     def noIncludes() {

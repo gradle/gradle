@@ -41,9 +41,9 @@ class DefaultSourceIncludesParserTest extends Specification {
         def includes = includesParser.parseIncludes(file)
 
         then:
-        includes.quotedIncludeStrings == ["quoted"]
-        includes.systemIncludeStrings == ["system"]
-        includes.macroIncludeStrings == ["DEFINED"]
+        includes.quotedIncludes.collect { it.value } == ["quoted"]
+        includes.systemIncludes.collect { it.value } == ["system"]
+        includes.macroIncludes.collect { it.value } == ["DEFINED"]
     }
 
 
