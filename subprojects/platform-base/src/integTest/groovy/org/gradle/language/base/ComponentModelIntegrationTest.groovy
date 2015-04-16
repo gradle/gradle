@@ -122,6 +122,16 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                             test(CustomLanguageSourceSet)
                         }
                     }
+                    test(CustomComponent) {
+                        sources {
+                            test(CustomLanguageSourceSet)
+                        }
+                    }
+                    foo(CustomComponent) {
+                        sources {
+                            bar(CustomLanguageSourceSet)
+                        }
+                    }
                 }
             }
         """
@@ -132,9 +142,15 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains(TextUtil.toPlatformLineSeparators("""
     components
+        foo
+            source
+                bar
         main
             source
                 main
+                test
+        test
+            source
                 test"""))
     }
 
