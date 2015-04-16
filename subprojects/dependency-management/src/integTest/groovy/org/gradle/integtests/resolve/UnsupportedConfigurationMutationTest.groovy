@@ -17,11 +17,8 @@
 
 
 package org.gradle.integtests.resolve
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
-
 // TODO - report on the configuration that was actually changed
 // TODO - warn about configurations resolved via a project dependency
 // TODO - verify line number is included in deprecation message
@@ -168,8 +165,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         and: output.contains("Resolving configuration ':impl:compile' again after modification.")
     }
 
-    @Ignore("This is currently emitting deprecation warnings")
-    def "does not warn about adding artifacts to a configuration that has been resolved for task dependencies"() {
+    def "allows adding artifacts to a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
         settingsFile << "include 'api', 'impl'"

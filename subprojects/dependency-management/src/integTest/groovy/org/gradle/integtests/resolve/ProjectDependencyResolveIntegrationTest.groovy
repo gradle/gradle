@@ -528,7 +528,7 @@ project('c') {
                     configurations.conf.resolve()
 
                     assert configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_RESOLVED
-                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.OBSERVED
+                    assert project(":api").configurations.conf.internalState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.RESULTS_OBSERVED
                 }
             }
 """

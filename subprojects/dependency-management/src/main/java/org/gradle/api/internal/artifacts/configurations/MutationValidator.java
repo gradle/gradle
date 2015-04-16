@@ -29,7 +29,7 @@ public interface MutationValidator {
         /**
          * The mutation of anything that will affect the resolved dependency graph of this configuration.
          */
-        CONTENT,
+        DEPENDENCIES,
 
         /**
          * The mutation of the artifacts of the configuration.

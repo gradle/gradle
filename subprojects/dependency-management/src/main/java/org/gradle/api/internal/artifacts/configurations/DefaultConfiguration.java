@@ -74,7 +74,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ListenerBroadcast<DependencyResolutionListener> resolutionListenerBroadcast;
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
     private final ProjectAccessListener projectAccessListener;
-    private boolean modified;
+    private boolean dependenciesModified;
+    private boolean artifactsModified;
     private boolean resolvedWithFailures;
 
     // This lock only protects the following fields
@@ -116,7 +117,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         resolutionListenerBroadcast = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.CONTENT));
+        ownDependencies.beforeChange(wrapMutationValidator(configurationMutationValidator, MutationType.DEPENDENCIES));
 
         dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
@@ -175,7 +176,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setVisible(boolean visible) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
         return this;
     }
@@ -185,7 +186,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         for (Configuration configuration : this.extendsFrom) {
             inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
             inheritedDependencies.removeCollection(configuration.getAllDependencies());
@@ -199,7 +200,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -220,7 +221,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration setTransitive(boolean transitive) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         this.transitive = transitive;
         return this;
     }
@@ -252,7 +253,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration whenEmpty(Action<? super DependencySet> action) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         this.whenEmptyActions.add(action);
         return this;
     }
@@ -313,15 +314,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
-    public void markAsObserved() {
+    public void markAsObserved(InternalState requestedState) {
+        InternalState newState = observedState(requestedState);
         synchronized (lock) {
-            if (state == InternalState.UNOBSERVED) {
-                state = InternalState.OBSERVED;
+            if (state.compareTo(newState) < 0) {
+                state = newState;
             }
         }
         for (Configuration configuration : extendsFrom) {
-            ((ConfigurationInternal) configuration).markAsObserved();
+            ((ConfigurationInternal) configuration).markAsObserved(requestedState);
         }
+    }
+
+    private InternalState observedState(InternalState requestedState) {
+        if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
+            return InternalState.TASK_DEPENDENCIES_OBSERVED;
+        }
+        return InternalState.RESULTS_OBSERVED;
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
@@ -332,7 +341,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveNow(InternalState requestedState) {
         synchronized (lock) {
             if (requestedState == InternalState.TASK_DEPENDENCIES_RESOLVED || requestedState == InternalState.RESULTS_RESOLVED) {
-                resolveGraphIfRequired();
+                resolveGraphIfRequired(requestedState);
             }
             if (requestedState == InternalState.RESULTS_RESOLVED) {
                 resolveArtifactsIfRequired();
@@ -340,15 +349,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void resolveGraphIfRequired() {
+    private void resolveGraphIfRequired(InternalState requestedState) {
         if (state == InternalState.RESULTS_RESOLVED) {
-            if (modified) {
+            if (dependenciesModified) {
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
             }
             return;
         }
         if (state == InternalState.TASK_DEPENDENCIES_RESOLVED) {
-            if (!modified) {
+            if (!dependenciesModified) {
                 return;
             }
             DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification", getDisplayName()));
@@ -362,16 +371,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         resolver.resolve(this, cachedResolverResults);
 
         // Mark all affected configurations as observed
-        markAsObserved();
+        markAsObserved(requestedState);
         for (ResolvedProjectConfigurationResult projectResult : cachedResolverResults.getResolvedProjectConfigurationResults().getAllProjectConfigurationResults()) {
             ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
             for (String targetConfigName : projectResult.getTargetConfigurations()) {
                 ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(targetConfigName);
-                targetConfig.markAsObserved();
+                targetConfig.markAsObserved(requestedState);
             }
         }
 
         markAsResolved(InternalState.TASK_DEPENDENCIES_RESOLVED);
+        dependenciesModified = false;
         broadcast.afterResolve(incoming);
     }
 
@@ -382,6 +392,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         resolver.resolveArtifacts(this, cachedResolverResults);
         resolvedWithFailures = cachedResolverResults.getResolvedConfiguration().hasError();
         markAsResolved(InternalState.RESULTS_RESOLVED);
+        artifactsModified = false;
     }
 
     private void markAsResolved(InternalState requestedState) {
@@ -389,7 +400,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (state != InternalState.RESULTS_RESOLVED) {
             state = requestedState;
         }
-        modified = false;
     }
 
     public TaskDependency getBuildDependencies() {
@@ -441,12 +451,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         this.excludeRules = excludeRules;
     }
 
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        validateMutation(MutationType.CONTENT);
+        validateMutation(MutationType.DEPENDENCIES);
         excludeRules.add(ExcludeRuleNotationConverter.parser().parseNotation(excludeRuleArgs)); //TODO SF try using ExcludeRuleContainer
         return this;
     }
@@ -562,10 +572,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             case UNOBSERVED:
                 // Nothing from the configuration has been observed yet, can change anything.
                 break;
-            case OBSERVED:
+            case TASK_DEPENDENCIES_OBSERVED:
+            case RESULTS_OBSERVED:
                 // The configuration has been observed, but we'll be notifying the observers later anyway
                 break;
             case TASK_DEPENDENCIES_RESOLVED:
+                if (type == MutationType.DEPENDENCIES) {
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change dependencies %s of parent configuration after task dependencies have been resolved", getDisplayName()));
+                }
+                break;
             case RESULTS_RESOLVED:
                 DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s via changing a parent configuration after it has been resolved", getDisplayName()));
                 break;
@@ -579,11 +594,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             case UNOBSERVED:
                 // Nothing from the configuration has been observed yet, can change anything.
                 break;
-            case OBSERVED:
+            case TASK_DEPENDENCIES_OBSERVED:
+                if (type == MutationType.DEPENDENCIES) {
+                    // TODO:DAZ Distinguish these messages
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
+                }
+                break;
+            case RESULTS_OBSERVED:
                 // The configuration has been used in a resolution, and it is deprecated for
                 // build logic to change any dependencies, exclude rules or parent
                 // configurations (values that will affect the resolved graph).
                 if (type != MutationType.STRATEGY) {
+                    // TODO:DAZ Distinguish these messages
                     DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to change %s after it has been included in dependency resolution", getDisplayName()));
                 }
                 break;
@@ -615,7 +637,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (MutationValidator validator : mutationValidators) {
             validator.validateMutation(type);
         }
-        modified = true;
+        if (type == MutationType.DEPENDENCIES) {
+            dependenciesModified = true;
+        }
+        if (type == MutationType.ARTIFACTS) {
+            artifactsModified = true;
+        }
     }
 
     class ConfigurationFileCollection extends AbstractFileCollection {

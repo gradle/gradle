@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Configuration;
 
 public interface ConfigurationInternal extends Configuration, DependencyMetaDataProvider {
-    enum InternalState { UNOBSERVED, OBSERVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
+    enum InternalState { UNOBSERVED, TASK_DEPENDENCIES_OBSERVED, RESULTS_OBSERVED, TASK_DEPENDENCIES_RESOLVED, RESULTS_RESOLVED}
 
     InternalState getInternalState();
 
@@ -28,7 +28,7 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
 
     void triggerWhenEmptyActionsIfNecessary();
 
-    void markAsObserved();
+    void markAsObserved(InternalState requestedState);
 
     void addMutationValidator(MutationValidator validator);
 

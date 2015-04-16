@@ -931,7 +931,7 @@ class DefaultConfigurationSpec extends Specification {
         config.resolve()
 
         then:
-        parent.internalState == ConfigurationInternal.InternalState.OBSERVED
+        parent.internalState == ConfigurationInternal.InternalState.RESULTS_OBSERVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
