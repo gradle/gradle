@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.tasks
 
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -35,6 +37,7 @@ class CppCompileTest extends Specification {
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
+    def pch = Mock(PreCompiledHeader)
 
     def "executes using the CppCompiler"() {
         def sourceFile = testDir.createFile("sourceFile")
@@ -48,7 +51,7 @@ class CppCompileTest extends Specification {
         cppCompile.source sourceFile
         cppCompile.preCompiledHeader = "header"
         cppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
+        cppCompile.preCompiledHeaderInclude pch
         cppCompile.execute()
 
         then:
@@ -57,6 +60,8 @@ class CppCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ CppCompileSpec.class.isAssignableFrom(it) }) >> cppCompiler
+        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        2 * pch.pchObjects >> new SimpleFileCollection()
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

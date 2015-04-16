@@ -16,6 +16,7 @@
 
 package org.gradle.language.objectivec.tasks
 
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -36,6 +38,7 @@ class ObjectiveCCompileTest extends Specification {
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<ObjectiveCCompileSpec> objCCompiler = Mock(Compiler)
+    def pch = Mock(PreCompiledHeader)
 
     def "executes using the C Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
@@ -49,7 +52,7 @@ class ObjectiveCCompileTest extends Specification {
         objCCompile.source sourceFile
         objCCompile.preCompiledHeader = "header"
         objCCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        objCCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
+        objCCompile.preCompiledHeaderInclude pch
         objCCompile.execute()
 
         then:
@@ -58,6 +61,8 @@ class ObjectiveCCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCCompileSpec.class.isAssignableFrom(it) }) >> objCCompiler
+        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        2 * pch.pchObjects >> new SimpleFileCollection()
         1 * objCCompiler.execute({ ObjectiveCCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

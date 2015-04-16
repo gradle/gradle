@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -53,7 +54,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
-    private Map<File, FileCollection> prefixFileToPCH = Maps.newHashMap();
+    private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -132,7 +133,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return resolve(getSource().withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
-    public Map<File, FileCollection> getPrefixFileToPCH() {
+    public Map<File, PreCompiledHeader> getPrefixFileToPCH() {
         return prefixFileToPCH;
     }
 

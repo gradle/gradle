@@ -50,6 +50,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder;
@@ -245,6 +246,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             public void execute(final LanguageSourceSet languageSourceSet) {
                                 final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
                                 if (dependentSourceSet.getPreCompiledHeader() != null) {
+                                    nativeBinarySpec.getPrefixFileToPCH().put(((DependentSourceSetInternal)dependentSourceSet).getPrefixHeaderFile(), new PreCompiledHeader());
                                     final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
                                     String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
                                     nativeBinarySpec.getTasks().create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {

@@ -16,6 +16,7 @@
 
 package org.gradle.language.c.tasks
 
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -35,10 +37,12 @@ class CCompileTest extends Specification {
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<CCompileSpec> cCompiler = Mock(Compiler)
+    def pch = Mock(PreCompiledHeader)
 
     def "executes using the C Compiler"() {
         def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
+
         when:
         cCompile.toolChain = toolChain
         cCompile.targetPlatform = platform
@@ -48,7 +52,7 @@ class CCompileTest extends Specification {
         cCompile.source sourceFile
         cCompile.preCompiledHeader = "header"
         cCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        cCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
+        cCompile.preCompiledHeaderInclude pch
         cCompile.execute()
 
         then:
@@ -57,6 +61,8 @@ class CCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
+        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        2 * pch.pchObjects >> new SimpleFileCollection()
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']

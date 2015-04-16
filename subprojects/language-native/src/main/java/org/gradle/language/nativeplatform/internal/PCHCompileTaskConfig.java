@@ -27,6 +27,7 @@ import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 import java.io.File;
 import java.util.Set;
@@ -67,7 +68,8 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         // This is so that VisualCpp has the object file of the generated source file available at link time
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
 
-        binary.getPrefixFileToPCH().put(sourceSet.getPrefixHeaderFile(),
-                task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch", "**/*.gch")));
+        PreCompiledHeader pch = binary.getPrefixFileToPCH().get(sourceSet.getPrefixHeaderFile());
+        pch.setPchObjects(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch", "**/*.gch")));
+        pch.builtBy(task);
     }
 }

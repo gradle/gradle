@@ -16,6 +16,7 @@
 
 package org.gradle.language.objectivecpp.tasks
 
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -36,6 +38,7 @@ class ObjectiveCppCompileTest extends Specification {
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
     Compiler<ObjectiveCppCompileSpec> objCppCompiler = Mock(Compiler)
+    def pch = Mock(PreCompiledHeader)
 
     def "executes using the objCppCompiler"() {
         def sourceFile = testDir.createFile("sourceFile")
@@ -49,7 +52,7 @@ class ObjectiveCppCompileTest extends Specification {
         objCppCompile.source sourceFile
         objCppCompile.preCompiledHeader = "header"
         objCppCompile.prefixHeaderFile = testDir.file("prefixHeader").createFile()
-        objCppCompile.preCompiledHeaderInclude testDir.file("pchObjectFile").createFile()
+        objCppCompile.preCompiledHeaderInclude pch
         objCppCompile.execute()
 
         then:
@@ -58,6 +61,8 @@ class ObjectiveCppCompileTest extends Specification {
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
+        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        2 * pch.pchObjects >> new SimpleFileCollection()
         1 * objCppCompiler.execute({ ObjectiveCppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

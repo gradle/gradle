@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -62,5 +63,5 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
      */
     void binaryInputs(FileCollection files);
 
-    Map<File, FileCollection> getPrefixFileToPCH();
+    Map<File, PreCompiledHeader> getPrefixFileToPCH();
 }

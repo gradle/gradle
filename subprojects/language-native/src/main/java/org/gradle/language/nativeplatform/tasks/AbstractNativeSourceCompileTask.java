@@ -17,12 +17,12 @@
 package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 import java.io.File;
 
@@ -32,21 +32,21 @@ import java.io.File;
 @Incubating
 abstract public class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private String preCompiledHeader;
-    private ConfigurableFileCollection preCompiledHeaderInclude;
+    private PreCompiledHeader preCompiledHeaderInclude;
     private File prefixHeaderFile;
 
     public AbstractNativeSourceCompileTask() {
         super();
-        preCompiledHeaderInclude = getProject().files();
     }
 
     @Override
     protected void configureSpec(NativeCompileSpec spec) {
         super.configureSpec(spec);
-        if (!preCompiledHeaderInclude.isEmpty()) {
-            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), preCompiledHeaderInclude.getSingleFile());
+        if (preCompiledHeaderInclude != null) {
+            File pchObjectFile = preCompiledHeaderInclude.getObjectFile();
+            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), getPrefixHeaderFile(), pchObjectFile);
             spec.setPrefixHeaderFile(new File(pchDir, getPrefixHeaderFile().getName()));
-            spec.setPreCompiledHeaderObjectFile(new File(pchDir, preCompiledHeaderInclude.getSingleFile().getName()));
+            spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
             spec.setPreCompiledHeader(DefaultInclude.parse(getPreCompiledHeader(), true).getValue());
         }
     }
@@ -54,13 +54,13 @@ abstract public class AbstractNativeSourceCompileTask extends AbstractNativeComp
     /**
      * Returns the pre-compiled header object file to be used during compilation
      */
-    @InputFiles
-    public FileCollection getPreCompiledHeaderInclude() {
+    @Nested @Optional
+    public PreCompiledHeader getPreCompiledHeaderInclude() {
         return preCompiledHeaderInclude;
     }
 
-    public void preCompiledHeaderInclude(Object preCompiledHeader) {
-        preCompiledHeaderInclude.from(preCompiledHeader);
+    public void preCompiledHeaderInclude(PreCompiledHeader preCompiledHeader) {
+        this.preCompiledHeaderInclude = preCompiledHeader;
     }
 
     /**
