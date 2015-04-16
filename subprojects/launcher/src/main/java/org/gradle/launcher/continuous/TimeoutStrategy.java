@@ -18,10 +18,10 @@ package org.gradle.launcher.continuous;
 
 import org.gradle.internal.UncheckedException;
 
-public class TimeoutStrategy implements Runnable {
+class TimeoutStrategy implements TriggerStrategy {
     private final TriggerListener listener;
 
-    public TimeoutStrategy(TriggerListener listener) {
+    TimeoutStrategy(TriggerListener listener) {
         this.listener = listener;
     }
 

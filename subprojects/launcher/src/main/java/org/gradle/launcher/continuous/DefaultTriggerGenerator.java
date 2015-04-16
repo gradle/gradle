@@ -18,11 +18,11 @@ package org.gradle.launcher.continuous;
 
 import org.gradle.internal.concurrent.StoppableExecutor;
 
-public class DefaultTriggerGenerator implements TriggerGenerator {
+class DefaultTriggerGenerator implements TriggerGenerator {
     private final StoppableExecutor executor;
     private final TriggerStrategy triggerStrategy;
 
-    public DefaultTriggerGenerator(StoppableExecutor executor, TriggerStrategy triggerStrategy) {
+    DefaultTriggerGenerator(StoppableExecutor executor, TriggerStrategy triggerStrategy) {
         this.executor = executor;
         this.triggerStrategy = triggerStrategy;
     }

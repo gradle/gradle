@@ -16,26 +16,31 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.filewatch.FileWatcherService
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
+class FileWatchStrategyTest extends Specification {
+    def listener = Mock(TriggerListener)
 
-class DefaultTriggerGeneratorTest extends Specification {
-    def executor = Mock(StoppableExecutor)
-    def triggerStrategy = Mock(TriggerStrategy)
-    def triggerGenerator = new DefaultTriggerGenerator(executor, triggerStrategy)
-
-    def "start executes the trigger strategy"() {
+    def "registers with file watcher"() {
+        given:
+        def fileWatcherFactory = Mock(FileWatcherService)
         when:
-        triggerGenerator.start()
+        def fileWatchStrategy = new FileWatchStrategy(listener, fileWatcherFactory)
         then:
-        1 * executor.execute(triggerStrategy)
+        1 * fileWatcherFactory.watch(
+                { !it.directoryTrees.empty },
+                { it instanceof FileWatchStrategy.FileChangeCallback })
     }
 
-    def "stop stops the executor"() {
+    def "file watch change triggers listener"() {
+        given:
+        def callback = new FileWatchStrategy.FileChangeCallback(listener)
         when:
-        triggerGenerator.stop()
+        callback.run()
         then:
-        1 * executor.stop()
+        1 * listener.triggered(_)
     }
 }

@@ -16,26 +16,18 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.internal.concurrent.StoppableExecutor
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.filewatch.FileWatcherService
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
-
-class DefaultTriggerGeneratorTest extends Specification {
-    def executor = Mock(StoppableExecutor)
-    def triggerStrategy = Mock(TriggerStrategy)
-    def triggerGenerator = new DefaultTriggerGenerator(executor, triggerStrategy)
-
-    def "start executes the trigger strategy"() {
-        when:
-        triggerGenerator.start()
-        then:
-        1 * executor.execute(triggerStrategy)
-    }
-
-    def "stop stops the executor"() {
-        when:
-        triggerGenerator.stop()
-        then:
-        1 * executor.stop()
+@UsesNativeServices
+class DefaultTriggerGeneratorFactoryTest extends Specification {
+    def executorFactory = Mock(ExecutorFactory)
+    def fileWatcherFactory = Mock(FileWatcherService)
+    def triggerGeneratorFactory = new DefaultTriggerGeneratorFactory(executorFactory, fileWatcherFactory)
+    def "creates trigger generator"() {
+        expect:
+        triggerGeneratorFactory.newInstance(Mock(TriggerListener)) instanceof DefaultTriggerGenerator
     }
 }

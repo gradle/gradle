@@ -18,22 +18,35 @@ package org.gradle.launcher.continuous;
 
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.FileWatchInputs;
 import org.gradle.internal.filewatch.FileWatcherService;
 
 import java.io.File;
+import java.io.IOException;
 
-public class FileWatchStrategy implements TriggerStrategy {
+/**
+ * Hacky initial implementation for file watching
+ * Monitors the "current" directory and excludes build/** and .gradle/**
+ * TODO: Look for the project directory?
+ */
+class FileWatchStrategy implements TriggerStrategy {
     private final TriggerListener listener;
-    private final Stoppable fileWatcher;
+    private Stoppable fileWatcher;
 
-    public FileWatchStrategy(TriggerListener listener, FileWatcherService fileWatcherService) {
+    FileWatchStrategy(TriggerListener listener, FileWatcherService fileWatcherService) {
         this.listener = listener;
         DirectoryTree dir = new DirectoryFileTree(new File("."));
         dir.getPatterns().exclude("build/**/*", ".gradle/**/*");
         FileWatchInputs inputs = FileWatchInputs.newBuilder().add(dir).build();
-        this.fileWatcher = fileWatcherService.watch(inputs, new FileChangeCallback());
+        try {
+            this.fileWatcher = fileWatcherService.watch(inputs, new FileChangeCallback(listener));
+        } catch (IOException e) {
+            // TODO:
+            UncheckedException.throwAsUncheckedException(e);
+        }
+        // TODO: We need to stop the fileWatcher?
     }
 
     @Override
@@ -41,7 +54,13 @@ public class FileWatchStrategy implements TriggerStrategy {
         // TODO: Enforce quiet period here?
     }
 
-    private class FileChangeCallback implements Runnable {
+    static class FileChangeCallback implements Runnable {
+        private final TriggerListener listener;
+
+        private FileChangeCallback(TriggerListener listener) {
+            this.listener = listener;
+        }
+
         public void run() {
             listener.triggered(new DefaultTriggerDetails("file change"));
         }

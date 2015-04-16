@@ -15,73 +15,159 @@
  */
 
 package org.gradle.launcher.exec
-import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.initialization.DefaultBuildRequestContext
-import org.gradle.initialization.NoOpBuildEventConsumer
+
+import org.gradle.initialization.*
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.launcher.continuous.BlockingTriggerListener
 import org.gradle.launcher.continuous.DefaultTriggerDetails
 import org.gradle.launcher.continuous.TriggerGenerator
 import org.gradle.launcher.continuous.TriggerGeneratorFactory
-import org.gradle.launcher.continuous.TriggerListener
 import org.gradle.util.Clock
 import spock.lang.Specification
 
 class ContinuousModeBuildActionExecuterTest extends Specification {
-
-    def underlyingExecuter = Mock(BuildActionExecuter)
+    def underlyingExecuter = new UnderlyingExecuter()
     def triggerGenerator = Mock(TriggerGenerator)
-
-    def triggerGeneratorFactory = new TriggerGeneratorFactory() {
-        TriggerGenerator newInstance(TriggerListener listener) {
-            return triggerGenerator
-        }
-    }
+    def triggerGeneratorFactory = Stub(TriggerGeneratorFactory)
+    def triggerDetails = new DefaultTriggerDetails("test reason")
+    def triggerListener = Mock(BlockingTriggerListener)
     def action = Mock(BuildAction)
-    def cancellationToken = Mock(BuildCancellationToken)
+    def cancellationToken = Stub(BuildCancellationToken)
     def clock = Mock(Clock)
-    def requestMetadata = Stub(BuildRequestMetaData) {
-        getBuildTimeClock() >> clock
-    }
+    def requestMetadata = Stub(BuildRequestMetaData)
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
-    def actionParameters = Mock(BuildActionParameters)
+    def actionParameters = Stub(BuildActionParameters)
+    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerGeneratorFactory, triggerListener)
 
-    def executer = new ContinuousModeBuildActionExecuter(underlyingExecuter, triggerGeneratorFactory)
+    def setup() {
+        requestMetadata.getBuildTimeClock() >> clock
+        triggerGeneratorFactory.newInstance() >> triggerGenerator
+    }
 
     def "uses underlying executer when continuous mode is not enabled"() {
         given:
-        actionParameters.continuousModeEnabled >> false
-
+        singleBuildMode()
+        underlyingExecuter.with {
+            first { succeeds() }
+            thenStops()
+        }
         when:
-        executer.execute(action, requestContext, actionParameters)
-
+        executeBuild()
         then:
-        1 * underlyingExecuter.execute(action, requestContext, actionParameters)
+        underlyingExecuter.executedAllActions()
+        noExceptionThrown()
     }
 
     def "allows exceptions to propagate for single builds"() {
         given:
-        actionParameters.continuousModeEnabled >> false
-
+        singleBuildMode()
+        underlyingExecuter.with {
+            first { fails() }
+            thenStops()
+        }
         when:
-        executer.execute(action, requestContext, actionParameters)
-
+        executeBuild()
         then:
-        1 * underlyingExecuter.execute(action, requestContext, actionParameters) >> { throw new RuntimeException("always fails") }
+        underlyingExecuter.executedAllActions()
         thrown(RuntimeException)
     }
 
-    def "runs once and is cancelled in continuous mode"() {
+    def "waits for trigger in continuous mode when build works"() {
         given:
-        def trigger = new DefaultTriggerDetails("test")
-        actionParameters.continuousModeEnabled >> true
-        cancellationToken.cancellationRequested >>> [ false, true ]
-
+        continuousMode()
         when:
-        executer.execute(action, requestContext, actionParameters)
-
+        underlyingExecuter.with {
+            first { succeeds() }
+            thenStops()
+        }
+        executeBuild()
         then:
-        1 * underlyingExecuter.execute(action, requestContext, actionParameters) >> { executer.triggered(trigger) }
+        1 * triggerListener.waitForTrigger() >> triggerDetails
         1 * clock.reset()
+        underlyingExecuter.executedAllActions()
+    }
+
+    def "waits for trigger in continuous mode when build fails"() {
+        given:
+        continuousMode()
+        when:
+        underlyingExecuter.with {
+            first { fails() }
+            thenStops()
+        }
+        executeBuild()
+        then: "hides exceptions"
+        1 * triggerListener.waitForTrigger() >> triggerDetails
+        1 * clock.reset()
+        underlyingExecuter.executedAllActions()
+    }
+
+    def "keeps running after failures in continuous mode"() {
+        given:
+        continuousMode()
+        underlyingExecuter.with {
+            first { succeeds() }
+            then { fails() }
+            then { succeeds() }
+            thenStops()
+        }
+        when:
+        executeBuild()
+        then:
+        3 * triggerListener.waitForTrigger() >> triggerDetails
+        3 * clock.reset()
+        underlyingExecuter.executedAllActions()
+    }
+
+    private void singleBuildMode() {
+        actionParameters.continuousModeEnabled >> false
+    }
+    private void continuousMode() {
+        actionParameters.continuousModeEnabled >> true
+    }
+    private void executeBuild() {
+        executer.execute(action, requestContext, actionParameters)
+    }
+
+    private void succeeds() {}
+    private void fails() {
+        throw new RuntimeException("always fails")
+    }
+    private void cancelAfter(int times) {
+        def keepGoing = [ false ]
+        def thenCancel = [ true ]
+        // cancellation request is checked twice per build
+        cancellationToken.cancellationRequested >>> (keepGoing*times*2) + thenCancel
+    }
+
+    private class UnderlyingExecuter implements BuildActionExecuter<BuildActionParameters> {
+        private final List<Closure> actions = []
+
+        UnderlyingExecuter first(Closure c) {
+            actions.add(0, c)
+            return this
+        }
+
+        UnderlyingExecuter then(Closure c) {
+            actions.add(c)
+            return this
+        }
+
+        void thenStops() {
+            cancelAfter(actions.size())
+        }
+
+        boolean executedAllActions() {
+            actions.empty
+        }
+
+        @Override
+        Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
+            if (actions.empty) {
+                throw new IllegalArgumentException("Not enough actions for underlying executer")
+            }
+            actions.remove(0).call()
+            return null
+        }
     }
 }

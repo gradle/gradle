@@ -183,6 +183,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         ParametersConverter parametersConverter = new ParametersConverter();
         parametersConverter.configure(parser);
         Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), new Parameters(startParameter));
+        System.getProperties().putAll(parameters.getStartParameter().getSystemPropertiesArgs());
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
