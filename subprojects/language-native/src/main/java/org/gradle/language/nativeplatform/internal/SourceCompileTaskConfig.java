@@ -18,21 +18,14 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
-import org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-
-import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class SourceCompileTaskConfig extends CompileTaskConfig {
     public SourceCompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
@@ -54,21 +47,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
             final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal)sourceSet;
             task.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
             task.setPreCompiledHeader(dependentSourceSet.getPreCompiledHeader());
-            task.preCompiledHeaderInclude(new Callable<FileCollection>() {
-                public FileCollection call() {
-                    Set<AbstractNativePCHCompileTask> pchTasks = binary.getTasks().withType(AbstractNativePCHCompileTask.class).matching(new Spec<AbstractNativePCHCompileTask>() {
-                        @Override
-                        public boolean isSatisfiedBy(AbstractNativePCHCompileTask pchCompileTask) {
-                            return dependentSourceSet.getPrefixHeaderFile().equals(pchCompileTask.getPrefixHeaderFile());
-                        }
-                    });
-                    if (!pchTasks.isEmpty()) {
-                        return pchTasks.iterator().next().getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch", "**/*.gch"));
-                    } else {
-                        return new SimpleFileCollection();
-                    }
-                }
-            });
+            task.preCompiledHeaderInclude(binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile()));
         }
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

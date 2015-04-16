@@ -33,6 +33,7 @@ import java.io.File;
 abstract public class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private String preCompiledHeader;
     private ConfigurableFileCollection preCompiledHeaderInclude;
+    private File prefixHeaderFile;
 
     public AbstractNativeSourceCompileTask() {
         super();
@@ -71,5 +72,16 @@ abstract public class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     public void setPreCompiledHeader(String preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
+    }
+
+    /**
+     * Returns the pre-compiled header file to be used during compilation
+     */
+    public File getPrefixHeaderFile() {
+        return prefixHeaderFile;
+    }
+
+    public void setPrefixHeaderFile(File prefixHeaderFile) {
+        this.prefixHeaderFile = prefixHeaderFile;
     }
 }

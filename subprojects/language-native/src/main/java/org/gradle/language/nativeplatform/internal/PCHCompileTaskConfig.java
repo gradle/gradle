@@ -53,7 +53,6 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         });
 
         final Project project = task.getProject();
-        task.setPrefixHeaderFile(sourceSet.getPrefixHeaderFile());
         task.source(sourceSet.getPrefixHeaderFile());
 
         task.setObjectFileDir(project.file(String.valueOf(project.getBuildDir()) + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + languageSourceSet.getFullName() + "PCH"));
@@ -67,5 +66,8 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
 
         // This is so that VisualCpp has the object file of the generated source file available at link time
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));
+
+        binary.getPrefixFileToPCH().put(sourceSet.getPrefixHeaderFile(),
+                task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.pch", "**/*.gch")));
     }
 }

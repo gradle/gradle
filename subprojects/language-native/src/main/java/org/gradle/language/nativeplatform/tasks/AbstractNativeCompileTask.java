@@ -53,7 +53,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private ConfigurableFileCollection source;
     private Map<String, String> macros;
     private List<String> compilerArgs;
-    private File prefixHeaderFile;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
@@ -208,16 +207,5 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
-    }
-
-    /**
-     * Returns the pre-compiled header file to be used during compilation
-     */
-    public File getPrefixHeaderFile() {
-        return prefixHeaderFile;
-    }
-
-    public void setPrefixHeaderFile(File prefixHeaderFile) {
-        this.prefixHeaderFile = prefixHeaderFile;
     }
 }

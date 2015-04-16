@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
@@ -33,9 +34,11 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
@@ -50,6 +53,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
+    private Map<File, FileCollection> prefixFileToPCH = Maps.newHashMap();
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -126,6 +130,10 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
         return resolve(getSource().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+    }
+
+    public Map<File, FileCollection> getPrefixFileToPCH() {
+        return prefixFileToPCH;
     }
 
     private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {
